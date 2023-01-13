@@ -23,8 +23,9 @@ import (
 )
 
 type flusher struct {
-	updateCh *queue.QueuedChannel[imap.Update]
-	updates  []*imap.MessageCreated
+	updateCh      *queue.QueuedChannel[imap.Update]
+	updates       []*imap.MessageCreated
+	pushedUpdates []imap.Update
 
 	maxUpdateSize int
 	curChunkSize  int
@@ -47,8 +48,16 @@ func (f *flusher) push(update *imap.MessageCreated) {
 
 func (f *flusher) flush() {
 	if len(f.updates) > 0 {
-		f.updateCh.Enqueue(imap.NewMessagesCreated(true, f.updates...))
+		update := imap.NewMessagesCreated(true, f.updates...)
+		f.updateCh.Enqueue(update)
 		f.updates = nil
 		f.curChunkSize = 0
+		f.pushedUpdates = append(f.pushedUpdates, update)
 	}
+}
+
+func (f *flusher) collectPushedUpdates() []imap.Update {
+	updates := f.pushedUpdates
+	f.pushedUpdates = nil
+	return updates
 }

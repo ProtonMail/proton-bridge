@@ -294,18 +294,33 @@ func (user *User) handleLabelEvents(ctx context.Context, labelEvents []proton.La
 	for _, event := range labelEvents {
 		switch event.Action {
 		case proton.EventCreate:
-			if err := user.handleCreateLabelEvent(ctx, event); err != nil {
+			updates, err := user.handleCreateLabelEvent(ctx, event)
+			if err != nil {
 				return fmt.Errorf("failed to handle create label event: %w", err)
 			}
 
+			if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+				return err
+			}
+
 		case proton.EventUpdate, proton.EventUpdateFlags:
-			if err := user.handleUpdateLabelEvent(ctx, event); err != nil {
+			updates, err := user.handleUpdateLabelEvent(ctx, event)
+			if err != nil {
 				return fmt.Errorf("failed to handle update label event: %w", err)
 			}
 
+			if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+				return err
+			}
+
 		case proton.EventDelete:
-			if err := user.handleDeleteLabelEvent(ctx, event); err != nil {
+			updates, err := user.handleDeleteLabelEvent(ctx, event)
+			if err != nil {
 				return fmt.Errorf("failed to handle delete label event: %w", err)
+			}
+
+			if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+				return err
 			}
 		}
 	}
@@ -313,8 +328,9 @@ func (user *User) handleLabelEvents(ctx context.Context, labelEvents []proton.La
 	return nil
 }
 
-func (user *User) handleCreateLabelEvent(_ context.Context, event proton.LabelEvent) error { //nolint:unparam
-	return safe.LockRet(func() error {
+func (user *User) handleCreateLabelEvent(ctx context.Context, event proton.LabelEvent) ([]imap.Update, error) { //nolint:unparam
+	return safe.LockRetErr(func() ([]imap.Update, error) {
+		var updates []imap.Update
 		user.log.WithFields(logrus.Fields{
 			"labelID": event.ID,
 			"name":    logging.Sensitive(event.Label.Name),
@@ -325,7 +341,9 @@ func (user *User) handleCreateLabelEvent(_ context.Context, event proton.LabelEv
 		}
 
 		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
-			updateCh.Enqueue(newMailboxCreatedUpdate(imap.MailboxID(event.ID), getMailboxName(event.Label)))
+			update := newMailboxCreatedUpdate(imap.MailboxID(event.ID), getMailboxName(event.Label))
+			updateCh.Enqueue(update)
+			updates = append(updates, update)
 		}
 
 		user.eventCh.Enqueue(events.UserLabelCreated{
@@ -334,12 +352,13 @@ func (user *User) handleCreateLabelEvent(_ context.Context, event proton.LabelEv
 			Name:    event.Label.Name,
 		})
 
-		return nil
+		return updates, nil
 	}, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleUpdateLabelEvent(_ context.Context, event proton.LabelEvent) error { //nolint:unparam
-	return safe.LockRet(func() error {
+func (user *User) handleUpdateLabelEvent(ctx context.Context, event proton.LabelEvent) ([]imap.Update, error) { //nolint:unparam
+	return safe.LockRetErr(func() ([]imap.Update, error) {
+		var updates []imap.Update
 		user.log.WithFields(logrus.Fields{
 			"labelID": event.ID,
 			"name":    logging.Sensitive(event.Label.Name),
@@ -350,10 +369,12 @@ func (user *User) handleUpdateLabelEvent(_ context.Context, event proton.LabelEv
 		}
 
 		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
-			updateCh.Enqueue(imap.NewMailboxUpdated(
+			update := imap.NewMailboxUpdated(
 				imap.MailboxID(event.ID),
 				getMailboxName(event.Label),
-			))
+			)
+			updateCh.Enqueue(update)
+			updates = append(updates, update)
 		}
 
 		user.eventCh.Enqueue(events.UserLabelUpdated{
@@ -362,12 +383,14 @@ func (user *User) handleUpdateLabelEvent(_ context.Context, event proton.LabelEv
 			Name:    event.Label.Name,
 		})
 
-		return nil
+		return updates, nil
 	}, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleDeleteLabelEvent(_ context.Context, event proton.LabelEvent) error { //nolint:unparam
-	return safe.LockRet(func() error {
+func (user *User) handleDeleteLabelEvent(ctx context.Context, event proton.LabelEvent) ([]imap.Update, error) { //nolint:unparam
+	return safe.LockRetErr(func() ([]imap.Update, error) {
+		var updates []imap.Update
+
 		user.log.WithField("labelID", event.ID).Info("Handling label deleted event")
 
 		label, ok := user.apiLabels[event.ID]
@@ -376,7 +399,9 @@ func (user *User) handleDeleteLabelEvent(_ context.Context, event proton.LabelEv
 		}
 
 		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
-			updateCh.Enqueue(imap.NewMailboxDeleted(imap.MailboxID(event.ID)))
+			update := imap.NewMailboxDeleted(imap.MailboxID(event.ID))
+			updateCh.Enqueue(update)
+			updates = append(updates, update)
 		}
 
 		user.eventCh.Enqueue(events.UserLabelDeleted{
@@ -385,7 +410,7 @@ func (user *User) handleDeleteLabelEvent(_ context.Context, event proton.LabelEv
 			Name:    label.Name,
 		})
 
-		return nil
+		return updates, nil
 	}, user.apiLabelsLock, user.updateChLock)
 }
 
@@ -396,32 +421,42 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 
 		switch event.Action {
 		case proton.EventCreate:
-			if err := user.handleCreateMessageEvent(
+			updates, err := user.handleCreateMessageEvent(
 				logging.WithLogrusField(ctx, "action", "create message"),
-				event,
-			); err != nil {
+				event)
+			if err != nil {
 				if rerr := user.reporter.ReportMessageWithContext("Failed to apply create message event", reporter.Context{
 					"error": err,
 				}); rerr != nil {
 					user.log.WithError(err).Error("Failed to report create message event error")
 				}
+
 				return fmt.Errorf("failed to handle create message event: %w", err)
+			}
+
+			if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+				return err
 			}
 
 		case proton.EventUpdate, proton.EventUpdateFlags:
 			// Draft update means to completely remove old message and upload the new data again, but we should
 			// only do this if the event is of type EventUpdate otherwise label switch operations will not work.
 			if event.Message.IsDraft() && event.Action == proton.EventUpdate {
-				if err := user.handleUpdateDraftEvent(
+				updates, err := user.handleUpdateDraftEvent(
 					logging.WithLogrusField(ctx, "action", "update draft"),
 					event,
-				); err != nil {
+				)
+				if err != nil {
 					if rerr := user.reporter.ReportMessageWithContext("Failed to apply update draft message event", reporter.Context{
 						"error": err,
 					}); rerr != nil {
 						user.log.WithError(err).Error("Failed to report update draft message event error")
 					}
 					return fmt.Errorf("failed to handle update draft event: %w", err)
+				}
+
+				if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+					return err
 				}
 
 				return nil
@@ -431,10 +466,11 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 			// whether the flags, labels or read only data (header+body) has been changed. This requires fixing proton
 			// first so that it correctly reports those cases.
 			// Issue regular update to handle mailboxes and flag changes.
-			if err := user.handleUpdateMessageEvent(
+			updates, err := user.handleUpdateMessageEvent(
 				logging.WithLogrusField(ctx, "action", "update message"),
 				event,
-			); err != nil {
+			)
+			if err != nil {
 				if rerr := user.reporter.ReportMessageWithContext("Failed to apply update message event", reporter.Context{
 					"error": err,
 				}); rerr != nil {
@@ -443,11 +479,16 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 				return fmt.Errorf("failed to handle update message event: %w", err)
 			}
 
+			if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+				return err
+			}
+
 		case proton.EventDelete:
-			if err := user.handleDeleteMessageEvent(
+			updates, err := user.handleDeleteMessageEvent(
 				logging.WithLogrusField(ctx, "action", "delete message"),
 				event,
-			); err != nil {
+			)
+			if err != nil {
 				if rerr := user.reporter.ReportMessageWithContext("Failed to apply delete message event", reporter.Context{
 					"error": err,
 				}); rerr != nil {
@@ -455,25 +496,30 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 				}
 				return fmt.Errorf("failed to handle delete message event: %w", err)
 			}
+
+			if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.MessageEvent) error {
+func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) {
 	full, err := user.client.GetFullMessage(ctx, event.Message.ID)
 	if err != nil {
-		return fmt.Errorf("failed to get full message: %w", err)
+		return nil, fmt.Errorf("failed to get full message: %w", err)
 	}
 
-	return safe.RLockRet(func() error {
+	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		user.log.WithFields(logrus.Fields{
 			"messageID": event.ID,
 			"subject":   logging.Sensitive(event.Message.Subject),
 		}).Info("Handling message created event")
 
-		return withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+		var update imap.Update
+		if err := withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
 			res := buildRFC822(user.apiLabels, full, addrKR)
 
 			if res.err != nil {
@@ -497,45 +543,56 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.Mes
 				user.log.WithError(err).Error("Failed to remove failed message ID from vault")
 			}
 
-			user.updateCh[full.AddressID].Enqueue(imap.NewMessagesCreated(false, res.update))
+			update = imap.NewMessagesCreated(false, res.update)
+			user.updateCh[full.AddressID].Enqueue(update)
 
 			return nil
-		})
+		}); err != nil {
+			return nil, err
+		}
+
+		return []imap.Update{update}, nil
 	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleUpdateMessageEvent(ctx context.Context, event proton.MessageEvent) error { //nolint:unparam
-	return safe.RLockRet(func() error {
+func (user *User) handleUpdateMessageEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) { //nolint:unparam
+	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		user.log.WithFields(logrus.Fields{
 			"messageID": event.ID,
 			"subject":   logging.Sensitive(event.Message.Subject),
 		}).Info("Handling message updated event")
 
-		user.updateCh[event.Message.AddressID].Enqueue(imap.NewMessageMailboxesUpdated(
+		update := imap.NewMessageMailboxesUpdated(
 			imap.MessageID(event.ID),
 			mapTo[string, imap.MailboxID](wantLabels(user.apiLabels, event.Message.LabelIDs)),
 			event.Message.Seen(),
 			event.Message.Starred(),
-		))
+		)
 
-		return nil
+		user.updateCh[event.Message.AddressID].Enqueue(update)
+
+		return []imap.Update{update}, nil
 	}, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleDeleteMessageEvent(ctx context.Context, event proton.MessageEvent) error { //nolint:unparam
-	return safe.RLockRet(func() error {
+func (user *User) handleDeleteMessageEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) { //nolint:unparam
+	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		user.log.WithField("messageID", event.ID).Info("Handling message deleted event")
 
+		var updates []imap.Update
+
 		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
-			updateCh.Enqueue(imap.NewMessagesDeleted(imap.MessageID(event.ID)))
+			update := imap.NewMessagesDeleted(imap.MessageID(event.ID))
+			updateCh.Enqueue(update)
+			updates = append(updates, update)
 		}
 
-		return nil
+		return updates, nil
 	}, user.updateChLock)
 }
 
-func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.MessageEvent) error { //nolint:unparam
-	return safe.RLockRet(func() error {
+func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) { //nolint:unparam
+	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		user.log.WithFields(logrus.Fields{
 			"messageID": event.ID,
 			"subject":   logging.Sensitive(event.Message.Subject),
@@ -543,10 +600,12 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 
 		full, err := user.client.GetFullMessage(ctx, event.Message.ID)
 		if err != nil {
-			return fmt.Errorf("failed to get full draft: %w", err)
+			return nil, fmt.Errorf("failed to get full draft: %w", err)
 		}
 
-		return withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+		var update imap.Update
+
+		if err := withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
 			res := buildRFC822(user.apiLabels, full, addrKR)
 
 			if res.err != nil {
@@ -570,15 +629,21 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 				user.log.WithError(err).Error("Failed to remove failed message ID from vault")
 			}
 
-			user.updateCh[full.AddressID].Enqueue(imap.NewMessageUpdated(
+			update = imap.NewMessageUpdated(
 				res.update.Message,
 				res.update.Literal,
 				res.update.MailboxIDs,
 				res.update.ParsedMessage,
-			))
+			)
+
+			user.updateCh[full.AddressID].Enqueue(update)
 
 			return nil
-		})
+		}); err != nil {
+			return nil, err
+		}
+
+		return []imap.Update{update}, nil
 	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
@@ -601,4 +666,15 @@ func getMailboxName(label proton.Label) []string {
 	}
 
 	return name
+}
+
+func waitOnIMAPUpdates(ctx context.Context, updates []imap.Update) error {
+	for _, update := range updates {
+		err, ok := update.WaitContext(ctx)
+		if ok && err != nil {
+			return fmt.Errorf("failed to apply gluon update %v :%w", update.String(), err)
+		}
+	}
+
+	return nil
 }

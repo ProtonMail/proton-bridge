@@ -164,10 +164,14 @@ func (user *User) sync(ctx context.Context) error {
 
 // nolint:exhaustive
 func syncLabels(ctx context.Context, apiLabels map[string]proton.Label, updateCh ...*queue.QueuedChannel[imap.Update]) error {
+	var updates []imap.Update
+
 	// Create placeholder Folders/Labels mailboxes with a random ID and with the \Noselect attribute.
 	for _, prefix := range []string{folderPrefix, labelPrefix} {
 		for _, updateCh := range updateCh {
-			updateCh.Enqueue(newPlaceHolderMailboxCreatedUpdate(prefix))
+			update := newPlaceHolderMailboxCreatedUpdate(prefix)
+			updateCh.Enqueue(update)
+			updates = append(updates, update)
 		}
 	}
 
@@ -180,12 +184,16 @@ func syncLabels(ctx context.Context, apiLabels map[string]proton.Label, updateCh
 		switch label.Type {
 		case proton.LabelTypeSystem:
 			for _, updateCh := range updateCh {
-				updateCh.Enqueue(newSystemMailboxCreatedUpdate(imap.MailboxID(label.ID), label.Name))
+				update := newSystemMailboxCreatedUpdate(imap.MailboxID(label.ID), label.Name)
+				updateCh.Enqueue(update)
+				updates = append(updates, update)
 			}
 
 		case proton.LabelTypeFolder, proton.LabelTypeLabel:
 			for _, updateCh := range updateCh {
-				updateCh.Enqueue(newMailboxCreatedUpdate(imap.MailboxID(labelID), getMailboxName(label)))
+				update := newMailboxCreatedUpdate(imap.MailboxID(labelID), getMailboxName(label))
+				updateCh.Enqueue(update)
+				updates = append(updates, update)
 			}
 
 		default:
@@ -194,11 +202,11 @@ func syncLabels(ctx context.Context, apiLabels map[string]proton.Label, updateCh
 	}
 
 	// Wait for all label updates to be applied.
-	for _, updateCh := range updateCh {
-		update := imap.NewNoop()
-		defer update.WaitContext(ctx)
-
-		updateCh.Enqueue(update)
+	for _, update := range updates {
+		err, ok := update.WaitContext(ctx)
+		if ok && err != nil {
+			return fmt.Errorf("failed to apply label create update in gluon %v: %w", update.String(), err)
+		}
 	}
 
 	return nil
@@ -243,9 +251,9 @@ func syncMessages(
 	defer syncReporter.done()
 
 	type flushUpdate struct {
-		messageID string
-		noOps     []*imap.Noop
-		batchLen  int
+		messageID     string
+		pushedUpdates []imap.Update
+		batchLen      int
 	}
 
 	// The higher this value, the longer we can continue our download iteration before being blocked on channel writes
@@ -322,29 +330,26 @@ func syncMessages(
 				flushers[res.addressID].push(res.update)
 			}
 
+			var pushedUpdates []imap.Update
 			for _, flusher := range flushers {
 				flusher.flush()
-			}
-
-			noopUpdates := make([]*imap.Noop, len(updateCh))
-			index := 0
-			for _, updateCh := range updateCh {
-				noopUpdates[index] = imap.NewNoop()
-				updateCh.Enqueue(noopUpdates[index])
-				index++
+				pushedUpdates = append(pushedUpdates, flusher.collectPushedUpdates()...)
 			}
 
 			flushUpdateCh <- flushUpdate{
-				messageID: batch[0].messageID,
-				noOps:     noopUpdates,
-				batchLen:  len(batch),
+				messageID:     batch[0].messageID,
+				pushedUpdates: pushedUpdates,
+				batchLen:      len(batch),
 			}
 		}
 	}()
 
 	for flushUpdate := range flushUpdateCh {
-		for _, up := range flushUpdate.noOps {
-			up.WaitContext(ctx)
+		for _, up := range flushUpdate.pushedUpdates {
+			err, ok := up.WaitContext(ctx)
+			if ok && err != nil {
+				return fmt.Errorf("failed to apply sync update to gluon %v: %w", up.String(), err)
+			}
 		}
 
 		if err := vault.SetLastMessageID(flushUpdate.messageID); err != nil {

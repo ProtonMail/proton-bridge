@@ -110,7 +110,7 @@ func TestUser_AddressMode(t *testing.T) {
 				for _, imapConn := range imapConn {
 					go func(imapConn connector.Connector) {
 						for update := range imapConn.GetUpdates() {
-							update.Done()
+							update.Done(nil)
 						}
 					}(imapConn)
 				}
@@ -226,7 +226,7 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 	for _, imapConn := range imapConn {
 		go func(imapConn connector.Connector) {
 			for update := range imapConn.GetUpdates() {
-				update.Done()
+				update.Done(nil)
 			}
 		}(imapConn)
 	}
