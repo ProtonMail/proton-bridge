@@ -47,7 +47,7 @@ type Vault struct {
 }
 
 // New constructs a new encrypted data vault at the given filepath using the given encryption key.
-func New(vaultDir, gluonDir string, key []byte) (*Vault, bool, error) {
+func New(vaultDir, gluonCacheDir string, key []byte) (*Vault, bool, error) {
 	if err := os.MkdirAll(vaultDir, 0o700); err != nil {
 		return nil, false, err
 	}
@@ -64,7 +64,7 @@ func New(vaultDir, gluonDir string, key []byte) (*Vault, bool, error) {
 		return nil, false, err
 	}
 
-	vault, corrupt, err := newVault(filepath.Join(vaultDir, "vault.enc"), gluonDir, gcm)
+	vault, corrupt, err := newVault(filepath.Join(vaultDir, "vault.enc"), gluonCacheDir, gcm)
 	if err != nil {
 		return nil, false, err
 	}

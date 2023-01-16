@@ -225,13 +225,13 @@ func ApplyGluonCachePathSuffix(basePath string) string {
 	return filepath.Join(basePath, "backend", "store")
 }
 
-func ApplyGluonDBPathSuffix(basePath string) string {
+func ApplyGluonConfigPathSuffix(basePath string) string {
 	return filepath.Join(basePath, "backend", "db")
 }
 
 // nolint:funlen
 func newIMAPServer(
-	gluonCacheDir, gluonDBDir string,
+	gluonCacheDir, gluonConfigDir string,
 	version *semver.Version,
 	tlsConfig *tls.Config,
 	reporter reporter.Reporter,
@@ -240,11 +240,11 @@ func newIMAPServer(
 	tasks *async.Group,
 ) (*gluon.Server, error) {
 	gluonCacheDir = ApplyGluonCachePathSuffix(gluonCacheDir)
-	gluonDBDir = ApplyGluonDBPathSuffix(gluonDBDir)
+	gluonConfigDir = ApplyGluonConfigPathSuffix(gluonConfigDir)
 
 	logrus.WithFields(logrus.Fields{
 		"gluonStore": gluonCacheDir,
-		"gluonDB":    gluonDBDir,
+		"gluonDB":    gluonConfigDir,
 		"version":    version,
 		"logClient":  logClient,
 		"logServer":  logServer,
@@ -276,7 +276,7 @@ func newIMAPServer(
 	imapServer, err := gluon.New(
 		gluon.WithTLS(tlsConfig),
 		gluon.WithDataDir(gluonCacheDir),
-		gluon.WithDatabaseDir(gluonDBDir),
+		gluon.WithDatabaseDir(gluonConfigDir),
 		gluon.WithStoreBuilder(new(storeBuilder)),
 		gluon.WithLogger(imapClientLog, imapServerLog),
 		getGluonVersionInfo(version),

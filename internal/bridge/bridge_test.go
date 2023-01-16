@@ -490,7 +490,7 @@ func TestBridge_InitGluonDirectory(t *testing.T) {
 			_, err = os.ReadDir(bridge.ApplyGluonCachePathSuffix(b.GetGluonCacheDir()))
 			require.False(t, os.IsNotExist(err))
 
-			_, err = os.ReadDir(bridge.ApplyGluonDBPathSuffix(configDir))
+			_, err = os.ReadDir(bridge.ApplyGluonConfigPathSuffix(configDir))
 			require.False(t, os.IsNotExist(err))
 		})
 	})
@@ -533,7 +533,7 @@ func TestBridge_ChangeCacheDirectory(t *testing.T) {
 			_, err = os.ReadDir(bridge.ApplyGluonCachePathSuffix(currentCacheDir))
 			require.True(t, os.IsNotExist(err))
 			// Database should not have changed.
-			_, err = os.ReadDir(bridge.ApplyGluonDBPathSuffix(configDir))
+			_, err = os.ReadDir(bridge.ApplyGluonConfigPathSuffix(configDir))
 			require.False(t, os.IsNotExist(err))
 
 			// New path should have Gluon sub-folder.

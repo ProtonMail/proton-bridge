@@ -120,7 +120,7 @@ func (bridge *Bridge) GetGluonCacheDir() string {
 }
 
 func (bridge *Bridge) GetGluonConfigDir() (string, error) {
-	return bridge.locator.ProvideGluonPath()
+	return bridge.locator.ProvideGluonConfigPath()
 }
 
 func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error {
@@ -353,10 +353,10 @@ func (bridge *Bridge) FactoryReset(ctx context.Context) {
 	}, bridge.usersLock)
 
 	// Wipe the vault.
-	gluonDir, err := bridge.locator.ProvideGluonPath()
+	gluonCacheDir, err := bridge.locator.ProvideGluonCachePath()
 	if err != nil {
 		logrus.WithError(err).Error("Failed to provide gluon dir")
-	} else if err := bridge.vault.Reset(gluonDir); err != nil {
+	} else if err := bridge.vault.Reset(gluonCacheDir); err != nil {
 		logrus.WithError(err).Error("Failed to reset vault")
 	}
 

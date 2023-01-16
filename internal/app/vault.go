@@ -89,12 +89,12 @@ func newVault(locations *locations.Locations) (*vault.Vault, bool, bool, error) 
 		vaultKey = key
 	}
 
-	gluonDir, err := locations.ProvideGluonPath()
+	gluonCacheDir, err := locations.ProvideGluonCachePath()
 	if err != nil {
 		return nil, false, false, fmt.Errorf("could not provide gluon path: %w", err)
 	}
 
-	vault, corrupt, err := vault.New(vaultDir, gluonDir, vaultKey)
+	vault, corrupt, err := vault.New(vaultDir, gluonCacheDir, vaultKey)
 	if err != nil {
 		return nil, false, false, fmt.Errorf("could not create vault: %w", err)
 	}

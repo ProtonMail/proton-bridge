@@ -100,13 +100,13 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 	}
 
 	// Get the default gluon path.
-	gluonDir, err := t.locator.ProvideGluonPath()
+	gluonCacheDir, err := t.locator.ProvideGluonCachePath()
 	if err != nil {
 		return nil, fmt.Errorf("could not get gluon dir: %w", err)
 	}
 
 	// Create the vault.
-	vault, corrupt, err := vault.New(vaultDir, gluonDir, t.storeKey)
+	vault, corrupt, err := vault.New(vaultDir, gluonCacheDir, t.storeKey)
 	if err != nil {
 		return nil, fmt.Errorf("could not create vault: %w", err)
 	} else if corrupt {

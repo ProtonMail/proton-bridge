@@ -216,19 +216,19 @@ func newBridge(
 		return nil, fmt.Errorf("failed to load TLS config: %w", err)
 	}
 
-	gluonDir, err := getGluonDir(vault)
+	gluonCacheDir, err := getGluonDir(vault)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Gluon directory: %w", err)
 	}
 
-	gluonDBDir, err := locator.ProvideGluonPath()
+	gluonConfigDir, err := locator.ProvideGluonConfigPath()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Gluon Database directory: %w", err)
 	}
 
 	imapServer, err := newIMAPServer(
-		gluonDir,
-		gluonDBDir,
+		gluonCacheDir,
+		gluonConfigDir,
 		curVersion,
 		tlsConfig,
 		reporter,

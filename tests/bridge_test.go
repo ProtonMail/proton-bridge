@@ -88,12 +88,19 @@ func (s *scenario) theUserChangesTheGluonPath() error {
 }
 
 func (s *scenario) theUserDeletesTheGluonFiles() error {
-	path, err := s.t.locator.ProvideGluonPath()
-	if err != nil {
-		return err
+	if path, err := s.t.locator.ProvideGluonCachePath(); err != nil {
+		return fmt.Errorf("failed to get gluon cache path: %w", err)
+	} else if err := os.RemoveAll(path); err != nil {
+		return fmt.Errorf("failed to remove gluon cache path: %w", err)
 	}
 
-	return os.RemoveAll(path)
+	if path, err := s.t.locator.ProvideGluonConfigPath(); err != nil {
+		return fmt.Errorf("failed to get gluon config path: %w", err)
+	} else if err := os.RemoveAll(path); err != nil {
+		return fmt.Errorf("failed to remove gluon config path: %w", err)
+	}
+
+	return nil
 }
 
 func (s *scenario) theUserHasDisabledAutomaticUpdates() error {
