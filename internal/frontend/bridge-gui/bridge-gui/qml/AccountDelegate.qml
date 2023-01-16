@@ -36,11 +36,11 @@ Item {
         if (root.usedFraction < .75) return root.colorScheme.signal_warning
         return root.colorScheme.signal_danger
     }
-    property real usedFraction: root.user ? reasonableFracion(root.user.usedBytes, root.user.totalBytes) : 0
+    property real usedFraction: root.user ? reasonableFraction(root.user.usedBytes, root.user.totalBytes) : 0
     property string totalSpace: root.spaceWithUnits(root.user ? root.reasonableBytes(root.user.totalBytes) : 0)
     property string usedSpace: root.spaceWithUnits(root.user ? root.reasonableBytes(root.user.usedBytes) : 0)
 
-    function reasonableFracion(used, total){
+    function reasonableFraction(used, total){
         var usedSafe = root.reasonableBytes(used)
         var totalSafe = root.reasonableBytes(total)
         if (totalSafe == 0 || usedSafe == 0) return 0
@@ -63,6 +63,10 @@ Item {
         return Math.round(bytes*10 / Math.pow(1024, i))/10 + " " + units[i]
     }
 
+    function primaryEmail() {
+        return (root.user && (root.user.addresses.length > 0)) ? root.user.addresses[0] : ""
+    }
+
     // width expected to be set by parent object
     implicitHeight : children[0].implicitHeight
 
@@ -77,7 +81,7 @@ Item {
         anchors {
             top: root.top
             left: root.left
-            right: root.rigth
+            right: root.right
         }
 
         Rectangle {
@@ -115,12 +119,10 @@ Item {
             spacing: 0
 
             Label {
-                Layout.maximumWidth: root.width - (
-                    root._spacing + avatar.width
-                )
-
+                id: labelEmail
+                Layout.maximumWidth: root.width - (root._spacing + avatar.width)
                 colorScheme: root.colorScheme
-                text: root.user ? user.username : ""
+                text: primaryEmail()
                 type: {
                     switch (root.type) {
                         case AccountDelegate.SmallView: return Label.Body
@@ -128,6 +130,29 @@ Item {
                     }
                 }
                 elide: Text.ElideMiddle
+
+                MouseArea {
+                    id: labelArea
+                    anchors.fill:parent
+                    hoverEnabled: true
+                }
+
+                ToolTip {
+                    id: toolTipEmail
+                    visible: labelArea.containsMouse && labelEmail.truncated
+                    text: primaryEmail()
+                    delay: 1000
+
+                    background: Rectangle {
+                        border.color: root.colorScheme.background_strong
+                        color: root.colorScheme.background_norm
+                    }
+
+                    contentItem: Text {
+                        color: root.colorScheme.text_norm
+                        text: toolTipEmail.text
+                    }
+                }
             }
 
             Item { implicitHeight: root.type == AccountDelegate.LargeView ? 6 * ProtonStyle.px : 0 }
