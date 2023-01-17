@@ -19,7 +19,9 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
@@ -505,6 +507,11 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) {
 	full, err := user.client.GetFullMessage(ctx, event.Message.ID)
 	if err != nil {
+		// If the message is not found, it means that it has been deleted before we could fetch it.
+		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
+			return nil, nil
+		}
+
 		return nil, fmt.Errorf("failed to get full message: %w", err)
 	}
 
@@ -596,6 +603,11 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 
 		full, err := user.client.GetFullMessage(ctx, event.Message.ID)
 		if err != nil {
+			// If the message is not found, it means that it has been deleted before we could fetch it.
+			if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
+				return nil, nil
+			}
+
 			return nil, fmt.Errorf("failed to get full draft: %w", err)
 		}
 
