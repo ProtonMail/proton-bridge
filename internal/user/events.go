@@ -393,21 +393,17 @@ func (user *User) handleDeleteLabelEvent(ctx context.Context, event proton.Label
 
 		user.log.WithField("labelID", event.ID).Info("Handling label deleted event")
 
-		label, ok := user.apiLabels[event.ID]
-		if !ok {
-			delete(user.apiLabels, event.ID)
-		}
-
 		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
 			update := imap.NewMailboxDeleted(imap.MailboxID(event.ID))
 			updateCh.Enqueue(update)
 			updates = append(updates, update)
 		}
 
+		delete(user.apiLabels, event.ID)
+
 		user.eventCh.Enqueue(events.UserLabelDeleted{
 			UserID:  user.apiUser.ID,
 			LabelID: event.ID,
-			Name:    label.Name,
 		})
 
 		return updates, nil

@@ -52,9 +52,8 @@ type UserLabelDeleted struct {
 
 	UserID  string
 	LabelID string
-	Name    string
 }
 
 func (event UserLabelDeleted) String() string {
-	return fmt.Sprintf("UserLabelDeleted: UserID: %s, LabelID: %s, Name: %s", event.UserID, event.LabelID, logging.Sensitive(event.Name))
+	return fmt.Sprintf("UserLabelDeleted: UserID: %s, LabelID: %s", event.UserID, event.LabelID)
 }
