@@ -38,6 +38,18 @@ func (user *User) Username() string {
 	return user.vault.getUser(user.userID).Username
 }
 
+// PrimaryEmail returns the user's primary email address.
+func (user *User) PrimaryEmail() string {
+	return user.vault.getUser(user.userID).PrimaryEmail
+}
+
+// SetPrimaryEmail sets the user's primary email address.
+func (user *User) SetPrimaryEmail(email string) error {
+	return user.vault.modUser(user.userID, func(data *UserData) {
+		data.PrimaryEmail = email
+	})
+}
+
 // GluonKey returns the key needed to decrypt the user's gluon database.
 func (user *User) GluonKey() []byte {
 	return user.vault.getUser(user.userID).GluonKey

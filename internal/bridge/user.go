@@ -94,7 +94,7 @@ func (bridge *Bridge) GetUserInfo(userID string) (UserInfo, error) {
 			if len(user.AuthUID()) == 0 {
 				state = SignedOut
 			}
-			info = getUserInfo(user.UserID(), user.Username(), state, user.AddressMode())
+			info = getUserInfo(user.UserID(), user.Username(), user.PrimaryEmail(), state, user.AddressMode())
 		}); err != nil {
 			return UserInfo{}, fmt.Errorf("failed to get user info: %w", err)
 		}
@@ -389,6 +389,12 @@ func (bridge *Bridge) loadUser(ctx context.Context, user *vault.User) error {
 		return fmt.Errorf("failed to add user: %w", err)
 	}
 
+	if user.PrimaryEmail() != apiUser.Email {
+		if err := user.SetPrimaryEmail(apiUser.Email); err != nil {
+			return fmt.Errorf("failed to modify user primary email: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -504,7 +510,7 @@ func (bridge *Bridge) newVaultUser(
 	saltedKeyPass []byte,
 ) (*vault.User, bool, error) {
 	if !bridge.vault.HasUser(apiUser.ID) {
-		user, err := bridge.vault.AddUser(apiUser.ID, apiUser.Name, authUID, authRef, saltedKeyPass)
+		user, err := bridge.vault.AddUser(apiUser.ID, apiUser.Name, apiUser.Email, authUID, authRef, saltedKeyPass)
 		if err != nil {
 			return nil, false, fmt.Errorf("failed to add user to vault: %w", err)
 		}
@@ -550,11 +556,17 @@ func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, 
 }
 
 // getUserInfo returns information about a disconnected user.
-func getUserInfo(userID, username string, state UserState, addressMode vault.AddressMode) UserInfo {
+func getUserInfo(userID, username, primaryEmail string, state UserState, addressMode vault.AddressMode) UserInfo {
+	var addresses []string
+	if len(primaryEmail) > 0 {
+		addresses = []string{primaryEmail}
+	}
+
 	return UserInfo{
 		State:       state,
 		UserID:      userID,
 		Username:    username,
+		Addresses:   addresses,
 		AddressMode: addressMode,
 	}
 }

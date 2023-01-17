@@ -125,9 +125,9 @@ func (vault *Vault) ForUser(parallelism int, fn func(*User) error) error {
 	})
 }
 
-// AddUser creates a new user in the vault with the given ID and username.
+// AddUser creates a new user in the vault with the given ID, username and password.
 // A bridge password and gluon key are generated using the package's token generator.
-func (vault *Vault) AddUser(userID, username, authUID, authRef string, keyPass []byte) (*User, error) {
+func (vault *Vault) AddUser(userID, username, primaryEmail, authUID, authRef string, keyPass []byte) (*User, error) {
 	logrus.WithField("userID", userID).Info("Adding vault user")
 
 	var exists bool
@@ -138,7 +138,7 @@ func (vault *Vault) AddUser(userID, username, authUID, authRef string, keyPass [
 		}); idx >= 0 {
 			exists = true
 		} else {
-			data.Users = append(data.Users, newDefaultUser(userID, username, authUID, authRef, keyPass))
+			data.Users = append(data.Users, newDefaultUser(userID, username, primaryEmail, authUID, authRef, keyPass))
 		}
 	}); err != nil {
 		return nil, err

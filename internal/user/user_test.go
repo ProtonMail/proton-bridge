@@ -213,7 +213,7 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 	require.NoError(tb, err)
 	require.False(tb, corrupt)
 
-	vaultUser, err := vault.AddUser(apiUser.ID, username, apiAuth.UID, apiAuth.RefreshToken, saltedKeyPass)
+	vaultUser, err := vault.AddUser(apiUser.ID, username, username+"@pm.me", apiAuth.UID, apiAuth.RefreshToken, saltedKeyPass)
 	require.NoError(tb, err)
 
 	user, err := New(ctx, vaultUser, client, nil, apiUser, nil, vault.SyncWorkers(), true)

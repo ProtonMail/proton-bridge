@@ -147,7 +147,12 @@ func migrateOldAccount(userID string, store *credentials.Store, v *vault.Vault) 
 		return fmt.Errorf("failed to split api token for user %q: %w", userID, err)
 	}
 
-	user, err := v.AddUser(creds.UserID, creds.Name, authUID, authRef, creds.MailboxPassword)
+	var primaryEmail string
+	if len(creds.EmailList()) > 0 {
+		primaryEmail = creds.EmailList()[0]
+	}
+
+	user, err := v.AddUser(creds.UserID, creds.Name, primaryEmail, authUID, authRef, creds.MailboxPassword)
 	if err != nil {
 		return fmt.Errorf("failed to add user %q: %w", userID, err)
 	}

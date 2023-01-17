@@ -40,7 +40,7 @@ func BenchmarkVault(b *testing.B) {
 
 	// Create 10 vault users.
 	for idx := 0; idx < 10; idx++ {
-		user, err := s.AddUser(uuid.NewString(), "username", "authUID", "authRef", []byte("keyPass"))
+		user, err := s.AddUser(uuid.NewString(), "username", "dummy@proton.me", "authUID", "authRef", []byte("keyPass"))
 		require.NoError(b, err)
 
 		require.NoError(b, user.SetKeyPass([]byte("new key pass")))
