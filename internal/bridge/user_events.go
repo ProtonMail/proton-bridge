@@ -51,6 +51,9 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 
 	case events.UserDeauth:
 		bridge.handleUserDeauth(ctx, user)
+
+	case events.UserBadEvent:
+		bridge.handleUserBadEvent(ctx, user)
 	}
 
 	return nil
@@ -128,5 +131,11 @@ func (bridge *Bridge) handleUserRefreshed(ctx context.Context, user *user.User) 
 func (bridge *Bridge) handleUserDeauth(ctx context.Context, user *user.User) {
 	safe.Lock(func() {
 		bridge.logoutUser(ctx, user, false, false)
+	}, bridge.usersLock)
+}
+
+func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User) {
+	safe.Lock(func() {
+		bridge.logoutUser(ctx, user, true, false)
 	}, bridge.usersLock)
 }

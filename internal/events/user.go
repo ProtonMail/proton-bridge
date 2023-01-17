@@ -23,6 +23,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 )
 
+// AllUsersLoaded is emitted when all users have been loaded.
 type AllUsersLoaded struct {
 	eventBase
 }
@@ -31,6 +32,7 @@ func (event AllUsersLoaded) String() string {
 	return "AllUsersLoaded"
 }
 
+// UserLoading is emitted when a user is being loaded.
 type UserLoading struct {
 	eventBase
 
@@ -41,6 +43,7 @@ func (event UserLoading) String() string {
 	return fmt.Sprintf("UserLoading: UserID: %s", event.UserID)
 }
 
+// UserLoadSuccess is emitted when a user has been loaded successfully.
 type UserLoadSuccess struct {
 	eventBase
 
@@ -51,6 +54,7 @@ func (event UserLoadSuccess) String() string {
 	return fmt.Sprintf("UserLoadSuccess: UserID: %s", event.UserID)
 }
 
+// UserLoadFail is emitted when a user has failed to load.
 type UserLoadFail struct {
 	eventBase
 
@@ -62,6 +66,7 @@ func (event UserLoadFail) String() string {
 	return fmt.Sprintf("UserLoadFail: UserID: %s, Error: %s", event.UserID, event.Error)
 }
 
+// UserLoggedIn is emitted when a user has logged in.
 type UserLoggedIn struct {
 	eventBase
 
@@ -72,6 +77,7 @@ func (event UserLoggedIn) String() string {
 	return fmt.Sprintf("UserLoggedIn: UserID: %s", event.UserID)
 }
 
+// UserLoggedOut is emitted when a user has logged out.
 type UserLoggedOut struct {
 	eventBase
 
@@ -82,6 +88,7 @@ func (event UserLoggedOut) String() string {
 	return fmt.Sprintf("UserLoggedOut: UserID: %s", event.UserID)
 }
 
+// UserDeauth is emitted when a user has lost its API authentication.
 type UserDeauth struct {
 	eventBase
 
@@ -92,6 +99,19 @@ func (event UserDeauth) String() string {
 	return fmt.Sprintf("UserDeauth: UserID: %s", event.UserID)
 }
 
+// UserBadEvent is emitted when a user cannot apply an event.
+type UserBadEvent struct {
+	eventBase
+
+	UserID string
+	Error  error
+}
+
+func (event UserBadEvent) String() string {
+	return fmt.Sprintf("UserBadEvent: UserID: %s, Error: %s", event.UserID, event.Error)
+}
+
+// UserDeleted is emitted when a user has been deleted.
 type UserDeleted struct {
 	eventBase
 
@@ -102,6 +122,7 @@ func (event UserDeleted) String() string {
 	return fmt.Sprintf("UserDeleted: UserID: %s", event.UserID)
 }
 
+// UserChanged is emitted when a user's data has changed (name, email, etc.).
 type UserChanged struct {
 	eventBase
 
@@ -112,6 +133,7 @@ func (event UserChanged) String() string {
 	return fmt.Sprintf("UserChanged: UserID: %s", event.UserID)
 }
 
+// UserRefreshed is emitted when an API refresh was issued for a user.
 type UserRefreshed struct {
 	eventBase
 
@@ -122,6 +144,7 @@ func (event UserRefreshed) String() string {
 	return fmt.Sprintf("UserRefreshed: UserID: %s", event.UserID)
 }
 
+// AddressModeChanged is emitted when a user's address mode has changed.
 type AddressModeChanged struct {
 	eventBase
 

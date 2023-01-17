@@ -670,9 +670,8 @@ func getMailboxName(label proton.Label) []string {
 
 func waitOnIMAPUpdates(ctx context.Context, updates []imap.Update) error {
 	for _, update := range updates {
-		err, ok := update.WaitContext(ctx)
-		if ok && err != nil {
-			return fmt.Errorf("failed to apply gluon update %v :%w", update.String(), err)
+		if err, ok := update.WaitContext(ctx); ok && err != nil {
+			return fmt.Errorf("failed to apply gluon update %v: %w", update.String(), err)
 		}
 	}
 
