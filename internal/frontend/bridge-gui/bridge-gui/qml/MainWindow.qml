@@ -116,7 +116,7 @@ ApplicationWindow {
             }
 
             if ((Backend.users.count === 1) && (u.state === EUserState.SignedOut)) {
-                showSignIn(u.username)
+                showSignIn(u.primaryEmailOrUsername())
                 return 0
             }
 

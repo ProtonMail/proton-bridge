@@ -117,7 +117,7 @@ QtObject {
             // fit above
             _y = iconRect.top - height
             if (isInInterval(_y, screenRect.top, screenRect.bottom - height)) {
-                // position preferebly in the horizontal center but bound to the screen rect
+                // position preferably in the horizontal center but bound to the screen rect
                 _x = bound(iconRect.left + (iconRect.width - width)/2, screenRect.left, screenRect.right - width)
                 return Qt.point(_x, _y)
             }
@@ -125,7 +125,7 @@ QtObject {
             // fit below
             _y = iconRect.bottom
             if (isInInterval(_y, screenRect.top, screenRect.bottom - height)) {
-                // position preferebly in the horizontal center but bound to the screen rect
+                // position preferably in the horizontal center but bound to the screen rect
                 _x = bound(iconRect.left + (iconRect.width - width)/2, screenRect.left, screenRect.right - width)
                 return Qt.point(_x, _y)
             }
@@ -133,7 +133,7 @@ QtObject {
             // fit to the left
             _x = iconRect.left - width
             if (isInInterval(_x, screenRect.left, screenRect.right - width)) {
-                // position preferebly in the vertical center but bound to the screen rect
+                // position preferably in the vertical center but bound to the screen rect
                 _y = bound(iconRect.top + (iconRect.height - height)/2, screenRect.top, screenRect.bottom - height)
                 return Qt.point(_x, _y)
             }
@@ -141,12 +141,12 @@ QtObject {
             // fit to the right
             _x = iconRect.right
             if (isInInterval(_x, screenRect.left, screenRect.right - width)) {
-                // position preferebly in the vertical center but bound to the screen rect
+                // position preferably in the vertical center but bound to the screen rect
                 _y = bound(iconRect.top + (iconRect.height - height)/2, screenRect.top, screenRect.bottom - height)
                 return Qt.point(_x, _y)
             }
 
-            // Fallback: position satatus window right above icon and let window manager decide.
+            // Fallback: position status window right above icon and let window manager decide.
             console.warn("Can't position status window: screenRect =", screenRect, "iconRect =", iconRect)
             _x = bound(iconRect.left + (iconRect.width - width)/2, screenRect.left, screenRect.right - width)
             _y = bound(iconRect.top + (iconRect.height - height)/2, screenRect.top, screenRect.bottom - height)

@@ -188,7 +188,7 @@ Item {
                                 if (user.state !== EUserState.SignedOut) {
                                     rightContent.showAccount()
                                 } else {
-                                    signIn.username = user.username
+                                    signIn.username = user.primaryEmailOrUsername()
                                     rightContent.showSignIn()
                                 }
                             }
@@ -255,7 +255,8 @@ Item {
                         return Backend.users.get(accounts.currentIndex)
                     }
                     onShowSignIn: {
-                        signIn.username = this.user.username
+                        var user = this.user
+                        signIn.username = user ? user.primaryEmailOrUsername() : ""
                         rightContent.showSignIn()
                     }
                     onShowSetupGuide: function(user, address) {

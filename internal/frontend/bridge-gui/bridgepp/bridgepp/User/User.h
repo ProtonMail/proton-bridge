@@ -73,6 +73,7 @@ public: // member functions.
     User &operator=(User const &) = delete; ///< Disabled assignment operator.
     User &operator=(User &&) = delete; ///< Disabled move assignment operator.
     void update(User const &user); ///< Update the user.
+    Q_INVOKABLE QString primaryEmailOrUsername() const; ///< Return the user primary email, or, if unknown its username.
 
 public slots:
     // slots for QML generated calls

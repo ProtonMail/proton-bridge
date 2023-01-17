@@ -64,7 +64,7 @@ Item {
     }
 
     function primaryEmail() {
-        return (root.user && (root.user.addresses.length > 0)) ? root.user.addresses[0] : ""
+        return root.user ? root.user.primaryEmailOrUsername() : ""
     }
 
     // width expected to be set by parent object

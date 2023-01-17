@@ -204,7 +204,7 @@ FocusScope {
             TextField {
                 colorScheme: root.colorScheme
                 id: usernameTextField
-                label: qsTr("Username or email")
+                label: qsTr("Email or username")
                 focus: true
                 Layout.fillWidth: true
                 Layout.topMargin: 24
@@ -221,7 +221,7 @@ FocusScope {
 
                 validator: function(str) {
                     if (str.length === 0) {
-                        return qsTr("Enter username or email")
+                        return qsTr("Enter email or username")
                     }
                     return
                 }
