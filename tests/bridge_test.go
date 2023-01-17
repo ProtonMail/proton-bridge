@@ -103,6 +103,16 @@ func (s *scenario) theUserDeletesTheGluonFiles() error {
 	return nil
 }
 
+func (s *scenario) theUserDeletesTheGluonCache() error {
+	if path, err := s.t.locator.ProvideGluonCachePath(); err != nil {
+		return fmt.Errorf("failed to get gluon cache path: %w", err)
+	} else if err := os.RemoveAll(path); err != nil {
+		return fmt.Errorf("failed to remove gluon cache path: %w", err)
+	}
+
+	return nil
+}
+
 func (s *scenario) theUserHasDisabledAutomaticUpdates() error {
 	var started bool
 

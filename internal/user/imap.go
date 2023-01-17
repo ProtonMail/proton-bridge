@@ -321,6 +321,29 @@ func (conn *imapConnector) CreateMessage(
 	return conn.importMessage(ctx, literal, wantLabelIDs, wantFlags, unread)
 }
 
+func (conn *imapConnector) GetMessageLiteral(ctx context.Context, id imap.MessageID) ([]byte, error) {
+	msg, err := conn.client.GetFullMessage(ctx, string(id))
+	if err != nil {
+		return nil, err
+	}
+
+	return safe.RLockRetErr(func() ([]byte, error) {
+		var literal []byte
+		err := withAddrKR(conn.apiUser, conn.apiAddrs[msg.AddressID], conn.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+			l, buildErr := message.BuildRFC822(addrKR, msg.Message, msg.AttData, defaultJobOpts())
+			if buildErr != nil {
+				return buildErr
+			}
+
+			literal = l
+
+			return nil
+		})
+
+		return literal, err
+	}, conn.apiUserLock, conn.apiAddrsLock)
+}
+
 // AddMessagesToMailbox labels the given messages with the given label ID.
 func (conn *imapConnector) AddMessagesToMailbox(ctx context.Context, messageIDs []imap.MessageID, mailboxID imap.MailboxID) error {
 	defer conn.goPollAPIEvents(false)

@@ -17,3 +17,10 @@ Feature: IMAP Fetch
       | from              | to                   | subject | date                  |
       | john.doe@mail.com | [user:user]@[domain] | foo     | 13 Aug 82 00:00 +0000 |
     Then IMAP client "1" sees header "X-Original-Date: Sun, 13 Jul 1969 00:00:00 +0000" in message with subject "foo" in "INBOX"
+
+
+  Scenario: Fetch from deleted cache
+    When the user deletes the gluon cache
+    Then IMAP client "1" sees the following messages in "INBOX":
+      | from              | to                   | subject | date                  |
+      | john.doe@mail.com | [user:user]@[domain] | foo     | 13 Aug 82 00:00 +0000 |

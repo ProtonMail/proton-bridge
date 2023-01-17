@@ -137,6 +137,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the user sets the address mode of user "([^"]*)" to "([^"]*)"$`, s.theUserSetsTheAddressModeOfUserTo)
 			ctx.Step(`^the user changes the gluon path$`, s.theUserChangesTheGluonPath)
 			ctx.Step(`^the user deletes the gluon files$`, s.theUserDeletesTheGluonFiles)
+			ctx.Step(`^the user deletes the gluon cache$`, s.theUserDeletesTheGluonCache)
 			ctx.Step(`^the user reports a bug$`, s.theUserReportsABug)
 			ctx.Step(`^the user hides All Mail$`, s.theUserHidesAllMail)
 			ctx.Step(`^the user shows All Mail$`, s.theUserShowsAllMail)
