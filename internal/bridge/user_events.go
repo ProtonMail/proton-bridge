@@ -21,10 +21,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/sirupsen/logrus"
 )
 
 func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, event events.Event) error {
@@ -53,7 +55,7 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 		bridge.handleUserDeauth(ctx, user)
 
 	case events.UserBadEvent:
-		bridge.handleUserBadEvent(ctx, user)
+		bridge.handleUserBadEvent(ctx, user, event.Error)
 	}
 
 	return nil
@@ -134,8 +136,14 @@ func (bridge *Bridge) handleUserDeauth(ctx context.Context, user *user.User) {
 	}, bridge.usersLock)
 }
 
-func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User) {
+func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User, err error) {
 	safe.Lock(func() {
+		if rerr := bridge.reporter.ReportMessageWithContext("Failed to handle event", reporter.Context{
+			"error": err,
+		}); rerr != nil {
+			logrus.WithError(rerr).Error("Failed to report failed event handling")
+		}
+
 		bridge.logoutUser(ctx, user, true, false)
 	}, bridge.usersLock)
 }

@@ -333,14 +333,13 @@ func (user *User) handleLabelEvents(ctx context.Context, labelEvents []proton.La
 func (user *User) handleCreateLabelEvent(ctx context.Context, event proton.LabelEvent) ([]imap.Update, error) { //nolint:unparam
 	return safe.LockRetErr(func() ([]imap.Update, error) {
 		var updates []imap.Update
+
 		user.log.WithFields(logrus.Fields{
 			"labelID": event.ID,
 			"name":    logging.Sensitive(event.Label.Name),
 		}).Info("Handling label created event")
 
-		if _, ok := user.apiLabels[event.Label.ID]; ok {
-			user.apiLabels[event.Label.ID] = event.Label
-		}
+		user.apiLabels[event.Label.ID] = event.Label
 
 		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
 			update := newMailboxCreatedUpdate(imap.MailboxID(event.ID), getMailboxName(event.Label))
@@ -361,14 +360,13 @@ func (user *User) handleCreateLabelEvent(ctx context.Context, event proton.Label
 func (user *User) handleUpdateLabelEvent(ctx context.Context, event proton.LabelEvent) ([]imap.Update, error) { //nolint:unparam
 	return safe.LockRetErr(func() ([]imap.Update, error) {
 		var updates []imap.Update
+
 		user.log.WithFields(logrus.Fields{
 			"labelID": event.ID,
 			"name":    logging.Sensitive(event.Label.Name),
 		}).Info("Handling label updated event")
 
-		if _, ok := user.apiLabels[event.Label.ID]; !ok {
-			user.apiLabels[event.Label.ID] = event.Label
-		}
+		user.apiLabels[event.Label.ID] = event.Label
 
 		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
 			update := imap.NewMailboxUpdated(
