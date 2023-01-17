@@ -155,7 +155,7 @@ func (t *testCtx) replace(value string) string {
 		return t.userUUIDByName[name]
 	})
 
-	// Replace [addr:EMAIL] with a unique address for the email EMAIL.
+	// Replace [alias:EMAIL] with a unique address for the email EMAIL.
 	value = regexp.MustCompile(`\[alias:(\w+)\]`).ReplaceAllStringFunc(value, func(match string) string {
 		email := regexp.MustCompile(`\[alias:(\w+)\]`).FindStringSubmatch(match)[1]
 
@@ -167,7 +167,7 @@ func (t *testCtx) replace(value string) string {
 		return t.addrUUIDByName[email]
 	})
 
-	// Replace {upper:VALUE} with VALUE in uppercase.
+	// Replace {toUpper:VALUE} with VALUE in uppercase.
 	value = regexp.MustCompile(`\{toUpper:([^}]+)\}`).ReplaceAllStringFunc(value, func(match string) string {
 		return strings.ToUpper(regexp.MustCompile(`\{toUpper:([^}].+)\}`).FindStringSubmatch(match)[1])
 	})

@@ -1,12 +1,12 @@
 Feature: A user can authenticate an IMAP client
   Background:
     Given there exists an account with username "[user:user]" and password "password"
-    And there exists an account with username "[user2:user2]" and password "password2"
+    And there exists an account with username "[user:user2]" and password "password2"
     And the account "[user:user]" has additional address "[alias:alias]@[domain]"
-    And the account "[user2:user2]" has additional disabled address "[alias2:alias2]@[domain]"
+    And the account "[user:user2]" has additional disabled address "[alias:alias2]@[domain]"
     And bridge starts
     And the user logs in with username "[user:user]" and password "password"
-    And the user logs in with username "[user2:user2]" and password "password2"
+    And the user logs in with username "[user:user2]" and password "password2"
 
   Scenario: IMAP client can authenticate successfully
     When user "[user:user]" connects IMAP client "1"
@@ -20,7 +20,7 @@ Feature: A user can authenticate an IMAP client
     Given user "[user:user]" connects and authenticates IMAP client "1" with address "[alias:alias]@[domain]"
 
   Scenario: IMAP client can not authenticate successfully with disable address
-    Given user "[user2:user2]" connects and can not authenticate IMAP client "1" with address "[alias2:alias2]@[domain]"
+    Given user "[user:user2]" connects and can not authenticate IMAP client "1" with address "[alias:alias2]@[domain]"
 
   Scenario: IMAP client can authenticate successfully
     When user "[user:user]" connects IMAP client "1"
