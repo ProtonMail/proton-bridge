@@ -405,7 +405,7 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 
 			if errors.Is(err, bridge.ErrUserAlreadyLoggedIn) {
 				_ = s.SendEvent(NewLoginAlreadyLoggedInEvent(auth.UserID))
-			} else if apiErr := new(proton.Error); errors.As(err, &apiErr) {
+			} else if apiErr := new(proton.APIError); errors.As(err, &apiErr) {
 				switch apiErr.Code { // nolint:exhaustive
 				case proton.PasswordWrong, proton.UsernameInvalid:
 					_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, ""))
@@ -464,7 +464,7 @@ func (s *Service) Login2FA(ctx context.Context, login *LoginRequest) (*emptypb.E
 		}
 
 		if err := s.authClient.Auth2FA(context.Background(), proton.Auth2FAReq{TwoFactorCode: string(twoFA)}); err != nil {
-			if apiErr := new(proton.Error); errors.As(err, &apiErr) && apiErr.Code == proton.PasswordWrong {
+			if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Code == proton.PasswordWrong {
 				s.log.Warn("Login 2FA: retry 2fa")
 				_ = s.SendEvent(NewLoginError(LoginErrorType_TFA_ERROR, ""))
 			} else {

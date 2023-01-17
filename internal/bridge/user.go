@@ -367,7 +367,7 @@ func (bridge *Bridge) loadUsers(ctx context.Context) error {
 func (bridge *Bridge) loadUser(ctx context.Context, user *vault.User) error {
 	client, auth, err := bridge.api.NewClientWithRefresh(ctx, user.AuthUID(), user.AuthRef())
 	if err != nil {
-		if apiErr := new(proton.Error); errors.As(err, &apiErr) && (apiErr.Code == proton.AuthRefreshTokenInvalid) {
+		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && (apiErr.Code == proton.AuthRefreshTokenInvalid) {
 			// The session cannot be refreshed, we sign out the user by clearing his auth secrets.
 			if err := user.Clear(); err != nil {
 				logrus.WithError(err).Warn("Failed to clear user secrets")

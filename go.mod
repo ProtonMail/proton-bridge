@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/ProtonMail/gluon v0.14.2-0.20230117124414-549c1f016d6e
 	github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a
-	github.com/ProtonMail/go-proton-api v0.2.4-0.20230112102613-6ad201cdb337
+	github.com/ProtonMail/go-proton-api v0.3.0
 	github.com/ProtonMail/go-rfc5322 v0.11.0
 	github.com/ProtonMail/gopenpgp/v2 v2.4.10
 	github.com/PuerkitoBio/goquery v1.8.0
