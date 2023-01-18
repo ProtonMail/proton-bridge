@@ -167,22 +167,24 @@ func (conn *imapConnector) createFolder(ctx context.Context, name []string) (ima
 
 // UpdateMailboxName sets the name of the label with the given ID.
 func (conn *imapConnector) UpdateMailboxName(ctx context.Context, labelID imap.MailboxID, name []string) error {
-	defer conn.goPollAPIEvents(false)
+	return safe.LockRet(func() error {
+		defer conn.goPollAPIEvents(false)
 
-	if len(name) < 2 {
-		return fmt.Errorf("invalid mailbox name %q", name)
-	}
+		if len(name) < 2 {
+			return fmt.Errorf("invalid mailbox name %q", name)
+		}
 
-	switch name[0] {
-	case folderPrefix:
-		return conn.updateFolder(ctx, labelID, name[1:])
+		switch name[0] {
+		case folderPrefix:
+			return conn.updateFolder(ctx, labelID, name[1:])
 
-	case labelPrefix:
-		return conn.updateLabel(ctx, labelID, name[1:])
+		case labelPrefix:
+			return conn.updateLabel(ctx, labelID, name[1:])
 
-	default:
-		return fmt.Errorf("invalid mailbox name %q", name)
-	}
+		default:
+			return fmt.Errorf("invalid mailbox name %q", name)
+		}
+	}, conn.apiLabelsLock)
 }
 
 func (conn *imapConnector) updateLabel(ctx context.Context, labelID imap.MailboxID, name []string) error {
@@ -195,18 +197,21 @@ func (conn *imapConnector) updateLabel(ctx context.Context, labelID imap.Mailbox
 		return err
 	}
 
-	if _, err := conn.client.UpdateLabel(ctx, label.ID, proton.UpdateLabelReq{
+	update, err := conn.client.UpdateLabel(ctx, label.ID, proton.UpdateLabelReq{
 		Name:  name[0],
 		Color: label.Color,
-	}); err != nil {
+	})
+	if err != nil {
 		return err
 	}
+
+	conn.apiLabels[label.ID] = update
 
 	return nil
 }
 
 func (conn *imapConnector) updateFolder(ctx context.Context, labelID imap.MailboxID, name []string) error {
-	return safe.RLockRet(func() error {
+	return safe.LockRet(func() error {
 		var parentID string
 
 		if len(name) > 1 {
@@ -230,13 +235,16 @@ func (conn *imapConnector) updateFolder(ctx context.Context, labelID imap.Mailbo
 			return err
 		}
 
-		if _, err := conn.client.UpdateLabel(ctx, string(labelID), proton.UpdateLabelReq{
+		update, err := conn.client.UpdateLabel(ctx, string(labelID), proton.UpdateLabelReq{
 			Name:     name[len(name)-1],
 			Color:    label.Color,
 			ParentID: parentID,
-		}); err != nil {
+		})
+		if err != nil {
 			return err
 		}
+
+		conn.apiLabels[label.ID] = update
 
 		return nil
 	}, conn.apiLabelsLock)
@@ -244,9 +252,17 @@ func (conn *imapConnector) updateFolder(ctx context.Context, labelID imap.Mailbo
 
 // DeleteMailbox deletes the label with the given ID.
 func (conn *imapConnector) DeleteMailbox(ctx context.Context, labelID imap.MailboxID) error {
-	defer conn.goPollAPIEvents(false)
+	return safe.LockRet(func() error {
+		defer conn.goPollAPIEvents(false)
 
-	return conn.client.DeleteLabel(ctx, string(labelID))
+		if err := conn.client.DeleteLabel(ctx, string(labelID)); err != nil {
+			return err
+		}
+
+		delete(conn.apiLabels, string(labelID))
+
+		return nil
+	}, conn.apiLabelsLock)
 }
 
 // CreateMessage creates a new message on the remote.

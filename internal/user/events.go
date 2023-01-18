@@ -366,7 +366,10 @@ func (user *User) handleUpdateLabelEvent(ctx context.Context, event proton.Label
 			"name":    logging.Sensitive(event.Label.Name),
 		}).Info("Handling label updated event")
 
-		user.apiLabels[event.Label.ID] = event.Label
+		// Only update the label if it exists; we don't want to create it as a client may have just deleted it.
+		if _, ok := user.apiLabels[event.Label.ID]; ok {
+			user.apiLabels[event.Label.ID] = event.Label
+		}
 
 		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
 			update := imap.NewMailboxUpdated(
