@@ -586,20 +586,25 @@ func withEnv(t *testing.T, tests func(context.Context, *server.Server, *proton.N
 	tests(ctx, server, netCtl, locations, vaultKey)
 }
 
+// withMocks creates the mock objects used in the tests.
+func withMocks(t *testing.T, tests func(*bridge.Mocks)) {
+	mocks := bridge.NewMocks(t, v2_3_0, v2_3_0)
+	defer mocks.Close()
+
+	tests(mocks)
+}
+
 // withBridge creates a new bridge which points to the given API URL and uses the given keychain, and closes it when done.
-func withBridge(
+func withBridgeNoMocks(
 	ctx context.Context,
 	t *testing.T,
+	mocks *bridge.Mocks,
 	apiURL string,
 	netCtl *proton.NetCtl,
 	locator bridge.Locator,
 	vaultKey []byte,
-	tests func(*bridge.Bridge, *bridge.Mocks),
+	tests func(*bridge.Bridge),
 ) {
-	// Create the mock objects used in the tests.
-	mocks := bridge.NewMocks(t, v2_3_0, v2_3_0)
-	defer mocks.Close()
-
 	// Bridge will disable the proxy by default at startup.
 	mocks.ProxyCtl.EXPECT().DisallowProxy()
 
@@ -654,7 +659,24 @@ func withBridge(
 	defer bridge.Close(ctx)
 
 	// Use the bridge.
-	tests(bridge, mocks)
+	tests(bridge)
+}
+
+// withBridge creates a new bridge which points to the given API URL and uses the given keychain, and closes it when done.
+func withBridge(
+	ctx context.Context,
+	t *testing.T,
+	apiURL string,
+	netCtl *proton.NetCtl,
+	locator bridge.Locator,
+	vaultKey []byte,
+	tests func(*bridge.Bridge, *bridge.Mocks),
+) {
+	withMocks(t, func(mocks *bridge.Mocks) {
+		withBridgeNoMocks(ctx, t, mocks, apiURL, netCtl, locator, vaultKey, func(bridge *bridge.Bridge) {
+			tests(bridge, mocks)
+		})
+	})
 }
 
 func waitForEvent[T any](t *testing.T, eventCh <-chan events.Event, wantEvent T) {

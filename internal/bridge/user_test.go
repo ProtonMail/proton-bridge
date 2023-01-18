@@ -20,6 +20,7 @@ package bridge_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
 	"time"
 
@@ -29,6 +30,7 @@ import (
 	mocksPkg "github.com/ProtonMail/proton-bridge/v3/internal/bridge/mocks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
@@ -658,6 +660,63 @@ func TestBridge_User_Refresh(t *testing.T) {
 			// The sync should start and finish again.
 			require.Equal(t, userID, (<-syncStartCh).UserID)
 			require.Equal(t, userID, (<-syncFinishCh).UserID)
+		})
+	})
+}
+
+func TestBridge_User_BadEvents(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		userID, addrID, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
+		require.NoError(t, err)
+
+		// Create 10 messages for the user.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			createNumMessages(ctx, t, c, addrID, labelID, 10)
+		})
+
+		// The initial user should be fully synced.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+			defer done()
+
+			userID, err := bridge.LoginFull(ctx, "user", password, nil, nil)
+			require.NoError(t, err)
+
+			require.Equal(t, userID, (<-syncCh).UserID)
+		})
+
+		var messageIDs []string
+
+		// Create 10 more messages for the user, generating events.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			messageIDs = createNumMessages(ctx, t, c, addrID, labelID, 10)
+		})
+
+		// If bridge attempts to sync the new messages, it should get a BadRequest error.
+		s.AddStatusHook(func(req *http.Request) (int, bool) {
+			if xslices.Index(xslices.Map(messageIDs, func(messageID string) string {
+				return "/mail/v4/messages/" + messageID
+			}), req.URL.Path) < 0 {
+				return 0, false
+			}
+
+			return http.StatusBadRequest, true
+		})
+
+		// The user will continue to process events and will receive bad request errors.
+		withMocks(t, func(mocks *bridge.Mocks) {
+			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).MinTimes(1)
+
+			// The user will eventually be logged out due to the bad request errors.
+			withBridgeNoMocks(ctx, t, mocks, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge) {
+				require.Eventually(t, func() bool {
+					return len(bridge.GetUserIDs()) == 1 && len(getConnectedUserIDs(t, bridge)) == 0
+				}, 10*time.Second, 100*time.Millisecond)
+			})
 		})
 	})
 }
