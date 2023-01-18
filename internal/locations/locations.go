@@ -235,20 +235,6 @@ func (l *Locations) ClearUpdates() error {
 	).Do()
 }
 
-// Clean removes any unexpected files from the app cache folder
-// while leaving files in the standard locations untouched.
-func (l *Locations) Clean() error {
-	return files.Remove(
-		l.userCache,
-		l.userData,
-	).Except(
-		l.GetGuiLockFile(),
-		l.getLogsPath(),
-		l.getUpdatesPath(),
-		l.getGluonConfigPath(),
-	).Do()
-}
-
 // CleanGoIMAPCache removes all cache data from the go-imap implementation.
 func (l *Locations) CleanGoIMAPCache() error {
 	return files.Remove(l.getGoIMAPCachePath()).Do()

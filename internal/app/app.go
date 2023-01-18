@@ -322,14 +322,7 @@ func WithLocations(fn func(*locations.Locations) error) error {
 	}
 
 	// Create a new locations object that will be used to provide paths to store files.
-	locations := locations.New(provider, constants.ConfigName)
-	defer func() {
-		if err := locations.Clean(); err != nil {
-			logrus.WithError(err).Error("Failed to clean locations")
-		}
-	}()
-
-	return fn(locations)
+	return fn(locations.New(provider, constants.ConfigName))
 }
 
 // Start profiling if requested.

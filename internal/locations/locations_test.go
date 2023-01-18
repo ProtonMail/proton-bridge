@@ -63,54 +63,6 @@ func TestClearUpdateFiles(t *testing.T) {
 	assert.NoDirExists(t, l.getUpdatesPath())
 }
 
-func TestCleanLeavesStandardLocationsUntouched(t *testing.T) {
-	l := newTestLocations(t)
-
-	createFilesInDir(t, l.getLogsPath(),
-		"log1.txt",
-		"log2.txt",
-	)
-
-	assert.NoError(t, l.Clean())
-
-	assert.DirExists(t, l.getSettingsPath())
-	assert.FileExists(t, filepath.Join(l.getSettingsPath(), "prefs.json"))
-	assert.DirExists(t, l.getLogsPath())
-	assert.FileExists(t, filepath.Join(l.getLogsPath(), "log1.txt"))
-	assert.FileExists(t, filepath.Join(l.getLogsPath(), "log2.txt"))
-	assert.DirExists(t, l.getUpdatesPath())
-}
-
-func TestCleanRemovesUnexpectedFilesAndFolders(t *testing.T) {
-	l := newTestLocations(t)
-
-	createFilesInDir(t, l.userCache,
-		"unexpected1.txt",
-		"dir1/unexpected2.txt",
-		"dir1/unexpected3.txt",
-		"dir2/unexpected4.txt",
-		"dir3/dir4/unexpected5.txt",
-	)
-
-	require.FileExists(t, filepath.Join(l.userCache, "unexpected1.txt"))
-	require.FileExists(t, filepath.Join(l.userCache, "dir1", "unexpected2.txt"))
-	require.FileExists(t, filepath.Join(l.userCache, "dir1", "unexpected3.txt"))
-	require.FileExists(t, filepath.Join(l.userCache, "dir2", "unexpected4.txt"))
-	require.FileExists(t, filepath.Join(l.userCache, "dir3", "dir4", "unexpected5.txt"))
-
-	assert.NoError(t, l.Clean())
-
-	assert.DirExists(t, l.getSettingsPath())
-	assert.DirExists(t, l.getLogsPath())
-	assert.DirExists(t, l.getUpdatesPath())
-
-	assert.NoFileExists(t, filepath.Join(l.userCache, "unexpected1.txt"))
-	assert.NoFileExists(t, filepath.Join(l.userCache, "dir1", "unexpected2.txt"))
-	assert.NoFileExists(t, filepath.Join(l.userCache, "dir1", "unexpected3.txt"))
-	assert.NoFileExists(t, filepath.Join(l.userCache, "dir2", "unexpected4.txt"))
-	assert.NoFileExists(t, filepath.Join(l.userCache, "dir3", "dir4", "unexpected5.txt"))
-}
-
 func TestRemoveOldGoIMAPCacheFolders(t *testing.T) {
 	l := newTestLocations(t)
 
