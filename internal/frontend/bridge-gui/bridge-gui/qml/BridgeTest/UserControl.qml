@@ -299,7 +299,7 @@ ColumnLayout {
         Button { colorScheme: root.colorScheme; text: "Toggle Finished"; onClicked: {user.toggleSplitModeFinished()}}
     }
 
-    TextArea { // TODO: this is causing binding loop on imlicitWidth
+    TextArea { // TODO: this is causing binding loop on implicitWidth
         colorScheme: root.colorScheme
         text: user && user.addresses ? user.addresses.join("\n") : "user@protonmail.com"
         Layout.fillWidth: true

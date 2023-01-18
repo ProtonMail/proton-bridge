@@ -178,7 +178,7 @@ Window {
             signal toggleSplitModeFinished()
 
             function configureAppleMail(address){
-                userSignal("confugure apple mail "+address)
+                userSignal("configure apple mail "+address)
             }
 
             function logout(){

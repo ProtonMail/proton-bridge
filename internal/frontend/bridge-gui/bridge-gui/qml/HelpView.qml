@@ -93,7 +93,7 @@ SettingsView {
         Layout.fillWidth: true
     }
 
-    // fill height so the footer label will be allways attached to the bottom
+    // fill height so the footer label will be always attached to the bottom
     Item {
         Layout.fillHeight: true
         Layout.fillWidth: true

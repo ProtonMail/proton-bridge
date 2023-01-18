@@ -97,7 +97,7 @@ ColumnLayout {
         placeholderText: "Type 42 here"
         label: "42 Validator"
         hint: "Accepts only \"42\""
-        assistiveText: "Type sometihng here, preferably 42"
+        assistiveText: "Type something here, preferably 42"
 
         wrapMode: TextInput.Wrap
 

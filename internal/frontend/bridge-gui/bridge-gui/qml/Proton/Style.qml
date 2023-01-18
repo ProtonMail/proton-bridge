@@ -341,7 +341,7 @@ QtObject {
             case "windows":
             return "Segoe UI"
             case "osx":
-            return ".AppleSystemUIFont" // should be SF Pro for the foreseeable future. Using "SF Pro Display" direcly here is not allowed by the font's license.
+            return ".AppleSystemUIFont" // should be SF Pro for the foreseeable future. Using "SF Pro Display" directly here is not allowed by the font's license.
             case "linux":
             return "Ubuntu"
             default:
