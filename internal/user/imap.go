@@ -211,43 +211,41 @@ func (conn *imapConnector) updateLabel(ctx context.Context, labelID imap.Mailbox
 }
 
 func (conn *imapConnector) updateFolder(ctx context.Context, labelID imap.MailboxID, name []string) error {
-	return safe.LockRet(func() error {
-		var parentID string
+	var parentID string
 
-		if len(name) > 1 {
-			for _, label := range conn.apiLabels {
-				if !slices.Equal(label.Path, name[:len(name)-1]) {
-					continue
-				}
-
-				parentID = label.ID
-
-				break
+	if len(name) > 1 {
+		for _, label := range conn.apiLabels {
+			if !slices.Equal(label.Path, name[:len(name)-1]) {
+				continue
 			}
 
-			if parentID == "" {
-				return fmt.Errorf("parent folder %q does not exist", name[:len(name)-1])
-			}
+			parentID = label.ID
+
+			break
 		}
 
-		label, err := conn.client.GetLabel(ctx, string(labelID), proton.LabelTypeFolder)
-		if err != nil {
-			return err
+		if parentID == "" {
+			return fmt.Errorf("parent folder %q does not exist", name[:len(name)-1])
 		}
+	}
 
-		update, err := conn.client.UpdateLabel(ctx, string(labelID), proton.UpdateLabelReq{
-			Name:     name[len(name)-1],
-			Color:    label.Color,
-			ParentID: parentID,
-		})
-		if err != nil {
-			return err
-		}
+	label, err := conn.client.GetLabel(ctx, string(labelID), proton.LabelTypeFolder)
+	if err != nil {
+		return err
+	}
 
-		conn.apiLabels[label.ID] = update
+	update, err := conn.client.UpdateLabel(ctx, string(labelID), proton.UpdateLabelReq{
+		Name:     name[len(name)-1],
+		Color:    label.Color,
+		ParentID: parentID,
+	})
+	if err != nil {
+		return err
+	}
 
-		return nil
-	}, conn.apiLabelsLock)
+	conn.apiLabels[label.ID] = update
+
+	return nil
 }
 
 // DeleteMailbox deletes the label with the given ID.
