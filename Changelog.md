@@ -2,6 +2,28 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.11] Perth Narrows
+
+### Changed
+* GODT-2252: Recover from deleted cached messages.
+* GODT-2258: change login label and suggest email instead of username.
+* Other: Don't clean settings path on teardown.
+* Other: Bump GPA to v0.3.0.
+* Other: added user's primary email address to the vault.
+* GODT-2251: gluon store and DB separated.
+* GODT-2093: use the primary email address in the account view and status view.
+* GODT-2202: Report update errors from Gluon.
+* GODT-2229: Own the full path for gluon and do not change Database path.
+* GODT-1797: copyright notice shows a date range with the build year.
+
+### Fixed
+* GODT-2223: Handle bad events by logging user out.
+* GODT-2165: Reduce UTF8 parsing errors from TLS header input.
+* Others: chores fix a QML warning when no account is present* and a few typos in QML.
+* Other(test): Fix integration test steps.
+* GODT-2226: Fix moving drafts to trash.
+* GODT-2246: do not report API error 422 when using an invalid email address.
+
 
 ## [Bridge 3.0.10] Perth Narrows
 
