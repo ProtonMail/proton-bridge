@@ -36,8 +36,6 @@ typedef std::shared_ptr<grpc::StreamEvent> SPStreamEvent; ///< Type definition f
 
 QString grpcServerConfigPath(); ///< Return the path of the gRPC server config file.
 QString grpcClientConfigBasePath(); ///< Return the path of the gRPC client config file.
-QString serverCertificatePath(); ///< Return the path of the server certificate.
-QString serverKeyPath(); ///< Return the path of the server key.
 QString createClientConfigFile(QString const &token); ///< Create the client config file the server will retrieve and return its path.
 grpc::LogLevel logLevelToGRPC(Log::Level level); ///< Convert a Log::Level to gRPC enum value.
 Log::Level logLevelFromGRPC(grpc::LogLevel level); ///< Convert a grpc::LogLevel to a Log::Level.
