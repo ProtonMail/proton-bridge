@@ -206,6 +206,16 @@ func run(c *cli.Context) error { //nolint:funlen
 						return withSingleInstance(locations, version, func() error {
 							// Unlock the encrypted vault.
 							return WithVault(locations, func(vault *vault.Vault, insecure, corrupt bool) error {
+								// Report insecure vault.
+								if insecure {
+									_ = reporter.ReportMessageWithContext("Vault is insecure", map[string]interface{}{})
+								}
+
+								// Report corrupt vault.
+								if corrupt {
+									_ = reporter.ReportMessageWithContext("Vault is corrupt", map[string]interface{}{})
+								}
+
 								if !vault.Migrated() {
 									// Migrate old settings into the vault.
 									if err := migrateOldSettings(vault); err != nil {
