@@ -19,4 +19,6 @@
 
 package user
 
-func debugDumpToDisk(b []byte) {}
+func debugDumpToDisk(b []byte) error {
+	return nil
+}

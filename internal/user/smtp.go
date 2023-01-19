@@ -67,7 +67,9 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 		}
 
 		// If running a QA build, dump to disk.
-		debugDumpToDisk(b)
+		if err := debugDumpToDisk(b); err != nil {
+			user.log.WithError(err).Warn("Failed to dump message to disk")
+		}
 
 		// Compute the hash of the message (to match it against SMTP messages).
 		hash, err := getMessageHash(b)

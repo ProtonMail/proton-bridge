@@ -20,16 +20,29 @@
 package user
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 )
 
-func debugDumpToDisk(b []byte) {
+func debugDumpToDisk(b []byte) error {
 	if os.Getenv("BRIDGE_SMTP_DEBUG") == "" {
-		return
+		return nil
 	}
 
-	if err := os.WriteFile(time.Now().Format(time.RFC3339Nano)+"_smtp_debug.eml", b, 0600); err != nil {
-		panic(err)
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get user home dir: %w", err)
 	}
+
+	if err := os.WriteFile(filepath.Join(home, getFileName()), b, 0600); err != nil {
+		return fmt.Errorf("failed to write message file: %w", err)
+	}
+
+	return nil
+}
+
+func getFileName() string {
+	return time.Now().Format(time.RFC3339Nano) + "_smtp_debug.eml"
 }
