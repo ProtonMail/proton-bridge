@@ -54,17 +54,6 @@ stages:
       allow_failure: true
     - when: never
 
-.rules-branch-manual-MR-always-allow-failure:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: always
-      allow_failure: true
-    - if: $CI_COMMIT_BRANCH
-      when: manual
-      allow_failure: true
-    - when: never
-
-
 # Stage: TEST
 
 lint:
@@ -88,7 +77,7 @@ test-linux:
 test-linux-race:
   stage: test
   extends:
-    - .rules-branch-manual-MR-always-allow-failure
+    - .rules-branch-and-MR-manual
   script:
     - make test-race
   tags:
@@ -106,7 +95,7 @@ test-integration:
 test-integration-race:
   stage: test
   extends:
-    - .rules-branch-manual-MR-always-allow-failure
+    - .rules-branch-and-MR-manual
   script:
     - make test-integration-race
   tags:
