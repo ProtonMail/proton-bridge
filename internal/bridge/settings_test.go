@@ -162,26 +162,7 @@ func TestBridge_Settings_FirstStart(t *testing.T) {
 			// By default, first start is true.
 			require.True(t, bridge.GetFirstStart())
 
-			// Set first start to false.
-			require.NoError(t, bridge.SetFirstStart(false))
-
-			// Get the new setting.
-			require.False(t, bridge.GetFirstStart())
-		})
-	})
-}
-
-func TestBridge_Settings_FirstStartGUI(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			// By default, first start is true.
-			require.True(t, bridge.GetFirstStartGUI())
-
-			// Set first start to false.
-			require.NoError(t, bridge.SetFirstStartGUI(false))
-
-			// Get the new setting.
-			require.False(t, bridge.GetFirstStartGUI())
+			// the setting of the first start value is managed by bridge itself, so the setter is not exported.
 		})
 	})
 }

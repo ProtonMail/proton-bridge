@@ -63,7 +63,6 @@ func TestMigratePrefsToVault(t *testing.T) {
 
 	// Check that the app settings have been migrated.
 	require.False(t, vault.GetFirstStart())
-	require.True(t, vault.GetFirstStartGUI())
 	require.Equal(t, "blablabla", vault.GetColorScheme())
 	require.Equal(t, "2.3.0+git", vault.GetLastVersion().String())
 	require.True(t, vault.GetAutostart())

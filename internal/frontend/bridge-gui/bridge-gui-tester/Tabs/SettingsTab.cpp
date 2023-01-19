@@ -139,14 +139,6 @@ bool SettingsTab::showSplashScreen() const {
 
 
 //****************************************************************************************************************************************************
-/// \return true iff the 'Show Splash Screen' check box is checked.
-//****************************************************************************************************************************************************
-bool SettingsTab::isFirstGUIStart() const {
-    return ui_.checkIsFirstGUIStart->isChecked();
-}
-
-
-//****************************************************************************************************************************************************
 /// \return true iff autosart is on.
 //****************************************************************************************************************************************************
 bool SettingsTab::isAutostartOn() const {
@@ -450,7 +442,6 @@ void SettingsTab::resetUI() {
     ui_.editCurrentEmailClient->setText("Thunderbird/102.0.3");
     ui_.checkShowOnStartup->setChecked(true);
     ui_.checkShowSplashScreen->setChecked(false);
-    ui_.checkIsFirstGUIStart->setChecked(false);
     ui_.checkAutostart->setChecked(true);
     ui_.checkBetaEnabled->setChecked(true);
     ui_.checkAllMailVisible->setChecked(true);

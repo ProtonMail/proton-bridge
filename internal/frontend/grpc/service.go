@@ -210,10 +210,6 @@ func (s *Service) Loop() error {
 		go s.monitorParentPID()
 	}
 
-	defer func() {
-		_ = s.bridge.SetFirstStartGUI(false)
-	}()
-
 	go func() {
 		defer s.panicHandler.HandlePanic()
 		s.watchEvents()

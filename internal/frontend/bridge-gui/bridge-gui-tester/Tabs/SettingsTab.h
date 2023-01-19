@@ -42,7 +42,6 @@ public: // member functions.
     void setGUIReady(bool ready); ///< Set the GUI as ready.
     bool showOnStartup() const; ///< Get the value for the 'Show On Startup' check.
     bool showSplashScreen() const; ///< Get the value for the 'Show Splash Screen' check.
-    bool isFirstGUIStart() const; ///< Get the value for the 'Is First GUI Start' check.
     bool isAutostartOn() const; ///< Get the value for the 'Autostart' check.
     bool isBetaEnabled() const; ///< Get the value for the 'Beta Enabled' check.
     bool isAllMailVisible() const; ///< Get the value for the 'All Mail Visible' check.

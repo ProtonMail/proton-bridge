@@ -124,16 +124,6 @@
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QCheckBox" name="checkIsFirstGUIStart">
-            <property name="text">
-             <string>Is FIrst GUI Start</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
            <widget class="QCheckBox" name="checkAutostart">
             <property name="text">
              <string>Autostart</string>
@@ -143,7 +133,7 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item row="1" column="0">
            <widget class="QCheckBox" name="checkBetaEnabled">
             <property name="text">
              <string>Beta Enabled</string>
@@ -153,14 +143,17 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QCheckBox" name="checkAutomaticUpdate">
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="checkAllMailVisible">
             <property name="text">
-             <string>Automatic Update</string>
+             <string>Show 'All Mail'</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
+          <item row="1" column="2">
            <widget class="QCheckBox" name="checkDarkTheme">
             <property name="text">
              <string>Dark Theme</string>
@@ -170,13 +163,10 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QCheckBox" name="checkAllMailVisible">
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="checkAutomaticUpdate">
             <property name="text">
-             <string>Show 'All Mail'</string>
-            </property>
-            <property name="checked">
-             <bool>false</bool>
+             <string>Automatic Update</string>
             </property>
            </widget>
           </item>
@@ -901,12 +891,6 @@
   <tabstop>editCurrentEmailClient</tabstop>
   <tabstop>checkShowOnStartup</tabstop>
   <tabstop>checkShowSplashScreen</tabstop>
-  <tabstop>checkIsFirstGUIStart</tabstop>
-  <tabstop>checkAutostart</tabstop>
-  <tabstop>checkBetaEnabled</tabstop>
-  <tabstop>checkAllMailVisible</tabstop>
-  <tabstop>checkDarkTheme</tabstop>
-  <tabstop>checkAutomaticUpdate</tabstop>
   <tabstop>editHostname</tabstop>
   <tabstop>spinPortIMAP</tabstop>
   <tabstop>spinPortSMTP</tabstop>

@@ -91,11 +91,15 @@ func (s *Service) AddLogEntry(ctx context.Context, request *AddLogEntryRequest) 
 }
 
 // GuiReady implement the GuiReady gRPC service call.
-func (s *Service) GuiReady(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+func (s *Service) GuiReady(ctx context.Context, _ *emptypb.Empty) (*GuiReadyResponse, error) {
 	s.log.Debug("GuiReady")
 
 	s.initializationDone.Do(s.initializing.Done)
-	return &emptypb.Empty{}, nil
+
+	// Splash screen should be displayed only to users who start v3 for the first time after upgrading from v2.
+	return &GuiReadyResponse{
+		ShowSplashScreen: (!s.bridge.GetFirstStart()) && s.bridge.GetLastVersion().LessThan(semver.MustParse("3.0.0")),
+	}, nil
 }
 
 // Quit implement the Quit gRPC service call.
@@ -137,24 +141,6 @@ func (s *Service) ShowOnStartup(ctx context.Context, _ *emptypb.Empty) (*wrapper
 	s.log.Debug("ShowOnStartup")
 
 	return wrapperspb.Bool(s.showOnStartup), nil
-}
-
-func (s *Service) ShowSplashScreen(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	s.log.Debug("ShowSplashScreen")
-
-	if s.bridge.GetFirstStart() {
-		return wrapperspb.Bool(false), nil
-	}
-
-	// Current splash screen contains update on rebranding. Therefore, it
-	// should be shown only if the last used version was less than 2.2.0.
-	return wrapperspb.Bool(s.bridge.GetLastVersion().LessThan(semver.MustParse("2.2.0"))), nil
-}
-
-func (s *Service) IsFirstGuiStart(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	s.log.Debug("IsFirstGuiStart")
-
-	return wrapperspb.Bool(s.bridge.GetFirstStartGUI()), nil
 }
 
 func (s *Service) SetIsAutostartOn(ctx context.Context, isOn *wrapperspb.BoolValue) (*emptypb.Empty, error) {

@@ -63,8 +63,7 @@ public: // member functions.
 
     grpc::Status checkTokens(QString const &clientConfigPath, QString &outReturnedClientToken); ///< Performs a token check.
     grpc::Status addLogEntry(Log::Level level, QString const &package, QString const &message); ///< Performs the "AddLogEntry" gRPC call.
-    grpc::Status guiReady(); ///< performs the "GuiReady" gRPC call.
-    grpc::Status isFirstGUIStart(bool &outIsFirst); ///< performs the "IsFirstGUIStart" gRPC call.
+    grpc::Status guiReady(bool &outShowSplashScreen); ///< performs the "GuiReady" gRPC call.
     grpc::Status isAutostartOn(bool &outIsOn); ///< Performs the "isAutostartOn" gRPC call.
     grpc::Status setIsAutostartOn(bool on); ///< Performs the "setIsAutostartOn" gRPC call.
     grpc::Status isBetaEnabled(bool &outEnabled); ///< Performs the "isBetaEnabled" gRPC call.
@@ -83,7 +82,6 @@ public: // member functions.
     grpc::Status setMainExecutable(QString const &exe); ///< Performs the 'SetMainExecutable' call.
     grpc::Status isPortFree(qint32 port, bool &outFree); ///< Performs the 'IsPortFree' call.
     grpc::Status showOnStartup(bool &outValue); ///< Performs the 'ShowOnStartup' call.
-    grpc::Status showSplashScreen(bool &outValue); ///< Performs the 'ShowSplashScreen' call.
     grpc::Status goos(QString &outGoos); ///< Performs the 'GoOs' call.
     grpc::Status logsPath(QUrl &outPath); ///< Performs the 'LogsPath' call.
     grpc::Status licensePath(QUrl &outPath); ///< Performs the 'LicensePath' call.

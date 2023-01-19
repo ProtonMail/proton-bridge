@@ -324,18 +324,6 @@ func (bridge *Bridge) GetFirstStart() bool {
 	return bridge.vault.GetFirstStart()
 }
 
-func (bridge *Bridge) SetFirstStart(firstStart bool) error {
-	return bridge.vault.SetFirstStart(firstStart)
-}
-
-func (bridge *Bridge) GetFirstStartGUI() bool {
-	return bridge.vault.GetFirstStartGUI()
-}
-
-func (bridge *Bridge) SetFirstStartGUI(firstStart bool) error {
-	return bridge.vault.SetFirstStartGUI(firstStart)
-}
-
 func (bridge *Bridge) GetColorScheme() string {
 	return bridge.vault.GetColorScheme()
 }

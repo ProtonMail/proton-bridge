@@ -489,6 +489,56 @@ func (x *AddLogEntryRequest) GetMessage() string {
 }
 
 //**********************************************************
+//  GuiReady
+//**********************************************************
+type GuiReadyResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ShowSplashScreen bool `protobuf:"varint,1,opt,name=showSplashScreen,proto3" json:"showSplashScreen,omitempty"`
+}
+
+func (x *GuiReadyResponse) Reset() {
+	*x = GuiReadyResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bridge_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GuiReadyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GuiReadyResponse) ProtoMessage() {}
+
+func (x *GuiReadyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_bridge_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GuiReadyResponse.ProtoReflect.Descriptor instead.
+func (*GuiReadyResponse) Descriptor() ([]byte, []int) {
+	return file_bridge_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *GuiReadyResponse) GetShowSplashScreen() bool {
+	if x != nil {
+		return x.ShowSplashScreen
+	}
+	return false
+}
+
+//**********************************************************
 //  Bug reporting related messages.
 //**********************************************************
 type ReportBugRequest struct {
@@ -507,7 +557,7 @@ type ReportBugRequest struct {
 func (x *ReportBugRequest) Reset() {
 	*x = ReportBugRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[1]
+		mi := &file_bridge_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -520,7 +570,7 @@ func (x *ReportBugRequest) String() string {
 func (*ReportBugRequest) ProtoMessage() {}
 
 func (x *ReportBugRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[1]
+	mi := &file_bridge_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -533,7 +583,7 @@ func (x *ReportBugRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportBugRequest.ProtoReflect.Descriptor instead.
 func (*ReportBugRequest) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{1}
+	return file_bridge_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ReportBugRequest) GetOsType() string {
@@ -590,7 +640,7 @@ type LoginRequest struct {
 func (x *LoginRequest) Reset() {
 	*x = LoginRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[2]
+		mi := &file_bridge_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -603,7 +653,7 @@ func (x *LoginRequest) String() string {
 func (*LoginRequest) ProtoMessage() {}
 
 func (x *LoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[2]
+	mi := &file_bridge_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -616,7 +666,7 @@ func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
 func (*LoginRequest) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{2}
+	return file_bridge_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *LoginRequest) GetUsername() string {
@@ -644,7 +694,7 @@ type LoginAbortRequest struct {
 func (x *LoginAbortRequest) Reset() {
 	*x = LoginAbortRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[3]
+		mi := &file_bridge_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -657,7 +707,7 @@ func (x *LoginAbortRequest) String() string {
 func (*LoginAbortRequest) ProtoMessage() {}
 
 func (x *LoginAbortRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[3]
+	mi := &file_bridge_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -670,7 +720,7 @@ func (x *LoginAbortRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginAbortRequest.ProtoReflect.Descriptor instead.
 func (*LoginAbortRequest) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{3}
+	return file_bridge_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *LoginAbortRequest) GetUsername() string {
@@ -697,7 +747,7 @@ type ImapSmtpSettings struct {
 func (x *ImapSmtpSettings) Reset() {
 	*x = ImapSmtpSettings{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[4]
+		mi := &file_bridge_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -710,7 +760,7 @@ func (x *ImapSmtpSettings) String() string {
 func (*ImapSmtpSettings) ProtoMessage() {}
 
 func (x *ImapSmtpSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[4]
+	mi := &file_bridge_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -723,7 +773,7 @@ func (x *ImapSmtpSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImapSmtpSettings.ProtoReflect.Descriptor instead.
 func (*ImapSmtpSettings) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{4}
+	return file_bridge_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ImapSmtpSettings) GetImapPort() int32 {
@@ -768,7 +818,7 @@ type AvailableKeychainsResponse struct {
 func (x *AvailableKeychainsResponse) Reset() {
 	*x = AvailableKeychainsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[5]
+		mi := &file_bridge_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -781,7 +831,7 @@ func (x *AvailableKeychainsResponse) String() string {
 func (*AvailableKeychainsResponse) ProtoMessage() {}
 
 func (x *AvailableKeychainsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[5]
+	mi := &file_bridge_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -794,7 +844,7 @@ func (x *AvailableKeychainsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AvailableKeychainsResponse.ProtoReflect.Descriptor instead.
 func (*AvailableKeychainsResponse) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{5}
+	return file_bridge_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *AvailableKeychainsResponse) GetKeychains() []string {
@@ -823,7 +873,7 @@ type User struct {
 func (x *User) Reset() {
 	*x = User{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[6]
+		mi := &file_bridge_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -836,7 +886,7 @@ func (x *User) String() string {
 func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[6]
+	mi := &file_bridge_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -849,7 +899,7 @@ func (x *User) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use User.ProtoReflect.Descriptor instead.
 func (*User) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{6}
+	return file_bridge_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *User) GetId() string {
@@ -927,7 +977,7 @@ type UserSplitModeRequest struct {
 func (x *UserSplitModeRequest) Reset() {
 	*x = UserSplitModeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[7]
+		mi := &file_bridge_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -940,7 +990,7 @@ func (x *UserSplitModeRequest) String() string {
 func (*UserSplitModeRequest) ProtoMessage() {}
 
 func (x *UserSplitModeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[7]
+	mi := &file_bridge_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -953,7 +1003,7 @@ func (x *UserSplitModeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserSplitModeRequest.ProtoReflect.Descriptor instead.
 func (*UserSplitModeRequest) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{7}
+	return file_bridge_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UserSplitModeRequest) GetUserID() string {
@@ -981,7 +1031,7 @@ type UserListResponse struct {
 func (x *UserListResponse) Reset() {
 	*x = UserListResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[8]
+		mi := &file_bridge_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -994,7 +1044,7 @@ func (x *UserListResponse) String() string {
 func (*UserListResponse) ProtoMessage() {}
 
 func (x *UserListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[8]
+	mi := &file_bridge_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1007,7 +1057,7 @@ func (x *UserListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserListResponse.ProtoReflect.Descriptor instead.
 func (*UserListResponse) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{8}
+	return file_bridge_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UserListResponse) GetUsers() []*User {
@@ -1029,7 +1079,7 @@ type ConfigureAppleMailRequest struct {
 func (x *ConfigureAppleMailRequest) Reset() {
 	*x = ConfigureAppleMailRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[9]
+		mi := &file_bridge_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1042,7 +1092,7 @@ func (x *ConfigureAppleMailRequest) String() string {
 func (*ConfigureAppleMailRequest) ProtoMessage() {}
 
 func (x *ConfigureAppleMailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[9]
+	mi := &file_bridge_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1055,7 +1105,7 @@ func (x *ConfigureAppleMailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigureAppleMailRequest.ProtoReflect.Descriptor instead.
 func (*ConfigureAppleMailRequest) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{9}
+	return file_bridge_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ConfigureAppleMailRequest) GetUserID() string {
@@ -1083,7 +1133,7 @@ type EventStreamRequest struct {
 func (x *EventStreamRequest) Reset() {
 	*x = EventStreamRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[10]
+		mi := &file_bridge_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1096,7 +1146,7 @@ func (x *EventStreamRequest) String() string {
 func (*EventStreamRequest) ProtoMessage() {}
 
 func (x *EventStreamRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[10]
+	mi := &file_bridge_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1109,7 +1159,7 @@ func (x *EventStreamRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EventStreamRequest.ProtoReflect.Descriptor instead.
 func (*EventStreamRequest) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{10}
+	return file_bridge_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *EventStreamRequest) GetClientPlatform() string {
@@ -1140,7 +1190,7 @@ type StreamEvent struct {
 func (x *StreamEvent) Reset() {
 	*x = StreamEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[11]
+		mi := &file_bridge_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1153,7 +1203,7 @@ func (x *StreamEvent) String() string {
 func (*StreamEvent) ProtoMessage() {}
 
 func (x *StreamEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[11]
+	mi := &file_bridge_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1166,7 +1216,7 @@ func (x *StreamEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamEvent.ProtoReflect.Descriptor instead.
 func (*StreamEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{11}
+	return file_bridge_proto_rawDescGZIP(), []int{12}
 }
 
 func (m *StreamEvent) GetEvent() isStreamEvent_Event {
@@ -1319,7 +1369,7 @@ type AppEvent struct {
 func (x *AppEvent) Reset() {
 	*x = AppEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[12]
+		mi := &file_bridge_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1332,7 +1382,7 @@ func (x *AppEvent) String() string {
 func (*AppEvent) ProtoMessage() {}
 
 func (x *AppEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[12]
+	mi := &file_bridge_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1345,7 +1395,7 @@ func (x *AppEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AppEvent.ProtoReflect.Descriptor instead.
 func (*AppEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{12}
+	return file_bridge_proto_rawDescGZIP(), []int{13}
 }
 
 func (m *AppEvent) GetEvent() isAppEvent_Event {
@@ -1461,7 +1511,7 @@ type InternetStatusEvent struct {
 func (x *InternetStatusEvent) Reset() {
 	*x = InternetStatusEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[13]
+		mi := &file_bridge_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1474,7 +1524,7 @@ func (x *InternetStatusEvent) String() string {
 func (*InternetStatusEvent) ProtoMessage() {}
 
 func (x *InternetStatusEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[13]
+	mi := &file_bridge_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1487,7 +1537,7 @@ func (x *InternetStatusEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InternetStatusEvent.ProtoReflect.Descriptor instead.
 func (*InternetStatusEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{13}
+	return file_bridge_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *InternetStatusEvent) GetConnected() bool {
@@ -1506,7 +1556,7 @@ type ToggleAutostartFinishedEvent struct {
 func (x *ToggleAutostartFinishedEvent) Reset() {
 	*x = ToggleAutostartFinishedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[14]
+		mi := &file_bridge_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1519,7 +1569,7 @@ func (x *ToggleAutostartFinishedEvent) String() string {
 func (*ToggleAutostartFinishedEvent) ProtoMessage() {}
 
 func (x *ToggleAutostartFinishedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[14]
+	mi := &file_bridge_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1532,7 +1582,7 @@ func (x *ToggleAutostartFinishedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ToggleAutostartFinishedEvent.ProtoReflect.Descriptor instead.
 func (*ToggleAutostartFinishedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{14}
+	return file_bridge_proto_rawDescGZIP(), []int{15}
 }
 
 type ResetFinishedEvent struct {
@@ -1544,7 +1594,7 @@ type ResetFinishedEvent struct {
 func (x *ResetFinishedEvent) Reset() {
 	*x = ResetFinishedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[15]
+		mi := &file_bridge_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1557,7 +1607,7 @@ func (x *ResetFinishedEvent) String() string {
 func (*ResetFinishedEvent) ProtoMessage() {}
 
 func (x *ResetFinishedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[15]
+	mi := &file_bridge_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1570,7 +1620,7 @@ func (x *ResetFinishedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResetFinishedEvent.ProtoReflect.Descriptor instead.
 func (*ResetFinishedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{15}
+	return file_bridge_proto_rawDescGZIP(), []int{16}
 }
 
 type ReportBugFinishedEvent struct {
@@ -1582,7 +1632,7 @@ type ReportBugFinishedEvent struct {
 func (x *ReportBugFinishedEvent) Reset() {
 	*x = ReportBugFinishedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[16]
+		mi := &file_bridge_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1595,7 +1645,7 @@ func (x *ReportBugFinishedEvent) String() string {
 func (*ReportBugFinishedEvent) ProtoMessage() {}
 
 func (x *ReportBugFinishedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[16]
+	mi := &file_bridge_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1608,7 +1658,7 @@ func (x *ReportBugFinishedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportBugFinishedEvent.ProtoReflect.Descriptor instead.
 func (*ReportBugFinishedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{16}
+	return file_bridge_proto_rawDescGZIP(), []int{17}
 }
 
 type ReportBugSuccessEvent struct {
@@ -1620,7 +1670,7 @@ type ReportBugSuccessEvent struct {
 func (x *ReportBugSuccessEvent) Reset() {
 	*x = ReportBugSuccessEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[17]
+		mi := &file_bridge_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1633,7 +1683,7 @@ func (x *ReportBugSuccessEvent) String() string {
 func (*ReportBugSuccessEvent) ProtoMessage() {}
 
 func (x *ReportBugSuccessEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[17]
+	mi := &file_bridge_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1646,7 +1696,7 @@ func (x *ReportBugSuccessEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportBugSuccessEvent.ProtoReflect.Descriptor instead.
 func (*ReportBugSuccessEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{17}
+	return file_bridge_proto_rawDescGZIP(), []int{18}
 }
 
 type ReportBugErrorEvent struct {
@@ -1658,7 +1708,7 @@ type ReportBugErrorEvent struct {
 func (x *ReportBugErrorEvent) Reset() {
 	*x = ReportBugErrorEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[18]
+		mi := &file_bridge_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1671,7 +1721,7 @@ func (x *ReportBugErrorEvent) String() string {
 func (*ReportBugErrorEvent) ProtoMessage() {}
 
 func (x *ReportBugErrorEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[18]
+	mi := &file_bridge_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1684,7 +1734,7 @@ func (x *ReportBugErrorEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportBugErrorEvent.ProtoReflect.Descriptor instead.
 func (*ReportBugErrorEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{18}
+	return file_bridge_proto_rawDescGZIP(), []int{19}
 }
 
 type ShowMainWindowEvent struct {
@@ -1696,7 +1746,7 @@ type ShowMainWindowEvent struct {
 func (x *ShowMainWindowEvent) Reset() {
 	*x = ShowMainWindowEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[19]
+		mi := &file_bridge_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1709,7 +1759,7 @@ func (x *ShowMainWindowEvent) String() string {
 func (*ShowMainWindowEvent) ProtoMessage() {}
 
 func (x *ShowMainWindowEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[19]
+	mi := &file_bridge_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1722,7 +1772,7 @@ func (x *ShowMainWindowEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShowMainWindowEvent.ProtoReflect.Descriptor instead.
 func (*ShowMainWindowEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{19}
+	return file_bridge_proto_rawDescGZIP(), []int{20}
 }
 
 //**********************************************************
@@ -1745,7 +1795,7 @@ type LoginEvent struct {
 func (x *LoginEvent) Reset() {
 	*x = LoginEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[20]
+		mi := &file_bridge_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1758,7 +1808,7 @@ func (x *LoginEvent) String() string {
 func (*LoginEvent) ProtoMessage() {}
 
 func (x *LoginEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[20]
+	mi := &file_bridge_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1771,7 +1821,7 @@ func (x *LoginEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginEvent.ProtoReflect.Descriptor instead.
 func (*LoginEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{20}
+	return file_bridge_proto_rawDescGZIP(), []int{21}
 }
 
 func (m *LoginEvent) GetEvent() isLoginEvent_Event {
@@ -1862,7 +1912,7 @@ type LoginErrorEvent struct {
 func (x *LoginErrorEvent) Reset() {
 	*x = LoginErrorEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[21]
+		mi := &file_bridge_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1875,7 +1925,7 @@ func (x *LoginErrorEvent) String() string {
 func (*LoginErrorEvent) ProtoMessage() {}
 
 func (x *LoginErrorEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[21]
+	mi := &file_bridge_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1888,7 +1938,7 @@ func (x *LoginErrorEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginErrorEvent.ProtoReflect.Descriptor instead.
 func (*LoginErrorEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{21}
+	return file_bridge_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *LoginErrorEvent) GetType() LoginErrorType {
@@ -1916,7 +1966,7 @@ type LoginTfaRequestedEvent struct {
 func (x *LoginTfaRequestedEvent) Reset() {
 	*x = LoginTfaRequestedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[22]
+		mi := &file_bridge_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1929,7 +1979,7 @@ func (x *LoginTfaRequestedEvent) String() string {
 func (*LoginTfaRequestedEvent) ProtoMessage() {}
 
 func (x *LoginTfaRequestedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[22]
+	mi := &file_bridge_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1942,7 +1992,7 @@ func (x *LoginTfaRequestedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginTfaRequestedEvent.ProtoReflect.Descriptor instead.
 func (*LoginTfaRequestedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{22}
+	return file_bridge_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *LoginTfaRequestedEvent) GetUsername() string {
@@ -1961,7 +2011,7 @@ type LoginTwoPasswordsRequestedEvent struct {
 func (x *LoginTwoPasswordsRequestedEvent) Reset() {
 	*x = LoginTwoPasswordsRequestedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[23]
+		mi := &file_bridge_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1974,7 +2024,7 @@ func (x *LoginTwoPasswordsRequestedEvent) String() string {
 func (*LoginTwoPasswordsRequestedEvent) ProtoMessage() {}
 
 func (x *LoginTwoPasswordsRequestedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[23]
+	mi := &file_bridge_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1987,7 +2037,7 @@ func (x *LoginTwoPasswordsRequestedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginTwoPasswordsRequestedEvent.ProtoReflect.Descriptor instead.
 func (*LoginTwoPasswordsRequestedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{23}
+	return file_bridge_proto_rawDescGZIP(), []int{24}
 }
 
 type LoginFinishedEvent struct {
@@ -2002,7 +2052,7 @@ type LoginFinishedEvent struct {
 func (x *LoginFinishedEvent) Reset() {
 	*x = LoginFinishedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[24]
+		mi := &file_bridge_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2015,7 +2065,7 @@ func (x *LoginFinishedEvent) String() string {
 func (*LoginFinishedEvent) ProtoMessage() {}
 
 func (x *LoginFinishedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[24]
+	mi := &file_bridge_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2028,7 +2078,7 @@ func (x *LoginFinishedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginFinishedEvent.ProtoReflect.Descriptor instead.
 func (*LoginFinishedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{24}
+	return file_bridge_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *LoginFinishedEvent) GetUserID() string {
@@ -2068,7 +2118,7 @@ type UpdateEvent struct {
 func (x *UpdateEvent) Reset() {
 	*x = UpdateEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[25]
+		mi := &file_bridge_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2081,7 +2131,7 @@ func (x *UpdateEvent) String() string {
 func (*UpdateEvent) ProtoMessage() {}
 
 func (x *UpdateEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[25]
+	mi := &file_bridge_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2094,7 +2144,7 @@ func (x *UpdateEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEvent.ProtoReflect.Descriptor instead.
 func (*UpdateEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{25}
+	return file_bridge_proto_rawDescGZIP(), []int{26}
 }
 
 func (m *UpdateEvent) GetEvent() isUpdateEvent_Event {
@@ -2223,7 +2273,7 @@ type UpdateErrorEvent struct {
 func (x *UpdateErrorEvent) Reset() {
 	*x = UpdateErrorEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[26]
+		mi := &file_bridge_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2236,7 +2286,7 @@ func (x *UpdateErrorEvent) String() string {
 func (*UpdateErrorEvent) ProtoMessage() {}
 
 func (x *UpdateErrorEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[26]
+	mi := &file_bridge_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2249,7 +2299,7 @@ func (x *UpdateErrorEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateErrorEvent.ProtoReflect.Descriptor instead.
 func (*UpdateErrorEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{26}
+	return file_bridge_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *UpdateErrorEvent) GetType() UpdateErrorType {
@@ -2270,7 +2320,7 @@ type UpdateManualReadyEvent struct {
 func (x *UpdateManualReadyEvent) Reset() {
 	*x = UpdateManualReadyEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[27]
+		mi := &file_bridge_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2283,7 +2333,7 @@ func (x *UpdateManualReadyEvent) String() string {
 func (*UpdateManualReadyEvent) ProtoMessage() {}
 
 func (x *UpdateManualReadyEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[27]
+	mi := &file_bridge_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2296,7 +2346,7 @@ func (x *UpdateManualReadyEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateManualReadyEvent.ProtoReflect.Descriptor instead.
 func (*UpdateManualReadyEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{27}
+	return file_bridge_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *UpdateManualReadyEvent) GetVersion() string {
@@ -2315,7 +2365,7 @@ type UpdateManualRestartNeededEvent struct {
 func (x *UpdateManualRestartNeededEvent) Reset() {
 	*x = UpdateManualRestartNeededEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[28]
+		mi := &file_bridge_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2328,7 +2378,7 @@ func (x *UpdateManualRestartNeededEvent) String() string {
 func (*UpdateManualRestartNeededEvent) ProtoMessage() {}
 
 func (x *UpdateManualRestartNeededEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[28]
+	mi := &file_bridge_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2341,7 +2391,7 @@ func (x *UpdateManualRestartNeededEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateManualRestartNeededEvent.ProtoReflect.Descriptor instead.
 func (*UpdateManualRestartNeededEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{28}
+	return file_bridge_proto_rawDescGZIP(), []int{29}
 }
 
 type UpdateForceEvent struct {
@@ -2355,7 +2405,7 @@ type UpdateForceEvent struct {
 func (x *UpdateForceEvent) Reset() {
 	*x = UpdateForceEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[29]
+		mi := &file_bridge_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2368,7 +2418,7 @@ func (x *UpdateForceEvent) String() string {
 func (*UpdateForceEvent) ProtoMessage() {}
 
 func (x *UpdateForceEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[29]
+	mi := &file_bridge_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2381,7 +2431,7 @@ func (x *UpdateForceEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateForceEvent.ProtoReflect.Descriptor instead.
 func (*UpdateForceEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{29}
+	return file_bridge_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *UpdateForceEvent) GetVersion() string {
@@ -2400,7 +2450,7 @@ type UpdateSilentRestartNeeded struct {
 func (x *UpdateSilentRestartNeeded) Reset() {
 	*x = UpdateSilentRestartNeeded{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[30]
+		mi := &file_bridge_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2413,7 +2463,7 @@ func (x *UpdateSilentRestartNeeded) String() string {
 func (*UpdateSilentRestartNeeded) ProtoMessage() {}
 
 func (x *UpdateSilentRestartNeeded) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[30]
+	mi := &file_bridge_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2426,7 +2476,7 @@ func (x *UpdateSilentRestartNeeded) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateSilentRestartNeeded.ProtoReflect.Descriptor instead.
 func (*UpdateSilentRestartNeeded) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{30}
+	return file_bridge_proto_rawDescGZIP(), []int{31}
 }
 
 type UpdateIsLatestVersion struct {
@@ -2438,7 +2488,7 @@ type UpdateIsLatestVersion struct {
 func (x *UpdateIsLatestVersion) Reset() {
 	*x = UpdateIsLatestVersion{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[31]
+		mi := &file_bridge_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2451,7 +2501,7 @@ func (x *UpdateIsLatestVersion) String() string {
 func (*UpdateIsLatestVersion) ProtoMessage() {}
 
 func (x *UpdateIsLatestVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[31]
+	mi := &file_bridge_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2464,7 +2514,7 @@ func (x *UpdateIsLatestVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateIsLatestVersion.ProtoReflect.Descriptor instead.
 func (*UpdateIsLatestVersion) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{31}
+	return file_bridge_proto_rawDescGZIP(), []int{32}
 }
 
 type UpdateCheckFinished struct {
@@ -2476,7 +2526,7 @@ type UpdateCheckFinished struct {
 func (x *UpdateCheckFinished) Reset() {
 	*x = UpdateCheckFinished{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[32]
+		mi := &file_bridge_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2489,7 +2539,7 @@ func (x *UpdateCheckFinished) String() string {
 func (*UpdateCheckFinished) ProtoMessage() {}
 
 func (x *UpdateCheckFinished) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[32]
+	mi := &file_bridge_proto_msgTypes[33]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2502,7 +2552,7 @@ func (x *UpdateCheckFinished) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCheckFinished.ProtoReflect.Descriptor instead.
 func (*UpdateCheckFinished) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{32}
+	return file_bridge_proto_rawDescGZIP(), []int{33}
 }
 
 type UpdateVersionChanged struct {
@@ -2514,7 +2564,7 @@ type UpdateVersionChanged struct {
 func (x *UpdateVersionChanged) Reset() {
 	*x = UpdateVersionChanged{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[33]
+		mi := &file_bridge_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2527,7 +2577,7 @@ func (x *UpdateVersionChanged) String() string {
 func (*UpdateVersionChanged) ProtoMessage() {}
 
 func (x *UpdateVersionChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[33]
+	mi := &file_bridge_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2540,7 +2590,7 @@ func (x *UpdateVersionChanged) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateVersionChanged.ProtoReflect.Descriptor instead.
 func (*UpdateVersionChanged) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{33}
+	return file_bridge_proto_rawDescGZIP(), []int{34}
 }
 
 //**********************************************************
@@ -2561,7 +2611,7 @@ type DiskCacheEvent struct {
 func (x *DiskCacheEvent) Reset() {
 	*x = DiskCacheEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[34]
+		mi := &file_bridge_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2574,7 +2624,7 @@ func (x *DiskCacheEvent) String() string {
 func (*DiskCacheEvent) ProtoMessage() {}
 
 func (x *DiskCacheEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[34]
+	mi := &file_bridge_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2587,7 +2637,7 @@ func (x *DiskCacheEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiskCacheEvent.ProtoReflect.Descriptor instead.
 func (*DiskCacheEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{34}
+	return file_bridge_proto_rawDescGZIP(), []int{35}
 }
 
 func (m *DiskCacheEvent) GetEvent() isDiskCacheEvent_Event {
@@ -2651,7 +2701,7 @@ type DiskCacheErrorEvent struct {
 func (x *DiskCacheErrorEvent) Reset() {
 	*x = DiskCacheErrorEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[35]
+		mi := &file_bridge_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2664,7 +2714,7 @@ func (x *DiskCacheErrorEvent) String() string {
 func (*DiskCacheErrorEvent) ProtoMessage() {}
 
 func (x *DiskCacheErrorEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[35]
+	mi := &file_bridge_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2677,7 +2727,7 @@ func (x *DiskCacheErrorEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiskCacheErrorEvent.ProtoReflect.Descriptor instead.
 func (*DiskCacheErrorEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{35}
+	return file_bridge_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *DiskCacheErrorEvent) GetType() DiskCacheErrorType {
@@ -2698,7 +2748,7 @@ type DiskCachePathChangedEvent struct {
 func (x *DiskCachePathChangedEvent) Reset() {
 	*x = DiskCachePathChangedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[36]
+		mi := &file_bridge_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2711,7 +2761,7 @@ func (x *DiskCachePathChangedEvent) String() string {
 func (*DiskCachePathChangedEvent) ProtoMessage() {}
 
 func (x *DiskCachePathChangedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[36]
+	mi := &file_bridge_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2724,7 +2774,7 @@ func (x *DiskCachePathChangedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiskCachePathChangedEvent.ProtoReflect.Descriptor instead.
 func (*DiskCachePathChangedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{36}
+	return file_bridge_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *DiskCachePathChangedEvent) GetPath() string {
@@ -2743,7 +2793,7 @@ type DiskCachePathChangeFinishedEvent struct {
 func (x *DiskCachePathChangeFinishedEvent) Reset() {
 	*x = DiskCachePathChangeFinishedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[37]
+		mi := &file_bridge_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2756,7 +2806,7 @@ func (x *DiskCachePathChangeFinishedEvent) String() string {
 func (*DiskCachePathChangeFinishedEvent) ProtoMessage() {}
 
 func (x *DiskCachePathChangeFinishedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[37]
+	mi := &file_bridge_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2769,7 +2819,7 @@ func (x *DiskCachePathChangeFinishedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DiskCachePathChangeFinishedEvent.ProtoReflect.Descriptor instead.
 func (*DiskCachePathChangeFinishedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{37}
+	return file_bridge_proto_rawDescGZIP(), []int{38}
 }
 
 //**********************************************************
@@ -2790,7 +2840,7 @@ type MailServerSettingsEvent struct {
 func (x *MailServerSettingsEvent) Reset() {
 	*x = MailServerSettingsEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[38]
+		mi := &file_bridge_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2803,7 +2853,7 @@ func (x *MailServerSettingsEvent) String() string {
 func (*MailServerSettingsEvent) ProtoMessage() {}
 
 func (x *MailServerSettingsEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[38]
+	mi := &file_bridge_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2816,7 +2866,7 @@ func (x *MailServerSettingsEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MailServerSettingsEvent.ProtoReflect.Descriptor instead.
 func (*MailServerSettingsEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{38}
+	return file_bridge_proto_rawDescGZIP(), []int{39}
 }
 
 func (m *MailServerSettingsEvent) GetEvent() isMailServerSettingsEvent_Event {
@@ -2880,7 +2930,7 @@ type MailServerSettingsErrorEvent struct {
 func (x *MailServerSettingsErrorEvent) Reset() {
 	*x = MailServerSettingsErrorEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[39]
+		mi := &file_bridge_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2893,7 +2943,7 @@ func (x *MailServerSettingsErrorEvent) String() string {
 func (*MailServerSettingsErrorEvent) ProtoMessage() {}
 
 func (x *MailServerSettingsErrorEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[39]
+	mi := &file_bridge_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2906,7 +2956,7 @@ func (x *MailServerSettingsErrorEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MailServerSettingsErrorEvent.ProtoReflect.Descriptor instead.
 func (*MailServerSettingsErrorEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{39}
+	return file_bridge_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *MailServerSettingsErrorEvent) GetType() MailServerSettingsErrorType {
@@ -2927,7 +2977,7 @@ type MailServerSettingsChangedEvent struct {
 func (x *MailServerSettingsChangedEvent) Reset() {
 	*x = MailServerSettingsChangedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[40]
+		mi := &file_bridge_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2940,7 +2990,7 @@ func (x *MailServerSettingsChangedEvent) String() string {
 func (*MailServerSettingsChangedEvent) ProtoMessage() {}
 
 func (x *MailServerSettingsChangedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[40]
+	mi := &file_bridge_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2953,7 +3003,7 @@ func (x *MailServerSettingsChangedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MailServerSettingsChangedEvent.ProtoReflect.Descriptor instead.
 func (*MailServerSettingsChangedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{40}
+	return file_bridge_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *MailServerSettingsChangedEvent) GetSettings() *ImapSmtpSettings {
@@ -2972,7 +3022,7 @@ type ChangeMailServerSettingsFinishedEvent struct {
 func (x *ChangeMailServerSettingsFinishedEvent) Reset() {
 	*x = ChangeMailServerSettingsFinishedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[41]
+		mi := &file_bridge_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2985,7 +3035,7 @@ func (x *ChangeMailServerSettingsFinishedEvent) String() string {
 func (*ChangeMailServerSettingsFinishedEvent) ProtoMessage() {}
 
 func (x *ChangeMailServerSettingsFinishedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[41]
+	mi := &file_bridge_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2998,7 +3048,7 @@ func (x *ChangeMailServerSettingsFinishedEvent) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use ChangeMailServerSettingsFinishedEvent.ProtoReflect.Descriptor instead.
 func (*ChangeMailServerSettingsFinishedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{41}
+	return file_bridge_proto_rawDescGZIP(), []int{42}
 }
 
 //**********************************************************
@@ -3019,7 +3069,7 @@ type KeychainEvent struct {
 func (x *KeychainEvent) Reset() {
 	*x = KeychainEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[42]
+		mi := &file_bridge_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3032,7 +3082,7 @@ func (x *KeychainEvent) String() string {
 func (*KeychainEvent) ProtoMessage() {}
 
 func (x *KeychainEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[42]
+	mi := &file_bridge_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3045,7 +3095,7 @@ func (x *KeychainEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeychainEvent.ProtoReflect.Descriptor instead.
 func (*KeychainEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{42}
+	return file_bridge_proto_rawDescGZIP(), []int{43}
 }
 
 func (m *KeychainEvent) GetEvent() isKeychainEvent_Event {
@@ -3107,7 +3157,7 @@ type ChangeKeychainFinishedEvent struct {
 func (x *ChangeKeychainFinishedEvent) Reset() {
 	*x = ChangeKeychainFinishedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[43]
+		mi := &file_bridge_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3120,7 +3170,7 @@ func (x *ChangeKeychainFinishedEvent) String() string {
 func (*ChangeKeychainFinishedEvent) ProtoMessage() {}
 
 func (x *ChangeKeychainFinishedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[43]
+	mi := &file_bridge_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3133,7 +3183,7 @@ func (x *ChangeKeychainFinishedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChangeKeychainFinishedEvent.ProtoReflect.Descriptor instead.
 func (*ChangeKeychainFinishedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{43}
+	return file_bridge_proto_rawDescGZIP(), []int{44}
 }
 
 type HasNoKeychainEvent struct {
@@ -3145,7 +3195,7 @@ type HasNoKeychainEvent struct {
 func (x *HasNoKeychainEvent) Reset() {
 	*x = HasNoKeychainEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[44]
+		mi := &file_bridge_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3158,7 +3208,7 @@ func (x *HasNoKeychainEvent) String() string {
 func (*HasNoKeychainEvent) ProtoMessage() {}
 
 func (x *HasNoKeychainEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[44]
+	mi := &file_bridge_proto_msgTypes[45]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3171,7 +3221,7 @@ func (x *HasNoKeychainEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HasNoKeychainEvent.ProtoReflect.Descriptor instead.
 func (*HasNoKeychainEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{44}
+	return file_bridge_proto_rawDescGZIP(), []int{45}
 }
 
 type RebuildKeychainEvent struct {
@@ -3183,7 +3233,7 @@ type RebuildKeychainEvent struct {
 func (x *RebuildKeychainEvent) Reset() {
 	*x = RebuildKeychainEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[45]
+		mi := &file_bridge_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3196,7 +3246,7 @@ func (x *RebuildKeychainEvent) String() string {
 func (*RebuildKeychainEvent) ProtoMessage() {}
 
 func (x *RebuildKeychainEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[45]
+	mi := &file_bridge_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3209,7 +3259,7 @@ func (x *RebuildKeychainEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RebuildKeychainEvent.ProtoReflect.Descriptor instead.
 func (*RebuildKeychainEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{45}
+	return file_bridge_proto_rawDescGZIP(), []int{46}
 }
 
 //**********************************************************
@@ -3231,7 +3281,7 @@ type MailEvent struct {
 func (x *MailEvent) Reset() {
 	*x = MailEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[46]
+		mi := &file_bridge_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3244,7 +3294,7 @@ func (x *MailEvent) String() string {
 func (*MailEvent) ProtoMessage() {}
 
 func (x *MailEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[46]
+	mi := &file_bridge_proto_msgTypes[47]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3257,7 +3307,7 @@ func (x *MailEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MailEvent.ProtoReflect.Descriptor instead.
 func (*MailEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{46}
+	return file_bridge_proto_rawDescGZIP(), []int{47}
 }
 
 func (m *MailEvent) GetEvent() isMailEvent_Event {
@@ -3334,7 +3384,7 @@ type NoActiveKeyForRecipientEvent struct {
 func (x *NoActiveKeyForRecipientEvent) Reset() {
 	*x = NoActiveKeyForRecipientEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[47]
+		mi := &file_bridge_proto_msgTypes[48]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3347,7 +3397,7 @@ func (x *NoActiveKeyForRecipientEvent) String() string {
 func (*NoActiveKeyForRecipientEvent) ProtoMessage() {}
 
 func (x *NoActiveKeyForRecipientEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[47]
+	mi := &file_bridge_proto_msgTypes[48]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3360,7 +3410,7 @@ func (x *NoActiveKeyForRecipientEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NoActiveKeyForRecipientEvent.ProtoReflect.Descriptor instead.
 func (*NoActiveKeyForRecipientEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{47}
+	return file_bridge_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *NoActiveKeyForRecipientEvent) GetEmail() string {
@@ -3381,7 +3431,7 @@ type AddressChangedEvent struct {
 func (x *AddressChangedEvent) Reset() {
 	*x = AddressChangedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[48]
+		mi := &file_bridge_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3394,7 +3444,7 @@ func (x *AddressChangedEvent) String() string {
 func (*AddressChangedEvent) ProtoMessage() {}
 
 func (x *AddressChangedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[48]
+	mi := &file_bridge_proto_msgTypes[49]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3407,7 +3457,7 @@ func (x *AddressChangedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddressChangedEvent.ProtoReflect.Descriptor instead.
 func (*AddressChangedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{48}
+	return file_bridge_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *AddressChangedEvent) GetAddress() string {
@@ -3428,7 +3478,7 @@ type AddressChangedLogoutEvent struct {
 func (x *AddressChangedLogoutEvent) Reset() {
 	*x = AddressChangedLogoutEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[49]
+		mi := &file_bridge_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3441,7 +3491,7 @@ func (x *AddressChangedLogoutEvent) String() string {
 func (*AddressChangedLogoutEvent) ProtoMessage() {}
 
 func (x *AddressChangedLogoutEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[49]
+	mi := &file_bridge_proto_msgTypes[50]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3454,7 +3504,7 @@ func (x *AddressChangedLogoutEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddressChangedLogoutEvent.ProtoReflect.Descriptor instead.
 func (*AddressChangedLogoutEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{49}
+	return file_bridge_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *AddressChangedLogoutEvent) GetAddress() string {
@@ -3473,7 +3523,7 @@ type ApiCertIssueEvent struct {
 func (x *ApiCertIssueEvent) Reset() {
 	*x = ApiCertIssueEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[50]
+		mi := &file_bridge_proto_msgTypes[51]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3486,7 +3536,7 @@ func (x *ApiCertIssueEvent) String() string {
 func (*ApiCertIssueEvent) ProtoMessage() {}
 
 func (x *ApiCertIssueEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[50]
+	mi := &file_bridge_proto_msgTypes[51]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3499,7 +3549,7 @@ func (x *ApiCertIssueEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApiCertIssueEvent.ProtoReflect.Descriptor instead.
 func (*ApiCertIssueEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{50}
+	return file_bridge_proto_rawDescGZIP(), []int{51}
 }
 
 type UserEvent struct {
@@ -3518,7 +3568,7 @@ type UserEvent struct {
 func (x *UserEvent) Reset() {
 	*x = UserEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[51]
+		mi := &file_bridge_proto_msgTypes[52]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3531,7 +3581,7 @@ func (x *UserEvent) String() string {
 func (*UserEvent) ProtoMessage() {}
 
 func (x *UserEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[51]
+	mi := &file_bridge_proto_msgTypes[52]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3544,7 +3594,7 @@ func (x *UserEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserEvent.ProtoReflect.Descriptor instead.
 func (*UserEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{51}
+	return file_bridge_proto_rawDescGZIP(), []int{52}
 }
 
 func (m *UserEvent) GetEvent() isUserEvent_Event {
@@ -3621,7 +3671,7 @@ type ToggleSplitModeFinishedEvent struct {
 func (x *ToggleSplitModeFinishedEvent) Reset() {
 	*x = ToggleSplitModeFinishedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[52]
+		mi := &file_bridge_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3634,7 +3684,7 @@ func (x *ToggleSplitModeFinishedEvent) String() string {
 func (*ToggleSplitModeFinishedEvent) ProtoMessage() {}
 
 func (x *ToggleSplitModeFinishedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[52]
+	mi := &file_bridge_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3647,7 +3697,7 @@ func (x *ToggleSplitModeFinishedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ToggleSplitModeFinishedEvent.ProtoReflect.Descriptor instead.
 func (*ToggleSplitModeFinishedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{52}
+	return file_bridge_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *ToggleSplitModeFinishedEvent) GetUserID() string {
@@ -3668,7 +3718,7 @@ type UserDisconnectedEvent struct {
 func (x *UserDisconnectedEvent) Reset() {
 	*x = UserDisconnectedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[53]
+		mi := &file_bridge_proto_msgTypes[54]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3681,7 +3731,7 @@ func (x *UserDisconnectedEvent) String() string {
 func (*UserDisconnectedEvent) ProtoMessage() {}
 
 func (x *UserDisconnectedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[53]
+	mi := &file_bridge_proto_msgTypes[54]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3694,7 +3744,7 @@ func (x *UserDisconnectedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserDisconnectedEvent.ProtoReflect.Descriptor instead.
 func (*UserDisconnectedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{53}
+	return file_bridge_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *UserDisconnectedEvent) GetUsername() string {
@@ -3715,7 +3765,7 @@ type UserChangedEvent struct {
 func (x *UserChangedEvent) Reset() {
 	*x = UserChangedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[54]
+		mi := &file_bridge_proto_msgTypes[55]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3728,7 +3778,7 @@ func (x *UserChangedEvent) String() string {
 func (*UserChangedEvent) ProtoMessage() {}
 
 func (x *UserChangedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[54]
+	mi := &file_bridge_proto_msgTypes[55]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3741,7 +3791,7 @@ func (x *UserChangedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserChangedEvent.ProtoReflect.Descriptor instead.
 func (*UserChangedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{54}
+	return file_bridge_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *UserChangedEvent) GetUserID() string {
@@ -3763,7 +3813,7 @@ type UserBadEvent struct {
 func (x *UserBadEvent) Reset() {
 	*x = UserBadEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[55]
+		mi := &file_bridge_proto_msgTypes[56]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3776,7 +3826,7 @@ func (x *UserBadEvent) String() string {
 func (*UserBadEvent) ProtoMessage() {}
 
 func (x *UserBadEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[55]
+	mi := &file_bridge_proto_msgTypes[56]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3789,7 +3839,7 @@ func (x *UserBadEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserBadEvent.ProtoReflect.Descriptor instead.
 func (*UserBadEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{55}
+	return file_bridge_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *UserBadEvent) GetUserID() string {
@@ -3817,7 +3867,7 @@ type GenericErrorEvent struct {
 func (x *GenericErrorEvent) Reset() {
 	*x = GenericErrorEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[56]
+		mi := &file_bridge_proto_msgTypes[57]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3830,7 +3880,7 @@ func (x *GenericErrorEvent) String() string {
 func (*GenericErrorEvent) ProtoMessage() {}
 
 func (x *GenericErrorEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[56]
+	mi := &file_bridge_proto_msgTypes[57]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3843,7 +3893,7 @@ func (x *GenericErrorEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenericErrorEvent.ProtoReflect.Descriptor instead.
 func (*GenericErrorEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{56}
+	return file_bridge_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *GenericErrorEvent) GetCode() ErrorCode {
@@ -3868,7 +3918,11 @@ var file_bridge_proto_rawDesc = []byte{
 	0x07, 0x70, 0x61, 0x63, 0x6b, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
 	0x70, 0x61, 0x63, 0x6b, 0x61, 0x67, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61,
 	0x67, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67,
-	0x65, 0x22, 0xc8, 0x01, 0x0a, 0x10, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x42, 0x75, 0x67, 0x52,
+	0x65, 0x22, 0x3e, 0x0a, 0x10, 0x47, 0x75, 0x69, 0x52, 0x65, 0x61, 0x64, 0x79, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2a, 0x0a, 0x10, 0x73, 0x68, 0x6f, 0x77, 0x53, 0x70, 0x6c,
+	0x61, 0x73, 0x68, 0x53, 0x63, 0x72, 0x65, 0x65, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52,
+	0x10, 0x73, 0x68, 0x6f, 0x77, 0x53, 0x70, 0x6c, 0x61, 0x73, 0x68, 0x53, 0x63, 0x72, 0x65, 0x65,
+	0x6e, 0x22, 0xc8, 0x01, 0x0a, 0x10, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x42, 0x75, 0x67, 0x52,
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x6f, 0x73, 0x54, 0x79, 0x70, 0x65,
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x6f, 0x73, 0x54, 0x79, 0x70, 0x65, 0x12, 0x1c,
 	0x0a, 0x09, 0x6f, 0x73, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28,
@@ -4306,7 +4360,7 @@ var file_bridge_proto_rawDesc = []byte{
 	0x00, 0x12, 0x19, 0x0a, 0x15, 0x54, 0x4c, 0x53, 0x5f, 0x43, 0x45, 0x52, 0x54, 0x5f, 0x45, 0x58,
 	0x50, 0x4f, 0x52, 0x54, 0x5f, 0x45, 0x52, 0x52, 0x4f, 0x52, 0x10, 0x01, 0x12, 0x18, 0x0a, 0x14,
 	0x54, 0x4c, 0x53, 0x5f, 0x4b, 0x45, 0x59, 0x5f, 0x45, 0x58, 0x50, 0x4f, 0x52, 0x54, 0x5f, 0x45,
-	0x52, 0x52, 0x4f, 0x52, 0x10, 0x02, 0x32, 0xa8, 0x1e, 0x0a, 0x06, 0x42, 0x72, 0x69, 0x64, 0x67,
+	0x52, 0x52, 0x4f, 0x52, 0x10, 0x02, 0x32, 0x99, 0x1d, 0x0a, 0x06, 0x42, 0x72, 0x69, 0x64, 0x67,
 	0x65, 0x12, 0x49, 0x0a, 0x0b, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x73,
 	0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
 	0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x1c,
@@ -4318,8 +4372,8 @@ var file_bridge_proto_rawDesc = []byte{
 	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x3a, 0x0a,
 	0x08, 0x47, 0x75, 0x69, 0x52, 0x65, 0x61, 0x64, 0x79, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
 	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74,
-	0x79, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x36, 0x0a, 0x04, 0x51, 0x75, 0x69,
+	0x79, 0x1a, 0x16, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x47, 0x75, 0x69, 0x52, 0x65, 0x61, 0x64,
+	0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x36, 0x0a, 0x04, 0x51, 0x75, 0x69,
 	0x74, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
 	0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
 	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74,
@@ -4331,229 +4385,220 @@ var file_bridge_proto_rawDesc = []byte{
 	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
 	0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
 	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75,
-	0x65, 0x12, 0x46, 0x0a, 0x10, 0x53, 0x68, 0x6f, 0x77, 0x53, 0x70, 0x6c, 0x61, 0x73, 0x68, 0x53,
-	0x63, 0x72, 0x65, 0x65, 0x6e, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1a, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x45, 0x0a, 0x0f, 0x49, 0x73, 0x46,
-	0x69, 0x72, 0x73, 0x74, 0x47, 0x75, 0x69, 0x53, 0x74, 0x61, 0x72, 0x74, 0x12, 0x16, 0x2e, 0x67,
-	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45,
-	0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65,
-	0x12, 0x46, 0x0a, 0x10, 0x53, 0x65, 0x74, 0x49, 0x73, 0x41, 0x75, 0x74, 0x6f, 0x73, 0x74, 0x61,
-	0x72, 0x74, 0x4f, 0x6e, 0x12, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65,
-	0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
-	0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x43, 0x0a, 0x0d, 0x49, 0x73, 0x41, 0x75,
-	0x74, 0x6f, 0x73, 0x74, 0x61, 0x72, 0x74, 0x4f, 0x6e, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
-	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74,
-	0x79, 0x1a, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x46, 0x0a,
-	0x10, 0x53, 0x65, 0x74, 0x49, 0x73, 0x42, 0x65, 0x74, 0x61, 0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65,
-	0x64, 0x12, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x43, 0x0a, 0x0d, 0x49, 0x73, 0x42, 0x65, 0x74, 0x61, 0x45,
-	0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1a,
+	0x65, 0x12, 0x46, 0x0a, 0x10, 0x53, 0x65, 0x74, 0x49, 0x73, 0x41, 0x75, 0x74, 0x6f, 0x73, 0x74,
+	0x61, 0x72, 0x74, 0x4f, 0x6e, 0x12, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75,
+	0x65, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x43, 0x0a, 0x0d, 0x49, 0x73, 0x41,
+	0x75, 0x74, 0x6f, 0x73, 0x74, 0x61, 0x72, 0x74, 0x4f, 0x6e, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
+	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70,
+	0x74, 0x79, 0x1a, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x46,
+	0x0a, 0x10, 0x53, 0x65, 0x74, 0x49, 0x73, 0x42, 0x65, 0x74, 0x61, 0x45, 0x6e, 0x61, 0x62, 0x6c,
+	0x65, 0x64, 0x12, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16,
 	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
-	0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x49, 0x0a, 0x13, 0x53, 0x65,
-	0x74, 0x49, 0x73, 0x41, 0x6c, 0x6c, 0x4d, 0x61, 0x69, 0x6c, 0x56, 0x69, 0x73, 0x69, 0x62, 0x6c,
-	0x65, 0x12, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x46, 0x0a, 0x10, 0x49, 0x73, 0x41, 0x6c, 0x6c, 0x4d, 0x61,
-	0x69, 0x6c, 0x56, 0x69, 0x73, 0x69, 0x62, 0x6c, 0x65, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
-	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74,
-	0x79, 0x1a, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x3c, 0x0a,
-	0x04, 0x47, 0x6f, 0x4f, 0x73, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x3e, 0x0a, 0x0c, 0x54,
-	0x72, 0x69, 0x67, 0x67, 0x65, 0x72, 0x52, 0x65, 0x73, 0x65, 0x74, 0x12, 0x16, 0x2e, 0x67, 0x6f,
-	0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d,
-	0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x3f, 0x0a, 0x07, 0x56,
-	0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
+	0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x43, 0x0a, 0x0d, 0x49, 0x73, 0x42, 0x65, 0x74, 0x61,
+	0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a,
+	0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x49, 0x0a, 0x13, 0x53,
+	0x65, 0x74, 0x49, 0x73, 0x41, 0x6c, 0x6c, 0x4d, 0x61, 0x69, 0x6c, 0x56, 0x69, 0x73, 0x69, 0x62,
+	0x6c, 0x65, 0x12, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16,
+	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
+	0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x46, 0x0a, 0x10, 0x49, 0x73, 0x41, 0x6c, 0x6c, 0x4d,
+	0x61, 0x69, 0x6c, 0x56, 0x69, 0x73, 0x69, 0x62, 0x6c, 0x65, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
+	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70,
+	0x74, 0x79, 0x1a, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x3c,
+	0x0a, 0x04, 0x47, 0x6f, 0x4f, 0x73, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c,
 	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
-	0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x40, 0x0a, 0x08,
-	0x4c, 0x6f, 0x67, 0x73, 0x50, 0x61, 0x74, 0x68, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
-	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79,
-	0x1a, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
-	0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x43,
-	0x0a, 0x0b, 0x4c, 0x69, 0x63, 0x65, 0x6e, 0x73, 0x65, 0x50, 0x61, 0x74, 0x68, 0x12, 0x16, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61,
-	0x6c, 0x75, 0x65, 0x12, 0x4c, 0x0a, 0x14, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x4e, 0x6f,
-	0x74, 0x65, 0x73, 0x50, 0x61, 0x67, 0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x12, 0x16, 0x2e, 0x67, 0x6f,
-	0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d,
-	0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75,
-	0x65, 0x12, 0x4e, 0x0a, 0x16, 0x44, 0x65, 0x70, 0x65, 0x6e, 0x64, 0x65, 0x6e, 0x63, 0x79, 0x4c,
-	0x69, 0x63, 0x65, 0x6e, 0x73, 0x65, 0x73, 0x4c, 0x69, 0x6e, 0x6b, 0x12, 0x16, 0x2e, 0x67, 0x6f,
-	0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d,
-	0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75,
-	0x65, 0x12, 0x47, 0x0a, 0x0f, 0x4c, 0x61, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x50, 0x61, 0x67, 0x65,
-	0x4c, 0x69, 0x6e, 0x6b, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e, 0x67,
-	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53,
-	0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x4a, 0x0a, 0x12, 0x53, 0x65,
-	0x74, 0x43, 0x6f, 0x6c, 0x6f, 0x72, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x4e, 0x61, 0x6d, 0x65,
-	0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
-	0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16,
-	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
-	0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x47, 0x0a, 0x0f, 0x43, 0x6f, 0x6c, 0x6f, 0x72, 0x53,
-	0x63, 0x68, 0x65, 0x6d, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
+	0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x3e, 0x0a, 0x0c,
+	0x54, 0x72, 0x69, 0x67, 0x67, 0x65, 0x72, 0x52, 0x65, 0x73, 0x65, 0x74, 0x12, 0x16, 0x2e, 0x67,
+	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45,
+	0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x3f, 0x0a, 0x07,
+	0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a,
+	0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x40, 0x0a,
+	0x08, 0x4c, 0x6f, 0x67, 0x73, 0x50, 0x61, 0x74, 0x68, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
 	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74,
 	0x79, 0x1a, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
 	0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12,
-	0x4a, 0x0a, 0x12, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x43,
-	0x6c, 0x69, 0x65, 0x6e, 0x74, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x3b, 0x0a, 0x09, 0x52,
-	0x65, 0x70, 0x6f, 0x72, 0x74, 0x42, 0x75, 0x67, 0x12, 0x16, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e,
-	0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x42, 0x75, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
-	0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x4d, 0x0a, 0x15, 0x45, 0x78, 0x70, 0x6f,
-	0x72, 0x74, 0x54, 0x4c, 0x53, 0x43, 0x65, 0x72, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x65,
-	0x73, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a,
-	0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
-	0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x45, 0x0a, 0x0d, 0x46, 0x6f, 0x72, 0x63, 0x65,
-	0x4c, 0x61, 0x75, 0x6e, 0x63, 0x68, 0x65, 0x72, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
-	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e,
-	0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x49,
-	0x0a, 0x11, 0x53, 0x65, 0x74, 0x4d, 0x61, 0x69, 0x6e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x61,
-	0x62, 0x6c, 0x65, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75,
-	0x65, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x33, 0x0a, 0x05, 0x4c, 0x6f, 0x67,
-	0x69, 0x6e, 0x12, 0x12, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x36,
-	0x0a, 0x08, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x32, 0x46, 0x41, 0x12, 0x12, 0x2e, 0x67, 0x72, 0x70,
-	0x63, 0x2e, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16,
-	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
-	0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x3d, 0x0a, 0x0f, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x32,
-	0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x73, 0x12, 0x12, 0x2e, 0x67, 0x72, 0x70, 0x63,
-	0x2e, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x3d, 0x0a, 0x0a, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x41, 0x62,
-	0x6f, 0x72, 0x74, 0x12, 0x17, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x6f, 0x67, 0x69, 0x6e,
-	0x41, 0x62, 0x6f, 0x72, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67,
-	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45,
-	0x6d, 0x70, 0x74, 0x79, 0x12, 0x3d, 0x0a, 0x0b, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x55, 0x70, 0x64,
-	0x61, 0x74, 0x65, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67, 0x6f,
-	0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d,
-	0x70, 0x74, 0x79, 0x12, 0x3f, 0x0a, 0x0d, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x55, 0x70,
-	0x64, 0x61, 0x74, 0x65, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67,
-	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45,
-	0x6d, 0x70, 0x74, 0x79, 0x12, 0x4c, 0x0a, 0x16, 0x53, 0x65, 0x74, 0x49, 0x73, 0x41, 0x75, 0x74,
-	0x6f, 0x6d, 0x61, 0x74, 0x69, 0x63, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4f, 0x6e, 0x12, 0x1a,
-	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
-	0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
-	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x12, 0x49, 0x0a, 0x13, 0x49, 0x73, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69,
-	0x63, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4f, 0x6e, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
-	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74,
-	0x79, 0x1a, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x45, 0x0a,
-	0x0d, 0x44, 0x69, 0x73, 0x6b, 0x43, 0x61, 0x63, 0x68, 0x65, 0x50, 0x61, 0x74, 0x68, 0x12, 0x16,
+	0x43, 0x0a, 0x0b, 0x4c, 0x69, 0x63, 0x65, 0x6e, 0x73, 0x65, 0x50, 0x61, 0x74, 0x68, 0x12, 0x16,
 	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
 	0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56,
-	0x61, 0x6c, 0x75, 0x65, 0x12, 0x48, 0x0a, 0x10, 0x53, 0x65, 0x74, 0x44, 0x69, 0x73, 0x6b, 0x43,
-	0x61, 0x63, 0x68, 0x65, 0x50, 0x61, 0x74, 0x68, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
-	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e,
-	0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x45,
-	0x0a, 0x0f, 0x53, 0x65, 0x74, 0x49, 0x73, 0x44, 0x6f, 0x48, 0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65,
-	0x64, 0x12, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16, 0x2e,
+	0x61, 0x6c, 0x75, 0x65, 0x12, 0x4c, 0x0a, 0x14, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x4e,
+	0x6f, 0x74, 0x65, 0x73, 0x50, 0x61, 0x67, 0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x12, 0x16, 0x2e, 0x67,
+	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45,
+	0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c,
+	0x75, 0x65, 0x12, 0x4e, 0x0a, 0x16, 0x44, 0x65, 0x70, 0x65, 0x6e, 0x64, 0x65, 0x6e, 0x63, 0x79,
+	0x4c, 0x69, 0x63, 0x65, 0x6e, 0x73, 0x65, 0x73, 0x4c, 0x69, 0x6e, 0x6b, 0x12, 0x16, 0x2e, 0x67,
+	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45,
+	0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c,
+	0x75, 0x65, 0x12, 0x47, 0x0a, 0x0f, 0x4c, 0x61, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x50, 0x61, 0x67,
+	0x65, 0x4c, 0x69, 0x6e, 0x6b, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e,
 	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x42, 0x0a, 0x0c, 0x49, 0x73, 0x44, 0x6f, 0x48, 0x45, 0x6e,
-	0x61, 0x62, 0x6c, 0x65, 0x64, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1a, 0x2e,
-	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
-	0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x44, 0x0a, 0x12, 0x4d, 0x61, 0x69,
-	0x6c, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12,
+	0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x4a, 0x0a, 0x12, 0x53,
+	0x65, 0x74, 0x43, 0x6f, 0x6c, 0x6f, 0x72, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x4e, 0x61, 0x6d,
+	0x65, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a,
 	0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
-	0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x49,
-	0x6d, 0x61, 0x70, 0x53, 0x6d, 0x74, 0x70, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12,
-	0x47, 0x0a, 0x15, 0x53, 0x65, 0x74, 0x4d, 0x61, 0x69, 0x6c, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72,
-	0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x16, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e,
-	0x49, 0x6d, 0x61, 0x70, 0x53, 0x6d, 0x74, 0x70, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73,
-	0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
-	0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x40, 0x0a, 0x08, 0x48, 0x6f, 0x73, 0x74,
-	0x6e, 0x61, 0x6d, 0x65, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e, 0x67,
-	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53,
-	0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x45, 0x0a, 0x0a, 0x49, 0x73,
-	0x50, 0x6f, 0x72, 0x74, 0x46, 0x72, 0x65, 0x65, 0x12, 0x1b, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
-	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x49, 0x6e, 0x74, 0x33, 0x32,
-	0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75,
-	0x65, 0x12, 0x4e, 0x0a, 0x12, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x4b, 0x65,
-	0x79, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x73, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a,
-	0x20, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65,
-	0x4b, 0x65, 0x79, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x4a, 0x0a, 0x12, 0x53, 0x65, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x4b,
-	0x65, 0x79, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67,
-	0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x47, 0x0a,
-	0x0f, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x4b, 0x65, 0x79, 0x63, 0x68, 0x61, 0x69, 0x6e,
-	0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
-	0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
-	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e,
-	0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x3d, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65,
-	0x72, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e,
-	0x67, 0x72, 0x70, 0x63, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x33, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72,
-	0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
-	0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x0a,
-	0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x12, 0x46, 0x0a, 0x10, 0x53, 0x65,
-	0x74, 0x55, 0x73, 0x65, 0x72, 0x53, 0x70, 0x6c, 0x69, 0x74, 0x4d, 0x6f, 0x64, 0x65, 0x12, 0x1a,
-	0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x53, 0x70, 0x6c, 0x69, 0x74, 0x4d,
-	0x6f, 0x64, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
+	0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x47, 0x0a, 0x0f, 0x43, 0x6f, 0x6c, 0x6f, 0x72,
+	0x53, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
 	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x12, 0x42, 0x0a, 0x0a, 0x4c, 0x6f, 0x67, 0x6f, 0x75, 0x74, 0x55, 0x73, 0x65, 0x72,
-	0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
-	0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16,
+	0x74, 0x79, 0x1a, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65,
+	0x12, 0x4a, 0x0a, 0x12, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x45, 0x6d, 0x61, 0x69, 0x6c,
+	0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c,
 	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
-	0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x42, 0x0a, 0x0a, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65,
-	0x55, 0x73, 0x65, 0x72, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
+	0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x3b, 0x0a, 0x09,
+	0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x42, 0x75, 0x67, 0x12, 0x16, 0x2e, 0x67, 0x72, 0x70, 0x63,
+	0x2e, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x42, 0x75, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x4d, 0x0a, 0x15, 0x45, 0x78, 0x70,
+	0x6f, 0x72, 0x74, 0x54, 0x4c, 0x53, 0x43, 0x65, 0x72, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74,
+	0x65, 0x73, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65,
+	0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
+	0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x45, 0x0a, 0x0d, 0x46, 0x6f, 0x72, 0x63,
+	0x65, 0x4c, 0x61, 0x75, 0x6e, 0x63, 0x68, 0x65, 0x72, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
+	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69,
+	0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12,
+	0x49, 0x0a, 0x11, 0x53, 0x65, 0x74, 0x4d, 0x61, 0x69, 0x6e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74,
+	0x61, 0x62, 0x6c, 0x65, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
 	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c,
 	0x75, 0x65, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x51, 0x0a, 0x16, 0x43, 0x6f,
-	0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x65, 0x55, 0x73, 0x65, 0x72, 0x41, 0x70, 0x70, 0x6c, 0x65,
-	0x4d, 0x61, 0x69, 0x6c, 0x12, 0x1f, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x75, 0x72, 0x65, 0x41, 0x70, 0x70, 0x6c, 0x65, 0x4d, 0x61, 0x69, 0x6c, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x3f, 0x0a,
-	0x0e, 0x52, 0x75, 0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x12,
-	0x18, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72, 0x65,
-	0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x11, 0x2e, 0x67, 0x72, 0x70, 0x63,
-	0x2e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x30, 0x01, 0x12, 0x41,
-	0x0a, 0x0f, 0x53, 0x74, 0x6f, 0x70, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72, 0x65, 0x61,
-	0x6d, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
-	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74,
-	0x79, 0x42, 0x36, 0x5a, 0x34, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
-	0x50, 0x72, 0x6f, 0x74, 0x6f, 0x6e, 0x4d, 0x61, 0x69, 0x6c, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x6e, 0x2d, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2f, 0x76, 0x33, 0x2f, 0x69, 0x6e, 0x74, 0x65,
-	0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x67, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x33, 0x0a, 0x05, 0x4c, 0x6f,
+	0x67, 0x69, 0x6e, 0x12, 0x12, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x6f, 0x67, 0x69, 0x6e,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12,
+	0x36, 0x0a, 0x08, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x32, 0x46, 0x41, 0x12, 0x12, 0x2e, 0x67, 0x72,
+	0x70, 0x63, 0x2e, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x3d, 0x0a, 0x0f, 0x4c, 0x6f, 0x67, 0x69, 0x6e,
+	0x32, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x73, 0x12, 0x12, 0x2e, 0x67, 0x72, 0x70,
+	0x63, 0x2e, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16,
+	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
+	0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x3d, 0x0a, 0x0a, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x41,
+	0x62, 0x6f, 0x72, 0x74, 0x12, 0x17, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x4c, 0x6f, 0x67, 0x69,
+	0x6e, 0x41, 0x62, 0x6f, 0x72, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e,
+	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
+	0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x3d, 0x0a, 0x0b, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x55, 0x70,
+	0x64, 0x61, 0x74, 0x65, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67,
+	0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45,
+	0x6d, 0x70, 0x74, 0x79, 0x12, 0x3f, 0x0a, 0x0d, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x55,
+	0x70, 0x64, 0x61, 0x74, 0x65, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e,
+	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
+	0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x4c, 0x0a, 0x16, 0x53, 0x65, 0x74, 0x49, 0x73, 0x41, 0x75,
+	0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x63, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4f, 0x6e, 0x12,
+	0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16, 0x2e, 0x67, 0x6f,
+	0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d,
+	0x70, 0x74, 0x79, 0x12, 0x49, 0x0a, 0x13, 0x49, 0x73, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74,
+	0x69, 0x63, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4f, 0x6e, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
+	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70,
+	0x74, 0x79, 0x1a, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x45,
+	0x0a, 0x0d, 0x44, 0x69, 0x73, 0x6b, 0x43, 0x61, 0x63, 0x68, 0x65, 0x50, 0x61, 0x74, 0x68, 0x12,
+	0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67,
+	0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x48, 0x0a, 0x10, 0x53, 0x65, 0x74, 0x44, 0x69, 0x73, 0x6b,
+	0x43, 0x61, 0x63, 0x68, 0x65, 0x50, 0x61, 0x74, 0x68, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
+	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69,
+	0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12,
+	0x45, 0x0a, 0x0f, 0x53, 0x65, 0x74, 0x49, 0x73, 0x44, 0x6f, 0x48, 0x45, 0x6e, 0x61, 0x62, 0x6c,
+	0x65, 0x64, 0x12, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16,
+	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
+	0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x42, 0x0a, 0x0c, 0x49, 0x73, 0x44, 0x6f, 0x48, 0x45,
+	0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1a,
+	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
+	0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x44, 0x0a, 0x12, 0x4d, 0x61,
+	0x69, 0x6c, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73,
+	0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
+	0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e,
+	0x49, 0x6d, 0x61, 0x70, 0x53, 0x6d, 0x74, 0x70, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73,
+	0x12, 0x47, 0x0a, 0x15, 0x53, 0x65, 0x74, 0x4d, 0x61, 0x69, 0x6c, 0x53, 0x65, 0x72, 0x76, 0x65,
+	0x72, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x16, 0x2e, 0x67, 0x72, 0x70, 0x63,
+	0x2e, 0x49, 0x6d, 0x61, 0x70, 0x53, 0x6d, 0x74, 0x70, 0x53, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67,
+	0x73, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x40, 0x0a, 0x08, 0x48, 0x6f, 0x73,
+	0x74, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e,
+	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
+	0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x45, 0x0a, 0x0a, 0x49,
+	0x73, 0x50, 0x6f, 0x72, 0x74, 0x46, 0x72, 0x65, 0x65, 0x12, 0x1b, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
+	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x49, 0x6e, 0x74, 0x33,
+	0x32, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x42, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c,
+	0x75, 0x65, 0x12, 0x4e, 0x0a, 0x12, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x4b,
+	0x65, 0x79, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x73, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
+	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79,
+	0x1a, 0x20, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c,
+	0x65, 0x4b, 0x65, 0x79, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x12, 0x4a, 0x0a, 0x12, 0x53, 0x65, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74,
+	0x4b, 0x65, 0x79, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
+	0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e,
+	0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x47,
+	0x0a, 0x0f, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x4b, 0x65, 0x79, 0x63, 0x68, 0x61, 0x69,
+	0x6e, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67,
+	0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69,
+	0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x3d, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x55, 0x73,
+	0x65, 0x72, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16,
+	0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x33, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65,
+	0x72, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a,
+	0x0a, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x12, 0x46, 0x0a, 0x10, 0x53,
+	0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x53, 0x70, 0x6c, 0x69, 0x74, 0x4d, 0x6f, 0x64, 0x65, 0x12,
+	0x1a, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x53, 0x70, 0x6c, 0x69, 0x74,
+	0x4d, 0x6f, 0x64, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f,
+	0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d,
+	0x70, 0x74, 0x79, 0x12, 0x42, 0x0a, 0x0a, 0x4c, 0x6f, 0x67, 0x6f, 0x75, 0x74, 0x55, 0x73, 0x65,
+	0x72, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x1a,
+	0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x42, 0x0a, 0x0a, 0x52, 0x65, 0x6d, 0x6f, 0x76,
+	0x65, 0x55, 0x73, 0x65, 0x72, 0x12, 0x1c, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61,
+	0x6c, 0x75, 0x65, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x51, 0x0a, 0x16, 0x43,
+	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x75, 0x72, 0x65, 0x55, 0x73, 0x65, 0x72, 0x41, 0x70, 0x70, 0x6c,
+	0x65, 0x4d, 0x61, 0x69, 0x6c, 0x12, 0x1f, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x75, 0x72, 0x65, 0x41, 0x70, 0x70, 0x6c, 0x65, 0x4d, 0x61, 0x69, 0x6c, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x3f,
+	0x0a, 0x0e, 0x52, 0x75, 0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d,
+	0x12, 0x18, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x11, 0x2e, 0x67, 0x72, 0x70,
+	0x63, 0x2e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x30, 0x01, 0x12,
+	0x41, 0x0a, 0x0f, 0x53, 0x74, 0x6f, 0x70, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x72, 0x65,
+	0x61, 0x6d, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
+	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70,
+	0x74, 0x79, 0x42, 0x36, 0x5a, 0x34, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x6e, 0x4d, 0x61, 0x69, 0x6c, 0x2f, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x6e, 0x2d, 0x62, 0x72, 0x69, 0x64, 0x67, 0x65, 0x2f, 0x76, 0x33, 0x2f, 0x69, 0x6e, 0x74,
+	0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x67, 0x72, 0x70, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x33,
 }
 
 var (
@@ -4569,7 +4614,7 @@ func file_bridge_proto_rawDescGZIP() []byte {
 }
 
 var file_bridge_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
-var file_bridge_proto_msgTypes = make([]protoimpl.MessageInfo, 57)
+var file_bridge_proto_msgTypes = make([]protoimpl.MessageInfo, 58)
 var file_bridge_proto_goTypes = []interface{}{
 	(LogLevel)(0),                                 // 0: grpc.LogLevel
 	(UserState)(0),                                // 1: grpc.UserState
@@ -4579,237 +4624,234 @@ var file_bridge_proto_goTypes = []interface{}{
 	(MailServerSettingsErrorType)(0),              // 5: grpc.MailServerSettingsErrorType
 	(ErrorCode)(0),                                // 6: grpc.ErrorCode
 	(*AddLogEntryRequest)(nil),                    // 7: grpc.AddLogEntryRequest
-	(*ReportBugRequest)(nil),                      // 8: grpc.ReportBugRequest
-	(*LoginRequest)(nil),                          // 9: grpc.LoginRequest
-	(*LoginAbortRequest)(nil),                     // 10: grpc.LoginAbortRequest
-	(*ImapSmtpSettings)(nil),                      // 11: grpc.ImapSmtpSettings
-	(*AvailableKeychainsResponse)(nil),            // 12: grpc.AvailableKeychainsResponse
-	(*User)(nil),                                  // 13: grpc.User
-	(*UserSplitModeRequest)(nil),                  // 14: grpc.UserSplitModeRequest
-	(*UserListResponse)(nil),                      // 15: grpc.UserListResponse
-	(*ConfigureAppleMailRequest)(nil),             // 16: grpc.ConfigureAppleMailRequest
-	(*EventStreamRequest)(nil),                    // 17: grpc.EventStreamRequest
-	(*StreamEvent)(nil),                           // 18: grpc.StreamEvent
-	(*AppEvent)(nil),                              // 19: grpc.AppEvent
-	(*InternetStatusEvent)(nil),                   // 20: grpc.InternetStatusEvent
-	(*ToggleAutostartFinishedEvent)(nil),          // 21: grpc.ToggleAutostartFinishedEvent
-	(*ResetFinishedEvent)(nil),                    // 22: grpc.ResetFinishedEvent
-	(*ReportBugFinishedEvent)(nil),                // 23: grpc.ReportBugFinishedEvent
-	(*ReportBugSuccessEvent)(nil),                 // 24: grpc.ReportBugSuccessEvent
-	(*ReportBugErrorEvent)(nil),                   // 25: grpc.ReportBugErrorEvent
-	(*ShowMainWindowEvent)(nil),                   // 26: grpc.ShowMainWindowEvent
-	(*LoginEvent)(nil),                            // 27: grpc.LoginEvent
-	(*LoginErrorEvent)(nil),                       // 28: grpc.LoginErrorEvent
-	(*LoginTfaRequestedEvent)(nil),                // 29: grpc.LoginTfaRequestedEvent
-	(*LoginTwoPasswordsRequestedEvent)(nil),       // 30: grpc.LoginTwoPasswordsRequestedEvent
-	(*LoginFinishedEvent)(nil),                    // 31: grpc.LoginFinishedEvent
-	(*UpdateEvent)(nil),                           // 32: grpc.UpdateEvent
-	(*UpdateErrorEvent)(nil),                      // 33: grpc.UpdateErrorEvent
-	(*UpdateManualReadyEvent)(nil),                // 34: grpc.UpdateManualReadyEvent
-	(*UpdateManualRestartNeededEvent)(nil),        // 35: grpc.UpdateManualRestartNeededEvent
-	(*UpdateForceEvent)(nil),                      // 36: grpc.UpdateForceEvent
-	(*UpdateSilentRestartNeeded)(nil),             // 37: grpc.UpdateSilentRestartNeeded
-	(*UpdateIsLatestVersion)(nil),                 // 38: grpc.UpdateIsLatestVersion
-	(*UpdateCheckFinished)(nil),                   // 39: grpc.UpdateCheckFinished
-	(*UpdateVersionChanged)(nil),                  // 40: grpc.UpdateVersionChanged
-	(*DiskCacheEvent)(nil),                        // 41: grpc.DiskCacheEvent
-	(*DiskCacheErrorEvent)(nil),                   // 42: grpc.DiskCacheErrorEvent
-	(*DiskCachePathChangedEvent)(nil),             // 43: grpc.DiskCachePathChangedEvent
-	(*DiskCachePathChangeFinishedEvent)(nil),      // 44: grpc.DiskCachePathChangeFinishedEvent
-	(*MailServerSettingsEvent)(nil),               // 45: grpc.MailServerSettingsEvent
-	(*MailServerSettingsErrorEvent)(nil),          // 46: grpc.MailServerSettingsErrorEvent
-	(*MailServerSettingsChangedEvent)(nil),        // 47: grpc.MailServerSettingsChangedEvent
-	(*ChangeMailServerSettingsFinishedEvent)(nil), // 48: grpc.ChangeMailServerSettingsFinishedEvent
-	(*KeychainEvent)(nil),                         // 49: grpc.KeychainEvent
-	(*ChangeKeychainFinishedEvent)(nil),           // 50: grpc.ChangeKeychainFinishedEvent
-	(*HasNoKeychainEvent)(nil),                    // 51: grpc.HasNoKeychainEvent
-	(*RebuildKeychainEvent)(nil),                  // 52: grpc.RebuildKeychainEvent
-	(*MailEvent)(nil),                             // 53: grpc.MailEvent
-	(*NoActiveKeyForRecipientEvent)(nil),          // 54: grpc.NoActiveKeyForRecipientEvent
-	(*AddressChangedEvent)(nil),                   // 55: grpc.AddressChangedEvent
-	(*AddressChangedLogoutEvent)(nil),             // 56: grpc.AddressChangedLogoutEvent
-	(*ApiCertIssueEvent)(nil),                     // 57: grpc.ApiCertIssueEvent
-	(*UserEvent)(nil),                             // 58: grpc.UserEvent
-	(*ToggleSplitModeFinishedEvent)(nil),          // 59: grpc.ToggleSplitModeFinishedEvent
-	(*UserDisconnectedEvent)(nil),                 // 60: grpc.UserDisconnectedEvent
-	(*UserChangedEvent)(nil),                      // 61: grpc.UserChangedEvent
-	(*UserBadEvent)(nil),                          // 62: grpc.UserBadEvent
-	(*GenericErrorEvent)(nil),                     // 63: grpc.GenericErrorEvent
-	(*wrapperspb.StringValue)(nil),                // 64: google.protobuf.StringValue
-	(*emptypb.Empty)(nil),                         // 65: google.protobuf.Empty
-	(*wrapperspb.BoolValue)(nil),                  // 66: google.protobuf.BoolValue
-	(*wrapperspb.Int32Value)(nil),                 // 67: google.protobuf.Int32Value
+	(*GuiReadyResponse)(nil),                      // 8: grpc.GuiReadyResponse
+	(*ReportBugRequest)(nil),                      // 9: grpc.ReportBugRequest
+	(*LoginRequest)(nil),                          // 10: grpc.LoginRequest
+	(*LoginAbortRequest)(nil),                     // 11: grpc.LoginAbortRequest
+	(*ImapSmtpSettings)(nil),                      // 12: grpc.ImapSmtpSettings
+	(*AvailableKeychainsResponse)(nil),            // 13: grpc.AvailableKeychainsResponse
+	(*User)(nil),                                  // 14: grpc.User
+	(*UserSplitModeRequest)(nil),                  // 15: grpc.UserSplitModeRequest
+	(*UserListResponse)(nil),                      // 16: grpc.UserListResponse
+	(*ConfigureAppleMailRequest)(nil),             // 17: grpc.ConfigureAppleMailRequest
+	(*EventStreamRequest)(nil),                    // 18: grpc.EventStreamRequest
+	(*StreamEvent)(nil),                           // 19: grpc.StreamEvent
+	(*AppEvent)(nil),                              // 20: grpc.AppEvent
+	(*InternetStatusEvent)(nil),                   // 21: grpc.InternetStatusEvent
+	(*ToggleAutostartFinishedEvent)(nil),          // 22: grpc.ToggleAutostartFinishedEvent
+	(*ResetFinishedEvent)(nil),                    // 23: grpc.ResetFinishedEvent
+	(*ReportBugFinishedEvent)(nil),                // 24: grpc.ReportBugFinishedEvent
+	(*ReportBugSuccessEvent)(nil),                 // 25: grpc.ReportBugSuccessEvent
+	(*ReportBugErrorEvent)(nil),                   // 26: grpc.ReportBugErrorEvent
+	(*ShowMainWindowEvent)(nil),                   // 27: grpc.ShowMainWindowEvent
+	(*LoginEvent)(nil),                            // 28: grpc.LoginEvent
+	(*LoginErrorEvent)(nil),                       // 29: grpc.LoginErrorEvent
+	(*LoginTfaRequestedEvent)(nil),                // 30: grpc.LoginTfaRequestedEvent
+	(*LoginTwoPasswordsRequestedEvent)(nil),       // 31: grpc.LoginTwoPasswordsRequestedEvent
+	(*LoginFinishedEvent)(nil),                    // 32: grpc.LoginFinishedEvent
+	(*UpdateEvent)(nil),                           // 33: grpc.UpdateEvent
+	(*UpdateErrorEvent)(nil),                      // 34: grpc.UpdateErrorEvent
+	(*UpdateManualReadyEvent)(nil),                // 35: grpc.UpdateManualReadyEvent
+	(*UpdateManualRestartNeededEvent)(nil),        // 36: grpc.UpdateManualRestartNeededEvent
+	(*UpdateForceEvent)(nil),                      // 37: grpc.UpdateForceEvent
+	(*UpdateSilentRestartNeeded)(nil),             // 38: grpc.UpdateSilentRestartNeeded
+	(*UpdateIsLatestVersion)(nil),                 // 39: grpc.UpdateIsLatestVersion
+	(*UpdateCheckFinished)(nil),                   // 40: grpc.UpdateCheckFinished
+	(*UpdateVersionChanged)(nil),                  // 41: grpc.UpdateVersionChanged
+	(*DiskCacheEvent)(nil),                        // 42: grpc.DiskCacheEvent
+	(*DiskCacheErrorEvent)(nil),                   // 43: grpc.DiskCacheErrorEvent
+	(*DiskCachePathChangedEvent)(nil),             // 44: grpc.DiskCachePathChangedEvent
+	(*DiskCachePathChangeFinishedEvent)(nil),      // 45: grpc.DiskCachePathChangeFinishedEvent
+	(*MailServerSettingsEvent)(nil),               // 46: grpc.MailServerSettingsEvent
+	(*MailServerSettingsErrorEvent)(nil),          // 47: grpc.MailServerSettingsErrorEvent
+	(*MailServerSettingsChangedEvent)(nil),        // 48: grpc.MailServerSettingsChangedEvent
+	(*ChangeMailServerSettingsFinishedEvent)(nil), // 49: grpc.ChangeMailServerSettingsFinishedEvent
+	(*KeychainEvent)(nil),                         // 50: grpc.KeychainEvent
+	(*ChangeKeychainFinishedEvent)(nil),           // 51: grpc.ChangeKeychainFinishedEvent
+	(*HasNoKeychainEvent)(nil),                    // 52: grpc.HasNoKeychainEvent
+	(*RebuildKeychainEvent)(nil),                  // 53: grpc.RebuildKeychainEvent
+	(*MailEvent)(nil),                             // 54: grpc.MailEvent
+	(*NoActiveKeyForRecipientEvent)(nil),          // 55: grpc.NoActiveKeyForRecipientEvent
+	(*AddressChangedEvent)(nil),                   // 56: grpc.AddressChangedEvent
+	(*AddressChangedLogoutEvent)(nil),             // 57: grpc.AddressChangedLogoutEvent
+	(*ApiCertIssueEvent)(nil),                     // 58: grpc.ApiCertIssueEvent
+	(*UserEvent)(nil),                             // 59: grpc.UserEvent
+	(*ToggleSplitModeFinishedEvent)(nil),          // 60: grpc.ToggleSplitModeFinishedEvent
+	(*UserDisconnectedEvent)(nil),                 // 61: grpc.UserDisconnectedEvent
+	(*UserChangedEvent)(nil),                      // 62: grpc.UserChangedEvent
+	(*UserBadEvent)(nil),                          // 63: grpc.UserBadEvent
+	(*GenericErrorEvent)(nil),                     // 64: grpc.GenericErrorEvent
+	(*wrapperspb.StringValue)(nil),                // 65: google.protobuf.StringValue
+	(*emptypb.Empty)(nil),                         // 66: google.protobuf.Empty
+	(*wrapperspb.BoolValue)(nil),                  // 67: google.protobuf.BoolValue
+	(*wrapperspb.Int32Value)(nil),                 // 68: google.protobuf.Int32Value
 }
 var file_bridge_proto_depIdxs = []int32{
 	0,   // 0: grpc.AddLogEntryRequest.level:type_name -> grpc.LogLevel
 	1,   // 1: grpc.User.state:type_name -> grpc.UserState
-	13,  // 2: grpc.UserListResponse.users:type_name -> grpc.User
-	19,  // 3: grpc.StreamEvent.app:type_name -> grpc.AppEvent
-	27,  // 4: grpc.StreamEvent.login:type_name -> grpc.LoginEvent
-	32,  // 5: grpc.StreamEvent.update:type_name -> grpc.UpdateEvent
-	41,  // 6: grpc.StreamEvent.cache:type_name -> grpc.DiskCacheEvent
-	45,  // 7: grpc.StreamEvent.mailServerSettings:type_name -> grpc.MailServerSettingsEvent
-	49,  // 8: grpc.StreamEvent.keychain:type_name -> grpc.KeychainEvent
-	53,  // 9: grpc.StreamEvent.mail:type_name -> grpc.MailEvent
-	58,  // 10: grpc.StreamEvent.user:type_name -> grpc.UserEvent
-	63,  // 11: grpc.StreamEvent.genericError:type_name -> grpc.GenericErrorEvent
-	20,  // 12: grpc.AppEvent.internetStatus:type_name -> grpc.InternetStatusEvent
-	21,  // 13: grpc.AppEvent.toggleAutostartFinished:type_name -> grpc.ToggleAutostartFinishedEvent
-	22,  // 14: grpc.AppEvent.resetFinished:type_name -> grpc.ResetFinishedEvent
-	23,  // 15: grpc.AppEvent.reportBugFinished:type_name -> grpc.ReportBugFinishedEvent
-	24,  // 16: grpc.AppEvent.reportBugSuccess:type_name -> grpc.ReportBugSuccessEvent
-	25,  // 17: grpc.AppEvent.reportBugError:type_name -> grpc.ReportBugErrorEvent
-	26,  // 18: grpc.AppEvent.showMainWindow:type_name -> grpc.ShowMainWindowEvent
-	28,  // 19: grpc.LoginEvent.error:type_name -> grpc.LoginErrorEvent
-	29,  // 20: grpc.LoginEvent.tfaRequested:type_name -> grpc.LoginTfaRequestedEvent
-	30,  // 21: grpc.LoginEvent.twoPasswordRequested:type_name -> grpc.LoginTwoPasswordsRequestedEvent
-	31,  // 22: grpc.LoginEvent.finished:type_name -> grpc.LoginFinishedEvent
-	31,  // 23: grpc.LoginEvent.alreadyLoggedIn:type_name -> grpc.LoginFinishedEvent
+	14,  // 2: grpc.UserListResponse.users:type_name -> grpc.User
+	20,  // 3: grpc.StreamEvent.app:type_name -> grpc.AppEvent
+	28,  // 4: grpc.StreamEvent.login:type_name -> grpc.LoginEvent
+	33,  // 5: grpc.StreamEvent.update:type_name -> grpc.UpdateEvent
+	42,  // 6: grpc.StreamEvent.cache:type_name -> grpc.DiskCacheEvent
+	46,  // 7: grpc.StreamEvent.mailServerSettings:type_name -> grpc.MailServerSettingsEvent
+	50,  // 8: grpc.StreamEvent.keychain:type_name -> grpc.KeychainEvent
+	54,  // 9: grpc.StreamEvent.mail:type_name -> grpc.MailEvent
+	59,  // 10: grpc.StreamEvent.user:type_name -> grpc.UserEvent
+	64,  // 11: grpc.StreamEvent.genericError:type_name -> grpc.GenericErrorEvent
+	21,  // 12: grpc.AppEvent.internetStatus:type_name -> grpc.InternetStatusEvent
+	22,  // 13: grpc.AppEvent.toggleAutostartFinished:type_name -> grpc.ToggleAutostartFinishedEvent
+	23,  // 14: grpc.AppEvent.resetFinished:type_name -> grpc.ResetFinishedEvent
+	24,  // 15: grpc.AppEvent.reportBugFinished:type_name -> grpc.ReportBugFinishedEvent
+	25,  // 16: grpc.AppEvent.reportBugSuccess:type_name -> grpc.ReportBugSuccessEvent
+	26,  // 17: grpc.AppEvent.reportBugError:type_name -> grpc.ReportBugErrorEvent
+	27,  // 18: grpc.AppEvent.showMainWindow:type_name -> grpc.ShowMainWindowEvent
+	29,  // 19: grpc.LoginEvent.error:type_name -> grpc.LoginErrorEvent
+	30,  // 20: grpc.LoginEvent.tfaRequested:type_name -> grpc.LoginTfaRequestedEvent
+	31,  // 21: grpc.LoginEvent.twoPasswordRequested:type_name -> grpc.LoginTwoPasswordsRequestedEvent
+	32,  // 22: grpc.LoginEvent.finished:type_name -> grpc.LoginFinishedEvent
+	32,  // 23: grpc.LoginEvent.alreadyLoggedIn:type_name -> grpc.LoginFinishedEvent
 	2,   // 24: grpc.LoginErrorEvent.type:type_name -> grpc.LoginErrorType
-	33,  // 25: grpc.UpdateEvent.error:type_name -> grpc.UpdateErrorEvent
-	34,  // 26: grpc.UpdateEvent.manualReady:type_name -> grpc.UpdateManualReadyEvent
-	35,  // 27: grpc.UpdateEvent.manualRestartNeeded:type_name -> grpc.UpdateManualRestartNeededEvent
-	36,  // 28: grpc.UpdateEvent.force:type_name -> grpc.UpdateForceEvent
-	37,  // 29: grpc.UpdateEvent.silentRestartNeeded:type_name -> grpc.UpdateSilentRestartNeeded
-	38,  // 30: grpc.UpdateEvent.isLatestVersion:type_name -> grpc.UpdateIsLatestVersion
-	39,  // 31: grpc.UpdateEvent.checkFinished:type_name -> grpc.UpdateCheckFinished
-	40,  // 32: grpc.UpdateEvent.versionChanged:type_name -> grpc.UpdateVersionChanged
+	34,  // 25: grpc.UpdateEvent.error:type_name -> grpc.UpdateErrorEvent
+	35,  // 26: grpc.UpdateEvent.manualReady:type_name -> grpc.UpdateManualReadyEvent
+	36,  // 27: grpc.UpdateEvent.manualRestartNeeded:type_name -> grpc.UpdateManualRestartNeededEvent
+	37,  // 28: grpc.UpdateEvent.force:type_name -> grpc.UpdateForceEvent
+	38,  // 29: grpc.UpdateEvent.silentRestartNeeded:type_name -> grpc.UpdateSilentRestartNeeded
+	39,  // 30: grpc.UpdateEvent.isLatestVersion:type_name -> grpc.UpdateIsLatestVersion
+	40,  // 31: grpc.UpdateEvent.checkFinished:type_name -> grpc.UpdateCheckFinished
+	41,  // 32: grpc.UpdateEvent.versionChanged:type_name -> grpc.UpdateVersionChanged
 	3,   // 33: grpc.UpdateErrorEvent.type:type_name -> grpc.UpdateErrorType
-	42,  // 34: grpc.DiskCacheEvent.error:type_name -> grpc.DiskCacheErrorEvent
-	43,  // 35: grpc.DiskCacheEvent.pathChanged:type_name -> grpc.DiskCachePathChangedEvent
-	44,  // 36: grpc.DiskCacheEvent.pathChangeFinished:type_name -> grpc.DiskCachePathChangeFinishedEvent
+	43,  // 34: grpc.DiskCacheEvent.error:type_name -> grpc.DiskCacheErrorEvent
+	44,  // 35: grpc.DiskCacheEvent.pathChanged:type_name -> grpc.DiskCachePathChangedEvent
+	45,  // 36: grpc.DiskCacheEvent.pathChangeFinished:type_name -> grpc.DiskCachePathChangeFinishedEvent
 	4,   // 37: grpc.DiskCacheErrorEvent.type:type_name -> grpc.DiskCacheErrorType
-	46,  // 38: grpc.MailServerSettingsEvent.error:type_name -> grpc.MailServerSettingsErrorEvent
-	47,  // 39: grpc.MailServerSettingsEvent.mailServerSettingsChanged:type_name -> grpc.MailServerSettingsChangedEvent
-	48,  // 40: grpc.MailServerSettingsEvent.changeMailServerSettingsFinished:type_name -> grpc.ChangeMailServerSettingsFinishedEvent
+	47,  // 38: grpc.MailServerSettingsEvent.error:type_name -> grpc.MailServerSettingsErrorEvent
+	48,  // 39: grpc.MailServerSettingsEvent.mailServerSettingsChanged:type_name -> grpc.MailServerSettingsChangedEvent
+	49,  // 40: grpc.MailServerSettingsEvent.changeMailServerSettingsFinished:type_name -> grpc.ChangeMailServerSettingsFinishedEvent
 	5,   // 41: grpc.MailServerSettingsErrorEvent.type:type_name -> grpc.MailServerSettingsErrorType
-	11,  // 42: grpc.MailServerSettingsChangedEvent.settings:type_name -> grpc.ImapSmtpSettings
-	50,  // 43: grpc.KeychainEvent.changeKeychainFinished:type_name -> grpc.ChangeKeychainFinishedEvent
-	51,  // 44: grpc.KeychainEvent.hasNoKeychain:type_name -> grpc.HasNoKeychainEvent
-	52,  // 45: grpc.KeychainEvent.rebuildKeychain:type_name -> grpc.RebuildKeychainEvent
-	54,  // 46: grpc.MailEvent.noActiveKeyForRecipientEvent:type_name -> grpc.NoActiveKeyForRecipientEvent
-	55,  // 47: grpc.MailEvent.addressChanged:type_name -> grpc.AddressChangedEvent
-	56,  // 48: grpc.MailEvent.addressChangedLogout:type_name -> grpc.AddressChangedLogoutEvent
-	57,  // 49: grpc.MailEvent.apiCertIssue:type_name -> grpc.ApiCertIssueEvent
-	59,  // 50: grpc.UserEvent.toggleSplitModeFinished:type_name -> grpc.ToggleSplitModeFinishedEvent
-	60,  // 51: grpc.UserEvent.userDisconnected:type_name -> grpc.UserDisconnectedEvent
-	61,  // 52: grpc.UserEvent.userChanged:type_name -> grpc.UserChangedEvent
-	62,  // 53: grpc.UserEvent.userBadEvent:type_name -> grpc.UserBadEvent
+	12,  // 42: grpc.MailServerSettingsChangedEvent.settings:type_name -> grpc.ImapSmtpSettings
+	51,  // 43: grpc.KeychainEvent.changeKeychainFinished:type_name -> grpc.ChangeKeychainFinishedEvent
+	52,  // 44: grpc.KeychainEvent.hasNoKeychain:type_name -> grpc.HasNoKeychainEvent
+	53,  // 45: grpc.KeychainEvent.rebuildKeychain:type_name -> grpc.RebuildKeychainEvent
+	55,  // 46: grpc.MailEvent.noActiveKeyForRecipientEvent:type_name -> grpc.NoActiveKeyForRecipientEvent
+	56,  // 47: grpc.MailEvent.addressChanged:type_name -> grpc.AddressChangedEvent
+	57,  // 48: grpc.MailEvent.addressChangedLogout:type_name -> grpc.AddressChangedLogoutEvent
+	58,  // 49: grpc.MailEvent.apiCertIssue:type_name -> grpc.ApiCertIssueEvent
+	60,  // 50: grpc.UserEvent.toggleSplitModeFinished:type_name -> grpc.ToggleSplitModeFinishedEvent
+	61,  // 51: grpc.UserEvent.userDisconnected:type_name -> grpc.UserDisconnectedEvent
+	62,  // 52: grpc.UserEvent.userChanged:type_name -> grpc.UserChangedEvent
+	63,  // 53: grpc.UserEvent.userBadEvent:type_name -> grpc.UserBadEvent
 	6,   // 54: grpc.GenericErrorEvent.code:type_name -> grpc.ErrorCode
-	64,  // 55: grpc.Bridge.CheckTokens:input_type -> google.protobuf.StringValue
+	65,  // 55: grpc.Bridge.CheckTokens:input_type -> google.protobuf.StringValue
 	7,   // 56: grpc.Bridge.AddLogEntry:input_type -> grpc.AddLogEntryRequest
-	65,  // 57: grpc.Bridge.GuiReady:input_type -> google.protobuf.Empty
-	65,  // 58: grpc.Bridge.Quit:input_type -> google.protobuf.Empty
-	65,  // 59: grpc.Bridge.Restart:input_type -> google.protobuf.Empty
-	65,  // 60: grpc.Bridge.ShowOnStartup:input_type -> google.protobuf.Empty
-	65,  // 61: grpc.Bridge.ShowSplashScreen:input_type -> google.protobuf.Empty
-	65,  // 62: grpc.Bridge.IsFirstGuiStart:input_type -> google.protobuf.Empty
-	66,  // 63: grpc.Bridge.SetIsAutostartOn:input_type -> google.protobuf.BoolValue
-	65,  // 64: grpc.Bridge.IsAutostartOn:input_type -> google.protobuf.Empty
-	66,  // 65: grpc.Bridge.SetIsBetaEnabled:input_type -> google.protobuf.BoolValue
-	65,  // 66: grpc.Bridge.IsBetaEnabled:input_type -> google.protobuf.Empty
-	66,  // 67: grpc.Bridge.SetIsAllMailVisible:input_type -> google.protobuf.BoolValue
-	65,  // 68: grpc.Bridge.IsAllMailVisible:input_type -> google.protobuf.Empty
-	65,  // 69: grpc.Bridge.GoOs:input_type -> google.protobuf.Empty
-	65,  // 70: grpc.Bridge.TriggerReset:input_type -> google.protobuf.Empty
-	65,  // 71: grpc.Bridge.Version:input_type -> google.protobuf.Empty
-	65,  // 72: grpc.Bridge.LogsPath:input_type -> google.protobuf.Empty
-	65,  // 73: grpc.Bridge.LicensePath:input_type -> google.protobuf.Empty
-	65,  // 74: grpc.Bridge.ReleaseNotesPageLink:input_type -> google.protobuf.Empty
-	65,  // 75: grpc.Bridge.DependencyLicensesLink:input_type -> google.protobuf.Empty
-	65,  // 76: grpc.Bridge.LandingPageLink:input_type -> google.protobuf.Empty
-	64,  // 77: grpc.Bridge.SetColorSchemeName:input_type -> google.protobuf.StringValue
-	65,  // 78: grpc.Bridge.ColorSchemeName:input_type -> google.protobuf.Empty
-	65,  // 79: grpc.Bridge.CurrentEmailClient:input_type -> google.protobuf.Empty
-	8,   // 80: grpc.Bridge.ReportBug:input_type -> grpc.ReportBugRequest
-	64,  // 81: grpc.Bridge.ExportTLSCertificates:input_type -> google.protobuf.StringValue
-	64,  // 82: grpc.Bridge.ForceLauncher:input_type -> google.protobuf.StringValue
-	64,  // 83: grpc.Bridge.SetMainExecutable:input_type -> google.protobuf.StringValue
-	9,   // 84: grpc.Bridge.Login:input_type -> grpc.LoginRequest
-	9,   // 85: grpc.Bridge.Login2FA:input_type -> grpc.LoginRequest
-	9,   // 86: grpc.Bridge.Login2Passwords:input_type -> grpc.LoginRequest
-	10,  // 87: grpc.Bridge.LoginAbort:input_type -> grpc.LoginAbortRequest
-	65,  // 88: grpc.Bridge.CheckUpdate:input_type -> google.protobuf.Empty
-	65,  // 89: grpc.Bridge.InstallUpdate:input_type -> google.protobuf.Empty
-	66,  // 90: grpc.Bridge.SetIsAutomaticUpdateOn:input_type -> google.protobuf.BoolValue
-	65,  // 91: grpc.Bridge.IsAutomaticUpdateOn:input_type -> google.protobuf.Empty
-	65,  // 92: grpc.Bridge.DiskCachePath:input_type -> google.protobuf.Empty
-	64,  // 93: grpc.Bridge.SetDiskCachePath:input_type -> google.protobuf.StringValue
-	66,  // 94: grpc.Bridge.SetIsDoHEnabled:input_type -> google.protobuf.BoolValue
-	65,  // 95: grpc.Bridge.IsDoHEnabled:input_type -> google.protobuf.Empty
-	65,  // 96: grpc.Bridge.MailServerSettings:input_type -> google.protobuf.Empty
-	11,  // 97: grpc.Bridge.SetMailServerSettings:input_type -> grpc.ImapSmtpSettings
-	65,  // 98: grpc.Bridge.Hostname:input_type -> google.protobuf.Empty
-	67,  // 99: grpc.Bridge.IsPortFree:input_type -> google.protobuf.Int32Value
-	65,  // 100: grpc.Bridge.AvailableKeychains:input_type -> google.protobuf.Empty
-	64,  // 101: grpc.Bridge.SetCurrentKeychain:input_type -> google.protobuf.StringValue
-	65,  // 102: grpc.Bridge.CurrentKeychain:input_type -> google.protobuf.Empty
-	65,  // 103: grpc.Bridge.GetUserList:input_type -> google.protobuf.Empty
-	64,  // 104: grpc.Bridge.GetUser:input_type -> google.protobuf.StringValue
-	14,  // 105: grpc.Bridge.SetUserSplitMode:input_type -> grpc.UserSplitModeRequest
-	64,  // 106: grpc.Bridge.LogoutUser:input_type -> google.protobuf.StringValue
-	64,  // 107: grpc.Bridge.RemoveUser:input_type -> google.protobuf.StringValue
-	16,  // 108: grpc.Bridge.ConfigureUserAppleMail:input_type -> grpc.ConfigureAppleMailRequest
-	17,  // 109: grpc.Bridge.RunEventStream:input_type -> grpc.EventStreamRequest
-	65,  // 110: grpc.Bridge.StopEventStream:input_type -> google.protobuf.Empty
-	64,  // 111: grpc.Bridge.CheckTokens:output_type -> google.protobuf.StringValue
-	65,  // 112: grpc.Bridge.AddLogEntry:output_type -> google.protobuf.Empty
-	65,  // 113: grpc.Bridge.GuiReady:output_type -> google.protobuf.Empty
-	65,  // 114: grpc.Bridge.Quit:output_type -> google.protobuf.Empty
-	65,  // 115: grpc.Bridge.Restart:output_type -> google.protobuf.Empty
-	66,  // 116: grpc.Bridge.ShowOnStartup:output_type -> google.protobuf.BoolValue
-	66,  // 117: grpc.Bridge.ShowSplashScreen:output_type -> google.protobuf.BoolValue
-	66,  // 118: grpc.Bridge.IsFirstGuiStart:output_type -> google.protobuf.BoolValue
-	65,  // 119: grpc.Bridge.SetIsAutostartOn:output_type -> google.protobuf.Empty
-	66,  // 120: grpc.Bridge.IsAutostartOn:output_type -> google.protobuf.BoolValue
-	65,  // 121: grpc.Bridge.SetIsBetaEnabled:output_type -> google.protobuf.Empty
-	66,  // 122: grpc.Bridge.IsBetaEnabled:output_type -> google.protobuf.BoolValue
-	65,  // 123: grpc.Bridge.SetIsAllMailVisible:output_type -> google.protobuf.Empty
-	66,  // 124: grpc.Bridge.IsAllMailVisible:output_type -> google.protobuf.BoolValue
-	64,  // 125: grpc.Bridge.GoOs:output_type -> google.protobuf.StringValue
-	65,  // 126: grpc.Bridge.TriggerReset:output_type -> google.protobuf.Empty
-	64,  // 127: grpc.Bridge.Version:output_type -> google.protobuf.StringValue
-	64,  // 128: grpc.Bridge.LogsPath:output_type -> google.protobuf.StringValue
-	64,  // 129: grpc.Bridge.LicensePath:output_type -> google.protobuf.StringValue
-	64,  // 130: grpc.Bridge.ReleaseNotesPageLink:output_type -> google.protobuf.StringValue
-	64,  // 131: grpc.Bridge.DependencyLicensesLink:output_type -> google.protobuf.StringValue
-	64,  // 132: grpc.Bridge.LandingPageLink:output_type -> google.protobuf.StringValue
-	65,  // 133: grpc.Bridge.SetColorSchemeName:output_type -> google.protobuf.Empty
-	64,  // 134: grpc.Bridge.ColorSchemeName:output_type -> google.protobuf.StringValue
-	64,  // 135: grpc.Bridge.CurrentEmailClient:output_type -> google.protobuf.StringValue
-	65,  // 136: grpc.Bridge.ReportBug:output_type -> google.protobuf.Empty
-	65,  // 137: grpc.Bridge.ExportTLSCertificates:output_type -> google.protobuf.Empty
-	65,  // 138: grpc.Bridge.ForceLauncher:output_type -> google.protobuf.Empty
-	65,  // 139: grpc.Bridge.SetMainExecutable:output_type -> google.protobuf.Empty
-	65,  // 140: grpc.Bridge.Login:output_type -> google.protobuf.Empty
-	65,  // 141: grpc.Bridge.Login2FA:output_type -> google.protobuf.Empty
-	65,  // 142: grpc.Bridge.Login2Passwords:output_type -> google.protobuf.Empty
-	65,  // 143: grpc.Bridge.LoginAbort:output_type -> google.protobuf.Empty
-	65,  // 144: grpc.Bridge.CheckUpdate:output_type -> google.protobuf.Empty
-	65,  // 145: grpc.Bridge.InstallUpdate:output_type -> google.protobuf.Empty
-	65,  // 146: grpc.Bridge.SetIsAutomaticUpdateOn:output_type -> google.protobuf.Empty
-	66,  // 147: grpc.Bridge.IsAutomaticUpdateOn:output_type -> google.protobuf.BoolValue
-	64,  // 148: grpc.Bridge.DiskCachePath:output_type -> google.protobuf.StringValue
-	65,  // 149: grpc.Bridge.SetDiskCachePath:output_type -> google.protobuf.Empty
-	65,  // 150: grpc.Bridge.SetIsDoHEnabled:output_type -> google.protobuf.Empty
-	66,  // 151: grpc.Bridge.IsDoHEnabled:output_type -> google.protobuf.BoolValue
-	11,  // 152: grpc.Bridge.MailServerSettings:output_type -> grpc.ImapSmtpSettings
-	65,  // 153: grpc.Bridge.SetMailServerSettings:output_type -> google.protobuf.Empty
-	64,  // 154: grpc.Bridge.Hostname:output_type -> google.protobuf.StringValue
-	66,  // 155: grpc.Bridge.IsPortFree:output_type -> google.protobuf.BoolValue
-	12,  // 156: grpc.Bridge.AvailableKeychains:output_type -> grpc.AvailableKeychainsResponse
-	65,  // 157: grpc.Bridge.SetCurrentKeychain:output_type -> google.protobuf.Empty
-	64,  // 158: grpc.Bridge.CurrentKeychain:output_type -> google.protobuf.StringValue
-	15,  // 159: grpc.Bridge.GetUserList:output_type -> grpc.UserListResponse
-	13,  // 160: grpc.Bridge.GetUser:output_type -> grpc.User
-	65,  // 161: grpc.Bridge.SetUserSplitMode:output_type -> google.protobuf.Empty
-	65,  // 162: grpc.Bridge.LogoutUser:output_type -> google.protobuf.Empty
-	65,  // 163: grpc.Bridge.RemoveUser:output_type -> google.protobuf.Empty
-	65,  // 164: grpc.Bridge.ConfigureUserAppleMail:output_type -> google.protobuf.Empty
-	18,  // 165: grpc.Bridge.RunEventStream:output_type -> grpc.StreamEvent
-	65,  // 166: grpc.Bridge.StopEventStream:output_type -> google.protobuf.Empty
-	111, // [111:167] is the sub-list for method output_type
-	55,  // [55:111] is the sub-list for method input_type
+	66,  // 57: grpc.Bridge.GuiReady:input_type -> google.protobuf.Empty
+	66,  // 58: grpc.Bridge.Quit:input_type -> google.protobuf.Empty
+	66,  // 59: grpc.Bridge.Restart:input_type -> google.protobuf.Empty
+	66,  // 60: grpc.Bridge.ShowOnStartup:input_type -> google.protobuf.Empty
+	67,  // 61: grpc.Bridge.SetIsAutostartOn:input_type -> google.protobuf.BoolValue
+	66,  // 62: grpc.Bridge.IsAutostartOn:input_type -> google.protobuf.Empty
+	67,  // 63: grpc.Bridge.SetIsBetaEnabled:input_type -> google.protobuf.BoolValue
+	66,  // 64: grpc.Bridge.IsBetaEnabled:input_type -> google.protobuf.Empty
+	67,  // 65: grpc.Bridge.SetIsAllMailVisible:input_type -> google.protobuf.BoolValue
+	66,  // 66: grpc.Bridge.IsAllMailVisible:input_type -> google.protobuf.Empty
+	66,  // 67: grpc.Bridge.GoOs:input_type -> google.protobuf.Empty
+	66,  // 68: grpc.Bridge.TriggerReset:input_type -> google.protobuf.Empty
+	66,  // 69: grpc.Bridge.Version:input_type -> google.protobuf.Empty
+	66,  // 70: grpc.Bridge.LogsPath:input_type -> google.protobuf.Empty
+	66,  // 71: grpc.Bridge.LicensePath:input_type -> google.protobuf.Empty
+	66,  // 72: grpc.Bridge.ReleaseNotesPageLink:input_type -> google.protobuf.Empty
+	66,  // 73: grpc.Bridge.DependencyLicensesLink:input_type -> google.protobuf.Empty
+	66,  // 74: grpc.Bridge.LandingPageLink:input_type -> google.protobuf.Empty
+	65,  // 75: grpc.Bridge.SetColorSchemeName:input_type -> google.protobuf.StringValue
+	66,  // 76: grpc.Bridge.ColorSchemeName:input_type -> google.protobuf.Empty
+	66,  // 77: grpc.Bridge.CurrentEmailClient:input_type -> google.protobuf.Empty
+	9,   // 78: grpc.Bridge.ReportBug:input_type -> grpc.ReportBugRequest
+	65,  // 79: grpc.Bridge.ExportTLSCertificates:input_type -> google.protobuf.StringValue
+	65,  // 80: grpc.Bridge.ForceLauncher:input_type -> google.protobuf.StringValue
+	65,  // 81: grpc.Bridge.SetMainExecutable:input_type -> google.protobuf.StringValue
+	10,  // 82: grpc.Bridge.Login:input_type -> grpc.LoginRequest
+	10,  // 83: grpc.Bridge.Login2FA:input_type -> grpc.LoginRequest
+	10,  // 84: grpc.Bridge.Login2Passwords:input_type -> grpc.LoginRequest
+	11,  // 85: grpc.Bridge.LoginAbort:input_type -> grpc.LoginAbortRequest
+	66,  // 86: grpc.Bridge.CheckUpdate:input_type -> google.protobuf.Empty
+	66,  // 87: grpc.Bridge.InstallUpdate:input_type -> google.protobuf.Empty
+	67,  // 88: grpc.Bridge.SetIsAutomaticUpdateOn:input_type -> google.protobuf.BoolValue
+	66,  // 89: grpc.Bridge.IsAutomaticUpdateOn:input_type -> google.protobuf.Empty
+	66,  // 90: grpc.Bridge.DiskCachePath:input_type -> google.protobuf.Empty
+	65,  // 91: grpc.Bridge.SetDiskCachePath:input_type -> google.protobuf.StringValue
+	67,  // 92: grpc.Bridge.SetIsDoHEnabled:input_type -> google.protobuf.BoolValue
+	66,  // 93: grpc.Bridge.IsDoHEnabled:input_type -> google.protobuf.Empty
+	66,  // 94: grpc.Bridge.MailServerSettings:input_type -> google.protobuf.Empty
+	12,  // 95: grpc.Bridge.SetMailServerSettings:input_type -> grpc.ImapSmtpSettings
+	66,  // 96: grpc.Bridge.Hostname:input_type -> google.protobuf.Empty
+	68,  // 97: grpc.Bridge.IsPortFree:input_type -> google.protobuf.Int32Value
+	66,  // 98: grpc.Bridge.AvailableKeychains:input_type -> google.protobuf.Empty
+	65,  // 99: grpc.Bridge.SetCurrentKeychain:input_type -> google.protobuf.StringValue
+	66,  // 100: grpc.Bridge.CurrentKeychain:input_type -> google.protobuf.Empty
+	66,  // 101: grpc.Bridge.GetUserList:input_type -> google.protobuf.Empty
+	65,  // 102: grpc.Bridge.GetUser:input_type -> google.protobuf.StringValue
+	15,  // 103: grpc.Bridge.SetUserSplitMode:input_type -> grpc.UserSplitModeRequest
+	65,  // 104: grpc.Bridge.LogoutUser:input_type -> google.protobuf.StringValue
+	65,  // 105: grpc.Bridge.RemoveUser:input_type -> google.protobuf.StringValue
+	17,  // 106: grpc.Bridge.ConfigureUserAppleMail:input_type -> grpc.ConfigureAppleMailRequest
+	18,  // 107: grpc.Bridge.RunEventStream:input_type -> grpc.EventStreamRequest
+	66,  // 108: grpc.Bridge.StopEventStream:input_type -> google.protobuf.Empty
+	65,  // 109: grpc.Bridge.CheckTokens:output_type -> google.protobuf.StringValue
+	66,  // 110: grpc.Bridge.AddLogEntry:output_type -> google.protobuf.Empty
+	8,   // 111: grpc.Bridge.GuiReady:output_type -> grpc.GuiReadyResponse
+	66,  // 112: grpc.Bridge.Quit:output_type -> google.protobuf.Empty
+	66,  // 113: grpc.Bridge.Restart:output_type -> google.protobuf.Empty
+	67,  // 114: grpc.Bridge.ShowOnStartup:output_type -> google.protobuf.BoolValue
+	66,  // 115: grpc.Bridge.SetIsAutostartOn:output_type -> google.protobuf.Empty
+	67,  // 116: grpc.Bridge.IsAutostartOn:output_type -> google.protobuf.BoolValue
+	66,  // 117: grpc.Bridge.SetIsBetaEnabled:output_type -> google.protobuf.Empty
+	67,  // 118: grpc.Bridge.IsBetaEnabled:output_type -> google.protobuf.BoolValue
+	66,  // 119: grpc.Bridge.SetIsAllMailVisible:output_type -> google.protobuf.Empty
+	67,  // 120: grpc.Bridge.IsAllMailVisible:output_type -> google.protobuf.BoolValue
+	65,  // 121: grpc.Bridge.GoOs:output_type -> google.protobuf.StringValue
+	66,  // 122: grpc.Bridge.TriggerReset:output_type -> google.protobuf.Empty
+	65,  // 123: grpc.Bridge.Version:output_type -> google.protobuf.StringValue
+	65,  // 124: grpc.Bridge.LogsPath:output_type -> google.protobuf.StringValue
+	65,  // 125: grpc.Bridge.LicensePath:output_type -> google.protobuf.StringValue
+	65,  // 126: grpc.Bridge.ReleaseNotesPageLink:output_type -> google.protobuf.StringValue
+	65,  // 127: grpc.Bridge.DependencyLicensesLink:output_type -> google.protobuf.StringValue
+	65,  // 128: grpc.Bridge.LandingPageLink:output_type -> google.protobuf.StringValue
+	66,  // 129: grpc.Bridge.SetColorSchemeName:output_type -> google.protobuf.Empty
+	65,  // 130: grpc.Bridge.ColorSchemeName:output_type -> google.protobuf.StringValue
+	65,  // 131: grpc.Bridge.CurrentEmailClient:output_type -> google.protobuf.StringValue
+	66,  // 132: grpc.Bridge.ReportBug:output_type -> google.protobuf.Empty
+	66,  // 133: grpc.Bridge.ExportTLSCertificates:output_type -> google.protobuf.Empty
+	66,  // 134: grpc.Bridge.ForceLauncher:output_type -> google.protobuf.Empty
+	66,  // 135: grpc.Bridge.SetMainExecutable:output_type -> google.protobuf.Empty
+	66,  // 136: grpc.Bridge.Login:output_type -> google.protobuf.Empty
+	66,  // 137: grpc.Bridge.Login2FA:output_type -> google.protobuf.Empty
+	66,  // 138: grpc.Bridge.Login2Passwords:output_type -> google.protobuf.Empty
+	66,  // 139: grpc.Bridge.LoginAbort:output_type -> google.protobuf.Empty
+	66,  // 140: grpc.Bridge.CheckUpdate:output_type -> google.protobuf.Empty
+	66,  // 141: grpc.Bridge.InstallUpdate:output_type -> google.protobuf.Empty
+	66,  // 142: grpc.Bridge.SetIsAutomaticUpdateOn:output_type -> google.protobuf.Empty
+	67,  // 143: grpc.Bridge.IsAutomaticUpdateOn:output_type -> google.protobuf.BoolValue
+	65,  // 144: grpc.Bridge.DiskCachePath:output_type -> google.protobuf.StringValue
+	66,  // 145: grpc.Bridge.SetDiskCachePath:output_type -> google.protobuf.Empty
+	66,  // 146: grpc.Bridge.SetIsDoHEnabled:output_type -> google.protobuf.Empty
+	67,  // 147: grpc.Bridge.IsDoHEnabled:output_type -> google.protobuf.BoolValue
+	12,  // 148: grpc.Bridge.MailServerSettings:output_type -> grpc.ImapSmtpSettings
+	66,  // 149: grpc.Bridge.SetMailServerSettings:output_type -> google.protobuf.Empty
+	65,  // 150: grpc.Bridge.Hostname:output_type -> google.protobuf.StringValue
+	67,  // 151: grpc.Bridge.IsPortFree:output_type -> google.protobuf.BoolValue
+	13,  // 152: grpc.Bridge.AvailableKeychains:output_type -> grpc.AvailableKeychainsResponse
+	66,  // 153: grpc.Bridge.SetCurrentKeychain:output_type -> google.protobuf.Empty
+	65,  // 154: grpc.Bridge.CurrentKeychain:output_type -> google.protobuf.StringValue
+	16,  // 155: grpc.Bridge.GetUserList:output_type -> grpc.UserListResponse
+	14,  // 156: grpc.Bridge.GetUser:output_type -> grpc.User
+	66,  // 157: grpc.Bridge.SetUserSplitMode:output_type -> google.protobuf.Empty
+	66,  // 158: grpc.Bridge.LogoutUser:output_type -> google.protobuf.Empty
+	66,  // 159: grpc.Bridge.RemoveUser:output_type -> google.protobuf.Empty
+	66,  // 160: grpc.Bridge.ConfigureUserAppleMail:output_type -> google.protobuf.Empty
+	19,  // 161: grpc.Bridge.RunEventStream:output_type -> grpc.StreamEvent
+	66,  // 162: grpc.Bridge.StopEventStream:output_type -> google.protobuf.Empty
+	109, // [109:163] is the sub-list for method output_type
+	55,  // [55:109] is the sub-list for method input_type
 	55,  // [55:55] is the sub-list for extension type_name
 	55,  // [55:55] is the sub-list for extension extendee
 	0,   // [0:55] is the sub-list for field type_name
@@ -4834,7 +4876,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ReportBugRequest); i {
+			switch v := v.(*GuiReadyResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4846,7 +4888,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LoginRequest); i {
+			switch v := v.(*ReportBugRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4858,7 +4900,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LoginAbortRequest); i {
+			switch v := v.(*LoginRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4870,7 +4912,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ImapSmtpSettings); i {
+			switch v := v.(*LoginAbortRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4882,7 +4924,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AvailableKeychainsResponse); i {
+			switch v := v.(*ImapSmtpSettings); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4894,7 +4936,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*User); i {
+			switch v := v.(*AvailableKeychainsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4906,7 +4948,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UserSplitModeRequest); i {
+			switch v := v.(*User); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4918,7 +4960,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UserListResponse); i {
+			switch v := v.(*UserSplitModeRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4930,7 +4972,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ConfigureAppleMailRequest); i {
+			switch v := v.(*UserListResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4942,7 +4984,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EventStreamRequest); i {
+			switch v := v.(*ConfigureAppleMailRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4954,7 +4996,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StreamEvent); i {
+			switch v := v.(*EventStreamRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4966,7 +5008,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AppEvent); i {
+			switch v := v.(*StreamEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4978,7 +5020,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*InternetStatusEvent); i {
+			switch v := v.(*AppEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4990,7 +5032,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ToggleAutostartFinishedEvent); i {
+			switch v := v.(*InternetStatusEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5002,7 +5044,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ResetFinishedEvent); i {
+			switch v := v.(*ToggleAutostartFinishedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5014,7 +5056,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ReportBugFinishedEvent); i {
+			switch v := v.(*ResetFinishedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5026,7 +5068,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ReportBugSuccessEvent); i {
+			switch v := v.(*ReportBugFinishedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5038,7 +5080,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ReportBugErrorEvent); i {
+			switch v := v.(*ReportBugSuccessEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5050,7 +5092,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ShowMainWindowEvent); i {
+			switch v := v.(*ReportBugErrorEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5062,7 +5104,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LoginEvent); i {
+			switch v := v.(*ShowMainWindowEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5074,7 +5116,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LoginErrorEvent); i {
+			switch v := v.(*LoginEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5086,7 +5128,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LoginTfaRequestedEvent); i {
+			switch v := v.(*LoginErrorEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5098,7 +5140,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LoginTwoPasswordsRequestedEvent); i {
+			switch v := v.(*LoginTfaRequestedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5110,7 +5152,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LoginFinishedEvent); i {
+			switch v := v.(*LoginTwoPasswordsRequestedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5122,7 +5164,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateEvent); i {
+			switch v := v.(*LoginFinishedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5134,7 +5176,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateErrorEvent); i {
+			switch v := v.(*UpdateEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5146,7 +5188,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateManualReadyEvent); i {
+			switch v := v.(*UpdateErrorEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5158,7 +5200,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateManualRestartNeededEvent); i {
+			switch v := v.(*UpdateManualReadyEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5170,7 +5212,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateForceEvent); i {
+			switch v := v.(*UpdateManualRestartNeededEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5182,7 +5224,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateSilentRestartNeeded); i {
+			switch v := v.(*UpdateForceEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5194,7 +5236,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateIsLatestVersion); i {
+			switch v := v.(*UpdateSilentRestartNeeded); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5206,7 +5248,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateCheckFinished); i {
+			switch v := v.(*UpdateIsLatestVersion); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5218,7 +5260,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateVersionChanged); i {
+			switch v := v.(*UpdateCheckFinished); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5230,7 +5272,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DiskCacheEvent); i {
+			switch v := v.(*UpdateVersionChanged); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5242,7 +5284,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DiskCacheErrorEvent); i {
+			switch v := v.(*DiskCacheEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5254,7 +5296,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DiskCachePathChangedEvent); i {
+			switch v := v.(*DiskCacheErrorEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5266,7 +5308,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DiskCachePathChangeFinishedEvent); i {
+			switch v := v.(*DiskCachePathChangedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5278,7 +5320,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MailServerSettingsEvent); i {
+			switch v := v.(*DiskCachePathChangeFinishedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5290,7 +5332,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MailServerSettingsErrorEvent); i {
+			switch v := v.(*MailServerSettingsEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5302,7 +5344,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MailServerSettingsChangedEvent); i {
+			switch v := v.(*MailServerSettingsErrorEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5314,7 +5356,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChangeMailServerSettingsFinishedEvent); i {
+			switch v := v.(*MailServerSettingsChangedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5326,7 +5368,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*KeychainEvent); i {
+			switch v := v.(*ChangeMailServerSettingsFinishedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5338,7 +5380,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChangeKeychainFinishedEvent); i {
+			switch v := v.(*KeychainEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5350,7 +5392,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HasNoKeychainEvent); i {
+			switch v := v.(*ChangeKeychainFinishedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5362,7 +5404,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RebuildKeychainEvent); i {
+			switch v := v.(*HasNoKeychainEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5374,7 +5416,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MailEvent); i {
+			switch v := v.(*RebuildKeychainEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5386,7 +5428,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NoActiveKeyForRecipientEvent); i {
+			switch v := v.(*MailEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5398,7 +5440,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AddressChangedEvent); i {
+			switch v := v.(*NoActiveKeyForRecipientEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5410,7 +5452,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AddressChangedLogoutEvent); i {
+			switch v := v.(*AddressChangedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5422,7 +5464,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ApiCertIssueEvent); i {
+			switch v := v.(*AddressChangedLogoutEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5434,7 +5476,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UserEvent); i {
+			switch v := v.(*ApiCertIssueEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5446,7 +5488,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ToggleSplitModeFinishedEvent); i {
+			switch v := v.(*UserEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5458,7 +5500,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UserDisconnectedEvent); i {
+			switch v := v.(*ToggleSplitModeFinishedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5470,7 +5512,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UserChangedEvent); i {
+			switch v := v.(*UserDisconnectedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5482,7 +5524,7 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UserBadEvent); i {
+			switch v := v.(*UserChangedEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5494,6 +5536,18 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UserBadEvent); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bridge_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenericErrorEvent); i {
 			case 0:
 				return &v.state
@@ -5506,7 +5560,7 @@ func file_bridge_proto_init() {
 			}
 		}
 	}
-	file_bridge_proto_msgTypes[11].OneofWrappers = []interface{}{
+	file_bridge_proto_msgTypes[12].OneofWrappers = []interface{}{
 		(*StreamEvent_App)(nil),
 		(*StreamEvent_Login)(nil),
 		(*StreamEvent_Update)(nil),
@@ -5517,7 +5571,7 @@ func file_bridge_proto_init() {
 		(*StreamEvent_User)(nil),
 		(*StreamEvent_GenericError)(nil),
 	}
-	file_bridge_proto_msgTypes[12].OneofWrappers = []interface{}{
+	file_bridge_proto_msgTypes[13].OneofWrappers = []interface{}{
 		(*AppEvent_InternetStatus)(nil),
 		(*AppEvent_ToggleAutostartFinished)(nil),
 		(*AppEvent_ResetFinished)(nil),
@@ -5526,14 +5580,14 @@ func file_bridge_proto_init() {
 		(*AppEvent_ReportBugError)(nil),
 		(*AppEvent_ShowMainWindow)(nil),
 	}
-	file_bridge_proto_msgTypes[20].OneofWrappers = []interface{}{
+	file_bridge_proto_msgTypes[21].OneofWrappers = []interface{}{
 		(*LoginEvent_Error)(nil),
 		(*LoginEvent_TfaRequested)(nil),
 		(*LoginEvent_TwoPasswordRequested)(nil),
 		(*LoginEvent_Finished)(nil),
 		(*LoginEvent_AlreadyLoggedIn)(nil),
 	}
-	file_bridge_proto_msgTypes[25].OneofWrappers = []interface{}{
+	file_bridge_proto_msgTypes[26].OneofWrappers = []interface{}{
 		(*UpdateEvent_Error)(nil),
 		(*UpdateEvent_ManualReady)(nil),
 		(*UpdateEvent_ManualRestartNeeded)(nil),
@@ -5543,28 +5597,28 @@ func file_bridge_proto_init() {
 		(*UpdateEvent_CheckFinished)(nil),
 		(*UpdateEvent_VersionChanged)(nil),
 	}
-	file_bridge_proto_msgTypes[34].OneofWrappers = []interface{}{
+	file_bridge_proto_msgTypes[35].OneofWrappers = []interface{}{
 		(*DiskCacheEvent_Error)(nil),
 		(*DiskCacheEvent_PathChanged)(nil),
 		(*DiskCacheEvent_PathChangeFinished)(nil),
 	}
-	file_bridge_proto_msgTypes[38].OneofWrappers = []interface{}{
+	file_bridge_proto_msgTypes[39].OneofWrappers = []interface{}{
 		(*MailServerSettingsEvent_Error)(nil),
 		(*MailServerSettingsEvent_MailServerSettingsChanged)(nil),
 		(*MailServerSettingsEvent_ChangeMailServerSettingsFinished)(nil),
 	}
-	file_bridge_proto_msgTypes[42].OneofWrappers = []interface{}{
+	file_bridge_proto_msgTypes[43].OneofWrappers = []interface{}{
 		(*KeychainEvent_ChangeKeychainFinished)(nil),
 		(*KeychainEvent_HasNoKeychain)(nil),
 		(*KeychainEvent_RebuildKeychain)(nil),
 	}
-	file_bridge_proto_msgTypes[46].OneofWrappers = []interface{}{
+	file_bridge_proto_msgTypes[47].OneofWrappers = []interface{}{
 		(*MailEvent_NoActiveKeyForRecipientEvent)(nil),
 		(*MailEvent_AddressChanged)(nil),
 		(*MailEvent_AddressChangedLogout)(nil),
 		(*MailEvent_ApiCertIssue)(nil),
 	}
-	file_bridge_proto_msgTypes[51].OneofWrappers = []interface{}{
+	file_bridge_proto_msgTypes[52].OneofWrappers = []interface{}{
 		(*UserEvent_ToggleSplitModeFinished)(nil),
 		(*UserEvent_UserDisconnected)(nil),
 		(*UserEvent_UserChanged)(nil),
@@ -5576,7 +5630,7 @@ func file_bridge_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_bridge_proto_rawDesc,
 			NumEnums:      7,
-			NumMessages:   57,
+			NumMessages:   58,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

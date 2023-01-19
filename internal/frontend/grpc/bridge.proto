@@ -32,12 +32,10 @@ service Bridge {
   // App related calls
   rpc CheckTokens(google.protobuf.StringValue) returns (google.protobuf.StringValue);
   rpc AddLogEntry(AddLogEntryRequest) returns (google.protobuf.Empty);
-  rpc GuiReady (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc GuiReady (google.protobuf.Empty) returns (GuiReadyResponse);
   rpc Quit (google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc Restart (google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc ShowOnStartup(google.protobuf.Empty) returns (google.protobuf.BoolValue);
-  rpc ShowSplashScreen(google.protobuf.Empty) returns (google.protobuf.BoolValue);
-  rpc IsFirstGuiStart(google.protobuf.Empty) returns (google.protobuf.BoolValue);
   rpc SetIsAutostartOn(google.protobuf.BoolValue) returns (google.protobuf.Empty);
   rpc IsAutostartOn(google.protobuf.Empty) returns (google.protobuf.BoolValue);
   rpc SetIsBetaEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty);
@@ -125,6 +123,15 @@ message AddLogEntryRequest {
   string package = 2; // package is Go lingo but it identifies the component responsible for the log entry
   string message = 3;
 };
+
+
+//**********************************************************
+//  GuiReady
+//**********************************************************
+message GuiReadyResponse {
+  bool showSplashScreen = 1;
+}
+
 
 //**********************************************************
 //  Bug reporting related messages.

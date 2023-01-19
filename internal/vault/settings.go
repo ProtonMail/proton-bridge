@@ -190,18 +190,6 @@ func (vault *Vault) SetFirstStart(firstStart bool) error {
 	})
 }
 
-// GetFirstStartGUI sets whether this is the first time the bridge GUI has been started.
-func (vault *Vault) GetFirstStartGUI() bool {
-	return vault.get().Settings.FirstStartGUI
-}
-
-// SetFirstStartGUI sets whether this is the first time the bridge GUI has been started.
-func (vault *Vault) SetFirstStartGUI(firstStartGUI bool) error {
-	return vault.mod(func(data *Data) {
-		data.Settings.FirstStartGUI = firstStartGUI
-	})
-}
-
 // SyncWorkers returns the number of workers to use for syncing.
 func (vault *Vault) SyncWorkers() int {
 	return vault.get().Settings.SyncWorkers

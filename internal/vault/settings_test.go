@@ -203,20 +203,6 @@ func TestVault_Settings_FirstStart(t *testing.T) {
 	require.Equal(t, false, s.GetFirstStart())
 }
 
-func TestVault_Settings_FirstStartGUI(t *testing.T) {
-	// create a new test vault.
-	s := newVault(t)
-
-	// Check the default first start value.
-	require.Equal(t, true, s.GetFirstStartGUI())
-
-	// Modify the first start value.
-	require.NoError(t, s.SetFirstStartGUI(false))
-
-	// Check the new first start value.
-	require.Equal(t, false, s.GetFirstStartGUI())
-}
-
 func TestVault_Settings_SyncWorkers(t *testing.T) {
 	// create a new test vault.
 	s := newVault(t)

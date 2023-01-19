@@ -281,11 +281,12 @@ QtObject {
             }
         }
 
-        if (Backend.showOnStartup) {
+        Backend.guiReady()
+
+         if (Backend.showOnStartup || Backend.showSplashScreen) {
             mainWindow.showAndRise()
         }
 
-        Backend.guiReady()
     }
 
     function setColorScheme() {

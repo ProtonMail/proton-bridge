@@ -27,12 +27,10 @@ type BridgeClient interface {
 	// App related calls
 	CheckTokens(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	AddLogEntry(ctx context.Context, in *AddLogEntryRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	GuiReady(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GuiReady(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GuiReadyResponse, error)
 	Quit(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Restart(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ShowOnStartup(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
-	ShowSplashScreen(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
-	IsFirstGuiStart(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
 	SetIsAutostartOn(ctx context.Context, in *wrapperspb.BoolValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	IsAutostartOn(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
 	SetIsBetaEnabled(ctx context.Context, in *wrapperspb.BoolValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -116,8 +114,8 @@ func (c *bridgeClient) AddLogEntry(ctx context.Context, in *AddLogEntryRequest, 
 	return out, nil
 }
 
-func (c *bridgeClient) GuiReady(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *bridgeClient) GuiReady(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GuiReadyResponse, error) {
+	out := new(GuiReadyResponse)
 	err := c.cc.Invoke(ctx, "/grpc.Bridge/GuiReady", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -146,24 +144,6 @@ func (c *bridgeClient) Restart(ctx context.Context, in *emptypb.Empty, opts ...g
 func (c *bridgeClient) ShowOnStartup(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error) {
 	out := new(wrapperspb.BoolValue)
 	err := c.cc.Invoke(ctx, "/grpc.Bridge/ShowOnStartup", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) ShowSplashScreen(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error) {
-	out := new(wrapperspb.BoolValue)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/ShowSplashScreen", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) IsFirstGuiStart(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error) {
-	out := new(wrapperspb.BoolValue)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/IsFirstGuiStart", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -632,12 +612,10 @@ type BridgeServer interface {
 	// App related calls
 	CheckTokens(context.Context, *wrapperspb.StringValue) (*wrapperspb.StringValue, error)
 	AddLogEntry(context.Context, *AddLogEntryRequest) (*emptypb.Empty, error)
-	GuiReady(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	GuiReady(context.Context, *emptypb.Empty) (*GuiReadyResponse, error)
 	Quit(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	Restart(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	ShowOnStartup(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
-	ShowSplashScreen(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
-	IsFirstGuiStart(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
 	SetIsAutostartOn(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error)
 	IsAutostartOn(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
 	SetIsBetaEnabled(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error)
@@ -706,7 +684,7 @@ func (UnimplementedBridgeServer) CheckTokens(context.Context, *wrapperspb.String
 func (UnimplementedBridgeServer) AddLogEntry(context.Context, *AddLogEntryRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddLogEntry not implemented")
 }
-func (UnimplementedBridgeServer) GuiReady(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+func (UnimplementedBridgeServer) GuiReady(context.Context, *emptypb.Empty) (*GuiReadyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GuiReady not implemented")
 }
 func (UnimplementedBridgeServer) Quit(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
@@ -717,12 +695,6 @@ func (UnimplementedBridgeServer) Restart(context.Context, *emptypb.Empty) (*empt
 }
 func (UnimplementedBridgeServer) ShowOnStartup(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ShowOnStartup not implemented")
-}
-func (UnimplementedBridgeServer) ShowSplashScreen(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ShowSplashScreen not implemented")
-}
-func (UnimplementedBridgeServer) IsFirstGuiStart(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method IsFirstGuiStart not implemented")
 }
 func (UnimplementedBridgeServer) SetIsAutostartOn(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetIsAutostartOn not implemented")
@@ -985,42 +957,6 @@ func _Bridge_ShowOnStartup_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BridgeServer).ShowOnStartup(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_ShowSplashScreen_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).ShowSplashScreen(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/ShowSplashScreen",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).ShowSplashScreen(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_IsFirstGuiStart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).IsFirstGuiStart(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/IsFirstGuiStart",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).IsFirstGuiStart(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1922,14 +1858,6 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ShowOnStartup",
 			Handler:    _Bridge_ShowOnStartup_Handler,
-		},
-		{
-			MethodName: "ShowSplashScreen",
-			Handler:    _Bridge_ShowSplashScreen_Handler,
-		},
-		{
-			MethodName: "IsFirstGuiStart",
-			Handler:    _Bridge_IsFirstGuiStart_Handler,
 		},
 		{
 			MethodName: "SetIsAutostartOn",

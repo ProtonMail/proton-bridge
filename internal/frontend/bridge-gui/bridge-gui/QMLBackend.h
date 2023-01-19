@@ -74,7 +74,6 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(int imapPort READ imapPort WRITE setIMAPPort NOTIFY imapPortChanged)
     Q_PROPERTY(int smtpPort READ smtpPort WRITE setSMTPPort NOTIFY smtpPortChanged)
     Q_PROPERTY(bool isDoHEnabled READ isDoHEnabled NOTIFY isDoHEnabledChanged)
-    Q_PROPERTY(bool isFirstGUIStart READ isFirstGUIStart)
     Q_PROPERTY(bool isAutomaticUpdateOn READ isAutomaticUpdateOn NOTIFY isAutomaticUpdateOnChanged)
     Q_PROPERTY(QString currentEmailClient READ currentEmailClient NOTIFY currentEmailClientChanged)
     Q_PROPERTY(QStringList availableKeychain READ availableKeychain NOTIFY availableKeychainChanged)
@@ -111,7 +110,6 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     void setSMTPPort(int port); ///< Setter for the 'smtpPort' property.
     int smtpPort() const; ///< Getter for the 'smtpPort' property.
     bool isDoHEnabled() const; ///< Getter for the 'isDoHEnabled' property.
-    bool isFirstGUIStart() const; ///< Getter for the 'isFirstGUIStart' property.
     bool isAutomaticUpdateOn() const; ///< Getter for the 'isAutomaticUpdateOn' property.
     QString currentEmailClient() const; ///< Getter for the 'currentEmail' property.
     QStringList availableKeychain() const; ///< Getter for the 'availableKeychain' property.
@@ -163,7 +161,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void toggleAutomaticUpdate(bool makeItActive); ///< Slot for the automatic update toggle
     void updateCurrentMailClient(); ///< Slot for the change of the current mail client.
     void changeKeychain(QString const &keychain); ///< Slot for the change of keychain.
-    void guiReady() const; ///< Slot for the GUI ready signal.
+    void guiReady(); ///< Slot for the GUI ready signal.
     void quit() const; ///< Slot for the quit signal.
     void restart() const; ///< Slot for the restart signal.
     void forceLauncher(QString launcher) const; ///< Slot for the change of the launcher.

@@ -39,11 +39,11 @@ Dialog {
         Image {
             Layout.alignment: Qt.AlignHCenter
 
-            sourceSize.width: 400
-            sourceSize.height: 225
+            sourceSize.width: 384
+            sourceSize.height: 144
 
-            Layout.preferredWidth: 400
-            Layout.preferredHeight: 225
+            Layout.preferredWidth: 384
+            Layout.preferredHeight: 144
 
             source: "./icons/img-splash.png"
         }
@@ -58,27 +58,110 @@ Dialog {
 
             type: Label.Title
             horizontalAlignment: Text.AlignHCenter
-            text: qsTr("Updated Proton, unified protection")
+            text: qsTr("What's new in Bridge")
         }
 
-        Label {
-            colorScheme: root.colorScheme
+        RowLayout {
+            width: root.width
 
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignHCenter;
-            Layout.preferredWidth: 336
-            Layout.leftMargin: 24
-            Layout.rightMargin: 24
-            wrapMode: Text.WordWrap
+            Item {
+                Layout.fillHeight: true
+                width: 24
+                Layout.leftMargin: 24
+                Layout.rightMargin: 24
+                Image {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.verticalCenter: parent.verticalCenter
+                    sourceSize.width: 24
+                    sourceSize.height: 24
+                    source: "./icons/ic-splash-view.svg"
+                }
+            }
 
-            type: Label.Body
-            horizontalAlignment: Text.AlignHCenter
-            textFormat: Text.StyledText
-            text: qsTr("Introducing Proton’s refreshed look.<br/>") +
-            qsTr("Many services, one mission. Welcome to an Internet where privacy is the default. ") +
-            link("https://proton.me/news/updated-proton",qsTr("Learn More"))
+            Label {
+                colorScheme: root.colorScheme
 
-            onLinkActivated: Qt.openUrlExternally(link)
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter;
+                Layout.preferredWidth: 264
+                Layout.leftMargin: 0
+                Layout.rightMargin: 24
+                wrapMode: Text.WordWrap
+
+                type: Label.Body
+                horizontalAlignment: Text.AlignLeft
+                textFormat: Text.StyledText
+                text: qsTr("<b>New IMAP engine</b><br/>For improved stability and performances.")
+            }
+        }
+
+        RowLayout {
+            width: root.width
+
+            Item {
+                Layout.fillHeight: true
+                width: 24
+                Layout.leftMargin: 24
+                Layout.rightMargin: 24
+                Image {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.verticalCenter: parent.verticalCenter
+                    sourceSize.width: 24
+                    sourceSize.height: 24
+                    source: "./icons/ic-splash-card.svg"
+                }
+            }
+
+            Label {
+                colorScheme: root.colorScheme
+
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter;
+                Layout.preferredWidth: 264
+                Layout.leftMargin: 0
+                Layout.rightMargin: 24
+                wrapMode: Text.WordWrap
+
+                type: Label.Body
+                horizontalAlignment: Text.AlignLeft
+                textFormat: Text.StyledText
+                text: qsTr("<b>Faster than ever</b><br/>Up to 10x faster syncing and receiving.")
+            }
+        }
+
+        RowLayout {
+            width: root.width
+
+            Item {
+                Layout.fillHeight: true
+                width: 24
+                Layout.leftMargin: 24
+                Layout.rightMargin: 24
+                Image {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.verticalCenter: parent.verticalCenter
+                    sourceSize.width: 24
+                    sourceSize.height: 24
+                    source: "./icons/ic-splash-drive.svg"
+                }
+            }
+
+
+            Label {
+                colorScheme: root.colorScheme
+
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter;
+                Layout.preferredWidth: 264
+                Layout.leftMargin: 0
+                Layout.rightMargin: 24
+                wrapMode: Text.WordWrap
+
+                type: Label.Body
+                horizontalAlignment: Text.AlignLeft
+                textFormat: Text.StyledText
+                text: qsTr("<b>Extra security</b><br/>New, encrypted local database and keychain improvements.")
+            }
         }
 
         Button {
@@ -90,16 +173,21 @@ Dialog {
             onClicked: Backend.showSplashScreen = false
         }
 
-        Image {
-            Layout.alignment: Qt.AlignHCenter
+        Label {
+            colorScheme: root.colorScheme
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter;
+            Layout.preferredWidth: 336
+            Layout.leftMargin: 24
+            Layout.rightMargin: 24
+            wrapMode: Text.WordWrap
 
-            sourceSize.width: 164
-            sourceSize.height: 32
+            type: Label.Body
+            horizontalAlignment: Text.AlignHCenter
+            textFormat: Text.StyledText
+            text: qsTr("Note that your client will redownload all the emails.<br/>") + link("https://proton.me/blog/new-proton-mail-bridge", qsTr("Learn more about new Bridge."))
 
-            Layout.preferredWidth: 164
-            Layout.preferredHeight: 32
-
-            source: "/qml/icons/img-proton-logos.svg"
+            onLinkActivated: function(link) { Qt.openUrlExternally(link) }
         }
     }
 }

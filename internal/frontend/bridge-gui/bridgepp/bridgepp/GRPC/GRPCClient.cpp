@@ -222,17 +222,12 @@ grpc::Status GRPCClient::addLogEntry(Log::Level level, QString const &package, Q
 //****************************************************************************************************************************************************
 /// \return The status for the gRPC call.
 //****************************************************************************************************************************************************
-grpc::Status GRPCClient::guiReady() {
-    return this->logGRPCCallStatus(stub_->GuiReady(this->clientContext().get(), empty, &empty), __FUNCTION__);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[out] outIsFirst The value for the property.
-/// \return The status for the gRPC call.
-//****************************************************************************************************************************************************
-grpc::Status GRPCClient::isFirstGUIStart(bool &outIsFirst) {
-    return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::IsFirstGuiStart, outIsFirst), __FUNCTION__);
+grpc::Status GRPCClient::guiReady(bool &outShowSplashScreen) {
+    GuiReadyResponse response;
+    Status status = this->logGRPCCallStatus(stub_->GuiReady(this->clientContext().get(), empty, &response), __FUNCTION__);
+    if (status.ok())
+        outShowSplashScreen = response.showsplashscreen();
+    return status;
 }
 
 
@@ -462,15 +457,6 @@ grpc::Status GRPCClient::isPortFree(qint32 port, bool &outFree) {
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::showOnStartup(bool &outValue) {
     return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::ShowOnStartup, outValue), __FUNCTION__);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[out] outValue The value for the property.
-/// \return The status for the gRPC call.
-//****************************************************************************************************************************************************
-grpc::Status GRPCClient::showSplashScreen(bool &outValue) {
-    return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::ShowSplashScreen, outValue), __FUNCTION__);
 }
 
 

@@ -77,7 +77,6 @@ void QMLBackend::init(GRPCConfig const &serviceConfig) {
     });
 
     // Grab from bridge the value that will not change during the execution of this app (or that will only change locally).
-    app().grpc().showSplashScreen(showSplashScreen_);
     app().grpc().goos(goos_);
     app().grpc().logsPath(logsPath_);
     app().grpc().licensePath(licensePath_);
@@ -468,19 +467,6 @@ bool QMLBackend::isDoHEnabled() const {
     )
 }
 
-
-//****************************************************************************************************************************************************
-/// \return The value for the 'isFirstGUIStart' property.
-//****************************************************************************************************************************************************
-bool QMLBackend::isFirstGUIStart() const {
-    HANDLE_EXCEPTION_RETURN_BOOL(
-        bool v;
-        app().grpc().isFirstGUIStart(v);
-        return v;
-    )
-}
-
-
 //****************************************************************************************************************************************************
 /// \return The value for the 'isAutomaticUpdateOn' property.
 //****************************************************************************************************************************************************
@@ -699,9 +685,11 @@ void QMLBackend::changeKeychain(QString const &keychain) {
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void QMLBackend::guiReady() const {
+void QMLBackend::guiReady() {
     HANDLE_EXCEPTION(
-        app().grpc().guiReady();
+        bool showSplashScreen;
+        app().grpc().guiReady(showSplashScreen);
+        this->setShowSplashScreen(showSplashScreen);
     )
 }
 

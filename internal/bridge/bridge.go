@@ -446,6 +446,10 @@ func (bridge *Bridge) Close(ctx context.Context) {
 	if err := bridge.vault.SetLastVersion(bridge.curVersion); err != nil {
 		logrus.WithError(err).Error("Failed to save last version")
 	}
+
+	if err := bridge.vault.SetFirstStart(false); err != nil {
+		logrus.WithError(err).Error("Failed to save first start indicator")
+	}
 }
 
 func (bridge *Bridge) publish(event events.Event) {

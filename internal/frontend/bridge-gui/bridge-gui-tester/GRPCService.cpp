@@ -86,9 +86,10 @@ Status GRPCService::AddLogEntry(ServerContext *, AddLogEntryRequest const *reque
 //****************************************************************************************************************************************************
 /// \return The status for the call.
 //****************************************************************************************************************************************************
-Status GRPCService::GuiReady(ServerContext *, Empty const *, Empty *) {
+Status GRPCService::GuiReady(ServerContext *, Empty const *, GuiReadyResponse *response) {
     app().log().debug(__FUNCTION__);
     app().mainWindow().settingsTab().setGUIReady(true);
+    response->set_showsplashscreen(app().mainWindow().settingsTab().showSplashScreen());
     return Status::OK;
 }
 
@@ -120,28 +121,6 @@ Status GRPCService::Restart(ServerContext *, Empty const *, Empty *) {
 Status GRPCService::ShowOnStartup(ServerContext *, Empty const *, BoolValue *response) {
     app().log().debug(__FUNCTION__);
     response->set_value(app().mainWindow().settingsTab().showOnStartup());
-    return Status::OK;
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[out] response The response.
-/// \return The status for the call.
-//****************************************************************************************************************************************************
-Status GRPCService::ShowSplashScreen(ServerContext *, Empty const *, BoolValue *response) {
-    app().log().debug(__FUNCTION__);
-    response->set_value(app().mainWindow().settingsTab().showSplashScreen());
-    return Status::OK;
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[out] response The response.
-/// \return The status for the call.
-//****************************************************************************************************************************************************
-Status GRPCService::IsFirstGuiStart(ServerContext *, Empty const *, BoolValue *response) {
-    app().log().debug(__FUNCTION__);
-    response->set_value(app().mainWindow().settingsTab().isFirstGUIStart());
     return Status::OK;
 }
 

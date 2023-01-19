@@ -41,9 +41,8 @@ type Settings struct {
 	Autostart    bool
 	AutoUpdate   bool
 
-	LastVersion   string
-	FirstStart    bool
-	FirstStartGUI bool
+	LastVersion string
+	FirstStart  bool
 
 	SyncWorkers int
 	SyncAttPool int
@@ -81,9 +80,8 @@ func newDefaultSettings(gluonDir string) Settings {
 		Autostart:    true,
 		AutoUpdate:   true,
 
-		LastVersion:   "0.0.0",
-		FirstStart:    true,
-		FirstStartGUI: true,
+		LastVersion: "0.0.0",
+		FirstStart:  true,
 
 		SyncWorkers: syncWorkers,
 		SyncAttPool: syncWorkers,

@@ -198,11 +198,10 @@ func migratePrefsToVault(vault *vault.Vault, b []byte) error {
 		UpdateChannel updater.Channel `json:"update_channel"`
 		UpdateRollout float64         `json:"rollout,,string"`
 
-		FirstStart    bool            `json:"first_time_start,,string"`
-		FirstStartGUI bool            `json:"first_time_start_gui,,string"`
-		ColorScheme   string          `json:"color_scheme"`
-		LastVersion   *semver.Version `json:"last_used_version"`
-		Autostart     bool            `json:"autostart,,string"`
+		FirstStart  bool            `json:"first_time_start,,string"`
+		ColorScheme string          `json:"color_scheme"`
+		LastVersion *semver.Version `json:"last_used_version"`
+		Autostart   bool            `json:"autostart,,string"`
 
 		AllowProxy        bool `json:"allow_proxy,,string"`
 		FetchWorkers      int  `json:"fetch_workers,,string"`
@@ -244,10 +243,6 @@ func migratePrefsToVault(vault *vault.Vault, b []byte) error {
 
 	if err := vault.SetFirstStart(prefs.FirstStart); err != nil {
 		errs = multierror.Append(errs, fmt.Errorf("failed to migrate first start: %w", err))
-	}
-
-	if err := vault.SetFirstStartGUI(prefs.FirstStartGUI); err != nil {
-		errs = multierror.Append(errs, fmt.Errorf("failed to migrate first start GUI: %w", err))
 	}
 
 	if err := vault.SetColorScheme(prefs.ColorScheme); err != nil {

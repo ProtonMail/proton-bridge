@@ -41,12 +41,10 @@ public: // member functions.
     bool isStreaming() const; ///< Check if the service is currently streaming events.
     grpc::Status CheckTokens(::grpc::ServerContext *context, ::google::protobuf::StringValue const *request, ::google::protobuf::StringValue *response) override;
     grpc::Status AddLogEntry(::grpc::ServerContext *, ::grpc::AddLogEntryRequest const *request, ::google::protobuf::Empty *) override;
-    grpc::Status GuiReady(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::Empty *) override;
+    grpc::Status GuiReady(::grpc::ServerContext *, ::google::protobuf::Empty const *, grpc::GuiReadyResponse *response) override;
     grpc::Status Quit(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::Empty *) override;
     grpc::Status Restart(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::Empty *) override;
     grpc::Status ShowOnStartup(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::BoolValue *response) override;
-    grpc::Status ShowSplashScreen(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::BoolValue *response) override;
-    grpc::Status IsFirstGuiStart(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::BoolValue *response) override;
     grpc::Status SetIsAutostartOn(::grpc::ServerContext *, ::google::protobuf::BoolValue const *request, ::google::protobuf::Empty *) override;
     grpc::Status IsAutostartOn(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::BoolValue *response) override;
     grpc::Status SetIsBetaEnabled(::grpc::ServerContext *, ::google::protobuf::BoolValue const *request, ::google::protobuf::Empty *) override;
