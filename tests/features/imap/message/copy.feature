@@ -66,20 +66,20 @@ Feature: IMAP copy messages
     And IMAP client "1" eventually sees 0 messages in "Sent"
 
   Scenario: Copy message from All mail moves from the original location
-    Then IMAP client "1" sees the following messages in "INBOX":
+    Given IMAP client "1" sees the following messages in "INBOX":
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | foo     | false  |
       | jane.doe@mail.com | name@[domain]        | bar     | true   |
     When IMAP client "1" copies the message with subject "foo" from "All Mail" to "Folders/mbox"
     And it succeeds
-    Then IMAP client "1" sees the following messages in "INBOX":
-      | from              | to                   | subject | unread |
-      | jane.doe@mail.com | name@[domain]        | bar     | true   |
-    Then IMAP client "1" sees the following messages in "All Mail":
+    Then IMAP client "1" eventually sees the following messages in "INBOX":
+      | from              | to            | subject | unread |
+      | jane.doe@mail.com | name@[domain] | bar     | true   |
+    And IMAP client "1" eventually sees the following messages in "All Mail":
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | foo     | false  |
       | jane.doe@mail.com | name@[domain]        | bar     | true   |
-    Then IMAP client "1" sees the following messages in "Folders/mbox":
+    And IMAP client "1" eventually sees the following messages in "Folders/mbox":
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | foo     | false  |
 
