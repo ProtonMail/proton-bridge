@@ -101,7 +101,7 @@ func TestBridge_Send(t *testing.T) {
 			defer recipientIMAPClient.Logout() //nolint:errcheck
 
 			// Sender should have 10 messages in the sent folder.
-			// Recipient should have 0 messages in inbox.
+			// Recipient should have 10 messages in inbox.
 			require.Eventually(t, func() bool {
 				sent, err := senderIMAPClient.Status(`Sent`, []imap.StatusItem{imap.StatusMessages})
 				require.NoError(t, err)

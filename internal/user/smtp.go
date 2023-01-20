@@ -174,7 +174,11 @@ func sendWithKey( //nolint:funlen
 	to []string,
 	message message.Message,
 ) (proton.Message, error) {
-	parentID, err := getParentID(ctx, client, authAddrID, addrMode, message.References)
+	references := message.References
+	if message.InReplyTo != "" {
+		references = append(references, message.InReplyTo)
+	}
+	parentID, err := getParentID(ctx, client, authAddrID, addrMode, references)
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to get parent ID: %w", err)
 	}
