@@ -28,6 +28,7 @@
 //****************************************************************************************************************************************************
 struct CommandLineOptions {
     QStringList bridgeArgs; ///< The command-line arguments we will pass to bridge when launching it.
+    QStringList bridgeGuiArgs; ///< The command-line arguments we will pass to bridge when launching it.
     QString launcher; ///< The path to the launcher.
     bool attach { false }; ///< Is the application running in attached mode?
     bridgepp::Log::Level logLevel { bridgepp::Log::defaultLevel }; ///< The log level

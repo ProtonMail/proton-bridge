@@ -55,18 +55,22 @@ public: // member functions.
     bridgepp::Log &log() { return *log_; } ///< Return a reference to the log.
     std::unique_ptr<bridgepp::Overseer> &bridgeOverseer() { return bridgeOverseer_; }; ///< Returns a reference the bridge overseer
     bridgepp::ProcessMonitor *bridgeMonitor() const; ///< Return the bridge worker.
+    void setLauncherArgs(const QString& launcher, const QStringList& args);
 
 public slots:
     void onFatalError(QString const &function, QString const &message); ///< Handle fatal errors.
 
 private: // member functions
     AppController(); ///< Default constructor.
+    void restart(bool isCrashing = false); ///< Restart the app.
 
 private: // data members
     std::unique_ptr<QMLBackend> backend_; ///< The backend.
     std::unique_ptr<bridgepp::GRPCClient> grpc_; ///< The RPC client.
     std::unique_ptr<bridgepp::Log> log_; ///< The log.
     std::unique_ptr<bridgepp::Overseer> bridgeOverseer_; ///< The overseer for the bridge monitor worker.
+    QString launcher_;
+    QStringList launcherArgs_;
 };
 
 

@@ -28,6 +28,9 @@
 
 using namespace bridgepp;
 
+namespace {
+QString const noWindowFlag = "--no-window"; ///< The no-window command-line flag.
+}
 
 //****************************************************************************************************************************************************
 /// \return The AppController instance.
@@ -75,6 +78,25 @@ void AppController::onFatalError(QString const &function, QString const &message
     QString const fullMessage = QString("%1(): %2").arg(function, message);
     reportSentryException(SENTRY_LEVEL_ERROR, "AppController got notified of a fatal error", "Exception", fullMessage.toLocal8Bit());
     QMessageBox::critical(nullptr, tr("Error"), message);
+    restart(true);
     log().fatal(fullMessage);
     qApp->exit(EXIT_FAILURE);
+}
+
+void AppController::restart(bool isCrashing) {
+    if (!launcher_.isEmpty()) {
+        QProcess p;
+        log_->info(QString("Restarting - App : %1 - Args : %2").arg(launcher_,launcherArgs_.join(" ")));
+        QStringList args = launcherArgs_;
+        if (isCrashing)
+            args.append(noWindowFlag);
+
+        p.startDetached(launcher_, args);
+        p.waitForStarted();
+    }
+}
+
+void AppController::setLauncherArgs(const QString& launcher, const QStringList& args){
+    launcher_ = launcher;
+    launcherArgs_ = args;
 }

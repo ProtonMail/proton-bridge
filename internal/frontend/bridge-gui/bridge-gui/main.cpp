@@ -55,6 +55,7 @@ QString const bridgeLock = "bridge-v3.lock"; ///< The file name used for the bri
 QString const bridgeGUILock = "bridge-v3-gui.lock"; ///< The file name used for the bridge-gui lock file.
 QString const exeName = "bridge" + exeSuffix; ///< The bridge executable file name.*
 qint64 const grpcServiceConfigWaitDelayMs = 180000; ///< The wait delay for the gRPC config file in milliseconds.
+QString const waitFlag = "--wait"; ///< The wait command-line flag.
 
 
 } // anonymous namespace
@@ -398,7 +399,12 @@ int main(int argc, char *argv[]) {
         int result = 0;
         if (!startError) {
             // we succeeded in launching bridge, so we can be set as mainExecutable.
-            app().grpc().setMainExecutable(QString::fromLocal8Bit(argv[0]));
+            QString mainexec = QString::fromLocal8Bit(argv[0]);
+            app().grpc().setMainExecutable(mainexec);
+            QStringList args = cliOptions.bridgeGuiArgs;
+            args.append(waitFlag);
+            args.append(mainexec);
+            app().setLauncherArgs(cliOptions.launcher, args);
             result = QGuiApplication::exec();
         }
 

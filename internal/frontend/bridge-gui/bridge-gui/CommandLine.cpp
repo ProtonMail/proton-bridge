@@ -98,6 +98,7 @@ CommandLineOptions parseCommandLine(int argc, char *argv[]) {
         // we can't use QCommandLineParser here since it will fail on unknown options.
         // Arguments may contain some bridge flags.
         if (arg == softwareRendererFlag) {
+            options.bridgeGuiArgs.append(arg);
             options.useSoftwareRenderer = true;
         }
         if (arg == noWindowFlag) {
@@ -113,10 +114,12 @@ CommandLineOptions parseCommandLine(int argc, char *argv[]) {
         else if (arg == "--attach" || arg == "-a") {
             // we don't keep the attach mode within the args since we don't need it for Bridge.
             options.attach = true;
+            options.bridgeGuiArgs.append(arg);
         }
 #endif
         else {
             options.bridgeArgs.append(arg);
+            options.bridgeGuiArgs.append(arg);
         }
     }
     if (!flagFound) {
