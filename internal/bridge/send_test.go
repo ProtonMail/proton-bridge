@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-sasl"
@@ -42,7 +43,7 @@ func TestBridge_Send(t *testing.T) {
 		_, _, err := s.CreateUser("recipient", password)
 		require.NoError(t, err)
 
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			senderUserID, err := bridge.LoginFull(ctx, username, password, nil, nil)
 			require.NoError(t, err)
 
@@ -110,6 +111,109 @@ func TestBridge_Send(t *testing.T) {
 
 				return sent.Messages == 10 && inbox.Messages == 10
 			}, 10*time.Second, 100*time.Millisecond)
+		})
+	})
+}
+
+func TestBridge_SendDraftFlags(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a recipient user.
+		_, _, err := s.CreateUser("recipient", password)
+		require.NoError(t, err)
+
+		// The sender should be fully synced.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+			defer done()
+
+			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
+			require.NoError(t, err)
+
+			require.Equal(t, userID, (<-syncCh).UserID)
+		})
+
+		// Start the bridge.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			// Get the sender user info.
+			userInfo, err := bridge.QueryUserInfo(username)
+			require.NoError(t, err)
+
+			// Connect the sender IMAP client.
+			imapClient, err := client.Dial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetIMAPPort())))
+			require.NoError(t, err)
+			require.NoError(t, imapClient.Login(userInfo.Addresses[0], string(userInfo.BridgePass)))
+			defer imapClient.Logout() //nolint:errcheck
+
+			// The message to send.
+			const message = `Subject: Test\r\n\r\nHello world!`
+
+			// Save a draft.
+			require.NoError(t, imapClient.Append("Drafts", []string{imap.DraftFlag}, time.Now(), strings.NewReader(message)))
+
+			// Assert that the draft exists and is marked as a draft.
+			{
+				messages, err := clientFetch(imapClient, "Drafts")
+				require.NoError(t, err)
+				require.Len(t, messages, 1)
+				require.Contains(t, messages[0].Flags, imap.DraftFlag)
+			}
+
+			// Connect the SMTP client.
+			smtpClient, err := smtp.Dial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetSMTPPort())))
+			require.NoError(t, err)
+			defer smtpClient.Close() //nolint:errcheck
+
+			// Upgrade to TLS.
+			require.NoError(t, smtpClient.StartTLS(&tls.Config{InsecureSkipVerify: true}))
+
+			// Authorize with SASL PLAIN.
+			require.NoError(t, smtpClient.Auth(sasl.NewPlainClient(
+				userInfo.Addresses[0],
+				userInfo.Addresses[0],
+				string(userInfo.BridgePass)),
+			))
+
+			// Send the message.
+			require.NoError(t, smtpClient.SendMail(
+				userInfo.Addresses[0],
+				[]string{"recipient@" + s.GetDomain()},
+				strings.NewReader(message),
+			))
+
+			// Delete the draft: add the \Deleted flag and expunge.
+			{
+				status, err := imapClient.Select("Drafts", false)
+				require.NoError(t, err)
+				require.Equal(t, uint32(1), status.Messages)
+
+				// Add the \Deleted flag.
+				require.NoError(t, clientStore(imapClient, 1, 1, true, imap.FormatFlagsOp(imap.AddFlags, true), imap.DeletedFlag))
+
+				// Expunge.
+				require.NoError(t, imapClient.Expunge(nil))
+			}
+
+			// Assert that the draft is eventually gone.
+			require.Eventually(t, func() bool {
+				status, err := imapClient.Select("Drafts", false)
+				require.NoError(t, err)
+				return status.Messages == 0
+			}, 10*time.Second, 100*time.Millisecond)
+
+			// Assert that the message is eventually in the sent folder.
+			require.Eventually(t, func() bool {
+				messages, err := clientFetch(imapClient, "Sent")
+				require.NoError(t, err)
+				return len(messages) == 1
+			}, 10*time.Second, 100*time.Millisecond)
+
+			// Assert that the message is not marked as a draft.
+			{
+				messages, err := clientFetch(imapClient, "Sent")
+				require.NoError(t, err)
+				require.Len(t, messages, 1)
+				require.NotContains(t, messages[0].Flags, imap.DraftFlag)
+			}
 		})
 	})
 }

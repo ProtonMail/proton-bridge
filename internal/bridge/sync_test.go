@@ -351,7 +351,7 @@ func withClient(ctx context.Context, t *testing.T, s *server.Server, username st
 	fn(ctx, c)
 }
 
-func clientFetch(client *client.Client, mailbox string) ([]*imap.Message, error) { //nolint:unused
+func clientFetch(client *client.Client, mailbox string) ([]*imap.Message, error) {
 	status, err := client.Select(mailbox, false)
 	if err != nil {
 		return nil, err
@@ -374,6 +374,23 @@ func clientFetch(client *client.Client, mailbox string) ([]*imap.Message, error)
 	}()
 
 	return iterator.Collect(iterator.Chan(resCh)), nil
+}
+
+func clientStore(client *client.Client, from, to int, isUID bool, item imap.StoreItem, flags ...string) error {
+	var storeFunc func(seqset *imap.SeqSet, item imap.StoreItem, value interface{}, ch chan *imap.Message) error
+
+	if isUID {
+		storeFunc = client.UidStore
+	} else {
+		storeFunc = client.Store
+	}
+
+	return storeFunc(
+		&imap.SeqSet{Set: []imap.Seq{{Start: uint32(from), Stop: uint32(to)}}},
+		item,
+		xslices.Map(flags, func(flag string) interface{} { return flag }),
+		nil,
+	)
 }
 
 func createNumMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID, labelID string, count int) []string {
