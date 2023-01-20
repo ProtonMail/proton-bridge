@@ -229,7 +229,7 @@ Window {
                             visible: viewItem.user ? (viewItem.user.state === EUserState.SignedOut) : false
                             text: qsTr("Sign in")
                             onClicked: {
-                                root.showSignIn(viewItem.username)
+                                root.showSignIn(viewItem.user.primaryEmailOrUsername())
                                 root.close()
                             }
                         }
