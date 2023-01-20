@@ -393,6 +393,18 @@ func clientStore(client *client.Client, from, to int, isUID bool, item imap.Stor
 	)
 }
 
+func clientList(client *client.Client) []*imap.MailboxInfo {
+	resCh := make(chan *imap.MailboxInfo)
+
+	go func() {
+		if err := client.List("", "*", resCh); err != nil {
+			panic(err)
+		}
+	}()
+
+	return iterator.Collect(iterator.Chan(resCh))
+}
+
 func createNumMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID, labelID string, count int) []string {
 	literal, err := os.ReadFile(filepath.Join("testdata", "text-plain.eml"))
 	require.NoError(t, err)

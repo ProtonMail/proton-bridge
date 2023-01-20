@@ -44,9 +44,7 @@ func (user *User) handleAPIEvent(ctx context.Context, event proton.Event) error 
 	}
 
 	if event.User != nil {
-		if err := user.handleUserEvent(ctx, *event.User); err != nil {
-			return err
-		}
+		user.handleUserEvent(ctx, *event.User)
 	}
 
 	if len(event.Addresses) > 0 {
@@ -133,8 +131,8 @@ func (user *User) handleRefreshEvent(ctx context.Context, refresh proton.Refresh
 }
 
 // handleUserEvent handles the given user event.
-func (user *User) handleUserEvent(_ context.Context, userEvent proton.User) error {
-	return safe.LockRet(func() error {
+func (user *User) handleUserEvent(_ context.Context, userEvent proton.User) {
+	safe.Lock(func() {
 		user.log.WithFields(logrus.Fields{
 			"userID":   userEvent.ID,
 			"username": logging.Sensitive(userEvent.Name),
@@ -145,8 +143,6 @@ func (user *User) handleUserEvent(_ context.Context, userEvent proton.User) erro
 		user.eventCh.Enqueue(events.UserChanged{
 			UserID: user.apiUser.ID,
 		})
-
-		return nil
 	}, user.apiUserLock)
 }
 
@@ -322,7 +318,7 @@ func (user *User) handleLabelEvents(ctx context.Context, labelEvents []proton.La
 			}
 
 			if err := waitOnIMAPUpdates(ctx, updates); err != nil {
-				return err
+				return fmt.Errorf("failed to handle delete label event in gluon: %w", err)
 			}
 		}
 	}
@@ -497,7 +493,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 			}
 
 			if err := waitOnIMAPUpdates(ctx, updates); err != nil {
-				return err
+				return fmt.Errorf("failed to handle delete message event in gluon: %w", err)
 			}
 		}
 	}
