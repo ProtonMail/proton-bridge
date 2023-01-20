@@ -43,7 +43,7 @@ const (
 	MaxLogSize = 5 * 1024 * 1024
 
 	// MaxLogs defines how many log files should be kept.
-	MaxLogs = 3
+	MaxLogs = 10
 )
 
 type coloredStdOutHook struct {
@@ -92,8 +92,7 @@ func Init(logsPath, level string) error {
 	logrus.AddHook(newColoredStdOutHook())
 
 	rotator, err := NewRotator(MaxLogSize, func() (io.WriteCloser, error) {
-		// Leaving MaxLogs-1 since new log file will be opened right away.
-		if err := clearLogs(logsPath, MaxLogs-1, MaxLogs); err != nil {
+		if err := clearLogs(logsPath, MaxLogs, MaxLogs); err != nil {
 			return nil, err
 		}
 
