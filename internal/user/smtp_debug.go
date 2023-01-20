@@ -44,5 +44,5 @@ func debugDumpToDisk(b []byte) error {
 }
 
 func getFileName() string {
-	return time.Now().Format(time.RFC3339Nano) + "_smtp_debug.eml"
+	return fmt.Sprintf("smtp_debug_%v.eml", time.Now().Unix())
 }
