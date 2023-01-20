@@ -149,7 +149,7 @@ QString userDataDir() {
     folder = QDir(dir).absoluteFilePath(configFolder);
     QDir().mkpath(folder);
 #else
-    folder = userCacheDir();
+    folder = userConfigDir();
 #endif
 
     return folder;

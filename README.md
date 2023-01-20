@@ -66,12 +66,12 @@ major problems.
 
 There are now three types of system folders which Bridge recognises:
 
-|        | Windows                             | Mac                                                | Linux                               | Linux (XDG)                           |
-|--------|-------------------------------------|----------------------------------------------------|-------------------------------------|---------------------------------------|
-| config | %APPDATA%\protonmail\bridge-v3      | ~/Library/Application Support/protonmail/bridge-v3 | ~/.config/protonmail/bridge-v3      | $XDG_CONFIG_HOME/protonmail/bridge-v3 |
-| cache  | %LOCALAPPDATA%\protonmail\bridge-v3 | ~/Library/Caches/protonmail/bridge-v3              | ~/.cache/protonmail/bridge-v3       | $XDG_CACHE_HOME/protonmail/bridge-v3  |
-| data	  | %LOCALAPPDATA%\protonmail\bridge-v3 | ~/Library/Caches/protonmail/bridge-v3              | ~/.local/share/protonmail/bridge-v3 | $XDG_DATA_HOME/protonmail/bridge-v3   |
-| temp   | %LOCALAPPDATA%\Temp                 | $TMPDIR if non-empty, else /tmp                    | $TMPDIR if non-empty, else /tmp     | $TMPDIR if non-empty, else /tmp       |
+|        | Windows                             | Mac                                                 | Linux                               | Linux (XDG)                           |
+|--------|-------------------------------------|-----------------------------------------------------|-------------------------------------|---------------------------------------|
+| config | %APPDATA%\protonmail\bridge-v3      | ~/Library/Application Support/protonmail/bridge-v3  | ~/.config/protonmail/bridge-v3      | $XDG_CONFIG_HOME/protonmail/bridge-v3 |
+| cache  | %LOCALAPPDATA%\protonmail\bridge-v3 | ~/Library/Caches/protonmail/bridge-v3               | ~/.cache/protonmail/bridge-v3       | $XDG_CACHE_HOME/protonmail/bridge-v3  |
+| data	 | %APPDATA%\protonmail\bridge-v3      | ~/Library/Application Support/protonmail/bridge-v3  | ~/.local/share/protonmail/bridge-v3 | $XDG_DATA_HOME/protonmail/bridge-v3   |
+| temp   | %LOCALAPPDATA%\Temp                 | $TMPDIR if non-empty, else /tmp                     | $TMPDIR if non-empty, else /tmp     | $TMPDIR if non-empty, else /tmp       |
 
 
 
