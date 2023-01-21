@@ -5,11 +5,7 @@
         <file>qml/AccountView.qml</file>
         <file>qml/Banner.qml</file>
         <file>qml/Bridge.qml</file>
-        <file>qml/Bridge_test.qml</file>
         <file>qml/bridgeqml.qmlproject</file>
-        <file>qml/BridgeTest/UserControl.qml</file>
-        <file>qml/BridgeTest/UserList.qml</file>
-        <file>qml/BridgeTest/UserModel.qml</file>
         <file>qml/BugReportView.qml</file>
         <file>qml/Configuration.qml</file>
         <file>qml/ConfigurationItem.qml</file>
@@ -28,6 +24,7 @@
         <file>qml/icons/ic-connected.svg</file>
         <file>qml/icons/ic-copy.svg</file>
         <file>qml/icons/ic-cross-close.svg</file>
+        <file>qml/icons/ic-dot.svg</file>
         <file>qml/icons/ic-drive.svg</file>
         <file>qml/icons/ic-exclamation-circle-filled.svg</file>
         <file>qml/icons/ic-external-link.svg</file>
@@ -104,17 +101,6 @@
         <file>qml/ConnectionModeSettings.qml</file>
         <file>qml/SplashScreen.qml</file>
         <file>qml/Status.qml</file>
-        <file>qml/StatusWindow.qml</file>
-        <file>qml/tests/Buttons.qml</file>
-        <file>qml/tests/ButtonsColumn.qml</file>
-        <file>qml/tests/CheckBoxes.qml</file>
-        <file>qml/tests/ComboBoxes.qml</file>
-        <file>qml/tests/RadioButtons.qml</file>
-        <file>qml/tests/Switches.qml</file>
-        <file>qml/tests/Test.qml</file>
-        <file>qml/tests/TestComponents.qml</file>
-        <file>qml/tests/TextAreas.qml</file>
-        <file>qml/tests/TextFields.qml</file>
         <file>qml/WelcomeGuide.qml</file>
     </qresource>
 </RCC>

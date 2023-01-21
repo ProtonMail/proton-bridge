@@ -24,8 +24,6 @@ QtObject {
     id: root
 
     property MainWindow frontendMain
-    property StatusWindow frontendStatus
-    property SystemTrayIcon frontendTray
 
     signal askEnableBeta()
     signal askEnableSplitMode(var user)
@@ -140,7 +138,7 @@ QtObject {
 
     property Notification imapPortChangeError: Notification {
         description: qsTr("The IMAP port could not be changed.")
-        brief: qsTr("IMAP port change error")
+        brief: qsTr("IMAP port error")
         icon: "./icons/ic-alert.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Connection
@@ -156,7 +154,7 @@ QtObject {
 
     property Notification smtpPortChangeError: Notification {
         description: qsTr("The SMTP port could not be changed.")
-        brief: qsTr("SMTP port change error")
+        brief: qsTr("SMTP port error")
         icon: "./icons/ic-alert.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Connection
@@ -172,7 +170,7 @@ QtObject {
 
     property Notification imapConnectionModeChangeError: Notification {
         description: qsTr("The IMAP connection mode could not be changed.")
-        brief: qsTr("IMAP Connection mode change error")
+        brief: qsTr("IMAP Connection mode error")
         icon: "./icons/ic-alert.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Connection
@@ -196,7 +194,7 @@ QtObject {
 
     property Notification smtpConnectionModeChangeError: Notification {
         description: qsTr("The SMTP connection mode could not be changed.")
-        brief: qsTr("SMTP Connection mode change error")
+        brief: qsTr("SMTP Connection mode error")
         icon: "./icons/ic-alert.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Connection
@@ -227,7 +225,7 @@ QtObject {
             var link = Backend.releaseNotesLink
             return `${descr} <a href="${link}">${text}</a>`
         }
-        brief: qsTr("Update available.")
+        brief: qsTr("Update available")
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Info
         group: Notifications.Group.Update | Notifications.Group.Dialogs
@@ -514,7 +512,7 @@ QtObject {
     // login
     property Notification loginConnectionError: Notification {
         description: qsTr("Bridge is not able to contact the server, please check your internet connection.")
-        brief: description
+        brief: qsTr("Connection error")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration
@@ -538,7 +536,7 @@ QtObject {
 
     property Notification onlyPaidUsers: Notification {
         description: qsTr("Bridge is exclusive to our paid plans. Upgrade your account to use Bridge.")
-        brief: description
+        brief: qsTr("Upgrade your account")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration
@@ -562,7 +560,7 @@ QtObject {
 
     property Notification alreadyLoggedIn: Notification {
         description: qsTr("This account is already signed in.")
-        brief: description
+        brief: qsTr("Already signed in")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Info
         group: Notifications.Group.Configuration
@@ -587,7 +585,7 @@ QtObject {
     // Bug reports
     property Notification bugReportSendSuccess: Notification {
         description: qsTr("Thank you for the report. We'll get back to you as soon as we can.")
-        brief: description
+        brief: qsTr("Report sent")
         icon: "./icons/ic-info-circle-filled.svg"
         type: Notification.NotificationType.Success
         group: Notifications.Group.Configuration
@@ -611,7 +609,7 @@ QtObject {
 
     property Notification bugReportSendError: Notification {
         description: qsTr("Report could not be sent. Try again or email us directly.")
-        brief: description
+        brief: qsTr("Error sending report")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration
@@ -634,8 +632,8 @@ QtObject {
     // Cache
     property Notification cacheUnavailable: Notification {
         title: qsTr("Cache location is unavailable")
-        description: qsTr("Check the directory or change it in your settings.")
-        brief: qsTr("The current cache location is unavailable. Check the directory or change it in your settings.")
+        description: qsTr("The current cache location is unavailable. Check the directory or change it in your settings.")
+        brief: title
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
@@ -725,7 +723,7 @@ QtObject {
     // Other
     property Notification accountChanged: Notification {
         description: qsTr("The address list for .... account has changed. You need to reconfigure your email client.")
-        brief: qsTr("The address list for your account has changed. Reconfigure your email client.")
+        brief: qsTr("Address list changed")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration
@@ -742,7 +740,7 @@ QtObject {
     property Notification diskFull: Notification {
         title: qsTr("Your disk is almost full")
         description: qsTr("Quit Bridge and free disk space or disable the local cache (not recommended).")
-        brief: qsTr("Your disk is almost full. Free disk space or disable the local cache.")
+        brief: title
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
@@ -948,8 +946,8 @@ QtObject {
 
     property Notification noKeychain: Notification {
         title: qsTr("No keychain available")
-        description: qsTr("Bridge is not able to detect a supported password manager (pass or secret-service). Please install and setup supported password manager and restart the application.")
         brief: title
+        description: qsTr("Bridge is not able to detect a supported password manager (pass or secret-service). Please install and setup supported password manager and restart the application.")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Dialogs | Notifications.Group.Configuration
@@ -982,8 +980,8 @@ QtObject {
 
     property Notification rebuildKeychain: Notification {
         title: qsTr("Your macOS keychain might be corrupted")
-        description: qsTr("Bridge is not able to access your macOS keychain. Please consult the instructions on our support page.")
         brief: title
+        description: qsTr("Bridge is not able to access your macOS keychain. Please consult the instructions on our support page.")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Dialogs | Notifications.Group.Configuration
@@ -1014,8 +1012,8 @@ QtObject {
 
     property Notification addressChanged: Notification {
         title: qsTr("Address list changes")
+        brief: title
         description: qsTr("The address list for your account has changed. You might need to reconfigure your email client.")
-        brief: description
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Configuration
@@ -1047,11 +1045,11 @@ QtObject {
 
     property Notification apiCertIssue: Notification {
         title: qsTr("Unable to establish a \nsecure connection to \nProton servers")
+        brief: qsTr("Cannot establish secure connection")
         description: qsTr("Bridge cannot verify the authenticity of Proton servers on your current network due to a TLS certificate error. " +
         "Start Bridge again after ensuring your connection is secure and/or connecting to a VPN. Learn more about TLS pinning " +
         "<a href=\"https://proton.me/blog/tls-ssl-certificate#Extra-security-precautions-taken-by-ProtonMail\">here</a>.")
 
-        brief: title
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Dialogs | Notifications.Group.Connection
@@ -1078,6 +1076,7 @@ QtObject {
 
     property Notification noActiveKeyForRecipient: Notification {
         title: qsTr("Unable to send \nencrypted message")
+        brief: title
         description: "#PlaceholderText#"
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
@@ -1174,8 +1173,9 @@ QtObject {
     }
 
     property Notification genericError: Notification {
-        title: "#PlaceholderText#"
-        description: "#PlaceholderText#"
+        title: ""
+        brief: title
+        description: ""
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Dialogs
@@ -1201,7 +1201,7 @@ QtObject {
 
     property Notification genericQuestion: Notification {
         title: ""
-        brief: ""
+        brief: title
         description: ""
         type: Notification.NotificationType.Warning
         group: Notifications.Group.Dialogs

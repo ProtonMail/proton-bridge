@@ -24,8 +24,6 @@ import QtQuick.Controls
 import Proton
 import Notifications
 
-import "tests"
-
 ApplicationWindow {
     id: root
     colorScheme: ProtonStyle.currentStyle
@@ -79,16 +77,27 @@ ApplicationWindow {
             root.showAndRise()
         }
 
-        function onSelectUser(userID) {
-            root.selectUser(userID)
-        }
-
         function onLoginFinished(index, wasSignedOut) {
             var user = Backend.users.get(index)
             if (user && !wasSignedOut) {
                 root.showSetup(user, user.addresses[0])
             }
             console.debug("Login finished", index)
+        }
+
+        function onShowHelp() {
+            root.showHelp()
+            root.showAndRise()
+        }
+
+        function onShowSettings() {
+            root.showSettings()
+            root.showAndRise()
+        }
+
+        function onSelectUser(userID) {
+            contentWrapper.selectUser(userID)
+            root.showAndRise()
         }
     }
 

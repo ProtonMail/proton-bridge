@@ -22,6 +22,7 @@
 
 #include "MacOS/DockIcon.h"
 #include "BuildConfig.h"
+#include "TrayIcon.h"
 #include "UserList.h"
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/GRPC/GRPCUtils.h>
@@ -43,6 +44,7 @@ public: // member functions.
     QMLBackend &operator=(QMLBackend &&) = delete; ///< Disabled move assignment operator.
     void init(GRPCConfig const &serviceConfig); ///< Initialize the backend.
     bool waitForEventStreamReaderToFinish(qint32 timeoutMs); ///< Wait for the event stream reader to finish.
+    UserList const& users() const; ///< Return the list of users
 
     // invokable methods can be called from QML. They generally return a value, which slots cannot do.
     Q_INVOKABLE static QString buildYear(); ///< Return the application build year.
@@ -178,6 +180,10 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void onVersionChanged(); ///< Slot for the version change signal.
     void setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) const; ///< Forwards a connection mode change request from QML to gRPC
     void sendBadEventUserFeedback(QString const &userID, bool doResync); ///< Slot the providing user feedback for a bad event.
+    void setNormalTrayIcon(); ///< Set the tray icon to normal.
+    void setErrorTrayIcon(QString const& stateString, QString const &statusIcon); ///< Set the tray icon to 'error' state.
+    void setWarnTrayIcon(QString const& stateString, QString const &statusIcon); ///< Set the tray icon to 'warn' state.
+    void setUpdateTrayIcon(QString const& stateString, QString const &statusIcon); ///< Set the tray icon to 'update' state.
 
 public slots: // slot for signals received from gRPC that need transformation instead of simple forwarding
     void onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Slot for the ConnectionModeChanged gRPC event.
@@ -237,8 +243,10 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void bugReportSendError(); ///< Signal for the 'bugReportSendError' gRPC stream event.
     void showMainWindow(); ///< Signal for the 'showMainWindow' gRPC stream event.
     void hideMainWindow(); ///< Signal for the 'hideMainWindow' gRPC stream event.
+    void showHelp(); ///< Signal for the 'showHelp' event (from the context menu).
+    void showSettings(); ///< Signal for the 'showHelp' event (from the context menu).
+    void selectUser(QString const& userID); ///< Signal emitted in order to selected a user with a given ID in the list.
     void genericError(QString const &title, QString const &description); ///< Signal for the 'genericError' gRPC stream event.
-    void selectUser(QString const); ///< Signal that request the given user account to be displayed.
     void imapLoginWhileSignedOut(QString const& username); ///< Signal for the notification of IMAP login attempt on a signed out account.
 
     // This signal is emitted when an exception is intercepted is calls triggered by QML. QML engine would intercept the exception otherwise.
@@ -261,7 +269,7 @@ private: // data members
     bool useSSLForIMAP_ { false }; ///< The cached value for useSSLForIMAP.
     bool useSSLForSMTP_ { false }; ///< The cached value for useSSLForSMTP.
     QList<QString> badEventDisplayQueue_; ///< THe queue for displaying 'bad event feedback request dialog'.
-
+    std::unique_ptr<TrayIcon> trayIcon_;
     friend class AppController;
 };
 
