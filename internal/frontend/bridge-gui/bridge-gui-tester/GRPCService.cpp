@@ -752,7 +752,7 @@ Status GRPCService::ConfigureUserAppleMail(ServerContext *, ConfigureAppleMailRe
 /// \param[in] writer The writer
 /// \return The status for the call.
 //****************************************************************************************************************************************************
-Status GRPCService::RunEventStream(ServerContext *, EventStreamRequest const *request, ServerWriter<StreamEvent> *writer) {
+Status GRPCService::RunEventStream(ServerContext *ctx, EventStreamRequest const *request, ServerWriter<StreamEvent> *writer) {
     app().log().debug(__FUNCTION__);
     {
         QMutexLocker locker(&eventStreamMutex_);
@@ -767,19 +767,19 @@ Status GRPCService::RunEventStream(ServerContext *, EventStreamRequest const *re
 
     while (true) {
         QMutexLocker locker(&eventStreamMutex_);
-        if (eventStreamShouldStop_) {
+        if (eventStreamShouldStop_ || ctx->IsCancelled()) {
             qtProxy_.setIsStreaming(false);
             qtProxy_.setClientPlatform(QString());
             isStreaming_ = false;
             return Status::OK;
         }
 
-
         if (eventQueue_.isEmpty()) {
             locker.unlock();
             QThread::msleep(100);
             continue;
         }
+
         SPStreamEvent const event = eventQueue_.front();
         eventQueue_.pop_front();
         locker.unlock();
