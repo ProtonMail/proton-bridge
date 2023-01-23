@@ -80,6 +80,7 @@ QtObject {
         root.addressChanged,
         root.apiCertIssue,
         root.noActiveKeyForRecipient,
+        root.userBadEvent,
         root.genericError
     ]
 
@@ -1096,6 +1097,33 @@ QtObject {
 
                 onTriggered: {
                     root.noActiveKeyForRecipient.active = false
+                }
+            }
+        ]
+    }
+
+    property Notification userBadEvent: Notification {
+        title: qsTr("User was logged out")
+        brief: title
+        description: "#PlaceHolderText"
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+            function onUserBadEvent(message) {
+                root.userBadEvent.description = message
+                root.userBadEvent.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("OK")
+
+                onTriggered: {
+                    root.userBadEvent.active = false
                 }
             }
         ]

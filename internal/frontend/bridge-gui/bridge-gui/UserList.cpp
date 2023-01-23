@@ -163,6 +163,17 @@ User *UserList::get(int row) const {
 
 //****************************************************************************************************************************************************
 /// \param[in] userID The userID.
+/// \return The primary email address (or if unknown the username) of the user.
+/// \return An empty string if the user cannot be found.
+//****************************************************************************************************************************************************
+QString UserList::primaryEmailOrUsername(QString const &userID) const {
+    SPUser const user = this->getUserWithID(userID);
+    return user ? user->primaryEmailOrUsername() : QString();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userID The userID.
 //****************************************************************************************************************************************************
 void UserList::onUserChanged(QString const &userID) {
     int const index = this->rowOfUserID(userID);

@@ -51,6 +51,7 @@ UsersTab::UsersTab(QWidget *parent)
     connect(ui_.buttonEditUser, &QPushButton::clicked, this, &UsersTab::onEditUserButton);
     connect(ui_.tableUserList, &QTableView::doubleClicked, this, &UsersTab::onEditUserButton);
     connect(ui_.buttonRemoveUser, &QPushButton::clicked, this, &UsersTab::onRemoveUserButton);
+    connect(ui_.buttonUserBadEvent, &QPushButton::clicked, this, &UsersTab::onSendUserBadEvent);
     connect(ui_.checkUsernamePasswordError, &QCheckBox::toggled, this, &UsersTab::updateGUIState);
 
     users_.append(randomUser());
@@ -96,6 +97,8 @@ void UsersTab::onEditUserButton() {
     if (grpc.isStreaming()) {
         grpc.sendEvent(newUserChangedEvent(user->id()));
     }
+
+    this->updateGUIState();
 }
 
 
@@ -128,10 +131,42 @@ void UsersTab::onSelectionChanged(QItemSelection, QItemSelection) {
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
+void UsersTab::onSendUserBadEvent() {
+    SPUser const user = selectedUser();
+    int const index = this->selectedIndex();
+
+    if (!user) {
+        app().log().error(QString("%1 failed. Unkown user.").arg(__FUNCTION__));
+        return;
+    }
+
+    if (UserState::SignedOut == user->state()) {
+        app().log().error(QString("%1 failed. User is already signed out").arg(__FUNCTION__));
+    }
+
+    user->setState(UserState::SignedOut);
+    users_.touch(index);
+
+    GRPCService &grpc = app().grpc();
+    if (grpc.isStreaming()) {
+        QString const userID = user->id();
+        grpc.sendEvent(newUserChangedEvent(userID));
+        grpc.sendEvent(newUserBadEvent(userID, ui_.editUserBadEvent->text()));
+    }
+
+    this->updateGUIState();
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
 void UsersTab::updateGUIState() {
-    bool const hasSelectedUser = ui_.tableUserList->selectionModel()->hasSelection();
+    SPUser const user = selectedUser();
+    bool const hasSelectedUser = user.get();
     ui_.buttonEditUser->setEnabled(hasSelectedUser);
     ui_.buttonRemoveUser->setEnabled(hasSelectedUser);
+    ui_.groupBoxBadEvent->setEnabled(hasSelectedUser && (UserState::SignedOut != user->state()));
     ui_.editUsernamePasswordError->setEnabled(ui_.checkUsernamePasswordError->isChecked());
 }
 

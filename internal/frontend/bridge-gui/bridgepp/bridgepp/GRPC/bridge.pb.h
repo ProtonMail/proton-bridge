@@ -202,6 +202,9 @@ extern UpdateVersionChangedDefaultTypeInternal _UpdateVersionChanged_default_ins
 class User;
 struct UserDefaultTypeInternal;
 extern UserDefaultTypeInternal _User_default_instance_;
+class UserBadEvent;
+struct UserBadEventDefaultTypeInternal;
+extern UserBadEventDefaultTypeInternal _UserBadEvent_default_instance_;
 class UserChangedEvent;
 struct UserChangedEventDefaultTypeInternal;
 extern UserChangedEventDefaultTypeInternal _UserChangedEvent_default_instance_;
@@ -270,6 +273,7 @@ template<> ::grpc::UpdateManualRestartNeededEvent* Arena::CreateMaybeMessage<::g
 template<> ::grpc::UpdateSilentRestartNeeded* Arena::CreateMaybeMessage<::grpc::UpdateSilentRestartNeeded>(Arena*);
 template<> ::grpc::UpdateVersionChanged* Arena::CreateMaybeMessage<::grpc::UpdateVersionChanged>(Arena*);
 template<> ::grpc::User* Arena::CreateMaybeMessage<::grpc::User>(Arena*);
+template<> ::grpc::UserBadEvent* Arena::CreateMaybeMessage<::grpc::UserBadEvent>(Arena*);
 template<> ::grpc::UserChangedEvent* Arena::CreateMaybeMessage<::grpc::UserChangedEvent>(Arena*);
 template<> ::grpc::UserDisconnectedEvent* Arena::CreateMaybeMessage<::grpc::UserDisconnectedEvent>(Arena*);
 template<> ::grpc::UserEvent* Arena::CreateMaybeMessage<::grpc::UserEvent>(Arena*);
@@ -8920,6 +8924,7 @@ class UserEvent final :
     kToggleSplitModeFinished = 1,
     kUserDisconnected = 2,
     kUserChanged = 3,
+    kUserBadEvent = 4,
     EVENT_NOT_SET = 0,
   };
 
@@ -9004,6 +9009,7 @@ class UserEvent final :
     kToggleSplitModeFinishedFieldNumber = 1,
     kUserDisconnectedFieldNumber = 2,
     kUserChangedFieldNumber = 3,
+    kUserBadEventFieldNumber = 4,
   };
   // .grpc.ToggleSplitModeFinishedEvent toggleSplitModeFinished = 1;
   bool has_togglesplitmodefinished() const;
@@ -9059,6 +9065,24 @@ class UserEvent final :
       ::grpc::UserChangedEvent* userchanged);
   ::grpc::UserChangedEvent* unsafe_arena_release_userchanged();
 
+  // .grpc.UserBadEvent userBadEvent = 4;
+  bool has_userbadevent() const;
+  private:
+  bool _internal_has_userbadevent() const;
+  public:
+  void clear_userbadevent();
+  const ::grpc::UserBadEvent& userbadevent() const;
+  PROTOBUF_NODISCARD ::grpc::UserBadEvent* release_userbadevent();
+  ::grpc::UserBadEvent* mutable_userbadevent();
+  void set_allocated_userbadevent(::grpc::UserBadEvent* userbadevent);
+  private:
+  const ::grpc::UserBadEvent& _internal_userbadevent() const;
+  ::grpc::UserBadEvent* _internal_mutable_userbadevent();
+  public:
+  void unsafe_arena_set_allocated_userbadevent(
+      ::grpc::UserBadEvent* userbadevent);
+  ::grpc::UserBadEvent* unsafe_arena_release_userbadevent();
+
   void clear_event();
   EventCase event_case() const;
   // @@protoc_insertion_point(class_scope:grpc.UserEvent)
@@ -9067,6 +9091,7 @@ class UserEvent final :
   void set_has_togglesplitmodefinished();
   void set_has_userdisconnected();
   void set_has_userchanged();
+  void set_has_userbadevent();
 
   inline bool has_event() const;
   inline void clear_has_event();
@@ -9081,6 +9106,7 @@ class UserEvent final :
       ::grpc::ToggleSplitModeFinishedEvent* togglesplitmodefinished_;
       ::grpc::UserDisconnectedEvent* userdisconnected_;
       ::grpc::UserChangedEvent* userchanged_;
+      ::grpc::UserBadEvent* userbadevent_;
     } event_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     uint32_t _oneof_case_[1];
@@ -9550,6 +9576,175 @@ class UserChangedEvent final :
 };
 // -------------------------------------------------------------------
 
+class UserBadEvent final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.UserBadEvent) */ {
+ public:
+  inline UserBadEvent() : UserBadEvent(nullptr) {}
+  ~UserBadEvent() override;
+  explicit PROTOBUF_CONSTEXPR UserBadEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  UserBadEvent(const UserBadEvent& from);
+  UserBadEvent(UserBadEvent&& from) noexcept
+    : UserBadEvent() {
+    *this = ::std::move(from);
+  }
+
+  inline UserBadEvent& operator=(const UserBadEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline UserBadEvent& operator=(UserBadEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const UserBadEvent& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const UserBadEvent* internal_default_instance() {
+    return reinterpret_cast<const UserBadEvent*>(
+               &_UserBadEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    55;
+
+  friend void swap(UserBadEvent& a, UserBadEvent& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(UserBadEvent* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(UserBadEvent* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  UserBadEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<UserBadEvent>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const UserBadEvent& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const UserBadEvent& from) {
+    UserBadEvent::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(UserBadEvent* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "grpc.UserBadEvent";
+  }
+  protected:
+  explicit UserBadEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kUserIDFieldNumber = 1,
+    kErrorMessageFieldNumber = 2,
+  };
+  // string userID = 1;
+  void clear_userid();
+  const std::string& userid() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_userid(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_userid();
+  PROTOBUF_NODISCARD std::string* release_userid();
+  void set_allocated_userid(std::string* userid);
+  private:
+  const std::string& _internal_userid() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_userid(const std::string& value);
+  std::string* _internal_mutable_userid();
+  public:
+
+  // string errorMessage = 2;
+  void clear_errormessage();
+  const std::string& errormessage() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_errormessage(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_errormessage();
+  PROTOBUF_NODISCARD std::string* release_errormessage();
+  void set_allocated_errormessage(std::string* errormessage);
+  private:
+  const std::string& _internal_errormessage() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_errormessage(const std::string& value);
+  std::string* _internal_mutable_errormessage();
+  public:
+
+  // @@protoc_insertion_point(class_scope:grpc.UserBadEvent)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr userid_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr errormessage_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_bridge_2eproto;
+};
+// -------------------------------------------------------------------
+
 class GenericErrorEvent final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.GenericErrorEvent) */ {
  public:
@@ -9598,7 +9793,7 @@ class GenericErrorEvent final :
                &_GenericErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    55;
+    56;
 
   friend void swap(GenericErrorEvent& a, GenericErrorEvent& b) {
     a.Swap(&b);
@@ -15283,6 +15478,80 @@ inline ::grpc::UserChangedEvent* UserEvent::mutable_userchanged() {
   return _msg;
 }
 
+// .grpc.UserBadEvent userBadEvent = 4;
+inline bool UserEvent::_internal_has_userbadevent() const {
+  return event_case() == kUserBadEvent;
+}
+inline bool UserEvent::has_userbadevent() const {
+  return _internal_has_userbadevent();
+}
+inline void UserEvent::set_has_userbadevent() {
+  _impl_._oneof_case_[0] = kUserBadEvent;
+}
+inline void UserEvent::clear_userbadevent() {
+  if (_internal_has_userbadevent()) {
+    if (GetArenaForAllocation() == nullptr) {
+      delete _impl_.event_.userbadevent_;
+    }
+    clear_has_event();
+  }
+}
+inline ::grpc::UserBadEvent* UserEvent::release_userbadevent() {
+  // @@protoc_insertion_point(field_release:grpc.UserEvent.userBadEvent)
+  if (_internal_has_userbadevent()) {
+    clear_has_event();
+    ::grpc::UserBadEvent* temp = _impl_.event_.userbadevent_;
+    if (GetArenaForAllocation() != nullptr) {
+      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.event_.userbadevent_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::grpc::UserBadEvent& UserEvent::_internal_userbadevent() const {
+  return _internal_has_userbadevent()
+      ? *_impl_.event_.userbadevent_
+      : reinterpret_cast< ::grpc::UserBadEvent&>(::grpc::_UserBadEvent_default_instance_);
+}
+inline const ::grpc::UserBadEvent& UserEvent::userbadevent() const {
+  // @@protoc_insertion_point(field_get:grpc.UserEvent.userBadEvent)
+  return _internal_userbadevent();
+}
+inline ::grpc::UserBadEvent* UserEvent::unsafe_arena_release_userbadevent() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.UserEvent.userBadEvent)
+  if (_internal_has_userbadevent()) {
+    clear_has_event();
+    ::grpc::UserBadEvent* temp = _impl_.event_.userbadevent_;
+    _impl_.event_.userbadevent_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void UserEvent::unsafe_arena_set_allocated_userbadevent(::grpc::UserBadEvent* userbadevent) {
+  clear_event();
+  if (userbadevent) {
+    set_has_userbadevent();
+    _impl_.event_.userbadevent_ = userbadevent;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.UserEvent.userBadEvent)
+}
+inline ::grpc::UserBadEvent* UserEvent::_internal_mutable_userbadevent() {
+  if (!_internal_has_userbadevent()) {
+    clear_event();
+    set_has_userbadevent();
+    _impl_.event_.userbadevent_ = CreateMaybeMessage< ::grpc::UserBadEvent >(GetArenaForAllocation());
+  }
+  return _impl_.event_.userbadevent_;
+}
+inline ::grpc::UserBadEvent* UserEvent::mutable_userbadevent() {
+  ::grpc::UserBadEvent* _msg = _internal_mutable_userbadevent();
+  // @@protoc_insertion_point(field_mutable:grpc.UserEvent.userBadEvent)
+  return _msg;
+}
+
 inline bool UserEvent::has_event() const {
   return event_case() != EVENT_NOT_SET;
 }
@@ -15456,6 +15725,110 @@ inline void UserChangedEvent::set_allocated_userid(std::string* userid) {
 
 // -------------------------------------------------------------------
 
+// UserBadEvent
+
+// string userID = 1;
+inline void UserBadEvent::clear_userid() {
+  _impl_.userid_.ClearToEmpty();
+}
+inline const std::string& UserBadEvent::userid() const {
+  // @@protoc_insertion_point(field_get:grpc.UserBadEvent.userID)
+  return _internal_userid();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void UserBadEvent::set_userid(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.userid_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:grpc.UserBadEvent.userID)
+}
+inline std::string* UserBadEvent::mutable_userid() {
+  std::string* _s = _internal_mutable_userid();
+  // @@protoc_insertion_point(field_mutable:grpc.UserBadEvent.userID)
+  return _s;
+}
+inline const std::string& UserBadEvent::_internal_userid() const {
+  return _impl_.userid_.Get();
+}
+inline void UserBadEvent::_internal_set_userid(const std::string& value) {
+  
+  _impl_.userid_.Set(value, GetArenaForAllocation());
+}
+inline std::string* UserBadEvent::_internal_mutable_userid() {
+  
+  return _impl_.userid_.Mutable(GetArenaForAllocation());
+}
+inline std::string* UserBadEvent::release_userid() {
+  // @@protoc_insertion_point(field_release:grpc.UserBadEvent.userID)
+  return _impl_.userid_.Release();
+}
+inline void UserBadEvent::set_allocated_userid(std::string* userid) {
+  if (userid != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.userid_.SetAllocated(userid, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.userid_.IsDefault()) {
+    _impl_.userid_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:grpc.UserBadEvent.userID)
+}
+
+// string errorMessage = 2;
+inline void UserBadEvent::clear_errormessage() {
+  _impl_.errormessage_.ClearToEmpty();
+}
+inline const std::string& UserBadEvent::errormessage() const {
+  // @@protoc_insertion_point(field_get:grpc.UserBadEvent.errorMessage)
+  return _internal_errormessage();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void UserBadEvent::set_errormessage(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.errormessage_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:grpc.UserBadEvent.errorMessage)
+}
+inline std::string* UserBadEvent::mutable_errormessage() {
+  std::string* _s = _internal_mutable_errormessage();
+  // @@protoc_insertion_point(field_mutable:grpc.UserBadEvent.errorMessage)
+  return _s;
+}
+inline const std::string& UserBadEvent::_internal_errormessage() const {
+  return _impl_.errormessage_.Get();
+}
+inline void UserBadEvent::_internal_set_errormessage(const std::string& value) {
+  
+  _impl_.errormessage_.Set(value, GetArenaForAllocation());
+}
+inline std::string* UserBadEvent::_internal_mutable_errormessage() {
+  
+  return _impl_.errormessage_.Mutable(GetArenaForAllocation());
+}
+inline std::string* UserBadEvent::release_errormessage() {
+  // @@protoc_insertion_point(field_release:grpc.UserBadEvent.errorMessage)
+  return _impl_.errormessage_.Release();
+}
+inline void UserBadEvent::set_allocated_errormessage(std::string* errormessage) {
+  if (errormessage != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.errormessage_.SetAllocated(errormessage, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.errormessage_.IsDefault()) {
+    _impl_.errormessage_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:grpc.UserBadEvent.errorMessage)
+}
+
+// -------------------------------------------------------------------
+
 // GenericErrorEvent
 
 // .grpc.ErrorCode code = 1;
@@ -15481,6 +15854,8 @@ inline void GenericErrorEvent::set_code(::grpc::ErrorCode value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

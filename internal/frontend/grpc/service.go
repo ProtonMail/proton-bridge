@@ -313,10 +313,13 @@ func (s *Service) watchEvents() {
 			// This is the event the GUI cares about.
 			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
 
-			// The GUI doesn't care about this event... not sure why we still emit it.
+			// The GUI doesn't care about this event... not sure why we still emit it. GODT-2128.
 			if user, err := s.bridge.GetUserInfo(event.UserID); err == nil {
 				_ = s.SendEvent(NewUserDisconnectedEvent(user.Username))
 			}
+
+		case events.UserBadEvent:
+			_ = s.SendEvent(NewUserBadEvent(event.UserID, event.Error.Error()))
 
 		case events.UpdateLatest:
 			safe.RLock(func() {

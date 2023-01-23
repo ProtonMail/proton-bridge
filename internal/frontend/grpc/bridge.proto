@@ -440,6 +440,7 @@ message UserEvent {
     ToggleSplitModeFinishedEvent toggleSplitModeFinished= 1;
     UserDisconnectedEvent userDisconnected = 2;
     UserChangedEvent userChanged = 3;
+    UserBadEvent userBadEvent = 4;
   }
 }
 
@@ -453,6 +454,11 @@ message UserDisconnectedEvent {
 
 message UserChangedEvent {
   string userID = 1;
+}
+
+message UserBadEvent {
+  string userID = 1;
+  string errorMessage = 2;
 }
 
 //**********************************************************

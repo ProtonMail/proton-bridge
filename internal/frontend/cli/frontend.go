@@ -295,6 +295,14 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:funle
 
 			f.notifyLogout(user.Username)
 
+		case events.UserBadEvent:
+			user, err := f.bridge.GetUserInfo(event.UserID)
+			if err != nil {
+				return
+			}
+
+			f.Printf("User %s received a bad event and was logged out.\n", user.Username)
+
 		case events.UserAddressUpdated:
 			user, err := f.bridge.GetUserInfo(event.UserID)
 			if err != nil {

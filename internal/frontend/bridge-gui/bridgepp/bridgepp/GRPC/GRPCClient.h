@@ -180,6 +180,7 @@ signals:
     void toggleSplitModeFinished(QString const &userID);
     void userDisconnected(QString const &username);
     void userChanged(QString const &userID);
+    void userBadEvent(QString const &userID, QString const& errorMessage);
 
 public: // keychain related calls
     grpc::Status availableKeychains(QStringList &outKeychains);

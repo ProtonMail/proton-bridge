@@ -86,6 +86,10 @@ ApplicationWindow {
             root.showAndRise()
         }
 
+        function onSelectUser(userID) {
+            root.selectUser(userID)
+        }
+
         function onLoginFinished(index, wasSignedOut) {
             var user = Backend.users.get(index)
             if (user && !wasSignedOut) {
@@ -182,6 +186,7 @@ ApplicationWindow {
     function showLocalCacheSettings() { contentWrapper.showLocalCacheSettings() }
     function showSettings() { contentWrapper.showSettings() }
     function showHelp() { contentWrapper.showHelp() }
+    function selectUser(userID) { contentWrapper.selectUser(userID) }
 
     function showSignIn(username) {
         if (contentLayout.currentIndex == 1) return

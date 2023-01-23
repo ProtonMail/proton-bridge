@@ -1380,6 +1380,14 @@ void GRPCClient::processUserEvent(UserEvent const &event) {
         emit userChanged(userID);
         break;
     }
+    case UserEvent::kUserBadEvent: {
+        UserBadEvent const& e = event.userbadevent();
+        QString const userID = QString::fromStdString(e.userid());
+        QString const errorMessage = QString::fromStdString(e.errormessage());
+        this->logTrace(QString("User event received: UserBadEvent (userID = %1, errorMessage = %2).").arg(userID, errorMessage));
+        emit userBadEvent(userID, errorMessage);
+        break;
+    }
     default:
         this->logError("Unknown User event received.");
     }

@@ -881,6 +881,24 @@ void QMLBackend::onLoginAlreadyLoggedIn(QString const &userID) {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \param[in] errorMessage. Unused
+//****************************************************************************************************************************************************
+void QMLBackend::onUserBadEvent(QString const &userID, QString const &errorMessage) {
+    HANDLE_EXCEPTION(
+        Q_UNUSED(errorMessage);
+        SPUser const user = users_->getUserWithID(userID);
+        if (!user)
+            app().log().error(QString("Received bad event for unknown user %1").arg(user->id()));
+        user->setState(UserState::SignedOut);
+        emit userBadEvent(tr("%1 was logged out because of an internal error.").arg(user->primaryEmailOrUsername()));
+        emit selectUser(userID);
+        emit showMainWindow();
+    )
+}
+
+
+//****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
 void QMLBackend::retrieveUserList() {
@@ -987,5 +1005,6 @@ void QMLBackend::connectGrpcEvents() {
 
     // user events
     connect(client, &GRPCClient::userDisconnected, this, &QMLBackend::userDisconnected);
+    connect(client, &GRPCClient::userBadEvent, this, &QMLBackend::onUserBadEvent);
     users_->connectGRPCEvents();
 }

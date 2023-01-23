@@ -54,6 +54,7 @@ signals:
 
 public:
     Q_INVOKABLE bridgepp::User *get(int row) const;
+    Q_INVOKABLE QString primaryEmailOrUsername(QString const& userID) const; ///< Return the primary email or username of a user
 
 public slots: ///< handler for signals coming from the gRPC service
     void onUserChanged(QString const &userID);

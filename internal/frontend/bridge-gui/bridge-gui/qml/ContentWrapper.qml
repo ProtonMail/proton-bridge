@@ -399,4 +399,20 @@ Item {
         signIn.username = username
         rightContent.showSignIn()
     }
+
+    function selectUser(userID) {
+        var users = Backend.users;
+        for (var i = 0; i < users.count; i++) {
+            var user = users.get(i)
+            if (user.id !== userID) {
+                continue;
+            }
+            accounts.currentIndex = i;
+            if (user.state === EUserState.SignedOut)
+                showSignIn(user.primaryEmailOrUsername())
+            return;
+        }
+        console.error("User with ID ", userID, " was not found in the account list")
+    }
+
 }

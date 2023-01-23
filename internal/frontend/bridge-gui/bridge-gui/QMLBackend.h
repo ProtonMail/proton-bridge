@@ -181,6 +181,7 @@ public slots: // slot for signals received from gRPC that need transformation in
     void onGenericError(bridgepp::ErrorInfo const &info); ///< Slot for generic errors received from the gRPC service.
     void onLoginFinished(QString const &userID, bool wasSignedOut); ///< Slot for LoginFinished gRPC event.
     void onLoginAlreadyLoggedIn(QString const &userID); ///< Slot for the LoginAlreadyLoggedIn gRPC event.
+    void onUserBadEvent(QString const& userID, QString const& errorMessage); ///< Slot for the userBadEvent gRPC event.
 
 signals: // Signals received from the Go backend, to be forwarded to QML
     void toggleAutostartFinished(); ///< Signal for the 'toggleAutostartFinished' gRPC stream event.
@@ -223,6 +224,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void addressChangedLogout(QString const &address); ///< Signal for the 'addressChangedLogout' gRPC stream event.
     void apiCertIssue(); ///< Signal for the 'apiCertIssue' gRPC stream event.
     void userDisconnected(QString const &username); ///< Signal for the 'userDisconnected' gRPC stream event.
+    void userBadEvent(QString const &message); ///< Signal for the 'userBadEvent' gRPC stream event.
     void internetOff(); ///< Signal for the 'internetOff' gRPC stream event.
     void internetOn(); ///< Signal for the 'internetOn' gRPC stream event.
     void resetFinished(); ///< Signal for the 'resetFinished' gRPC stream event.
@@ -232,6 +234,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void showMainWindow(); ///< Signal for the 'showMainWindow' gRPC stream event.
     void hideMainWindow(); ///< Signal for the 'hideMainWindow' gRPC stream event.
     void genericError(QString const &title, QString const &description); ///< Signal for the 'genericError' gRPC stream event.
+    void selectUser(QString const); ///< Signal that request the given user account to be displayed.
 
     // This signal is emitted when an exception is intercepted is calls triggered by QML. QML engine would intercept the exception otherwise.
     void fatalError(QString const &function, QString const &message) const; ///< Signal emitted when an fatal error occurs.

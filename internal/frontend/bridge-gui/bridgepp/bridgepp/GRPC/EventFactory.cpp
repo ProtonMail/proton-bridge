@@ -561,6 +561,20 @@ SPStreamEvent newUserChangedEvent(QString const &userID) {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \param[in] errorMessage The errorMessage
+//****************************************************************************************************************************************************
+SPStreamEvent newUserBadEvent(QString const &userID, QString const &errorMessage) {
+    auto event = new grpc::UserBadEvent;
+    event->set_userid(userID.toStdString());
+    event->set_errormessage(errorMessage.toStdString());
+    auto userEvent = new grpc::UserEvent;
+    userEvent->set_allocated_userbadevent(event);
+    return wrapUserEvent(userEvent);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] errorCode The error errorCode.
 /// \return The event.
 //****************************************************************************************************************************************************

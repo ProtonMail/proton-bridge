@@ -173,6 +173,10 @@ func NewUserChangedEvent(userID string) *StreamEvent {
 	return userEvent(&UserEvent{Event: &UserEvent_UserChanged{UserChanged: &UserChangedEvent{UserID: userID}}})
 }
 
+func NewUserBadEvent(userID string, errorMessage string) *StreamEvent {
+	return userEvent(&UserEvent{Event: &UserEvent_UserBadEvent{UserBadEvent: &UserBadEvent{UserID: userID, ErrorMessage: errorMessage}}})
+}
+
 func NewGenericErrorEvent(errorCode ErrorCode) *StreamEvent {
 	return genericErrorEvent(&GenericErrorEvent{Code: errorCode})
 }
