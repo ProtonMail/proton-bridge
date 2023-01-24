@@ -205,7 +205,7 @@ func run(c *cli.Context) error { //nolint:funlen
 						// Ensure we are the only instance running.
 						return withSingleInstance(locations, version, func() error {
 							// Unlock the encrypted vault.
-							return WithVault(locations, func(vault *vault.Vault, insecure, corrupt bool) error {
+							return WithVault(locations, func(v *vault.Vault, insecure, corrupt bool) error {
 								// Report insecure vault.
 								if insecure {
 									_ = reporter.ReportMessageWithContext("Vault is insecure", map[string]interface{}{})
@@ -216,27 +216,39 @@ func run(c *cli.Context) error { //nolint:funlen
 									_ = reporter.ReportMessageWithContext("Vault is corrupt", map[string]interface{}{})
 								}
 
-								if !vault.Migrated() {
+								// Force re-sync if last version <= 3.0.12 due to chances in the gluon cache format.
+								if lastVersion := v.GetLastVersion(); lastVersion != nil {
+									versionWithLZ4Cache := semver.MustParse("3.0.13")
+									if lastVersion.LessThan(versionWithLZ4Cache) {
+										if err := v.ForUser(1, func(user *vault.User) error {
+											return user.ClearSyncStatus()
+										}); err != nil {
+											logrus.WithError(err).Error("Failed to force resync on user")
+										}
+									}
+								}
+
+								if !v.Migrated() {
 									// Migrate old settings into the vault.
-									if err := migrateOldSettings(vault); err != nil {
+									if err := migrateOldSettings(v); err != nil {
 										logrus.WithError(err).Error("Failed to migrate old settings")
 									}
 
 									// Migrate old accounts into the vault.
-									if err := migrateOldAccounts(locations, vault); err != nil {
+									if err := migrateOldAccounts(locations, v); err != nil {
 										logrus.WithError(err).Error("Failed to migrate old accounts")
 									}
 
 									// The vault has been migrated.
-									if err := vault.SetMigrated(); err != nil {
+									if err := v.SetMigrated(); err != nil {
 										logrus.WithError(err).Error("Failed to mark vault as migrated")
 									}
 								}
 
 								// Load the cookies from the vault.
-								return withCookieJar(vault, func(cookieJar http.CookieJar) error {
+								return withCookieJar(v, func(cookieJar http.CookieJar) error {
 									// Create a new bridge instance.
-									return withBridge(c, exe, locations, version, identifier, crashHandler, reporter, vault, cookieJar, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
+									return withBridge(c, exe, locations, version, identifier, crashHandler, reporter, v, cookieJar, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
 										if insecure {
 											logrus.Warn("The vault key could not be retrieved; the vault will not be encrypted")
 											b.PushError(bridge.ErrVaultInsecure)

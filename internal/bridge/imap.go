@@ -310,7 +310,6 @@ func (*storeBuilder) New(path, userID string, passphrase []byte) (store.Store, e
 	return store.NewOnDiskStore(
 		filepath.Join(path, userID),
 		passphrase,
-		store.WithCompressor(new(store.GZipCompressor)),
 	)
 }
 

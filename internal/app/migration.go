@@ -265,14 +265,6 @@ func migratePrefsToVault(vault *vault.Vault, b []byte) error {
 		errs = multierror.Append(errs, fmt.Errorf("failed to migrate show all mail: %w", err))
 	}
 
-	if err := vault.SetSyncWorkers(prefs.FetchWorkers); err != nil {
-		errs = multierror.Append(errs, fmt.Errorf("failed to migrate sync workers: %w", err))
-	}
-
-	if err := vault.SetSyncAttPool(prefs.AttachmentWorkers); err != nil {
-		errs = multierror.Append(errs, fmt.Errorf("failed to migrate sync attachment pool: %w", err))
-	}
-
 	if err := vault.SetCookies([]byte(prefs.Cookies)); err != nil {
 		errs = multierror.Append(errs, fmt.Errorf("failed to migrate cookies: %w", err))
 	}

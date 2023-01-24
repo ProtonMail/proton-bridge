@@ -189,27 +189,3 @@ func (vault *Vault) SetFirstStart(firstStart bool) error {
 		data.Settings.FirstStart = firstStart
 	})
 }
-
-// SyncWorkers returns the number of workers to use for syncing.
-func (vault *Vault) SyncWorkers() int {
-	return vault.get().Settings.SyncWorkers
-}
-
-// SetSyncWorkers sets the number of workers to use for syncing.
-func (vault *Vault) SetSyncWorkers(workers int) error {
-	return vault.mod(func(data *Data) {
-		data.Settings.SyncWorkers = workers
-	})
-}
-
-// SyncAttPool returns the size of the attachment pool.
-func (vault *Vault) SyncAttPool() int {
-	return vault.get().Settings.SyncAttPool
-}
-
-// SetSyncAttPool sets the size of the attachment pool.
-func (vault *Vault) SetSyncAttPool(pool int) error {
-	return vault.mod(func(data *Data) {
-		data.Settings.SyncAttPool = pool
-	})
-}

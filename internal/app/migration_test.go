@@ -68,8 +68,6 @@ func TestMigratePrefsToVault(t *testing.T) {
 	require.True(t, vault.GetAutostart())
 
 	// Check that the other app settings have been migrated.
-	require.Equal(t, 16, vault.SyncWorkers())
-	require.Equal(t, 16, vault.SyncAttPool())
 	require.False(t, vault.GetProxyAllowed())
 	require.False(t, vault.GetShowAllMail())
 

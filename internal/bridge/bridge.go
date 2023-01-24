@@ -145,7 +145,7 @@ func New( //nolint:funlen
 	logSMTP bool, // whether to log SMTP activity
 ) (*Bridge, <-chan events.Event, error) {
 	// api is the user's API manager.
-	api := proton.New(newAPIOptions(apiURL, curVersion, cookieJar, roundTripper, vault.SyncAttPool())...)
+	api := proton.New(newAPIOptions(apiURL, curVersion, cookieJar, roundTripper)...)
 
 	// tasks holds all the bridge's background tasks.
 	tasks := async.NewGroup(context.Background(), crashHandler)

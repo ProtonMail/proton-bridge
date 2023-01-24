@@ -202,12 +202,3 @@ func TestVault_Settings_FirstStart(t *testing.T) {
 	// Check the new first start value.
 	require.Equal(t, false, s.GetFirstStart())
 }
-
-func TestVault_Settings_SyncWorkers(t *testing.T) {
-	// create a new test vault.
-	s := newVault(t)
-
-	syncWorkers := vault.GetDefaultSyncWorkerCount()
-	require.Equal(t, syncWorkers, s.SyncWorkers())
-	require.Equal(t, syncWorkers, s.SyncAttPool())
-}

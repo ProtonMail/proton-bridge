@@ -48,16 +48,18 @@ func defaultJobOpts() message.JobOptions {
 	}
 }
 
-func buildRFC822(apiLabels map[string]proton.Label, full proton.FullMessage, addrKR *crypto.KeyRing) *buildRes {
+func buildRFC822(apiLabels map[string]proton.Label, full proton.FullMessage, addrKR *crypto.KeyRing, buffer *bytes.Buffer) *buildRes {
 	var (
 		update *imap.MessageCreated
 		err    error
 	)
 
-	if literal, buildErr := message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts()); buildErr != nil {
+	buffer.Grow(full.Size)
+
+	if buildErr := message.BuildRFC822Into(addrKR, full.Message, full.AttData, defaultJobOpts(), buffer); buildErr != nil {
 		update = newMessageCreatedFailedUpdate(apiLabels, full.MessageMetadata, buildErr)
 		err = buildErr
-	} else if created, parseErr := newMessageCreatedUpdate(apiLabels, full.MessageMetadata, literal); parseErr != nil {
+	} else if created, parseErr := newMessageCreatedUpdate(apiLabels, full.MessageMetadata, buffer.Bytes()); parseErr != nil {
 		update = newMessageCreatedFailedUpdate(apiLabels, full.MessageMetadata, parseErr)
 		err = parseErr
 	} else {
