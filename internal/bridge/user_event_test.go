@@ -94,7 +94,42 @@ func TestBridge_User_BadEvents(t *testing.T) {
 	})
 }
 
-func TestBridge_User_BadEvents_MessageLabelDeleted(t *testing.T) {
+func TestBridge_User_NoBadEvent_SameMessageLabelCreated(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		userID, addrID, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		var messageIDs []string
+
+		// Create 10 messages for the user.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			messageIDs = createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
+		})
+
+		// The initial user should be fully synced.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+			defer done()
+
+			userID, err := bridge.LoginFull(ctx, "user", password, nil, nil)
+			require.NoError(t, err)
+
+			require.Equal(t, userID, (<-syncCh).UserID)
+		})
+
+		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
+		require.NoError(t, err)
+
+		// Add NOOP events
+		require.NoError(t, s.AddLabelCreatedEvent(userID, labelID))
+		require.NoError(t, s.AddMessageCreatedEvent(userID, messageIDs[9]))
+
+		userContinuEventProcess(ctx, t, s, netCtl, locator, storeKey)
+	})
+}
+
+func TestBridge_User_NoBadEvents_MessageLabelDeleted(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		// Create a user.
 		userID, addrID, err := s.CreateUser("user", password)
@@ -139,31 +174,42 @@ func TestBridge_User_BadEvents_MessageLabelDeleted(t *testing.T) {
 			}
 		})
 
-		// The user will continue to process events and will not receive any bad request errors.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
-			info, err := bridge.QueryUserInfo("user")
-			require.NoError(t, err)
+		userContinuEventProcess(ctx, t, s, netCtl, locator, storeKey)
+	})
+}
 
-			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
-			require.NoError(t, err)
-			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
-			defer func() { _ = client.Logout() }()
+// userContinuEventProcess checks that user will continue to process events and will not receive any bad request errors.
+func userContinuEventProcess(
+	ctx context.Context,
+	t *testing.T,
+	s *server.Server,
+	netCtl *proton.NetCtl,
+	locator bridge.Locator,
+	storeKey []byte,
+) {
+	withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+		info, err := bridge.QueryUserInfo("user")
+		require.NoError(t, err)
 
-			// Create a new label.
-			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
-				require.NoError(t, getErr(c.CreateLabel(ctx, proton.CreateLabelReq{
-					Name:  "blabla",
-					Color: "#f66",
-					Type:  proton.LabelTypeLabel,
-				})))
-			})
+		client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+		require.NoError(t, err)
+		require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+		defer func() { _ = client.Logout() }()
 
-			// Wait for the label to be created.
-			require.Eventually(t, func() bool {
-				return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
-					return mailbox.Name == "Labels/blabla"
-				}) >= 0
-			}, 10*time.Second, 100*time.Millisecond)
+		// Create a new label.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			require.NoError(t, getErr(c.CreateLabel(ctx, proton.CreateLabelReq{
+				Name:  "blabla",
+				Color: "#f66",
+				Type:  proton.LabelTypeLabel,
+			})))
 		})
+
+		// Wait for the label to be created.
+		require.Eventually(t, func() bool {
+			return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+				return mailbox.Name == "Labels/blabla"
+			}) >= 0
+		}, 10*time.Second, 100*time.Millisecond)
 	})
 }
