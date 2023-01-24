@@ -28,6 +28,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-rfc5322"
@@ -142,6 +143,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 			sent, err := sendWithKey(
 				ctx,
 				user.client,
+				user.reporter,
 				authID,
 				user.vault.AddressMode(),
 				settings,
@@ -165,6 +167,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 func sendWithKey( //nolint:funlen
 	ctx context.Context,
 	client *proton.Client,
+	sentry reporter.Reporter,
 	authAddrID string,
 	addrMode vault.AddressMode,
 	settings proton.MailSettings,
@@ -180,7 +183,14 @@ func sendWithKey( //nolint:funlen
 	}
 	parentID, err := getParentID(ctx, client, authAddrID, addrMode, references)
 	if err != nil {
-		return proton.Message{}, fmt.Errorf("failed to get parent ID: %w", err)
+		if err := sentry.ReportMessageWithContext("Failed to get parent ID", reporter.Context{
+			"error":      err,
+			"references": message.References,
+		}); err != nil {
+			logrus.WithError(err).Error("Failed to report error")
+		}
+
+		logrus.WithError(err).Warn("Failed to get parent ID")
 	}
 
 	var decBody string
