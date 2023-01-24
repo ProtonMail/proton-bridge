@@ -2,14 +2,14 @@ Feature: A user can authenticate an SMTP client
   Background:
     Given there exists an account with username "[user:user]" and password "password"
     And there exists an account with username "[user:user2]" and password "password2"
-    And there exists a disabled account with username "[user3:user3]" and password "password3"
+    And there exists a disabled account with username "[user:user3]" and password "password3"
     And the account "[user:user]" has additional address "[alias:alias]@[domain]"
     And the account "[user:user2]" has additional disabled address "[alias:alias2]@[domain]"
-    And the account "[user3:user3]" has additional address "[alias3:alias3]@[domain]"
+    And the account "[user:user3]" has additional address "[alias:alias3]@[domain]"
     And bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And the user logs in with username "[user:user2]" and password "password2"
-    And the user logs in with username "[user3:user3]" and password "password3"
+    And the user logs in with username "[user:user3]" and password "password3"
 
   Scenario: SMTP client can authenticate successfully
     When user "[user:user]" connects SMTP client "1"
@@ -49,5 +49,5 @@ Feature: A user can authenticate an SMTP client
 
   @ignore-live
   Scenario: SMTP Authenticates with secondary address of account with disabled primary address
-    When user "[user3:user3]" connects and authenticates SMTP client "1" with address "[alias3:alias3]@[domain]"
+    When user "[user:user3]" connects and authenticates SMTP client "1" with address "[alias:alias3]@[domain]"
     Then it succeeds
