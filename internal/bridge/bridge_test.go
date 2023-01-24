@@ -385,7 +385,7 @@ func TestBridge_MissingGluonDatabase(t *testing.T) {
 			require.NoError(t, err)
 
 			// Get the gluon dir.
-			gluonDir, err = bridge.GetGluonConfigDir()
+			gluonDir, err = bridge.GetGluonDataDir()
 			require.NoError(t, err)
 		})
 
@@ -484,7 +484,7 @@ func TestBridge_FactoryReset(t *testing.T) {
 func TestBridge_InitGluonDirectory(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
-			configDir, err := b.GetGluonConfigDir()
+			configDir, err := b.GetGluonDataDir()
 			require.NoError(t, err)
 
 			_, err = os.ReadDir(bridge.ApplyGluonCachePathSuffix(b.GetGluonCacheDir()))
@@ -511,7 +511,7 @@ func TestBridge_ChangeCacheDirectory(t *testing.T) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
 			newCacheDir := t.TempDir()
 			currentCacheDir := b.GetGluonCacheDir()
-			configDir, err := b.GetGluonConfigDir()
+			configDir, err := b.GetGluonDataDir()
 			require.NoError(t, err)
 
 			// Login the user.

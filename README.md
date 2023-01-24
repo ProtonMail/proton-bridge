@@ -81,12 +81,12 @@ There are now three types of system folders which Bridge recognises:
 |-----------------------|----------|----------------------------|
 | bridge lock file      | cache    | bridge.lock                |
 | bridge-gui lock file  | cache    | bridge-gui.lock            |
-| gluon messages        | cache    | gluon/backend/store        |
 | vault                 | config   | vault.enc                  |
 | gRPC server json      | config   | grpcServerConfig.json      |
 | gRPC client json      | config   | grpcClientConfig_<id>.json |
 | Logs                  | data     | logs                       |
 | gluon DB              | data     | gluon/backend/db           |
+| gluon messages        | sata     | gluon/backend/store        |
 | Update files          | data     | updates                    |
 | sentry cache          | data     | sentry_cache               |
 | Mac/Linux File Socket | temp     | bridge_{RANDOM_UUID}.sock  |

@@ -88,28 +88,21 @@ func (s *scenario) theUserChangesTheGluonPath() error {
 }
 
 func (s *scenario) theUserDeletesTheGluonFiles() error {
-	if path, err := s.t.locator.ProvideGluonCachePath(); err != nil {
-		return fmt.Errorf("failed to get gluon cache path: %w", err)
+	if path, err := s.t.locator.ProvideGluonDataPath(); err != nil {
+		return fmt.Errorf("failed to get gluon Data path: %w", err)
 	} else if err := os.RemoveAll(path); err != nil {
-		return fmt.Errorf("failed to remove gluon cache path: %w", err)
+		return fmt.Errorf("failed to remove gluon Data path: %w", err)
 	}
 
-	if path, err := s.t.locator.ProvideGluonConfigPath(); err != nil {
-		return fmt.Errorf("failed to get gluon config path: %w", err)
-	} else if err := os.RemoveAll(path); err != nil {
-		return fmt.Errorf("failed to remove gluon config path: %w", err)
-	}
-
-	return nil
+	return s.theUserDeletesTheGluonCache()
 }
 
 func (s *scenario) theUserDeletesTheGluonCache() error {
-	if path, err := s.t.locator.ProvideGluonCachePath(); err != nil {
-		return fmt.Errorf("failed to get gluon cache path: %w", err)
+	if path, err := s.t.locator.ProvideGluonDataPath(); err != nil {
+		return fmt.Errorf("failed to get gluon Cache path: %w", err)
 	} else if err := os.RemoveAll(path); err != nil {
-		return fmt.Errorf("failed to remove gluon cache path: %w", err)
+		return fmt.Errorf("failed to remove gluon Cache path: %w", err)
 	}
-
 	return nil
 }
 

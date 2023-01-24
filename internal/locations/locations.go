@@ -138,17 +138,7 @@ func (l *Locations) ProvideSettingsPath() (string, error) {
 	return l.getSettingsPath(), nil
 }
 
-// ProvideGluonConfigPath returns a location for gluon data.
-// It creates it if it doesn't already exist.
-func (l *Locations) ProvideGluonConfigPath() (string, error) {
-	if err := os.MkdirAll(l.getGluonConfigPath(), 0o700); err != nil {
-		return "", err
-	}
-
-	return l.getGluonConfigPath(), nil
-}
-
-// ProvideGluonCachePath returns a location for gluon message cache data (does not need to be persistent).
+// ProvideGluonCachePath returns a location for gluon data.
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideGluonCachePath() (string, error) {
 	if err := os.MkdirAll(l.getGluonCachePath(), 0o700); err != nil {
@@ -156,6 +146,16 @@ func (l *Locations) ProvideGluonCachePath() (string, error) {
 	}
 
 	return l.getGluonCachePath(), nil
+}
+
+// ProvideGluonDataPath returns a location for gluon data.
+// It creates it if it doesn't already exist.
+func (l *Locations) ProvideGluonDataPath() (string, error) {
+	if err := os.MkdirAll(l.getGluonDataPath(), 0o700); err != nil {
+		return "", err
+	}
+
+	return l.getGluonDataPath(), nil
 }
 
 // ProvideLogsPath returns a location for user logs (e.g. ~/.local/share/<company>/<app>/logs).
@@ -189,10 +189,10 @@ func (l *Locations) ProvideUpdatesPath() (string, error) {
 }
 
 func (l *Locations) getGluonCachePath() string {
-	return filepath.Join(l.userCache, "gluon")
+	return filepath.Join(l.userData, "gluon")
 }
 
-func (l *Locations) getGluonConfigPath() string {
+func (l *Locations) getGluonDataPath() string {
 	return filepath.Join(l.userData, "gluon")
 }
 

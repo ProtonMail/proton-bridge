@@ -100,7 +100,7 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 	}
 
 	// Get the default gluon path.
-	gluonCacheDir, err := t.locator.ProvideGluonCachePath()
+	gluonCacheDir, err := t.locator.ProvideGluonDataPath()
 	if err != nil {
 		return nil, fmt.Errorf("could not get gluon dir: %w", err)
 	}

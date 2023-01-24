@@ -119,8 +119,8 @@ func (bridge *Bridge) GetGluonCacheDir() string {
 	return bridge.vault.GetGluonCacheDir()
 }
 
-func (bridge *Bridge) GetGluonConfigDir() (string, error) {
-	return bridge.locator.ProvideGluonConfigPath()
+func (bridge *Bridge) GetGluonDataDir() (string, error) {
+	return bridge.locator.ProvideGluonDataPath()
 }
 
 func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error {
@@ -148,14 +148,14 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 			}
 		}
 
-		gluonDBDir, err := bridge.GetGluonConfigDir()
+		gluonDataDir, err := bridge.GetGluonDataDir()
 		if err != nil {
 			panic(fmt.Errorf("failed to get Gluon Database directory: %w", err))
 		}
 
 		imapServer, err := newIMAPServer(
 			bridge.vault.GetGluonCacheDir(),
-			gluonDBDir,
+			gluonDataDir,
 			bridge.curVersion,
 			bridge.tlsConfig,
 			bridge.reporter,
