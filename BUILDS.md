@@ -5,7 +5,7 @@
     - the go-rfc5322 module cannot currently be compiled for 32-bit OSes
 * Go 1.18
 * Bash with basic build utils: make, gcc, sed, find, grep, ...
-  - For Windows it is recommended to use MinGW 64bit shell from [MSYS2](https://www.msys2.org/)
+  - For Windows, it is recommended to use MinGW 64bit shell from [MSYS2](https://www.msys2.org/)
 * GCC (linux), msvc (windows) or Xcode (macOS)
 * Windres (windows)
 * libglvnd and libsecret development files (linux)
@@ -44,9 +44,10 @@ make build
 make build-nogui
 ```
 
-* Bridge without GUI will start by default without any interface (i.e., there is no way to add or remove client, get bridge password, etc)
-* Bridge always has the option (whether built with Qt or without) to use a CLI interface by starting it with the argument `-c`
-* NOTE: You still need to setup supported keychain on your system
+* To launch Bridge without GUI, you can invoke the `bridge` executable with one the following command-line switches:
+  * `--noninteractive` or `-n` to start Bridge without any interface (i.e., there is no way to add or remove client, get bridge password, etc.)
+  * `--cli` or `-c` to start Bridge with an interactive terminal interface.
+* NOTE: You still need to set up a supported keychain on your system.
 
 ## Launchers
 Launchers are only included in official distributions and provide the public
