@@ -90,7 +90,8 @@ func TestTLSSignedCertWrongPublicKey(t *testing.T) {
 	r.Error(t, err, "expected dial to fail because of wrong public key")
 }
 
-func TestTLSSignedCertTrustedPublicKey(t *testing.T) {
+// GODT-2293 bump badssl cert and re enable this.
+func _TestTLSSignedCertTrustedPublicKey(t *testing.T) { //nolint:unused,deadcode
 	skipIfProxyIsSet(t)
 
 	_, dialer, _, checker, _ := createClientWithPinningDialer("")
