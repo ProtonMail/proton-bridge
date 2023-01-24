@@ -66,7 +66,7 @@ type Attachment struct {
 	Name        string
 	ContentID   string
 	MIMEType    string
-	Disposition string
+	Disposition proton.Disposition
 	Data        []byte
 }
 
@@ -528,7 +528,7 @@ func parseAttachment(h message.Header, body []byte) (Attachment, error) {
 	// If not available, try to get it from name param in content type.
 	// Otherwise fallback to attachment.bin.
 	if disp, dispParams, err := h.ContentDisposition(); err == nil {
-		att.Disposition = disp
+		att.Disposition = proton.Disposition(disp)
 
 		if filename, ok := dispParams["filename"]; ok {
 			att.Name = filename

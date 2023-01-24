@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -631,15 +632,17 @@ func TestParseIcsAttachment(t *testing.T) {
 	assert.Equal(t, m.Attachments[0].MIMEType, "text/calendar")
 	assert.Equal(t, m.Attachments[0].Name, "invite.ics")
 	assert.Equal(t, m.Attachments[0].ContentID, "")
-	assert.Equal(t, m.Attachments[0].Disposition, "attachment")
+	assert.Equal(t, m.Attachments[0].Disposition, proton.Disposition("attachment"))
 	assert.Equal(t, string(m.Attachments[0].Data), "This is an ics calendar invite")
 }
 
 func TestParsePanic(t *testing.T) {
 	var err error
+
 	require.NotPanics(t, func() {
 		_, err = Parse(&panicReader{})
 	})
+
 	require.Error(t, err)
 }
 

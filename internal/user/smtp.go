@@ -385,22 +385,32 @@ func createAttachments(
 			"mime-type":   att.MIMEType,
 		}).Debug("Uploading attachment")
 
-		// Some client might have leave empty the content disposition or use unsupported values.
-		if att.Disposition != string(proton.InlineDisposition) && att.Disposition != string(proton.AttachmentDisposition) {
-			att.Disposition = string(proton.AttachmentDisposition)
-		}
+		switch att.Disposition {
+		case proton.InlineDisposition:
+			// Some clients use inline disposition but don't set a content ID. Our API doesn't support this.
+			// We could generate our own content ID, but for simplicity, we just set the disposition to attachment.
+			if att.ContentID == "" {
+				att.Disposition = proton.AttachmentDisposition
+			}
 
-		// Some clients use inline disposition but don't set a content ID. Our API doesn't support this.
-		// We could generate our own content ID, but for simplicity, we just set the disposition to attachment.
-		if att.Disposition == string(proton.InlineDisposition) && att.ContentID == "" {
-			att.Disposition = string(proton.AttachmentDisposition)
+		case proton.AttachmentDisposition:
+			// Nothing to do.
+
+		default:
+			// Some clients leave the content disposition empty or use unsupported values.
+			// We default to inline disposition if a content ID is set, and to attachment disposition otherwise.
+			if att.ContentID != "" {
+				att.Disposition = proton.InlineDisposition
+			} else {
+				att.Disposition = proton.AttachmentDisposition
+			}
 		}
 
 		attachment, err := client.UploadAttachment(ctx, addrKR, proton.CreateAttachmentReq{
 			Filename:    att.Name,
 			MessageID:   draftID,
 			MIMEType:    rfc822.MIMEType(att.MIMEType),
-			Disposition: proton.Disposition(att.Disposition),
+			Disposition: att.Disposition,
 			ContentID:   att.ContentID,
 			Body:        att.Data,
 		})
