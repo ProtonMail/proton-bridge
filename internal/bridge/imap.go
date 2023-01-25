@@ -20,13 +20,10 @@ package bridge
 import (
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon"
@@ -122,8 +119,19 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 		if gluonID, ok := user.GetGluonID(addrID); ok {
 			log.WithField("gluonID", gluonID).Info("Loading existing IMAP user")
 
-			if err := bridge.imapServer.LoadUser(ctx, imapConn, gluonID, user.GluonKey()); err != nil {
+			// Load the user, checking whether the DB was newly created.
+			isNew, err := bridge.imapServer.LoadUser(ctx, imapConn, gluonID, user.GluonKey())
+			if err != nil {
 				return fmt.Errorf("failed to load IMAP user: %w", err)
+			}
+
+			// If the DB was newly created, clear the sync status; gluon's DB was not found.
+			if isNew {
+				logrus.Warn("IMAP user DB was newly created, clearing sync status")
+
+				if err := user.ClearSyncStatus(); err != nil {
+					return fmt.Errorf("failed to clear sync status: %w", err)
+				}
 			}
 		} else {
 			log.Info("Creating new IMAP user")
@@ -149,6 +157,7 @@ func (bridge *Bridge) removeIMAPUser(ctx context.Context, user *user.User, withD
 	if bridge.imapServer == nil {
 		return fmt.Errorf("no imap server instance running")
 	}
+
 	logrus.WithFields(logrus.Fields{
 		"userID":   user.ID(),
 		"withData": withData,
@@ -199,23 +208,8 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 }
 
 func getGluonDir(encVault *vault.Vault) (string, error) {
-	empty, exists, err := isEmpty(encVault.GetGluonCacheDir())
-	if err != nil {
-		return "", fmt.Errorf("failed to check if gluon dir is empty: %w", err)
-	}
-
-	if !exists {
-		if err := os.MkdirAll(encVault.GetGluonCacheDir(), 0o700); err != nil {
-			return "", fmt.Errorf("failed to create gluon dir: %w", err)
-		}
-	}
-
-	if empty {
-		if err := encVault.ForUser(runtime.NumCPU(), func(user *vault.User) error {
-			return user.ClearSyncStatus()
-		}); err != nil {
-			return "", fmt.Errorf("failed to reset user sync status: %w", err)
-		}
+	if err := os.MkdirAll(encVault.GetGluonCacheDir(), 0o700); err != nil {
+		return "", fmt.Errorf("failed to create gluon dir: %w", err)
 	}
 
 	return encVault.GetGluonCacheDir(), nil
@@ -308,25 +302,6 @@ func getGluonVersionInfo(version *semver.Version) gluon.Option {
 		"TODO",
 		"TODO",
 	)
-}
-
-// isEmpty returns whether the given directory is empty.
-// If the directory does not exist, the second return value is false.
-func isEmpty(dir string) (bool, bool, error) {
-	if _, err := os.Stat(dir); err != nil {
-		if !errors.Is(err, fs.ErrNotExist) {
-			return false, false, fmt.Errorf("failed to stat %s: %w", dir, err)
-		}
-
-		return true, false, nil
-	}
-
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return false, false, fmt.Errorf("failed to read dir %s: %w", dir, err)
-	}
-
-	return len(entries) == 0, true, nil
 }
 
 type storeBuilder struct{}

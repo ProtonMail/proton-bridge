@@ -475,6 +475,14 @@ func (user *User) OnStatusDown(context.Context) {
 	user.abortable.Abort()
 }
 
+// ClearSyncStatus clears the sync status of the user. This triggers a resync.
+func (user *User) ClearSyncStatus() error {
+	user.abortable.Abort()
+	defer user.goSync()
+
+	return user.vault.ClearSyncStatus()
+}
+
 // Logout logs the user out from the API.
 func (user *User) Logout(ctx context.Context, withAPI bool) error {
 	user.log.WithField("withAPI", withAPI).Info("Logging out user")
