@@ -21,6 +21,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -29,6 +31,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
@@ -37,7 +40,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBridge_User_BadEvents(t *testing.T) {
+func TestBridge_User_BadMessage_BadEvent(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		// Create a user.
 		userID, addrID, err := s.CreateUser("user", password)
@@ -51,50 +54,94 @@ func TestBridge_User_BadEvents(t *testing.T) {
 			createNumMessages(ctx, t, c, addrID, labelID, 10)
 		})
 
-		// The initial user should be fully synced.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
-			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
-			defer done()
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
 
-			userID, err := bridge.LoginFull(ctx, "user", password, nil, nil)
+			var messageIDs []string
+
+			// Create 10 more messages for the user, generating events.
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				messageIDs = createNumMessages(ctx, t, c, addrID, labelID, 10)
+			})
+
+			// If bridge attempts to sync the new messages, it should get a BadRequest error.
+			doBadRequest := true
+			s.AddStatusHook(func(req *http.Request) (int, bool) {
+				if !doBadRequest {
+					return 0, false
+				}
+
+				if xslices.Index(xslices.Map(messageIDs, func(messageID string) string {
+					return "/mail/v4/messages/" + messageID
+				}), req.URL.Path) < 0 {
+					return 0, false
+				}
+
+				return http.StatusBadRequest, true
+			})
+
+			userReceiveBadErrorAndLogout(t, bridge, mocks)
+
+			// Remove messages
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				require.NoError(t, c.DeleteMessage(ctx, messageIDs...))
+			})
+			doBadRequest = false
+
+			// Login again
+			_, err := bridge.LoginFull(ctx, "user", password, nil, nil)
 			require.NoError(t, err)
 
-			require.Equal(t, userID, (<-syncCh).UserID)
-		})
-
-		var messageIDs []string
-
-		// Create 10 more messages for the user, generating events.
-		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
-			messageIDs = createNumMessages(ctx, t, c, addrID, labelID, 10)
-		})
-
-		// If bridge attempts to sync the new messages, it should get a BadRequest error.
-		s.AddStatusHook(func(req *http.Request) (int, bool) {
-			if xslices.Index(xslices.Map(messageIDs, func(messageID string) string {
-				return "/mail/v4/messages/" + messageID
-			}), req.URL.Path) < 0 {
-				return 0, false
-			}
-
-			return http.StatusBadRequest, true
-		})
-
-		// The user will continue to process events and will receive bad request errors.
-		withMocks(t, func(mocks *bridge.Mocks) {
-			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).MinTimes(1)
-
-			// The user will eventually be logged out due to the bad request errors.
-			withBridgeNoMocks(ctx, t, mocks, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge) {
-				require.Eventually(t, func() bool {
-					return len(bridge.GetUserIDs()) == 1 && len(getConnectedUserIDs(t, bridge)) == 0
-				}, 10*time.Second, 100*time.Millisecond)
-			})
+			userContinueEventProcess(ctx, t, s, bridge)
 		})
 	})
 }
 
-func TestBridge_User_NoBadEvent_SameMessageLabelCreated(t *testing.T) {
+func TestBridge_User_BadMessage_NoBadEvent(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		_, addrID, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		// Create 10 messages for the user.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+
+			var messageIDs []string
+
+			// If bridge attempts to sync the new messages, it should get a BadRequest error.
+			s.AddStatusHook(func(req *http.Request) (int, bool) {
+				if len(messageIDs) < 2 {
+					return 0, false
+				}
+
+				if strings.Contains(req.URL.Path, "/mail/v4/messages/"+messageIDs[2]) {
+					return http.StatusUnprocessableEntity, true
+				}
+
+				return 0, false
+			})
+
+			// Create 10 more messages for the user, generating events.
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				messageIDs = createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
+			})
+
+			// Remove messages
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				require.NoError(t, c.DeleteMessage(ctx, messageIDs...))
+			})
+
+			userContinueEventProcess(ctx, t, s, bridge)
+		})
+	})
+}
+
+func TestBridge_User_SameMessageLabelCreated_NoBadEvent(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		// Create a user.
 		userID, addrID, err := s.CreateUser("user", password)
@@ -107,29 +154,22 @@ func TestBridge_User_NoBadEvent_SameMessageLabelCreated(t *testing.T) {
 			messageIDs = createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
 		})
 
-		// The initial user should be fully synced.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
-			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
-			defer done()
+			userLoginAndSync(ctx, t, bridge, "user", password)
 
-			userID, err := bridge.LoginFull(ctx, "user", password, nil, nil)
+			labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
 			require.NoError(t, err)
 
-			require.Equal(t, userID, (<-syncCh).UserID)
+			// Add NOOP events
+			require.NoError(t, s.AddLabelCreatedEvent(userID, labelID))
+			require.NoError(t, s.AddMessageCreatedEvent(userID, messageIDs[9]))
+
+			userContinueEventProcess(ctx, t, s, bridge)
 		})
-
-		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
-		require.NoError(t, err)
-
-		// Add NOOP events
-		require.NoError(t, s.AddLabelCreatedEvent(userID, labelID))
-		require.NoError(t, s.AddMessageCreatedEvent(userID, messageIDs[9]))
-
-		userContinuEventProcess(ctx, t, s, netCtl, locator, storeKey)
 	})
 }
 
-func TestBridge_User_NoBadEvents_MessageLabelDeleted(t *testing.T) {
+func TestBridge_User_MessageLabelDeleted_NoBadEvent(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		// Create a user.
 		userID, addrID, err := s.CreateUser("user", password)
@@ -143,73 +183,178 @@ func TestBridge_User_NoBadEvents_MessageLabelDeleted(t *testing.T) {
 			createNumMessages(ctx, t, c, addrID, labelID, 10)
 		})
 
-		// The initial user should be fully synced.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
-			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
-			defer done()
+			userLoginAndSync(ctx, t, bridge, "user", password)
 
-			userID, err := bridge.LoginFull(ctx, "user", password, nil, nil)
-			require.NoError(t, err)
+			// Create and delete 10 more messages for the user, generating delete events.
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				messageIDs := createNumMessages(ctx, t, c, addrID, labelID, 10)
+				require.NoError(t, c.DeleteMessage(ctx, messageIDs...))
+			})
 
-			require.Equal(t, userID, (<-syncCh).UserID)
+			// Create and delete 10 labels for the user, generating delete events.
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				for i := 0; i < 10; i++ {
+					label, err := c.CreateLabel(ctx, proton.CreateLabelReq{
+						Name:  uuid.NewString(),
+						Color: "#f66",
+						Type:  proton.LabelTypeLabel,
+					})
+					require.NoError(t, err)
+
+					require.NoError(t, c.DeleteLabel(ctx, label.ID))
+				}
+			})
+
+			userContinueEventProcess(ctx, t, s, bridge)
 		})
-
-		// Create and delete 10 more messages for the user, generating delete events.
-		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
-			messageIDs := createNumMessages(ctx, t, c, addrID, labelID, 10)
-			require.NoError(t, c.DeleteMessage(ctx, messageIDs...))
-		})
-
-		// Create and delete 10 labels for the user, generating delete events.
-		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
-			for i := 0; i < 10; i++ {
-				label, err := c.CreateLabel(ctx, proton.CreateLabelReq{
-					Name:  uuid.NewString(),
-					Color: "#f66",
-					Type:  proton.LabelTypeLabel,
-				})
-				require.NoError(t, err)
-
-				require.NoError(t, c.DeleteLabel(ctx, label.ID))
-			}
-		})
-
-		userContinuEventProcess(ctx, t, s, netCtl, locator, storeKey)
 	})
 }
 
-// userContinuEventProcess checks that user will continue to process events and will not receive any bad request errors.
-func userContinuEventProcess(
+func TestBridge_User_AddressEvents_NoBadEvent(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		userID, addrID, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		// Create 10 messages for the user.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+
+			addrID, err = s.CreateAddress(userID, "other@pm.me", password)
+			require.NoError(t, err)
+			userContinueEventProcess(ctx, t, s, bridge)
+
+			require.NoError(t, s.AddAddressCreatedEvent(userID, addrID))
+			userContinueEventProcess(ctx, t, s, bridge)
+		})
+
+		otherID, err := s.CreateAddress(userID, "another@pm.me", password)
+		require.NoError(t, err)
+		require.NoError(t, s.RemoveAddress(userID, otherID))
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			userContinueEventProcess(ctx, t, s, bridge)
+
+			require.NoError(t, s.CreateAddressKey(userID, addrID, password))
+			userContinueEventProcess(ctx, t, s, bridge)
+
+			require.NoError(t, s.RemoveAddress(userID, addrID))
+			userContinueEventProcess(ctx, t, s, bridge)
+		})
+	})
+}
+
+func TestBridge_User_Network_NoBadEvents(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		retVal := int32(0)
+
+		setResponseAndWait := func(status int32) {
+			atomic.StoreInt32(&retVal, status)
+			time.Sleep(user.EventPeriod)
+		}
+
+		s.AddStatusHook(func(req *http.Request) (int, bool) {
+			status := atomic.LoadInt32(&retVal)
+			if strings.Contains(req.URL.Path, "/core/v4/events/") {
+				return int(status), status != 0
+			}
+
+			return 0, false
+		})
+
+		// Create a user.
+		_, addrID, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+
+			// Create 10 more messages for the user, generating events.
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
+
+				setResponseAndWait(http.StatusInternalServerError)
+				setResponseAndWait(http.StatusServiceUnavailable)
+				setResponseAndWait(http.StatusPaymentRequired)
+				setResponseAndWait(http.StatusForbidden)
+				setResponseAndWait(http.StatusBadRequest)
+				setResponseAndWait(http.StatusUnprocessableEntity)
+				setResponseAndWait(http.StatusTooManyRequests)
+				time.Sleep(10 * time.Second) // needs minimum of 10 seconds to retry
+			})
+
+			setResponseAndWait(0)
+			time.Sleep(10 * time.Second) // needs up to 20 seconds to retry
+			userContinueEventProcess(ctx, t, s, bridge)
+		})
+	})
+}
+
+// userLoginAndSync logs in user and waits until user is fully synced.
+func userLoginAndSync(
+	ctx context.Context,
+	t *testing.T,
+	bridge *bridge.Bridge,
+	username string, password []byte, //nolint:unparam
+) {
+	syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+	defer done()
+
+	userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
+	require.NoError(t, err)
+
+	require.Equal(t, userID, (<-syncCh).UserID)
+}
+
+func userReceiveBadErrorAndLogout(
+	t *testing.T,
+	bridge *bridge.Bridge,
+	mocks *bridge.Mocks,
+) {
+	// The user will continue to process events and will receive bad request errors.
+	mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).MinTimes(1)
+
+	// The user will eventually be logged out due to the bad request errors.
+	require.Eventually(t, func() bool {
+		return len(bridge.GetUserIDs()) == 1 && len(getConnectedUserIDs(t, bridge)) == 0
+	}, 100*user.EventPeriod, user.EventPeriod)
+}
+
+// userContinueEventProcess checks that user will continue to process events and will not receive any bad request errors.
+func userContinueEventProcess(
 	ctx context.Context,
 	t *testing.T,
 	s *server.Server,
-	netCtl *proton.NetCtl,
-	locator bridge.Locator,
-	storeKey []byte,
+	bridge *bridge.Bridge,
 ) {
-	withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
-		info, err := bridge.QueryUserInfo("user")
-		require.NoError(t, err)
+	info, err := bridge.QueryUserInfo("user")
+	require.NoError(t, err)
 
-		client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
-		require.NoError(t, err)
-		require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
-		defer func() { _ = client.Logout() }()
+	client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+	require.NoError(t, err)
+	require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+	defer func() { _ = client.Logout() }()
 
-		// Create a new label.
-		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
-			require.NoError(t, getErr(c.CreateLabel(ctx, proton.CreateLabelReq{
-				Name:  "blabla",
-				Color: "#f66",
-				Type:  proton.LabelTypeLabel,
-			})))
-		})
+	randomLabel := uuid.NewString()
 
-		// Wait for the label to be created.
-		require.Eventually(t, func() bool {
-			return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
-				return mailbox.Name == "Labels/blabla"
-			}) >= 0
-		}, 10*time.Second, 100*time.Millisecond)
+	// Create a new label.
+	withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+		require.NoError(t, getErr(c.CreateLabel(ctx, proton.CreateLabelReq{
+			Name:  randomLabel,
+			Color: "#f66",
+			Type:  proton.LabelTypeLabel,
+		})))
 	})
+
+	// Wait for the label to be created.
+	require.Eventually(t, func() bool {
+		return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+			return mailbox.Name == "Labels/"+randomLabel
+		}) >= 0
+	}, 100*user.EventPeriod, user.EventPeriod)
 }

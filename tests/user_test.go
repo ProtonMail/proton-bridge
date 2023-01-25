@@ -24,6 +24,7 @@ import (
 	"net/mail"
 	"strings"
 
+	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
@@ -265,8 +266,11 @@ func (s *scenario) theFollowingFieldsWereChangedInDraftForAddressOfAccount(draft
 			var changes proton.DraftTemplate
 
 			if wantMessages[0].From != "" {
-				return fmt.Errorf("changing from address is not supported")
+				return fmt.Errorf("changing From address is not supported")
 			}
+
+			changes.Sender = &mail.Address{Address: address}
+			changes.MIMEType = rfc822.TextPlain
 
 			if wantMessages[0].To != "" {
 				changes.ToList = []*mail.Address{{Address: wantMessages[0].To}}

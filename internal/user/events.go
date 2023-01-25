@@ -506,6 +506,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.Mes
 	if err != nil {
 		// If the message is not found, it means that it has been deleted before we could fetch it.
 		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
+			user.log.WithField("messageID", event.Message.ID).Warn("Cannot add new message: full message is missing on API")
 			return nil, nil
 		}
 
@@ -602,6 +603,7 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 		if err != nil {
 			// If the message is not found, it means that it has been deleted before we could fetch it.
 			if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
+				user.log.WithField("messageID", event.Message.ID).Warn("Cannot add new draft: full message is missing on API")
 				return nil, nil
 			}
 
