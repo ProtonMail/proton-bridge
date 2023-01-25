@@ -60,8 +60,10 @@ type User struct {
 	vault    *vault.User
 	client   *proton.Client
 	reporter reporter.Reporter
-	eventCh  *queue.QueuedChannel[events.Event]
 	sendHash *sendRecorder
+
+	eventCh   *queue.QueuedChannel[events.Event]
+	eventLock safe.RWMutex
 
 	apiUser     proton.User
 	apiUserLock safe.RWMutex
@@ -120,8 +122,10 @@ func New(
 		vault:    encVault,
 		client:   client,
 		reporter: reporter,
-		eventCh:  queue.NewQueuedChannel[events.Event](0, 0),
 		sendHash: newSendRecorder(sendEntryExpiry),
+
+		eventCh:   queue.NewQueuedChannel[events.Event](0, 0),
+		eventLock: safe.NewRWMutex(),
 
 		apiUser:     apiUser,
 		apiUserLock: safe.NewRWMutex(),
@@ -548,6 +552,9 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 
 // doEventPoll is called whenever API events should be polled.
 func (user *User) doEventPoll(ctx context.Context) error {
+	user.eventLock.Lock()
+	defer user.eventLock.Unlock()
+
 	event, err := user.client.GetEvent(ctx, user.vault.EventID())
 	if err != nil {
 		return fmt.Errorf("failed to get event: %w", err)

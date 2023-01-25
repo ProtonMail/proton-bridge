@@ -158,7 +158,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 
 			return nil
 		})
-	}, user.apiUserLock, user.apiAddrsLock)
+	}, user.apiUserLock, user.apiAddrsLock, user.eventLock)
 }
 
 // sendWithKey sends the message with the given address key.
