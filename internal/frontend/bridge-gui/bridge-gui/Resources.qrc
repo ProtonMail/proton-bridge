@@ -42,9 +42,7 @@
         <file>qml/icons/ic-other-mail-clients.svg</file>
         <file>qml/icons/ic-plus.svg</file>
         <file>qml/icons/ic-question-circle.svg</file>
-        <file>qml/icons/ic-splash-card.svg</file>
-        <file>qml/icons/ic-splash-drive.svg</file>
-        <file>qml/icons/ic-splash-view.svg</file>
+        <file>qml/icons/ic-splash-check.svg</file>
         <file>qml/icons/ic-success.svg</file>
         <file>qml/icons/ic-three-dots-vertical.svg</file>
         <file>qml/icons/ic-trash.svg</file>

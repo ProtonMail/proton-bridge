@@ -67,14 +67,14 @@ Dialog {
             Item {
                 Layout.fillHeight: true
                 width: 24
-                Layout.leftMargin: 24
-                Layout.rightMargin: 24
+                Layout.leftMargin: 32
+                Layout.rightMargin: 16
                 Image {
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.verticalCenter: parent.verticalCenter
                     sourceSize.width: 24
                     sourceSize.height: 24
-                    source: "./icons/ic-splash-view.svg"
+                    source: "./icons/ic-splash-check.svg"
                 }
             }
 
@@ -101,14 +101,14 @@ Dialog {
             Item {
                 Layout.fillHeight: true
                 width: 24
-                Layout.leftMargin: 24
-                Layout.rightMargin: 24
+                Layout.leftMargin: 32
+                Layout.rightMargin: 16
                 Image {
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.verticalCenter: parent.verticalCenter
                     sourceSize.width: 24
                     sourceSize.height: 24
-                    source: "./icons/ic-splash-card.svg"
+                    source: "./icons/ic-splash-check.svg"
                 }
             }
 
@@ -135,14 +135,14 @@ Dialog {
             Item {
                 Layout.fillHeight: true
                 width: 24
-                Layout.leftMargin: 24
-                Layout.rightMargin: 24
+                Layout.leftMargin: 32
+                Layout.rightMargin: 16
                 Image {
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.verticalCenter: parent.verticalCenter
                     sourceSize.width: 24
                     sourceSize.height: 24
-                    source: "./icons/ic-splash-drive.svg"
+                    source: "./icons/ic-splash-check.svg"
                 }
             }
 
