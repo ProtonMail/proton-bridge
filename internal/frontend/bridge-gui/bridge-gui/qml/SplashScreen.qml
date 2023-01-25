@@ -91,7 +91,7 @@ Dialog {
                 type: Label.Body
                 horizontalAlignment: Text.AlignLeft
                 textFormat: Text.StyledText
-                text: qsTr("<b>New IMAP engine</b><br/>For improved stability and performances.")
+                text: qsTr("<b>New IMAP engine</b><br/>For improved stability and performance.")
             }
         }
 
