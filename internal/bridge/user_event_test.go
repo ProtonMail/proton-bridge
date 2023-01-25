@@ -115,7 +115,7 @@ func TestBridge_User_BadMessage_NoBadEvent(t *testing.T) {
 
 			// If bridge attempts to sync the new messages, it should get a BadRequest error.
 			s.AddStatusHook(func(req *http.Request) (int, bool) {
-				if len(messageIDs) < 2 {
+				if len(messageIDs) < 3 {
 					return 0, false
 				}
 
