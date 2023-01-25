@@ -28,7 +28,7 @@ T.Button {
     property alias secondary: control.flat
     readonly property bool primary: !secondary
     readonly property bool isIcon: control.text === ""
-
+    readonly property bool hasTextAndIcon: (control.text !== "") && (iconImage.source.toString().length > 0)
     property bool loading: false
 
     property bool borderless: false
@@ -67,7 +67,7 @@ T.Button {
 
     contentItem: RowLayout {
         id: _contentItem
-        spacing: control.spacing
+        spacing: control.hasTextAndIcon ? control.spacing : 0
 
         Proton.Label {
             colorScheme: root.colorScheme
