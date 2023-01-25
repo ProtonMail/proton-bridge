@@ -2,6 +2,42 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.12] Perth Narrows
+
+### Added
+* GODT-2210: v3.0 splash screen.
+* GODT-1770: handle UserBadEvent in CLI and gRPC.
+
+### Changed
+* GODT-2223: Improve event handling.
+* GODT-2305: Detect missing gluon DB.
+* GODT-2291: Change gluon store default location from Cache to Data.
+* Other: Disable dialer test until badssl cert is bumbed.
+* GODT-2292: Updated BUILDS.md doc.
+* GODT-2258: suggest email as login when signing in via status window.
+* Other: Report corrupt and/or insecure vaults to sentry.
+* Other: Better user load logs.
+* GODT-2253: Restart Launcher from the gui when GUI crashes.
+* Other(test): Make All Mail copy test more robust.
+* Other(CI): Make race checks manual.
+* Other: Remove old cert/key file location handling.
+* GODT-2271: Update README with new system files path.
+
+### Fixed
+* GODT-2296: Log error rather than fail if cannot get parent ID.
+* GODT-2266: Pause event stream while sending.
+* GODT-2266: Add test for sent message flags.
+* Other(test): Fix some more integration test placeholders.
+* GODT-2177: Use correct attachment disposition when content ID is set.
+* GODT-1556: If no references, use the in-reply-to header as ParentID.
+* Other: make GUI Tester more resilient to Bridge abrupt termination.
+* GODT-2275: fixed location of bridge-gui log files.
+* Other: Ensure SMTP debug dump works on windows.
+* Other: Fix MaxLogs off-by-one limit and bump limit to 10.
+* Other: fix path of temp folder in README.
+* Other(debug): Dump raw SMTP input to user's home dir.
+
+
 ## [Bridge 3.0.11] Perth Narrows
 
 ### Changed
