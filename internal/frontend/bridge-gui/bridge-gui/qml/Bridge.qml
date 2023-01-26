@@ -87,8 +87,8 @@ QtObject {
             mainWindow.showAndRise()
         }
 
-        onShowSignIn:  function(login) {
-            mainWindow.showSignIn(login)
+        onSelectUser: function(userID) {
+            mainWindow.selectUser(userID)
             mainWindow.showAndRise()
         }
 

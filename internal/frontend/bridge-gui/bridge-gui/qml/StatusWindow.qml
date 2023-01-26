@@ -40,7 +40,7 @@ Window {
     signal showMainWindow()
     signal showHelp()
     signal showSettings()
-    signal showSignIn(string username)
+    signal selectUser(string userID)
     signal quit()
 
     MouseArea {
@@ -229,7 +229,7 @@ Window {
                             visible: viewItem.user ? (viewItem.user.state === EUserState.SignedOut) : false
                             text: qsTr("Sign in")
                             onClicked: {
-                                root.showSignIn(viewItem.user.primaryEmailOrUsername())
+                                root.selectUser(viewItem.user.id) // selectUser will show login screen if user is in SignedOut state.
                                 root.close()
                             }
                         }
