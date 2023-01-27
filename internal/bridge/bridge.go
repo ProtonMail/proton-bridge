@@ -108,6 +108,12 @@ type Bridge struct {
 	logIMAPServer bool
 	logSMTP       bool
 
+	// These two variables keep track of the startup values for the two settings of the same name.
+	// They are updated in the vault on startup so that we're sure they're updated in case of kill/crash,
+	// but we need to keep their initial value for the current instance of bridge.
+	firstStart  bool
+	lastVersion *semver.Version
+
 	// tasks manages the bridge's goroutines.
 	tasks *async.Group
 
@@ -226,6 +232,16 @@ func newBridge(
 		return nil, fmt.Errorf("failed to get Gluon Database directory: %w", err)
 	}
 
+	firstStart := vault.GetFirstStart()
+	if err := vault.SetFirstStart(false); err != nil {
+		return nil, fmt.Errorf("failed to save first start indicator: %w", err)
+	}
+
+	lastVersion := vault.GetLastVersion()
+	if err := vault.SetLastVersion(curVersion); err != nil {
+		return nil, fmt.Errorf("failed to save last version indicator: %w", err)
+	}
+
 	imapServer, err := newIMAPServer(
 		gluonCacheDir,
 		gluonDataDir,
@@ -277,6 +293,9 @@ func newBridge(
 		logIMAPClient: logIMAPClient,
 		logIMAPServer: logIMAPServer,
 		logSMTP:       logSMTP,
+
+		firstStart:  firstStart,
+		lastVersion: lastVersion,
 
 		tasks: tasks,
 	}
@@ -441,15 +460,6 @@ func (bridge *Bridge) Close(ctx context.Context) {
 	}
 
 	bridge.watchers = nil
-
-	// Save the last version of bridge that was run.
-	if err := bridge.vault.SetLastVersion(bridge.curVersion); err != nil {
-		logrus.WithError(err).Error("Failed to save last version")
-	}
-
-	if err := bridge.vault.SetFirstStart(false); err != nil {
-		logrus.WithError(err).Error("Failed to save first start indicator")
-	}
 }
 
 func (bridge *Bridge) publish(event events.Event) {

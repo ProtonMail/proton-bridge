@@ -317,11 +317,11 @@ func (bridge *Bridge) GetCurrentVersion() *semver.Version {
 }
 
 func (bridge *Bridge) GetLastVersion() *semver.Version {
-	return bridge.vault.GetLastVersion()
+	return bridge.lastVersion
 }
 
 func (bridge *Bridge) GetFirstStart() bool {
-	return bridge.vault.GetFirstStart()
+	return bridge.firstStart
 }
 
 func (bridge *Bridge) GetColorScheme() string {
