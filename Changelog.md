@@ -9,6 +9,10 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-1770: handle UserBadEvent in CLI and gRPC.
 
 ### Changed
+* GODT-2311: Fix missing headers in re-downloaded Gluon messages.
+* GODT-1453: clicking 'Sign in' from status window now selects the right account.
+* GODT-2297: More significantly improve GPA's paging algorithm.
+* GODT-2145: Fix button spacing w/ Qt 6.4.
 * GODT-2223: Improve event handling.
 * GODT-2305: Detect missing gluon DB.
 * GODT-2291: Change gluon store default location from Cache to Data.
