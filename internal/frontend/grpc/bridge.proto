@@ -20,7 +20,7 @@ syntax = "proto3";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
-option go_package = "github.com/ProtonMail/proton-bridge/v2/internal/grpc";
+option go_package = "github.com/ProtonMail/proton-bridge/v3/internal/grpc";
 
 package grpc; // ignored by Go, used as namespace name in C++.
 
@@ -56,6 +56,7 @@ service Bridge {
   rpc ColorSchemeName(google.protobuf.Empty) returns (google.protobuf.StringValue); // TODO Color scheme should probably entirely be managed by the client.
   rpc CurrentEmailClient(google.protobuf.Empty) returns (google.protobuf.StringValue);
   rpc ReportBug(ReportBugRequest) returns (google.protobuf.Empty);
+  rpc ExportTLSCertificates(google.protobuf.StringValue) returns (google.protobuf.Empty);
   rpc ForceLauncher(google.protobuf.StringValue) returns (google.protobuf.Empty);
   rpc SetMainExecutable(google.protobuf.StringValue) returns (google.protobuf.Empty);
 
@@ -72,19 +73,15 @@ service Bridge {
   rpc IsAutomaticUpdateOn(google.protobuf.Empty) returns (google.protobuf.BoolValue);
 
   // cache
-  rpc IsCacheOnDiskEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue);
   rpc DiskCachePath(google.protobuf.Empty) returns (google.protobuf.StringValue);
-  rpc ChangeLocalCache(ChangeLocalCacheRequest) returns (google.protobuf.Empty);
+  rpc SetDiskCachePath(google.protobuf.StringValue) returns (google.protobuf.Empty);
 
   // mail
   rpc SetIsDoHEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty);
   rpc IsDoHEnabled(google.protobuf.Empty) returns (google.protobuf.BoolValue);
-  rpc SetUseSslForSmtp(google.protobuf.BoolValue) returns (google.protobuf.Empty);
-  rpc UseSslForSmtp(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc MailServerSettings(google.protobuf.Empty) returns (ImapSmtpSettings);
+  rpc SetMailServerSettings(ImapSmtpSettings) returns (google.protobuf.Empty);
   rpc Hostname(google.protobuf.Empty) returns (google.protobuf.StringValue);
-  rpc ImapPort(google.protobuf.Empty) returns (google.protobuf.Int32Value);
-  rpc SmtpPort(google.protobuf.Empty) returns (google.protobuf.Int32Value);
-  rpc ChangePorts(ChangePortsRequest) returns (google.protobuf.Empty);
   rpc IsPortFree(google.protobuf.Int32Value) returns (google.protobuf.BoolValue);
 
   // keychain
@@ -149,7 +146,7 @@ message ReportBugRequest {
 
 message LoginRequest {
   string username = 1;
-  string password = 2;
+  bytes password = 2;
 }
 
 message LoginAbortRequest {
@@ -157,19 +154,13 @@ message LoginAbortRequest {
 }
 
 //**********************************************************
-// Cache on disk related message
+// IMAP/SMTP Mail Server settings
 //**********************************************************
-message ChangeLocalCacheRequest {
-  bool enableDiskCache = 1;
-  string diskCachePath = 2;
-}
-
-//**********************************************************
-// Port related message
-//**********************************************************
-message ChangePortsRequest {
+message ImapSmtpSettings {
   int32 imapPort = 1;
   int32 smtpPort = 2;
+  bool useSSLForImap = 3;
+  bool useSSLForSmtp = 4;
 }
 
 //**********************************************************
@@ -180,19 +171,24 @@ message AvailableKeychainsResponse {
 }
 
 //**********************************************************
-// Cache on disk related messages
+// user related messages
 //**********************************************************
+enum UserState {
+  SIGNED_OUT = 0;
+  LOCKED = 1;
+  CONNECTED = 2;
+}
+
 message User {
   string id = 1;
   string username = 2;
   string avatarText = 3;
-  bool loggedIn = 4;
+  UserState state = 4;
   bool splitMode = 5;
-  bool setupGuideSeen = 6;
-  int64 usedBytes = 7;
-  int64 totalBytes = 8;
-  string password = 9;
-  repeated string addresses = 10;
+  int64 usedBytes = 6;
+  int64 totalBytes = 7;
+  bytes password = 8;
+  repeated string addresses = 9;
 }
 
 message UserSplitModeRequest {
@@ -222,11 +218,12 @@ message StreamEvent {
     AppEvent app = 1;
     LoginEvent login = 2;
     UpdateEvent update = 3;
-    CacheEvent cache = 4;
-    MailSettingsEvent mailSettings = 5;
+    DiskCacheEvent cache = 4;
+    MailServerSettingsEvent mailServerSettings = 5;
     KeychainEvent keychain = 6;
     MailEvent mail = 7;
     UserEvent user = 8;
+    GenericErrorEvent genericError = 9;
   }
 }
 
@@ -292,6 +289,7 @@ message LoginTwoPasswordsRequestedEvent {}
 
 message LoginFinishedEvent {
   string userID = 1;
+  bool wasSignedOut = 2;
 }
 
 //**********************************************************
@@ -338,68 +336,59 @@ message UpdateCheckFinished {}
 
 message UpdateVersionChanged {}
 
+
 //**********************************************************
 // Cache on disk related events
 //**********************************************************
-message CacheEvent {
+message DiskCacheEvent {
   oneof event {
-    CacheErrorEvent error = 1;
-    CacheLocationChangeSuccessEvent locationChangedSuccess = 2;
-    ChangeLocalCacheFinishedEvent changeLocalCacheFinished = 3;
-    IsCacheOnDiskEnabledChanged isCacheOnDiskEnabledChanged = 4;
-    DiskCachePathChanged diskCachePathChanged = 5;
+    DiskCacheErrorEvent error = 1;
+    DiskCachePathChangedEvent pathChanged = 2;
+    DiskCachePathChangeFinishedEvent pathChangeFinished  = 3;
   }
 }
 
-enum CacheErrorType {
-  CACHE_UNAVAILABLE_ERROR = 0;
-  CACHE_CANT_MOVE_ERROR = 1;
-  DISK_FULL = 2;
+enum DiskCacheErrorType {
+  DISK_CACHE_UNAVAILABLE_ERROR = 0;
+  CANT_MOVE_DISK_CACHE_ERROR = 1;
+  DISK_FULL_ERROR = 2;
 };
 
-message CacheErrorEvent {
-  CacheErrorType type = 1;
+message DiskCacheErrorEvent {
+  DiskCacheErrorType type = 1;
 }
 
-message CacheLocationChangeSuccessEvent {};
-
-message ChangeLocalCacheFinishedEvent {
-  bool willRestart = 1;
-};
-
-
-message IsCacheOnDiskEnabledChanged {
-  bool enabled = 1;
-}
-
-message DiskCachePathChanged {
+message DiskCachePathChangedEvent {
   string path = 1;
 }
 
+message DiskCachePathChangeFinishedEvent {}
+
+
 
 //**********************************************************
-// Mail settings related events
+// Mail server settings related events
 //**********************************************************
-message MailSettingsEvent {
+message MailServerSettingsEvent {
   oneof event {
-    MailSettingsErrorEvent error = 1;
-    UseSslForSmtpFinishedEvent useSslForSmtpFinished = 2;
-    ChangePortsFinishedEvent changePortsFinished = 3;
+    MailServerSettingsErrorEvent error = 1;
+    MailServerSettingsChangedEvent mailServerSettingsChanged = 2;
+    ChangeMailServerSettingsFinishedEvent changeMailServerSettingsFinished = 3;
   }
 }
 
-enum MailSettingsErrorType {
-  IMAP_PORT_ISSUE = 0;
-  SMTP_PORT_ISSUE = 1;
+enum MailServerSettingsErrorType {
+  IMAP_PORT_STARTUP_ERROR = 0;
+  SMTP_PORT_STARTUP_ERROR = 1;
+  IMAP_PORT_CHANGE_ERROR = 2;
+  SMTP_PORT_CHANGE_ERROR = 3;
+  IMAP_CONNECTION_MODE_CHANGE_ERROR = 4;
+  SMTP_CONNECTION_MODE_CHANGE_ERROR = 5;
 }
 
-message MailSettingsErrorEvent {
-  MailSettingsErrorType type = 1;
-}
-
-message UseSslForSmtpFinishedEvent {}
-
-message ChangePortsFinishedEvent {}
+message MailServerSettingsErrorEvent {  MailServerSettingsErrorType type = 1; }
+message MailServerSettingsChangedEvent { ImapSmtpSettings settings = 1; }
+message ChangeMailServerSettingsFinishedEvent {}
 
 //**********************************************************
 // keychain related events
@@ -466,3 +455,15 @@ message UserChangedEvent {
   string userID = 1;
 }
 
+//**********************************************************
+// Generic errors
+//**********************************************************
+enum ErrorCode {
+  UNKNOWN_ERROR = 0;
+  TLS_CERT_EXPORT_ERROR = 1;
+  TLS_KEY_EXPORT_ERROR = 2;
+}
+
+message GenericErrorEvent {
+  ErrorCode code = 1;
+}

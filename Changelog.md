@@ -3,9 +3,278 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## [Bridge 3.0.10] Perth Narrows
+
+### Changed
+* GODT-2205: use lock file in bridge-gui to detect orphan bridge.
+* GODT-2242: Bump GPA - Don't send any 2fa information if not needed.
+* GODT-2179: added handler for exceptions in QML backend methods.
+* GODT-2181: Match live API behaviour.
+* GODT-2221: Set DOH off by default.
+* GODT-1817: Re-enable all integration tests.
+* Other: C++ Code reformat.
+* GODT-2234: added command-line switch to force Qt to use software rendering for QML.
+* Other: added C/C++ header template file (*.h.in) type to missing_license.sh script.
+* GODT-2236: add log entry when SMTP / IMAP serve method fails.
+* Other: reorganised QMLBackend class code.
+
+### Fixed
+* Other: Flag messages imported into "Sent" mailbox as Sent.
+* Other: Fix testCtx.getMBoxID().
+* Other: Fixed GUI Tester to comply with latest gRPC changes.
+* GODT-2010: add Cocoa app delegate handler for second application instance.
+* Other: Fix double close on event channels.
+* GODT-2233: Fix sub folder creation bug.
+* GODT-2222: Dot not error on unknown Address Events.
+* GODT-2218: Fix invalid UID ranges.
+
+
+## [Bridge 3.0.9] Perth Narrows
+
+### Changed
+* GODT-2181(test): Refactor integration test setup a bit.
+* Other: Updated GUI tester for new gRPC calls.
+* GODT-1847: Add option to export TLS Certificates in GUI.
+
+### Fixed
+* Other: Fix TOTP login (bump go-proton-api).
+* GODT-2188: Do not fail append with invalid mime-type.
+* GODT-2213: Don't unnecessarily enable/disable autostart.
+* Other: Do not decode message body during send record hashing.
+* GODT-2196: Do not generate message updates for unknown labels.
+* Other: Prevent double login.
+* Other: Improve migration logging prefers username over primary address.
+* Other(test): Prefer native API revoke rather than fake server method.
+* GODT-2190: Unify crashpad_handler for darwin.
+* Other(test): Add test that we skip and report bad messages during sync.
+* Other: Catalina build.
+* GODT-2042: Fix setup guide not always showing on first login.
+* GODT-2152: Sign-in dialog validate email and password only when button is pressed.
+* GODT-1556: Add unit test for in-reply-to header without references.
+* GODT-2150: Fixed initial implementation that filtered --no-window in gui instead of bridge.
+* GODT-2167: Bind sign-in buttons availability to loading state.
+* Other: Only send to necessary update channel.
+* GODT-1804: Add parsing ics attachment test.
+* Other: Fix Warning introduced by connecting check timer.
+
+
+## [Bridge 3.0.8] Perth Narrows
+
+### Fixed
+* Other: Add sentry reports for event processing failures.
+* Other: Do not fail on label events.
+
+
+## [Bridge 3.0.7] Perth Narrows
+
+### Fixed
+* Other: Increase default UIDVALIDITY.
+* GODT-2173: fix: Migrate Bridge passwords from v2.X.
+* GODT-2207: Fix encoding of non utf7 mailbox names.
+* Other: Increase worker count (2 -> 4).
+
+
+## [Bridge 3.0.6] Perth Narrows
+
+### Fixed
+* GODT-2187: Skip messages during sync that fail to build/parse.
+
+
+## [Bridge 3.0.5] Perth Narrows
+
+### Fixed
+* GODT-2178: Bump go-proton-api to fix drafts.
+* GODT-2180: Allow login with FIDO2.
+
+
+## [Bridge 3.0.4] Perth Narrows
+
+### Changed
+* Other: Do not list \Deleted flag for All Mail.
+* Other: Disable perma-delete for expunge on Spam folder.
+
+### Fixed
+* Other: Ensure expunge feature test pushes to error stack.
+* GODT-2170: Use client-side draft update in integration tests.
+* GODT-2170: Improving test server behaviour.
+* GODT-2170: Update draft event means delete old and create new message.
+* GODT-2170: User create draft route: first steps.
+
+
+## [Bridge 3.0.3] Perth Narrows
+
+### Fixed
+* GPA v0.1.4: fix token expiration mechanism.
+
+## [Bridge 3.0.2] Perth Narrows
+
+### Changed
+* GODT-2157: Add Sentry to Bridge-Gui.
+* GODT-2153: Use file socket for bridge gRPC on linux & macOS.
+* GODT-2150: Do not forward --no-window flag.
+* GODT-2154: Allow noninteractive mode from launcher.
+* Other: update gui tester to support latest changes in gRPC implementation.
+* Other: GUI Tester supports the 3 states of user (Signed out/Locked/Connected).
+* Other: Bump gluon version to drop non-UTF-8 commands.
+
+### Fixed
+* Other: Wipe vault properly on factory reset.
+* GODT-2160: Prevent double closing of bridge if restart fails.
+* GODT-2041: Crash after factory reset.
+* GODT-2114: Sanitize attachment disposition.
+* GODT-1910: Fix GUI not being notified of SMTP SSL being turned on by ConfigureAppleMail.
+* GODT-1910: Fix save button state not being updated after being clicked once.
+* GODT-2159: Improve 429 retry.
+* GODT-1989: Handle Move with Append and Expunge.
+* Other: SetMailServerSettings is async as it should.
+* Other: Include sentry dll for Windows deploy.
+* Other: Ensure context is string in sentry reports.
+* GODT-2160: Ensure we can safely move cache file.
+
+
+## [Bridge 3.0.1] Perth Narrows
+
+### Changed
+* GODT-2151: Sync backwards to please product people.
+
+### Fixed
+* GODT-2149: Sort logs by timestamp when clearing.
+* GODT-2137: Set sentry sync transport.
+
+## [Bridge 3.0.0] Perth Narrows
+
+### Changed
+* Other(chore): Bump major version to v3.
+* Other: Switch from liteapi to go-proton-api.
+* GODT-2085: Ensure minimum sync worker count.
+* Other: Switch to mail-api.proton.me.
+* GODT-2120: Encrypt gluon store with gzip.
+* GODT-1910: Use a single view for IMAP & SMTP SSL options.
+* GODT-1846: Remove restart cues* implement restart-less behaviour. 
+* GODT-1975: Migrate keychain secrets.
+* GODT-1976: Migrate app settings from prefs.json.
+* GODT-2100: Load users in parallel at startup.
+* GODT-2108: Implement C++ Focus gRPC service client in bridge-gui.
+* GODT-2091: Animated "Connecting..." label.
+* GODT-2003: Introduces 3 phases user state (SignedOut/Locked/Connected).
+* GODT-2056: Kill old bridge from v2 lock file.
+* GODT-2086: Changing the wording for signing in.
+* GODT-2070: Implement SASL login for SMTP.
+* Other: Use liteapi instead of pmapi.
+* GODT-1609: Store password as byte array.
+* GODT-1650: Gluon integration.
+* GODT-1779: Remove go-imap.
+
+### Fixed
+* Other: Retry sync after cooldown if it fails.
+* GODT-2142: Also permit split by comma in References header.
+* GODT-2085: Use time.Since* structured logging.
+* GODT-2139: Validate key pass during login.
+* GODT-2111: Fix restart.
+* GODT-2085: Revise sync algorithm.
+* GODT-2134: Fix dock icon on macOS when launched with '--no-window'.
+* GODT-2131: If refresh token is revoked* user gets signed out.
+* GODT-2119: Only show supported label IDs to clients.
+* GODT-2002: Wait for API events to be applied after send.
+* GODT-2105: Ensure ClientVersion is set in bug report request.
+* GODT-2107: Update user list after session revoke.
+* GODT-2040: Bump UID validity when clearing sync status.
+* GODT-2045: Timeouts should be considered network issues.
+* GODT-2122: Handle check for updates failure.
+* GODT-2033: Only set user agent from IMAP ID if not empty.
+* GODT-2110: Force attachment disposition if content ID is missing.
+* GODT-2081: If keychain cannot be loaded do not wipe Vault and use a temp one.
+* GODT-2103: Trigger the version changed event.
+* GODT-2047: Clear last event ID when clearing sync status.
+* GODT-2109: Removed log message "Parent process XXX is still alive".
+* GODT-1913: Pass reporter to gluon* limit restarts* add crash handlers.
+* GODT-2037: Handle and log API refresh event.
+* GODT-2029: Handle deadlock when reordering user addresses.
+* GODT-2021: Remove gluon data when deleting user.
+* GODT-2030: Rework deletion check on expunge.
+* GODT-1977: Fix launcher for v2 to v3 updates.
+* GODT-2048: Add missing special use attributes.
+* GODT-2034: Basic vault migration ability (proof of concept).
+* GODT-1978: Auto-updates from v2 to v3.
+* GODT-1954: Draft message support.
+* GODT-2022: Fix change between address modes.
+* GODT-1993: Use more efficient filtering for message deletion.
+* GODT-2004: Ensure log files don't have color formatting.
+* GODT-2011: Use new app version format.
+* GODT-2010: Add better logging for app focus feature.
+* GODT-2008: Ensure user's addresses are returned in sorted order.
+* GODT-2002: Poll after SMTP send.
+* GODT-1982: Updated gRPC and GUI for disk cache.
+* GODT-1984: Handle permanent message deletion.
+* GODT-1916: Use XDG_DATA_HOME to store persistent data on linux.
+* GODT-1974: Store everything in v3 path.
+* GODT-1986: Handle case where an address has no decryption entities.
+* GODT-1777: Message de-duplication in SMTP and IMAP.
+* GODT-1940: Fix message encryption.
+* GODT-1742: Implement hide All Mail.
+* GODT-1813: Cleanup old go-imap cache files.
+* GODT-1650: Implement Connector.CreateMessage.
+* GODT-1901: Allow to set IMAP SSL from UI.
+* GODT-1816: Connect Gluon Logs to bridge Logs.
+* GODT-1657: Stable sync.
+* GODT-1815: Gluon User management error.
+
+## [Bridge 2.4.8] Osney
+
+### Fixed
+* GODT-2071: Fix --no-window flag that was broken on Windows.
+
+## [Bridge 2.4.7] Osney
+
+### Fixed
+* GODT-2078: Launcher inception.
+* GODT-2039: fix --parent-pid flag is removed from command-line when restarting the application.
+
+## [Bridge 2.4.6] Osney
+
+### Changed
+* GODT-2019: When signing out and a single user is connecte* we do not go back to the welcome screen.
+* GODT-2071: Bridge-gui report error if an orphan bridge is detected.
+* GODT-2046: Bridge-gui log is included in optional archive sent with bug reports.
+* GODT-2039: Bridge monitors bridge-gui via its PID.
+* GODT-2038: Interrupt gRPC initialisation of bridge process terminates.
+* Other: Added timestamp to bridge-gui logs.
+* GODT-2035: Bridge-gui log includes Qt version info.
+* GODT-2031: Updated bridge description.
+
+### Fixed
+* Other: Fix make run-qt target for Darwin.
+
+## [Bridge 2.4.5] Osney
+
+### Changed
+* GODT-2015: Bridge-gui logs to file until gRPC connection is established.
+* GODT-2016: Added more logging of gRPC events at info level.
+* GODT-2013: CLI flag for frontend is required.
+
+### Fixed
+* GODT-2020: Fix xdg_{home,cache}_home variables.
+* GODT-2014: Bridge quit if gRPC client ends stream.
+
+## [Bridge 2.4.4] Osney
+
+### Changed
+* GODT-1751: Switch from protonmail.com to proton.me domain.
+
+### Fixed
+* Other: Fix make run-cli for Darwin.
+* GODT-1645: Fix CI pipeline.
+* GODT-1938: Account details box values wrap.
+* Other: Also install vcpkg ARM64 on Intel mac hosts.
+* Other: Fix minor typo.
+* GODT-1939: removed vertical overshoot when scrolling.
+* GODT-1479: fix 'Open Bridge' button still hovered when status windows opens for Windows.
+* GODT-1519: Move back to account view after sending bug report.
+* Other: fix QML error with Qt 6.4 and a typo.
+
 ## [Bridge 2.4.3] Osney
 
-## Changed
+### Changed
 * Other: implemented tokens in bridge-gui-tester.
 * GODT-1853:
     * Upgrade dependencies (including x/crypto).
@@ -28,7 +297,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
 
-## Fixed
+### Fixed
 * GUI issues:
     * GODT-1894: Fixed typo in alreadyLoggedIn event error message.
     * GODT-1479: Fix hover on “Open Bridge” in status window on macOS.

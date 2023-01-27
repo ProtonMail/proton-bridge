@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.Bridge.
 //
@@ -21,34 +21,33 @@ package grpc
 
 import (
 	"context"
-	cryptotls "crypto/tls"
+	"crypto/tls"
+	"errors"
 	"fmt"
+	"io/fs"
 	"net"
+	"os"
 	"path/filepath"
-	"strings"
+	"runtime"
 	"sync"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/tls"
-	"github.com/ProtonMail/proton-bridge/v2/internal/events"
-	"github.com/ProtonMail/proton-bridge/v2/internal/frontend/types"
-	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
-	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
-	"github.com/ProtonMail/proton-bridge/v2/internal/users"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/keychain"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
+	"github.com/bradenaw/juniper/xslices"
+	"github.com/elastic/go-sysinfo"
+	sysinfotypes "github.com/elastic/go-sysinfo/types"
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
+	codes "google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
+	status "google.golang.org/grpc/status"
 )
 
 const (
@@ -59,110 +58,144 @@ const (
 // Service is the RPC service struct.
 type Service struct { // nolint:structcheck
 	UnimplementedBridgeServer
-	grpcServer        *grpc.Server //  the gGRPC server
-	listener          net.Listener
-	eventStreamCh     chan *StreamEvent
-	eventStreamDoneCh chan struct{}
-	eventQueue        []*StreamEvent
-	eventQueueMutex   sync.Mutex
 
-	panicHandler       types.PanicHandler
-	eventListener      listener.Listener
-	updater            types.Updater
-	updateCheckMutex   sync.Mutex
-	bridge             types.Bridger
-	restarter          types.Restarter
-	showOnStartup      bool
-	authClient         pmapi.Client
-	auth               *pmapi.Auth
-	password           []byte
-	newVersionInfo     updater.VersionInfo
+	grpcServer         *grpc.Server //  the gGRPC server
+	listener           net.Listener
+	eventStreamCh      chan *StreamEvent
+	eventStreamChMutex sync.RWMutex
+	eventStreamDoneCh  chan struct{}
+	eventQueue         []*StreamEvent
+	eventQueueMutex    sync.Mutex
+
+	panicHandler CrashHandler
+	restarter    Restarter
+	bridge       *bridge.Bridge
+	eventCh      <-chan events.Event
+	quitCh       <-chan struct{}
+
+	latest     updater.VersionInfo
+	latestLock safe.RWMutex
+
+	target     updater.VersionInfo
+	targetLock safe.RWMutex
+
+	authClient *proton.Client
+	auth       proton.Auth
+	password   []byte
+
 	log                *logrus.Entry
 	initializing       sync.WaitGroup
 	initializationDone sync.Once
 	firstTimeAutostart sync.Once
-	locations          *locations.Locations
-	token              string
-	pemCert            string
+	parentPID          int
+	parentPIDDoneCh    chan struct{}
+	showOnStartup      bool
 }
 
 // NewService returns a new instance of the service.
+//
+// nolint:funlen
 func NewService(
+	panicHandler CrashHandler,
+	restarter Restarter,
+	locations Locator,
+	bridge *bridge.Bridge,
+	eventCh <-chan events.Event,
+	quitCh <-chan struct{},
 	showOnStartup bool,
-	panicHandler types.PanicHandler,
-	eventListener listener.Listener,
-	updater types.Updater,
-	restarter types.Restarter,
-	locations *locations.Locations,
-) *Service {
-	s := Service{
-		UnimplementedBridgeServer: UnimplementedBridgeServer{},
-		panicHandler:              panicHandler,
-		eventListener:             eventListener,
-		updater:                   updater,
-		restarter:                 restarter,
-		showOnStartup:             showOnStartup,
+	parentPID int,
+) (*Service, error) {
+	tlsConfig, certPEM, err := newTLSConfig()
+	if err != nil {
+		logrus.WithError(err).Panic("Could not generate gRPC TLS config")
+	}
+
+	config := Config{
+		Cert:  string(certPEM),
+		Token: uuid.NewString(),
+	}
+
+	var listener net.Listener
+	if useFileSocket() {
+		var err error
+		if config.FileSocketPath, err = computeFileSocketPath(); err != nil {
+			logrus.WithError(err).WithError(err).Panic("Could not create gRPC file socket")
+		}
+
+		listener, err = net.Listen("unix", config.FileSocketPath)
+		if err != nil {
+			logrus.WithError(err).Panic("Could not create gRPC file socket listener")
+		}
+	} else {
+		var err error
+		listener, err = net.Listen("tcp", "127.0.0.1:0") // Port should be provided by the OS.
+		if err != nil {
+			logrus.WithError(err).Panic("Could not create gRPC listener")
+		}
+
+		// retrieve the port assigned by the system, so that we can put it in the config file.
+		address, ok := listener.Addr().(*net.TCPAddr)
+		if !ok {
+			return nil, fmt.Errorf("could not retrieve gRPC service listener address")
+		}
+		config.Port = address.Port
+	}
+
+	if path, err := saveGRPCServerConfigFile(locations, &config); err != nil {
+		logrus.WithError(err).WithField("path", path).Panic("Could not write gRPC service config file")
+	} else {
+		logrus.WithField("path", path).Info("Successfully saved gRPC service config file")
+	}
+
+	s := &Service{
+		grpcServer: grpc.NewServer(
+			grpc.Creds(credentials.NewTLS(tlsConfig)),
+			grpc.UnaryInterceptor(newUnaryTokenValidator(config.Token)),
+			grpc.StreamInterceptor(newStreamTokenValidator(config.Token)),
+		),
+		listener: listener,
+
+		panicHandler: panicHandler,
+		restarter:    restarter,
+		bridge:       bridge,
+		eventCh:      eventCh,
+		quitCh:       quitCh,
+
+		latest:     updater.VersionInfo{},
+		latestLock: safe.NewRWMutex(),
+
+		target:     updater.VersionInfo{},
+		targetLock: safe.NewRWMutex(),
 
 		log:                logrus.WithField("pkg", "grpc"),
 		initializing:       sync.WaitGroup{},
 		initializationDone: sync.Once{},
 		firstTimeAutostart: sync.Once{},
-		locations:          locations,
-		token:              uuid.NewString(),
+
+		parentPID:       parentPID,
+		parentPIDDoneCh: make(chan struct{}),
+		showOnStartup:   showOnStartup,
 	}
 
-	// Initializing.Done is only called sync.Once. Please keep the increment
-	// set to 1
+	// Initializing.Done is only called sync.Once. Please keep the increment set to 1
 	s.initializing.Add(1)
 
-	go func() {
-		defer s.panicHandler.HandlePanic()
-		s.watchEvents()
-	}()
+	// Initialize the autostart.
+	s.initAutostart()
 
-	return &s
-}
-
-func (s *Service) startGRPCServer() {
-	tlsConfig, pemCert, err := s.generateTLSConfig()
-	if err != nil {
-		s.log.WithError(err).Panic("Could not generate gRPC TLS config")
-	}
-
-	s.pemCert = string(pemCert)
-
-	s.grpcServer = grpc.NewServer(
-		grpc.Creds(credentials.NewTLS(tlsConfig)),
-		grpc.UnaryInterceptor(s.validateUnaryServerToken),
-		grpc.StreamInterceptor(s.validateStreamServerToken),
-	)
-
+	// Register the gRPC service implementation.
 	RegisterBridgeServer(s.grpcServer, s)
 
-	s.listener, err = net.Listen("tcp", "127.0.0.1:0") // Port 0 means that the port is randomly picked by the system.
-	if err != nil {
-		s.log.WithError(err).Panic("Could not create gRPC listener")
-	}
+	s.log.Info("gRPC server listening on ", s.listener.Addr())
 
-	if path, err := s.saveGRPCServerConfigFile(); err != nil {
-		s.log.WithError(err).WithField("path", path).Panic("Could not write gRPC service config file")
-	} else {
-		s.log.WithField("path", path).Debug("Successfully saved gRPC service config file")
-	}
-
-	s.log.Info("gRPC server listening at ", s.listener.Addr())
+	return s, nil
 }
 
 func (s *Service) initAutostart() {
-	// GODT-1507 Windows: autostart needs to be created after Qt is initialized.
-	// GODT-1206: if preferences file says it should be on enable it here.
-
-	// TO-DO GODT-1681 Autostart needs to be properly implement for gRPC approach.
-
 	s.firstTimeAutostart.Do(func() {
-		shouldAutostartBeOn := s.bridge.GetBool(settings.AutostartKey)
-		if s.bridge.IsFirstStart() || shouldAutostartBeOn {
-			if err := s.bridge.EnableAutostart(); err != nil {
+		shouldAutostartBeOn := s.bridge.GetAutostart()
+		if s.bridge.GetFirstStart() || shouldAutostartBeOn {
+			if err := s.bridge.SetAutostart(true); err != nil {
 				s.log.WithField("prefs", shouldAutostartBeOn).WithError(err).Error("Failed to enable first autostart")
 			}
 			return
@@ -170,119 +203,169 @@ func (s *Service) initAutostart() {
 	})
 }
 
-func (s *Service) Loop(b types.Bridger) error {
-	s.bridge = b
-	s.initAutostart()
-	s.startGRPCServer()
+func (s *Service) Loop() error {
+	if s.parentPID < 0 {
+		s.log.Info("Not monitoring parent PID")
+	} else {
+		go s.monitorParentPID()
+	}
 
 	defer func() {
-		s.bridge.SetBool(settings.FirstStartGUIKey, false)
+		_ = s.bridge.SetFirstStartGUI(false)
 	}()
 
-	if s.bridge.HasError(bridge.ErrLocalCacheUnavailable) {
-		_ = s.SendEvent(NewCacheErrorEvent(CacheErrorType_CACHE_UNAVAILABLE_ERROR))
-	}
+	go func() {
+		defer s.panicHandler.HandlePanic()
+		s.watchEvents()
+	}()
 
-	err := s.grpcServer.Serve(s.listener)
-	if err != nil {
-		s.log.WithError(err).Error("error serving RPC")
+	s.log.WithField("useFileSocket", useFileSocket()).Info("Starting gRPC server")
+
+	doneCh := make(chan struct{})
+	defer close(doneCh)
+
+	go func() {
+		select {
+		case <-s.quitCh:
+			s.log.Info("Stopping gRPC server")
+			defer s.log.Info("Stopped gRPC server")
+
+			s.grpcServer.Stop()
+
+		case <-doneCh:
+			// ...
+		}
+	}()
+
+	if err := s.grpcServer.Serve(s.listener); err != nil {
+		s.log.WithError(err).Error("Failed to serve gRPC")
 		return err
 	}
+
 	return nil
-}
-
-func (s *Service) NotifyManualUpdate(version updater.VersionInfo, canInstall bool) {
-	if canInstall {
-		_ = s.SendEvent(NewUpdateManualReadyEvent(version.Version.String()))
-	} else {
-		_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
-	}
-}
-
-func (s *Service) SetVersion(update updater.VersionInfo) {
-	s.newVersionInfo = update
-	_ = s.SendEvent(NewUpdateVersionChangedEvent())
-}
-
-func (s *Service) NotifySilentUpdateInstalled() {
-	_ = s.SendEvent(NewUpdateSilentRestartNeededEvent())
-}
-
-func (s *Service) NotifySilentUpdateError(err error) {
-	s.log.WithError(err).Error("In app update failed, asking for manual.")
-	_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_SILENT_ERROR))
 }
 
 func (s *Service) WaitUntilFrontendIsReady() {
 	s.initializing.Wait()
 }
 
-func (s *Service) watchEvents() { // nolint:funlen
-	errorCh := s.eventListener.ProvideChannel(events.ErrorEvent)
-	credentialsErrorCh := s.eventListener.ProvideChannel(events.CredentialsErrorEvent)
-	noActiveKeyForRecipientCh := s.eventListener.ProvideChannel(events.NoActiveKeyForRecipientEvent)
-	internetConnChangedCh := s.eventListener.ProvideChannel(events.InternetConnChangedEvent)
-	secondInstanceCh := s.eventListener.ProvideChannel(events.SecondInstanceEvent)
-	restartBridgeCh := s.eventListener.ProvideChannel(events.RestartBridgeEvent)
-	addressChangedCh := s.eventListener.ProvideChannel(events.AddressChangedEvent)
-	addressChangedLogoutCh := s.eventListener.ProvideChannel(events.AddressChangedLogoutEvent)
-	logoutCh := s.eventListener.ProvideChannel(events.LogoutEvent)
-	updateApplicationCh := s.eventListener.ProvideChannel(events.UpgradeApplicationEvent)
-	userChangedCh := s.eventListener.ProvideChannel(events.UserRefreshEvent)
-	certIssue := s.eventListener.ProvideChannel(events.TLSCertIssue)
+// nolint:funlen,gocyclo
+func (s *Service) watchEvents() {
+	// GODT-1949 Better error events.
+	for _, err := range s.bridge.GetErrors() {
+		switch {
+		case errors.Is(err, bridge.ErrVaultCorrupt):
+			// _ = s.SendEvent(NewKeychainHasNoKeychainEvent())
 
-	// we forward events to the GUI/frontend via the gRPC event stream.
-	for {
-		select {
-		case errorDetails := <-errorCh:
-			if strings.Contains(errorDetails, "IMAP failed") {
-				_ = s.SendEvent(NewMailSettingsErrorEvent(MailSettingsErrorType_IMAP_PORT_ISSUE))
-			}
-			if strings.Contains(errorDetails, "SMTP failed") {
-				_ = s.SendEvent(NewMailSettingsErrorEvent(MailSettingsErrorType_SMTP_PORT_ISSUE))
-			}
-		case reason := <-credentialsErrorCh:
-			if reason == keychain.ErrMacKeychainRebuild.Error() {
-				_ = s.SendEvent(NewKeychainRebuildKeychainEvent())
-				continue
-			}
+		case errors.Is(err, bridge.ErrVaultInsecure):
 			_ = s.SendEvent(NewKeychainHasNoKeychainEvent())
-		case email := <-noActiveKeyForRecipientCh:
-			_ = s.SendEvent(NewMailNoActiveKeyForRecipientEvent(email))
-		case stat := <-internetConnChangedCh:
-			if stat == events.InternetOff {
-				_ = s.SendEvent(NewInternetStatusEvent(false))
-			}
-			if stat == events.InternetOn {
-				_ = s.SendEvent(NewInternetStatusEvent(true))
+
+		case errors.Is(err, bridge.ErrServeIMAP):
+			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_STARTUP_ERROR))
+
+		case errors.Is(err, bridge.ErrServeSMTP):
+			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_STARTUP_ERROR))
+		}
+	}
+
+	for event := range s.eventCh {
+		switch event := event.(type) {
+		case events.ConnStatusUp:
+			_ = s.SendEvent(NewInternetStatusEvent(true))
+
+		case events.ConnStatusDown:
+			_ = s.SendEvent(NewInternetStatusEvent(false))
+
+		case events.Raise:
+			_ = s.SendEvent(NewShowMainWindowEvent())
+
+		case events.UserAddressCreated:
+			_ = s.SendEvent(NewMailAddressChangeEvent(event.Email))
+
+		case events.UserAddressUpdated:
+			_ = s.SendEvent(NewMailAddressChangeEvent(event.Email))
+
+		case events.UserAddressDeleted:
+			_ = s.SendEvent(NewMailAddressChangeLogoutEvent(event.Email))
+
+		case events.UserChanged:
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
+		case events.UserLoadSuccess:
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
+		case events.UserLoadFail:
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
+		case events.UserLoggedIn:
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
+		case events.UserLoggedOut:
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
+		case events.UserDeleted:
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
+		case events.AddressModeChanged:
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
+		case events.UserDeauth:
+			// This is the event the GUI cares about.
+			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
+			// The GUI doesn't care about this event... not sure why we still emit it.
+			if user, err := s.bridge.GetUserInfo(event.UserID); err == nil {
+				_ = s.SendEvent(NewUserDisconnectedEvent(user.Username))
 			}
 
-		case <-secondInstanceCh:
-			_ = s.SendEvent(NewShowMainWindowEvent())
-		case <-restartBridgeCh:
-			_, _ = s.Restart(
-				metadata.AppendToOutgoingContext(context.Background(), serverTokenMetadataKey, s.token),
-				&emptypb.Empty{},
-			)
-		case address := <-addressChangedCh:
-			_ = s.SendEvent(NewMailAddressChangeEvent(address))
-		case address := <-addressChangedLogoutCh:
-			_ = s.SendEvent(NewMailAddressChangeLogoutEvent(address))
-		case userID := <-logoutCh:
-			if s.bridge == nil {
-				logrus.Error("Received a logout event but bridge is not yet instantiated.")
-				break
+		case events.UpdateLatest:
+			safe.RLock(func() {
+				s.latest = event.Version
+			}, s.latestLock)
+
+			_ = s.SendEvent(NewUpdateVersionChangedEvent())
+
+		case events.UpdateAvailable:
+			switch {
+			case !event.Compatible:
+				_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
+
+			case !event.Silent:
+				safe.RLock(func() {
+					s.target = event.Version
+				}, s.targetLock)
+
+				_ = s.SendEvent(NewUpdateManualReadyEvent(event.Version.Version.String()))
 			}
-			user, err := s.bridge.GetUserInfo(userID)
-			if err != nil {
-				return
+
+		case events.UpdateInstalled:
+			if event.Silent {
+				_ = s.SendEvent(NewUpdateSilentRestartNeededEvent())
+			} else {
+				_ = s.SendEvent(NewUpdateManualRestartNeededEvent())
 			}
-			_ = s.SendEvent(NewUserDisconnectedEvent(user.Username))
-		case <-updateApplicationCh:
-			s.updateForce()
-		case userID := <-userChangedCh:
-			_ = s.SendEvent(NewUserChangedEvent(userID))
-		case <-certIssue:
+
+		case events.UpdateFailed:
+			if event.Silent {
+				_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_SILENT_ERROR))
+			} else {
+				_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
+			}
+
+		case events.UpdateForced:
+			var latest string
+
+			if s.latest.Version != nil {
+				latest = s.latest.Version.String()
+			} else if version, ok := s.checkLatestVersion(); ok {
+				latest = version.Version.String()
+			} else {
+				latest = "unknown"
+			}
+
+			_ = s.SendEvent(NewUpdateForceEvent(latest))
+
+		case events.TLSIssue:
 			_ = s.SendEvent(NewMailApiCertIssue())
 		}
 	}
@@ -293,7 +376,7 @@ func (s *Service) loginAbort() {
 }
 
 func (s *Service) loginClean() {
-	s.auth = nil
+	s.auth = proton.Auth{}
 	s.authClient = nil
 	for i := range s.password {
 		s.password[i] = '\x00'
@@ -304,10 +387,12 @@ func (s *Service) loginClean() {
 func (s *Service) finishLogin() {
 	defer s.loginClean()
 
-	if len(s.password) == 0 || s.auth == nil || s.authClient == nil {
+	wasSignedOut := s.bridge.HasUser(s.auth.UserID)
+
+	if len(s.password) == 0 || s.auth.UID == "" || s.authClient == nil {
 		s.log.
 			WithField("hasPass", len(s.password) != 0).
-			WithField("hasAuth", s.auth != nil).
+			WithField("hasAuth", s.auth.UID != "").
 			WithField("hasClient", s.authClient != nil).
 			Error("Finish login: authentication incomplete")
 
@@ -315,39 +400,31 @@ func (s *Service) finishLogin() {
 		return
 	}
 
-	done := make(chan string)
-	s.eventListener.Add(events.UserChangeDone, done)
-	defer s.eventListener.Remove(events.UserChangeDone, done)
+	eventCh, done := s.bridge.GetEvents(events.UserLoggedIn{})
+	defer done()
 
-	userID, err := s.bridge.FinishLogin(s.authClient, s.auth, s.password)
-
-	if err != nil && err != users.ErrUserAlreadyConnected {
+	userID, err := s.bridge.LoginUser(context.Background(), s.authClient, s.auth, s.password)
+	if err != nil {
 		s.log.WithError(err).Errorf("Finish login failed")
 		_ = s.SendEvent(NewLoginError(LoginErrorType_TWO_PASSWORDS_ABORT, err.Error()))
 		return
 	}
 
-	// The user changed should be triggered by FinishLogin, but it is not
-	// guaranteed when this is going to happen. Therefor we should wait
-	// until we receive the signal from userChanged function.
-	s.waitForUserChangeDone(done, userID)
+	s.waitForUserChangeDone(eventCh, userID)
 
 	s.log.WithField("userID", userID).Debug("Login finished")
-	_ = s.SendEvent(NewLoginFinishedEvent(userID))
 
-	if err == users.ErrUserAlreadyConnected {
-		s.log.WithError(err).Error("User already logged in")
-		_ = s.SendEvent(NewLoginAlreadyLoggedInEvent(userID))
-	}
+	_ = s.SendEvent(NewLoginFinishedEvent(userID, wasSignedOut))
 }
 
-func (s *Service) waitForUserChangeDone(done <-chan string, userID string) {
+func (s *Service) waitForUserChangeDone(eventCh <-chan events.Event, userID string) {
 	for {
 		select {
-		case changedID := <-done:
-			if changedID == userID {
+		case event := <-eventCh:
+			if login, ok := event.(events.UserLoggedIn); ok && login.UserID == userID {
 				return
 			}
+
 		case <-time.After(2 * time.Second):
 			s.log.WithField("ID", userID).Warning("Login finished but user not added within 2 seconds")
 			return
@@ -359,114 +436,65 @@ func (s *Service) triggerReset() {
 	defer func() {
 		_ = s.SendEvent(NewResetFinishedEvent())
 	}()
-	s.bridge.FactoryReset()
+
+	s.bridge.FactoryReset(context.Background())
 }
 
-func (s *Service) checkUpdate() {
-	version, err := s.updater.Check()
-	if err != nil {
-		s.log.WithError(err).Error("An error occurred while checking for updates")
-		s.SetVersion(updater.VersionInfo{})
-		return
-	}
-	s.SetVersion(version)
-}
+func (s *Service) checkLatestVersion() (updater.VersionInfo, bool) {
+	updateCh, done := s.bridge.GetEvents(events.UpdateLatest{})
+	defer done()
 
-func (s *Service) updateForce() {
-	s.updateCheckMutex.Lock()
-	defer s.updateCheckMutex.Unlock()
-	s.checkUpdate()
-	_ = s.SendEvent(NewUpdateForceEvent(s.newVersionInfo.Version.String()))
-}
+	s.bridge.CheckForUpdates()
 
-func (s *Service) checkUpdateAndNotify(isReqFromUser bool) {
-	s.updateCheckMutex.Lock()
-	defer func() {
-		s.updateCheckMutex.Unlock()
-		_ = s.SendEvent(NewUpdateCheckFinishedEvent())
-	}()
-
-	s.checkUpdate()
-	version := s.newVersionInfo
-	if (version.Version == nil) || (version.Version.String() == "") {
-		if isReqFromUser {
-			_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
+	select {
+	case event := <-updateCh:
+		if latest, ok := event.(events.UpdateLatest); ok {
+			return latest.Version, true
 		}
-		return
+
+	case <-time.After(5 * time.Second):
+		// ...
 	}
-	if !s.updater.IsUpdateApplicable(s.newVersionInfo) {
-		s.log.Info("No need to update")
-		if isReqFromUser {
-			_ = s.SendEvent(NewUpdateIsLatestVersionEvent())
-		}
-	} else if isReqFromUser {
-		s.NotifyManualUpdate(s.newVersionInfo, s.updater.CanInstall(s.newVersionInfo))
-	}
+
+	return updater.VersionInfo{}, false
 }
 
-func (s *Service) installUpdate() {
-	s.updateCheckMutex.Lock()
-	defer s.updateCheckMutex.Unlock()
-
-	if !s.updater.CanInstall(s.newVersionInfo) {
-		s.log.Warning("Skipping update installation, current version too old")
-		_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
-		return
-	}
-
-	if err := s.updater.InstallUpdate(s.newVersionInfo); err != nil {
-		if errors.Cause(err) == updater.ErrDownloadVerify {
-			s.log.WithError(err).Warning("Skipping update installation due to temporary error")
-		} else {
-			s.log.WithError(err).Error("The update couldn't be installed")
-			_ = s.SendEvent(NewUpdateErrorEvent(UpdateErrorType_UPDATE_MANUAL_ERROR))
-		}
-		return
-	}
-
-	_ = s.SendEvent(NewUpdateSilentRestartNeededEvent())
-}
-
-func (s *Service) generateTLSConfig() (tlsConfig *cryptotls.Config, pemCert []byte, err error) {
-	pemCert, pemKey, err := tls.NewPEMKeyPair()
+func newTLSConfig() (*tls.Config, []byte, error) {
+	template, err := certs.NewTLSTemplate()
 	if err != nil {
-		return nil, nil, errors.New("Could not get TLS config")
+		return nil, nil, fmt.Errorf("failed to create TLS template: %w", err)
 	}
 
-	tlsConfig, err = tls.GetConfigFromPEMKeyPair(pemCert, pemKey)
+	certPEM, keyPEM, err := certs.GenerateCert(template)
 	if err != nil {
-		return nil, nil, errors.New("Could not get TLS config")
+		return nil, nil, fmt.Errorf("failed to generate cert: %w", err)
 	}
 
-	tlsConfig.ClientAuth = cryptotls.NoClientCert // skip client auth if the certificate allow it.
+	cert, err := tls.X509KeyPair(certPEM, keyPEM)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to load cert: %w", err)
+	}
 
-	return tlsConfig, pemCert, nil
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ClientAuth:   tls.NoClientCert,
+		MinVersion:   tls.VersionTLS12,
+	}, certPEM, nil
 }
 
-func (s *Service) saveGRPCServerConfigFile() (string, error) {
-	address, ok := s.listener.Addr().(*net.TCPAddr)
-	if !ok {
-		return "", fmt.Errorf("could not retrieve gRPC service listener address")
-	}
-
-	sc := config{
-		Port:  address.Port,
-		Cert:  s.pemCert,
-		Token: s.token,
-	}
-
-	settingsPath, err := s.locations.ProvideSettingsPath()
+func saveGRPCServerConfigFile(locations Locator, config *Config) (string, error) {
+	settingsPath, err := locations.ProvideSettingsPath()
 	if err != nil {
 		return "", err
 	}
 
 	configPath := filepath.Join(settingsPath, serverConfigFileName)
 
-	return configPath, sc.save(configPath)
+	return configPath, config.save(configPath)
 }
 
 // validateServerToken verify that the server token provided by the client is valid.
-func (s *Service) validateServerToken(ctx context.Context) error {
+func validateServerToken(ctx context.Context, wantToken string) error {
 	values, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return status.Error(codes.Unauthenticated, "missing server token")
@@ -481,40 +509,86 @@ func (s *Service) validateServerToken(ctx context.Context) error {
 		return status.Error(codes.Unauthenticated, "more than one server token was provided")
 	}
 
-	if token[0] != s.token {
+	if token[0] != wantToken {
 		return status.Error(codes.Unauthenticated, "invalid server token")
 	}
 
 	return nil
 }
 
-// validateUnaryServerToken check the server token for every unary gRPC call.
-func (s *Service) validateUnaryServerToken(
-	ctx context.Context,
-	req interface{},
-	info *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler,
-) (resp interface{}, err error) {
-	if err := s.validateServerToken(ctx); err != nil {
-		return nil, err
-	}
+// newUnaryTokenValidator checks the server token for every unary gRPC call.
+func newUnaryTokenValidator(wantToken string) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		if err := validateServerToken(ctx, wantToken); err != nil {
+			return nil, err
+		}
 
-	return handler(ctx, req)
+		return handler(ctx, req)
+	}
 }
 
-// validateStreamServerToken check the server token for every gRPC stream request.
-func (s *Service) validateStreamServerToken(
-	srv interface{},
-	ss grpc.ServerStream,
-	info *grpc.StreamServerInfo,
-	handler grpc.StreamHandler,
-) error {
-	logEntry := s.log.WithField("FullMethod", info.FullMethod)
+// newStreamTokenValidator checks the server token for every gRPC stream request.
+func newStreamTokenValidator(wantToken string) grpc.StreamServerInterceptor {
+	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		if err := validateServerToken(stream.Context(), wantToken); err != nil {
+			return err
+		}
 
-	if err := s.validateServerToken(ss.Context()); err != nil {
-		logEntry.WithError(err).Error("Stream validator failed")
-		return err
+		return handler(srv, stream)
+	}
+}
+
+// monitorParentPID check at regular intervals that the parent process is still alive, and if not shuts down the server
+// and the applications.
+func (s *Service) monitorParentPID() {
+	s.log.Infof("Starting to monitor parent PID %v", s.parentPID)
+	ticker := time.NewTicker(5 * time.Second)
+
+	for {
+		select {
+		case <-ticker.C:
+			if s.parentPID < 0 {
+				continue
+			}
+
+			processes, err := sysinfo.Processes() // sysinfo.Process(pid) does not seem to work on Windows.
+			if err != nil {
+				s.log.Debug("Could not retrieve process list")
+				continue
+			}
+
+			if !xslices.Any(processes, func(p sysinfotypes.Process) bool { return p != nil && p.PID() == s.parentPID }) {
+				s.log.Info("Parent process does not exist anymore. Initiating shutdown")
+				// quit will write to the parentPIDDoneCh, so we launch a goroutine.
+				go func() {
+					if err := s.quit(); err != nil {
+						logrus.WithError(err).Error("Error on quit")
+					}
+				}()
+			}
+
+		case <-s.parentPIDDoneCh:
+			s.log.Infof("Stopping process monitoring for PID %v", s.parentPID)
+			return
+		}
+	}
+}
+
+// computeFileSocketPath Return an available path for a socket file in the temp folder.
+func computeFileSocketPath() (string, error) {
+	tempPath := os.TempDir()
+	for i := 0; i < 1000; i++ {
+		path := filepath.Join(tempPath, fmt.Sprintf("bridge_%v.sock", uuid.NewString()))
+		if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
+			return path, nil
+		}
 	}
 
-	return handler(srv, ss)
+	return "", errors.New("unable to find a suitable file socket in user config folder")
+}
+
+// useFileSocket return true iff file socket should be used for the gRPC service.
+func useFileSocket() bool {
+	//goland:noinspection GoBoolExpressions
+	return runtime.GOOS != "windows"
 }

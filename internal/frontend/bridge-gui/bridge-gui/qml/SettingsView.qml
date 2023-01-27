@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -44,6 +44,7 @@ Item {
         clip: true
 
         anchors.fill: parent
+        Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds // Disable the springy effect when scroll reaches top/bottom.
 
         Item {
             // can't use parent here because parent is not ScrollView (Flickable inside contentItem inside ScrollView)

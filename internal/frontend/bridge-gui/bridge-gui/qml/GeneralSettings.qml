@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -183,14 +183,14 @@ SettingsView {
     }
 
     SettingsItem {
-        id: smtp
+        id: imap
         visible: root._isAdvancedShown
         colorScheme: root.colorScheme
-        text: qsTr("SMTP connection mode")
+        text: qsTr("Connection mode")
         actionText: qsTr("Change")
-        description: qsTr("Change the protocol Bridge and your client use to connect.")
+        description: qsTr("Change the protocol Bridge and the email client use to connect for IMAP and SMTP.")
         type: SettingsItem.Button
-        onClicked: root.parent.showSMTPSettings()
+        onClicked: root.parent.showConnectionModeSettings()
 
         Layout.fillWidth: true
     }
@@ -206,6 +206,21 @@ SettingsView {
         onClicked: root.parent.showLocalCacheSettings()
 
         Layout.fillWidth: true
+    }
+
+    SettingsItem {
+        id: exportTLSCertificates
+        visible: root._isAdvancedShown
+        colorScheme: root.colorScheme
+        text: qsTr("Export TLS certificates")
+        actionText: qsTr("Export")
+        description: qsTr("Export the TLS private key and certificate used by the IMAP and SMTP servers.")
+        type: SettingsItem.Button
+        onClicked: {
+            Backend.exportTLSCertificates()
+        }
+        Layout.fillWidth: true
+
     }
 
     SettingsItem {

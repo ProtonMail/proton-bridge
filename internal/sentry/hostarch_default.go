@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -22,7 +22,7 @@ package sentry
 
 import "github.com/elastic/go-sysinfo"
 
-func getHostAarch() string {
+func getHostArch() string {
 	host, err := sysinfo.Host()
 	if err != nil {
 		return "not-detected"

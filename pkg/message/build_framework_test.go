@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -21,46 +21,24 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/base64"
-	"io"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/message/mocks"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/message/parser"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/encoding/htmlindex"
 )
-
-func newTestFetcher(
-	m *gomock.Controller,
-	kr *crypto.KeyRing,
-	msg *pmapi.Message,
-	attData ...[]byte,
-) Fetcher {
-	f := mocks.NewMockFetcher(m)
-
-	f.EXPECT().GetMessage(gomock.Any(), msg.ID).Return(msg, nil)
-
-	for i, att := range msg.Attachments {
-		f.EXPECT().GetAttachment(gomock.Any(), att.ID).Return(newTestReadCloser(attData[i]), nil)
-	}
-
-	f.EXPECT().KeyRingForAddressID(msg.AddressID).Return(kr, nil)
-
-	return f
-}
 
 func newTestMessage(
 	t *testing.T,
 	kr *crypto.KeyRing,
 	messageID, addressID, mimeType, body string, //nolint:unparam
 	date time.Time,
-) *pmapi.Message {
+) proton.Message {
 	enc, err := kr.Encrypt(crypto.NewPlainMessageFromString(body), kr)
 	require.NoError(t, err)
 
@@ -70,55 +48,45 @@ func newTestMessage(
 	return newRawTestMessage(messageID, addressID, mimeType, arm, date)
 }
 
-func newRawTestMessage(messageID, addressID, mimeType, body string, date time.Time) *pmapi.Message {
-	return &pmapi.Message{
-		ID:        messageID,
-		AddressID: addressID,
-		MIMEType:  mimeType,
-		Header: map[string][]string{
+func newRawTestMessage(messageID, addressID, mimeType, body string, date time.Time) proton.Message {
+	return proton.Message{
+		MessageMetadata: proton.MessageMetadata{
+			ID:        messageID,
+			AddressID: addressID,
+			Time:      date.Unix(),
+		},
+		ParsedHeaders: proton.Headers{
 			"Content-Type": {mimeType},
 			"Date":         {date.In(time.UTC).Format(time.RFC1123Z)},
 		},
-		Body: body,
-		Time: date.Unix(),
+		MIMEType: rfc822.MIMEType(mimeType),
+		Body:     body,
 	}
 }
 
 func addTestAttachment(
 	t *testing.T,
 	kr *crypto.KeyRing,
-	msg *pmapi.Message,
+	msg *proton.Message,
 	attachmentID, name, mimeType, disposition, data string,
 ) []byte {
 	enc, err := kr.EncryptAttachment(crypto.NewPlainMessageFromString(data), attachmentID+".bin")
 	require.NoError(t, err)
 
-	msg.Attachments = append(msg.Attachments, &pmapi.Attachment{
+	msg.Attachments = append(msg.Attachments, proton.Attachment{
 		ID:       attachmentID,
 		Name:     name,
-		MIMEType: mimeType,
-		Header: map[string][]string{
+		MIMEType: rfc822.MIMEType(mimeType),
+		Headers: proton.Headers{
 			"Content-Type":              {mimeType},
 			"Content-Disposition":       {disposition},
 			"Content-Transfer-Encoding": {"base64"},
 		},
-		Disposition: disposition,
+		Disposition: proton.Disposition(disposition),
 		KeyPackets:  base64.StdEncoding.EncodeToString(enc.GetBinaryKeyPacket()),
 	})
 
 	return enc.GetBinaryDataPacket()
-}
-
-type testReadCloser struct {
-	io.Reader
-}
-
-func newTestReadCloser(b []byte) *testReadCloser {
-	return &testReadCloser{Reader: bytes.NewReader(b)}
-}
-
-func (testReadCloser) Close() error {
-	return nil
 }
 
 type testSection struct {
@@ -130,21 +98,18 @@ type testSection struct {
 // NOTE: Each section is parsed individually --> cleaner test code but slower... improve this one day?
 func section(t *testing.T, b []byte, section ...int) *testSection {
 	p, err := parser.New(bytes.NewReader(b))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	part, err := p.Section(section)
 	require.NoError(t, err)
 
-	bs, err := NewBodyStructure(bytes.NewReader(b))
-	require.NoError(t, err)
-
-	raw, err := bs.GetSection(bytes.NewReader(b), section)
+	s, err := rfc822.Parse(b).Part(section...)
 	require.NoError(t, err)
 
 	return &testSection{
 		t:    t,
 		part: part,
-		raw:  raw,
+		raw:  s.Literal(),
 	}
 }
 
@@ -249,7 +214,7 @@ type isMatcher struct {
 }
 
 func (matcher isMatcher) match(t *testing.T, have string) {
-	assert.Equal(t, matcher.want, have)
+	require.Equal(t, matcher.want, have)
 }
 
 func is(want string) isMatcher {
@@ -265,7 +230,7 @@ type isNotMatcher struct {
 }
 
 func (matcher isNotMatcher) match(t *testing.T, have string) {
-	assert.NotEqual(t, matcher.notWant, have)
+	require.NotEqual(t, matcher.notWant, have)
 }
 
 func isNot(notWant string) isNotMatcher {
@@ -277,7 +242,7 @@ type containsMatcher struct {
 }
 
 func (matcher containsMatcher) match(t *testing.T, have string) {
-	assert.Contains(t, have, matcher.contains)
+	require.Contains(t, have, matcher.contains)
 }
 
 func contains(contains string) containsMatcher {
@@ -296,7 +261,7 @@ func (matcher decryptsToMatcher) match(t *testing.T, have string) {
 	dec, err := matcher.kr.Decrypt(haveMsg, nil, crypto.GetUnixTime())
 	require.NoError(t, err)
 
-	assert.Equal(t, matcher.want, string(dec.GetBinary()))
+	require.Equal(t, matcher.want, string(dec.GetBinary()))
 }
 
 func decryptsTo(kr *crypto.KeyRing, want string) decryptsToMatcher {
@@ -315,7 +280,7 @@ func (matcher decodesToMatcher) match(t *testing.T, have string) {
 	dec, err := enc.NewDecoder().String(have)
 	require.NoError(t, err)
 
-	assert.Equal(t, matcher.want, dec)
+	require.Equal(t, matcher.want, dec)
 }
 
 func decodesTo(charset string, want string) decodesToMatcher {
@@ -328,8 +293,8 @@ type verifiesAgainstMatcher struct {
 }
 
 func (matcher verifiesAgainstMatcher) match(t *testing.T, have string) {
-	assert.NoError(t, matcher.kr.VerifyDetached(
-		crypto.NewPlainMessage(bytes.TrimSuffix([]byte(have), []byte("\r\n"))),
+	require.NoError(t, matcher.kr.VerifyDetached(
+		crypto.NewPlainMessage([]byte(have)),
 		matcher.sig,
 		crypto.GetUnixTime()),
 	)
@@ -347,7 +312,7 @@ func (matcher maxLineLengthMatcher) match(t *testing.T, have string) {
 	scanner := bufio.NewScanner(strings.NewReader(have))
 
 	for scanner.Scan() {
-		assert.Less(t, len(scanner.Text()), matcher.wantMax)
+		require.Less(t, len(scanner.Text()), matcher.wantMax)
 	}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -18,10 +18,12 @@
 
 #include "AppController.h"
 #include "QMLBackend.h"
+#include "SentryUtils.h"
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/ProcessMonitor.h>
 #include <bridgepp/Log/Log.h>
+#include <sentry.h>
 
 
 using namespace bridgepp;
@@ -30,8 +32,7 @@ using namespace bridgepp;
 //****************************************************************************************************************************************************
 /// \return The AppController instance.
 //****************************************************************************************************************************************************
-AppController &app()
-{
+AppController &app() {
     static AppController app;
     return app;
 }
@@ -43,26 +44,37 @@ AppController &app()
 AppController::AppController()
     : backend_(std::make_unique<QMLBackend>())
     , grpc_(std::make_unique<GRPCClient>())
-    , log_(std::make_unique<Log>())
-{
+    , log_(std::make_unique<Log>()) {
 }
 
 
 //****************************************************************************************************************************************************
 /// \return The bridge worker, which can be null if the application was run in 'attach' mode (-a command-line switch).
 //****************************************************************************************************************************************************
-ProcessMonitor *AppController::bridgeMonitor() const
-{
-    if (!bridgeOverseer_)
+ProcessMonitor *AppController::bridgeMonitor() const {
+    if (!bridgeOverseer_) {
         return nullptr;
+    }
 
-    // null bridgeOverseer is OK, it means we run in 'attached' mode (app attached to an already runnning instance of Bridge).
+    // null bridgeOverseer is OK, it means we run in 'attached' mode (app attached to an already running instance of Bridge).
     // but if bridgeOverseer is not null, its attached worker must be a valid ProcessMonitor instance.
-    auto *monitor = dynamic_cast<ProcessMonitor*>(bridgeOverseer_->worker());
-    if (!monitor)
+    auto *monitor = dynamic_cast<ProcessMonitor *>(bridgeOverseer_->worker());
+    if (!monitor) {
         throw Exception("Could not retrieve bridge monitor");
+    }
 
     return monitor;
 }
 
 
+//****************************************************************************************************************************************************
+/// \param[in] function The function that caught the exception.
+/// \param[in] message The error message.
+//****************************************************************************************************************************************************
+void AppController::onFatalError(QString const &function, QString const &message) {
+    QString const fullMessage = QString("%1(): %2").arg(function, message);
+    reportSentryException(SENTRY_LEVEL_ERROR, "AppController got notified of a fatal error", "Exception", fullMessage.toLocal8Bit());
+    QMessageBox::critical(nullptr, tr("Error"), message);
+    log().fatal(fullMessage);
+    qApp->exit(EXIT_FAILURE);
+}

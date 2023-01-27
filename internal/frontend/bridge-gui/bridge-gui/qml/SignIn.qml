@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -208,6 +208,7 @@ FocusScope {
                 focus: true
                 Layout.fillWidth: true
                 Layout.topMargin: 24
+                validateOnEditingFinished: false
 
                 onTextChanged: {
                     // remove "invalid username / password error"
@@ -232,10 +233,10 @@ FocusScope {
                 colorScheme: root.colorScheme
                 id: passwordTextField
                 label: qsTr("Password")
-
                 Layout.fillWidth: true
                 Layout.topMargin: 8
                 echoMode: TextInput.Password
+                validateOnEditingFinished: false
 
                 onTextChanged: {
                     // remove "invalid username / password error"
@@ -259,8 +260,8 @@ FocusScope {
             Button {
                 colorScheme: root.colorScheme
                 id: signInButton
-                text: qsTr("Sign in")
-
+                text: loading ? qsTr("Signing in") : qsTr("Sign in")
+                enabled: !loading
                 Layout.fillWidth: true
                 Layout.topMargin: 24
 
@@ -278,7 +279,6 @@ FocusScope {
                     usernameTextField.enabled = false
                     passwordTextField.enabled = false
 
-                    enabled = false
                     loading = true
 
                     Backend.login(usernameTextField.text, Qt.btoa(passwordTextField.text))
@@ -288,7 +288,7 @@ FocusScope {
             Label {
                 colorScheme: root.colorScheme
                 textFormat: Text.StyledText
-                text: link("https://protonmail.com/signup", qsTr("Create or upgrade your account"))
+                text: link("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"))
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 24
                 type: Label.LabelType.Body
@@ -336,7 +336,7 @@ FocusScope {
                 id: twoFactorPasswordTextField
                 label: qsTr("Two-factor code")
                 assistiveText: qsTr("Enter the 6-digit code")
-
+                validateOnEditingFinished: false
                 Layout.fillWidth: true
                 Layout.topMargin: 32
 
@@ -357,7 +357,7 @@ FocusScope {
                 colorScheme: root.colorScheme
                 id: twoFAButton
                 text: loading ? qsTr("Authenticating") : qsTr("Authenticate")
-
+                enabled: !loading
                 Layout.fillWidth: true
                 Layout.topMargin: 24
 
@@ -369,10 +369,7 @@ FocusScope {
                     }
 
                     twoFactorPasswordTextField.enabled = false
-
-                    enabled = false
                     loading = true
-
                     Backend.login2FA(usernameTextField.text, Qt.btoa(twoFactorPasswordTextField.text))
                 }
             }
@@ -404,10 +401,10 @@ FocusScope {
                 colorScheme: root.colorScheme
                 id: secondPasswordTextField
                 label: qsTr("Mailbox password")
-
                 Layout.fillWidth: true
                 Layout.topMargin: 8 + implicitHeight + 24 + subTitle.implicitHeight
                 echoMode: TextInput.Password
+                validateOnEditingFinished: false
 
                 validator: function(str) {
                     if (str.length === 0) {
@@ -425,6 +422,7 @@ FocusScope {
                 colorScheme: root.colorScheme
                 id: secondPasswordButton
                 text: loading ? qsTr("Unlocking") : qsTr("Unlock")
+                enabled: !loading
 
                 Layout.fillWidth: true
                 Layout.topMargin: 24
@@ -437,10 +435,7 @@ FocusScope {
                     }
 
                     secondPasswordTextField.enabled = false
-
-                    enabled = false
                     loading = true
-
                     Backend.login2Password(usernameTextField.text, Qt.btoa(secondPasswordTextField.text))
                 }
             }

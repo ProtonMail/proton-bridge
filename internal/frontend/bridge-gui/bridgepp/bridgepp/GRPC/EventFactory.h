@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -24,8 +24,7 @@
 #include "GRPCUtils.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 // App events
@@ -41,7 +40,7 @@ SPStreamEvent newShowMainWindowEvent(); ///< Create a new ShowMainWindowEvent ev
 SPStreamEvent newLoginError(grpc::LoginErrorType error, QString const &message); ///< Create a new LoginError event.
 SPStreamEvent newLoginTfaRequestedEvent(QString const &username); ///< Create a new LoginTfaRequestedEvent event.
 SPStreamEvent newLoginTwoPasswordsRequestedEvent(); ///< Create a new LoginTwoPasswordsRequestedEvent event.
-SPStreamEvent newLoginFinishedEvent(QString const &userID); ///< Create a new LoginFinishedEvent event.
+SPStreamEvent newLoginFinishedEvent(QString const &userID, bool wasSignedOut); ///< Create a new LoginFinishedEvent event.
 SPStreamEvent newLoginAlreadyLoggedInEvent(QString const &userID); ///< Create a new LoginAlreadyLoggedInEvent event.
 
 // Update related events
@@ -54,16 +53,14 @@ SPStreamEvent newUpdateIsLatestVersion(); ///< Create a new UpdateIsLatestVersio
 SPStreamEvent newUpdateCheckFinished(); ///< Create a new UpdateCheckFinished event.
 
 // Cache on disk related events
-SPStreamEvent newCacheErrorEvent(grpc::CacheErrorType errorType); ///< Create a new CacheErrorEvent event.
-SPStreamEvent newCacheLocationChangeSuccessEvent(); ///< Create a new CacheLocationChangeSuccessEvent event.
-SPStreamEvent newChangeLocalCacheFinishedEvent(); ///< Create a new ChangeLocalCacheFinishedEvent event.
-SPStreamEvent newIsCacheOnDiskEnabledChanged(bool enabled); ///< Create a new IsCacheOnDiskEnabledChanged event.
-SPStreamEvent newDiskCachePathChanged(QString const &path); ///< Create a new DiskCachePathChanged event.
+SPStreamEvent newDiskCacheErrorEvent(grpc::DiskCacheErrorType errorType); ///< Create a new DiskCacheErrorEvent event.
+SPStreamEvent newDiskCachePathChangedEvent(QString const &path); ///< Create a new DiskCachePathChanged event.
+SPStreamEvent newDiskCachePathChangeFinishedEvent(); ///< Create a new DiskCachePathChangeFinishedEvent event.
 
 // Mail settings related events
-SPStreamEvent newMailSettingsErrorEvent(grpc::MailSettingsErrorType errorType); ///< Create a new MailSettingsErrorEvent event.
-SPStreamEvent newUseSslForSmtpFinishedEvent(); ///< Create a new UseSslForSmtpFinishedEvent event.
-SPStreamEvent newChangePortsFinishedEvent(); ///< Create a new ChangePortsFinishedEvent event.
+SPStreamEvent newMailServerSettingsErrorEvent(grpc::MailServerSettingsErrorType errorType); ///< Create a new MailSettingsErrorEvent event.
+SPStreamEvent newMailServerSettingsChanged(grpc::ImapSmtpSettings const &settings); ///< Create a new ConnectionModeChanged event.
+SPStreamEvent newChangeMailServerSettingsFinished(); ///< Create a new ChangeMailServerSettingsFinished event.
 
 // keychain related events
 SPStreamEvent newChangeKeychainFinishedEvent(); ///< Create a new ChangeKeychainFinishedEvent event.
@@ -81,6 +78,8 @@ SPStreamEvent newToggleSplitModeFinishedEvent(QString const &userID); ///< Creat
 SPStreamEvent newUserDisconnectedEvent(QString const &username); ///< Create a new UserDisconnectedEvent event.
 SPStreamEvent newUserChangedEvent(QString const &userID); ///< Create a new UserChangedEvent event.
 
+// Generic error event
+SPStreamEvent newGenericErrorEvent(grpc::ErrorCode errorCode); ///< Create a new GenericErrrorEvent event.
 
 } // namespace bridgepp
 

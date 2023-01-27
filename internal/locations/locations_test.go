@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -27,11 +27,15 @@ import (
 )
 
 type fakeAppDirs struct {
-	configDir, cacheDir string
+	configDir, dataDir, cacheDir string
 }
 
 func (dirs *fakeAppDirs) UserConfig() string {
 	return dirs.configDir
+}
+
+func (dirs *fakeAppDirs) UserData() string {
+	return dirs.dataDir
 }
 
 func (dirs *fakeAppDirs) UserCache() string {
@@ -43,11 +47,8 @@ func TestClearRemovesEverythingExceptLockAndUpdateFiles(t *testing.T) {
 
 	assert.NoError(t, l.Clear())
 
-	assert.FileExists(t, l.GetLockFile())
-	assert.DirExists(t, l.getSettingsPath())
 	assert.NoFileExists(t, filepath.Join(l.getSettingsPath(), "prefs.json"))
 	assert.NoDirExists(t, l.getLogsPath())
-	assert.NoDirExists(t, l.getCachePath())
 	assert.DirExists(t, l.getUpdatesPath())
 }
 
@@ -56,11 +57,9 @@ func TestClearUpdateFiles(t *testing.T) {
 
 	assert.NoError(t, l.ClearUpdates())
 
-	assert.FileExists(t, l.GetLockFile())
 	assert.DirExists(t, l.getSettingsPath())
 	assert.FileExists(t, filepath.Join(l.getSettingsPath(), "prefs.json"))
 	assert.DirExists(t, l.getLogsPath())
-	assert.DirExists(t, l.getCachePath())
 	assert.NoDirExists(t, l.getUpdatesPath())
 }
 
@@ -74,13 +73,11 @@ func TestCleanLeavesStandardLocationsUntouched(t *testing.T) {
 
 	assert.NoError(t, l.Clean())
 
-	assert.FileExists(t, l.GetLockFile())
 	assert.DirExists(t, l.getSettingsPath())
 	assert.FileExists(t, filepath.Join(l.getSettingsPath(), "prefs.json"))
 	assert.DirExists(t, l.getLogsPath())
 	assert.FileExists(t, filepath.Join(l.getLogsPath(), "log1.txt"))
 	assert.FileExists(t, filepath.Join(l.getLogsPath(), "log2.txt"))
-	assert.DirExists(t, l.getCachePath())
 	assert.DirExists(t, l.getUpdatesPath())
 }
 
@@ -103,10 +100,8 @@ func TestCleanRemovesUnexpectedFilesAndFolders(t *testing.T) {
 
 	assert.NoError(t, l.Clean())
 
-	assert.FileExists(t, l.GetLockFile())
 	assert.DirExists(t, l.getSettingsPath())
 	assert.DirExists(t, l.getLogsPath())
-	assert.DirExists(t, l.getCachePath())
 	assert.DirExists(t, l.getUpdatesPath())
 
 	assert.NoFileExists(t, filepath.Join(l.userCache, "unexpected1.txt"))
@@ -116,25 +111,39 @@ func TestCleanRemovesUnexpectedFilesAndFolders(t *testing.T) {
 	assert.NoFileExists(t, filepath.Join(l.userCache, "dir3", "dir4", "unexpected5.txt"))
 }
 
+func TestRemoveOldGoIMAPCacheFolders(t *testing.T) {
+	l := newTestLocations(t)
+
+	createFilesInDir(t,
+		l.getGoIMAPCachePath(),
+		"foo",
+		"bar",
+	)
+
+	require.FileExists(t, filepath.Join(l.getGoIMAPCachePath(), "foo"))
+	require.FileExists(t, filepath.Join(l.getGoIMAPCachePath(), "bar"))
+
+	assert.NoError(t, l.CleanGoIMAPCache())
+
+	assert.DirExists(t, l.getSettingsPath())
+	assert.DirExists(t, l.getLogsPath())
+	assert.DirExists(t, l.getUpdatesPath())
+
+	assert.NoFileExists(t, filepath.Join(l.getGoIMAPCachePath(), "foo"))
+	assert.NoFileExists(t, filepath.Join(l.getGoIMAPCachePath(), "bar"))
+	assert.NoDirExists(t, l.getGoIMAPCachePath())
+}
+
 func newFakeAppDirs(t *testing.T) *fakeAppDirs {
-	configDir, err := os.MkdirTemp("", "test-locations-config")
-	require.NoError(t, err)
-
-	cacheDir, err := os.MkdirTemp("", "test-locations-cache")
-	require.NoError(t, err)
-
 	return &fakeAppDirs{
-		configDir: configDir,
-		cacheDir:  cacheDir,
+		configDir: t.TempDir(),
+		dataDir:   t.TempDir(),
+		cacheDir:  t.TempDir(),
 	}
 }
 
 func newTestLocations(t *testing.T) *Locations {
 	l := New(newFakeAppDirs(t), "configName")
-
-	lock := l.GetLockFile()
-	createFilesInDir(t, "", lock)
-	require.FileExists(t, lock)
 
 	settings, err := l.ProvideSettingsPath()
 	require.NoError(t, err)
@@ -146,10 +155,6 @@ func newTestLocations(t *testing.T) *Locations {
 	logs, err := l.ProvideLogsPath()
 	require.NoError(t, err)
 	require.DirExists(t, logs)
-
-	cache, err := l.ProvideCachePath()
-	require.NoError(t, err)
-	require.DirExists(t, cache)
 
 	updates, err := l.ProvideUpdatesPath()
 	require.NoError(t, err)

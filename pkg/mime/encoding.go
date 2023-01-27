@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -25,12 +25,19 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/htmlindex"
 )
+
+func init() {
+	rfc822.ParseMediaType = ParseMediaType
+	proton.CharsetReader = CharsetReader
+}
 
 func CharsetReader(charset string, input io.Reader) (io.Reader, error) {
 	dec, err := SelectDecoder(charset)

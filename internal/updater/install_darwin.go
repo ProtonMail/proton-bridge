@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -24,8 +24,8 @@ import (
 	"path/filepath"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/proton-bridge/v2/internal/versioner"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/tar"
+	"github.com/ProtonMail/proton-bridge/v3/internal/versioner"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/tar"
 	"github.com/pkg/errors"
 )
 
@@ -60,4 +60,8 @@ func (i *InstallerDarwin) InstallUpdate(_ *semver.Version, r io.Reader) error {
 	newBundle := filepath.Join(tempDir, filepath.Base(oldBundle))
 
 	return syncFolders(oldBundle, newBundle)
+}
+
+func (i *InstallerDarwin) IsAlreadyInstalled(version *semver.Version) bool {
+	return false
 }

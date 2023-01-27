@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -75,11 +75,11 @@ ColumnLayout {
             onClicked: {
                 var newUserObject = Backend.userComponent.createObject(Backend)
                 newUserObject.username = Backend.loginUser.username.length > 0 ? Backend.loginUser.username : "test@protonmail.com"
-                newUserObject.loggedIn = true
+                newUserObject.state = EUserState.Connected
                 newUserObject.setupGuideSeen = true // Backend.loginUser.setupGuideSeen
 
                 Backend.loginUser.username = ""
-                Backend.loginUser.loggedIn = false
+                Backend.loginUser.state = EUserState.SignedOut
                 Backend.loginUser.setupGuideSeen = false
 
                 Backend.users.append( { object: newUserObject } )

@@ -77,7 +77,7 @@ Write-host "Running build for version $bridgeVersion - $buildConfig in $buildDir
 
 git submodule update --init --recursive $vcpkgRoot
 . $vcpkgBootstrap -disableMetrics
-. $vcpkgExe install grpc:x64-windows --clean-after-build
+. $vcpkgExe install sentry-native:x64-windows grpc:x64-windows --clean-after-build
 . $vcpkgExe upgrade --no-dry-run
 . $cmakeExe -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE="$buildConfig" `
                                        -DBRIDGE_APP_FULL_NAME="$bridgeFullName" `

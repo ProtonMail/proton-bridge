@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -27,7 +27,7 @@ import (
 
 const translatedProcDarwin = "sysctl.proc_translated"
 
-func getHostAarch() string {
+func getHostArch() string {
 	host, err := sysinfo.Host()
 	if err != nil {
 		return "not-detected"

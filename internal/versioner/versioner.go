@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -72,6 +72,10 @@ func (v *Versioner) ListVersions() (Versions, error) {
 // GetExecutableInDirectory returns the full path to the executable in the given directory, if present.
 // It returns an error if the executable is missing or does not have executable permissions set.
 func (v *Versioner) GetExecutableInDirectory(name, directory string) (string, error) {
+	return getExecutableInDirectory(name, directory)
+}
+
+func getExecutableInDirectory(name, directory string) (string, error) {
 	exe := filepath.Join(directory, getExeName(name))
 
 	if !fileExists(exe) || !fileIsExecutable(exe) {

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -17,6 +17,12 @@
 
 package versioner
 
+import "strings"
+
 func getExeName(name string) string {
+	if strings.HasSuffix(name, ".exe") {
+		return name
+	}
+
 	return name + ".exe"
 }

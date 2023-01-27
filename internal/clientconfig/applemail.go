@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -23,8 +23,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/mobileconfig"
+	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/mobileconfig"
 	"golang.org/x/sys/execabs"
 )
 
@@ -39,7 +39,8 @@ func (c *AppleMail) Configure(
 	hostname string,
 	imapPort, smtpPort int,
 	imapSSL, smtpSSL bool,
-	username, addresses, password string,
+	username, addresses string,
+	password []byte,
 ) error {
 	mc := prepareMobileConfig(hostname, imapPort, smtpPort, imapSSL, smtpSSL, username, addresses, password)
 
@@ -65,7 +66,8 @@ func prepareMobileConfig(
 	hostname string,
 	imapPort, smtpPort int,
 	imapSSL, smtpSSL bool,
-	username, addresses, password string,
+	username, addresses string,
+	password []byte,
 ) *mobileconfig.Config {
 	return &mobileconfig.Config{
 		DisplayName:  username,
@@ -76,13 +78,14 @@ func prepareMobileConfig(
 			Port:     imapPort,
 			TLS:      imapSSL,
 			Username: username,
-			Password: password,
+			Password: string(password),
 		},
 		SMTP: &mobileconfig.SMTP{
 			Hostname: hostname,
 			Port:     smtpPort,
 			TLS:      smtpSSL,
 			Username: username,
+			Password: string(password),
 		},
 	}
 }

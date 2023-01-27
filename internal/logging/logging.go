@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -18,16 +18,17 @@
 package logging
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/sirupsen/logrus"
-	"github.com/sirupsen/logrus/hooks/writer"
 )
 
 const (
@@ -45,21 +46,50 @@ const (
 	MaxLogs = 3
 )
 
-func Init(logsPath string) error {
+type coloredStdOutHook struct {
+	formatter logrus.Formatter
+}
+
+func newColoredStdOutHook() *coloredStdOutHook {
+	return &coloredStdOutHook{
+		formatter: &logrus.TextFormatter{
+			ForceColors:     true,
+			FullTimestamp:   true,
+			TimestampFormat: time.StampMilli,
+		},
+	}
+}
+
+func (cs *coloredStdOutHook) Levels() []logrus.Level {
+	return []logrus.Level{
+		logrus.PanicLevel,
+		logrus.FatalLevel,
+		logrus.ErrorLevel,
+		logrus.WarnLevel,
+	}
+}
+
+func (cs *coloredStdOutHook) Fire(entry *logrus.Entry) error {
+	bytes, err := cs.formatter.Format(entry)
+	if err != nil {
+		return err
+	}
+
+	if _, err := os.Stdout.Write(bytes); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func Init(logsPath, level string) error {
 	logrus.SetFormatter(&logrus.TextFormatter{
-		ForceColors:     true,
+		DisableColors:   true,
 		FullTimestamp:   true,
 		TimestampFormat: time.StampMilli,
 	})
-	logrus.AddHook(&writer.Hook{
-		Writer: os.Stderr,
-		LogLevels: []logrus.Level{
-			logrus.PanicLevel,
-			logrus.FatalLevel,
-			logrus.ErrorLevel,
-			logrus.WarnLevel,
-		},
-	})
+
+	logrus.AddHook(newColoredStdOutHook())
 
 	rotator, err := NewRotator(MaxLogSize, func() (io.WriteCloser, error) {
 		// Leaving MaxLogs-1 since new log file will be opened right away.
@@ -74,30 +104,82 @@ func Init(logsPath string) error {
 	}
 
 	logrus.SetOutput(rotator)
-	return nil
+
+	return setLevel(level)
 }
 
-// SetLevel will change the level of logging and in case of Debug or Trace
+// setLevel will change the level of logging and in case of Debug or Trace
 // level it will also prevent from writing to file. Setting level to Info or
 // higher will not set writing to file again if it was previously cancelled by
 // Debug or Trace.
-func SetLevel(level string) {
-	if lvl, err := logrus.ParseLevel(level); err == nil {
-		logrus.SetLevel(lvl)
+func setLevel(level string) error {
+	if level == "" {
+		return nil
 	}
 
-	if logrus.GetLevel() == logrus.DebugLevel || logrus.GetLevel() == logrus.TraceLevel {
-		// The hook to print panic, fatal and error to stderr is always
-		// added. We want to avoid log duplicates by replacing all hooks
+	logLevel, err := logrus.ParseLevel(level)
+	if err != nil {
+		return err
+	}
+
+	logrus.SetLevel(logLevel)
+
+	// The hook to print panic, fatal and error to stderr is always
+	// added. We want to avoid log duplicates by replacing all hooks.
+	if logrus.GetLevel() == logrus.TraceLevel {
 		_ = logrus.StandardLogger().ReplaceHooks(logrus.LevelHooks{})
 		logrus.SetOutput(os.Stderr)
+		logrus.SetFormatter(&logrus.TextFormatter{
+			FullTimestamp:   true,
+			TimestampFormat: time.StampMilli,
+		})
 	}
+
+	return nil
 }
 
 func getLogName(version, revision string) string {
 	return fmt.Sprintf("v%v_%v_%v.log", version, revision, time.Now().Unix())
 }
 
+func getLogTime(name string) int {
+	re := regexp.MustCompile(`^v.*_.*_(?P<timestamp>\d+).log$`)
+
+	timestamp, err := strconv.Atoi(re.FindStringSubmatch(name)[re.SubexpIndex("timestamp")])
+	if err != nil {
+		return 0
+	}
+
+	return timestamp
+}
+
 func MatchLogName(name string) bool {
 	return regexp.MustCompile(`^v.*\.log$`).MatchString(name)
+}
+
+func MatchGUILogName(name string) bool {
+	return regexp.MustCompile(`^gui_v.*\.log$`).MatchString(name)
+}
+
+type logKey string
+
+const logrusFields = logKey("logrus")
+
+func WithLogrusField(ctx context.Context, key string, value interface{}) context.Context {
+	fields, ok := ctx.Value(logrusFields).(logrus.Fields)
+	if !ok || fields == nil {
+		fields = logrus.Fields{}
+	}
+
+	fields[key] = value
+	return context.WithValue(ctx, logrusFields, fields)
+}
+
+func LogFromContext(ctx context.Context) *logrus.Entry {
+	fields, ok := ctx.Value(logrusFields).(logrus.Fields)
+	if !ok || fields == nil {
+		return logrus.WithField("ctx", "empty")
+	}
+
+	return logrus.WithFields(fields)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -96,16 +96,6 @@ Item {
 
     NotificationDialog {
         colorScheme: root.colorScheme
-        notification: root.notifications.disableLocalCache
-    }
-
-    NotificationDialog {
-        colorScheme: root.colorScheme
-        notification: root.notifications.enableLocalCache
-    }
-
-    NotificationDialog {
-        colorScheme: root.colorScheme
         notification: root.notifications.resetBridge
     }
 
@@ -137,5 +127,10 @@ Item {
     NotificationDialog {
         colorScheme: root.colorScheme
         notification: root.notifications.noActiveKeyForRecipient
+    }
+
+    NotificationDialog {
+        colorScheme: root.colorScheme
+        notification: root.notifications.genericError
     }
 }

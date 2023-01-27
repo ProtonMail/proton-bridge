@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -17,19 +17,18 @@
 
 
 #include "Log.h"
+#include "../Exception/Exception.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
-namespace
-{
+namespace {
 
 Log *qtHandlerLog { nullptr }; ///< The log instance handling qt logs.
 QMutex qtHandlerMutex; ///< A mutex used to access qtHandlerLog.
 
-// Mapping of log levels to string. Maybe used to lookup using both side a a key, so a list of pair is more convenient that a map.
+// Mapping of log levels to string. Maybe used to lookup using both side a key, so a list of pair is more convenient that a map.
 QList<QPair<Log::Level, QString>> const logLevelStrings {
     { Log::Level::Panic, "panic", },
     { Log::Level::Fatal, "fatal", },
@@ -44,8 +43,7 @@ QList<QPair<Log::Level, QString>> const logLevelStrings {
 //****************************************************************************************************************************************************
 /// \param[in] log The log handling qt log entries. Can be null.
 //****************************************************************************************************************************************************
-void setQtMessageHandlerLog(Log *log)
-{
+void setQtMessageHandlerLog(Log *log) {
     QMutexLocker locker(&qtHandlerMutex);
     qtHandlerLog = log;
 }
@@ -54,8 +52,7 @@ void setQtMessageHandlerLog(Log *log)
 //****************************************************************************************************************************************************
 /// \return The log handling qt log entries. Can be null.
 //****************************************************************************************************************************************************
-Log *qtMessageHandlerLog()
-{
+Log *qtMessageHandlerLog() {
     QMutexLocker locker(&qtHandlerMutex);
     return qtHandlerLog;
 }
@@ -65,13 +62,12 @@ Log *qtMessageHandlerLog()
 /// \param[in] type The message type.
 /// \param[in] message The message.
 //****************************************************************************************************************************************************
-void qtMessageHandler(QtMsgType type, QMessageLogContext const &, QString const &message)
-{
+void qtMessageHandler(QtMsgType type, QMessageLogContext const &, QString const &message) {
     Log *log = qtMessageHandlerLog();
-    if (!log)
+    if (!log) {
         return;
-    switch (type)
-    {
+    }
+    switch (type) {
     case QtDebugMsg:
         log->debug(message);
         break;
@@ -95,15 +91,14 @@ void qtMessageHandler(QtMsgType type, QMessageLogContext const &, QString const 
 
 
 //****************************************************************************************************************************************************
-/// \brief return a string representing the log entry
+/// \brief return a string representing the log entry, in a format similar to the one used by logrus.
 ///
 /// \param[in] level The log entry level.
 /// \param[in] message The log entry message.
 /// \return The string for the log entry
 //****************************************************************************************************************************************************
-QString Log::logEntryToString(Log::Level level, QString const &message)
-{
-    return QString("[%1] %2").arg(levelToString(level).toUpper(), message);
+QString Log::logEntryToString(Log::Level level, QDateTime const &dateTime, QString const &message) {
+    return QString("%1[%2] %3").arg(levelToString(level).left(4).toUpper(), dateTime.toString("MMM dd HH:mm:ss.zzz"), message);
 }
 
 
@@ -111,8 +106,7 @@ QString Log::logEntryToString(Log::Level level, QString const &message)
 /// \param[in] level The level.
 /// \return A string describing the level.
 //****************************************************************************************************************************************************
-QString Log::levelToString(Log::Level level)
-{
+QString Log::levelToString(Log::Level level) {
     QList<QPair<Log::Level, QString>>::const_iterator it = std::find_if(logLevelStrings.begin(), logLevelStrings.end(),
         [&level](QPair<Log::Level, QString> const &pair) -> bool {
             return pair.first == level;
@@ -128,16 +122,16 @@ QString Log::levelToString(Log::Level level)
 /// \param[out] outLevel The log level parsed. if not found, the value of the variable is not modified.
 /// \return true iff parsing was successful.
 //****************************************************************************************************************************************************
-bool Log::stringToLevel(QString const &str, Log::Level &outLevel)
-{
+bool Log::stringToLevel(QString const &str, Log::Level &outLevel) {
     QList<QPair<Log::Level, QString>>::const_iterator it = std::find_if(logLevelStrings.begin(), logLevelStrings.end(),
         [&str](QPair<Log::Level, QString> const &pair) -> bool {
             return 0 == QString::compare(str, pair.second, Qt::CaseInsensitive);
         });
 
     bool const found = (it != logLevelStrings.end());
-    if (found)
+    if (found) {
         outLevel = it->first;
+    }
 
     return found;
 }
@@ -146,8 +140,7 @@ bool Log::stringToLevel(QString const &str, Log::Level &outLevel)
 //****************************************************************************************************************************************************
 /// the message handle process the message from the Qt logging system.
 //****************************************************************************************************************************************************
-void Log::registerAsQtMessageHandler()
-{
+void Log::registerAsQtMessageHandler() {
     setQtMessageHandlerLog(this);
     qInstallMessageHandler(qtMessageHandler);
 }
@@ -159,16 +152,14 @@ void Log::registerAsQtMessageHandler()
 Log::Log()
     : QObject()
     , stdout_(stdout)
-    , stderr_(stderr)
-{
+    , stderr_(stderr) {
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] level The log level.
 //****************************************************************************************************************************************************
-void Log::setLevel(Log::Level level)
-{
+void Log::setLevel(Log::Level level) {
     QMutexLocker locker(&mutex_);
     level_ = level;
 }
@@ -177,8 +168,7 @@ void Log::setLevel(Log::Level level)
 //****************************************************************************************************************************************************
 /// \return The log level.
 //****************************************************************************************************************************************************
-Log::Level Log::level() const
-{
+Log::Level Log::level() const {
     QMutexLocker locker(&mutex_);
     return level_;
 }
@@ -187,8 +177,7 @@ Log::Level Log::level() const
 //****************************************************************************************************************************************************
 /// \param[in] value Should the log entries be sent to STDOUT/STDERR.
 //****************************************************************************************************************************************************
-void Log::setEchoInConsole(bool value)
-{
+void Log::setEchoInConsole(bool value) {
     QMutexLocker locker(&mutex_);
     echoInConsole_ = value;
 }
@@ -197,18 +186,45 @@ void Log::setEchoInConsole(bool value)
 //****************************************************************************************************************************************************
 /// \return true iff the log entries be should sent to STDOUT/STDERR.
 //****************************************************************************************************************************************************
-bool Log::echoInConsole() const
-{
+bool Log::echoInConsole() const {
     QMutexLocker locker(&mutex_);
     return echoInConsole_;
 }
 
 
 //****************************************************************************************************************************************************
+/// \param[in] path The path of the file to write to.
+/// \param[out] outError if an error occurs and this pointer in not null, on exit it contains a description of the error.
+/// \return true if and only if the operation was successful.
+//****************************************************************************************************************************************************
+bool Log::startWritingToFile(QString const &path, QString *outError) {
+    QMutexLocker locker(&mutex_);
+    file_ = std::make_unique<QFile>(path);
+    if (file_->open(QIODevice::WriteOnly | QIODevice::Text)) {
+        return true;
+    }
+
+    if (outError) {
+        *outError = QString("Could not open log file '%1' for writing.");
+    }
+    file_.reset();
+    return false;
+}
+
+
+//****************************************************************************************************************************************************
+///
+//****************************************************************************************************************************************************
+void Log::stopWritingToFile() {
+    QMutexLocker locker(&mutex_);
+    file_.reset();
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] message The message.
 //****************************************************************************************************************************************************
-void Log::panic(QString const &message)
-{
+void Log::panic(QString const &message) {
     return this->addEntry(Level::Panic, message);
 }
 
@@ -216,8 +232,7 @@ void Log::panic(QString const &message)
 //****************************************************************************************************************************************************
 /// \param[in] message The message.
 //****************************************************************************************************************************************************
-void Log::fatal(QString const &message)
-{
+void Log::fatal(QString const &message) {
     return this->addEntry(Level::Fatal, message);
 }
 
@@ -225,8 +240,7 @@ void Log::fatal(QString const &message)
 //****************************************************************************************************************************************************
 /// \param[in] message The message.
 //****************************************************************************************************************************************************
-void Log::error(QString const &message)
-{
+void Log::error(QString const &message) {
     return this->addEntry(Level::Error, message);
 }
 
@@ -234,8 +248,7 @@ void Log::error(QString const &message)
 //****************************************************************************************************************************************************
 /// \param[in] message The message.
 //****************************************************************************************************************************************************
-void Log::warn(QString const &message)
-{
+void Log::warn(QString const &message) {
     return this->addEntry(Level::Warn, message);
 }
 
@@ -243,8 +256,7 @@ void Log::warn(QString const &message)
 //****************************************************************************************************************************************************
 /// \param[in] message The message.
 //****************************************************************************************************************************************************
-void Log::info(QString const &message)
-{
+void Log::info(QString const &message) {
     return this->addEntry(Level::Info, message);
 }
 
@@ -252,8 +264,7 @@ void Log::info(QString const &message)
 //****************************************************************************************************************************************************
 /// \param[in] message The message.
 //****************************************************************************************************************************************************
-void Log::debug(QString const &message)
-{
+void Log::debug(QString const &message) {
     return this->addEntry(Level::Debug, message);
 }
 
@@ -261,8 +272,7 @@ void Log::debug(QString const &message)
 //****************************************************************************************************************************************************
 /// \param[in] message The message.
 //****************************************************************************************************************************************************
-void Log::trace(QString const &message)
-{
+void Log::trace(QString const &message) {
     return this->addEntry(Level::Trace, message);
 }
 
@@ -271,18 +281,29 @@ void Log::trace(QString const &message)
 /// \param[in] level The level.
 /// \param[in] message The message.
 //****************************************************************************************************************************************************
-void Log::addEntry(Log::Level level, QString const &message)
-{
+void Log::addEntry(Log::Level level, QString const &message) {
+    QDateTime const dateTime = QDateTime::currentDateTime();
     QMutexLocker locker(&mutex_);
-    if (qint32(level) > qint32(level_))
+    if (qint32(level) > qint32(level_)) {
         return;
+    }
+
     emit entryAdded(level, message);
 
-    if (echoInConsole_)
-    {
+    if (!(echoInConsole_ || file_)) {
+        return;
+    }
+
+    QString const entryStr = logEntryToString(level, dateTime, message) + "\n";
+    if (echoInConsole_) {
         QTextStream &stream = (qint32(level) <= (qint32(Level::Warn))) ? stderr_ : stdout_;
-        stream << logEntryToString(level, message) << "\n";
+        stream << entryStr;
         stream.flush();
+    }
+
+    if (file_) {
+        file_->write(entryStr.toLocal8Bit());
+        file_->flush();
     }
 }
 

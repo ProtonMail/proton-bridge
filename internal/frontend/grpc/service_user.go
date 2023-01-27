@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -19,10 +19,8 @@ package grpc
 
 import (
 	"context"
-	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/users"
-	"github.com/sirupsen/logrus"
+	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -75,17 +73,23 @@ func (s *Service) SetUserSplitMode(ctx context.Context, splitMode *UserSplitMode
 		defer s.panicHandler.HandlePanic()
 		defer func() { _ = s.SendEvent(NewUserToggleSplitModeFinishedEvent(splitMode.UserID)) }()
 
-		var targetMode users.AddressMode
+		var targetMode vault.AddressMode
 
-		if splitMode.Active && user.Mode == users.CombinedMode {
-			targetMode = users.SplitMode
-		} else if !splitMode.Active && user.Mode == users.SplitMode {
-			targetMode = users.CombinedMode
+		if splitMode.Active {
+			targetMode = vault.SplitMode
+		} else {
+			targetMode = vault.CombinedMode
 		}
 
-		if err := s.bridge.SetAddressMode(user.ID, targetMode); err != nil {
-			logrus.WithError(err).Error("Failed to set address mode")
+		if user.AddressMode == targetMode {
+			return
 		}
+
+		if err := s.bridge.SetAddressMode(context.Background(), user.UserID, targetMode); err != nil {
+			s.log.WithError(err).Error("Failed to set address mode")
+		}
+
+		s.log.WithField("userID", user.UserID).WithField("mode", targetMode).Info("Address mode changed")
 	}()
 
 	return &emptypb.Empty{}, nil
@@ -101,8 +105,8 @@ func (s *Service) LogoutUser(ctx context.Context, userID *wrapperspb.StringValue
 	go func() {
 		defer s.panicHandler.HandlePanic()
 
-		if err := s.bridge.LogoutUser(userID.Value); err != nil {
-			logrus.WithError(err).Error("Failed to log user out")
+		if err := s.bridge.LogoutUser(context.Background(), userID.Value); err != nil {
+			s.log.WithError(err).Error("Failed to log user out")
 		}
 	}()
 
@@ -116,7 +120,7 @@ func (s *Service) RemoveUser(ctx context.Context, userID *wrapperspb.StringValue
 		defer s.panicHandler.HandlePanic()
 
 		// remove preferences
-		if err := s.bridge.DeleteUser(userID.Value, false); err != nil {
+		if err := s.bridge.DeleteUser(context.Background(), userID.Value); err != nil {
 			s.log.WithError(err).Error("Failed to remove user")
 			// notification
 		}
@@ -127,17 +131,16 @@ func (s *Service) RemoveUser(ctx context.Context, userID *wrapperspb.StringValue
 func (s *Service) ConfigureUserAppleMail(ctx context.Context, request *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
 	s.log.WithField("UserID", request.UserID).WithField("Address", request.Address).Debug("ConfigureUserAppleMail")
 
-	restart, err := s.bridge.ConfigureAppleMail(request.UserID, request.Address)
-	if err != nil {
+	sslWasEnabled := s.bridge.GetSMTPSSL()
+
+	if err := s.bridge.ConfigureAppleMail(request.UserID, request.Address); err != nil {
 		s.log.WithField("userID", request.UserID).Error("Cannot configure AppleMail for user")
 		return nil, status.Error(codes.Internal, "Apple Mail config failed")
 	}
 
-	// There is delay needed for external window to open.
-	if restart {
-		s.log.Warn("Detected Catalina or newer with bad SMTP SSL settings, now using SSL, bridge needs to restart")
-		time.Sleep(2 * time.Second)
-		return s.Restart(ctx, &emptypb.Empty{})
+	if s.bridge.GetSMTPSSL() != sslWasEnabled {
+		// we've changed SMTP SSL settings. This will happen if SSL was off and macOS >= Catalina. We must inform gRPC clients.
+		_ = s.SendEvent(NewMailServerSettingsChangedEvent(s.getMailServerSettings()))
 	}
 
 	return &emptypb.Empty{}, nil

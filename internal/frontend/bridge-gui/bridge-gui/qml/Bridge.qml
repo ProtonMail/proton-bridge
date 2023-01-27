@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -55,7 +55,7 @@ QtObject {
 
         Connections {
             target: Backend
-            function onCacheUnavailable() {
+            function onDiskCacheUnavailable() {
                 mainWindow.showAndRise()
             }
             function onColorSchemeNameChanged(scheme) { root.setColorScheme() }
@@ -276,7 +276,7 @@ QtObject {
         }
 
         if (u) {
-            if (c === 1 && u.loggedIn === false) {
+            if (c === 1 && (u.state === EUserState.SignedOut)) {
                 mainWindow.showAndRise()
             }
         }

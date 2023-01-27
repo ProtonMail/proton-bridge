@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -27,6 +27,8 @@ SettingsView {
     fillHeight: true
 
     property var selectedAddress
+
+    signal bugReportWasSent()
 
     Label {
         text: qsTr("Report a problem")
@@ -61,7 +63,7 @@ SettingsView {
         }
 
         onTextChanged: {
-            // Rise max length error imidiatly while typing
+            // Rise max length error immediately while typing
             if (description.text.length > description._maxLength) {
                 validate()
             }
@@ -148,7 +150,7 @@ SettingsView {
         id: sendButton
         text: qsTr("Send")
         colorScheme: root.colorScheme
-
+        enabled: !loading
         onClicked: {
             description.validate()
             address.validate()
@@ -164,6 +166,7 @@ SettingsView {
         Connections {
             target: Backend
             function onReportBugFinished() { sendButton.loading = false }
+            function onBugReportSendSuccess() { root.bugReportWasSent() }
         }
     }
 

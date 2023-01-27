@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -13,48 +13,18 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-// Package events provides names of events used by the event listener in bridge.
 package events
 
-import (
-	"time"
+import "fmt"
 
-	"github.com/ProtonMail/proton-bridge/v2/pkg/listener"
-)
+type Event interface {
+	fmt.Stringer
 
-// Constants of events used by the event listener in bridge.
-const (
-	ErrorEvent                   = "error"
-	CredentialsErrorEvent        = "credentialsError"
-	CloseConnectionEvent         = "closeConnection"
-	LogoutEvent                  = "logout"
-	AddressChangedEvent          = "addressChanged"
-	AddressChangedLogoutEvent    = "addressChangedLogout"
-	UserRefreshEvent             = "userRefresh"
-	RestartBridgeEvent           = "restartBridge"
-	InternetConnChangedEvent     = "internetChanged"
-	InternetOff                  = "internetOff"
-	InternetOn                   = "internetOn"
-	SecondInstanceEvent          = "secondInstance"
-	NoActiveKeyForRecipientEvent = "noActiveKeyForRecipient"
-	UpgradeApplicationEvent      = "upgradeApplication"
-	TLSCertIssue                 = "tlsCertPinningIssue"
-	UserChangeDone               = "QMLUserChangedDone"
-
-	// LogoutEventTimeout is the minimum time to permit between logout events being sent.
-	LogoutEventTimeout = 3 * time.Minute
-)
-
-// SetupEvents specific to event type and data.
-func SetupEvents(listener listener.Listener) {
-	listener.SetLimit(LogoutEvent, LogoutEventTimeout)
-	listener.SetBuffer(ErrorEvent)
-	listener.SetBuffer(CredentialsErrorEvent)
-	listener.SetBuffer(InternetConnChangedEvent)
-	listener.SetBuffer(UpgradeApplicationEvent)
-	listener.SetBuffer(TLSCertIssue)
-	listener.SetBuffer(UserRefreshEvent)
-	listener.Book(UserChangeDone)
+	_isEvent()
 }
+
+type eventBase struct{}
+
+func (eventBase) _isEvent() {}

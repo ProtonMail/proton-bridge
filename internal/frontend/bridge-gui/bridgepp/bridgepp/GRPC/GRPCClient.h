@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -23,12 +23,12 @@
 #include "../User/User.h"
 #include "../Log/Log.h"
 #include "GRPCConfig.h"
+#include "GRPCErrors.h"
 #include "bridge.grpc.pb.h"
 #include "grpc++/grpc++.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 typedef grpc::Status (grpc::Bridge::Stub::*SimpleMethod)(grpc::ClientContext *, const google::protobuf::Empty &, google::protobuf::Empty *);
@@ -45,12 +45,11 @@ typedef std::unique_ptr<grpc::ClientContext> UPClientContext;
 //****************************************************************************************************************************************************
 /// \brief gRPC client class. This class encapsulate the gRPC service, abstracting all data type conversions.
 //****************************************************************************************************************************************************
-class GRPCClient : public QObject
-{
+class GRPCClient : public QObject {
 Q_OBJECT
 public: // static member functions
     static void removeServiceConfigFile(); ///< Delete the service config file.
-    static GRPCConfig waitAndRetrieveServiceConfig(qint64 timeoutMs); ///< Wait and retrieve the service configuration.
+    static GRPCConfig waitAndRetrieveServiceConfig(qint64 timeoutMs, class ProcessMonitor *serverProcess); ///< Wait and retrieve the service configuration.
 
 public: // member functions.
     GRPCClient() = default; ///< Default constructor.
@@ -60,7 +59,7 @@ public: // member functions.
     GRPCClient &operator=(GRPCClient const &) = delete; ///< Disabled assignment operator.
     GRPCClient &operator=(GRPCClient &&) = delete; ///< Disabled move assignment operator.
     void setLog(Log *log); ///< Set the log for the client.
-    bool connectToServer(GRPCConfig const &config, QString &outError); ///< Establish connection to the gRPC server.
+    bool connectToServer(GRPCConfig const &config, class ProcessMonitor *serverProcess, QString &outError); ///< Establish connection to the gRPC server.
 
     grpc::Status checkTokens(QString const &clientConfigPath, QString &outReturnedClientToken); ///< Performs a token check.
     grpc::Status addLogEntry(Log::Level level, QString const &package, QString const &message); ///< Performs the "AddLogEntry" gRPC call.
@@ -76,6 +75,7 @@ public: // member functions.
     grpc::Status setColorSchemeName(QString const &name); ///< Performs the "setColorSchemeName' gRPC call.
     grpc::Status currentEmailClient(QString &outName); ///< Performs the 'currentEmailClient' gRPC call.
     grpc::Status reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs); ///< Performs the 'ReportBug' gRPC call.
+    grpc::Status exportTLSCertificates(QString const &folderPath); ///< Performs the 'ExportTLSCertificates' gRPC call.
     grpc::Status quit(); ///< Perform the "Quit" gRPC call.
     grpc::Status restart(); ///< Performs the Restart gRPC call.
     grpc::Status triggerReset(); ///< Performs the triggerReset gRPC call.
@@ -104,34 +104,32 @@ signals: // app related signals
 
     // cache related calls
 public:
-    grpc::Status isCacheOnDiskEnabled(bool &outEnabled); ///< Performs the 'isCacheOnDiskEnabled' call.
     grpc::Status diskCachePath(QUrl &outPath); ///< Performs the 'diskCachePath' call.
-    grpc::Status changeLocalCache(bool enabled, QUrl const &path); ///< Performs the 'ChangeLocalCache' call.
-signals:
-    void isCacheOnDiskEnabledChanged(bool enabled);
-    void diskCachePathChanged(QUrl const &outPath);
-    void cacheUnavailable();                                                                                            //    _ func()                  `signal:"cacheUnavailable"`
-    void cacheCantMove();                                                                                               //    _ func()                  `signal:"cacheCantMove"`
-    void cacheLocationChangeSuccess();                                                                                  //    _ func()                  `signal:"cacheLocationChangeSuccess"`
-    void diskFull();                                                                                                    //    _ func()                  `signal:"diskFull"`
-    void changeLocalCacheFinished(bool willRestart);                                                                                    //    _ func()                  `signal:"changeLocalCacheFinished"`
+    grpc::Status setDiskCachePath(QUrl const &path); ///< Performs the 'setDiskCachePath' call
 
+signals:
+    void diskCacheUnavailable();
+    void cantMoveDiskCache();
+    void diskFull();
+    void diskCachePathChanged(QUrl const &path);
+    void diskCachePathChangeFinished();
 
     // mail settings related calls
 public:
-    grpc::Status useSSLForSMTP(bool &outUseSSL); ///< Performs the 'useSSLForSMTP' gRPC call
-    grpc::Status setUseSSLForSMTP(bool useSSL); ///< Performs the 'currentEmailClient' gRPC call.
-    grpc::Status portIMAP(int &outPort); ///< Performs the 'portImap' gRPC call.
-    grpc::Status portSMTP(int &outPort); ///< Performs the 'portImap' gRPC call.
-    grpc::Status changePorts(int portIMAP, int portSMTP); ///< Performs the 'changePorts' gRPC call.
+    grpc::Status mailServerSettings(qint32 &outIMAPPort, qint32 &outSMTPPort, bool &outUseSSLForIMAP, bool &outUseSSLForSMTP); ///< Performs the 'MailServerSettings' gRPC call.
+    grpc::Status setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Performs the 'SetMailServerSettings' gRPC call.
     grpc::Status isDoHEnabled(bool &outEnabled); ///< Performs the 'isDoHEnabled' gRPC call.
     grpc::Status setIsDoHEnabled(bool enabled); ///< Performs the 'setIsDoHEnabled' gRPC call.
 
 signals:
-    void portIssueIMAP();
-    void portIssueSMTP();
-    void toggleUseSSLFinished();
-    void changePortFinished();
+    void imapPortStartupError();
+    void smtpPortStartupError();
+    void imapPortChangeError();
+    void smtpPortChangeError();
+    void imapConnectionModeChangeError();
+    void smtpConnectionModeChangeError();
+    void mailServerSettingsChanged(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP);
+    void changeMailServerSettingsFinished();
 
 public: // login related calls
     grpc::Status login(QString const &username, QString const &password); ///< Performs the 'login' call.
@@ -140,17 +138,17 @@ public: // login related calls
     grpc::Status loginAbort(QString const &username); ///< Performs the 'loginAbort' call.
 
 signals:
-    void loginUsernamePasswordError(QString const &errMsg);                                                             //    _ func(errorMsg string)   `signal:"loginUsernamePasswordError"`
-    void loginFreeUserError();                                                                                          //    _ func()                  `signal:"loginFreeUserError"`
-    void loginConnectionError(QString const &errMsg);                                                                   //    _ func(errorMsg string)   `signal:"loginConnectionError"`
-    void login2FARequested(QString const &userName);                                                                    //    _ func(username string)   `signal:"login2FARequested"`
-    void login2FAError(QString const &errMsg);                                                                          //    _ func(errorMsg string)   `signal:"login2FAError"`
-    void login2FAErrorAbort(QString const &errMsg);                                                                     //    _ func(errorMsg string)   `signal:"login2FAErrorAbort"`
-    void login2PasswordRequested();                                                                                     //    _ func()                  `signal:"login2PasswordRequested"`
-    void login2PasswordError(QString const &errMsg);                                                                    //    _ func(errorMsg string)   `signal:"login2PasswordError"`
-    void login2PasswordErrorAbort(QString const &errMsg);                                                               //    _ func(errorMsg string)   `signal:"login2PasswordErrorAbort"`
-    void loginFinished(QString const &userID);                                                                         //    _ func(index int)         `signal:"loginFinished"`
-    void loginAlreadyLoggedIn(QString const &userID);                                                                  //    _ func(index int)         `signal:"loginAlreadyLoggedIn"`
+    void loginUsernamePasswordError(QString const &errMsg);
+    void loginFreeUserError();
+    void loginConnectionError(QString const &errMsg);
+    void login2FARequested(QString const &userName);
+    void login2FAError(QString const &errMsg);
+    void login2FAErrorAbort(QString const &errMsg);
+    void login2PasswordRequested();
+    void login2PasswordError(QString const &errMsg);
+    void login2PasswordErrorAbort(QString const &errMsg);
+    void loginFinished(QString const &userID, bool wasSignedOut);
+    void loginAlreadyLoggedIn(QString const &userID);
 
 public: // Update related calls
     grpc::Status checkUpdate();
@@ -183,7 +181,6 @@ signals:
     void userDisconnected(QString const &username);
     void userChanged(QString const &userID);
 
-
 public: // keychain related calls
     grpc::Status availableKeychains(QStringList &outKeychains);
     grpc::Status currentKeychain(QString &outKeychain);
@@ -196,10 +193,13 @@ signals:
     void certIsReady();
 
 signals: // mail related events
-    void noActiveKeyForRecipient(QString const &email);                                                                 //    _ func(email string)      `signal:noActiveKeyForRecipient`
-    void addressChanged(QString const &address);                                                                        //    _ func(address string)    `signal:addressChanged`
-    void addressChangedLogout(QString const &address);                                                                  //    _ func(address string)    `signal:addressChangedLogout`
+    void noActiveKeyForRecipient(QString const &email);
+    void addressChanged(QString const &address);
+    void addressChangedLogout(QString const &address);
     void apiCertIssue();
+
+signals: // errors events
+    void genericError(ErrorInfo info);
 
 public:
     bool isEventStreamActive() const; ///< Check if the event stream is active.
@@ -207,10 +207,12 @@ public:
     grpc::Status stopEventStreamReader(); ///< Stop the event stream.
 
 private:
-    void log(Log::Level level, QString const & message); ///< Log an event.
+    void log(Log::Level level, QString const &message); ///< Log an event.
     void logTrace(QString const &message); ///< Log a trace event.
     void logDebug(QString const &message); ///< Log a debug event.
     void logError(QString const &message); ///< Log an error event.
+    void logInfo(QString const &message); ///< Log an info event.
+
     grpc::Status logGRPCCallStatus(grpc::Status const &status, QString const &callName, QList<grpc::StatusCode> allowedErrors = {}); ///< Log the status of a gRPC code.
     grpc::Status simpleMethod(SimpleMethod method); ///< perform a gRPC call to a bool setter.
     grpc::Status setBool(BoolSetter setter, bool value); ///< perform a gRPC call to a bool setter.
@@ -227,11 +229,12 @@ private:
     void processAppEvent(grpc::AppEvent const &event); ///< Process an 'App' event.
     void processLoginEvent(grpc::LoginEvent const &event); ///< Process a 'Login' event.
     void processUpdateEvent(grpc::UpdateEvent const &event); ///< Process an 'Update' event.
-    void processCacheEvent(grpc::CacheEvent const &event); ///< Process a 'Cache' event.
-    void processMailSettingsEvent(grpc::MailSettingsEvent const &event); ///< Process a 'MailSettings' event.
+    void processCacheEvent(grpc::DiskCacheEvent const &event); ///< Process a 'Cache' event.
+    void processMailServerSettingsEvent(grpc::MailServerSettingsEvent const &event); ///< Process a 'MailSettings' event.
     void processKeychainEvent(grpc::KeychainEvent const &event); ///< Process a 'Keychain' event.
     void processMailEvent(grpc::MailEvent const &event); ///< Process a 'Mail' event.
     void processUserEvent(grpc::UserEvent const &event); ///< Process a 'User' event.
+    void processGenericErrorEvent(grpc::GenericErrorEvent const &event); ///< Process an 'GenericError' event.
     UPClientContext clientContext() const; ///< Returns a client context with the server token set in metadata.
 
 private: // data members.

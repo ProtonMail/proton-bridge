@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -25,14 +25,14 @@
 #include "bridge.grpc.pb.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 extern std::string const grpcMetadataServerTokenKey; ///< The key for the server token stored in the gRPC calls context metadata.
 
 
 typedef std::shared_ptr<grpc::StreamEvent> SPStreamEvent; ///< Type definition for shared pointer to grpc::StreamEvent.
+
 
 QString grpcServerConfigPath(); ///< Return the path of the gRPC server config file.
 QString grpcClientConfigBasePath(); ///< Return the path of the gRPC client config file.
@@ -41,8 +41,13 @@ QString serverKeyPath(); ///< Return the path of the server key.
 QString createClientConfigFile(QString const &token); ///< Create the client config file the server will retrieve and return its path.
 grpc::LogLevel logLevelToGRPC(Log::Level level); ///< Convert a Log::Level to gRPC enum value.
 Log::Level logLevelFromGRPC(grpc::LogLevel level); ///< Convert a grpc::LogLevel to a Log::Level.
+grpc::UserState userStateToGRPC(UserState state); ///< Convert a bridgepp::UserState to a grpc::UserState.
+UserState userStateFromGRPC(grpc::UserState state);  ///< Convert a grpc::UserState to a bridgepp::UserState.
 void userToGRPC(User const &user, grpc::User &outGRPCUser); ///< Convert a bridgepp::User to a grpc::User.
 SPUser userFromGRPC(grpc::User const &grpcUser); ///< Create a bridgepp::User from a grpc::User.
+bool useFileSocketForGRPC(); ///< Check whether the Bridge gRPC service should use file sockets instead of TCP sockets.
+QString getAvailableFileSocketPath(); ///< Return the path of a new available socket, or a null string if none could be found.
+
 
 }
 

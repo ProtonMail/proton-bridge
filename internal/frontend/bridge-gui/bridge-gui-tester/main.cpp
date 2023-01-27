@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -28,8 +28,7 @@
 #endif
 
 
-namespace
-{
+namespace {
 
 
 QString const applicationName = "Proton Mail Bridge GUI Tester"; ///< The name of the application.
@@ -46,18 +45,16 @@ using namespace bridgepp;
 /// \param[in] argv The list of command-line arguments.
 /// \return The exit code for the application.
 //****************************************************************************************************************************************************
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 
-    try
-    {
+    try {
         QApplication a(argc, argv);
         QApplication::setApplicationName(applicationName);
         QApplication::setOrganizationName("Proton AG");
         QApplication::setOrganizationDomain("proton.ch");
         QApplication::setQuitOnLastWindowClosed(true);
 
-        Log& log = app().log();
+        Log &log = app().log();
         log.setEchoInConsole(true);
         log.setLevel(Log::Level::Debug);
         log.info(QString("%1 started.").arg(applicationName));
@@ -70,21 +67,24 @@ int main(int argc, char **argv)
         auto *serverWorker = new GRPCServerWorker(nullptr);
         QObject::connect(serverWorker, &Worker::started, []() { app().log().info("Server worker started."); });
         QObject::connect(serverWorker, &Worker::finished, []() { app().log().info("Server worker finished."); });
-        QObject::connect(serverWorker, &Worker::error, [&](QString const &message) { app().log().error(message); qApp->exit(EXIT_FAILURE); });
+        QObject::connect(serverWorker, &Worker::error, [&](QString const &message) {
+            app().log().error(message);
+            qApp->exit(EXIT_FAILURE);
+        });
         UPOverseer overseer = std::make_unique<Overseer>(serverWorker, nullptr);
         overseer->startWorker(true);
 
         qint32 const exitCode = QApplication::exec();
 
         serverWorker->stop();
-        if (!overseer->wait(5000))
+        if (!overseer->wait(5000)) {
             log.warn("gRPC server took too long to finish.");
+        }
 
         app().log().info(QString("%1 exiting with code %2.").arg(applicationName).arg(exitCode));
         return exitCode;
     }
-    catch (Exception const &e)
-    {
+    catch (Exception const &e) {
         QTextStream(stderr) << QString("A fatal error occurred: %1\n").arg(e.qwhat());
         return EXIT_FAILURE;
     }

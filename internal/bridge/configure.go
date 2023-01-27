@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -13,58 +13,63 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
 package bridge
 
 import (
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/clientconfig"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
+	"github.com/ProtonMail/proton-bridge/v3/internal/clientconfig"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
+	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/sirupsen/logrus"
 )
 
-func (b *Bridge) ConfigureAppleMail(userID, address string) (bool, error) {
-	user, err := b.GetUser(userID)
-	if err != nil {
-		return false, err
-	}
+// ConfigureAppleMail configures apple mail for the given userID and address.
+// If configuring apple mail for Catalina or newer, it ensures Bridge is using SSL.
+func (bridge *Bridge) ConfigureAppleMail(userID, address string) error {
+	logrus.WithFields(logrus.Fields{
+		"userID":  userID,
+		"address": logging.Sensitive(address),
+	}).Info("Configuring Apple Mail")
 
-	if address == "" {
-		address = user.GetPrimaryAddress()
-	}
+	return safe.RLockRet(func() error {
+		user, ok := bridge.users[userID]
+		if !ok {
+			return ErrNoSuchUser
+		}
 
-	username := address
-	addresses := address
+		if address == "" {
+			address = user.Emails()[0]
+		}
 
-	if user.IsCombinedAddressMode() {
-		username = user.GetPrimaryAddress()
-		addresses = strings.Join(user.GetAddresses(), ",")
-	}
+		username := address
+		addresses := address
 
-	var (
-		restart = false
-		smtpSSL = b.settings.GetBool(settings.SMTPSSLKey)
-	)
+		if user.GetAddressMode() == vault.CombinedMode {
+			username = user.Emails()[0]
+			addresses = strings.Join(user.Emails(), ",")
+		}
 
-	// If configuring apple mail for Catalina or newer, users should use SSL.
-	if useragent.IsCatalinaOrNewer() && !smtpSSL {
-		smtpSSL = true
-		restart = true
-		b.settings.SetBool(settings.SMTPSSLKey, true)
-	}
+		if useragent.IsCatalinaOrNewer() && !bridge.vault.GetSMTPSSL() {
+			if err := bridge.SetSMTPSSL(true); err != nil {
+				return err
+			}
+		}
 
-	if err := (&clientconfig.AppleMail{}).Configure(
-		Host,
-		b.settings.GetInt(settings.IMAPPortKey),
-		b.settings.GetInt(settings.SMTPPortKey),
-		false, smtpSSL,
-		username, addresses,
-		user.GetBridgePassword(),
-	); err != nil {
-		return false, err
-	}
-
-	return restart, nil
+		return (&clientconfig.AppleMail{}).Configure(
+			constants.Host,
+			bridge.vault.GetIMAPPort(),
+			bridge.vault.GetSMTPPort(),
+			bridge.vault.GetIMAPSSL(),
+			bridge.vault.GetSMTPSSL(),
+			username,
+			addresses,
+			user.BridgePass(),
+		)
+	}, bridge.usersLock)
 }

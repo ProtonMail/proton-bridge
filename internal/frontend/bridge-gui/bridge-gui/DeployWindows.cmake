@@ -54,6 +54,7 @@ AppendVCPKGLib("libcrypto-3-x64.dll")
 AppendVCPKGLib("libprotobuf.dll")
 AppendVCPKGLib("libssl-3-x64.dll")
 AppendVCPKGLib("re2.dll")
+AppendVCPKGLib("sentry.dll")
 AppendVCPKGLib("zlib1.dll")
 # QML DLLs
 AppendQt6Lib("Qt6QmlWorkerScript.dll")
@@ -71,7 +72,12 @@ install(DIRECTORY ${QT_DIR}/qml/Qt/labs/platform DESTINATION "${CMAKE_INSTALL_PR
 install(DIRECTORY ${QT_DIR}/qml/QtQml DESTINATION "${CMAKE_INSTALL_PREFIX}")
 install(DIRECTORY ${QT_DIR}/qml/QtQuick DESTINATION "${CMAKE_INSTALL_PREFIX}")
 
+# crash handler utils
+install(PROGRAMS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/sentry-native/crashpad_handler.exe" DESTINATION "${CMAKE_INSTALL_PREFIX}")
+
 # Runtime system libs
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 include(InstallRequiredSystemLibraries)
 install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+

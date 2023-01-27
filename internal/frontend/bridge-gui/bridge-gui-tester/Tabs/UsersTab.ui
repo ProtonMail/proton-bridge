@@ -170,13 +170,6 @@
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QCheckBox" name="checkAlreadyLoggedIn">
-          <property name="text">
-           <string>Already logged in</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </widget>
      </item>

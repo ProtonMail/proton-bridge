@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -223,7 +223,7 @@ Item {
                         Layout.fillWidth: true
 
                         focus: true
-                        username: Backend.users.count === 1 && Backend.users.get(0) && Backend.users.get(0).loggedIn === false ? Backend.users.get(0).username : ""
+                        username: Backend.users.count === 1 && Backend.users.get(0) && (Backend.users.get(0).state === EUserState.SignedOut) ? Backend.users.get(0).username : ""
                     }
 
                     // Right margin

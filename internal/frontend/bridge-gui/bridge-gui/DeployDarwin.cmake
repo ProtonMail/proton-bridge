@@ -47,3 +47,16 @@ install(DIRECTORY "${QT_DIR}/lib/QtQuickDialogs2Utils.framework"
 install(FILES "${QT_DIR}/plugins/imageformats/libqsvg.dylib"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/PlugIns/imageformats")
 
+# crash handler utils
+## Build
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/gen_crashpad/crashpad_handler"
+    COMMAND lipo
+    ARGS -create -output "${CMAKE_CURRENT_BINARY_DIR}/gen_crashpad/crashpad_handler" "${VCPKG_INSTALLED_DIR}/arm64-osx-min-11-0/tools/sentry-native/crashpad_handler" "${VCPKG_INSTALLED_DIR}/x64-osx-min-10-15/tools/sentry-native/crashpad_handler"
+    COMMENT Unifying crashpad_handler
+)
+add_custom_target(unify_crashpadHandler ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/gen_crashpad/crashpad_handler")
+add_dependencies(bridge-gui unify_crashpadHandler)
+## Install
+install(PROGRAMS "${CMAKE_CURRENT_BINARY_DIR}/gen_crashpad/crashpad_handler"
+DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS/")
+

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -26,14 +26,14 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/useragent"
-	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
-	"github.com/ProtonMail/proton-bridge/v2/internal/crash"
-	"github.com/ProtonMail/proton-bridge/v2/internal/locations"
-	"github.com/ProtonMail/proton-bridge/v2/internal/logging"
-	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
-	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
-	"github.com/ProtonMail/proton-bridge/v2/internal/versioner"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/crash"
+	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
+	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
+	"github.com/ProtonMail/proton-bridge/v3/internal/versioner"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/elastic/go-sysinfo"
 	"github.com/elastic/go-sysinfo/types"
@@ -43,76 +43,89 @@ import (
 )
 
 const (
-	appName    = "Proton Mail Launcher"
-	configName = "bridge"
-	exeName    = "bridge"
-	guiName    = "bridge-gui"
+	appName = "Proton Mail Launcher"
+	exeName = "bridge"
+	guiName = "bridge-gui"
 
-	FlagCLI      = "--cli"
-	FlagCLIShort = "-c"
-	FlagLauncher = "--launcher"
-	FlagWait     = "--wait"
+	FlagCLI                 = "cli"
+	FlagCLIShort            = "c"
+	FlagNonInteractive      = "noninteractive"
+	FlagNonInteractiveShort = "n"
+	FlagLauncher            = "--launcher"
+	FlagWait                = "--wait"
 )
 
 func main() { //nolint:funlen
+	logrus.SetLevel(logrus.DebugLevel)
+	l := logrus.WithField("launcher_version", constants.Version)
+
 	reporter := sentry.NewReporter(appName, constants.Version, useragent.New())
 
 	crashHandler := crash.NewHandler(reporter.ReportException)
 	defer crashHandler.HandlePanic()
 
-	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, configName))
+	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, constants.ConfigName))
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to get locations provider")
+		l.WithError(err).Fatal("Failed to get locations provider")
 	}
 
-	locations := locations.New(locationsProvider, configName)
+	locations := locations.New(locationsProvider, constants.ConfigName)
 
 	logsPath, err := locations.ProvideLogsPath()
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to get logs path")
+		l.WithError(err).Fatal("Failed to get logs path")
 	}
 	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath))
 
-	if err := logging.Init(logsPath); err != nil {
-		logrus.WithError(err).Fatal("Failed to setup logging")
+	if err := logging.Init(logsPath, os.Getenv("VERBOSITY")); err != nil {
+		l.WithError(err).Fatal("Failed to setup logging")
 	}
-
-	logging.SetLevel(os.Getenv("VERBOSITY"))
 
 	updatesPath, err := locations.ProvideUpdatesPath()
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to get updates path")
+		l.WithError(err).Fatal("Failed to get updates path")
 	}
 
 	key, err := crypto.NewKeyFromArmored(updater.DefaultPublicKey)
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to create new verification key")
+		l.WithError(err).Fatal("Failed to create new verification key")
 	}
 
 	kr, err := crypto.NewKeyRing(key)
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to create new verification keyring")
+		l.WithError(err).Fatal("Failed to create new verification keyring")
 	}
 
 	versioner := versioner.New(updatesPath)
-
-	exeToLaunch := guiName
-	args := os.Args[1:]
-	if inCLIMode(args) {
-		exeToLaunch = exeName
-	}
-
-	exe, err := getPathToUpdatedExecutable(exeToLaunch, versioner, kr, reporter)
-	if err != nil {
-		if exe, err = getFallbackExecutable(exeToLaunch, versioner); err != nil {
-			logrus.WithError(err).Fatal("Failed to find any launchable executable")
-		}
-	}
 
 	launcher, err := os.Executable()
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to determine path to launcher")
 	}
+
+	l = l.WithField("launcher_path", launcher)
+
+	args := os.Args[1:]
+
+	exe, err := getPathToUpdatedExecutable(filepath.Base(launcher), versioner, kr, reporter)
+	if err != nil {
+		exeToLaunch := guiName
+		if inCLIMode(args) {
+			exeToLaunch = exeName
+		}
+
+		l = l.WithField("exe_to_launch", exeToLaunch)
+		l.WithError(err).Info("No more updates found, looking up bridge executable")
+
+		path, err := versioner.GetExecutableInDirectory(exeToLaunch, filepath.Dir(launcher))
+		if err != nil {
+			l.WithError(err).Fatal("No executable in launcher directory")
+		}
+
+		exe = path
+	}
+
+	l = l.WithField("exe_path", exe)
 
 	args, wait, mainExe := findAndStripWait(args)
 	if wait {
@@ -124,6 +137,7 @@ func main() { //nolint:funlen
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Env = os.Environ()
 
 	// On windows, if you use Run(), a terminal stays open; we don't want that.
 	if //goland:noinspection GoBoolExpressions
@@ -134,7 +148,7 @@ func main() { //nolint:funlen
 	}
 
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to launch")
+		l.WithError(err).Fatal("Failed to launch")
 	}
 }
 
@@ -148,14 +162,19 @@ func appendLauncherPath(path string, args []string) []string {
 	return args
 }
 
-// inCLIMode detect if CLI mode is asked.
-func inCLIMode(args []string) bool {
-	return sliceContains(args, FlagCLI) || sliceContains(args, FlagCLIShort)
-}
-
 // sliceContains checks if a value is present in a list.
 func sliceContains[T comparable](list []T, s T) bool {
 	return xslices.Any(list, func(arg T) bool { return arg == s })
+}
+
+// inCLIMode detect if CLI mode is asked.
+func inCLIMode(args []string) bool {
+	return hasFlag(args, FlagCLI) || hasFlag(args, FlagCLIShort) || hasFlag(args, FlagNonInteractive) || hasFlag(args, FlagNonInteractiveShort)
+}
+
+// hasFlag checks if a flag is present in a list.
+func hasFlag(args []string, flag string) bool {
+	return xslices.Any(args, func(arg string) bool { return (arg == "-"+flag) || (arg == "--"+flag) })
 }
 
 // findAndStrip check if a value is present in s list and remove all occurrences of the value from this list.
@@ -193,11 +212,11 @@ func findAndStripWait(args []string) ([]string, bool, string) {
 
 func getPathToUpdatedExecutable(
 	name string,
-	versioner *versioner.Versioner,
+	ver *versioner.Versioner,
 	kr *crypto.KeyRing,
 	reporter *sentry.Reporter,
 ) (string, error) {
-	versions, err := versioner.ListVersions()
+	versions, err := ver.ListVersions()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to list available versions")
 	}
@@ -208,7 +227,11 @@ func getPathToUpdatedExecutable(
 	}
 
 	for _, version := range versions {
-		vlog := logrus.WithField("version", version)
+		vlog := logrus.WithFields(logrus.Fields{
+			"version":       constants.Version,
+			"check_version": version,
+			"name":          name,
+		})
 
 		if err := version.VerifyFiles(kr); err != nil {
 			vlog.WithError(err).Error("Files failed verification and will be removed")
@@ -241,17 +264,6 @@ func getPathToUpdatedExecutable(
 	return "", errors.New("no available newer versions")
 }
 
-func getFallbackExecutable(name string, versioner *versioner.Versioner) (string, error) {
-	logrus.Info("Searching for fallback executable")
-
-	launcher, err := os.Executable()
-	if err != nil {
-		return "", errors.Wrap(err, "failed to determine path to launcher")
-	}
-
-	return versioner.GetExecutableInDirectory(name, filepath.Dir(launcher))
-}
-
 // waitForProcessToFinish waits until the process with the given path is finished.
 func waitForProcessToFinish(exePath string) {
 	for {
@@ -270,7 +282,8 @@ func waitForProcessToFinish(exePath string) {
 		if xslices.Any(processes, func(process types.Process) bool {
 			info, err := process.Info()
 			if err != nil {
-				logrus.WithError(err).Error("Could not retrieve process info")
+				logrus.WithError(err).Trace("Could not retrieve process info")
+				return false
 			}
 
 			return sameFile(exeInfo, info.Exe)
@@ -288,6 +301,7 @@ func sameFile(info os.FileInfo, path string) bool {
 	pathInfo, err := os.Stat(path)
 	if err != nil {
 		logrus.WithError(err).WithField("file", path).Error("Could not retrieve file info")
+		return false
 	}
 
 	return os.SameFile(pathInfo, info)

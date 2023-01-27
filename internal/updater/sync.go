@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -21,6 +21,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -87,7 +88,7 @@ func removeMissing(folderToCleanPath, itemsToKeepPath string) (err error) {
 	}
 
 	for _, removeThis := range delList {
-		if err = os.RemoveAll(removeThis); err != nil && !os.IsNotExist(err) {
+		if err = os.RemoveAll(removeThis); err != nil && !errors.Is(err, fs.ErrNotExist) {
 			logrus.Error("remove error ", err)
 			return
 		}
@@ -195,7 +196,7 @@ func copyRecursively(srcDir, dstDir string) error { //nolint:funlen
 					return err
 				}
 			}
-		} else if !os.IsNotExist(err) {
+		} else if !errors.Is(err, fs.ErrNotExist) {
 			return err
 		}
 

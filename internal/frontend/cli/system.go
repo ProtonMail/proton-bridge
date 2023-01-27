@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -18,28 +18,21 @@
 package cli
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/ports"
+	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/ports"
 	"github.com/abiosoft/ishell"
 )
 
-var currentPort = "" //nolint:gochecknoglobals
-
-func (f *frontendCLI) restart(c *ishell.Context) {
-	if f.yesNoQuestion("Are you sure you want to restart the Bridge") {
-		f.Println("Restarting Bridge...")
-		f.restarter.SetToRestart()
-		f.Stop()
-	}
-}
-
 func (f *frontendCLI) printLogDir(c *ishell.Context) {
-	if path, err := f.bridge.ProvideLogsPath(); err != nil {
+	if path, err := f.bridge.GetLogsPath(); err != nil {
 		f.Println("Failed to determine location of log files")
 	} else {
 		f.Println("Log files are stored in\n\n ", path)
@@ -50,79 +43,91 @@ func (f *frontendCLI) printManual(c *ishell.Context) {
 	f.Println("More instructions about the Bridge can be found at\n\n  https://protonmail.com/bridge")
 }
 
-func (f *frontendCLI) deleteCache(c *ishell.Context) {
+func (f *frontendCLI) printCredits(c *ishell.Context) {
+	for _, pkg := range strings.Split(bridge.Credits, ";") {
+		f.Println(pkg)
+	}
+}
+
+func (f *frontendCLI) changeIMAPSecurity(c *ishell.Context) {
 	f.ShowPrompt(false)
 	defer f.ShowPrompt(true)
 
-	if !f.yesNoQuestion("Do you really want to remove all stored preferences") {
-		return
+	newSecurity := "SSL"
+	if f.bridge.GetIMAPSSL() {
+		newSecurity = "STARTTLS"
 	}
 
-	if err := f.bridge.ClearData(); err != nil {
-		f.printAndLogError("Cache clear failed: ", err.Error())
-		return
+	msg := fmt.Sprintf("Are you sure you want to change IMAP setting to %q", newSecurity)
+
+	if f.yesNoQuestion(msg) {
+		if err := f.bridge.SetIMAPSSL(!f.bridge.GetIMAPSSL()); err != nil {
+			f.printAndLogError(err)
+			return
+		}
 	}
-
-	f.Println("Cached cleared, restarting bridge")
-
-	// Clearing data removes everything (db, preferences, ...) so everything has to be stopped and started again.
-	f.restarter.SetToRestart()
-
-	f.Stop()
 }
 
 func (f *frontendCLI) changeSMTPSecurity(c *ishell.Context) {
 	f.ShowPrompt(false)
 	defer f.ShowPrompt(true)
 
-	isSSL := f.bridge.GetBool(settings.SMTPSSLKey)
 	newSecurity := "SSL"
-	if isSSL {
+	if f.bridge.GetSMTPSSL() {
 		newSecurity = "STARTTLS"
 	}
 
-	msg := fmt.Sprintf("Are you sure you want to change SMTP setting to %q and restart the Bridge", newSecurity)
+	msg := fmt.Sprintf("Are you sure you want to change SMTP setting to %q", newSecurity)
 
 	if f.yesNoQuestion(msg) {
-		f.bridge.SetBool(settings.SMTPSSLKey, !isSSL)
-		f.Println("Restarting Bridge...")
-		f.restarter.SetToRestart()
-		f.Stop()
+		if err := f.bridge.SetSMTPSSL(!f.bridge.GetSMTPSSL()); err != nil {
+			f.printAndLogError(err)
+			return
+		}
 	}
 }
 
-func (f *frontendCLI) changePort(c *ishell.Context) {
+func (f *frontendCLI) changeIMAPPort(c *ishell.Context) {
 	f.ShowPrompt(false)
 	defer f.ShowPrompt(true)
 
-	currentPort = f.bridge.Get(settings.IMAPPortKey)
-	newIMAPPort := f.readStringInAttempts("Set IMAP port (current "+currentPort+")", c.ReadLine, f.isPortFree)
+	newIMAPPort := f.readStringInAttempts(fmt.Sprintf("Set IMAP port (current %v)", f.bridge.GetIMAPPort()), c.ReadLine, f.isPortFree)
 	if newIMAPPort == "" {
-		newIMAPPort = currentPort
-	}
-	imapPortChanged := newIMAPPort != currentPort
-
-	currentPort = f.bridge.Get(settings.SMTPPortKey)
-	newSMTPPort := f.readStringInAttempts("Set SMTP port (current "+currentPort+")", c.ReadLine, f.isPortFree)
-	if newSMTPPort == "" {
-		newSMTPPort = currentPort
-	}
-	smtpPortChanged := newSMTPPort != currentPort
-
-	if newIMAPPort == newSMTPPort {
-		f.Println("SMTP and IMAP ports must be different!")
+		f.printAndLogError(errors.New("failed to get new port"))
 		return
 	}
 
-	if imapPortChanged || smtpPortChanged {
-		f.Println("Saving values IMAP:", newIMAPPort, "SMTP:", newSMTPPort)
-		f.bridge.Set(settings.IMAPPortKey, newIMAPPort)
-		f.bridge.Set(settings.SMTPPortKey, newSMTPPort)
-		f.Println("Restarting Bridge...")
-		f.restarter.SetToRestart()
-		f.Stop()
-	} else {
-		f.Println("Nothing changed")
+	newIMAPPortInt, err := strconv.Atoi(newIMAPPort)
+	if err != nil {
+		f.printAndLogError(err)
+		return
+	}
+
+	if err := f.bridge.SetIMAPPort(newIMAPPortInt); err != nil {
+		f.printAndLogError(err)
+		return
+	}
+}
+
+func (f *frontendCLI) changeSMTPPort(c *ishell.Context) {
+	f.ShowPrompt(false)
+	defer f.ShowPrompt(true)
+
+	newSMTPPort := f.readStringInAttempts(fmt.Sprintf("Set SMTP port (current %v)", f.bridge.GetSMTPPort()), c.ReadLine, f.isPortFree)
+	if newSMTPPort == "" {
+		f.printAndLogError(errors.New("failed to get new port"))
+		return
+	}
+
+	newSMTPPortInt, err := strconv.Atoi(newSMTPPort)
+	if err != nil {
+		f.printAndLogError(err)
+		return
+	}
+
+	if err := f.bridge.SetSMTPPort(newSMTPPortInt); err != nil {
+		f.printAndLogError(err)
+		return
 	}
 }
 
@@ -135,7 +140,10 @@ func (f *frontendCLI) allowProxy(c *ishell.Context) {
 	f.Println("Bridge is currently set to NOT use alternative routing to connect to Proton if it is being blocked.")
 
 	if f.yesNoQuestion("Are you sure you want to allow bridge to do this") {
-		f.bridge.SetProxyAllowed(true)
+		if err := f.bridge.SetProxyAllowed(true); err != nil {
+			f.printAndLogError(err)
+			return
+		}
 	}
 }
 
@@ -148,12 +156,15 @@ func (f *frontendCLI) disallowProxy(c *ishell.Context) {
 	f.Println("Bridge is currently set to use alternative routing to connect to Proton if it is being blocked.")
 
 	if f.yesNoQuestion("Are you sure you want to stop bridge from doing this") {
-		f.bridge.SetProxyAllowed(false)
+		if err := f.bridge.SetProxyAllowed(false); err != nil {
+			f.printAndLogError(err)
+			return
+		}
 	}
 }
 
 func (f *frontendCLI) hideAllMail(c *ishell.Context) {
-	if !f.bridge.IsAllMailVisible() {
+	if !f.bridge.GetShowAllMail() {
 		f.Println("All Mail folder is not listed in your local client.")
 		return
 	}
@@ -161,12 +172,15 @@ func (f *frontendCLI) hideAllMail(c *ishell.Context) {
 	f.Println("All Mail folder is listed in your client right now.")
 
 	if f.yesNoQuestion("Do you want to hide All Mail folder") {
-		f.bridge.SetIsAllMailVisible(false)
+		if err := f.bridge.SetShowAllMail(false); err != nil {
+			f.printAndLogError(err)
+			return
+		}
 	}
 }
 
 func (f *frontendCLI) showAllMail(c *ishell.Context) {
-	if f.bridge.IsAllMailVisible() {
+	if f.bridge.GetShowAllMail() {
 		f.Println("All Mail folder is listed in your local client.")
 		return
 	}
@@ -174,68 +188,47 @@ func (f *frontendCLI) showAllMail(c *ishell.Context) {
 	f.Println("All Mail folder is not listed in your client right now.")
 
 	if f.yesNoQuestion("Do you want to show All Mail folder") {
-		f.bridge.SetIsAllMailVisible(true)
+		if err := f.bridge.SetShowAllMail(true); err != nil {
+			f.printAndLogError(err)
+			return
+		}
 	}
 }
 
-func (f *frontendCLI) enableCacheOnDisk(c *ishell.Context) {
-	if f.bridge.GetBool(settings.CacheEnabledKey) {
-		f.Println("The local cache is already enabled.")
-		return
+func (f *frontendCLI) setGluonLocation(c *ishell.Context) {
+	if gluonDir := f.bridge.GetGluonDir(); gluonDir != "" {
+		f.Println("The current message cache location is:", gluonDir)
 	}
 
-	if f.yesNoQuestion("Are you sure you want to enable the local cache") {
-		if err := f.bridge.EnableCache(); err != nil {
-			f.Println("The local cache could not be enabled.")
+	if location := f.readStringInAttempts("Enter a new location for the message cache", c.ReadLine, f.isCacheLocationUsable); location != "" {
+		if err := f.bridge.SetGluonDir(context.Background(), location); err != nil {
+			f.printAndLogError(err)
 			return
 		}
-
-		f.restarter.SetToRestart()
-		f.Stop()
 	}
 }
 
-func (f *frontendCLI) disableCacheOnDisk(c *ishell.Context) {
-	if !f.bridge.GetBool(settings.CacheEnabledKey) {
-		f.Println("The local cache is already disabled.")
-		return
-	}
+func (f *frontendCLI) exportTLSCerts(c *ishell.Context) {
+	if location := f.readStringInAttempts("Enter a path to which to export the TLS certificate used for IMAP and SMTP", c.ReadLine, f.isCacheLocationUsable); location != "" {
+		cert, key := f.bridge.GetBridgeTLSCert()
 
-	if f.yesNoQuestion("Are you sure you want to disable the local cache") {
-		if err := f.bridge.DisableCache(); err != nil {
-			f.Println("The local cache could not be disabled.")
+		if err := os.WriteFile(filepath.Join(location, "cert.pem"), cert, 0o600); err != nil {
+			f.printAndLogError(err)
 			return
 		}
 
-		f.restarter.SetToRestart()
-		f.Stop()
-	}
-}
-
-func (f *frontendCLI) setCacheOnDiskLocation(c *ishell.Context) {
-	if !f.bridge.GetBool(settings.CacheEnabledKey) {
-		f.Println("The local cache must be enabled.")
-		return
-	}
-
-	if location := f.bridge.Get(settings.CacheLocationKey); location != "" {
-		f.Println("The current local cache location is:", location)
-	}
-
-	if location := f.readStringInAttempts("Enter a new location for the cache", c.ReadLine, f.isCacheLocationUsable); location != "" {
-		if err := f.bridge.MigrateCache(f.bridge.Get(settings.CacheLocationKey), location); err != nil {
-			f.Println("The local cache location could not be changed.")
+		if err := os.WriteFile(filepath.Join(location, "key.pem"), key, 0o600); err != nil {
+			f.printAndLogError(err)
 			return
 		}
 
-		f.restarter.SetToRestart()
-		f.Stop()
+		f.Println("TLS certificate exported to", location)
 	}
 }
 
 func (f *frontendCLI) isPortFree(port string) bool {
 	port = strings.ReplaceAll(port, ":", "")
-	if port == "" || port == currentPort {
+	if port == "" {
 		return true
 	}
 	number, err := strconv.Atoi(port)

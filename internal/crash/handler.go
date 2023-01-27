@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -19,7 +19,7 @@
 package crash
 
 import (
-	"github.com/ProtonMail/proton-bridge/v2/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/sirupsen/logrus"
 )
 
@@ -41,14 +41,11 @@ func (h *Handler) AddRecoveryAction(action RecoveryAction) *Handler {
 func (h *Handler) HandlePanic() {
 	sentry.SkipDuringUnwind()
 
-	r := recover()
-	if r == nil {
-		return
-	}
-
-	for _, action := range h.actions {
-		if err := action(r); err != nil {
-			logrus.WithError(err).Error("Failed to execute recovery action")
+	if r := recover(); r != nil {
+		for _, action := range h.actions {
+			if err := action(r); err != nil {
+				logrus.WithError(err).Error("Failed to execute recovery action")
+			}
 		}
 	}
 }

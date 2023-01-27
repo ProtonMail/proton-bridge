@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -37,16 +37,6 @@ T.Button {
 
     property alias textVerticalAlignment: label.verticalAlignment
     property alias textHorizontalAlignment: label.horizontalAlignment
-
-    // TODO: store previous enabled state and restore it?
-    // For now assuming that only enabled buttons could have loading state
-    onLoadingChanged: {
-        if (loading) {
-            enabled = false
-        } else {
-            enabled = true
-        }
-    }
 
     id: control
 

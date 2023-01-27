@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -19,15 +19,13 @@
 #include "User.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 //****************************************************************************************************************************************************
 /// \param[in] parent The parent object of the user.
 //****************************************************************************************************************************************************
-SPUser User::newUser(QObject *parent)
-{
+SPUser User::newUser(QObject *parent) {
     return SPUser(new User(parent));
 }
 
@@ -36,8 +34,7 @@ SPUser User::newUser(QObject *parent)
 /// \param[in] parent The parent object.
 //****************************************************************************************************************************************************
 User::User(QObject *parent)
-    : QObject(parent)
-{
+    : QObject(parent) {
 
 }
 
@@ -45,16 +42,14 @@ User::User(QObject *parent)
 //****************************************************************************************************************************************************
 /// \param[in] user The user to copy from
 //****************************************************************************************************************************************************
-void User::update(User const &user)
-{
+void User::update(User const &user) {
     this->setID(user.id());
     this->setUsername(user.username());
     this->setPassword(user.password());
     this->setAddresses(user.addresses());
     this->setAvatarText(user.avatarText());
-    this->setLoggedIn(user.loggedIn());
+    this->setState(user.state());
     this->setSplitMode(user.splitMode());
-    this->setSetupGuideSeen(user.setupGuideSeen());
     this->setUsedBytes(user.usedBytes());
     this->setTotalBytes(user.totalBytes());
 }
@@ -63,8 +58,7 @@ void User::update(User const &user)
 //****************************************************************************************************************************************************
 /// \param[in] makeItActive Should split mode be made active.
 //****************************************************************************************************************************************************
-void User::toggleSplitMode(bool makeItActive)
-{
+void User::toggleSplitMode(bool makeItActive) {
     emit toggleSplitModeForUser(id_, makeItActive);
 }
 
@@ -72,8 +66,7 @@ void User::toggleSplitMode(bool makeItActive)
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void User::logout()
-{
+void User::logout() {
     emit logoutUser(id_);
 }
 
@@ -81,8 +74,7 @@ void User::logout()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void User::remove()
-{
+void User::remove() {
     emit removeUser(id_);
 }
 
@@ -90,8 +82,7 @@ void User::remove()
 //****************************************************************************************************************************************************
 /// \param[in] address The email address to configure Apple Mail for.
 //****************************************************************************************************************************************************
-void User::configureAppleMail(QString const &address)
-{
+void User::configureAppleMail(QString const &address) {
     emit configureAppleMailForUser(id_, address);
 }
 
@@ -100,8 +91,7 @@ void User::configureAppleMail(QString const &address)
 // The only purpose of this call is to forward to the QML application the toggleSplitModeFinished(userID) event
 // that was received by the UserList model.
 //****************************************************************************************************************************************************
-void User::emitToggleSplitModeFinished()
-{
+void User::emitToggleSplitModeFinished() {
     emit toggleSplitModeFinished();
 }
 
@@ -109,8 +99,7 @@ void User::emitToggleSplitModeFinished()
 //****************************************************************************************************************************************************
 /// \return The userID.
 //****************************************************************************************************************************************************
-QString User::id() const
-{
+QString User::id() const {
     return id_;
 }
 
@@ -118,10 +107,10 @@ QString User::id() const
 //****************************************************************************************************************************************************
 /// \param[in] id The userID.
 //****************************************************************************************************************************************************
-void User::setID(QString const &id)
-{
-    if (id == id_)
+void User::setID(QString const &id) {
+    if (id == id_) {
         return;
+    }
 
     id_ = id;
     emit idChanged(id_);
@@ -131,8 +120,7 @@ void User::setID(QString const &id)
 //****************************************************************************************************************************************************
 /// \return The username.
 //****************************************************************************************************************************************************
-QString User::username() const
-{
+QString User::username() const {
     return username_;
 }
 
@@ -140,10 +128,10 @@ QString User::username() const
 //****************************************************************************************************************************************************
 /// \param[in] username The username.
 //****************************************************************************************************************************************************
-void User::setUsername(QString const &username)
-{
-    if (username == username_)
+void User::setUsername(QString const &username) {
+    if (username == username_) {
         return;
+    }
 
     username_ = username;
     emit usernameChanged(username_);
@@ -153,8 +141,7 @@ void User::setUsername(QString const &username)
 //****************************************************************************************************************************************************
 /// \return The password.
 //****************************************************************************************************************************************************
-QString User::password() const
-{
+QString User::password() const {
     return password_;
 }
 
@@ -162,10 +149,10 @@ QString User::password() const
 //****************************************************************************************************************************************************
 /// \param[in] password The password.
 //****************************************************************************************************************************************************
-void User::setPassword(QString const &password)
-{
-    if (password == password_)
+void User::setPassword(QString const &password) {
+    if (password == password_) {
         return;
+    }
 
     password_ = password;
     emit passwordChanged(password_);
@@ -175,8 +162,7 @@ void User::setPassword(QString const &password)
 //****************************************************************************************************************************************************
 /// \return The addresses.
 //****************************************************************************************************************************************************
-QStringList User::addresses() const
-{
+QStringList User::addresses() const {
     return addresses_;
 }
 
@@ -184,10 +170,10 @@ QStringList User::addresses() const
 //****************************************************************************************************************************************************
 /// \param[in] addresses The addresses.
 //****************************************************************************************************************************************************
-void User::setAddresses(QStringList const &addresses)
-{
-    if (addresses == addresses_)
+void User::setAddresses(QStringList const &addresses) {
+    if (addresses == addresses_) {
         return;
+    }
 
     addresses_ = addresses;
     emit addressesChanged(addresses_);
@@ -197,8 +183,7 @@ void User::setAddresses(QStringList const &addresses)
 //****************************************************************************************************************************************************
 /// \return The avatar text.
 //****************************************************************************************************************************************************
-QString User::avatarText() const
-{
+QString User::avatarText() const {
     return avatarText_;
 }
 
@@ -206,10 +191,10 @@ QString User::avatarText() const
 //****************************************************************************************************************************************************
 /// \param[in] avatarText The avatar text.
 //****************************************************************************************************************************************************
-void User::setAvatarText(QString const &avatarText)
-{
-    if (avatarText == avatarText_)
+void User::setAvatarText(QString const &avatarText) {
+    if (avatarText == avatarText_) {
         return;
+    }
 
     avatarText_ = avatarText;
     emit usernameChanged(avatarText_);
@@ -217,32 +202,30 @@ void User::setAvatarText(QString const &avatarText)
 
 
 //****************************************************************************************************************************************************
-/// \return The login status.
+/// \return The user state.
 //****************************************************************************************************************************************************
-bool User::loggedIn() const
-{
-    return loggedIn_;
+UserState User::state() const {
+    return state_;
 }
 
 
 //****************************************************************************************************************************************************
-/// \param[in] loggedIn The login status.
+/// \param[in] state The user state.
 //****************************************************************************************************************************************************
-void User::setLoggedIn(bool loggedIn)
-{
-    if (loggedIn == loggedIn_)
+void User::setState(UserState state) {
+    if (state_ == state) {
         return;
+    }
 
-    loggedIn_ = loggedIn;
-    emit loggedInChanged(loggedIn_);
+    state_ = state;
+    emit stateChanged(state);
 }
 
 
 //****************************************************************************************************************************************************
 /// \return The split mode status.
 //****************************************************************************************************************************************************
-bool User::splitMode() const
-{
+bool User::splitMode() const {
     return splitMode_;
 }
 
@@ -250,10 +233,10 @@ bool User::splitMode() const
 //****************************************************************************************************************************************************
 /// \param[in] splitMode The split mode status.
 //****************************************************************************************************************************************************
-void User::setSplitMode(bool splitMode)
-{
-    if (splitMode == splitMode_)
+void User::setSplitMode(bool splitMode) {
+    if (splitMode == splitMode_) {
         return;
+    }
 
     splitMode_ = splitMode;
     emit splitModeChanged(splitMode_);
@@ -261,32 +244,9 @@ void User::setSplitMode(bool splitMode)
 
 
 //****************************************************************************************************************************************************
-/// \return The 'Setup Guide Seen' status.
-//****************************************************************************************************************************************************
-bool User::setupGuideSeen() const
-{
-    return setupGuideSeen_;
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] setupGuideSeen The 'Setup Guide Seen' status.
-//****************************************************************************************************************************************************
-void User::setSetupGuideSeen(bool setupGuideSeen)
-{
-    if (setupGuideSeen == setupGuideSeen_)
-        return;
-
-    setupGuideSeen_ = setupGuideSeen;
-    emit setupGuideSeenChanged(setupGuideSeen_);
-}
-
-
-//****************************************************************************************************************************************************
 /// \return The used bytes.
 //****************************************************************************************************************************************************
-float User::usedBytes() const
-{
+float User::usedBytes() const {
     return usedBytes_;
 }
 
@@ -294,10 +254,10 @@ float User::usedBytes() const
 //****************************************************************************************************************************************************
 /// \param[in] usedBytes The used bytes.
 //****************************************************************************************************************************************************
-void User::setUsedBytes(float usedBytes)
-{
-    if (usedBytes == usedBytes_)
+void User::setUsedBytes(float usedBytes) {
+    if (usedBytes == usedBytes_) {
         return;
+    }
 
     usedBytes_ = usedBytes;
     emit usedBytesChanged(usedBytes_);
@@ -307,8 +267,7 @@ void User::setUsedBytes(float usedBytes)
 //****************************************************************************************************************************************************
 /// \return The total bytes.
 //****************************************************************************************************************************************************
-float User::totalBytes() const
-{
+float User::totalBytes() const {
     return totalBytes_;
 }
 
@@ -316,13 +275,31 @@ float User::totalBytes() const
 //****************************************************************************************************************************************************
 /// \param[in] totalBytes The total bytes.
 //****************************************************************************************************************************************************
-void User::setTotalBytes(float totalBytes)
-{
-    if (totalBytes == totalBytes_)
+void User::setTotalBytes(float totalBytes) {
+    if (totalBytes == totalBytes_) {
         return;
+    }
 
     totalBytes_ = totalBytes;
     emit totalBytesChanged(totalBytes_);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] state The user state.
+/// \return A string describing the state.
+//****************************************************************************************************************************************************
+QString User::stateToString(UserState state) {
+    switch (state) {
+    case UserState::SignedOut:
+        return "Signed out";
+    case UserState::Locked:
+        return "Locked";
+    case UserState::Connected:
+        return "Connected";
+    default:
+        return "Unknown";
+    }
 }
 
 

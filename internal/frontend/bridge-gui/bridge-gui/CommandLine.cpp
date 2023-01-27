@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -23,12 +23,12 @@
 using namespace bridgepp;
 
 
-namespace
-{
+namespace {
 
 
 QString const launcherFlag = "--launcher"; ///< launcher flag parameter used for bridge.
-
+QString const noWindowFlag = "--no-window"; ///< The no-window command-line flag.
+QString const softwareRendererFlag = "--software-renderer"; ///< The 'software-renderer' command-line flag.
 
 //****************************************************************************************************************************************************
 /// \brief parse a command-line string argument as expected by go's CLI package.
@@ -36,25 +36,25 @@ QString const launcherFlag = "--launcher"; ///< launcher flag parameter used for
 /// \param[in] argv The list of arguments passed to the application.
 /// \param[in] paramNames the list of names for the parameter
 //****************************************************************************************************************************************************
-QString parseGoCLIStringArgument(int argc, char *argv[], QStringList paramNames)
-{
+QString parseGoCLIStringArgument(int argc, char *argv[], QStringList paramNames) {
     // go cli package is pretty permissive when it comes to parsing arguments. For each name 'param', all the following seems to be accepted:
     // -param value
     // --param value
     // -param=value
     // --param=value
-
-    for (QString const &paramName: paramNames)
-        for (qsizetype i = 1; i < argc; ++i)
-        {
+    for (QString const &paramName: paramNames) {
+        for (qsizetype i = 1; i < argc; ++i) {
             QString const arg(QString::fromLocal8Bit(argv[i]));
-            if ((i < argc - 1) && ((arg == "-" + paramName) || (arg == "--" + paramName)))
+            if ((i < argc - 1) && ((arg == "-" + paramName) || (arg == "--" + paramName))) {
                 return QString(argv[i + 1]);
+            }
 
             QRegularExpressionMatch match = QRegularExpression(QString("^-{1,2}%1=(.+)$").arg(paramName)).match(arg);
-            if (match.hasMatch())
+            if (match.hasMatch()) {
                 return match.captured(1);
+            }
         }
+    }
 
     return QString();
 }
@@ -67,11 +67,11 @@ QString parseGoCLIStringArgument(int argc, char *argv[], QStringList paramNames)
 /// \param[in] argv The list of arguments passed to the application.
 /// \return The log level. if not specified on the command-line, the default log level is returned.
 //****************************************************************************************************************************************************
-Log::Level parseLogLevel(int argc, char *argv[])
-{
+Log::Level parseLogLevel(int argc, char *argv[]) {
     QString levelStr = parseGoCLIStringArgument(argc, argv, { "l", "log-level" });
-    if (levelStr.isEmpty())
+    if (levelStr.isEmpty()) {
         return Log::defaultLevel;
+    }
 
     Log::Level level = Log::defaultLevel;
     Log::stringToLevel(levelStr, level);
@@ -85,45 +85,47 @@ Log::Level parseLogLevel(int argc, char *argv[])
 //****************************************************************************************************************************************************
 /// \param[in]  argc number of arguments passed to the application.
 /// \param[in]  argv list of arguments passed to the application.
-/// \param[out] args list of arguments passed to the application as a QStringList.
-/// \param[out] launcher launcher used in argument, forced to self application if not specify.
-/// \param[out] outAttach The value for the 'attach' command-line parameter.
-/// \param[out] outLogLevel The parsed log level. If not found, the default log level is returned.
+/// \return The parsed options.
 //****************************************************************************************************************************************************
-void parseCommandLineArguments(int argc, char *argv[], QStringList& args, QString& launcher, bool &outAttach, Log::Level& outLogLevel) {
+CommandLineOptions parseCommandLine(int argc, char *argv[]) {
+    CommandLineOptions options;
     bool flagFound = false;
-    launcher = QString::fromLocal8Bit(argv[0]);
+    options.launcher = QString::fromLocal8Bit(argv[0]);
     // for unknown reasons, on Windows QCoreApplication::arguments() frequently returns an empty list, which is incorrect, so we rebuild the argument
     // list from the original argc and argv values.
     for (int i = 1; i < argc; i++) {
         QString const &arg = QString::fromLocal8Bit(argv[i]);
         // we can't use QCommandLineParser here since it will fail on unknown options.
         // Arguments may contain some bridge flags.
-        if (arg == launcherFlag)
-        {
-            args.append(arg);
-            launcher = QString::fromLocal8Bit(argv[++i]);
-            args.append(launcher);
+        if (arg == softwareRendererFlag) {
+            options.useSoftwareRenderer = true;
+        }
+        if (arg == noWindowFlag) {
+            options.noWindow = true;
+        }
+        if (arg == launcherFlag) {
+            options.bridgeArgs.append(arg);
+            options.launcher = QString::fromLocal8Bit(argv[++i]);
+            options.bridgeArgs.append(options.launcher);
             flagFound = true;
         }
 #ifdef QT_DEBUG
-        else if (arg == "--attach" || arg == "-a")
-        {
+        else if (arg == "--attach" || arg == "-a") {
             // we don't keep the attach mode within the args since we don't need it for Bridge.
-            outAttach = true;
+            options.attach = true;
         }
 #endif
-        else
-        {
-            args.append(arg);
+        else {
+            options.bridgeArgs.append(arg);
         }
     }
-    if (!flagFound)
-    {
+    if (!flagFound) {
         // add bridge-gui as launcher
-        args.append(launcherFlag);
-        args.append(launcher);
+        options.bridgeArgs.append(launcherFlag);
+        options.bridgeArgs.append(options.launcher);
     }
 
-    outLogLevel = parseLogLevel(argc, argv);
+    options.logLevel = parseLogLevel(argc, argv);
+
+    return options;
 }

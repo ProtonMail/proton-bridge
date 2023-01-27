@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.Bridge.
 //
@@ -29,19 +29,19 @@ import (
 func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunEventStreamServer) error {
 	s.log.Debug("Starting Event stream")
 
-	if s.eventStreamCh != nil {
+	if s.isStreamingEvents() {
 		return status.Errorf(codes.AlreadyExists, "the service is already streaming") // TO-DO GODT-1667 decide if we want to kill the existing stream.
 	}
 
 	s.bridge.SetCurrentPlatform(request.ClientPlatform)
 
-	s.eventStreamCh = make(chan *StreamEvent)
+	s.createEventStreamChannel()
 	s.eventStreamDoneCh = make(chan struct{})
 
 	// TO-DO GODT-1667 We should have a safer we to close this channel? What if an event occur while we are closing?
 	defer func() {
 		close(s.eventStreamCh)
-		s.eventStreamCh = nil
+		s.deleteEventStreamChannel()
 		close(s.eventStreamDoneCh)
 		s.eventStreamDoneCh = nil
 	}()
@@ -49,6 +49,8 @@ func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunE
 	// if events occurred before streaming started, they've been queued. Now that the stream channel is available
 	// we can flush the queued
 	go func() {
+		defer s.panicHandler.HandlePanic()
+
 		s.eventQueueMutex.Lock()
 		defer s.eventQueueMutex.Unlock()
 		for _, event := range s.eventQueue {
@@ -70,24 +72,34 @@ func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunE
 				s.log.Debug("Stop Event stream")
 				return err
 			}
+		case <-server.Context().Done():
+			s.log.Debug("Client closed the stream, exiting")
+			return s.quit()
 		}
 	}
 }
 
 // StopEventStream stops the event stream.
-func (s *Service) StopEventStream(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+func (s *Service) StopEventStream(_ context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, s.stopEventStream()
+}
+
+func (s *Service) stopEventStream() error {
+	s.eventStreamChMutex.RLock()
+	defer s.eventStreamChMutex.RUnlock()
+
 	if s.eventStreamCh == nil {
-		return nil, status.Errorf(codes.NotFound, "The service is not streaming")
+		return status.Errorf(codes.NotFound, "The service is not streaming")
 	}
 
 	s.eventStreamDoneCh <- struct{}{}
 
-	return &emptypb.Empty{}, nil
+	return nil
 }
 
 // SendEvent sends an event to the via the gRPC event stream.
 func (s *Service) SendEvent(event *StreamEvent) error {
-	if s.eventStreamCh == nil { // nobody is connected to the event stream, we queue events
+	if !s.isStreamingEvents() { // nobody is connected to the event stream, we queue events
 		s.queueEvent(event)
 		return nil
 	}
@@ -114,7 +126,7 @@ func (s *Service) StartEventTest() error { //nolint:funlen
 		NewLoginError(LoginErrorType_FREE_USER, "error"),
 		NewLoginTfaRequestedEvent(dummyAddress),
 		NewLoginTwoPasswordsRequestedEvent(),
-		NewLoginFinishedEvent("userID"),
+		NewLoginFinishedEvent("userID", false),
 		NewLoginAlreadyLoggedInEvent("userID"),
 
 		// update
@@ -127,16 +139,25 @@ func (s *Service) StartEventTest() error { //nolint:funlen
 		NewUpdateCheckFinishedEvent(),
 
 		// cache
-		NewCacheErrorEvent(CacheErrorType_CACHE_UNAVAILABLE_ERROR),
-		NewCacheLocationChangeSuccessEvent(),
-		NewCacheChangeLocalCacheFinishedEvent(true),
-		NewIsCacheOnDiskEnabledChanged(true),
-		NewDiskCachePathChanged("/dummy/path"),
+
+		NewDiskCacheErrorEvent(DiskCacheErrorType_CANT_MOVE_DISK_CACHE_ERROR),
+		NewDiskCachePathChangedEvent("/dummy/path/"),
+		NewDiskCachePathChangeFinishedEvent(),
 
 		// mail settings
-		NewMailSettingsErrorEvent(MailSettingsErrorType_IMAP_PORT_ISSUE),
-		NewMailSettingsUseSslForSmtpFinishedEvent(),
-		NewMailSettingsChangePortFinishedEvent(),
+		NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_STARTUP_ERROR),
+		NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_STARTUP_ERROR),
+		NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_CHANGE_ERROR),
+		NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_CHANGE_ERROR),
+		NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_CONNECTION_MODE_CHANGE_ERROR),
+		NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_CONNECTION_MODE_CHANGE_ERROR),
+		NewMailServerSettingsChangedEvent(&ImapSmtpSettings{
+			ImapPort:      1143,
+			SmtpPort:      1025,
+			UseSSLForImap: false,
+			UseSSLForSmtp: false,
+		}),
+		NewChangeMailServerSettingsFinishedEvent(),
 
 		// keychain
 		NewKeychainChangeKeychainFinishedEvent(),
@@ -173,4 +194,25 @@ func (s *Service) queueEvent(event *StreamEvent) {
 	} else {
 		s.eventQueue = append(s.eventQueue, event)
 	}
+}
+
+func (s *Service) isStreamingEvents() bool {
+	s.eventStreamChMutex.RLock()
+	defer s.eventStreamChMutex.RUnlock()
+
+	return s.eventStreamCh != nil
+}
+
+func (s *Service) createEventStreamChannel() {
+	s.eventStreamChMutex.Lock()
+	defer s.eventStreamChMutex.Unlock()
+
+	s.eventStreamCh = make(chan *StreamEvent)
+}
+
+func (s *Service) deleteEventStreamChannel() {
+	s.eventStreamChMutex.Lock()
+	defer s.eventStreamChMutex.Unlock()
+
+	s.eventStreamCh = nil
 }

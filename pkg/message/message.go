@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -21,10 +21,6 @@ package message
 
 import (
 	"github.com/sirupsen/logrus"
-)
-
-const (
-	rfc822Message = "message/rfc822"
 )
 
 var log = logrus.WithField("pkg", "pkg/message") //nolint:gochecknoglobals

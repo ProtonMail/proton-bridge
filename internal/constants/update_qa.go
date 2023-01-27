@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -22,8 +22,5 @@ package constants
 
 import "time"
 
-//nolint:gochecknoglobals
-var (
-	// UpdateCheckInterval defines how often we check for new version
-	UpdateCheckInterval = time.Duration(5 * time.Minute)
-)
+// UpdateCheckInterval defines how often we check for new version
+const UpdateCheckInterval = time.Duration(5 * time.Minute)

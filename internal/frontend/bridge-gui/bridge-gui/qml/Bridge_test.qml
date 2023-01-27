@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -68,7 +68,7 @@ Window {
         if (showSetupGuide) {
             var newUserObject = root.userComponent.createObject(root)
             newUserObject.username = "LerooooyJenkins@protonmail.com"
-            newUserObject.loggedIn = true
+            newUserObject.state = EUserState.Connected
             newUserObject.setupGuideSeen = false
             root.users.append( { object: newUserObject } )
         }
@@ -266,7 +266,7 @@ Window {
         if (hasUserOnStart) {
             var newUserObject = root.userComponent.createObject(root)
             newUserObject.username = "LerooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooyJenkins@protonmail.com"
-            newUserObject.loggedIn = true
+            newUserObject.loggedIn = EUserState.Connected
             newUserObject.setupGuideSeen = true
             root.users.append( { object: newUserObject } )
         }
@@ -696,7 +696,7 @@ Window {
                     }
                     RowLayout {
                         Label {colorScheme: root.colorScheme; text: "SMTP using SSL:"}
-                        Toggle {colorScheme: root.colorScheme; checked: root.useSSLforSMTP; onClicked: root.useSSLforSMTP = !root.useSSLforSMTP}
+                        Toggle {colorScheme: root.colorScheme; checked: root.useSSLForSMTP; onClicked: root.useSSLForSMTP = !root.useSSLForSMTP}
                     }
                     RowLayout {
                         Label {colorScheme: root.colorScheme; text: "Local cache:"}
@@ -766,7 +766,7 @@ Window {
 
 
     property bool   isDiskCacheEnabled: true
-    // Qt.resolvedUrl("file:///C:/Users/user/AppData/Roaming/protonmail/bridge/cache/c11/messages")
+    // Qt.resolvedUrl("file:///C:/Users/user/AppData/Roaming/protonmail/bridge-v3/cache/c11/messages")
     property url diskCachePath: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
     signal cacheUnavailable()
     signal cacheCantMove()
@@ -822,9 +822,9 @@ Window {
     }
 
 
-    property bool useSSLforSMTP: false
-    function toggleUseSSLforSMTP(makeItActive){
-        console.debug("-> SMTP SSL", makeItActive, root.useSSLforSMTP)
+    property bool useSSLForSMTP: false
+    function toggleUseSSLForSMTP(makeItActive){
+        console.debug("-> SMTP SSL", makeItActive, root.useSSLForSMTP)
     }
     signal toggleUseSSLFinished()
 
@@ -841,8 +841,8 @@ Window {
         return true
     }
     signal changePortFinished()
-    signal portIssueIMAP()
-    signal portIssueSMTP()
+    signal imapPortStartupError()
+    signal smtpPortStartupError()
 
     function triggerReset() {
         console.debug("-> trigger reset")
@@ -852,9 +852,9 @@ Window {
     property string version: "2.0.X-BridePreview"
     property url logsPath: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
     property url licensePath: StandardPaths.standardLocations(StandardPaths.HomeLocation)[0]
-    property url releaseNotesLink: Qt.resolvedUrl("https://protonmail.com/download/bridge/early_releases.html")
-    property url dependencyLicensesLink: Qt.resolvedUrl("https://github.com/ProtonMail/proton-bridge/v2/blob/master/COPYING_NOTES.md#dependencies")
-    property url landingPageLink: Qt.resolvedUrl("https://protonmail.com/bridge")
+    property url releaseNotesLink: Qt.resolvedUrl("https://proton.me/download/bridge/early_releases.html")
+    property url dependencyLicensesLink: Qt.resolvedUrl("https://github.com/ProtonMail/proton-bridge/v3/blob/master/COPYING_NOTES.md#dependencies")
+    property url landingPageLink: Qt.resolvedUrl("https://proton.me/mail/bridge#download")
 
     property string colorSchemeName: "light"
     function changeColorScheme(newScheme){

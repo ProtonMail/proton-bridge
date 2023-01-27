@@ -51,6 +51,7 @@ type BridgeClient interface {
 	ColorSchemeName(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	CurrentEmailClient(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	ReportBug(ctx context.Context, in *ReportBugRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ExportTLSCertificates(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ForceLauncher(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SetMainExecutable(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// login
@@ -64,18 +65,14 @@ type BridgeClient interface {
 	SetIsAutomaticUpdateOn(ctx context.Context, in *wrapperspb.BoolValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	IsAutomaticUpdateOn(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
 	// cache
-	IsCacheOnDiskEnabled(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
 	DiskCachePath(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
-	ChangeLocalCache(ctx context.Context, in *ChangeLocalCacheRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	SetDiskCachePath(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// mail
 	SetIsDoHEnabled(ctx context.Context, in *wrapperspb.BoolValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	IsDoHEnabled(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
-	SetUseSslForSmtp(ctx context.Context, in *wrapperspb.BoolValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	UseSslForSmtp(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
+	MailServerSettings(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ImapSmtpSettings, error)
+	SetMailServerSettings(ctx context.Context, in *ImapSmtpSettings, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Hostname(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
-	ImapPort(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.Int32Value, error)
-	SmtpPort(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.Int32Value, error)
-	ChangePorts(ctx context.Context, in *ChangePortsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	IsPortFree(ctx context.Context, in *wrapperspb.Int32Value, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
 	// keychain
 	AvailableKeychains(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*AvailableKeychainsResponse, error)
@@ -335,6 +332,15 @@ func (c *bridgeClient) ReportBug(ctx context.Context, in *ReportBugRequest, opts
 	return out, nil
 }
 
+func (c *bridgeClient) ExportTLSCertificates(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/ExportTLSCertificates", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *bridgeClient) ForceLauncher(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/grpc.Bridge/ForceLauncher", in, out, opts...)
@@ -425,15 +431,6 @@ func (c *bridgeClient) IsAutomaticUpdateOn(ctx context.Context, in *emptypb.Empt
 	return out, nil
 }
 
-func (c *bridgeClient) IsCacheOnDiskEnabled(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error) {
-	out := new(wrapperspb.BoolValue)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/IsCacheOnDiskEnabled", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *bridgeClient) DiskCachePath(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error) {
 	out := new(wrapperspb.StringValue)
 	err := c.cc.Invoke(ctx, "/grpc.Bridge/DiskCachePath", in, out, opts...)
@@ -443,9 +440,9 @@ func (c *bridgeClient) DiskCachePath(ctx context.Context, in *emptypb.Empty, opt
 	return out, nil
 }
 
-func (c *bridgeClient) ChangeLocalCache(ctx context.Context, in *ChangeLocalCacheRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *bridgeClient) SetDiskCachePath(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/ChangeLocalCache", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/SetDiskCachePath", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -470,18 +467,18 @@ func (c *bridgeClient) IsDoHEnabled(ctx context.Context, in *emptypb.Empty, opts
 	return out, nil
 }
 
-func (c *bridgeClient) SetUseSslForSmtp(ctx context.Context, in *wrapperspb.BoolValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/SetUseSslForSmtp", in, out, opts...)
+func (c *bridgeClient) MailServerSettings(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ImapSmtpSettings, error) {
+	out := new(ImapSmtpSettings)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/MailServerSettings", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *bridgeClient) UseSslForSmtp(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error) {
-	out := new(wrapperspb.BoolValue)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/UseSslForSmtp", in, out, opts...)
+func (c *bridgeClient) SetMailServerSettings(ctx context.Context, in *ImapSmtpSettings, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/SetMailServerSettings", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -491,33 +488,6 @@ func (c *bridgeClient) UseSslForSmtp(ctx context.Context, in *emptypb.Empty, opt
 func (c *bridgeClient) Hostname(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error) {
 	out := new(wrapperspb.StringValue)
 	err := c.cc.Invoke(ctx, "/grpc.Bridge/Hostname", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) ImapPort(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.Int32Value, error) {
-	out := new(wrapperspb.Int32Value)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/ImapPort", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) SmtpPort(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.Int32Value, error) {
-	out := new(wrapperspb.Int32Value)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/SmtpPort", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) ChangePorts(ctx context.Context, in *ChangePortsRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/ChangePorts", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -686,6 +656,7 @@ type BridgeServer interface {
 	ColorSchemeName(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	CurrentEmailClient(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	ReportBug(context.Context, *ReportBugRequest) (*emptypb.Empty, error)
+	ExportTLSCertificates(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	ForceLauncher(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	SetMainExecutable(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	// login
@@ -699,18 +670,14 @@ type BridgeServer interface {
 	SetIsAutomaticUpdateOn(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error)
 	IsAutomaticUpdateOn(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
 	// cache
-	IsCacheOnDiskEnabled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
 	DiskCachePath(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
-	ChangeLocalCache(context.Context, *ChangeLocalCacheRequest) (*emptypb.Empty, error)
+	SetDiskCachePath(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	// mail
 	SetIsDoHEnabled(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error)
 	IsDoHEnabled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
-	SetUseSslForSmtp(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error)
-	UseSslForSmtp(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
+	MailServerSettings(context.Context, *emptypb.Empty) (*ImapSmtpSettings, error)
+	SetMailServerSettings(context.Context, *ImapSmtpSettings) (*emptypb.Empty, error)
 	Hostname(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
-	ImapPort(context.Context, *emptypb.Empty) (*wrapperspb.Int32Value, error)
-	SmtpPort(context.Context, *emptypb.Empty) (*wrapperspb.Int32Value, error)
-	ChangePorts(context.Context, *ChangePortsRequest) (*emptypb.Empty, error)
 	IsPortFree(context.Context, *wrapperspb.Int32Value) (*wrapperspb.BoolValue, error)
 	// keychain
 	AvailableKeychains(context.Context, *emptypb.Empty) (*AvailableKeychainsResponse, error)
@@ -811,6 +778,9 @@ func (UnimplementedBridgeServer) CurrentEmailClient(context.Context, *emptypb.Em
 func (UnimplementedBridgeServer) ReportBug(context.Context, *ReportBugRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportBug not implemented")
 }
+func (UnimplementedBridgeServer) ExportTLSCertificates(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExportTLSCertificates not implemented")
+}
 func (UnimplementedBridgeServer) ForceLauncher(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForceLauncher not implemented")
 }
@@ -841,14 +811,11 @@ func (UnimplementedBridgeServer) SetIsAutomaticUpdateOn(context.Context, *wrappe
 func (UnimplementedBridgeServer) IsAutomaticUpdateOn(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsAutomaticUpdateOn not implemented")
 }
-func (UnimplementedBridgeServer) IsCacheOnDiskEnabled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method IsCacheOnDiskEnabled not implemented")
-}
 func (UnimplementedBridgeServer) DiskCachePath(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DiskCachePath not implemented")
 }
-func (UnimplementedBridgeServer) ChangeLocalCache(context.Context, *ChangeLocalCacheRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ChangeLocalCache not implemented")
+func (UnimplementedBridgeServer) SetDiskCachePath(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetDiskCachePath not implemented")
 }
 func (UnimplementedBridgeServer) SetIsDoHEnabled(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetIsDoHEnabled not implemented")
@@ -856,23 +823,14 @@ func (UnimplementedBridgeServer) SetIsDoHEnabled(context.Context, *wrapperspb.Bo
 func (UnimplementedBridgeServer) IsDoHEnabled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsDoHEnabled not implemented")
 }
-func (UnimplementedBridgeServer) SetUseSslForSmtp(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetUseSslForSmtp not implemented")
+func (UnimplementedBridgeServer) MailServerSettings(context.Context, *emptypb.Empty) (*ImapSmtpSettings, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MailServerSettings not implemented")
 }
-func (UnimplementedBridgeServer) UseSslForSmtp(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UseSslForSmtp not implemented")
+func (UnimplementedBridgeServer) SetMailServerSettings(context.Context, *ImapSmtpSettings) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetMailServerSettings not implemented")
 }
 func (UnimplementedBridgeServer) Hostname(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Hostname not implemented")
-}
-func (UnimplementedBridgeServer) ImapPort(context.Context, *emptypb.Empty) (*wrapperspb.Int32Value, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ImapPort not implemented")
-}
-func (UnimplementedBridgeServer) SmtpPort(context.Context, *emptypb.Empty) (*wrapperspb.Int32Value, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SmtpPort not implemented")
-}
-func (UnimplementedBridgeServer) ChangePorts(context.Context, *ChangePortsRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ChangePorts not implemented")
 }
 func (UnimplementedBridgeServer) IsPortFree(context.Context, *wrapperspb.Int32Value) (*wrapperspb.BoolValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsPortFree not implemented")
@@ -1391,6 +1349,24 @@ func _Bridge_ReportBug_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Bridge_ExportTLSCertificates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrapperspb.StringValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).ExportTLSCertificates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/ExportTLSCertificates",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).ExportTLSCertificates(ctx, req.(*wrapperspb.StringValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Bridge_ForceLauncher_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(wrapperspb.StringValue)
 	if err := dec(in); err != nil {
@@ -1571,24 +1547,6 @@ func _Bridge_IsAutomaticUpdateOn_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Bridge_IsCacheOnDiskEnabled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).IsCacheOnDiskEnabled(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/IsCacheOnDiskEnabled",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).IsCacheOnDiskEnabled(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Bridge_DiskCachePath_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
@@ -1607,20 +1565,20 @@ func _Bridge_DiskCachePath_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Bridge_ChangeLocalCache_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChangeLocalCacheRequest)
+func _Bridge_SetDiskCachePath_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrapperspb.StringValue)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BridgeServer).ChangeLocalCache(ctx, in)
+		return srv.(BridgeServer).SetDiskCachePath(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc.Bridge/ChangeLocalCache",
+		FullMethod: "/grpc.Bridge/SetDiskCachePath",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).ChangeLocalCache(ctx, req.(*ChangeLocalCacheRequest))
+		return srv.(BridgeServer).SetDiskCachePath(ctx, req.(*wrapperspb.StringValue))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1661,38 +1619,38 @@ func _Bridge_IsDoHEnabled_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Bridge_SetUseSslForSmtp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(wrapperspb.BoolValue)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).SetUseSslForSmtp(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/SetUseSslForSmtp",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).SetUseSslForSmtp(ctx, req.(*wrapperspb.BoolValue))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_UseSslForSmtp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Bridge_MailServerSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BridgeServer).UseSslForSmtp(ctx, in)
+		return srv.(BridgeServer).MailServerSettings(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpc.Bridge/UseSslForSmtp",
+		FullMethod: "/grpc.Bridge/MailServerSettings",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).UseSslForSmtp(ctx, req.(*emptypb.Empty))
+		return srv.(BridgeServer).MailServerSettings(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Bridge_SetMailServerSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImapSmtpSettings)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).SetMailServerSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/SetMailServerSettings",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).SetMailServerSettings(ctx, req.(*ImapSmtpSettings))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1711,60 +1669,6 @@ func _Bridge_Hostname_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BridgeServer).Hostname(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_ImapPort_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).ImapPort(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/ImapPort",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).ImapPort(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_SmtpPort_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).SmtpPort(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/SmtpPort",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).SmtpPort(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_ChangePorts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ChangePortsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).ChangePorts(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/ChangePorts",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).ChangePorts(ctx, req.(*ChangePortsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2100,6 +2004,10 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Bridge_ReportBug_Handler,
 		},
 		{
+			MethodName: "ExportTLSCertificates",
+			Handler:    _Bridge_ExportTLSCertificates_Handler,
+		},
+		{
 			MethodName: "ForceLauncher",
 			Handler:    _Bridge_ForceLauncher_Handler,
 		},
@@ -2140,16 +2048,12 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Bridge_IsAutomaticUpdateOn_Handler,
 		},
 		{
-			MethodName: "IsCacheOnDiskEnabled",
-			Handler:    _Bridge_IsCacheOnDiskEnabled_Handler,
-		},
-		{
 			MethodName: "DiskCachePath",
 			Handler:    _Bridge_DiskCachePath_Handler,
 		},
 		{
-			MethodName: "ChangeLocalCache",
-			Handler:    _Bridge_ChangeLocalCache_Handler,
+			MethodName: "SetDiskCachePath",
+			Handler:    _Bridge_SetDiskCachePath_Handler,
 		},
 		{
 			MethodName: "SetIsDoHEnabled",
@@ -2160,28 +2064,16 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Bridge_IsDoHEnabled_Handler,
 		},
 		{
-			MethodName: "SetUseSslForSmtp",
-			Handler:    _Bridge_SetUseSslForSmtp_Handler,
+			MethodName: "MailServerSettings",
+			Handler:    _Bridge_MailServerSettings_Handler,
 		},
 		{
-			MethodName: "UseSslForSmtp",
-			Handler:    _Bridge_UseSslForSmtp_Handler,
+			MethodName: "SetMailServerSettings",
+			Handler:    _Bridge_SetMailServerSettings_Handler,
 		},
 		{
 			MethodName: "Hostname",
 			Handler:    _Bridge_Hostname_Handler,
-		},
-		{
-			MethodName: "ImapPort",
-			Handler:    _Bridge_ImapPort_Handler,
-		},
-		{
-			MethodName: "SmtpPort",
-			Handler:    _Bridge_SmtpPort_Handler,
-		},
-		{
-			MethodName: "ChangePorts",
-			Handler:    _Bridge_ChangePorts_Handler,
 		},
 		{
 			MethodName: "IsPortFree",

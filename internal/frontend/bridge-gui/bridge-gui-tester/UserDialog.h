@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -23,11 +23,11 @@
 #include "ui_UserDialog.h"
 #include <bridgepp/User/User.h>
 
+
 //****************************************************************************************************************************************************
 /// \brief User dialog class.
 //****************************************************************************************************************************************************
-class UserDialog : public QDialog
-{
+class UserDialog : public QDialog {
 Q_OBJECT
 public: // member functions.
     UserDialog(bridgepp::SPUser &user, QWidget *parent); ///< Default constructor.
@@ -36,6 +36,10 @@ public: // member functions.
     ~UserDialog() override = default; ///< Destructor.
     UserDialog &operator=(UserDialog const &) = delete; ///< Disabled assignment operator.
     UserDialog &operator=(UserDialog &&) = delete; ///< Disabled move assignment operator.
+
+private: // member functions
+    bridgepp::UserState state(); ///< Get the user state selected in the dialog.
+    void setState(bridgepp::UserState state); ///< Set the user state selected in the dialog
 
 private slots:
     void onOK(); ///< Slot for the OK button.

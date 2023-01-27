@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -92,8 +92,7 @@ func TestRemoveWithExceptions(t *testing.T) {
 }
 
 func newTestDir(t *testing.T, subdirs ...string) string {
-	dir, err := os.MkdirTemp("", "test-files-dir")
-	require.NoError(t, err)
+	dir := t.TempDir()
 
 	for _, target := range subdirs {
 		require.NoError(t, os.MkdirAll(filepath.Join(dir, target), 0o700))

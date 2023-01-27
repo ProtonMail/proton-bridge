@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -24,7 +24,8 @@ import (
 	"io"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/proton-bridge/v2/internal/versioner"
+	"github.com/ProtonMail/proton-bridge/v3/internal/versioner"
+	"github.com/sirupsen/logrus"
 )
 
 type InstallerDefault struct {
@@ -39,4 +40,16 @@ func NewInstaller(versioner *versioner.Versioner) *InstallerDefault {
 
 func (i *InstallerDefault) InstallUpdate(version *semver.Version, r io.Reader) error {
 	return i.versioner.InstallNewVersion(version, r)
+}
+
+func (i *InstallerDefault) IsAlreadyInstalled(version *semver.Version) bool {
+	versions, err := i.versioner.ListVersions()
+	if err != nil {
+		logrus.WithField("version", version).
+			WithError(err).Error("Failed to determine whether version is installed")
+
+		return false
+	}
+
+	return versions.HasVersion(version)
 }

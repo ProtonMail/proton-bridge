@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -23,20 +23,17 @@
 #include "Worker/Worker.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 //**********************************************************************************************************************
 /// \brief Process launcher and monitor class.
 //**********************************************************************************************************************
-class ProcessMonitor : public Worker
-{
+class ProcessMonitor : public Worker {
 Q_OBJECT
 public: // static member functions
-    struct MonitorStatus
-    {
-        bool running = false;
+    struct MonitorStatus {
+        bool ended = false;
         int returnCode = 0;
         qint64 pid = 0;
     };
@@ -49,15 +46,21 @@ public: // member functions.
     ProcessMonitor &operator=(ProcessMonitor const &) = delete; ///< Disabled assignment operator.
     ProcessMonitor &operator=(ProcessMonitor &&) = delete; ///< Disabled move assignment operator.
     void run() override; ///< Run the worker.
-    MonitorStatus const &getStatus();
+    MonitorStatus const getStatus(); ///< Retrieve the current status of the process.
 
 signals:
     void processExited(int code); ///< Slot for the exiting of the process.
 
+private: // member functions
+    void forwardProcessOutput(QProcess &p); ///< Forward the standard output and error from the process to this application standard output and error.
+
 private: // data members
+    QMutex statusMutex_; ///< The status mutex.
     QString const exePath_; ///< The path to the executable.
-    QStringList args_; ///< arguments to be passed to the brigde.
+    QStringList args_; ///< arguments to be passed to Bridge.
     MonitorStatus status_; ///< Status of the monitoring.
+    QTextStream out_; ///< The standard output stream.
+    QTextStream err_; ///< The standard error stream.
 };
 
 

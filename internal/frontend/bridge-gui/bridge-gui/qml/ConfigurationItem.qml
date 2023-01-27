@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -53,6 +53,8 @@ Item {
                     selectByMouse: true
                     selectByKeyboard: true
                     selectionColor: root.colorScheme.text_weak
+                    wrapMode: Text.WrapAnywhere
+                    Layout.fillWidth: true
                 }
             }
 

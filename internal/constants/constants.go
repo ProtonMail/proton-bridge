@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.Bridge.
 //
@@ -18,17 +18,20 @@
 // Package constants contains variables that are set via ldflags during build.
 package constants
 
-import "fmt"
+import (
+	"fmt"
+	"runtime"
+)
 
 const VendorName = "protonmail"
 
 //nolint:gochecknoglobals
 var (
-	// Version of the build.
+	// FullAppName is the full app name (to show to the user).
 	FullAppName = ""
 
 	// Version of the build.
-	Version = ""
+	Version = "0.0.0"
 
 	// Revision is current hash of the build.
 	Revision = ""
@@ -36,9 +39,43 @@ var (
 	// BuildTime stamp of the build.
 	BuildTime = ""
 
-	// DSNSentry client keys to be able to report crashes to Sentry.
-	DSNSentry = ""
-
 	// BuildVersion is derived from LongVersion and BuildTime.
 	BuildVersion = fmt.Sprintf("%v (%v) %v", Version, Revision, BuildTime)
+
+	// DSNSentry client keys to be able to report crashes to Sentry.
+	DSNSentry = ""
 )
+
+const (
+	// AppName is the name of the product appearing in the request headers.
+	AppName = "bridge"
+
+	// UpdateName is the name of the product appearing in the update URL.
+	UpdateName = "bridge"
+
+	// ConfigName determines the name of the location where bridge stores config/cache files.
+	ConfigName = "bridge-v3"
+
+	// KeyChainName is the name of the entry in the OS keychain.
+	KeyChainName = "bridge-v3"
+
+	// Host is the hostname of the bridge server.
+	Host = "127.0.0.1"
+)
+
+// nolint:goconst
+func getAPIOS() string {
+	switch runtime.GOOS {
+	case "darwin":
+		return "macos"
+
+	case "linux":
+		return "linux"
+
+	case "windows":
+		return "windows"
+
+	default:
+		return "linux"
+	}
+}

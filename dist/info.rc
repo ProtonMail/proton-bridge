@@ -3,7 +3,7 @@
 
 IDI_ICON1 ICON DISCARDABLE STRINGIZE(ICO_FILE)
 
-#define FILE_COMMENTS "The Bridge is an application that runs on your computer in the background and seamlessly encrypts and decrypts your mail as it enters and leaves your computer."
+#define FILE_COMMENTS "Proton Mail Bridge is a desktop application that runs in the background, encrypting and decrypting messages as they enter and leave your computer."
 #define FILE_DESCRIPTION "Proton Mail Bridge"
 #define INTERNAL_NAME STRINGIZE(EXE_NAME)
 #define PRODUCT_NAME "Proton Mail Bridge for Windows"

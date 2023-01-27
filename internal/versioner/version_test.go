@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -25,22 +25,20 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/sum"
-	tests "github.com/ProtonMail/proton-bridge/v2/test"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/sum"
+	"github.com/ProtonMail/proton-bridge/v3/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestVerifyFiles(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "verify-test")
-	require.NoError(t, err)
-
+	dir := t.TempDir()
 	version := &Version{
 		version: semver.MustParse("1.2.3"),
-		path:    tempDir,
+		path:    dir,
 	}
 
-	kr := createSignedFiles(t, tempDir,
+	kr := createSignedFiles(t, dir,
 		"f1.txt",
 		"f2.png",
 		"f3.dat",
@@ -52,15 +50,14 @@ func TestVerifyFiles(t *testing.T) {
 }
 
 func TestVerifyWithBadFile(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "verify-test")
-	require.NoError(t, err)
+	dir := t.TempDir()
 
 	version := &Version{
 		version: semver.MustParse("1.2.3"),
-		path:    tempDir,
+		path:    dir,
 	}
 
-	kr := createSignedFiles(t, tempDir,
+	kr := createSignedFiles(t, dir,
 		"f1.txt",
 		"f2.png",
 		"f3.bad",
@@ -68,22 +65,20 @@ func TestVerifyWithBadFile(t *testing.T) {
 		filepath.Join("sub", "f5.tgz"),
 	)
 
-	badKeyRing := tests.MakeKeyRing(t)
-	signFile(t, filepath.Join(tempDir, "f3.bad"), badKeyRing)
+	signFile(t, filepath.Join(dir, "f3.bad"), utils.MakeKeyRing(t))
 
 	assert.Error(t, version.VerifyFiles(kr))
 }
 
 func TestVerifyWithBadSubFile(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "verify-test")
-	require.NoError(t, err)
+	dir := t.TempDir()
 
 	version := &Version{
 		version: semver.MustParse("1.2.3"),
-		path:    tempDir,
+		path:    dir,
 	}
 
-	kr := createSignedFiles(t, tempDir,
+	kr := createSignedFiles(t, dir,
 		"f1.txt",
 		"f2.png",
 		"f3.dat",
@@ -91,14 +86,13 @@ func TestVerifyWithBadSubFile(t *testing.T) {
 		filepath.Join("sub", "f5.bad"),
 	)
 
-	badKeyRing := tests.MakeKeyRing(t)
-	signFile(t, filepath.Join(tempDir, "sub", "f5.bad"), badKeyRing)
+	signFile(t, filepath.Join(dir, "sub", "f5.bad"), utils.MakeKeyRing(t))
 
 	assert.Error(t, version.VerifyFiles(kr))
 }
 
 func createSignedFiles(t *testing.T, root string, paths ...string) *crypto.KeyRing {
-	kr := tests.MakeKeyRing(t)
+	kr := utils.MakeKeyRing(t)
 
 	for _, path := range paths {
 		makeFile(t, filepath.Join(root, path))

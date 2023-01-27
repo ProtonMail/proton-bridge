@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -20,20 +20,17 @@
 #define BRIDGE_PP_LOG_H
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 //****************************************************************************************************************************************************
 /// \brief Basic log class. No logging to file. Four levels. Rebroadcast received log entries via Qt signals.
 //****************************************************************************************************************************************************
-class Log : public QObject
-{
+class Log : public QObject {
 Q_OBJECT
 public: // data types.
     /// \brief Log level class. The list matches [loggers log levels](https://pkg.go.dev/github.com/sirupsen/logrus).
-    enum class Level
-    {
+    enum class Level {
         Panic, ///< Panic log level.
         Fatal, ///< Fatal log level.
         Error, ///< Error log level.
@@ -44,9 +41,9 @@ public: // data types.
     };
 
 public: // static member functions.
-    static QString logEntryToString(Log::Level level, QString const &message); ///< Return a string describing a log entry.
+    static QString logEntryToString(Log::Level level, QDateTime const &dateTime, QString const &message); ///< Return a string describing a log entry.
     static QString levelToString(Log::Level level); ///< return the string for a level.
-    static bool stringToLevel(QString const &str, Log::Level& outLevel); ///< parse a level from a string.
+    static bool stringToLevel(QString const &str, Log::Level &outLevel); ///< parse a level from a string.
 
 public: // static data member.
     static const Level defaultLevel { Level::Info }; ///< The default log level (the same as logrus).
@@ -63,6 +60,8 @@ public: // member functions.
     Level level() const; ///< Get the log level.
     void setEchoInConsole(bool value); ///< Set if the log entries should be echoed in STDOUT/STDERR.
     bool echoInConsole() const; ///< Check if the log entries should be echoed in STDOUT/STDERR.
+    bool startWritingToFile(QString const &path, QString *outError = nullptr); ///< Start writing the log to file. Concerns only future entries.
+    void stopWritingToFile();
     void registerAsQtMessageHandler(); ///< Install the Qt message handler.
 
 public slots:
@@ -83,7 +82,7 @@ private: // data members
     mutable QMutex mutex_; ///< The mutex.
     Level level_ { defaultLevel }; ///< The log level
     bool echoInConsole_ { false }; ///< Set if the log messages should be sent to STDOUT/STDERR.
-
+    std::unique_ptr<QFile> file_; ///< The file to write the log to.
     QTextStream stdout_; ///< The stdout stream.
     QTextStream stderr_; ///< The stderr stream.
 };

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -136,7 +136,36 @@ Item {
                 spacing: 0
                 Label {
                     colorScheme: root.colorScheme
-                    text: root.user && root.user.loggedIn ? root.usedSpace : qsTr("Signed out")
+                    text: {
+                        if (!root.user)
+                            return qsTr("Signed out")
+                        switch (root.user.state) {
+                        case EUserState.SignedOut:
+                        default:
+                            return qsTr("Signed out")
+                        case EUserState.Locked:
+                            return qsTr("Connecting") + dotsTimer.dots
+                        case EUserState.Connected:
+                            return root.usedSpace
+                        }
+                    }
+
+                    Timer { // dots animation while connecting. 1 sec cycle, roughly similar to the webmail loading page.
+                        id:dotsTimer
+                        property string dots: ""
+                        interval: 250;
+                        repeat: true;
+                        running: root.user && (root.user.state === EUserState.Locked)
+                        onTriggered: {
+                            dots = dots + "."
+                            if (dots.length > 3)
+                                dots = ""
+                        }
+                        onRunningChanged: {
+                            dots = ""
+                        }
+                    }
+
                     color: root.usedSpaceColor
                     type: {
                         switch (root.type) {
@@ -148,7 +177,7 @@ Item {
 
                 Label {
                     colorScheme: root.colorScheme
-                    text: root.user && root.user.loggedIn ? " / " + root.totalSpace : ""
+                    text: root.user && root.user.state == EUserState.Connected ? " / " + root.totalSpace : ""
                     color: root.colorScheme.text_weak
                     type: {
                         switch (root.type) {
@@ -172,7 +201,7 @@ Item {
                     id: storage_bar_filled
                     radius: ProtonStyle.storage_bar_radius
                     color: root.usedSpaceColor
-                    visible: root.user ? parent.visible && root.user.loggedIn : false
+                    visible: root.user ? parent.visible && (root.user.state == EUserState.Connected) : false
                     anchors {
                         top    : parent.top
                         bottom : parent.bottom

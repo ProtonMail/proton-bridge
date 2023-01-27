@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -56,7 +56,7 @@ ColumnLayout {
             text: "LoggedIn"
             enabled: user !== undefined && user.username.length > 0
 
-            checked: user ? user.loggedIn : false
+            checked: user ? root.user.state == EUserState.Connected : false
 
             onCheckedChanged: {
                 if (!user) {
@@ -73,11 +73,11 @@ ColumnLayout {
                         return
                     }
 
-                    user.loggedIn = true
+                    user.state = EUserState.Connected
                     user.resetLoginRequests()
                     return
                 } else {
-                    user.loggedIn = false
+                    user.state = EUserState.SignedOut
                     user.resetLoginRequests()
                 }
             }

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -185,7 +185,7 @@ Item {
                                 var user = Backend.users.get(index)
                                 accounts.currentIndex = index
                                 if (!user) return
-                                if (user.loggedIn) {
+                                if (user.state !== EUserState.SignedOut) {
                                     rightContent.showAccount()
                                 } else {
                                     signIn.username = user.username
@@ -315,13 +315,13 @@ Item {
 
                 PortSettings { // 4
                     colorScheme: root.colorScheme
-
+                    notifications: root.notifications
                     onBack: {
                         rightContent.showGeneralSettings()
                     }
                 }
 
-                SMTPSettings { // 5
+                ConnectionModeSettings { // 5
                     colorScheme: root.colorScheme
 
                     onBack: {
@@ -359,6 +359,10 @@ Item {
                     onBack: {
                         rightContent.showHelpView()
                     }
+
+                    onBugReportWasSent: {
+                        rightContent.showAccount()
+                    }
                 }
 
                 function showAccount(index) {
@@ -368,14 +372,14 @@ Item {
                     rightContent.currentIndex = 0
                 }
 
-                function showSignIn             () { rightContent.currentIndex = 1; signIn.focus = true }
-                function showGeneralSettings    () { rightContent.currentIndex = 2 }
-                function showKeychainSettings   () { rightContent.currentIndex = 3 }
-                function showPortSettings       () { rightContent.currentIndex = 4 }
-                function showSMTPSettings       () { rightContent.currentIndex = 5 }
-                function showLocalCacheSettings () { rightContent.currentIndex = 6 }
-                function showHelpView           () { rightContent.currentIndex = 7 }
-                function showBugReport          () { rightContent.currentIndex = 8 }
+                function showSignIn                () { rightContent.currentIndex = 1; signIn.focus = true }
+                function showGeneralSettings       () { rightContent.currentIndex = 2 }
+                function showKeychainSettings      () { rightContent.currentIndex = 3 }
+                function showPortSettings          () { rightContent.currentIndex = 4 }
+                function showConnectionModeSettings() { rightContent.currentIndex = 5 }
+                function showLocalCacheSettings    () { rightContent.currentIndex = 6 }
+                function showHelpView              () { rightContent.currentIndex = 7 }
+                function showBugReport             () { rightContent.currentIndex = 8 }
 
                 Connections {
                     target: Backend

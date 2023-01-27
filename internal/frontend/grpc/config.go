@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.Bridge.
 //
@@ -22,15 +22,16 @@ import (
 	"os"
 )
 
-// config is a structure containing the service configuration data that are exchanged by the gRPC server and client.
-type config struct {
-	Port  int    `json:"port"`
-	Cert  string `json:"cert"`
-	Token string `json:"token"`
+// Config is a structure containing the service configuration data that are exchanged by the gRPC server and client.
+type Config struct {
+	Port           int    `json:"port"`
+	Cert           string `json:"cert"`
+	Token          string `json:"token"`
+	FileSocketPath string `json:"fileSocketPath"`
 }
 
 // save saves a gRPC service configuration to file.
-func (s *config) save(path string) error {
+func (s *Config) save(path string) error {
 	// Another process may be waiting for this file to be available. In order to prevent this process to open
 	// the file while we are writing in it, we write it with a temp file name, then rename it.
 	tempPath := path + "_"
@@ -41,7 +42,7 @@ func (s *config) save(path string) error {
 	return os.Rename(tempPath, path)
 }
 
-func (s *config) _save(path string) error {
+func (s *Config) _save(path string) error {
 	f, err := os.Create(path) //nolint:errcheck,gosec
 	if err != nil {
 		return err
@@ -53,7 +54,7 @@ func (s *config) _save(path string) error {
 }
 
 // load loads a gRPC service configuration from file.
-func (s *config) load(path string) error {
+func (s *Config) load(path string) error {
 	f, err := os.Open(path) //nolint:errcheck,gosec
 	if err != nil {
 		return err

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -43,6 +43,7 @@ Item {
         clip: true
 
         anchors.fill: parent
+        Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds // Disable the springy effect when scroll reaches top/bottom.
 
         Item {
             // can't use parent here because parent is not ScrollView (Flickable inside contentItem inside ScrollView)
@@ -86,7 +87,7 @@ Item {
                                 colorScheme: root.colorScheme
                                 user: root.user
                                 type: AccountDelegate.LargeView
-                                enabled: root.user ? root.user.loggedIn : false
+                                enabled: root.user ? (root.user.state === EUserState.Connected) : false
                             }
 
                             Button {
@@ -94,7 +95,7 @@ Item {
                                 colorScheme: root.colorScheme
                                 text: qsTr("Sign out")
                                 secondary: true
-                                visible: root.user ? root.user.loggedIn : false
+                                visible: root.user ? (root.user.state === EUserState.Connected) : false
                                 onClicked: {
                                     if (!root.user) return
                                     root.user.logout()
@@ -106,7 +107,7 @@ Item {
                                 colorScheme: root.colorScheme
                                 text: qsTr("Sign in")
                                 secondary: true
-                                visible: root.user ? !root.user.loggedIn : false
+                                visible: root.user ? (root.user.state === EUserState.SignedOut) : false
                                 onClicked: {
                                     if (!root.user) return
                                     root.showSignIn()
@@ -122,6 +123,7 @@ Item {
                                     if (!root.user) return
                                     root.notifications.askDeleteAccount(root.user)
                                 }
+                                visible: root.user ? root.user.state !== EUserState.Locked : false
                             }
                         }
 
@@ -137,7 +139,7 @@ Item {
                             actionText: qsTr("Configure")
                             description: qsTr("Using the mailbox details below (re)configure your client.")
                             type: SettingsItem.Button
-                            enabled: root.user ? root.user.loggedIn : false
+                            enabled: root.user ? root.user.state === EUserState.Connected : false
                             visible: root.user ? !root.user.splitMode || root.user.addresses.length==1 : false
                             showSeparator: splitMode.visible
                             onClicked: {
@@ -156,7 +158,7 @@ Item {
                             type: SettingsItem.Toggle
                             checked: root.user ? root.user.splitMode : false
                             visible: root.user ? root.user.addresses.length > 1 : false
-                            enabled: root.user ? root.user.loggedIn : false
+                            enabled: root.user ? (root.user.state === EUserState.Connected) : false
                             showSeparator: addressSelector.visible
                             onClicked: {
                                 if (!splitMode.checked){
@@ -172,7 +174,7 @@ Item {
 
                         RowLayout {
                             Layout.fillWidth: true
-                            enabled: root.user ? root.user.loggedIn : false
+                            enabled: root.user ? (root.user.state === EUserState.Connected) : false
                             visible: root.user ? root.user.splitMode : false
 
                             ComboBox {
@@ -213,7 +215,7 @@ Item {
                         anchors.bottomMargin: root._spacing
 
                         spacing: root._spacing
-                        visible: root.user ? root.user.loggedIn : false
+                        visible: root.user ? (root.user.state === EUserState.Connected) : false
 
                         property string currentAddress: addressSelector.displayText
 
@@ -227,20 +229,20 @@ Item {
                             colorScheme: root.colorScheme
                             title: qsTr("IMAP")
                             hostname:   Backend.hostname
-                            port:       Backend.portIMAP.toString()
+                            port:       Backend.imapPort.toString()
                             username:   configuration.currentAddress
                             password:   root.user ? root.user.password : ""
-                            security:   "STARTTLS"
+                            security : Backend.useSSLForIMAP ? "SSL" : "STARTTLS"
                         }
 
                         Configuration {
                             colorScheme: root.colorScheme
                             title: qsTr("SMTP")
                             hostname : Backend.hostname
-                            port     : Backend.portSMTP.toString()
+                            port     : Backend.smtpPort.toString()
                             username : configuration.currentAddress
                             password : root.user ? root.user.password : ""
-                            security : Backend.useSSLforSMTP ? "SSL" : "STARTTLS"
+                            security : Backend.useSSLForSMTP ? "SSL" : "STARTTLS"
                         }
                     }
                 }

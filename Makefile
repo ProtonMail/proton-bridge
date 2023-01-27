@@ -11,7 +11,7 @@ ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 .PHONY: build build-gui build-nogui build-launcher versioner hasher
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=2.4.3+git
+BRIDGE_APP_VERSION?=3.0.10+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 APP_FULL_NAME:=Proton Mail Bridge
 APP_VENDOR:=Proton AG
@@ -21,21 +21,22 @@ SRC_SVG:=bridge.svg
 EXE_NAME:=proton-bridge
 REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
-MACOS_MIN_VERSION=11.0
+MACOS_MIN_VERSION_ARM64=11.0
+MACOS_MIN_VERSION_AMD64=10.15
 
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
 BUILD_FLAGS_LAUNCHER:=${BUILD_FLAGS}
 BUILD_FLAGS_GUI:=-tags='${BUILD_TAGS} build_qt'
-GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/v2/internal/constants., Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
-GO_LDFLAGS+=-X "github.com/ProtonMail/proton-bridge/v2/internal/constants.FullAppName=${APP_FULL_NAME}"
+GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/v3/internal/constants., Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
+GO_LDFLAGS+=-X "github.com/ProtonMail/proton-bridge/v3/internal/constants.FullAppName=${APP_FULL_NAME}"
 
 ifneq "${BUILD_LDFLAGS}" ""
 	GO_LDFLAGS+=${BUILD_LDFLAGS}
 endif
 GO_LDFLAGS_LAUNCHER:=${GO_LDFLAGS}
 ifeq "${TARGET_OS}" "windows"
-	GO_LDFLAGS+=-H=windowsgui
-	GO_LDFLAGS_LAUNCHER+=-H=windowsgui
+	#GO_LDFLAGS+=-H=windowsgui # Disabled so we can inspect trace logs from the bridge for debugging.
+	GO_LDFLAGS_LAUNCHER+=-H=windowsgui # Having this flag prevent a temporary cmd.exe window from popping when starting the application on Windows 11.
 endif
 
 BUILD_FLAGS+=-ldflags '${GO_LDFLAGS}'
@@ -80,13 +81,16 @@ build: build-gui
 build-gui: ${TGZ_TARGET}
 
 build-nogui: ${EXE_NAME} build-launcher
+ifeq "${TARGET_OS}" "darwin"
+	mv ${BRIDGE_EXE} ${BRIDGE_EXE_NAME}
+endif
 
 go-build=go build $(1) -o $(2) $(3)
 go-build-finalize=${go-build}
 ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
 	go-build-finalize= \
-		MACOSX_DEPLOYMENT_TARGET=${MACOS_MIN_VERSION} CGO_ENABLED=1 CGO_CFLAGS="-mmacosx-version-min=${MACOS_MIN_VERSION}" GOARCH=arm64 $(call go-build,$(1),$(2)_arm,$(3)) && \
-		MACOSX_DEPLOYMENT_TARGET=${MACOS_MIN_VERSION} CGO_ENABLED=1 CGO_CFLAGS="-mmacosx-version-min=${MACOS_MIN_VERSION}" GOARCH=amd64 $(call go-build,$(1),$(2)_amd,$(3)) && \
+		MACOSX_DEPLOYMENT_TARGET=${MACOS_MIN_VERSION_ARM64} CGO_ENABLED=1 CGO_CFLAGS="-mmacosx-version-min=${MACOS_MIN_VERSION_ARM64}" GOARCH=arm64 $(call go-build,$(1),$(2)_arm,$(3)) && \
+		MACOSX_DEPLOYMENT_TARGET=${MACOS_MIN_VERSION_AMD64} CGO_ENABLED=1 CGO_CFLAGS="-mmacosx-version-min=${MACOS_MIN_VERSION_AMD64}" GOARCH=amd64 $(call go-build,$(1),$(2)_amd,$(3)) && \
 		lipo -create -output $(2) $(2)_arm $(2)_amd && rm -f $(2)_arm $(2)_amd
 endif
 
@@ -106,6 +110,9 @@ build-launcher: ${RESOURCE_FILE}
 
 versioner:
 	go build ${BUILD_FLAGS} -o versioner utils/versioner/main.go
+
+vault-editor:
+	go build -tags debug -o vault-editor utils/vault-editor/main.go
 
 hasher:
 	go build -o hasher utils/hasher/main.go
@@ -215,9 +222,19 @@ change-copyright-year:
 	./utils/missing_license.sh change-year
 
 test: gofiles
-	go test -coverprofile=/tmp/coverage.out -run=${TESTRUN} \
-		./internal/...\
-		./pkg/...
+	go test -v -timeout=5m -p=1 -count=1 -coverprofile=/tmp/coverage.out -run=${TESTRUN} ./internal/... ./pkg/...
+
+test-race: gofiles
+	go test -v -timeout=30m -p=1 -count=1 -race -failfast -run=${TESTRUN} ./internal/... ./pkg/...
+
+test-integration: gofiles
+	go test -v -timeout=10m -p=1 -count=1 github.com/ProtonMail/proton-bridge/v3/tests
+
+test-integration-debug: gofiles
+	dlv test github.com/ProtonMail/proton-bridge/v3/tests -- -test.v -test.timeout=10m -test.parallel=1 -test.count=1
+
+test-integration-race: gofiles
+	go test -v -timeout=60m -p=1 -count=1 -race -failfast github.com/ProtonMail/proton-bridge/v3/tests
 
 bench:
 	go test -run '^$$' -bench=. -memprofile bench_mem.pprof -cpuprofile bench_cpu.pprof ./internal/store
@@ -227,16 +244,12 @@ bench:
 coverage: test
 	go tool cover -html=/tmp/coverage.out -o=coverage.html
 
-integration-test-bridge:
-	${MAKE} -C test test-bridge
-
 mocks:
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/users Locator,PanicHandler,CredentialsStorer,StoreMaker > internal/users/mocks/mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/pkg/listener Listener > internal/users/mocks/listener_mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/internal/store PanicHandler,BridgeUser,ChangeNotifier,Storer > internal/store/mocks/mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/pkg/listener Listener > internal/store/mocks/utils_mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/pkg/pmapi Client,Manager > pkg/pmapi/mocks/mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v2/pkg/message Fetcher > pkg/message/mocks/mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/bridge TLSReporter,ProxyController,Autostarter > tmp
+	mv tmp internal/bridge/mocks/mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/async PanicHandler > internal/bridge/mocks/async_mocks.go
+	mockgen --package mocks github.com/ProtonMail/gluon/reporter Reporter > internal/bridge/mocks/gluon_mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/updater Downloader,Installer > internal/updater/mocks/mocks.go
 
 lint: gofiles lint-golang lint-license lint-dependencies lint-changelog
 
@@ -254,6 +267,13 @@ lint-golang:
 	$(info linting with GOMAXPROCS=${GOMAXPROCS})
 	golangci-lint run ./...
 
+gobinsec: gobinsec-cache.yml build
+	gobinsec -wait -cache -config utils/gobinsec_conf.yml ${EXE_TARGET} ${DEPLOY_DIR}/${TARGET_OS}/${LAUNCHER_EXE}
+
+gobinsec-cache.yml:
+	./utils/gobinsec_update.sh
+	cp ./utils/gobinsec_update/gobinsec-cache-valid.yml ./gobinsec-cache.yml
+
 updates: install-go-mod-outdated
 	# Uncomment the "-ci" to fail the job if something can be updated.
 	go list -u -m -json all | go-mod-outdated -update -direct #-ci
@@ -261,7 +281,7 @@ updates: install-go-mod-outdated
 doc:
 	godoc -http=:6060
 
-release-notes: release-notes/bridge_stable.html release-notes/bridge_early.html
+release-notes: release-notes/bridge_stable.html release-notes/bridge_early.html utils/release_notes.sh
 
 release-notes/%.html: release-notes/%.md
 	./utils/release_notes.sh $^
@@ -274,7 +294,7 @@ gofiles: ./internal/bridge/credits.go
 	cd ./utils/ && ./credits.sh bridge
 
 ## Run and debug
-.PHONY: run run-qt run-qt-cli run-nogui run-nogui-cli run-debug run-qml-preview clean-vendor clean-frontend-qt clean-frontend-qt-common clean
+.PHONY: run run-qt run-qt-cli run-nogui run-cli run-noninteractive run-debug run-qml-preview clean-vendor clean-frontend-qt clean-frontend-qt-common clean
 
 LOG?=debug
 LOG_IMAP?=client # client/server/all, or empty to turn it off
@@ -285,11 +305,21 @@ run: run-qt
 
 run-cli: run-nogui
 
+run-noninteractive: build-nogui clean-vendor gofiles
+	PROTONMAIL_ENV=dev ./${LAUNCHER_EXE} ${RUN_FLAGS} -n
+
 run-qt: build-gui
+ifeq "${TARGET_OS}" "darwin"
+	PROTONMAIL_ENV=dev ${DARWINAPP_CONTENTS}/MacOS/${LAUNCHER_EXE}  ${RUN_FLAGS}
+else
 	PROTONMAIL_ENV=dev ./${DEPLOY_DIR}/${TARGET_OS}/${LAUNCHER_EXE} ${RUN_FLAGS}
+endif
 
 run-nogui: build-nogui clean-vendor gofiles
 	PROTONMAIL_ENV=dev ./${LAUNCHER_EXE} ${RUN_FLAGS} -c
+
+run-debug:
+	dlv debug ./cmd/Desktop-Bridge/main.go -- -l=debug
 
 clean-vendor:
 	rm -rf ./vendor
@@ -313,6 +343,7 @@ clean: clean-vendor clean-gui clean-vcpkg
 	rm -f ./*.syso
 	rm -f release-notes/bridge.html
 	rm -f release-notes/import-export.html
+	rm -f ${LAUNCHER_EXE} ${BRIDGE_EXE} ${BRIDGE_EXE_NAME}
 
 
 .PHONY: generate

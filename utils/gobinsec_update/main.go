@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -19,10 +19,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/intercloud/gobinsec/gobinsec"
 	"io/ioutil"
 	"regexp"
 	"strings"
+
+	"github.com/intercloud/gobinsec/gobinsec"
 )
 
 type Depend struct {

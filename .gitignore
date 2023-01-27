@@ -6,6 +6,7 @@
 .*.sw?
 *~
 .idea
+.vscode
 
 # Test files
 godog.test

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -21,7 +21,6 @@
 package versioner
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -33,10 +32,9 @@ import (
 // RemoveOldVersions is a noop on darwin; we don't test it there.
 
 func TestRemoveOldVersions(t *testing.T) {
-	updates, err := os.MkdirTemp(t.TempDir(), "updates")
-	require.NoError(t, err)
+	tempDir := t.TempDir()
 
-	v := newTestVersioner(t, "myCoolApp", updates, "2.3.4-beta", "2.3.4", "2.3.5", "2.4.0")
+	v := newTestVersioner(t, "myCoolApp", tempDir, "2.3.4-beta", "2.3.4", "2.3.5", "2.4.0")
 
 	allVersions, err := v.ListVersions()
 	require.NoError(t, err)
@@ -49,5 +47,5 @@ func TestRemoveOldVersions(t *testing.T) {
 	assert.Len(t, cleanedVersions, 1)
 
 	assert.Equal(t, semver.MustParse("2.4.0"), cleanedVersions[0].version)
-	assert.Equal(t, filepath.Join(updates, "2.4.0"), cleanedVersions[0].path)
+	assert.Equal(t, filepath.Join(tempDir, "2.4.0"), cleanedVersions[0].path)
 }

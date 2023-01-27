@@ -67,6 +67,7 @@
         <file>qml/icons/systray-mono-warn.png</file>
         <file>qml/icons/systray.svg</file>
         <file alias="bridge.svg">../../../../dist/bridge.svg</file>
+        <file alias="bridgeMacOS.svg">../../../../dist/bridgeMacOS.svg</file>
         <file>qml/KeychainSettings.qml</file>
         <file>qml/LocalCacheSettings.qml</file>
         <file>qml/MainWindow.qml</file>
@@ -99,7 +100,7 @@
         <file>qml/SettingsView.qml</file>
         <file>qml/SetupGuide.qml</file>
         <file>qml/SignIn.qml</file>
-        <file>qml/SMTPSettings.qml</file>
+        <file>qml/ConnectionModeSettings.qml</file>
         <file>qml/SplashScreen.qml</file>
         <file>qml/Status.qml</file>
         <file>qml/StatusWindow.qml</file>

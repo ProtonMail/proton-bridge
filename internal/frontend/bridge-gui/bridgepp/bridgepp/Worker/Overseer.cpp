@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -20,8 +20,7 @@
 #include "../Exception/Exception.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 //****************************************************************************************************************************************************
@@ -31,18 +30,17 @@ namespace bridgepp
 Overseer::Overseer(Worker *worker, QObject *parent)
     : QObject(parent)
     , thread_(new QThread(parent))
-    , worker_(worker)
-{
-    if (!worker_)
+    , worker_(worker) {
+    if (!worker_) {
         throw Exception("Overseer cannot accept a nil worker.");
+    }
 }
 
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-Overseer::~Overseer()
-{
+Overseer::~Overseer() {
     this->releaseWorker();
 }
 
@@ -50,21 +48,21 @@ Overseer::~Overseer()
 //****************************************************************************************************************************************************
 /// \param[in] autorelease Should the overseer automatically release the worker and thread when done.
 //****************************************************************************************************************************************************
-void Overseer::startWorker(bool autorelease) const
-{
-    if (!worker_)
+void Overseer::startWorker(bool autorelease) const {
+    if (!worker_) {
         throw Exception("Cannot start overseer with null worker.");
-    if (!thread_)
+    }
+    if (!thread_) {
         throw Exception("Cannot start overseer with null thread.");
+    }
 
     worker_->moveToThread(thread_);
     connect(thread_, &QThread::started, worker_, &Worker::run);
-    connect(worker_, &Worker::finished, [&]() {thread_->quit(); }); // Safety, normally the thread already properly quits.
+    connect(worker_, &Worker::finished, [&]() { thread_->quit(); }); // Safety, normally the thread already properly quits.
     connect(worker_, &Worker::error, [&]() { thread_->quit(); });
     connect(worker_, &Worker::cancelled, [&]() { thread_->quit(); });
 
-    if (autorelease)
-    {
+    if (autorelease) {
         connect(worker_, &Worker::error, this, &Overseer::releaseWorker);
         connect(worker_, &Worker::cancelled, this, &Overseer::releaseWorker);
         connect(worker_, &Worker::finished, this, &Overseer::releaseWorker);
@@ -77,18 +75,14 @@ void Overseer::startWorker(bool autorelease) const
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void Overseer::releaseWorker()
-{
-    if (worker_)
-    {
+void Overseer::releaseWorker() {
+    if (worker_) {
         worker_->deleteLater();
         worker_ = nullptr;
     }
 
-    if (thread_)
-    {
-        if (!thread_->isFinished())
-        {
+    if (thread_) {
+        if (!thread_->isFinished()) {
             thread_->quit();
             thread_->wait();
         }
@@ -101,10 +95,10 @@ void Overseer::releaseWorker()
 //****************************************************************************************************************************************************
 /// \return true iff the worker is finished.
 //****************************************************************************************************************************************************
-bool Overseer::isFinished() const
-{
-    if ((!worker_) || (!worker_->thread()))
+bool Overseer::isFinished() const {
+    if ((!worker_) || (!worker_->thread())) {
         return true;
+    }
 
     return worker_->thread()->isFinished();
 }
@@ -115,17 +109,19 @@ bool Overseer::isFinished() const
 /// never times out.
 /// \return false if and only if the timeout delay was reached.
 //****************************************************************************************************************************************************
-bool Overseer::wait(qint32 timeoutMs) const
-{
-    if (this->isFinished())
+bool Overseer::wait(qint32 timeoutMs) const {
+    if (this->isFinished()) {
         return true;
+    }
 
     QEventLoop loop;
     QTimer timer;
     bool inTime = true;
-    if (timeoutMs >= 0)
-    {
-        connect(&timer, &QTimer::timeout, &loop, [&]() { loop.quit(); inTime = false; } );
+    if (timeoutMs >= 0) {
+        connect(&timer, &QTimer::timeout, &loop, [&]() {
+            loop.quit();
+            inTime = false;
+        });
         timer.setSingleShot(true);
         timer.start(timeoutMs);
     }
@@ -149,8 +145,7 @@ bool Overseer::wait(qint32 timeoutMs) const
 //****************************************************************************************************************************************************
 /// \return The worker.
 //****************************************************************************************************************************************************
-Worker *Overseer::worker() const
-{
+Worker *Overseer::worker() const {
     return worker_;
 }
 

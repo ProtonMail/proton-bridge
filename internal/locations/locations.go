@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -24,39 +24,50 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/ProtonMail/proton-bridge/v2/pkg/files"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/files"
 	"github.com/sirupsen/logrus"
 )
 
 // Locations provides cross-platform access to standard locations.
 // On linux:
 // - settings: ~/.config/protonmail/<app>
-// - logs: ~/.cache/protonmail/<app>/logs
-// - cache: ~/.config/protonmail/<app>/cache
-// - updates: ~/.config/protonmail/<app>/updates
-// - lockfile: ~/.cache/protonmail/<app>/<app>.lock .
+// - gluon     ~/.local/share/protonmail/<app>/gluon
+// - logs:     ~/.local/share/protonmail/<app>/logs
+// - updates:  ~/.local/share/protonmail/<app>/updates
+// - locks:    ~/.cache/protonmail/<app>/*.lock
+// Other OSes are similar.
 type Locations struct {
-	userConfig, userCache string
-	configName            string
-	configGuiName         string
+	// userConfig is the path to the user config directory, for storing persistent config data.
+	userConfig string
+
+	// userData is the path to the user data directory, for storing persistent data.
+	userData string
+
+	// userCache is the path to the user cache directory, for storing non-essential data.
+	userCache string
+
+	configName    string
+	configGuiName string
 }
 
 // New returns a new locations object.
 func New(provider Provider, configName string) *Locations {
 	return &Locations{
-		userConfig:    provider.UserConfig(),
-		userCache:     provider.UserCache(),
+		userConfig: provider.UserConfig(),
+		userData:   provider.UserData(),
+		userCache:  provider.UserCache(),
+
 		configName:    configName,
 		configGuiName: configName + "-gui",
 	}
 }
 
-// GetLockFile returns the path to the lock file (e.g. ~/.cache/<company>/<app>/<app>.lock).
+// GetLockFile returns the path to the bridge lock file (e.g. ~/.cache/<company>/<app>/<app>.lock).
 func (l *Locations) GetLockFile() string {
 	return filepath.Join(l.userCache, l.configName+".lock")
 }
 
-// GetGuiLockFile returns the path to the lock file (e.g. ~/.cache/<company>/<app>/<app>.lock).
+// GetGuiLockFile returns the path to the GUI lock file (e.g. ~/.cache/<company>/<app>/<app>.lock).
 func (l *Locations) GetGuiLockFile() string {
 	return filepath.Join(l.userCache, l.configGuiName+".lock")
 }
@@ -127,7 +138,17 @@ func (l *Locations) ProvideSettingsPath() (string, error) {
 	return l.getSettingsPath(), nil
 }
 
-// ProvideLogsPath returns a location for user logs (e.g. ~/.cache/<company>/<app>/logs).
+// ProvideGluonPath returns a location for gluon data.
+// It creates it if it doesn't already exist.
+func (l *Locations) ProvideGluonPath() (string, error) {
+	if err := os.MkdirAll(l.getGluonPath(), 0o700); err != nil {
+		return "", err
+	}
+
+	return l.getGluonPath(), nil
+}
+
+// ProvideLogsPath returns a location for user logs (e.g. ~/.local/share/<company>/<app>/logs).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideLogsPath() (string, error) {
 	if err := os.MkdirAll(l.getLogsPath(), 0o700); err != nil {
@@ -137,22 +158,17 @@ func (l *Locations) ProvideLogsPath() (string, error) {
 	return l.getLogsPath(), nil
 }
 
-// ProvideCachePath returns a location for user cache dirs (e.g. ~/.config/<company>/<app>/cache).
+// ProvideGUICertPath returns a location for TLS certs used for the connection between bridge and the GUI.
 // It creates it if it doesn't already exist.
-func (l *Locations) ProvideCachePath() (string, error) {
-	if err := os.MkdirAll(l.getCachePath(), 0o700); err != nil {
+func (l *Locations) ProvideGUICertPath() (string, error) {
+	if err := os.MkdirAll(l.getGUICertPath(), 0o700); err != nil {
 		return "", err
 	}
 
-	return l.getCachePath(), nil
+	return l.getGUICertPath(), nil
 }
 
-// GetOldCachePath returns a former location for user cache dirs used for migration scripts only.
-func (l *Locations) GetOldCachePath() string {
-	return filepath.Join(l.userCache, "cache")
-}
-
-// ProvideUpdatesPath returns a location for update files (e.g. ~/.cache/<company>/<app>/updates).
+// ProvideUpdatesPath returns a location for update files (e.g. ~/.local/share/<company>/<app>/updates).
 // It creates it if it doesn't already exist.
 func (l *Locations) ProvideUpdatesPath() (string, error) {
 	if err := os.MkdirAll(l.getUpdatesPath(), 0o700); err != nil {
@@ -162,14 +178,12 @@ func (l *Locations) ProvideUpdatesPath() (string, error) {
 	return l.getUpdatesPath(), nil
 }
 
-// GetUpdatesPath returns a new location for update files used for migration scripts only.
-func (l *Locations) GetUpdatesPath() string {
-	return l.getUpdatesPath()
+func (l *Locations) getGluonPath() string {
+	return filepath.Join(l.userData, "gluon")
 }
 
-// GetOldUpdatesPath returns a former location for update files used for migration scripts only.
-func (l *Locations) GetOldUpdatesPath() string {
-	return filepath.Join(l.userCache, "updates")
+func (l *Locations) getGUICertPath() string {
+	return l.userConfig
 }
 
 func (l *Locations) getSettingsPath() string {
@@ -177,46 +191,24 @@ func (l *Locations) getSettingsPath() string {
 }
 
 func (l *Locations) getLogsPath() string {
-	return filepath.Join(l.userCache, "logs")
+	return filepath.Join(l.userData, "logs")
 }
 
-func (l *Locations) getCachePath() string {
-	// Bridge cache is not a typical cache which can be deleted with only
-	// downside that the app has to download everything again.
-	// Cache for bridge is database with IMAP UIDs and UIDVALIDITY, and also
-	// other IMAP setup. Deleting such data leads to either re-sync of client,
-	// or mix of headers and bodies. Both is caused because of need of re-sync
-	// between Bridge and API which will happen in different order than before.
-	// In the first case, UIDVALIDITY is also changed and causes the better
-	// outcome to "just" re-sync everything; in the later, UIDVALIDITY stays
-	// the same, causing the client to not re-sync but UIDs in the client does
-	// not match UIDs in Bridge.
-	// Because users might use tools to regularly clear caches, Bridge cache
-	// cannot be located in a standard cache folder.
+func (l *Locations) getGoIMAPCachePath() string {
 	return filepath.Join(l.userConfig, "cache")
 }
 
 func (l *Locations) getUpdatesPath() string {
-	// In order to properly update Bridge 1.6.X and higher we need to
-	// change the launcher first. Since this is not part of automatic
-	// updates the migration must wait until manual update. Until that
-	// we need to keep old path.
-	if l.configName == "bridge" {
-		return l.GetOldUpdatesPath()
-	}
-
-	// Users might use tools to regularly clear caches, which would mean always
-	// removing updates, therefore Bridge updates have to be somewhere else.
-	return filepath.Join(l.userConfig, "updates")
+	return filepath.Join(l.userData, "updates")
 }
 
 // Clear removes everything except the lock and update files.
 func (l *Locations) Clear() error {
 	return files.Remove(
 		l.userConfig,
+		l.userData,
 		l.userCache,
 	).Except(
-		l.GetLockFile(),
 		l.GetGuiLockFile(),
 		l.getUpdatesPath(),
 	).Do()
@@ -232,11 +224,18 @@ func (l *Locations) ClearUpdates() error {
 // Clean removes any unexpected files from the app cache folder
 // while leaving files in the standard locations untouched.
 func (l *Locations) Clean() error {
-	return files.Remove(l.userCache).Except(
-		l.GetLockFile(),
+	return files.Remove(
+		l.userCache,
+		l.userData,
+	).Except(
 		l.GetGuiLockFile(),
 		l.getLogsPath(),
-		l.getCachePath(),
 		l.getUpdatesPath(),
+		l.getGluonPath(),
 	).Do()
+}
+
+// CleanGoIMAPCache removes all cache data from the go-imap implementation.
+func (l *Locations) CleanGoIMAPCache() error {
+	return files.Remove(l.getGoIMAPCachePath()).Do()
 }

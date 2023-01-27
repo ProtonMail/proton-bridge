@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
+import QtQuick
 import QtQml
 
 QtObject {
@@ -22,7 +23,7 @@ QtObject {
     property var prominent
 
     // Primary
-    property color primay_norm
+    property color primary_norm
 
     // Interaction-norm
     property color interaction_norm

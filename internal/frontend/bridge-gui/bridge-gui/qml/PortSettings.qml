@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -27,9 +27,11 @@ SettingsView {
 
     fillHeight: false
 
+    property var notifications
+
     property bool _valuesChanged: (
-        imapField.text*1 !== Backend.portIMAP ||
-        smtpField.text*1 !== Backend.portSMTP
+        imapField.text*1 !== Backend.imapPort ||
+        smtpField.text*1 !== Backend.smtpPort
     )
 
     Label {
@@ -41,7 +43,7 @@ SettingsView {
 
     Label {
         colorScheme: root.colorScheme
-        text: qsTr("Changes require reconfiguration of your email client. Bridge will automatically restart.")
+        text: qsTr("Changes require reconfiguration of your email client.")
         type: Label.Body
         color: root.colorScheme.text_weak
         Layout.fillWidth: true
@@ -81,8 +83,8 @@ SettingsView {
         Button {
             id: submitButton
             colorScheme: root.colorScheme
-            text: qsTr("Save and restart")
-            enabled: root._valuesChanged
+            text: qsTr("Save")
+            enabled: (!loading) && root._valuesChanged
             onClicked: {
                 // removing error here because we may have set it manually (port occupied)
                 imapField.error = false
@@ -109,7 +111,13 @@ SettingsView {
                     return
                 }
 
-                Backend.changePorts(imapField.text, smtpField.text)
+                // We turn off all port error notification. They well be restored if problems persist
+                root.notifications.imapPortStartupError.active = false
+                root.notifications.smtpPortStartupError.active = false
+                root.notifications.imapPortChangeError.active = false
+                root.notifications.smtpPortChangeError.active = false
+
+                Backend.setMailServerSettings(imapField.text, smtpField.text, Backend.useSSLForIMAP, Backend.useSSLForSMTP)
             }
         }
 
@@ -123,7 +131,7 @@ SettingsView {
         Connections {
             target: Backend
 
-            function onChangePortFinished() {
+            function onChangeMailServerSettingsFinished() {
                 submitButton.loading = false
             }
         }
@@ -148,8 +156,8 @@ SettingsView {
 
     function isPortFree(field) {
         var num = field.text*1
-        if (num === Backend.portIMAP) return true
-        if (num === Backend.portSMTP) return true
+        if (num === Backend.imapPort) return true
+        if (num === Backend.smtpPort) return true
         if (!Backend.isPortFree(num)) {
             field.error = true
             field.errorString = qsTr("Port occupied")
@@ -160,8 +168,8 @@ SettingsView {
     }
 
     function setDefaultValues(){
-        imapField.text = Backend.portIMAP
-        smtpField.text = Backend.portSMTP
+        imapField.text = Backend.imapPort
+        smtpField.text = Backend.smtpPort
         imapField.error = false
         smtpField.error = false
     }

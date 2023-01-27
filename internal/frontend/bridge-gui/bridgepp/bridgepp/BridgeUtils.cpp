@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -21,14 +21,13 @@
 #include <random>
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 namespace {
 
 
-QString const configFolder = "protonmail/bridge";
+QString const configFolder = "protonmail/bridge-v3";
 QMutex rngMutex; ///< the mutex to use when accessing the rng.
 
 QStringList const firstNames {
@@ -56,8 +55,7 @@ QStringList const lastNames {
 //****************************************************************************************************************************************************
 /// \brief Return the 64 bit Mersenne twister random number generator.
 //****************************************************************************************************************************************************
-std::mt19937_64& rng()
-{
+std::mt19937_64 &rng() {
     // Do not use for crypto. std::random_device is not good enough.
     static std::mt19937_64 generator = std::mt19937_64(std::random_device()());
     return generator;
@@ -70,25 +68,27 @@ std::mt19937_64& rng()
 //****************************************************************************************************************************************************
 /// \return user configuration directory used by bridge (based on Golang OS/File's UserConfigDir).
 //****************************************************************************************************************************************************
-QString userConfigDir()
-{
+QString userConfigDir() {
     QString dir;
 #ifdef Q_OS_WIN
     dir = qgetenv ("AppData");
     if (dir.isEmpty())
         throw Exception("%AppData% is not defined.");
 #elif defined(Q_OS_IOS) || defined(Q_OS_DARWIN)
-    dir = qgetenv ("HOME");
-    if (dir.isEmpty())
+    dir = qgetenv("HOME");
+    if (dir.isEmpty()) {
         throw Exception("$HOME is not defined.");
+    }
     dir += "/Library/Application Support";
 #else
     dir = qgetenv ("XDG_CONFIG_HOME");
-        if (dir.isEmpty())
-            dir = qgetenv ("HOME");
+    if (dir.isEmpty())
+    {
+        dir = qgetenv ("HOME");
         if (dir.isEmpty())
             throw Exception("neither $XDG_CONFIG_HOME nor $HOME are defined");
         dir += "/.config";
+    }
 #endif
     QString const folder = QDir(dir).absoluteFilePath(configFolder);
     QDir().mkpath(folder);
@@ -98,10 +98,9 @@ QString userConfigDir()
 
 
 //****************************************************************************************************************************************************
-/// \return user configuration directory used by bridge (based on Golang OS/File's UserCacheDir).
+/// \return user cache directory used by bridge (based on Golang OS/File's UserCacheDir).
 //****************************************************************************************************************************************************
-QString userCacheDir()
-{
+QString userCacheDir() {
     QString dir;
 
 #ifdef Q_OS_WIN
@@ -109,17 +108,20 @@ QString userCacheDir()
     if (dir.isEmpty())
         throw Exception("%LocalAppData% is not defined.");
 #elif defined(Q_OS_IOS) || defined(Q_OS_DARWIN)
-    dir = qgetenv ("HOME");
-    if (dir.isEmpty())
+    dir = qgetenv("HOME");
+    if (dir.isEmpty()) {
         throw Exception("$HOME is not defined.");
+    }
     dir += "/Library/Caches";
 #else
     dir = qgetenv ("XDG_CACHE_HOME");
+    if (dir.isEmpty())
+    {
+        dir = qgetenv ("HOME");
         if (dir.isEmpty())
-            dir = qgetenv ("HOME");
-        if (dir.isEmpty())
-            throw Exception("neither XDG_CACHE_HOME nor $HOME are defined");
+            throw Exception("neither $XDG_CACHE_HOME nor $HOME are defined");
         dir += "/.cache";
+    }
 #endif
 
     QString const folder = QDir(dir).absoluteFilePath(configFolder);
@@ -130,10 +132,54 @@ QString userCacheDir()
 
 
 //****************************************************************************************************************************************************
+/// \return user data directory used by bridge (based on Golang OS/File's UserDataDir).
+//****************************************************************************************************************************************************
+QString userDataDir() {
+    QString folder;
+
+#ifdef Q_OS_LINUX
+    QString dir = qgetenv ("XDG_DATA_HOME");
+    if (dir.isEmpty())
+    {
+        dir = qgetenv ("HOME");
+        if (dir.isEmpty())
+            throw Exception("neither $XDG_DATA_HOME nor $HOME are defined");
+        dir += "/.local/share";
+    }
+    folder = QDir(dir).absoluteFilePath(configFolder);
+    QDir().mkpath(folder);
+#else
+    folder = userCacheDir();
+#endif
+
+    return folder;
+}
+
+
+//****************************************************************************************************************************************************
+/// \return user logs directory used by bridge.
+//****************************************************************************************************************************************************
+QString userLogsDir() {
+    QString const path = QDir(userDataDir()).absoluteFilePath("logs");
+    QDir().mkpath(path);
+    return path;
+}
+
+
+//****************************************************************************************************************************************************
+/// \return sentry cache directory used by bridge.
+//****************************************************************************************************************************************************
+QString sentryCacheDir() {
+    QString const path = QDir(userDataDir()).absoluteFilePath("sentry_cache");
+    QDir().mkpath(path);
+    return path;
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The value GOOS would return for the current platform.
 //****************************************************************************************************************************************************
-QString goos()
-{
+QString goos() {
 #if defined(Q_OS_DARWIN)
     return "darwin";
 #elif defined(Q_OS_WINDOWS)
@@ -149,8 +195,7 @@ QString goos()
 ///
 /// \return a random number in the range [0, n-1]
 //****************************************************************************************************************************************************
-qint64 randN(qint64 n)
-{
+qint64 randN(qint64 n) {
     QMutexLocker locker(&rngMutex);
     return (n > 0) ? std::uniform_int_distribution<qint64>(0, n - 1)(rng()) : 0;
 }
@@ -159,8 +204,7 @@ qint64 randN(qint64 n)
 //****************************************************************************************************************************************************
 /// \return A random first name.
 //****************************************************************************************************************************************************
-QString randomFirstName()
-{
+QString randomFirstName() {
     return firstNames[randN(firstNames.size())];
 }
 
@@ -168,8 +212,7 @@ QString randomFirstName()
 //****************************************************************************************************************************************************
 /// \return A random last name.
 //****************************************************************************************************************************************************
-QString randomLastName()
-{
+QString randomLastName() {
     return lastNames[randN(lastNames.size())];
 }
 
@@ -177,24 +220,63 @@ QString randomLastName()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-SPUser randomUser()
-{
+SPUser randomUser() {
     SPUser user = User::newUser(nullptr);
     user->setID(QUuid::createUuid().toString());
     QString const firstName = randomFirstName();
     QString const lastName = randomLastName();
     QString const username = QString("%1.%2").arg(firstName.toLower(), lastName.toLower());
     user->setUsername(username);
-    user->setAddresses(QStringList() << (username + "@proton.me") << (username + "@protonmail.com") );
+    user->setAddresses(QStringList() << (username + "@proton.me") << (username + "@protonmail.com"));
     user->setPassword(QUuid().createUuid().toString(QUuid::StringFormat::WithoutBraces).left(20));
     user->setAvatarText(firstName.left(1) + lastName.left(1));
-    user->setLoggedIn(true);
+    user->setState(UserState::Connected);
     user->setSplitMode(false);
-    user->setSetupGuideSeen(true);
     qint64 const totalBytes = (500 + randN(2501)) * 1000000;
     user->setUsedBytes(float(bridgepp::randN(totalBytes + 1)) * 1.05f); // we maybe slightly over quota
     user->setTotalBytes(float(totalBytes));
     return user;
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The OS the application is running on.
+//****************************************************************************************************************************************************
+OS os() {
+    QString const osStr = QSysInfo::productType();
+    if ((osStr == "macos") || (osStr == "osx")) { // Qt < 5 returns "osx", Qt6 returns "macos".
+        return OS::MacOS;
+    }
+
+    if (osStr == "windows") {
+        return OS::Windows;
+    }
+
+    return OS::Linux;
+}
+
+
+//****************************************************************************************************************************************************
+/// \return true if and only if the application is currently running on Linux.
+//****************************************************************************************************************************************************
+bool onLinux() {
+    return OS::Linux == os();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return true if and only if the application is currently running on MacOS.
+//****************************************************************************************************************************************************
+bool onMacOS() {
+    return OS::MacOS == os();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return true if and only if the application is currently running on Windows.
+//****************************************************************************************************************************************************
+bool onWindows() {
+    return OS::Windows == os();
 }
 
 

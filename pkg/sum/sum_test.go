@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -27,10 +27,9 @@ import (
 )
 
 func TestRecursiveSum(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "verify-test")
-	require.NoError(t, err)
+	dir := t.TempDir()
 
-	createFiles(t, tempDir,
+	createFiles(t, dir,
 		filepath.Join("a", "1"),
 		filepath.Join("a", "2"),
 		filepath.Join("b", "3"),
@@ -39,33 +38,33 @@ func TestRecursiveSum(t *testing.T) {
 		filepath.Join("b", "c", "6"),
 	)
 
-	sumOriginal := sum(t, tempDir)
+	sumOriginal := sum(t, dir)
 
 	// Renaming files should produce a different checksum.
-	require.NoError(t, os.Rename(filepath.Join(tempDir, "a", "1"), filepath.Join(tempDir, "a", "11")))
-	sumRenamed := sum(t, tempDir)
+	require.NoError(t, os.Rename(filepath.Join(dir, "a", "1"), filepath.Join(dir, "a", "11")))
+	sumRenamed := sum(t, dir)
 	require.NotEqual(t, sumOriginal, sumRenamed)
 
 	// Reverting to the original name should produce the same checksum again.
-	require.NoError(t, os.Rename(filepath.Join(tempDir, "a", "11"), filepath.Join(tempDir, "a", "1")))
-	require.Equal(t, sumOriginal, sum(t, tempDir))
+	require.NoError(t, os.Rename(filepath.Join(dir, "a", "11"), filepath.Join(dir, "a", "1")))
+	require.Equal(t, sumOriginal, sum(t, dir))
 
 	// Moving files should produce a different checksum.
-	require.NoError(t, os.Rename(filepath.Join(tempDir, "a", "1"), filepath.Join(tempDir, "1")))
-	sumMoved := sum(t, tempDir)
+	require.NoError(t, os.Rename(filepath.Join(dir, "a", "1"), filepath.Join(dir, "1")))
+	sumMoved := sum(t, dir)
 	require.NotEqual(t, sumOriginal, sumMoved)
 
 	// Moving files back to their original location should produce the same checksum again.
-	require.NoError(t, os.Rename(filepath.Join(tempDir, "1"), filepath.Join(tempDir, "a", "1")))
-	require.Equal(t, sumOriginal, sum(t, tempDir))
+	require.NoError(t, os.Rename(filepath.Join(dir, "1"), filepath.Join(dir, "a", "1")))
+	require.Equal(t, sumOriginal, sum(t, dir))
 
 	// Changing file data should produce a different checksum.
-	originalData := modifyFile(t, filepath.Join(tempDir, "a", "1"), []byte("something"))
-	require.NotEqual(t, sumOriginal, sum(t, tempDir))
+	originalData := modifyFile(t, filepath.Join(dir, "a", "1"), []byte("something"))
+	require.NotEqual(t, sumOriginal, sum(t, dir))
 
 	// Reverting file data should produce the original checksum.
-	modifyFile(t, filepath.Join(tempDir, "a", "1"), originalData)
-	require.Equal(t, sumOriginal, sum(t, tempDir))
+	modifyFile(t, filepath.Join(dir, "a", "1"), originalData)
+	require.Equal(t, sumOriginal, sum(t, dir))
 }
 
 func createFiles(t *testing.T, root string, paths ...string) {

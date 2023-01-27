@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -20,7 +20,7 @@ package main
 import (
 	"os"
 
-	"github.com/ProtonMail/proton-bridge/v2/pkg/sum"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/sum"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )

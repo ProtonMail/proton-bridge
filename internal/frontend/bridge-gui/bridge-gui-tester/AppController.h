@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -21,6 +21,8 @@
 
 
 class MainWindow;
+
+
 class GRPCService;
 namespace grpc { class StreamEvent; }
 namespace bridgepp { class Log; }
@@ -29,8 +31,7 @@ namespace bridgepp { class Log; }
 //**********************************************************************************************************************
 /// \brief Application controller class
 //**********************************************************************************************************************
-class AppController : public QObject
-{
+class AppController : public QObject {
 Q_OBJECT
 public: // member functions.
     friend AppController &app();

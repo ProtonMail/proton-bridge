@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -17,14 +17,14 @@
 
 package bridge
 
-func (b *Bridge) ProvideLogsPath() (string, error) {
-	return b.locations.ProvideLogsPath()
+func (bridge *Bridge) GetLogsPath() (string, error) {
+	return bridge.locator.ProvideLogsPath()
 }
 
-func (b *Bridge) GetLicenseFilePath() string {
-	return b.locations.GetLicenseFilePath()
+func (bridge *Bridge) GetLicenseFilePath() string {
+	return bridge.locator.GetLicenseFilePath()
 }
 
-func (b *Bridge) GetDependencyLicensesLink() string {
-	return b.locations.GetDependencyLicensesLink()
+func (bridge *Bridge) GetDependencyLicensesLink() string {
+	return bridge.locator.GetDependencyLicensesLink()
 }

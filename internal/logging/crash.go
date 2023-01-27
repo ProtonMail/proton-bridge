@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -25,8 +25,8 @@ import (
 	"runtime/pprof"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
-	"github.com/ProtonMail/proton-bridge/v2/internal/crash"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/crash"
 	"github.com/sirupsen/logrus"
 )
 

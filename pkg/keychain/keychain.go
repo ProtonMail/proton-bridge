@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 	"github.com/docker/docker-credential-helpers/credentials"
 )
 
@@ -48,20 +47,19 @@ var (
 )
 
 // NewKeychain creates a new native keychain.
-func NewKeychain(s *settings.Settings, keychainName string) (*Keychain, error) {
+func NewKeychain(preferred, keychainName string) (*Keychain, error) {
 	// There must be at least one keychain helper available.
 	if len(Helpers) < 1 {
 		return nil, ErrNoKeychain
 	}
 
 	// If the preferred keychain is unsupported, fallback to the default one.
-	// NOTE: Maybe we want to error out here and show something in the GUI instead?
-	if _, ok := Helpers[s.Get(settings.PreferredKeychainKey)]; !ok {
-		s.Set(settings.PreferredKeychainKey, defaultHelper)
+	if _, ok := Helpers[preferred]; !ok {
+		preferred = defaultHelper
 	}
 
 	// Load the user's preferred keychain helper.
-	helperConstructor, ok := Helpers[s.Get(settings.PreferredKeychainKey)]
+	helperConstructor, ok := Helpers[preferred]
 	if !ok {
 		return nil, ErrNoKeychain
 	}
@@ -125,6 +123,21 @@ func (kc *Keychain) Delete(userID string) error {
 	}
 
 	return kc.helper.Delete(kc.secretURL(userID))
+}
+
+func (kc *Keychain) Clear() error {
+	entries, err := kc.List()
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		if err := kc.Delete(entry); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Get returns the username and secret for the given userID.

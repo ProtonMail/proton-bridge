@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -13,50 +13,48 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
 package bridge
 
 import (
-	"github.com/Masterminds/semver/v3"
+	"context"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 )
 
 type Locator interface {
+	ProvideSettingsPath() (string, error)
 	ProvideLogsPath() (string, error)
-
+	ProvideGluonPath() (string, error)
 	GetLicenseFilePath() string
 	GetDependencyLicensesLink() string
-
 	Clear() error
-	ClearUpdates() error
 }
 
-type CacheProvider interface {
-	GetIMAPCachePath() string
-	GetDBDir() string
-	GetDefaultMessageCacheDir() string
+type Identifier interface {
+	GetUserAgent() string
+	HasClient() bool
+	SetClient(name, version string)
+	SetPlatform(platform string)
 }
 
-type SettingsProvider interface {
-	Get(key settings.Key) string
-	Set(key settings.Key, value string)
+type ProxyController interface {
+	AllowProxy()
+	DisallowProxy()
+}
 
-	GetBool(key settings.Key) bool
-	SetBool(key settings.Key, val bool)
+type TLSReporter interface {
+	GetTLSIssueCh() <-chan struct{}
+}
 
-	GetInt(key settings.Key) int
-	SetInt(key settings.Key, val int)
+type Autostarter interface {
+	Enable() error
+	Disable() error
+	IsEnabled() bool
 }
 
 type Updater interface {
-	Check() (updater.VersionInfo, error)
-	IsDowngrade(updater.VersionInfo) bool
-	InstallUpdate(updater.VersionInfo) error
-}
-
-type Versioner interface {
-	RemoveOtherVersions(*semver.Version) error
+	GetVersionInfo(context.Context, updater.Downloader, updater.Channel) (updater.VersionInfo, error)
+	InstallUpdate(context.Context, updater.Downloader, updater.VersionInfo) error
 }

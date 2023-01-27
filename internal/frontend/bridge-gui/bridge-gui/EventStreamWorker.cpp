@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -17,6 +17,7 @@
 
 
 #include "EventStreamWorker.h"
+#include "SentryUtils.h"
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/Log/Log.h>
@@ -29,8 +30,7 @@ using namespace bridgepp;
 /// \param[in] parent The parent object.
 //****************************************************************************************************************************************************
 EventStreamReader::EventStreamReader(QObject *parent)
-    : Worker(parent)
-{
+    : Worker(parent) {
     connect(this, &EventStreamReader::started, this, &EventStreamReader::onStarted);
     connect(this, &EventStreamReader::finished, this, &EventStreamReader::onFinished);
     connect(this, &EventStreamReader::error, &app().log(), &Log::error);
@@ -40,20 +40,19 @@ EventStreamReader::EventStreamReader(QObject *parent)
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void EventStreamReader::run()
-{
-    try
-    {
+void EventStreamReader::run() {
+    try {
         emit started();
 
         grpc::Status const status = app().grpc().runEventStreamReader();
-        if (!status.ok())
+        if (!status.ok()) {
             throw Exception(QString::fromStdString(status.error_message()));
+        }
 
         emit finished();
     }
-    catch (Exception const &e)
-    {
+    catch (Exception const &e) {
+        reportSentryException(SENTRY_LEVEL_ERROR, "Error during event stream read", "Exception", e.what());
         emit error(e.qwhat());
     }
 }
@@ -62,8 +61,7 @@ void EventStreamReader::run()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void EventStreamReader::onStarted() const
-{
+void EventStreamReader::onStarted() const {
     app().log().debug("EventStreamReader started");
 }
 
@@ -71,11 +69,9 @@ void EventStreamReader::onStarted() const
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void EventStreamReader::onFinished() const
-{
+void EventStreamReader::onFinished() const {
     app().log().debug("EventStreamReader finished");
-    if (!app().bridgeMonitor())
-    {
+    if (!app().bridgeMonitor()) {
         // no bridge monitor means we are in a debug environment, running in attached mode. Event stream has terminated, so bridge is shutting
         // down. Because we're in attached mode, bridge-gui will not get notified that bridge is going down, so we shutdown manually here.
         qApp->exit(EXIT_SUCCESS);

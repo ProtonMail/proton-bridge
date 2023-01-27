@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -17,6 +17,15 @@
 
 package main
 
+import (
+	"os"
+	"strings"
+
+	"github.com/ProtonMail/proton-bridge/v3/internal/app"
+	"github.com/bradenaw/juniper/xslices"
+	"github.com/sirupsen/logrus"
+)
+
 /*
                              ___....___
    ^^                __..-:'':__:..:__:'':-..__
@@ -34,41 +43,8 @@ package main
    ~~^_~^~/   \~^-~^~ _~^-~_^~-^~_^~~-^~_~^~-~_~-^~_^/   \~^ ~~_ ^
 */
 
-import (
-	"os"
-
-	"github.com/ProtonMail/proton-bridge/v2/internal/app/base"
-	"github.com/ProtonMail/proton-bridge/v2/internal/app/bridge"
-	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
-	"github.com/sirupsen/logrus"
-)
-
-const (
-	appUsage      = "Proton Mail IMAP and SMTP Bridge"
-	configName    = "bridge"
-	updateURLName = "bridge"
-	keychainName  = "bridge"
-	cacheVersion  = "c11"
-)
-
 func main() {
-	base, err := base.New(
-		constants.FullAppName,
-		appUsage,
-		configName,
-		updateURLName,
-		keychainName,
-		cacheVersion,
-	)
-	if err != nil {
-		logrus.WithError(err).Fatal("Failed to create app base")
-	}
-	// Other instance already running.
-	if base == nil {
-		return
-	}
-
-	if err := bridge.New(base).Run(os.Args); err != nil {
-		logrus.WithError(err).Fatal("Bridge exited with error")
+	if err := app.New().Run(xslices.Filter(os.Args, func(arg string) bool { return !strings.Contains(arg, "-psn_") })); err != nil {
+		logrus.Fatal(err)
 	}
 }

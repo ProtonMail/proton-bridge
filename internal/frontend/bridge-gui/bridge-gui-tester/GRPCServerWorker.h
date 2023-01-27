@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -29,8 +29,7 @@
 //**********************************************************************************************************************
 /// \brief gRPC server worker
 //**********************************************************************************************************************
-class GRPCServerWorker : public bridgepp::Worker
-{
+class GRPCServerWorker : public bridgepp::Worker {
 Q_OBJECT
 public: // member functions.
     explicit GRPCServerWorker(QObject *parent); ///< Default constructor.

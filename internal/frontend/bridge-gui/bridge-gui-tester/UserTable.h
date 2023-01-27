@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -27,8 +27,7 @@
 /// \brief User table model class
 //****************************************************************************************************************************************************
 
-class UserTable : public QAbstractTableModel
-{
+class UserTable : public QAbstractTableModel {
 Q_OBJECT
 public: // member functions.
     explicit UserTable(QObject *parent); ///< Default constructor.
@@ -38,10 +37,11 @@ public: // member functions.
     UserTable &operator=(UserTable const &) = delete; ///< Disabled assignment operator.
     UserTable &operator=(UserTable &&) = delete; ///< Disabled move assignment operator.
     qint32 userCount() const; ///< Return the number of users in the table.
-    void append(bridgepp::SPUser const& user); ///< Append a user.
+    void append(bridgepp::SPUser const &user); ///< Append a user.
     bridgepp::SPUser userAtIndex(qint32 index); ///< Return the user at the given index.
     bridgepp::SPUser userWithID(QString const &userID); ///< Return the user with a given id.
-    qint32 indexOfUser(QString const& userID); ///< Return the index of a given User.
+    bridgepp::SPUser userWithUsername(QString const &username); ///< Return the user with a given username.
+    qint32 indexOfUser(QString const &userID); ///< Return the index of a given User.
     void touch(qint32 index); ///< touch the user at a given index (indicates it has been modified).
     void remove(qint32 index); ///< Remove the user at a given index.
     QList<bridgepp::SPUser> users() const; ///< Return a copy of the user list.

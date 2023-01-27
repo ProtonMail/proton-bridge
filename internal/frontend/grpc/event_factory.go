@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.Bridge.
 //
@@ -57,8 +57,8 @@ func NewLoginTwoPasswordsRequestedEvent() *StreamEvent {
 	return loginEvent(&LoginEvent{Event: &LoginEvent_TwoPasswordRequested{}})
 }
 
-func NewLoginFinishedEvent(userID string) *StreamEvent {
-	return loginEvent(&LoginEvent{Event: &LoginEvent_Finished{Finished: &LoginFinishedEvent{UserID: userID}}})
+func NewLoginFinishedEvent(userID string, wasSignedOut bool) *StreamEvent {
+	return loginEvent(&LoginEvent{Event: &LoginEvent_Finished{Finished: &LoginFinishedEvent{UserID: userID, WasSignedOut: wasSignedOut}}})
 }
 
 func NewLoginAlreadyLoggedInEvent(userID string) *StreamEvent {
@@ -97,37 +97,40 @@ func NewUpdateVersionChangedEvent() *StreamEvent {
 	return updateEvent(&UpdateEvent{Event: &UpdateEvent_VersionChanged{VersionChanged: &UpdateVersionChanged{}}})
 }
 
-func NewCacheErrorEvent(err CacheErrorType) *StreamEvent {
-	return cacheEvent(&CacheEvent{Event: &CacheEvent_Error{Error: &CacheErrorEvent{Type: err}}})
+func NewDiskCacheErrorEvent(err DiskCacheErrorType) *StreamEvent {
+	return cacheEvent(&DiskCacheEvent{Event: &DiskCacheEvent_Error{Error: &DiskCacheErrorEvent{Type: err}}})
 }
 
-func NewCacheLocationChangeSuccessEvent() *StreamEvent {
-	return cacheEvent(&CacheEvent{Event: &CacheEvent_LocationChangedSuccess{LocationChangedSuccess: &CacheLocationChangeSuccessEvent{}}})
+func NewDiskCachePathChangedEvent(path string) *StreamEvent {
+	return cacheEvent(&DiskCacheEvent{Event: &DiskCacheEvent_PathChanged{PathChanged: &DiskCachePathChangedEvent{Path: path}}})
 }
 
-func NewCacheChangeLocalCacheFinishedEvent(willRestart bool) *StreamEvent {
-	return cacheEvent(&CacheEvent{Event: &CacheEvent_ChangeLocalCacheFinished{
-		ChangeLocalCacheFinished: &ChangeLocalCacheFinishedEvent{WillRestart: willRestart},
-	}})
+func NewDiskCachePathChangeFinishedEvent() *StreamEvent {
+	return cacheEvent(&DiskCacheEvent{Event: &DiskCacheEvent_PathChangeFinished{PathChangeFinished: &DiskCachePathChangeFinishedEvent{}}})
 }
 
-func NewIsCacheOnDiskEnabledChanged(enabled bool) *StreamEvent {
-	return cacheEvent(&CacheEvent{Event: &CacheEvent_IsCacheOnDiskEnabledChanged{IsCacheOnDiskEnabledChanged: &IsCacheOnDiskEnabledChanged{Enabled: enabled}}})
+func NewMailServerSettingsErrorEvent(err MailServerSettingsErrorType) *StreamEvent {
+	return mailServerSettingsEvent(&MailServerSettingsEvent{
+		Event: &MailServerSettingsEvent_Error{
+			Error: &MailServerSettingsErrorEvent{Type: err},
+		},
+	})
 }
 
-func NewDiskCachePathChanged(path string) *StreamEvent {
-	return cacheEvent(&CacheEvent{Event: &CacheEvent_DiskCachePathChanged{DiskCachePathChanged: &DiskCachePathChanged{Path: path}}})
-}
-func NewMailSettingsErrorEvent(err MailSettingsErrorType) *StreamEvent {
-	return mailSettingsEvent(&MailSettingsEvent{Event: &MailSettingsEvent_Error{Error: &MailSettingsErrorEvent{Type: err}}})
-}
-
-func NewMailSettingsUseSslForSmtpFinishedEvent() *StreamEvent { //nolint:revive,stylecheck
-	return mailSettingsEvent(&MailSettingsEvent{Event: &MailSettingsEvent_UseSslForSmtpFinished{UseSslForSmtpFinished: &UseSslForSmtpFinishedEvent{}}})
+func NewMailServerSettingsChangedEvent(settings *ImapSmtpSettings) *StreamEvent {
+	return mailServerSettingsEvent(&MailServerSettingsEvent{
+		Event: &MailServerSettingsEvent_MailServerSettingsChanged{
+			MailServerSettingsChanged: &MailServerSettingsChangedEvent{Settings: settings},
+		},
+	})
 }
 
-func NewMailSettingsChangePortFinishedEvent() *StreamEvent {
-	return mailSettingsEvent(&MailSettingsEvent{Event: &MailSettingsEvent_ChangePortsFinished{ChangePortsFinished: &ChangePortsFinishedEvent{}}})
+func NewChangeMailServerSettingsFinishedEvent() *StreamEvent {
+	return mailServerSettingsEvent(&MailServerSettingsEvent{
+		Event: &MailServerSettingsEvent_ChangeMailServerSettingsFinished{
+			ChangeMailServerSettingsFinished: &ChangeMailServerSettingsFinishedEvent{},
+		},
+	})
 }
 
 func NewKeychainChangeKeychainFinishedEvent() *StreamEvent {
@@ -170,6 +173,10 @@ func NewUserChangedEvent(userID string) *StreamEvent {
 	return userEvent(&UserEvent{Event: &UserEvent_UserChanged{UserChanged: &UserChangedEvent{UserID: userID}}})
 }
 
+func NewGenericErrorEvent(errorCode ErrorCode) *StreamEvent {
+	return genericErrorEvent(&GenericErrorEvent{Code: errorCode})
+}
+
 // Event category factory functions.
 
 func appEvent(appEvent *AppEvent) *StreamEvent {
@@ -184,12 +191,12 @@ func updateEvent(event *UpdateEvent) *StreamEvent {
 	return &StreamEvent{Event: &StreamEvent_Update{Update: event}}
 }
 
-func cacheEvent(event *CacheEvent) *StreamEvent {
+func cacheEvent(event *DiskCacheEvent) *StreamEvent {
 	return &StreamEvent{Event: &StreamEvent_Cache{Cache: event}}
 }
 
-func mailSettingsEvent(event *MailSettingsEvent) *StreamEvent {
-	return &StreamEvent{Event: &StreamEvent_MailSettings{MailSettings: event}}
+func mailServerSettingsEvent(event *MailServerSettingsEvent) *StreamEvent {
+	return &StreamEvent{Event: &StreamEvent_MailServerSettings{MailServerSettings: event}}
 }
 
 func keychainEvent(event *KeychainEvent) *StreamEvent {
@@ -202,4 +209,8 @@ func mailEvent(event *MailEvent) *StreamEvent {
 
 func userEvent(event *UserEvent) *StreamEvent {
 	return &StreamEvent{Event: &StreamEvent_User{User: event}}
+}
+
+func genericErrorEvent(event *GenericErrorEvent) *StreamEvent {
+	return &StreamEvent{Event: &StreamEvent_GenericError{GenericError: event}}
 }

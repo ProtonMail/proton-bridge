@@ -80,6 +80,19 @@ qt_standard_project_setup()
 set(CMAKE_AUTORCC ON)
 message(STATUS "Using Qt ${Qt6_VERSION}")
 
+#*****************************************************************************************************************************************************
+# Sentry Native
+#*****************************************************************************************************************************************************
+find_package(sentry CONFIG REQUIRED)
+
+set(DSN_SENTRY "https://ea31dfe8574849108fb8ba044fec3620@api.protonmail.ch/core/v4/reports/sentry/7")
+set(SENTRY_CONFIG_GENERATED_FILE_DIR ${CMAKE_CURRENT_BINARY_DIR}/sentry-generated)
+set(SENTRY_CONFIG_FILE ${SENTRY_CONFIG_GENERATED_FILE_DIR}/project_sentry_config.h)
+file(GENERATE OUTPUT ${SENTRY_CONFIG_FILE} CONTENT
+    "// AUTO GENERATED FILE, DO NOT MODIFY\n#pragma once\nconst char* SentryDNS=\"${DSN_SENTRY}\";\nconst char* SentryProductID=\"bridge-mail@${BRIDGE_APP_VERSION}\";\n"
+)
+
+
 
 #*****************************************************************************************************************************************************
 # Source files and output
@@ -92,9 +105,9 @@ if (NOT TARGET bridgepp)
 endif()
 
 if (APPLE)
-    set(DOCK_ICON_SRC_FILE DockIcon/DockIcon.mm)
+    set(DOCK_ICON_SRC_FILE MacOS/DockIcon.mm)
 else()
-    set(DOCK_ICON_SRC_FILE DockIcon/DockIcon.cpp)
+    set(DOCK_ICON_SRC_FILE MacOS/DockIcon.cpp)
 endif()
 
 if(UNIX)
@@ -104,6 +117,7 @@ endif(UNIX)
 add_executable(bridge-gui
     Resources.qrc
     AppController.cpp AppController.h
+    BridgeApp.cpp BridgeApp.h
     CommandLine.cpp CommandLine.h
     EventStreamWorker.cpp EventStreamWorker.h
     main.cpp
@@ -111,8 +125,15 @@ add_executable(bridge-gui
     Version.h
     QMLBackend.cpp QMLBackend.h
     UserList.cpp UserList.h
-    ${DOCK_ICON_SRC_FILE} DockIcon/DockIcon.h
+    SentryUtils.cpp SentryUtils.h
+    ${DOCK_ICON_SRC_FILE} MacOS/DockIcon.h
     )
+
+
+if (APPLE)
+    target_sources(bridge-gui PRIVATE MacOS/SecondInstance.mm MacOS/SecondInstance.h)
+endif(APPLE)
+
 
 if (WIN32) # on Windows, we add a (non-Qt) resource file that contains the application icon and version information.
     string(TIMESTAMP BRIDGE_BUILD_YEAR "%Y")
@@ -127,13 +148,14 @@ if (WIN32) # on Windows, we add a (non-Qt) resource file that contains the appli
 endif()
 
 target_precompile_headers(bridge-gui PRIVATE Pch.h)
-target_include_directories(bridge-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(bridge-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${SENTRY_CONFIG_GENERATED_FILE_DIR})
 target_link_libraries(bridge-gui
     Qt6::Widgets
     Qt6::Core
     Qt6::Quick
     Qt6::Qml
     Qt6::QuickControls2
+    sentry::sentry
     bridgepp
     )
 

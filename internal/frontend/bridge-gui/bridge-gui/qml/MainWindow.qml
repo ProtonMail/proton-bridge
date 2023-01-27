@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -55,7 +55,7 @@ ApplicationWindow {
             // considering that users are added one-by-one
             var user = Backend.users.get(first)
 
-            if (!user.loggedIn) {
+            if (user.state === EUserState.SignedOut) {
                 return
             }
 
@@ -86,7 +86,11 @@ ApplicationWindow {
             root.showAndRise()
         }
 
-        function onLoginFinished(index) {
+        function onLoginFinished(index, wasSignedOut) {
+            var user = Backend.users.get(index)
+            if (user && !wasSignedOut) {
+                root.showSetup(user, user.addresses[0])
+            }
             console.debug("Login finished", index)
         }
     }
@@ -98,7 +102,7 @@ ApplicationWindow {
 
         property bool _showSetup: false
         currentIndex: {
-            // show welcome when there are no users or only one non-logged-in user is present
+            // show welcome when there are no users
             if (Backend.users.count === 0) {
                 return 1
             }
@@ -111,8 +115,9 @@ ApplicationWindow {
                 return 1
             }
 
-            if (Backend.users.count === 1 && u.loggedIn === false) {
-                return 1
+            if ((Backend.users.count === 1) && (u.state === EUserState.SignedOut)) {
+                showSignIn(u.username)
+                return 0
             }
 
             if (contentLayout._showSetup) {

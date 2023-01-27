@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -24,15 +24,14 @@
 //
 //****************************************************************************************************************************************************
 GRPCQtProxy::GRPCQtProxy()
-    : QObject(nullptr)
-{
+    : QObject(nullptr) {
 }
+
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void GRPCQtProxy::connectSignals()
-{
+void GRPCQtProxy::connectSignals() {
     MainWindow &mainWindow = app().mainWindow();
     SettingsTab &settingsTab = mainWindow.settingsTab();
     UsersTab &usersTab = mainWindow.usersTab();
@@ -42,12 +41,12 @@ void GRPCQtProxy::connectSignals()
     connect(this, &GRPCQtProxy::setIsAllMailVisibleReceived, &settingsTab, &SettingsTab::setIsAllMailVisible);
     connect(this, &GRPCQtProxy::setColorSchemeNameReceived, &settingsTab, &SettingsTab::setColorSchemeName);
     connect(this, &GRPCQtProxy::reportBugReceived, &settingsTab, &SettingsTab::setBugReport);
+    connect(this, &GRPCQtProxy::exportTLSCertificatesReceived, &settingsTab, &SettingsTab::exportTLSCertificates);
     connect(this, &GRPCQtProxy::setIsStreamingReceived, &settingsTab, &SettingsTab::setIsStreaming);
     connect(this, &GRPCQtProxy::setClientPlatformReceived, &settingsTab, &SettingsTab::setClientPlatform);
-    connect(this, &GRPCQtProxy::changePortsReceived, &settingsTab, &SettingsTab::changePorts);
-    connect(this, &GRPCQtProxy::setUseSSLForSMTPReceived, &settingsTab, &SettingsTab::setUseSSLForSMTP);
+    connect(this, &GRPCQtProxy::setMailServerSettingsReceived, &settingsTab, &SettingsTab::setMailServerSettings);
     connect(this, &GRPCQtProxy::setIsDoHEnabledReceived, &settingsTab, &SettingsTab::setIsDoHEnabled);
-    connect(this, &GRPCQtProxy::changeLocalCacheReceived, &settingsTab, &SettingsTab::changeLocalCache);
+    connect(this, &GRPCQtProxy::setDiskCachePathReceived, &settingsTab, &SettingsTab::setDiskCachePath);
     connect(this, &GRPCQtProxy::setIsAutomaticUpdateOnReceived, &settingsTab, &SettingsTab::setIsAutomaticUpdateOn);
     connect(this, &GRPCQtProxy::setUserSplitModeReceived, &usersTab, &UsersTab::setUserSplitMode);
     connect(this, &GRPCQtProxy::removeUserReceived, &usersTab, &UsersTab::removeUser);
@@ -60,8 +59,7 @@ void GRPCQtProxy::connectSignals()
 //****************************************************************************************************************************************************
 /// \param[in] event The event.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::sendDelayedEvent(bridgepp::SPStreamEvent const &event)
-{
+void GRPCQtProxy::sendDelayedEvent(bridgepp::SPStreamEvent const &event) {
     emit delayedEventRequested(event);
 }
 
@@ -69,8 +67,7 @@ void GRPCQtProxy::sendDelayedEvent(bridgepp::SPStreamEvent const &event)
 //****************************************************************************************************************************************************
 /// \param[in] on The value.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::setIsAutostartOn(bool on)
-{
+void GRPCQtProxy::setIsAutostartOn(bool on) {
     emit setIsAutostartOnReceived(on);
 }
 
@@ -78,8 +75,7 @@ void GRPCQtProxy::setIsAutostartOn(bool on)
 //****************************************************************************************************************************************************
 /// \param[in] enabled The value.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::setIsBetaEnabled(bool enabled)
-{
+void GRPCQtProxy::setIsBetaEnabled(bool enabled) {
     emit setIsBetaEnabledReceived(enabled);
 }
 
@@ -87,8 +83,7 @@ void GRPCQtProxy::setIsBetaEnabled(bool enabled)
 //****************************************************************************************************************************************************
 /// \param[in] visible The value.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::setIsAllMailVisible(bool visible)
-{
+void GRPCQtProxy::setIsAllMailVisible(bool visible) {
     emit setIsAllMailVisibleReceived(visible);
 }
 
@@ -96,8 +91,7 @@ void GRPCQtProxy::setIsAllMailVisible(bool visible)
 //****************************************************************************************************************************************************
 /// \param[in] name The color scheme.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::setColorSchemeName(QString const &name)
-{
+void GRPCQtProxy::setColorSchemeName(QString const &name) {
     emit setColorSchemeNameReceived(name);
 }
 
@@ -111,17 +105,23 @@ void GRPCQtProxy::setColorSchemeName(QString const &name)
 /// \param[in] includeLogs Should the logs be included.
 //****************************************************************************************************************************************************
 void GRPCQtProxy::reportBug(QString const &osType, QString const &osVersion, QString const &emailClient, QString const &address,
-    QString const &description, bool includeLogs)
-{
+    QString const &description, bool includeLogs) {
     emit reportBugReceived(osType, osVersion, emailClient, address, description, includeLogs);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] folderPath The folder path.
+//****************************************************************************************************************************************************
+void GRPCQtProxy::exportTLSCertificates(QString const &folderPath) {
+    emit exportTLSCertificatesReceived(folderPath);
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] isStreaming Is the gRPC server streaming.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::setIsStreaming(bool isStreaming)
-{
+void GRPCQtProxy::setIsStreaming(bool isStreaming) {
     emit setIsStreamingReceived(isStreaming);
 }
 
@@ -129,55 +129,42 @@ void GRPCQtProxy::setIsStreaming(bool isStreaming)
 //****************************************************************************************************************************************************
 /// \param[in] clientPlatform The client platform.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::setClientPlatform(QString const &clientPlatform)
-{
+void GRPCQtProxy::setClientPlatform(QString const &clientPlatform) {
     emit setClientPlatformReceived(clientPlatform);
 }
 
 
 //****************************************************************************************************************************************************
-/// \param[in] imapPort The IMAP port
-/// \param[in] smtpPort The SMTP port
+/// \param[in] imapPort The IMAP port.
+/// \param[in] smtpPort The SMTP port.
+/// \param[in] useSSLForIMAP The IMAP connexion mode.
+/// \param[in] useSSLForSMTP The IMAP connexion mode.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::changePorts(qint32 imapPort, qint32 smtpPort)
-{
-    emit changePortsReceived(imapPort, smtpPort);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[in] use Should SMTP use SSL?
-//****************************************************************************************************************************************************
-void GRPCQtProxy::setUseSSLForSMTP(bool use)
-{
-    emit setUseSSLForSMTPReceived(use);
+void GRPCQtProxy::setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool userSSLForSMTP) {
+    emit setMailServerSettingsReceived(imapPort, smtpPort, useSSLForIMAP, userSSLForSMTP);
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] enabled Is DoH enabled?
 //****************************************************************************************************************************************************
-void GRPCQtProxy::setIsDoHEnabled(bool enabled)
-{
+void GRPCQtProxy::setIsDoHEnabled(bool enabled) {
     emit setIsDoHEnabledReceived(enabled);
 }
 
 
 //****************************************************************************************************************************************************
-/// \param[in] enabled is cache on disk enabled?
-/// \param[in] path The path for the cache on disk.
+/// \param[in] path The disk cache path.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::changeLocalCache(bool enabled, QString const &path)
-{
-    emit changeLocalCacheReceived(enabled, path);
+void GRPCQtProxy::setDiskCachePath(QString const &path) {
+    emit setDiskCachePathReceived(path);
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] on Is automatic update on?
 //****************************************************************************************************************************************************
-void GRPCQtProxy::setIsAutomaticUpdateOn(bool on)
-{
+void GRPCQtProxy::setIsAutomaticUpdateOn(bool on) {
     emit setIsAutomaticUpdateOnReceived(on);
 }
 
@@ -186,8 +173,7 @@ void GRPCQtProxy::setIsAutomaticUpdateOn(bool on)
 /// \param[in] userID The userID.
 /// \param[in] makeItActive Should split mode be active.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::setUserSplitMode(QString const &userID, bool makeItActive)
-{
+void GRPCQtProxy::setUserSplitMode(QString const &userID, bool makeItActive) {
     emit setUserSplitModeReceived(userID, makeItActive);
 }
 
@@ -195,8 +181,7 @@ void GRPCQtProxy::setUserSplitMode(QString const &userID, bool makeItActive)
 //****************************************************************************************************************************************************
 /// \param[in] userID The userID.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::logoutUser(QString const &userID)
-{
+void GRPCQtProxy::logoutUser(QString const &userID) {
     emit logoutUserReceived(userID);
 }
 
@@ -204,8 +189,7 @@ void GRPCQtProxy::logoutUser(QString const &userID)
 //****************************************************************************************************************************************************
 /// \param[in] userID The userID.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::removeUser(QString const &userID)
-{
+void GRPCQtProxy::removeUser(QString const &userID) {
     emit removeUserReceived(userID);
 }
 
@@ -214,7 +198,6 @@ void GRPCQtProxy::removeUser(QString const &userID)
 /// \param[in] userID The userID.
 /// \param[in] address The address.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::configureUserAppleMail(QString const &userID, QString const &address)
-{
+void GRPCQtProxy::configureUserAppleMail(QString const &userID, QString const &address) {
     emit configureUserAppleMailReceived(userID, address);
 }

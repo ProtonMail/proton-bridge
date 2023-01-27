@@ -1,0 +1,14 @@
+From: Sender <sender@pm.me>
+To: Receiver <receiver@pm.me>
+Content-Type: multipart/mixed; boundary=longrandomstring
+
+--longrandomstring
+
+body
+--longrandomstring
+Content-Type: text/calendar; charset=utf-8; method=REQUEST; name=invite.ics'
+Content-Transfer-Encoding: Base64
+Content-Disposition: attachment; filename=invite.ics
+
+VGhpcyBpcyBhbiBpY3MgY2FsZW5kYXIgaW52aXRl
+--longrandomstring--

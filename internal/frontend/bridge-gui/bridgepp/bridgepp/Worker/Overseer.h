@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -23,15 +23,13 @@
 #include "Worker.h"
 
 
-namespace bridgepp
-{
+namespace bridgepp {
 
 
 //****************************************************************************************************************************************************
 /// \brief Overseer used to manager a worker instance and its associated thread.
 //****************************************************************************************************************************************************
-class Overseer : public QObject
-{
+class Overseer : public QObject {
 Q_OBJECT
 public: // member functions.
     explicit Overseer(Worker *worker, QObject *parent); ///< Default constructor.
@@ -49,8 +47,8 @@ public slots:
     void releaseWorker(); ///< Delete the worker and its thread.
 
 public: // data members.
-    QThread *thread_{nullptr}; ///< The thread.
-    Worker *worker_{nullptr}; ///< The worker.
+    QThread *thread_ { nullptr }; ///< The thread.
+    Worker *worker_ { nullptr }; ///< The worker.
 };
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -23,14 +23,14 @@
 using namespace bridgepp;
 
 
-namespace
-{
+namespace {
 
 Exception const invalidFileException("The service configuration file is invalid"); // Exception for invalid config.
 Exception const couldNotSaveException("The service configuration file could not be saved"); ///< Exception for write errors.
 QString const keyPort = "port"; ///< The JSON key for the port.
 QString const keyCert = "cert"; ///< The JSON key for the TLS certificate.
 QString const keyToken = "token"; ///< The JSON key for the identification token.
+QString const keyFileSocketPath = "fileSocketPath"; ///< The JSON key for the file socket path.
 
 
 //****************************************************************************************************************************************************
@@ -41,11 +41,11 @@ QString const keyToken = "token"; ///< The JSON key for the identification token
 /// \param[in] object The JSON object containing the value.
 /// \param[in] key The key under which the value is stored.
 //****************************************************************************************************************************************************
-QString jsonStringValue(QJsonObject const &object, QString const &key)
-{
+QString jsonStringValue(QJsonObject const &object, QString const &key) {
     QJsonValue const v = object[key];
-    if (!v.isString())
+    if (!v.isString()) {
         throw invalidFileException;
+    }
     return v.toString();
 }
 
@@ -58,11 +58,11 @@ QString jsonStringValue(QJsonObject const &object, QString const &key)
 /// \param[in] object The JSON object containing the value.
 /// \param[in] key The key under which the value is stored.
 //****************************************************************************************************************************************************
-qint32 jsonIntValue(QJsonObject const &object, QString const &key)
-{
+qint32 jsonIntValue(QJsonObject const &object, QString const &key) {
     QJsonValue const v = object[key];
-    if (!v.isDouble())
+    if (!v.isDouble()) {
         throw invalidFileException;
+    }
     return v.toInt();
 }
 
@@ -75,26 +75,26 @@ qint32 jsonIntValue(QJsonObject const &object, QString const &key)
 /// \param[out] outError if not null and an error occurs, this variable contains a description of the error.
 /// \return true iff the operation was successful.
 //****************************************************************************************************************************************************
-bool GRPCConfig::load(QString const &path, QString *outError)
-{
-    try
-    {
+bool GRPCConfig::load(QString const &path, QString *outError) {
+    try {
         QFile file(path);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
             throw Exception("Could not open gRPC service config file.");
+        }
 
         QJsonDocument const doc = QJsonDocument::fromJson(file.readAll());
         QJsonObject const object = doc.object();
         port = jsonIntValue(object, keyPort);
         cert = jsonStringValue(object, keyCert);
         token = jsonStringValue(object, keyToken);
+        fileSocketPath = jsonStringValue(object, keyFileSocketPath);
 
         return true;
     }
-    catch (Exception const &e)
-    {
-        if (outError)
+    catch (Exception const &e) {
+        if (outError) {
             *outError = e.qwhat();
+        }
         return false;
     }
 }
@@ -105,29 +105,30 @@ bool GRPCConfig::load(QString const &path, QString *outError)
 /// \param[out] outError if not null and an error occurs, this variable contains a description of the error.
 /// \return true iff the operation was successful.
 //****************************************************************************************************************************************************
-bool GRPCConfig::save(QString const &path, QString *outError)
-{
-    try
-    {
+bool GRPCConfig::save(QString const &path, QString *outError) {
+    try {
         QJsonObject object;
         object.insert(keyPort, port);
         object.insert(keyCert, cert);
         object.insert(keyToken, token);
+        object.insert(keyFileSocketPath, fileSocketPath);
 
         QFile file(path);
-        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
             throw couldNotSaveException;
+        }
 
         QByteArray const array = QJsonDocument(object).toJson();
-        if (array.size() != file.write(array))
+        if (array.size() != file.write(array)) {
             throw couldNotSaveException;
+        }
 
         return true;
     }
-    catch (Exception const &e)
-    {
-        if (outError)
+    catch (Exception const &e) {
+        if (outError) {
             *outError = e.qwhat();
+        }
         return false;
     }
 }

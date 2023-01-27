@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -23,17 +23,16 @@
 //****************************************************************************************************************************************************
 /// Service configuration class.
 //****************************************************************************************************************************************************
-struct GRPCConfig
-{
+struct GRPCConfig {
 public: // data members
     qint32 port; ///< The port.
     QString cert; ///< The server TLS certificate.
     QString token; ///< The identification token.
+    QString fileSocketPath; ///< The path of the file socket.
 
     bool load(QString const &path, QString *outError = nullptr); ///< Load the service config from file
     bool save(QString const &path, QString *outError = nullptr); ///< Save the service config to file
 };
-
 
 
 #endif //BRIDGE_PP_GRPC_CONFIG_H

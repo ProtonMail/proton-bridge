@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -29,8 +29,6 @@ QtObject {
 
     signal askEnableBeta()
     signal askEnableSplitMode(var user)
-    signal askDisableLocalCache()
-    signal askEnableLocalCache(var path)
     signal askResetBridge()
     signal askChangeAllMailVisibility(var isVisibleNow)
     signal askDeleteAccount(var user)
@@ -48,8 +46,12 @@ QtObject {
 
     property var all: [
         root.noInternet,
-        root.portIssueIMAP,
-        root.portIssueSMTP,
+        root.imapPortStartupError,
+        root.smtpPortStartupError,
+        root.imapPortChangeError,
+        root.smtpPortChangeError,
+        root.imapConnectionModeChangeError,
+        root.smtpConnectionModeChangeError,
         root.updateManualReady,
         root.updateManualRestartNeeded,
         root.updateManualError,
@@ -70,8 +72,6 @@ QtObject {
         root.diskFull,
         root.cacheLocationChangeSuccess,
         root.enableSplitMode,
-        root.disableLocalCache,
-        root.enableLocalCache,
         root.resetBridge,
         root.changeAllMailVisibility,
         root.deleteAccount,
@@ -79,7 +79,8 @@ QtObject {
         root.rebuildKeychain,
         root.addressChanged,
         root.apiCertIssue,
-        root.noActiveKeyForRecipient
+        root.noActiveKeyForRecipient,
+        root.genericError
     ]
 
     // Connection
@@ -102,8 +103,8 @@ QtObject {
         }
     }
 
-    property Notification portIssueIMAP: Notification {
-        description: qsTr("The IMAP server could not be started. Please check or change the IMAP port and restart the application.")
+    property Notification imapPortStartupError: Notification {
+        description: qsTr("The IMAP server could not be started. Please check or change the IMAP port.")
         brief: qsTr("IMAP port error")
         icon: "./icons/ic-alert.svg"
         type: Notification.NotificationType.Danger
@@ -112,14 +113,14 @@ QtObject {
         Connections {
             target: Backend
 
-            function onPortIssueIMAP() {
-                root.portIssueIMAP.active = true
+            function onImapPortStartupError() {
+                root.imapPortStartupError.active = true
             }
         }
     }
 
-    property Notification portIssueSMTP: Notification {
-        description: qsTr("The SMTP server could not be started. Please check or change the SMTP port and restart the application.")
+    property Notification smtpPortStartupError: Notification {
+        description: qsTr("The SMTP server could not be started. Please check or change the SMTP port.")
         brief: qsTr("SMTP port error")
         icon: "./icons/ic-alert.svg"
         type: Notification.NotificationType.Danger
@@ -128,8 +129,88 @@ QtObject {
         Connections {
             target: Backend
 
-            function onPortIssueSMTP() {
-                root.portIssueSMTP.active = true
+            function onSmtpPortStartupError() {
+                root.smtpPortStartupError.active = true
+            }
+        }
+    }
+
+    property Notification imapPortChangeError: Notification {
+        description: qsTr("The IMAP port could not be changed.")
+        brief: qsTr("IMAP port change error")
+        icon: "./icons/ic-alert.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+
+            function onImapPortChangeError() {
+                root.imapPortChangeError.active = true
+            }
+        }
+    }
+
+    property Notification smtpPortChangeError: Notification {
+        description: qsTr("The SMTP port could not be changed.")
+        brief: qsTr("SMTP port change error")
+        icon: "./icons/ic-alert.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+
+            function onSmtpPortChangeError() {
+                root.smtpPortChangeError.active = true
+            }
+        }
+    }
+
+    property Notification imapConnectionModeChangeError: Notification {
+        description: qsTr("The IMAP connection mode could not be changed.")
+        brief: qsTr("IMAP Connection mode change error")
+        icon: "./icons/ic-alert.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+
+            function onImapConnectionModeChangeError() {
+                root.imapConnectionModeChangeError.active = true
+            }
+        }
+
+        action: Action {
+            text: qsTr("OK")
+
+            onTriggered: {
+                root.imapConnectionModeChangeError.active= false
+            }
+        }
+    }
+
+    property Notification smtpConnectionModeChangeError: Notification {
+        description: qsTr("The SMTP connection mode could not be changed.")
+        brief: qsTr("SMTP Connection mode change error")
+        icon: "./icons/ic-alert.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+
+            function onSmtpConnectionModeChangeError() {
+                root.smtpConnectionModeChangeError.active = true
+            }
+        }
+
+        action: Action {
+            text: qsTr("OK")
+
+            onTriggered: {
+                root.smtpConnectionModeChangeError.active= false
             }
         }
     }
@@ -288,8 +369,8 @@ QtObject {
     }
 
     property Notification updateForceError: Notification {
-        title: qsTr("Bridge coudn’t update")
-        description: qsTr("You must update manually. Go to: https:/protonmail.com/bridge/download")
+        title: qsTr("Bridge couldn't update")
+        description: qsTr("You must update manually. Go to: https://proton.me/mail/bridge#download")
         brief: title
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
@@ -348,7 +429,7 @@ QtObject {
     }
 
     property Notification updateSilentError: Notification {
-        description: qsTr("Bridge couldn’t update")
+        description: qsTr("Bridge couldn't update")
         brief: description
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Warning
@@ -558,7 +639,7 @@ QtObject {
 
         Connections {
             target: Backend
-            function onCacheUnavailable() {
+            function onDiskCacheUnavailable() {
                 root.cacheUnavailable.active = true
             }
         }
@@ -591,7 +672,7 @@ QtObject {
 
         Connections {
             target: Backend
-            function onCacheCantMove() {
+            function onCantMoveDiskCache() {
                 root.cacheCantMove.active = true
             }
         }
@@ -622,8 +703,8 @@ QtObject {
 
         Connections {
             target: Backend
-            function onCacheLocationChangeSuccess() {
-                console.log("notify location changed succesfully")
+            function onDiskCachePathChanged() {
+                console.log("notify location changed successfully")
                 root.cacheLocationChangeSuccess.active = true
             }
         }
@@ -731,99 +812,6 @@ QtObject {
                     enableSplitMode_enable.loading = true
                     enableSplitMode_cancel.enabled = false
                     root.enableSplitMode.user.toggleSplitMode(true)
-                }
-            }
-        ]
-    }
-
-    property Notification disableLocalCache: Notification {
-        title: qsTr("Disable local cache?")
-        brief: title
-        description: qsTr("This action will clear your local cache, including locally stored messages. Bridge will restart.")
-        icon: "/qml/icons/ic-question-circle.svg"
-        type: Notification.NotificationType.Warning
-        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
-
-        Connections {
-            target: root
-            function onAskDisableLocalCache() {
-                root.disableLocalCache.active = true
-            }
-        }
-
-        Connections {
-            target: Backend
-            function onChangeLocalCacheFinished() {
-                root.disableLocalCache.active = false
-
-                disableLocalCache_disable.loading = false
-                disableLocalCache_cancel.enabled = true
-            }
-        }
-
-        action: [
-            Action {
-                id: disableLocalCache_cancel
-                text: qsTr("Cancel")
-                onTriggered: {
-                    root.disableLocalCache.active = false
-                }
-            },
-            Action {
-                id: disableLocalCache_disable
-                text: qsTr("Disable and restart")
-                onTriggered: {
-                    disableLocalCache_disable.loading = true
-                    disableLocalCache_cancel.enabled = false
-                    Backend.changeLocalCache(false, Backend.diskCachePath)
-                }
-            }
-        ]
-    }
-
-    property Notification enableLocalCache: Notification {
-        title: qsTr("Enable local cache")
-        brief: title
-        description: qsTr("Bridge will restart.")
-        icon: "/qml/icons/ic-question-circle.svg"
-        type: Notification.NotificationType.Warning
-        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
-
-        property url path
-
-        Connections {
-            target: root
-            function onAskEnableLocalCache(path) {
-                root.enableLocalCache.active = true
-                root.enableLocalCache.path = path
-            }
-        }
-
-        Connections {
-            target: Backend
-            function onChangeLocalCacheFinished() {
-                root.enableLocalCache.active = false
-
-                enableLocalCache_enable.loading = false
-                enableLocalCache_cancel.enabled = true
-            }
-        }
-
-        action: [
-            Action {
-                id: enableLocalCache_enable
-                text: qsTr("Enable and restart")
-                onTriggered: {
-                    enableLocalCache_enable.loading = true
-                    enableLocalCache_cancel.enabled = false
-                    Backend.changeLocalCache(true, root.enableLocalCache.path)
-                }
-            },
-            Action {
-                id: enableLocalCache_cancel
-                text: qsTr("Cancel")
-                onTriggered: {
-                    root.enableLocalCache.active = false
                 }
             }
         ]
@@ -997,7 +985,7 @@ QtObject {
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Dialogs | Notifications.Group.Configuration
 
-        property var supportLink: "https://protonmail.com/support/knowledge-base/macos-keychain-corrupted"
+        property var supportLink: "https://proton.me/support/mail"
 
 
         Connections {
@@ -1108,6 +1096,32 @@ QtObject {
 
                 onTriggered: {
                     root.noActiveKeyForRecipient.active = false
+                }
+            }
+        ]
+    }
+
+    property Notification genericError: Notification {
+        title: "#PlaceholderText#"
+        description: "#PlaceholderText#"
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Dialogs
+            Connections {
+              target: Backend
+                 function onGenericError(title, description) {
+                  root.genericError.title = title
+                  root.genericError.description = description
+                  root.genericError.active = true;
+              }
+            }
+
+        action: [
+            Action {
+                text: qsTr("OK")
+
+                onTriggered: {
+                    root.genericError.active = false
                 }
             }
         ]

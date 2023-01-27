@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -25,8 +25,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/constants"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/restarter"
 	"github.com/getsentry/sentry-go"
 	"github.com/sirupsen/logrus"
 )
@@ -34,10 +34,14 @@ import (
 var skippedFunctions = []string{} //nolint:gochecknoglobals
 
 func init() { //nolint:gochecknoinits
+	sentrySyncTransport := sentry.NewHTTPSyncTransport()
+	sentrySyncTransport.Timeout = time.Second * 3
+
 	if err := sentry.Init(sentry.ClientOptions{
 		Dsn:        constants.DSNSentry,
 		Release:    constants.Revision,
 		BeforeSend: EnhanceSentryEvent,
+		Transport:  sentrySyncTransport,
 	}); err != nil {
 		logrus.WithError(err).Error("Failed to initialize sentry options")
 	}
@@ -56,23 +60,30 @@ func init() { //nolint:gochecknoinits
 type Reporter struct {
 	appName    string
 	appVersion string
-	userAgent  fmt.Stringer
+	identifier Identifier
 	hostArch   string
 }
 
+type Identifier interface {
+	GetUserAgent() string
+}
+
 // NewReporter creates new sentry reporter with appName and appVersion to report.
-func NewReporter(appName, appVersion string, userAgent fmt.Stringer) *Reporter {
+func NewReporter(appName, appVersion string, identifier Identifier) *Reporter {
 	return &Reporter{
 		appName:    appName,
 		appVersion: appVersion,
-		userAgent:  userAgent,
-		hostArch:   getHostAarch(),
+		identifier: identifier,
+		hostArch:   getHostArch(),
 	}
 }
 
 func (r *Reporter) ReportException(i interface{}) error {
 	SkipDuringUnwind()
-	return r.ReportExceptionWithContext(i, make(map[string]interface{}))
+	return r.ReportExceptionWithContext(i, map[string]interface{}{
+		"build": constants.BuildTime,
+		"crash": os.Getenv(restarter.BridgeCrashCount),
+	})
 }
 
 func (r *Reporter) ReportMessage(msg string) error {
@@ -118,14 +129,18 @@ func (r *Reporter) scopedReport(context map[string]interface{}, doReport func())
 		"OS":        runtime.GOOS,
 		"Client":    r.appName,
 		"Version":   r.appVersion,
-		"UserAgent": r.userAgent.String(),
+		"UserAgent": r.identifier.GetUserAgent(),
 		"HostArch":  r.hostArch,
 	}
 
 	sentry.WithScope(func(scope *sentry.Scope) {
 		SkipDuringUnwind()
 		scope.SetTags(tags)
-		scope.SetContexts(context)
+		if len(context) != 0 {
+			scope.SetContexts(
+				map[string]sentry.Context{"bridge": contextToString(context)},
+			)
+		}
 		doReport()
 	})
 
@@ -190,5 +205,12 @@ func Flush(maxWaiTime time.Duration) {
 	sentry.Flush(maxWaiTime)
 }
 
-func (r *Reporter) SetClientFromManager(cm pmapi.Manager) {
+func contextToString(context sentry.Context) sentry.Context {
+	res := make(sentry.Context)
+
+	for k, v := range context {
+		res[k] = fmt.Sprintf("%v", v)
+	}
+
+	return res
 }

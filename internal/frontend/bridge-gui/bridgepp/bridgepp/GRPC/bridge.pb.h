@@ -67,48 +67,42 @@ extern AppEventDefaultTypeInternal _AppEvent_default_instance_;
 class AvailableKeychainsResponse;
 struct AvailableKeychainsResponseDefaultTypeInternal;
 extern AvailableKeychainsResponseDefaultTypeInternal _AvailableKeychainsResponse_default_instance_;
-class CacheErrorEvent;
-struct CacheErrorEventDefaultTypeInternal;
-extern CacheErrorEventDefaultTypeInternal _CacheErrorEvent_default_instance_;
-class CacheEvent;
-struct CacheEventDefaultTypeInternal;
-extern CacheEventDefaultTypeInternal _CacheEvent_default_instance_;
-class CacheLocationChangeSuccessEvent;
-struct CacheLocationChangeSuccessEventDefaultTypeInternal;
-extern CacheLocationChangeSuccessEventDefaultTypeInternal _CacheLocationChangeSuccessEvent_default_instance_;
 class ChangeKeychainFinishedEvent;
 struct ChangeKeychainFinishedEventDefaultTypeInternal;
 extern ChangeKeychainFinishedEventDefaultTypeInternal _ChangeKeychainFinishedEvent_default_instance_;
-class ChangeLocalCacheFinishedEvent;
-struct ChangeLocalCacheFinishedEventDefaultTypeInternal;
-extern ChangeLocalCacheFinishedEventDefaultTypeInternal _ChangeLocalCacheFinishedEvent_default_instance_;
-class ChangeLocalCacheRequest;
-struct ChangeLocalCacheRequestDefaultTypeInternal;
-extern ChangeLocalCacheRequestDefaultTypeInternal _ChangeLocalCacheRequest_default_instance_;
-class ChangePortsFinishedEvent;
-struct ChangePortsFinishedEventDefaultTypeInternal;
-extern ChangePortsFinishedEventDefaultTypeInternal _ChangePortsFinishedEvent_default_instance_;
-class ChangePortsRequest;
-struct ChangePortsRequestDefaultTypeInternal;
-extern ChangePortsRequestDefaultTypeInternal _ChangePortsRequest_default_instance_;
+class ChangeMailServerSettingsFinishedEvent;
+struct ChangeMailServerSettingsFinishedEventDefaultTypeInternal;
+extern ChangeMailServerSettingsFinishedEventDefaultTypeInternal _ChangeMailServerSettingsFinishedEvent_default_instance_;
 class ConfigureAppleMailRequest;
 struct ConfigureAppleMailRequestDefaultTypeInternal;
 extern ConfigureAppleMailRequestDefaultTypeInternal _ConfigureAppleMailRequest_default_instance_;
-class DiskCachePathChanged;
-struct DiskCachePathChangedDefaultTypeInternal;
-extern DiskCachePathChangedDefaultTypeInternal _DiskCachePathChanged_default_instance_;
+class DiskCacheErrorEvent;
+struct DiskCacheErrorEventDefaultTypeInternal;
+extern DiskCacheErrorEventDefaultTypeInternal _DiskCacheErrorEvent_default_instance_;
+class DiskCacheEvent;
+struct DiskCacheEventDefaultTypeInternal;
+extern DiskCacheEventDefaultTypeInternal _DiskCacheEvent_default_instance_;
+class DiskCachePathChangeFinishedEvent;
+struct DiskCachePathChangeFinishedEventDefaultTypeInternal;
+extern DiskCachePathChangeFinishedEventDefaultTypeInternal _DiskCachePathChangeFinishedEvent_default_instance_;
+class DiskCachePathChangedEvent;
+struct DiskCachePathChangedEventDefaultTypeInternal;
+extern DiskCachePathChangedEventDefaultTypeInternal _DiskCachePathChangedEvent_default_instance_;
 class EventStreamRequest;
 struct EventStreamRequestDefaultTypeInternal;
 extern EventStreamRequestDefaultTypeInternal _EventStreamRequest_default_instance_;
+class GenericErrorEvent;
+struct GenericErrorEventDefaultTypeInternal;
+extern GenericErrorEventDefaultTypeInternal _GenericErrorEvent_default_instance_;
 class HasNoKeychainEvent;
 struct HasNoKeychainEventDefaultTypeInternal;
 extern HasNoKeychainEventDefaultTypeInternal _HasNoKeychainEvent_default_instance_;
+class ImapSmtpSettings;
+struct ImapSmtpSettingsDefaultTypeInternal;
+extern ImapSmtpSettingsDefaultTypeInternal _ImapSmtpSettings_default_instance_;
 class InternetStatusEvent;
 struct InternetStatusEventDefaultTypeInternal;
 extern InternetStatusEventDefaultTypeInternal _InternetStatusEvent_default_instance_;
-class IsCacheOnDiskEnabledChanged;
-struct IsCacheOnDiskEnabledChangedDefaultTypeInternal;
-extern IsCacheOnDiskEnabledChangedDefaultTypeInternal _IsCacheOnDiskEnabledChanged_default_instance_;
 class KeychainEvent;
 struct KeychainEventDefaultTypeInternal;
 extern KeychainEventDefaultTypeInternal _KeychainEvent_default_instance_;
@@ -136,12 +130,15 @@ extern LoginTwoPasswordsRequestedEventDefaultTypeInternal _LoginTwoPasswordsRequ
 class MailEvent;
 struct MailEventDefaultTypeInternal;
 extern MailEventDefaultTypeInternal _MailEvent_default_instance_;
-class MailSettingsErrorEvent;
-struct MailSettingsErrorEventDefaultTypeInternal;
-extern MailSettingsErrorEventDefaultTypeInternal _MailSettingsErrorEvent_default_instance_;
-class MailSettingsEvent;
-struct MailSettingsEventDefaultTypeInternal;
-extern MailSettingsEventDefaultTypeInternal _MailSettingsEvent_default_instance_;
+class MailServerSettingsChangedEvent;
+struct MailServerSettingsChangedEventDefaultTypeInternal;
+extern MailServerSettingsChangedEventDefaultTypeInternal _MailServerSettingsChangedEvent_default_instance_;
+class MailServerSettingsErrorEvent;
+struct MailServerSettingsErrorEventDefaultTypeInternal;
+extern MailServerSettingsErrorEventDefaultTypeInternal _MailServerSettingsErrorEvent_default_instance_;
+class MailServerSettingsEvent;
+struct MailServerSettingsEventDefaultTypeInternal;
+extern MailServerSettingsEventDefaultTypeInternal _MailServerSettingsEvent_default_instance_;
 class NoActiveKeyForRecipientEvent;
 struct NoActiveKeyForRecipientEventDefaultTypeInternal;
 extern NoActiveKeyForRecipientEventDefaultTypeInternal _NoActiveKeyForRecipientEvent_default_instance_;
@@ -202,9 +199,6 @@ extern UpdateSilentRestartNeededDefaultTypeInternal _UpdateSilentRestartNeeded_d
 class UpdateVersionChanged;
 struct UpdateVersionChangedDefaultTypeInternal;
 extern UpdateVersionChangedDefaultTypeInternal _UpdateVersionChanged_default_instance_;
-class UseSslForSmtpFinishedEvent;
-struct UseSslForSmtpFinishedEventDefaultTypeInternal;
-extern UseSslForSmtpFinishedEventDefaultTypeInternal _UseSslForSmtpFinishedEvent_default_instance_;
 class User;
 struct UserDefaultTypeInternal;
 extern UserDefaultTypeInternal _User_default_instance_;
@@ -231,20 +225,18 @@ template<> ::grpc::AddressChangedLogoutEvent* Arena::CreateMaybeMessage<::grpc::
 template<> ::grpc::ApiCertIssueEvent* Arena::CreateMaybeMessage<::grpc::ApiCertIssueEvent>(Arena*);
 template<> ::grpc::AppEvent* Arena::CreateMaybeMessage<::grpc::AppEvent>(Arena*);
 template<> ::grpc::AvailableKeychainsResponse* Arena::CreateMaybeMessage<::grpc::AvailableKeychainsResponse>(Arena*);
-template<> ::grpc::CacheErrorEvent* Arena::CreateMaybeMessage<::grpc::CacheErrorEvent>(Arena*);
-template<> ::grpc::CacheEvent* Arena::CreateMaybeMessage<::grpc::CacheEvent>(Arena*);
-template<> ::grpc::CacheLocationChangeSuccessEvent* Arena::CreateMaybeMessage<::grpc::CacheLocationChangeSuccessEvent>(Arena*);
 template<> ::grpc::ChangeKeychainFinishedEvent* Arena::CreateMaybeMessage<::grpc::ChangeKeychainFinishedEvent>(Arena*);
-template<> ::grpc::ChangeLocalCacheFinishedEvent* Arena::CreateMaybeMessage<::grpc::ChangeLocalCacheFinishedEvent>(Arena*);
-template<> ::grpc::ChangeLocalCacheRequest* Arena::CreateMaybeMessage<::grpc::ChangeLocalCacheRequest>(Arena*);
-template<> ::grpc::ChangePortsFinishedEvent* Arena::CreateMaybeMessage<::grpc::ChangePortsFinishedEvent>(Arena*);
-template<> ::grpc::ChangePortsRequest* Arena::CreateMaybeMessage<::grpc::ChangePortsRequest>(Arena*);
+template<> ::grpc::ChangeMailServerSettingsFinishedEvent* Arena::CreateMaybeMessage<::grpc::ChangeMailServerSettingsFinishedEvent>(Arena*);
 template<> ::grpc::ConfigureAppleMailRequest* Arena::CreateMaybeMessage<::grpc::ConfigureAppleMailRequest>(Arena*);
-template<> ::grpc::DiskCachePathChanged* Arena::CreateMaybeMessage<::grpc::DiskCachePathChanged>(Arena*);
+template<> ::grpc::DiskCacheErrorEvent* Arena::CreateMaybeMessage<::grpc::DiskCacheErrorEvent>(Arena*);
+template<> ::grpc::DiskCacheEvent* Arena::CreateMaybeMessage<::grpc::DiskCacheEvent>(Arena*);
+template<> ::grpc::DiskCachePathChangeFinishedEvent* Arena::CreateMaybeMessage<::grpc::DiskCachePathChangeFinishedEvent>(Arena*);
+template<> ::grpc::DiskCachePathChangedEvent* Arena::CreateMaybeMessage<::grpc::DiskCachePathChangedEvent>(Arena*);
 template<> ::grpc::EventStreamRequest* Arena::CreateMaybeMessage<::grpc::EventStreamRequest>(Arena*);
+template<> ::grpc::GenericErrorEvent* Arena::CreateMaybeMessage<::grpc::GenericErrorEvent>(Arena*);
 template<> ::grpc::HasNoKeychainEvent* Arena::CreateMaybeMessage<::grpc::HasNoKeychainEvent>(Arena*);
+template<> ::grpc::ImapSmtpSettings* Arena::CreateMaybeMessage<::grpc::ImapSmtpSettings>(Arena*);
 template<> ::grpc::InternetStatusEvent* Arena::CreateMaybeMessage<::grpc::InternetStatusEvent>(Arena*);
-template<> ::grpc::IsCacheOnDiskEnabledChanged* Arena::CreateMaybeMessage<::grpc::IsCacheOnDiskEnabledChanged>(Arena*);
 template<> ::grpc::KeychainEvent* Arena::CreateMaybeMessage<::grpc::KeychainEvent>(Arena*);
 template<> ::grpc::LoginAbortRequest* Arena::CreateMaybeMessage<::grpc::LoginAbortRequest>(Arena*);
 template<> ::grpc::LoginErrorEvent* Arena::CreateMaybeMessage<::grpc::LoginErrorEvent>(Arena*);
@@ -254,8 +246,9 @@ template<> ::grpc::LoginRequest* Arena::CreateMaybeMessage<::grpc::LoginRequest>
 template<> ::grpc::LoginTfaRequestedEvent* Arena::CreateMaybeMessage<::grpc::LoginTfaRequestedEvent>(Arena*);
 template<> ::grpc::LoginTwoPasswordsRequestedEvent* Arena::CreateMaybeMessage<::grpc::LoginTwoPasswordsRequestedEvent>(Arena*);
 template<> ::grpc::MailEvent* Arena::CreateMaybeMessage<::grpc::MailEvent>(Arena*);
-template<> ::grpc::MailSettingsErrorEvent* Arena::CreateMaybeMessage<::grpc::MailSettingsErrorEvent>(Arena*);
-template<> ::grpc::MailSettingsEvent* Arena::CreateMaybeMessage<::grpc::MailSettingsEvent>(Arena*);
+template<> ::grpc::MailServerSettingsChangedEvent* Arena::CreateMaybeMessage<::grpc::MailServerSettingsChangedEvent>(Arena*);
+template<> ::grpc::MailServerSettingsErrorEvent* Arena::CreateMaybeMessage<::grpc::MailServerSettingsErrorEvent>(Arena*);
+template<> ::grpc::MailServerSettingsEvent* Arena::CreateMaybeMessage<::grpc::MailServerSettingsEvent>(Arena*);
 template<> ::grpc::NoActiveKeyForRecipientEvent* Arena::CreateMaybeMessage<::grpc::NoActiveKeyForRecipientEvent>(Arena*);
 template<> ::grpc::RebuildKeychainEvent* Arena::CreateMaybeMessage<::grpc::RebuildKeychainEvent>(Arena*);
 template<> ::grpc::ReportBugErrorEvent* Arena::CreateMaybeMessage<::grpc::ReportBugErrorEvent>(Arena*);
@@ -276,7 +269,6 @@ template<> ::grpc::UpdateManualReadyEvent* Arena::CreateMaybeMessage<::grpc::Upd
 template<> ::grpc::UpdateManualRestartNeededEvent* Arena::CreateMaybeMessage<::grpc::UpdateManualRestartNeededEvent>(Arena*);
 template<> ::grpc::UpdateSilentRestartNeeded* Arena::CreateMaybeMessage<::grpc::UpdateSilentRestartNeeded>(Arena*);
 template<> ::grpc::UpdateVersionChanged* Arena::CreateMaybeMessage<::grpc::UpdateVersionChanged>(Arena*);
-template<> ::grpc::UseSslForSmtpFinishedEvent* Arena::CreateMaybeMessage<::grpc::UseSslForSmtpFinishedEvent>(Arena*);
 template<> ::grpc::User* Arena::CreateMaybeMessage<::grpc::User>(Arena*);
 template<> ::grpc::UserChangedEvent* Arena::CreateMaybeMessage<::grpc::UserChangedEvent>(Arena*);
 template<> ::grpc::UserDisconnectedEvent* Arena::CreateMaybeMessage<::grpc::UserDisconnectedEvent>(Arena*);
@@ -315,6 +307,32 @@ inline bool LogLevel_Parse(
     ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, LogLevel* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<LogLevel>(
     LogLevel_descriptor(), name, value);
+}
+enum UserState : int {
+  SIGNED_OUT = 0,
+  LOCKED = 1,
+  CONNECTED = 2,
+  UserState_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  UserState_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool UserState_IsValid(int value);
+constexpr UserState UserState_MIN = SIGNED_OUT;
+constexpr UserState UserState_MAX = CONNECTED;
+constexpr int UserState_ARRAYSIZE = UserState_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* UserState_descriptor();
+template<typename T>
+inline const std::string& UserState_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, UserState>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function UserState_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    UserState_descriptor(), enum_t_value);
+}
+inline bool UserState_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, UserState* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<UserState>(
+    UserState_descriptor(), name, value);
 }
 enum LoginErrorType : int {
   USERNAME_PASSWORD_ERROR = 0,
@@ -372,56 +390,86 @@ inline bool UpdateErrorType_Parse(
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<UpdateErrorType>(
     UpdateErrorType_descriptor(), name, value);
 }
-enum CacheErrorType : int {
-  CACHE_UNAVAILABLE_ERROR = 0,
-  CACHE_CANT_MOVE_ERROR = 1,
-  DISK_FULL = 2,
-  CacheErrorType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
-  CacheErrorType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+enum DiskCacheErrorType : int {
+  DISK_CACHE_UNAVAILABLE_ERROR = 0,
+  CANT_MOVE_DISK_CACHE_ERROR = 1,
+  DISK_FULL_ERROR = 2,
+  DiskCacheErrorType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  DiskCacheErrorType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
-bool CacheErrorType_IsValid(int value);
-constexpr CacheErrorType CacheErrorType_MIN = CACHE_UNAVAILABLE_ERROR;
-constexpr CacheErrorType CacheErrorType_MAX = DISK_FULL;
-constexpr int CacheErrorType_ARRAYSIZE = CacheErrorType_MAX + 1;
+bool DiskCacheErrorType_IsValid(int value);
+constexpr DiskCacheErrorType DiskCacheErrorType_MIN = DISK_CACHE_UNAVAILABLE_ERROR;
+constexpr DiskCacheErrorType DiskCacheErrorType_MAX = DISK_FULL_ERROR;
+constexpr int DiskCacheErrorType_ARRAYSIZE = DiskCacheErrorType_MAX + 1;
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* CacheErrorType_descriptor();
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* DiskCacheErrorType_descriptor();
 template<typename T>
-inline const std::string& CacheErrorType_Name(T enum_t_value) {
-  static_assert(::std::is_same<T, CacheErrorType>::value ||
+inline const std::string& DiskCacheErrorType_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, DiskCacheErrorType>::value ||
     ::std::is_integral<T>::value,
-    "Incorrect type passed to function CacheErrorType_Name.");
+    "Incorrect type passed to function DiskCacheErrorType_Name.");
   return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-    CacheErrorType_descriptor(), enum_t_value);
+    DiskCacheErrorType_descriptor(), enum_t_value);
 }
-inline bool CacheErrorType_Parse(
-    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, CacheErrorType* value) {
-  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<CacheErrorType>(
-    CacheErrorType_descriptor(), name, value);
+inline bool DiskCacheErrorType_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, DiskCacheErrorType* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<DiskCacheErrorType>(
+    DiskCacheErrorType_descriptor(), name, value);
 }
-enum MailSettingsErrorType : int {
-  IMAP_PORT_ISSUE = 0,
-  SMTP_PORT_ISSUE = 1,
-  MailSettingsErrorType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
-  MailSettingsErrorType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+enum MailServerSettingsErrorType : int {
+  IMAP_PORT_STARTUP_ERROR = 0,
+  SMTP_PORT_STARTUP_ERROR = 1,
+  IMAP_PORT_CHANGE_ERROR = 2,
+  SMTP_PORT_CHANGE_ERROR = 3,
+  IMAP_CONNECTION_MODE_CHANGE_ERROR = 4,
+  SMTP_CONNECTION_MODE_CHANGE_ERROR = 5,
+  MailServerSettingsErrorType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  MailServerSettingsErrorType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
-bool MailSettingsErrorType_IsValid(int value);
-constexpr MailSettingsErrorType MailSettingsErrorType_MIN = IMAP_PORT_ISSUE;
-constexpr MailSettingsErrorType MailSettingsErrorType_MAX = SMTP_PORT_ISSUE;
-constexpr int MailSettingsErrorType_ARRAYSIZE = MailSettingsErrorType_MAX + 1;
+bool MailServerSettingsErrorType_IsValid(int value);
+constexpr MailServerSettingsErrorType MailServerSettingsErrorType_MIN = IMAP_PORT_STARTUP_ERROR;
+constexpr MailServerSettingsErrorType MailServerSettingsErrorType_MAX = SMTP_CONNECTION_MODE_CHANGE_ERROR;
+constexpr int MailServerSettingsErrorType_ARRAYSIZE = MailServerSettingsErrorType_MAX + 1;
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MailSettingsErrorType_descriptor();
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MailServerSettingsErrorType_descriptor();
 template<typename T>
-inline const std::string& MailSettingsErrorType_Name(T enum_t_value) {
-  static_assert(::std::is_same<T, MailSettingsErrorType>::value ||
+inline const std::string& MailServerSettingsErrorType_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, MailServerSettingsErrorType>::value ||
     ::std::is_integral<T>::value,
-    "Incorrect type passed to function MailSettingsErrorType_Name.");
+    "Incorrect type passed to function MailServerSettingsErrorType_Name.");
   return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-    MailSettingsErrorType_descriptor(), enum_t_value);
+    MailServerSettingsErrorType_descriptor(), enum_t_value);
 }
-inline bool MailSettingsErrorType_Parse(
-    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, MailSettingsErrorType* value) {
-  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<MailSettingsErrorType>(
-    MailSettingsErrorType_descriptor(), name, value);
+inline bool MailServerSettingsErrorType_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, MailServerSettingsErrorType* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<MailServerSettingsErrorType>(
+    MailServerSettingsErrorType_descriptor(), name, value);
+}
+enum ErrorCode : int {
+  UNKNOWN_ERROR = 0,
+  TLS_CERT_EXPORT_ERROR = 1,
+  TLS_KEY_EXPORT_ERROR = 2,
+  ErrorCode_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  ErrorCode_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool ErrorCode_IsValid(int value);
+constexpr ErrorCode ErrorCode_MIN = UNKNOWN_ERROR;
+constexpr ErrorCode ErrorCode_MAX = TLS_KEY_EXPORT_ERROR;
+constexpr int ErrorCode_ARRAYSIZE = ErrorCode_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ErrorCode_descriptor();
+template<typename T>
+inline const std::string& ErrorCode_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, ErrorCode>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function ErrorCode_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    ErrorCode_descriptor(), enum_t_value);
+}
+inline bool ErrorCode_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, ErrorCode* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ErrorCode>(
+    ErrorCode_descriptor(), name, value);
 }
 // ===================================================================
 
@@ -971,7 +1019,7 @@ class LoginRequest final :
   std::string* _internal_mutable_username();
   public:
 
-  // string password = 2;
+  // bytes password = 2;
   void clear_password();
   const std::string& password() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1155,24 +1203,24 @@ class LoginAbortRequest final :
 };
 // -------------------------------------------------------------------
 
-class ChangeLocalCacheRequest final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.ChangeLocalCacheRequest) */ {
+class ImapSmtpSettings final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.ImapSmtpSettings) */ {
  public:
-  inline ChangeLocalCacheRequest() : ChangeLocalCacheRequest(nullptr) {}
-  ~ChangeLocalCacheRequest() override;
-  explicit PROTOBUF_CONSTEXPR ChangeLocalCacheRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline ImapSmtpSettings() : ImapSmtpSettings(nullptr) {}
+  ~ImapSmtpSettings() override;
+  explicit PROTOBUF_CONSTEXPR ImapSmtpSettings(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  ChangeLocalCacheRequest(const ChangeLocalCacheRequest& from);
-  ChangeLocalCacheRequest(ChangeLocalCacheRequest&& from) noexcept
-    : ChangeLocalCacheRequest() {
+  ImapSmtpSettings(const ImapSmtpSettings& from);
+  ImapSmtpSettings(ImapSmtpSettings&& from) noexcept
+    : ImapSmtpSettings() {
     *this = ::std::move(from);
   }
 
-  inline ChangeLocalCacheRequest& operator=(const ChangeLocalCacheRequest& from) {
+  inline ImapSmtpSettings& operator=(const ImapSmtpSettings& from) {
     CopyFrom(from);
     return *this;
   }
-  inline ChangeLocalCacheRequest& operator=(ChangeLocalCacheRequest&& from) noexcept {
+  inline ImapSmtpSettings& operator=(ImapSmtpSettings&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -1195,20 +1243,20 @@ class ChangeLocalCacheRequest final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const ChangeLocalCacheRequest& default_instance() {
+  static const ImapSmtpSettings& default_instance() {
     return *internal_default_instance();
   }
-  static inline const ChangeLocalCacheRequest* internal_default_instance() {
-    return reinterpret_cast<const ChangeLocalCacheRequest*>(
-               &_ChangeLocalCacheRequest_default_instance_);
+  static inline const ImapSmtpSettings* internal_default_instance() {
+    return reinterpret_cast<const ImapSmtpSettings*>(
+               &_ImapSmtpSettings_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
     4;
 
-  friend void swap(ChangeLocalCacheRequest& a, ChangeLocalCacheRequest& b) {
+  friend void swap(ImapSmtpSettings& a, ImapSmtpSettings& b) {
     a.Swap(&b);
   }
-  inline void Swap(ChangeLocalCacheRequest* other) {
+  inline void Swap(ImapSmtpSettings* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -1221,7 +1269,7 @@ class ChangeLocalCacheRequest final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(ChangeLocalCacheRequest* other) {
+  void UnsafeArenaSwap(ImapSmtpSettings* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -1229,14 +1277,14 @@ class ChangeLocalCacheRequest final :
 
   // implements Message ----------------------------------------------
 
-  ChangeLocalCacheRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<ChangeLocalCacheRequest>(arena);
+  ImapSmtpSettings* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ImapSmtpSettings>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const ChangeLocalCacheRequest& from);
+  void CopyFrom(const ImapSmtpSettings& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const ChangeLocalCacheRequest& from) {
-    ChangeLocalCacheRequest::MergeImpl(*this, from);
+  void MergeFrom( const ImapSmtpSettings& from) {
+    ImapSmtpSettings::MergeImpl(*this, from);
   }
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
@@ -1254,179 +1302,15 @@ class ChangeLocalCacheRequest final :
   void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(ChangeLocalCacheRequest* other);
+  void InternalSwap(ImapSmtpSettings* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "grpc.ChangeLocalCacheRequest";
+    return "grpc.ImapSmtpSettings";
   }
   protected:
-  explicit ChangeLocalCacheRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
-  public:
-
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kDiskCachePathFieldNumber = 2,
-    kEnableDiskCacheFieldNumber = 1,
-  };
-  // string diskCachePath = 2;
-  void clear_diskcachepath();
-  const std::string& diskcachepath() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_diskcachepath(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_diskcachepath();
-  PROTOBUF_NODISCARD std::string* release_diskcachepath();
-  void set_allocated_diskcachepath(std::string* diskcachepath);
-  private:
-  const std::string& _internal_diskcachepath() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_diskcachepath(const std::string& value);
-  std::string* _internal_mutable_diskcachepath();
-  public:
-
-  // bool enableDiskCache = 1;
-  void clear_enablediskcache();
-  bool enablediskcache() const;
-  void set_enablediskcache(bool value);
-  private:
-  bool _internal_enablediskcache() const;
-  void _internal_set_enablediskcache(bool value);
-  public:
-
-  // @@protoc_insertion_point(class_scope:grpc.ChangeLocalCacheRequest)
- private:
-  class _Internal;
-
-  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  struct Impl_ {
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr diskcachepath_;
-    bool enablediskcache_;
-    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_bridge_2eproto;
-};
-// -------------------------------------------------------------------
-
-class ChangePortsRequest final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.ChangePortsRequest) */ {
- public:
-  inline ChangePortsRequest() : ChangePortsRequest(nullptr) {}
-  ~ChangePortsRequest() override;
-  explicit PROTOBUF_CONSTEXPR ChangePortsRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  ChangePortsRequest(const ChangePortsRequest& from);
-  ChangePortsRequest(ChangePortsRequest&& from) noexcept
-    : ChangePortsRequest() {
-    *this = ::std::move(from);
-  }
-
-  inline ChangePortsRequest& operator=(const ChangePortsRequest& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline ChangePortsRequest& operator=(ChangePortsRequest&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()
-  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
-        && GetOwningArena() != nullptr
-  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
-    ) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const ChangePortsRequest& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const ChangePortsRequest* internal_default_instance() {
-    return reinterpret_cast<const ChangePortsRequest*>(
-               &_ChangePortsRequest_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages =
-    5;
-
-  friend void swap(ChangePortsRequest& a, ChangePortsRequest& b) {
-    a.Swap(&b);
-  }
-  inline void Swap(ChangePortsRequest* other) {
-    if (other == this) return;
-  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() != nullptr &&
-        GetOwningArena() == other->GetOwningArena()) {
-   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() == other->GetOwningArena()) {
-  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(ChangePortsRequest* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  ChangePortsRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<ChangePortsRequest>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const ChangePortsRequest& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const ChangePortsRequest& from) {
-    ChangePortsRequest::MergeImpl(*this, from);
-  }
-  private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
-  public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  uint8_t* _InternalSerialize(
-      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(ChangePortsRequest* other);
-
-  private:
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "grpc.ChangePortsRequest";
-  }
-  protected:
-  explicit ChangePortsRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit ImapSmtpSettings(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -1442,6 +1326,8 @@ class ChangePortsRequest final :
   enum : int {
     kImapPortFieldNumber = 1,
     kSmtpPortFieldNumber = 2,
+    kUseSSLForImapFieldNumber = 3,
+    kUseSSLForSmtpFieldNumber = 4,
   };
   // int32 imapPort = 1;
   void clear_imapport();
@@ -1461,7 +1347,25 @@ class ChangePortsRequest final :
   void _internal_set_smtpport(int32_t value);
   public:
 
-  // @@protoc_insertion_point(class_scope:grpc.ChangePortsRequest)
+  // bool useSSLForImap = 3;
+  void clear_usesslforimap();
+  bool usesslforimap() const;
+  void set_usesslforimap(bool value);
+  private:
+  bool _internal_usesslforimap() const;
+  void _internal_set_usesslforimap(bool value);
+  public:
+
+  // bool useSSLForSmtp = 4;
+  void clear_usesslforsmtp();
+  bool usesslforsmtp() const;
+  void set_usesslforsmtp(bool value);
+  private:
+  bool _internal_usesslforsmtp() const;
+  void _internal_set_usesslforsmtp(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:grpc.ImapSmtpSettings)
  private:
   class _Internal;
 
@@ -1471,6 +1375,8 @@ class ChangePortsRequest final :
   struct Impl_ {
     int32_t imapport_;
     int32_t smtpport_;
+    bool usesslforimap_;
+    bool usesslforsmtp_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1526,7 +1432,7 @@ class AvailableKeychainsResponse final :
                &_AvailableKeychainsResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    5;
 
   friend void swap(AvailableKeychainsResponse& a, AvailableKeychainsResponse& b) {
     a.Swap(&b);
@@ -1689,7 +1595,7 @@ class User final :
                &_User_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    6;
 
   friend void swap(User& a, User& b) {
     a.Swap(&b);
@@ -1762,18 +1668,17 @@ class User final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kAddressesFieldNumber = 10,
+    kAddressesFieldNumber = 9,
     kIdFieldNumber = 1,
     kUsernameFieldNumber = 2,
     kAvatarTextFieldNumber = 3,
-    kPasswordFieldNumber = 9,
-    kUsedBytesFieldNumber = 7,
-    kTotalBytesFieldNumber = 8,
-    kLoggedInFieldNumber = 4,
+    kPasswordFieldNumber = 8,
+    kStateFieldNumber = 4,
     kSplitModeFieldNumber = 5,
-    kSetupGuideSeenFieldNumber = 6,
+    kUsedBytesFieldNumber = 6,
+    kTotalBytesFieldNumber = 7,
   };
-  // repeated string addresses = 10;
+  // repeated string addresses = 9;
   int addresses_size() const;
   private:
   int _internal_addresses_size() const;
@@ -1839,7 +1744,7 @@ class User final :
   std::string* _internal_mutable_avatartext();
   public:
 
-  // string password = 9;
+  // bytes password = 8;
   void clear_password();
   const std::string& password() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1853,31 +1758,13 @@ class User final :
   std::string* _internal_mutable_password();
   public:
 
-  // int64 usedBytes = 7;
-  void clear_usedbytes();
-  int64_t usedbytes() const;
-  void set_usedbytes(int64_t value);
+  // .grpc.UserState state = 4;
+  void clear_state();
+  ::grpc::UserState state() const;
+  void set_state(::grpc::UserState value);
   private:
-  int64_t _internal_usedbytes() const;
-  void _internal_set_usedbytes(int64_t value);
-  public:
-
-  // int64 totalBytes = 8;
-  void clear_totalbytes();
-  int64_t totalbytes() const;
-  void set_totalbytes(int64_t value);
-  private:
-  int64_t _internal_totalbytes() const;
-  void _internal_set_totalbytes(int64_t value);
-  public:
-
-  // bool loggedIn = 4;
-  void clear_loggedin();
-  bool loggedin() const;
-  void set_loggedin(bool value);
-  private:
-  bool _internal_loggedin() const;
-  void _internal_set_loggedin(bool value);
+  ::grpc::UserState _internal_state() const;
+  void _internal_set_state(::grpc::UserState value);
   public:
 
   // bool splitMode = 5;
@@ -1889,13 +1776,22 @@ class User final :
   void _internal_set_splitmode(bool value);
   public:
 
-  // bool setupGuideSeen = 6;
-  void clear_setupguideseen();
-  bool setupguideseen() const;
-  void set_setupguideseen(bool value);
+  // int64 usedBytes = 6;
+  void clear_usedbytes();
+  int64_t usedbytes() const;
+  void set_usedbytes(int64_t value);
   private:
-  bool _internal_setupguideseen() const;
-  void _internal_set_setupguideseen(bool value);
+  int64_t _internal_usedbytes() const;
+  void _internal_set_usedbytes(int64_t value);
+  public:
+
+  // int64 totalBytes = 7;
+  void clear_totalbytes();
+  int64_t totalbytes() const;
+  void set_totalbytes(int64_t value);
+  private:
+  int64_t _internal_totalbytes() const;
+  void _internal_set_totalbytes(int64_t value);
   public:
 
   // @@protoc_insertion_point(class_scope:grpc.User)
@@ -1911,11 +1807,10 @@ class User final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr username_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr avatartext_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr password_;
+    int state_;
+    bool splitmode_;
     int64_t usedbytes_;
     int64_t totalbytes_;
-    bool loggedin_;
-    bool splitmode_;
-    bool setupguideseen_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1971,7 +1866,7 @@ class UserSplitModeRequest final :
                &_UserSplitModeRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    7;
 
   friend void swap(UserSplitModeRequest& a, UserSplitModeRequest& b) {
     a.Swap(&b);
@@ -2135,7 +2030,7 @@ class UserListResponse final :
                &_UserListResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    8;
 
   friend void swap(UserListResponse& a, UserListResponse& b) {
     a.Swap(&b);
@@ -2292,7 +2187,7 @@ class ConfigureAppleMailRequest final :
                &_ConfigureAppleMailRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    9;
 
   friend void swap(ConfigureAppleMailRequest& a, ConfigureAppleMailRequest& b) {
     a.Swap(&b);
@@ -2461,7 +2356,7 @@ class EventStreamRequest final :
                &_EventStreamRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    10;
 
   friend void swap(EventStreamRequest& a, EventStreamRequest& b) {
     a.Swap(&b);
@@ -2614,10 +2509,11 @@ class StreamEvent final :
     kLogin = 2,
     kUpdate = 3,
     kCache = 4,
-    kMailSettings = 5,
+    kMailServerSettings = 5,
     kKeychain = 6,
     kMail = 7,
     kUser = 8,
+    kGenericError = 9,
     EVENT_NOT_SET = 0,
   };
 
@@ -2626,7 +2522,7 @@ class StreamEvent final :
                &_StreamEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    11;
 
   friend void swap(StreamEvent& a, StreamEvent& b) {
     a.Swap(&b);
@@ -2703,10 +2599,11 @@ class StreamEvent final :
     kLoginFieldNumber = 2,
     kUpdateFieldNumber = 3,
     kCacheFieldNumber = 4,
-    kMailSettingsFieldNumber = 5,
+    kMailServerSettingsFieldNumber = 5,
     kKeychainFieldNumber = 6,
     kMailFieldNumber = 7,
     kUserFieldNumber = 8,
+    kGenericErrorFieldNumber = 9,
   };
   // .grpc.AppEvent app = 1;
   bool has_app() const;
@@ -2762,41 +2659,41 @@ class StreamEvent final :
       ::grpc::UpdateEvent* update);
   ::grpc::UpdateEvent* unsafe_arena_release_update();
 
-  // .grpc.CacheEvent cache = 4;
+  // .grpc.DiskCacheEvent cache = 4;
   bool has_cache() const;
   private:
   bool _internal_has_cache() const;
   public:
   void clear_cache();
-  const ::grpc::CacheEvent& cache() const;
-  PROTOBUF_NODISCARD ::grpc::CacheEvent* release_cache();
-  ::grpc::CacheEvent* mutable_cache();
-  void set_allocated_cache(::grpc::CacheEvent* cache);
+  const ::grpc::DiskCacheEvent& cache() const;
+  PROTOBUF_NODISCARD ::grpc::DiskCacheEvent* release_cache();
+  ::grpc::DiskCacheEvent* mutable_cache();
+  void set_allocated_cache(::grpc::DiskCacheEvent* cache);
   private:
-  const ::grpc::CacheEvent& _internal_cache() const;
-  ::grpc::CacheEvent* _internal_mutable_cache();
+  const ::grpc::DiskCacheEvent& _internal_cache() const;
+  ::grpc::DiskCacheEvent* _internal_mutable_cache();
   public:
   void unsafe_arena_set_allocated_cache(
-      ::grpc::CacheEvent* cache);
-  ::grpc::CacheEvent* unsafe_arena_release_cache();
+      ::grpc::DiskCacheEvent* cache);
+  ::grpc::DiskCacheEvent* unsafe_arena_release_cache();
 
-  // .grpc.MailSettingsEvent mailSettings = 5;
-  bool has_mailsettings() const;
+  // .grpc.MailServerSettingsEvent mailServerSettings = 5;
+  bool has_mailserversettings() const;
   private:
-  bool _internal_has_mailsettings() const;
+  bool _internal_has_mailserversettings() const;
   public:
-  void clear_mailsettings();
-  const ::grpc::MailSettingsEvent& mailsettings() const;
-  PROTOBUF_NODISCARD ::grpc::MailSettingsEvent* release_mailsettings();
-  ::grpc::MailSettingsEvent* mutable_mailsettings();
-  void set_allocated_mailsettings(::grpc::MailSettingsEvent* mailsettings);
+  void clear_mailserversettings();
+  const ::grpc::MailServerSettingsEvent& mailserversettings() const;
+  PROTOBUF_NODISCARD ::grpc::MailServerSettingsEvent* release_mailserversettings();
+  ::grpc::MailServerSettingsEvent* mutable_mailserversettings();
+  void set_allocated_mailserversettings(::grpc::MailServerSettingsEvent* mailserversettings);
   private:
-  const ::grpc::MailSettingsEvent& _internal_mailsettings() const;
-  ::grpc::MailSettingsEvent* _internal_mutable_mailsettings();
+  const ::grpc::MailServerSettingsEvent& _internal_mailserversettings() const;
+  ::grpc::MailServerSettingsEvent* _internal_mutable_mailserversettings();
   public:
-  void unsafe_arena_set_allocated_mailsettings(
-      ::grpc::MailSettingsEvent* mailsettings);
-  ::grpc::MailSettingsEvent* unsafe_arena_release_mailsettings();
+  void unsafe_arena_set_allocated_mailserversettings(
+      ::grpc::MailServerSettingsEvent* mailserversettings);
+  ::grpc::MailServerSettingsEvent* unsafe_arena_release_mailserversettings();
 
   // .grpc.KeychainEvent keychain = 6;
   bool has_keychain() const;
@@ -2852,6 +2749,24 @@ class StreamEvent final :
       ::grpc::UserEvent* user);
   ::grpc::UserEvent* unsafe_arena_release_user();
 
+  // .grpc.GenericErrorEvent genericError = 9;
+  bool has_genericerror() const;
+  private:
+  bool _internal_has_genericerror() const;
+  public:
+  void clear_genericerror();
+  const ::grpc::GenericErrorEvent& genericerror() const;
+  PROTOBUF_NODISCARD ::grpc::GenericErrorEvent* release_genericerror();
+  ::grpc::GenericErrorEvent* mutable_genericerror();
+  void set_allocated_genericerror(::grpc::GenericErrorEvent* genericerror);
+  private:
+  const ::grpc::GenericErrorEvent& _internal_genericerror() const;
+  ::grpc::GenericErrorEvent* _internal_mutable_genericerror();
+  public:
+  void unsafe_arena_set_allocated_genericerror(
+      ::grpc::GenericErrorEvent* genericerror);
+  ::grpc::GenericErrorEvent* unsafe_arena_release_genericerror();
+
   void clear_event();
   EventCase event_case() const;
   // @@protoc_insertion_point(class_scope:grpc.StreamEvent)
@@ -2861,10 +2776,11 @@ class StreamEvent final :
   void set_has_login();
   void set_has_update();
   void set_has_cache();
-  void set_has_mailsettings();
+  void set_has_mailserversettings();
   void set_has_keychain();
   void set_has_mail();
   void set_has_user();
+  void set_has_genericerror();
 
   inline bool has_event() const;
   inline void clear_has_event();
@@ -2879,11 +2795,12 @@ class StreamEvent final :
       ::grpc::AppEvent* app_;
       ::grpc::LoginEvent* login_;
       ::grpc::UpdateEvent* update_;
-      ::grpc::CacheEvent* cache_;
-      ::grpc::MailSettingsEvent* mailsettings_;
+      ::grpc::DiskCacheEvent* cache_;
+      ::grpc::MailServerSettingsEvent* mailserversettings_;
       ::grpc::KeychainEvent* keychain_;
       ::grpc::MailEvent* mail_;
       ::grpc::UserEvent* user_;
+      ::grpc::GenericErrorEvent* genericerror_;
     } event_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     uint32_t _oneof_case_[1];
@@ -2953,7 +2870,7 @@ class AppEvent final :
                &_AppEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    13;
+    12;
 
   friend void swap(AppEvent& a, AppEvent& b) {
     a.Swap(&b);
@@ -3248,7 +3165,7 @@ class InternetStatusEvent final :
                &_InternetStatusEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    14;
+    13;
 
   friend void swap(InternetStatusEvent& a, InternetStatusEvent& b) {
     a.Swap(&b);
@@ -3395,7 +3312,7 @@ class ToggleAutostartFinishedEvent final :
                &_ToggleAutostartFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    14;
 
   friend void swap(ToggleAutostartFinishedEvent& a, ToggleAutostartFinishedEvent& b) {
     a.Swap(&b);
@@ -3513,7 +3430,7 @@ class ResetFinishedEvent final :
                &_ResetFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    15;
 
   friend void swap(ResetFinishedEvent& a, ResetFinishedEvent& b) {
     a.Swap(&b);
@@ -3631,7 +3548,7 @@ class ReportBugFinishedEvent final :
                &_ReportBugFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    16;
 
   friend void swap(ReportBugFinishedEvent& a, ReportBugFinishedEvent& b) {
     a.Swap(&b);
@@ -3749,7 +3666,7 @@ class ReportBugSuccessEvent final :
                &_ReportBugSuccessEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    17;
 
   friend void swap(ReportBugSuccessEvent& a, ReportBugSuccessEvent& b) {
     a.Swap(&b);
@@ -3867,7 +3784,7 @@ class ReportBugErrorEvent final :
                &_ReportBugErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    18;
 
   friend void swap(ReportBugErrorEvent& a, ReportBugErrorEvent& b) {
     a.Swap(&b);
@@ -3985,7 +3902,7 @@ class ShowMainWindowEvent final :
                &_ShowMainWindowEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    19;
 
   friend void swap(ShowMainWindowEvent& a, ShowMainWindowEvent& b) {
     a.Swap(&b);
@@ -4113,7 +4030,7 @@ class LoginEvent final :
                &_LoginEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    20;
 
   friend void swap(LoginEvent& a, LoginEvent& b) {
     a.Swap(&b);
@@ -4366,7 +4283,7 @@ class LoginErrorEvent final :
                &_LoginErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    21;
 
   friend void swap(LoginErrorEvent& a, LoginErrorEvent& b) {
     a.Swap(&b);
@@ -4530,7 +4447,7 @@ class LoginTfaRequestedEvent final :
                &_LoginTfaRequestedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    22;
 
   friend void swap(LoginTfaRequestedEvent& a, LoginTfaRequestedEvent& b) {
     a.Swap(&b);
@@ -4682,7 +4599,7 @@ class LoginTwoPasswordsRequestedEvent final :
                &_LoginTwoPasswordsRequestedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    24;
+    23;
 
   friend void swap(LoginTwoPasswordsRequestedEvent& a, LoginTwoPasswordsRequestedEvent& b) {
     a.Swap(&b);
@@ -4801,7 +4718,7 @@ class LoginFinishedEvent final :
                &_LoginFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    25;
+    24;
 
   friend void swap(LoginFinishedEvent& a, LoginFinishedEvent& b) {
     a.Swap(&b);
@@ -4875,6 +4792,7 @@ class LoginFinishedEvent final :
 
   enum : int {
     kUserIDFieldNumber = 1,
+    kWasSignedOutFieldNumber = 2,
   };
   // string userID = 1;
   void clear_userid();
@@ -4890,6 +4808,15 @@ class LoginFinishedEvent final :
   std::string* _internal_mutable_userid();
   public:
 
+  // bool wasSignedOut = 2;
+  void clear_wassignedout();
+  bool wassignedout() const;
+  void set_wassignedout(bool value);
+  private:
+  bool _internal_wassignedout() const;
+  void _internal_set_wassignedout(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:grpc.LoginFinishedEvent)
  private:
   class _Internal;
@@ -4899,6 +4826,7 @@ class LoginFinishedEvent final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr userid_;
+    bool wassignedout_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -4966,7 +4894,7 @@ class UpdateEvent final :
                &_UpdateEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    26;
+    25;
 
   friend void swap(UpdateEvent& a, UpdateEvent& b) {
     a.Swap(&b);
@@ -5282,7 +5210,7 @@ class UpdateErrorEvent final :
                &_UpdateErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    27;
+    26;
 
   friend void swap(UpdateErrorEvent& a, UpdateErrorEvent& b) {
     a.Swap(&b);
@@ -5430,7 +5358,7 @@ class UpdateManualReadyEvent final :
                &_UpdateManualReadyEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    28;
+    27;
 
   friend void swap(UpdateManualReadyEvent& a, UpdateManualReadyEvent& b) {
     a.Swap(&b);
@@ -5582,7 +5510,7 @@ class UpdateManualRestartNeededEvent final :
                &_UpdateManualRestartNeededEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    29;
+    28;
 
   friend void swap(UpdateManualRestartNeededEvent& a, UpdateManualRestartNeededEvent& b) {
     a.Swap(&b);
@@ -5701,7 +5629,7 @@ class UpdateForceEvent final :
                &_UpdateForceEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    30;
+    29;
 
   friend void swap(UpdateForceEvent& a, UpdateForceEvent& b) {
     a.Swap(&b);
@@ -5853,7 +5781,7 @@ class UpdateSilentRestartNeeded final :
                &_UpdateSilentRestartNeeded_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    31;
+    30;
 
   friend void swap(UpdateSilentRestartNeeded& a, UpdateSilentRestartNeeded& b) {
     a.Swap(&b);
@@ -5971,7 +5899,7 @@ class UpdateIsLatestVersion final :
                &_UpdateIsLatestVersion_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    32;
+    31;
 
   friend void swap(UpdateIsLatestVersion& a, UpdateIsLatestVersion& b) {
     a.Swap(&b);
@@ -6089,7 +6017,7 @@ class UpdateCheckFinished final :
                &_UpdateCheckFinished_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    33;
+    32;
 
   friend void swap(UpdateCheckFinished& a, UpdateCheckFinished& b) {
     a.Swap(&b);
@@ -6207,7 +6135,7 @@ class UpdateVersionChanged final :
                &_UpdateVersionChanged_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    34;
+    33;
 
   friend void swap(UpdateVersionChanged& a, UpdateVersionChanged& b) {
     a.Swap(&b);
@@ -6278,24 +6206,24 @@ class UpdateVersionChanged final :
 };
 // -------------------------------------------------------------------
 
-class CacheEvent final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.CacheEvent) */ {
+class DiskCacheEvent final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.DiskCacheEvent) */ {
  public:
-  inline CacheEvent() : CacheEvent(nullptr) {}
-  ~CacheEvent() override;
-  explicit PROTOBUF_CONSTEXPR CacheEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline DiskCacheEvent() : DiskCacheEvent(nullptr) {}
+  ~DiskCacheEvent() override;
+  explicit PROTOBUF_CONSTEXPR DiskCacheEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  CacheEvent(const CacheEvent& from);
-  CacheEvent(CacheEvent&& from) noexcept
-    : CacheEvent() {
+  DiskCacheEvent(const DiskCacheEvent& from);
+  DiskCacheEvent(DiskCacheEvent&& from) noexcept
+    : DiskCacheEvent() {
     *this = ::std::move(from);
   }
 
-  inline CacheEvent& operator=(const CacheEvent& from) {
+  inline DiskCacheEvent& operator=(const DiskCacheEvent& from) {
     CopyFrom(from);
     return *this;
   }
-  inline CacheEvent& operator=(CacheEvent&& from) noexcept {
+  inline DiskCacheEvent& operator=(DiskCacheEvent&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -6318,29 +6246,27 @@ class CacheEvent final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const CacheEvent& default_instance() {
+  static const DiskCacheEvent& default_instance() {
     return *internal_default_instance();
   }
   enum EventCase {
     kError = 1,
-    kLocationChangedSuccess = 2,
-    kChangeLocalCacheFinished = 3,
-    kIsCacheOnDiskEnabledChanged = 4,
-    kDiskCachePathChanged = 5,
+    kPathChanged = 2,
+    kPathChangeFinished = 3,
     EVENT_NOT_SET = 0,
   };
 
-  static inline const CacheEvent* internal_default_instance() {
-    return reinterpret_cast<const CacheEvent*>(
-               &_CacheEvent_default_instance_);
+  static inline const DiskCacheEvent* internal_default_instance() {
+    return reinterpret_cast<const DiskCacheEvent*>(
+               &_DiskCacheEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    35;
+    34;
 
-  friend void swap(CacheEvent& a, CacheEvent& b) {
+  friend void swap(DiskCacheEvent& a, DiskCacheEvent& b) {
     a.Swap(&b);
   }
-  inline void Swap(CacheEvent* other) {
+  inline void Swap(DiskCacheEvent* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -6353,7 +6279,7 @@ class CacheEvent final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(CacheEvent* other) {
+  void UnsafeArenaSwap(DiskCacheEvent* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -6361,14 +6287,14 @@ class CacheEvent final :
 
   // implements Message ----------------------------------------------
 
-  CacheEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<CacheEvent>(arena);
+  DiskCacheEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<DiskCacheEvent>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const CacheEvent& from);
+  void CopyFrom(const DiskCacheEvent& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const CacheEvent& from) {
-    CacheEvent::MergeImpl(*this, from);
+  void MergeFrom( const DiskCacheEvent& from) {
+    DiskCacheEvent::MergeImpl(*this, from);
   }
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
@@ -6386,15 +6312,15 @@ class CacheEvent final :
   void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(CacheEvent* other);
+  void InternalSwap(DiskCacheEvent* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "grpc.CacheEvent";
+    return "grpc.DiskCacheEvent";
   }
   protected:
-  explicit CacheEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit DiskCacheEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -6409,111 +6335,71 @@ class CacheEvent final :
 
   enum : int {
     kErrorFieldNumber = 1,
-    kLocationChangedSuccessFieldNumber = 2,
-    kChangeLocalCacheFinishedFieldNumber = 3,
-    kIsCacheOnDiskEnabledChangedFieldNumber = 4,
-    kDiskCachePathChangedFieldNumber = 5,
+    kPathChangedFieldNumber = 2,
+    kPathChangeFinishedFieldNumber = 3,
   };
-  // .grpc.CacheErrorEvent error = 1;
+  // .grpc.DiskCacheErrorEvent error = 1;
   bool has_error() const;
   private:
   bool _internal_has_error() const;
   public:
   void clear_error();
-  const ::grpc::CacheErrorEvent& error() const;
-  PROTOBUF_NODISCARD ::grpc::CacheErrorEvent* release_error();
-  ::grpc::CacheErrorEvent* mutable_error();
-  void set_allocated_error(::grpc::CacheErrorEvent* error);
+  const ::grpc::DiskCacheErrorEvent& error() const;
+  PROTOBUF_NODISCARD ::grpc::DiskCacheErrorEvent* release_error();
+  ::grpc::DiskCacheErrorEvent* mutable_error();
+  void set_allocated_error(::grpc::DiskCacheErrorEvent* error);
   private:
-  const ::grpc::CacheErrorEvent& _internal_error() const;
-  ::grpc::CacheErrorEvent* _internal_mutable_error();
+  const ::grpc::DiskCacheErrorEvent& _internal_error() const;
+  ::grpc::DiskCacheErrorEvent* _internal_mutable_error();
   public:
   void unsafe_arena_set_allocated_error(
-      ::grpc::CacheErrorEvent* error);
-  ::grpc::CacheErrorEvent* unsafe_arena_release_error();
+      ::grpc::DiskCacheErrorEvent* error);
+  ::grpc::DiskCacheErrorEvent* unsafe_arena_release_error();
 
-  // .grpc.CacheLocationChangeSuccessEvent locationChangedSuccess = 2;
-  bool has_locationchangedsuccess() const;
+  // .grpc.DiskCachePathChangedEvent pathChanged = 2;
+  bool has_pathchanged() const;
   private:
-  bool _internal_has_locationchangedsuccess() const;
+  bool _internal_has_pathchanged() const;
   public:
-  void clear_locationchangedsuccess();
-  const ::grpc::CacheLocationChangeSuccessEvent& locationchangedsuccess() const;
-  PROTOBUF_NODISCARD ::grpc::CacheLocationChangeSuccessEvent* release_locationchangedsuccess();
-  ::grpc::CacheLocationChangeSuccessEvent* mutable_locationchangedsuccess();
-  void set_allocated_locationchangedsuccess(::grpc::CacheLocationChangeSuccessEvent* locationchangedsuccess);
+  void clear_pathchanged();
+  const ::grpc::DiskCachePathChangedEvent& pathchanged() const;
+  PROTOBUF_NODISCARD ::grpc::DiskCachePathChangedEvent* release_pathchanged();
+  ::grpc::DiskCachePathChangedEvent* mutable_pathchanged();
+  void set_allocated_pathchanged(::grpc::DiskCachePathChangedEvent* pathchanged);
   private:
-  const ::grpc::CacheLocationChangeSuccessEvent& _internal_locationchangedsuccess() const;
-  ::grpc::CacheLocationChangeSuccessEvent* _internal_mutable_locationchangedsuccess();
+  const ::grpc::DiskCachePathChangedEvent& _internal_pathchanged() const;
+  ::grpc::DiskCachePathChangedEvent* _internal_mutable_pathchanged();
   public:
-  void unsafe_arena_set_allocated_locationchangedsuccess(
-      ::grpc::CacheLocationChangeSuccessEvent* locationchangedsuccess);
-  ::grpc::CacheLocationChangeSuccessEvent* unsafe_arena_release_locationchangedsuccess();
+  void unsafe_arena_set_allocated_pathchanged(
+      ::grpc::DiskCachePathChangedEvent* pathchanged);
+  ::grpc::DiskCachePathChangedEvent* unsafe_arena_release_pathchanged();
 
-  // .grpc.ChangeLocalCacheFinishedEvent changeLocalCacheFinished = 3;
-  bool has_changelocalcachefinished() const;
+  // .grpc.DiskCachePathChangeFinishedEvent pathChangeFinished = 3;
+  bool has_pathchangefinished() const;
   private:
-  bool _internal_has_changelocalcachefinished() const;
+  bool _internal_has_pathchangefinished() const;
   public:
-  void clear_changelocalcachefinished();
-  const ::grpc::ChangeLocalCacheFinishedEvent& changelocalcachefinished() const;
-  PROTOBUF_NODISCARD ::grpc::ChangeLocalCacheFinishedEvent* release_changelocalcachefinished();
-  ::grpc::ChangeLocalCacheFinishedEvent* mutable_changelocalcachefinished();
-  void set_allocated_changelocalcachefinished(::grpc::ChangeLocalCacheFinishedEvent* changelocalcachefinished);
+  void clear_pathchangefinished();
+  const ::grpc::DiskCachePathChangeFinishedEvent& pathchangefinished() const;
+  PROTOBUF_NODISCARD ::grpc::DiskCachePathChangeFinishedEvent* release_pathchangefinished();
+  ::grpc::DiskCachePathChangeFinishedEvent* mutable_pathchangefinished();
+  void set_allocated_pathchangefinished(::grpc::DiskCachePathChangeFinishedEvent* pathchangefinished);
   private:
-  const ::grpc::ChangeLocalCacheFinishedEvent& _internal_changelocalcachefinished() const;
-  ::grpc::ChangeLocalCacheFinishedEvent* _internal_mutable_changelocalcachefinished();
+  const ::grpc::DiskCachePathChangeFinishedEvent& _internal_pathchangefinished() const;
+  ::grpc::DiskCachePathChangeFinishedEvent* _internal_mutable_pathchangefinished();
   public:
-  void unsafe_arena_set_allocated_changelocalcachefinished(
-      ::grpc::ChangeLocalCacheFinishedEvent* changelocalcachefinished);
-  ::grpc::ChangeLocalCacheFinishedEvent* unsafe_arena_release_changelocalcachefinished();
-
-  // .grpc.IsCacheOnDiskEnabledChanged isCacheOnDiskEnabledChanged = 4;
-  bool has_iscacheondiskenabledchanged() const;
-  private:
-  bool _internal_has_iscacheondiskenabledchanged() const;
-  public:
-  void clear_iscacheondiskenabledchanged();
-  const ::grpc::IsCacheOnDiskEnabledChanged& iscacheondiskenabledchanged() const;
-  PROTOBUF_NODISCARD ::grpc::IsCacheOnDiskEnabledChanged* release_iscacheondiskenabledchanged();
-  ::grpc::IsCacheOnDiskEnabledChanged* mutable_iscacheondiskenabledchanged();
-  void set_allocated_iscacheondiskenabledchanged(::grpc::IsCacheOnDiskEnabledChanged* iscacheondiskenabledchanged);
-  private:
-  const ::grpc::IsCacheOnDiskEnabledChanged& _internal_iscacheondiskenabledchanged() const;
-  ::grpc::IsCacheOnDiskEnabledChanged* _internal_mutable_iscacheondiskenabledchanged();
-  public:
-  void unsafe_arena_set_allocated_iscacheondiskenabledchanged(
-      ::grpc::IsCacheOnDiskEnabledChanged* iscacheondiskenabledchanged);
-  ::grpc::IsCacheOnDiskEnabledChanged* unsafe_arena_release_iscacheondiskenabledchanged();
-
-  // .grpc.DiskCachePathChanged diskCachePathChanged = 5;
-  bool has_diskcachepathchanged() const;
-  private:
-  bool _internal_has_diskcachepathchanged() const;
-  public:
-  void clear_diskcachepathchanged();
-  const ::grpc::DiskCachePathChanged& diskcachepathchanged() const;
-  PROTOBUF_NODISCARD ::grpc::DiskCachePathChanged* release_diskcachepathchanged();
-  ::grpc::DiskCachePathChanged* mutable_diskcachepathchanged();
-  void set_allocated_diskcachepathchanged(::grpc::DiskCachePathChanged* diskcachepathchanged);
-  private:
-  const ::grpc::DiskCachePathChanged& _internal_diskcachepathchanged() const;
-  ::grpc::DiskCachePathChanged* _internal_mutable_diskcachepathchanged();
-  public:
-  void unsafe_arena_set_allocated_diskcachepathchanged(
-      ::grpc::DiskCachePathChanged* diskcachepathchanged);
-  ::grpc::DiskCachePathChanged* unsafe_arena_release_diskcachepathchanged();
+  void unsafe_arena_set_allocated_pathchangefinished(
+      ::grpc::DiskCachePathChangeFinishedEvent* pathchangefinished);
+  ::grpc::DiskCachePathChangeFinishedEvent* unsafe_arena_release_pathchangefinished();
 
   void clear_event();
   EventCase event_case() const;
-  // @@protoc_insertion_point(class_scope:grpc.CacheEvent)
+  // @@protoc_insertion_point(class_scope:grpc.DiskCacheEvent)
  private:
   class _Internal;
   void set_has_error();
-  void set_has_locationchangedsuccess();
-  void set_has_changelocalcachefinished();
-  void set_has_iscacheondiskenabledchanged();
-  void set_has_diskcachepathchanged();
+  void set_has_pathchanged();
+  void set_has_pathchangefinished();
 
   inline bool has_event() const;
   inline void clear_has_event();
@@ -6525,11 +6411,9 @@ class CacheEvent final :
     union EventUnion {
       constexpr EventUnion() : _constinit_{} {}
         ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized _constinit_;
-      ::grpc::CacheErrorEvent* error_;
-      ::grpc::CacheLocationChangeSuccessEvent* locationchangedsuccess_;
-      ::grpc::ChangeLocalCacheFinishedEvent* changelocalcachefinished_;
-      ::grpc::IsCacheOnDiskEnabledChanged* iscacheondiskenabledchanged_;
-      ::grpc::DiskCachePathChanged* diskcachepathchanged_;
+      ::grpc::DiskCacheErrorEvent* error_;
+      ::grpc::DiskCachePathChangedEvent* pathchanged_;
+      ::grpc::DiskCachePathChangeFinishedEvent* pathchangefinished_;
     } event_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     uint32_t _oneof_case_[1];
@@ -6540,24 +6424,24 @@ class CacheEvent final :
 };
 // -------------------------------------------------------------------
 
-class CacheErrorEvent final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.CacheErrorEvent) */ {
+class DiskCacheErrorEvent final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.DiskCacheErrorEvent) */ {
  public:
-  inline CacheErrorEvent() : CacheErrorEvent(nullptr) {}
-  ~CacheErrorEvent() override;
-  explicit PROTOBUF_CONSTEXPR CacheErrorEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline DiskCacheErrorEvent() : DiskCacheErrorEvent(nullptr) {}
+  ~DiskCacheErrorEvent() override;
+  explicit PROTOBUF_CONSTEXPR DiskCacheErrorEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  CacheErrorEvent(const CacheErrorEvent& from);
-  CacheErrorEvent(CacheErrorEvent&& from) noexcept
-    : CacheErrorEvent() {
+  DiskCacheErrorEvent(const DiskCacheErrorEvent& from);
+  DiskCacheErrorEvent(DiskCacheErrorEvent&& from) noexcept
+    : DiskCacheErrorEvent() {
     *this = ::std::move(from);
   }
 
-  inline CacheErrorEvent& operator=(const CacheErrorEvent& from) {
+  inline DiskCacheErrorEvent& operator=(const DiskCacheErrorEvent& from) {
     CopyFrom(from);
     return *this;
   }
-  inline CacheErrorEvent& operator=(CacheErrorEvent&& from) noexcept {
+  inline DiskCacheErrorEvent& operator=(DiskCacheErrorEvent&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -6580,20 +6464,20 @@ class CacheErrorEvent final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const CacheErrorEvent& default_instance() {
+  static const DiskCacheErrorEvent& default_instance() {
     return *internal_default_instance();
   }
-  static inline const CacheErrorEvent* internal_default_instance() {
-    return reinterpret_cast<const CacheErrorEvent*>(
-               &_CacheErrorEvent_default_instance_);
+  static inline const DiskCacheErrorEvent* internal_default_instance() {
+    return reinterpret_cast<const DiskCacheErrorEvent*>(
+               &_DiskCacheErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    36;
+    35;
 
-  friend void swap(CacheErrorEvent& a, CacheErrorEvent& b) {
+  friend void swap(DiskCacheErrorEvent& a, DiskCacheErrorEvent& b) {
     a.Swap(&b);
   }
-  inline void Swap(CacheErrorEvent* other) {
+  inline void Swap(DiskCacheErrorEvent* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -6606,7 +6490,7 @@ class CacheErrorEvent final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(CacheErrorEvent* other) {
+  void UnsafeArenaSwap(DiskCacheErrorEvent* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -6614,14 +6498,14 @@ class CacheErrorEvent final :
 
   // implements Message ----------------------------------------------
 
-  CacheErrorEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<CacheErrorEvent>(arena);
+  DiskCacheErrorEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<DiskCacheErrorEvent>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const CacheErrorEvent& from);
+  void CopyFrom(const DiskCacheErrorEvent& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const CacheErrorEvent& from) {
-    CacheErrorEvent::MergeImpl(*this, from);
+  void MergeFrom( const DiskCacheErrorEvent& from) {
+    DiskCacheErrorEvent::MergeImpl(*this, from);
   }
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
@@ -6639,15 +6523,15 @@ class CacheErrorEvent final :
   void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(CacheErrorEvent* other);
+  void InternalSwap(DiskCacheErrorEvent* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "grpc.CacheErrorEvent";
+    return "grpc.DiskCacheErrorEvent";
   }
   protected:
-  explicit CacheErrorEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit DiskCacheErrorEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -6663,16 +6547,16 @@ class CacheErrorEvent final :
   enum : int {
     kTypeFieldNumber = 1,
   };
-  // .grpc.CacheErrorType type = 1;
+  // .grpc.DiskCacheErrorType type = 1;
   void clear_type();
-  ::grpc::CacheErrorType type() const;
-  void set_type(::grpc::CacheErrorType value);
+  ::grpc::DiskCacheErrorType type() const;
+  void set_type(::grpc::DiskCacheErrorType value);
   private:
-  ::grpc::CacheErrorType _internal_type() const;
-  void _internal_set_type(::grpc::CacheErrorType value);
+  ::grpc::DiskCacheErrorType _internal_type() const;
+  void _internal_set_type(::grpc::DiskCacheErrorType value);
   public:
 
-  // @@protoc_insertion_point(class_scope:grpc.CacheErrorEvent)
+  // @@protoc_insertion_point(class_scope:grpc.DiskCacheErrorEvent)
  private:
   class _Internal;
 
@@ -6688,23 +6572,24 @@ class CacheErrorEvent final :
 };
 // -------------------------------------------------------------------
 
-class CacheLocationChangeSuccessEvent final :
-    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:grpc.CacheLocationChangeSuccessEvent) */ {
+class DiskCachePathChangedEvent final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.DiskCachePathChangedEvent) */ {
  public:
-  inline CacheLocationChangeSuccessEvent() : CacheLocationChangeSuccessEvent(nullptr) {}
-  explicit PROTOBUF_CONSTEXPR CacheLocationChangeSuccessEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline DiskCachePathChangedEvent() : DiskCachePathChangedEvent(nullptr) {}
+  ~DiskCachePathChangedEvent() override;
+  explicit PROTOBUF_CONSTEXPR DiskCachePathChangedEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  CacheLocationChangeSuccessEvent(const CacheLocationChangeSuccessEvent& from);
-  CacheLocationChangeSuccessEvent(CacheLocationChangeSuccessEvent&& from) noexcept
-    : CacheLocationChangeSuccessEvent() {
+  DiskCachePathChangedEvent(const DiskCachePathChangedEvent& from);
+  DiskCachePathChangedEvent(DiskCachePathChangedEvent&& from) noexcept
+    : DiskCachePathChangedEvent() {
     *this = ::std::move(from);
   }
 
-  inline CacheLocationChangeSuccessEvent& operator=(const CacheLocationChangeSuccessEvent& from) {
+  inline DiskCachePathChangedEvent& operator=(const DiskCachePathChangedEvent& from) {
     CopyFrom(from);
     return *this;
   }
-  inline CacheLocationChangeSuccessEvent& operator=(CacheLocationChangeSuccessEvent&& from) noexcept {
+  inline DiskCachePathChangedEvent& operator=(DiskCachePathChangedEvent&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -6727,20 +6612,20 @@ class CacheLocationChangeSuccessEvent final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const CacheLocationChangeSuccessEvent& default_instance() {
+  static const DiskCachePathChangedEvent& default_instance() {
     return *internal_default_instance();
   }
-  static inline const CacheLocationChangeSuccessEvent* internal_default_instance() {
-    return reinterpret_cast<const CacheLocationChangeSuccessEvent*>(
-               &_CacheLocationChangeSuccessEvent_default_instance_);
+  static inline const DiskCachePathChangedEvent* internal_default_instance() {
+    return reinterpret_cast<const DiskCachePathChangedEvent*>(
+               &_DiskCachePathChangedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    37;
+    36;
 
-  friend void swap(CacheLocationChangeSuccessEvent& a, CacheLocationChangeSuccessEvent& b) {
+  friend void swap(DiskCachePathChangedEvent& a, DiskCachePathChangedEvent& b) {
     a.Swap(&b);
   }
-  inline void Swap(CacheLocationChangeSuccessEvent* other) {
+  inline void Swap(DiskCachePathChangedEvent* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -6753,7 +6638,7 @@ class CacheLocationChangeSuccessEvent final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(CacheLocationChangeSuccessEvent* other) {
+  void UnsafeArenaSwap(DiskCachePathChangedEvent* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -6761,133 +6646,14 @@ class CacheLocationChangeSuccessEvent final :
 
   // implements Message ----------------------------------------------
 
-  CacheLocationChangeSuccessEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<CacheLocationChangeSuccessEvent>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyFrom;
-  inline void CopyFrom(const CacheLocationChangeSuccessEvent& from) {
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl(*this, from);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeFrom;
-  void MergeFrom(const CacheLocationChangeSuccessEvent& from) {
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl(*this, from);
-  }
-  public:
-
-  private:
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "grpc.CacheLocationChangeSuccessEvent";
-  }
-  protected:
-  explicit CacheLocationChangeSuccessEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
-  public:
-
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // @@protoc_insertion_point(class_scope:grpc.CacheLocationChangeSuccessEvent)
- private:
-  class _Internal;
-
-  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  struct Impl_ {
-  };
-  friend struct ::TableStruct_bridge_2eproto;
-};
-// -------------------------------------------------------------------
-
-class ChangeLocalCacheFinishedEvent final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.ChangeLocalCacheFinishedEvent) */ {
- public:
-  inline ChangeLocalCacheFinishedEvent() : ChangeLocalCacheFinishedEvent(nullptr) {}
-  ~ChangeLocalCacheFinishedEvent() override;
-  explicit PROTOBUF_CONSTEXPR ChangeLocalCacheFinishedEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  ChangeLocalCacheFinishedEvent(const ChangeLocalCacheFinishedEvent& from);
-  ChangeLocalCacheFinishedEvent(ChangeLocalCacheFinishedEvent&& from) noexcept
-    : ChangeLocalCacheFinishedEvent() {
-    *this = ::std::move(from);
-  }
-
-  inline ChangeLocalCacheFinishedEvent& operator=(const ChangeLocalCacheFinishedEvent& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline ChangeLocalCacheFinishedEvent& operator=(ChangeLocalCacheFinishedEvent&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()
-  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
-        && GetOwningArena() != nullptr
-  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
-    ) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const ChangeLocalCacheFinishedEvent& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const ChangeLocalCacheFinishedEvent* internal_default_instance() {
-    return reinterpret_cast<const ChangeLocalCacheFinishedEvent*>(
-               &_ChangeLocalCacheFinishedEvent_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages =
-    38;
-
-  friend void swap(ChangeLocalCacheFinishedEvent& a, ChangeLocalCacheFinishedEvent& b) {
-    a.Swap(&b);
-  }
-  inline void Swap(ChangeLocalCacheFinishedEvent* other) {
-    if (other == this) return;
-  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() != nullptr &&
-        GetOwningArena() == other->GetOwningArena()) {
-   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() == other->GetOwningArena()) {
-  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(ChangeLocalCacheFinishedEvent* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  ChangeLocalCacheFinishedEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<ChangeLocalCacheFinishedEvent>(arena);
+  DiskCachePathChangedEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<DiskCachePathChangedEvent>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const ChangeLocalCacheFinishedEvent& from);
+  void CopyFrom(const DiskCachePathChangedEvent& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const ChangeLocalCacheFinishedEvent& from) {
-    ChangeLocalCacheFinishedEvent::MergeImpl(*this, from);
+  void MergeFrom( const DiskCachePathChangedEvent& from) {
+    DiskCachePathChangedEvent::MergeImpl(*this, from);
   }
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
@@ -6905,311 +6671,15 @@ class ChangeLocalCacheFinishedEvent final :
   void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(ChangeLocalCacheFinishedEvent* other);
+  void InternalSwap(DiskCachePathChangedEvent* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "grpc.ChangeLocalCacheFinishedEvent";
+    return "grpc.DiskCachePathChangedEvent";
   }
   protected:
-  explicit ChangeLocalCacheFinishedEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
-  public:
-
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kWillRestartFieldNumber = 1,
-  };
-  // bool willRestart = 1;
-  void clear_willrestart();
-  bool willrestart() const;
-  void set_willrestart(bool value);
-  private:
-  bool _internal_willrestart() const;
-  void _internal_set_willrestart(bool value);
-  public:
-
-  // @@protoc_insertion_point(class_scope:grpc.ChangeLocalCacheFinishedEvent)
- private:
-  class _Internal;
-
-  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  struct Impl_ {
-    bool willrestart_;
-    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_bridge_2eproto;
-};
-// -------------------------------------------------------------------
-
-class IsCacheOnDiskEnabledChanged final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.IsCacheOnDiskEnabledChanged) */ {
- public:
-  inline IsCacheOnDiskEnabledChanged() : IsCacheOnDiskEnabledChanged(nullptr) {}
-  ~IsCacheOnDiskEnabledChanged() override;
-  explicit PROTOBUF_CONSTEXPR IsCacheOnDiskEnabledChanged(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  IsCacheOnDiskEnabledChanged(const IsCacheOnDiskEnabledChanged& from);
-  IsCacheOnDiskEnabledChanged(IsCacheOnDiskEnabledChanged&& from) noexcept
-    : IsCacheOnDiskEnabledChanged() {
-    *this = ::std::move(from);
-  }
-
-  inline IsCacheOnDiskEnabledChanged& operator=(const IsCacheOnDiskEnabledChanged& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline IsCacheOnDiskEnabledChanged& operator=(IsCacheOnDiskEnabledChanged&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()
-  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
-        && GetOwningArena() != nullptr
-  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
-    ) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const IsCacheOnDiskEnabledChanged& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const IsCacheOnDiskEnabledChanged* internal_default_instance() {
-    return reinterpret_cast<const IsCacheOnDiskEnabledChanged*>(
-               &_IsCacheOnDiskEnabledChanged_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages =
-    39;
-
-  friend void swap(IsCacheOnDiskEnabledChanged& a, IsCacheOnDiskEnabledChanged& b) {
-    a.Swap(&b);
-  }
-  inline void Swap(IsCacheOnDiskEnabledChanged* other) {
-    if (other == this) return;
-  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() != nullptr &&
-        GetOwningArena() == other->GetOwningArena()) {
-   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() == other->GetOwningArena()) {
-  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(IsCacheOnDiskEnabledChanged* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  IsCacheOnDiskEnabledChanged* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<IsCacheOnDiskEnabledChanged>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const IsCacheOnDiskEnabledChanged& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const IsCacheOnDiskEnabledChanged& from) {
-    IsCacheOnDiskEnabledChanged::MergeImpl(*this, from);
-  }
-  private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
-  public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  uint8_t* _InternalSerialize(
-      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(IsCacheOnDiskEnabledChanged* other);
-
-  private:
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "grpc.IsCacheOnDiskEnabledChanged";
-  }
-  protected:
-  explicit IsCacheOnDiskEnabledChanged(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
-  public:
-
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kEnabledFieldNumber = 1,
-  };
-  // bool enabled = 1;
-  void clear_enabled();
-  bool enabled() const;
-  void set_enabled(bool value);
-  private:
-  bool _internal_enabled() const;
-  void _internal_set_enabled(bool value);
-  public:
-
-  // @@protoc_insertion_point(class_scope:grpc.IsCacheOnDiskEnabledChanged)
- private:
-  class _Internal;
-
-  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  struct Impl_ {
-    bool enabled_;
-    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  };
-  union { Impl_ _impl_; };
-  friend struct ::TableStruct_bridge_2eproto;
-};
-// -------------------------------------------------------------------
-
-class DiskCachePathChanged final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.DiskCachePathChanged) */ {
- public:
-  inline DiskCachePathChanged() : DiskCachePathChanged(nullptr) {}
-  ~DiskCachePathChanged() override;
-  explicit PROTOBUF_CONSTEXPR DiskCachePathChanged(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  DiskCachePathChanged(const DiskCachePathChanged& from);
-  DiskCachePathChanged(DiskCachePathChanged&& from) noexcept
-    : DiskCachePathChanged() {
-    *this = ::std::move(from);
-  }
-
-  inline DiskCachePathChanged& operator=(const DiskCachePathChanged& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline DiskCachePathChanged& operator=(DiskCachePathChanged&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()
-  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
-        && GetOwningArena() != nullptr
-  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
-    ) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const DiskCachePathChanged& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const DiskCachePathChanged* internal_default_instance() {
-    return reinterpret_cast<const DiskCachePathChanged*>(
-               &_DiskCachePathChanged_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages =
-    40;
-
-  friend void swap(DiskCachePathChanged& a, DiskCachePathChanged& b) {
-    a.Swap(&b);
-  }
-  inline void Swap(DiskCachePathChanged* other) {
-    if (other == this) return;
-  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() != nullptr &&
-        GetOwningArena() == other->GetOwningArena()) {
-   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
-    if (GetOwningArena() == other->GetOwningArena()) {
-  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(DiskCachePathChanged* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  DiskCachePathChanged* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<DiskCachePathChanged>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const DiskCachePathChanged& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const DiskCachePathChanged& from) {
-    DiskCachePathChanged::MergeImpl(*this, from);
-  }
-  private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
-  public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  uint8_t* _InternalSerialize(
-      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
-
-  private:
-  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(DiskCachePathChanged* other);
-
-  private:
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "grpc.DiskCachePathChanged";
-  }
-  protected:
-  explicit DiskCachePathChanged(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit DiskCachePathChangedEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -7239,7 +6709,7 @@ class DiskCachePathChanged final :
   std::string* _internal_mutable_path();
   public:
 
-  // @@protoc_insertion_point(class_scope:grpc.DiskCachePathChanged)
+  // @@protoc_insertion_point(class_scope:grpc.DiskCachePathChangedEvent)
  private:
   class _Internal;
 
@@ -7255,24 +6725,23 @@ class DiskCachePathChanged final :
 };
 // -------------------------------------------------------------------
 
-class MailSettingsEvent final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.MailSettingsEvent) */ {
+class DiskCachePathChangeFinishedEvent final :
+    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:grpc.DiskCachePathChangeFinishedEvent) */ {
  public:
-  inline MailSettingsEvent() : MailSettingsEvent(nullptr) {}
-  ~MailSettingsEvent() override;
-  explicit PROTOBUF_CONSTEXPR MailSettingsEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline DiskCachePathChangeFinishedEvent() : DiskCachePathChangeFinishedEvent(nullptr) {}
+  explicit PROTOBUF_CONSTEXPR DiskCachePathChangeFinishedEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  MailSettingsEvent(const MailSettingsEvent& from);
-  MailSettingsEvent(MailSettingsEvent&& from) noexcept
-    : MailSettingsEvent() {
+  DiskCachePathChangeFinishedEvent(const DiskCachePathChangeFinishedEvent& from);
+  DiskCachePathChangeFinishedEvent(DiskCachePathChangeFinishedEvent&& from) noexcept
+    : DiskCachePathChangeFinishedEvent() {
     *this = ::std::move(from);
   }
 
-  inline MailSettingsEvent& operator=(const MailSettingsEvent& from) {
+  inline DiskCachePathChangeFinishedEvent& operator=(const DiskCachePathChangeFinishedEvent& from) {
     CopyFrom(from);
     return *this;
   }
-  inline MailSettingsEvent& operator=(MailSettingsEvent&& from) noexcept {
+  inline DiskCachePathChangeFinishedEvent& operator=(DiskCachePathChangeFinishedEvent&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -7295,27 +6764,20 @@ class MailSettingsEvent final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const MailSettingsEvent& default_instance() {
+  static const DiskCachePathChangeFinishedEvent& default_instance() {
     return *internal_default_instance();
   }
-  enum EventCase {
-    kError = 1,
-    kUseSslForSmtpFinished = 2,
-    kChangePortsFinished = 3,
-    EVENT_NOT_SET = 0,
-  };
-
-  static inline const MailSettingsEvent* internal_default_instance() {
-    return reinterpret_cast<const MailSettingsEvent*>(
-               &_MailSettingsEvent_default_instance_);
+  static inline const DiskCachePathChangeFinishedEvent* internal_default_instance() {
+    return reinterpret_cast<const DiskCachePathChangeFinishedEvent*>(
+               &_DiskCachePathChangeFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    41;
+    37;
 
-  friend void swap(MailSettingsEvent& a, MailSettingsEvent& b) {
+  friend void swap(DiskCachePathChangeFinishedEvent& a, DiskCachePathChangeFinishedEvent& b) {
     a.Swap(&b);
   }
-  inline void Swap(MailSettingsEvent* other) {
+  inline void Swap(DiskCachePathChangeFinishedEvent* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -7328,7 +6790,7 @@ class MailSettingsEvent final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(MailSettingsEvent* other) {
+  void UnsafeArenaSwap(DiskCachePathChangeFinishedEvent* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -7336,14 +6798,140 @@ class MailSettingsEvent final :
 
   // implements Message ----------------------------------------------
 
-  MailSettingsEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<MailSettingsEvent>(arena);
+  DiskCachePathChangeFinishedEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<DiskCachePathChangeFinishedEvent>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyFrom;
+  inline void CopyFrom(const DiskCachePathChangeFinishedEvent& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl(*this, from);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeFrom;
+  void MergeFrom(const DiskCachePathChangeFinishedEvent& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl(*this, from);
+  }
+  public:
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "grpc.DiskCachePathChangeFinishedEvent";
+  }
+  protected:
+  explicit DiskCachePathChangeFinishedEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // @@protoc_insertion_point(class_scope:grpc.DiskCachePathChangeFinishedEvent)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+  };
+  friend struct ::TableStruct_bridge_2eproto;
+};
+// -------------------------------------------------------------------
+
+class MailServerSettingsEvent final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.MailServerSettingsEvent) */ {
+ public:
+  inline MailServerSettingsEvent() : MailServerSettingsEvent(nullptr) {}
+  ~MailServerSettingsEvent() override;
+  explicit PROTOBUF_CONSTEXPR MailServerSettingsEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  MailServerSettingsEvent(const MailServerSettingsEvent& from);
+  MailServerSettingsEvent(MailServerSettingsEvent&& from) noexcept
+    : MailServerSettingsEvent() {
+    *this = ::std::move(from);
+  }
+
+  inline MailServerSettingsEvent& operator=(const MailServerSettingsEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline MailServerSettingsEvent& operator=(MailServerSettingsEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const MailServerSettingsEvent& default_instance() {
+    return *internal_default_instance();
+  }
+  enum EventCase {
+    kError = 1,
+    kMailServerSettingsChanged = 2,
+    kChangeMailServerSettingsFinished = 3,
+    EVENT_NOT_SET = 0,
+  };
+
+  static inline const MailServerSettingsEvent* internal_default_instance() {
+    return reinterpret_cast<const MailServerSettingsEvent*>(
+               &_MailServerSettingsEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    38;
+
+  friend void swap(MailServerSettingsEvent& a, MailServerSettingsEvent& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(MailServerSettingsEvent* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(MailServerSettingsEvent* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  MailServerSettingsEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<MailServerSettingsEvent>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const MailSettingsEvent& from);
+  void CopyFrom(const MailServerSettingsEvent& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const MailSettingsEvent& from) {
-    MailSettingsEvent::MergeImpl(*this, from);
+  void MergeFrom( const MailServerSettingsEvent& from) {
+    MailServerSettingsEvent::MergeImpl(*this, from);
   }
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
@@ -7361,15 +6949,15 @@ class MailSettingsEvent final :
   void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(MailSettingsEvent* other);
+  void InternalSwap(MailServerSettingsEvent* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "grpc.MailSettingsEvent";
+    return "grpc.MailServerSettingsEvent";
   }
   protected:
-  explicit MailSettingsEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit MailServerSettingsEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -7384,71 +6972,71 @@ class MailSettingsEvent final :
 
   enum : int {
     kErrorFieldNumber = 1,
-    kUseSslForSmtpFinishedFieldNumber = 2,
-    kChangePortsFinishedFieldNumber = 3,
+    kMailServerSettingsChangedFieldNumber = 2,
+    kChangeMailServerSettingsFinishedFieldNumber = 3,
   };
-  // .grpc.MailSettingsErrorEvent error = 1;
+  // .grpc.MailServerSettingsErrorEvent error = 1;
   bool has_error() const;
   private:
   bool _internal_has_error() const;
   public:
   void clear_error();
-  const ::grpc::MailSettingsErrorEvent& error() const;
-  PROTOBUF_NODISCARD ::grpc::MailSettingsErrorEvent* release_error();
-  ::grpc::MailSettingsErrorEvent* mutable_error();
-  void set_allocated_error(::grpc::MailSettingsErrorEvent* error);
+  const ::grpc::MailServerSettingsErrorEvent& error() const;
+  PROTOBUF_NODISCARD ::grpc::MailServerSettingsErrorEvent* release_error();
+  ::grpc::MailServerSettingsErrorEvent* mutable_error();
+  void set_allocated_error(::grpc::MailServerSettingsErrorEvent* error);
   private:
-  const ::grpc::MailSettingsErrorEvent& _internal_error() const;
-  ::grpc::MailSettingsErrorEvent* _internal_mutable_error();
+  const ::grpc::MailServerSettingsErrorEvent& _internal_error() const;
+  ::grpc::MailServerSettingsErrorEvent* _internal_mutable_error();
   public:
   void unsafe_arena_set_allocated_error(
-      ::grpc::MailSettingsErrorEvent* error);
-  ::grpc::MailSettingsErrorEvent* unsafe_arena_release_error();
+      ::grpc::MailServerSettingsErrorEvent* error);
+  ::grpc::MailServerSettingsErrorEvent* unsafe_arena_release_error();
 
-  // .grpc.UseSslForSmtpFinishedEvent useSslForSmtpFinished = 2;
-  bool has_usesslforsmtpfinished() const;
+  // .grpc.MailServerSettingsChangedEvent mailServerSettingsChanged = 2;
+  bool has_mailserversettingschanged() const;
   private:
-  bool _internal_has_usesslforsmtpfinished() const;
+  bool _internal_has_mailserversettingschanged() const;
   public:
-  void clear_usesslforsmtpfinished();
-  const ::grpc::UseSslForSmtpFinishedEvent& usesslforsmtpfinished() const;
-  PROTOBUF_NODISCARD ::grpc::UseSslForSmtpFinishedEvent* release_usesslforsmtpfinished();
-  ::grpc::UseSslForSmtpFinishedEvent* mutable_usesslforsmtpfinished();
-  void set_allocated_usesslforsmtpfinished(::grpc::UseSslForSmtpFinishedEvent* usesslforsmtpfinished);
+  void clear_mailserversettingschanged();
+  const ::grpc::MailServerSettingsChangedEvent& mailserversettingschanged() const;
+  PROTOBUF_NODISCARD ::grpc::MailServerSettingsChangedEvent* release_mailserversettingschanged();
+  ::grpc::MailServerSettingsChangedEvent* mutable_mailserversettingschanged();
+  void set_allocated_mailserversettingschanged(::grpc::MailServerSettingsChangedEvent* mailserversettingschanged);
   private:
-  const ::grpc::UseSslForSmtpFinishedEvent& _internal_usesslforsmtpfinished() const;
-  ::grpc::UseSslForSmtpFinishedEvent* _internal_mutable_usesslforsmtpfinished();
+  const ::grpc::MailServerSettingsChangedEvent& _internal_mailserversettingschanged() const;
+  ::grpc::MailServerSettingsChangedEvent* _internal_mutable_mailserversettingschanged();
   public:
-  void unsafe_arena_set_allocated_usesslforsmtpfinished(
-      ::grpc::UseSslForSmtpFinishedEvent* usesslforsmtpfinished);
-  ::grpc::UseSslForSmtpFinishedEvent* unsafe_arena_release_usesslforsmtpfinished();
+  void unsafe_arena_set_allocated_mailserversettingschanged(
+      ::grpc::MailServerSettingsChangedEvent* mailserversettingschanged);
+  ::grpc::MailServerSettingsChangedEvent* unsafe_arena_release_mailserversettingschanged();
 
-  // .grpc.ChangePortsFinishedEvent changePortsFinished = 3;
-  bool has_changeportsfinished() const;
+  // .grpc.ChangeMailServerSettingsFinishedEvent changeMailServerSettingsFinished = 3;
+  bool has_changemailserversettingsfinished() const;
   private:
-  bool _internal_has_changeportsfinished() const;
+  bool _internal_has_changemailserversettingsfinished() const;
   public:
-  void clear_changeportsfinished();
-  const ::grpc::ChangePortsFinishedEvent& changeportsfinished() const;
-  PROTOBUF_NODISCARD ::grpc::ChangePortsFinishedEvent* release_changeportsfinished();
-  ::grpc::ChangePortsFinishedEvent* mutable_changeportsfinished();
-  void set_allocated_changeportsfinished(::grpc::ChangePortsFinishedEvent* changeportsfinished);
+  void clear_changemailserversettingsfinished();
+  const ::grpc::ChangeMailServerSettingsFinishedEvent& changemailserversettingsfinished() const;
+  PROTOBUF_NODISCARD ::grpc::ChangeMailServerSettingsFinishedEvent* release_changemailserversettingsfinished();
+  ::grpc::ChangeMailServerSettingsFinishedEvent* mutable_changemailserversettingsfinished();
+  void set_allocated_changemailserversettingsfinished(::grpc::ChangeMailServerSettingsFinishedEvent* changemailserversettingsfinished);
   private:
-  const ::grpc::ChangePortsFinishedEvent& _internal_changeportsfinished() const;
-  ::grpc::ChangePortsFinishedEvent* _internal_mutable_changeportsfinished();
+  const ::grpc::ChangeMailServerSettingsFinishedEvent& _internal_changemailserversettingsfinished() const;
+  ::grpc::ChangeMailServerSettingsFinishedEvent* _internal_mutable_changemailserversettingsfinished();
   public:
-  void unsafe_arena_set_allocated_changeportsfinished(
-      ::grpc::ChangePortsFinishedEvent* changeportsfinished);
-  ::grpc::ChangePortsFinishedEvent* unsafe_arena_release_changeportsfinished();
+  void unsafe_arena_set_allocated_changemailserversettingsfinished(
+      ::grpc::ChangeMailServerSettingsFinishedEvent* changemailserversettingsfinished);
+  ::grpc::ChangeMailServerSettingsFinishedEvent* unsafe_arena_release_changemailserversettingsfinished();
 
   void clear_event();
   EventCase event_case() const;
-  // @@protoc_insertion_point(class_scope:grpc.MailSettingsEvent)
+  // @@protoc_insertion_point(class_scope:grpc.MailServerSettingsEvent)
  private:
   class _Internal;
   void set_has_error();
-  void set_has_usesslforsmtpfinished();
-  void set_has_changeportsfinished();
+  void set_has_mailserversettingschanged();
+  void set_has_changemailserversettingsfinished();
 
   inline bool has_event() const;
   inline void clear_has_event();
@@ -7460,9 +7048,9 @@ class MailSettingsEvent final :
     union EventUnion {
       constexpr EventUnion() : _constinit_{} {}
         ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized _constinit_;
-      ::grpc::MailSettingsErrorEvent* error_;
-      ::grpc::UseSslForSmtpFinishedEvent* usesslforsmtpfinished_;
-      ::grpc::ChangePortsFinishedEvent* changeportsfinished_;
+      ::grpc::MailServerSettingsErrorEvent* error_;
+      ::grpc::MailServerSettingsChangedEvent* mailserversettingschanged_;
+      ::grpc::ChangeMailServerSettingsFinishedEvent* changemailserversettingsfinished_;
     } event_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     uint32_t _oneof_case_[1];
@@ -7473,24 +7061,24 @@ class MailSettingsEvent final :
 };
 // -------------------------------------------------------------------
 
-class MailSettingsErrorEvent final :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.MailSettingsErrorEvent) */ {
+class MailServerSettingsErrorEvent final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.MailServerSettingsErrorEvent) */ {
  public:
-  inline MailSettingsErrorEvent() : MailSettingsErrorEvent(nullptr) {}
-  ~MailSettingsErrorEvent() override;
-  explicit PROTOBUF_CONSTEXPR MailSettingsErrorEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline MailServerSettingsErrorEvent() : MailServerSettingsErrorEvent(nullptr) {}
+  ~MailServerSettingsErrorEvent() override;
+  explicit PROTOBUF_CONSTEXPR MailServerSettingsErrorEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  MailSettingsErrorEvent(const MailSettingsErrorEvent& from);
-  MailSettingsErrorEvent(MailSettingsErrorEvent&& from) noexcept
-    : MailSettingsErrorEvent() {
+  MailServerSettingsErrorEvent(const MailServerSettingsErrorEvent& from);
+  MailServerSettingsErrorEvent(MailServerSettingsErrorEvent&& from) noexcept
+    : MailServerSettingsErrorEvent() {
     *this = ::std::move(from);
   }
 
-  inline MailSettingsErrorEvent& operator=(const MailSettingsErrorEvent& from) {
+  inline MailServerSettingsErrorEvent& operator=(const MailServerSettingsErrorEvent& from) {
     CopyFrom(from);
     return *this;
   }
-  inline MailSettingsErrorEvent& operator=(MailSettingsErrorEvent&& from) noexcept {
+  inline MailServerSettingsErrorEvent& operator=(MailServerSettingsErrorEvent&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -7513,20 +7101,20 @@ class MailSettingsErrorEvent final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const MailSettingsErrorEvent& default_instance() {
+  static const MailServerSettingsErrorEvent& default_instance() {
     return *internal_default_instance();
   }
-  static inline const MailSettingsErrorEvent* internal_default_instance() {
-    return reinterpret_cast<const MailSettingsErrorEvent*>(
-               &_MailSettingsErrorEvent_default_instance_);
+  static inline const MailServerSettingsErrorEvent* internal_default_instance() {
+    return reinterpret_cast<const MailServerSettingsErrorEvent*>(
+               &_MailServerSettingsErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    42;
+    39;
 
-  friend void swap(MailSettingsErrorEvent& a, MailSettingsErrorEvent& b) {
+  friend void swap(MailServerSettingsErrorEvent& a, MailServerSettingsErrorEvent& b) {
     a.Swap(&b);
   }
-  inline void Swap(MailSettingsErrorEvent* other) {
+  inline void Swap(MailServerSettingsErrorEvent* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -7539,7 +7127,7 @@ class MailSettingsErrorEvent final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(MailSettingsErrorEvent* other) {
+  void UnsafeArenaSwap(MailServerSettingsErrorEvent* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -7547,14 +7135,14 @@ class MailSettingsErrorEvent final :
 
   // implements Message ----------------------------------------------
 
-  MailSettingsErrorEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<MailSettingsErrorEvent>(arena);
+  MailServerSettingsErrorEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<MailServerSettingsErrorEvent>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const MailSettingsErrorEvent& from);
+  void CopyFrom(const MailServerSettingsErrorEvent& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom( const MailSettingsErrorEvent& from) {
-    MailSettingsErrorEvent::MergeImpl(*this, from);
+  void MergeFrom( const MailServerSettingsErrorEvent& from) {
+    MailServerSettingsErrorEvent::MergeImpl(*this, from);
   }
   private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
@@ -7572,15 +7160,15 @@ class MailSettingsErrorEvent final :
   void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(MailSettingsErrorEvent* other);
+  void InternalSwap(MailServerSettingsErrorEvent* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "grpc.MailSettingsErrorEvent";
+    return "grpc.MailServerSettingsErrorEvent";
   }
   protected:
-  explicit MailSettingsErrorEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit MailServerSettingsErrorEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -7596,16 +7184,16 @@ class MailSettingsErrorEvent final :
   enum : int {
     kTypeFieldNumber = 1,
   };
-  // .grpc.MailSettingsErrorType type = 1;
+  // .grpc.MailServerSettingsErrorType type = 1;
   void clear_type();
-  ::grpc::MailSettingsErrorType type() const;
-  void set_type(::grpc::MailSettingsErrorType value);
+  ::grpc::MailServerSettingsErrorType type() const;
+  void set_type(::grpc::MailServerSettingsErrorType value);
   private:
-  ::grpc::MailSettingsErrorType _internal_type() const;
-  void _internal_set_type(::grpc::MailSettingsErrorType value);
+  ::grpc::MailServerSettingsErrorType _internal_type() const;
+  void _internal_set_type(::grpc::MailServerSettingsErrorType value);
   public:
 
-  // @@protoc_insertion_point(class_scope:grpc.MailSettingsErrorEvent)
+  // @@protoc_insertion_point(class_scope:grpc.MailServerSettingsErrorEvent)
  private:
   class _Internal;
 
@@ -7621,23 +7209,24 @@ class MailSettingsErrorEvent final :
 };
 // -------------------------------------------------------------------
 
-class UseSslForSmtpFinishedEvent final :
-    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:grpc.UseSslForSmtpFinishedEvent) */ {
+class MailServerSettingsChangedEvent final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.MailServerSettingsChangedEvent) */ {
  public:
-  inline UseSslForSmtpFinishedEvent() : UseSslForSmtpFinishedEvent(nullptr) {}
-  explicit PROTOBUF_CONSTEXPR UseSslForSmtpFinishedEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline MailServerSettingsChangedEvent() : MailServerSettingsChangedEvent(nullptr) {}
+  ~MailServerSettingsChangedEvent() override;
+  explicit PROTOBUF_CONSTEXPR MailServerSettingsChangedEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  UseSslForSmtpFinishedEvent(const UseSslForSmtpFinishedEvent& from);
-  UseSslForSmtpFinishedEvent(UseSslForSmtpFinishedEvent&& from) noexcept
-    : UseSslForSmtpFinishedEvent() {
+  MailServerSettingsChangedEvent(const MailServerSettingsChangedEvent& from);
+  MailServerSettingsChangedEvent(MailServerSettingsChangedEvent&& from) noexcept
+    : MailServerSettingsChangedEvent() {
     *this = ::std::move(from);
   }
 
-  inline UseSslForSmtpFinishedEvent& operator=(const UseSslForSmtpFinishedEvent& from) {
+  inline MailServerSettingsChangedEvent& operator=(const MailServerSettingsChangedEvent& from) {
     CopyFrom(from);
     return *this;
   }
-  inline UseSslForSmtpFinishedEvent& operator=(UseSslForSmtpFinishedEvent&& from) noexcept {
+  inline MailServerSettingsChangedEvent& operator=(MailServerSettingsChangedEvent&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -7660,20 +7249,20 @@ class UseSslForSmtpFinishedEvent final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const UseSslForSmtpFinishedEvent& default_instance() {
+  static const MailServerSettingsChangedEvent& default_instance() {
     return *internal_default_instance();
   }
-  static inline const UseSslForSmtpFinishedEvent* internal_default_instance() {
-    return reinterpret_cast<const UseSslForSmtpFinishedEvent*>(
-               &_UseSslForSmtpFinishedEvent_default_instance_);
+  static inline const MailServerSettingsChangedEvent* internal_default_instance() {
+    return reinterpret_cast<const MailServerSettingsChangedEvent*>(
+               &_MailServerSettingsChangedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    43;
+    40;
 
-  friend void swap(UseSslForSmtpFinishedEvent& a, UseSslForSmtpFinishedEvent& b) {
+  friend void swap(MailServerSettingsChangedEvent& a, MailServerSettingsChangedEvent& b) {
     a.Swap(&b);
   }
-  inline void Swap(UseSslForSmtpFinishedEvent* other) {
+  inline void Swap(MailServerSettingsChangedEvent* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -7686,7 +7275,7 @@ class UseSslForSmtpFinishedEvent final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(UseSslForSmtpFinishedEvent* other) {
+  void UnsafeArenaSwap(MailServerSettingsChangedEvent* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -7694,26 +7283,40 @@ class UseSslForSmtpFinishedEvent final :
 
   // implements Message ----------------------------------------------
 
-  UseSslForSmtpFinishedEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<UseSslForSmtpFinishedEvent>(arena);
+  MailServerSettingsChangedEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<MailServerSettingsChangedEvent>(arena);
   }
-  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyFrom;
-  inline void CopyFrom(const UseSslForSmtpFinishedEvent& from) {
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl(*this, from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const MailServerSettingsChangedEvent& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const MailServerSettingsChangedEvent& from) {
+    MailServerSettingsChangedEvent::MergeImpl(*this, from);
   }
-  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeFrom;
-  void MergeFrom(const UseSslForSmtpFinishedEvent& from) {
-    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl(*this, from);
-  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
   public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(MailServerSettingsChangedEvent* other);
 
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "grpc.UseSslForSmtpFinishedEvent";
+    return "grpc.MailServerSettingsChangedEvent";
   }
   protected:
-  explicit UseSslForSmtpFinishedEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit MailServerSettingsChangedEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -7726,7 +7329,28 @@ class UseSslForSmtpFinishedEvent final :
 
   // accessors -------------------------------------------------------
 
-  // @@protoc_insertion_point(class_scope:grpc.UseSslForSmtpFinishedEvent)
+  enum : int {
+    kSettingsFieldNumber = 1,
+  };
+  // .grpc.ImapSmtpSettings settings = 1;
+  bool has_settings() const;
+  private:
+  bool _internal_has_settings() const;
+  public:
+  void clear_settings();
+  const ::grpc::ImapSmtpSettings& settings() const;
+  PROTOBUF_NODISCARD ::grpc::ImapSmtpSettings* release_settings();
+  ::grpc::ImapSmtpSettings* mutable_settings();
+  void set_allocated_settings(::grpc::ImapSmtpSettings* settings);
+  private:
+  const ::grpc::ImapSmtpSettings& _internal_settings() const;
+  ::grpc::ImapSmtpSettings* _internal_mutable_settings();
+  public:
+  void unsafe_arena_set_allocated_settings(
+      ::grpc::ImapSmtpSettings* settings);
+  ::grpc::ImapSmtpSettings* unsafe_arena_release_settings();
+
+  // @@protoc_insertion_point(class_scope:grpc.MailServerSettingsChangedEvent)
  private:
   class _Internal;
 
@@ -7734,28 +7358,31 @@ class UseSslForSmtpFinishedEvent final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::grpc::ImapSmtpSettings* settings_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
+  union { Impl_ _impl_; };
   friend struct ::TableStruct_bridge_2eproto;
 };
 // -------------------------------------------------------------------
 
-class ChangePortsFinishedEvent final :
-    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:grpc.ChangePortsFinishedEvent) */ {
+class ChangeMailServerSettingsFinishedEvent final :
+    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:grpc.ChangeMailServerSettingsFinishedEvent) */ {
  public:
-  inline ChangePortsFinishedEvent() : ChangePortsFinishedEvent(nullptr) {}
-  explicit PROTOBUF_CONSTEXPR ChangePortsFinishedEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  inline ChangeMailServerSettingsFinishedEvent() : ChangeMailServerSettingsFinishedEvent(nullptr) {}
+  explicit PROTOBUF_CONSTEXPR ChangeMailServerSettingsFinishedEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  ChangePortsFinishedEvent(const ChangePortsFinishedEvent& from);
-  ChangePortsFinishedEvent(ChangePortsFinishedEvent&& from) noexcept
-    : ChangePortsFinishedEvent() {
+  ChangeMailServerSettingsFinishedEvent(const ChangeMailServerSettingsFinishedEvent& from);
+  ChangeMailServerSettingsFinishedEvent(ChangeMailServerSettingsFinishedEvent&& from) noexcept
+    : ChangeMailServerSettingsFinishedEvent() {
     *this = ::std::move(from);
   }
 
-  inline ChangePortsFinishedEvent& operator=(const ChangePortsFinishedEvent& from) {
+  inline ChangeMailServerSettingsFinishedEvent& operator=(const ChangeMailServerSettingsFinishedEvent& from) {
     CopyFrom(from);
     return *this;
   }
-  inline ChangePortsFinishedEvent& operator=(ChangePortsFinishedEvent&& from) noexcept {
+  inline ChangeMailServerSettingsFinishedEvent& operator=(ChangeMailServerSettingsFinishedEvent&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()
   #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
@@ -7778,20 +7405,20 @@ class ChangePortsFinishedEvent final :
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const ChangePortsFinishedEvent& default_instance() {
+  static const ChangeMailServerSettingsFinishedEvent& default_instance() {
     return *internal_default_instance();
   }
-  static inline const ChangePortsFinishedEvent* internal_default_instance() {
-    return reinterpret_cast<const ChangePortsFinishedEvent*>(
-               &_ChangePortsFinishedEvent_default_instance_);
+  static inline const ChangeMailServerSettingsFinishedEvent* internal_default_instance() {
+    return reinterpret_cast<const ChangeMailServerSettingsFinishedEvent*>(
+               &_ChangeMailServerSettingsFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    44;
+    41;
 
-  friend void swap(ChangePortsFinishedEvent& a, ChangePortsFinishedEvent& b) {
+  friend void swap(ChangeMailServerSettingsFinishedEvent& a, ChangeMailServerSettingsFinishedEvent& b) {
     a.Swap(&b);
   }
-  inline void Swap(ChangePortsFinishedEvent* other) {
+  inline void Swap(ChangeMailServerSettingsFinishedEvent* other) {
     if (other == this) return;
   #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
     if (GetOwningArena() != nullptr &&
@@ -7804,7 +7431,7 @@ class ChangePortsFinishedEvent final :
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(ChangePortsFinishedEvent* other) {
+  void UnsafeArenaSwap(ChangeMailServerSettingsFinishedEvent* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -7812,15 +7439,15 @@ class ChangePortsFinishedEvent final :
 
   // implements Message ----------------------------------------------
 
-  ChangePortsFinishedEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
-    return CreateMaybeMessage<ChangePortsFinishedEvent>(arena);
+  ChangeMailServerSettingsFinishedEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ChangeMailServerSettingsFinishedEvent>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyFrom;
-  inline void CopyFrom(const ChangePortsFinishedEvent& from) {
+  inline void CopyFrom(const ChangeMailServerSettingsFinishedEvent& from) {
     ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl(*this, from);
   }
   using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeFrom;
-  void MergeFrom(const ChangePortsFinishedEvent& from) {
+  void MergeFrom(const ChangeMailServerSettingsFinishedEvent& from) {
     ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl(*this, from);
   }
   public:
@@ -7828,10 +7455,10 @@ class ChangePortsFinishedEvent final :
   private:
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "grpc.ChangePortsFinishedEvent";
+    return "grpc.ChangeMailServerSettingsFinishedEvent";
   }
   protected:
-  explicit ChangePortsFinishedEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit ChangeMailServerSettingsFinishedEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
   public:
 
@@ -7844,7 +7471,7 @@ class ChangePortsFinishedEvent final :
 
   // accessors -------------------------------------------------------
 
-  // @@protoc_insertion_point(class_scope:grpc.ChangePortsFinishedEvent)
+  // @@protoc_insertion_point(class_scope:grpc.ChangeMailServerSettingsFinishedEvent)
  private:
   class _Internal;
 
@@ -7912,7 +7539,7 @@ class KeychainEvent final :
                &_KeychainEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    45;
+    42;
 
   friend void swap(KeychainEvent& a, KeychainEvent& b) {
     a.Swap(&b);
@@ -8122,7 +7749,7 @@ class ChangeKeychainFinishedEvent final :
                &_ChangeKeychainFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    46;
+    43;
 
   friend void swap(ChangeKeychainFinishedEvent& a, ChangeKeychainFinishedEvent& b) {
     a.Swap(&b);
@@ -8240,7 +7867,7 @@ class HasNoKeychainEvent final :
                &_HasNoKeychainEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    47;
+    44;
 
   friend void swap(HasNoKeychainEvent& a, HasNoKeychainEvent& b) {
     a.Swap(&b);
@@ -8358,7 +7985,7 @@ class RebuildKeychainEvent final :
                &_RebuildKeychainEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    48;
+    45;
 
   friend void swap(RebuildKeychainEvent& a, RebuildKeychainEvent& b) {
     a.Swap(&b);
@@ -8485,7 +8112,7 @@ class MailEvent final :
                &_MailEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    49;
+    46;
 
   friend void swap(MailEvent& a, MailEvent& b) {
     a.Swap(&b);
@@ -8717,7 +8344,7 @@ class NoActiveKeyForRecipientEvent final :
                &_NoActiveKeyForRecipientEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    50;
+    47;
 
   friend void swap(NoActiveKeyForRecipientEvent& a, NoActiveKeyForRecipientEvent& b) {
     a.Swap(&b);
@@ -8870,7 +8497,7 @@ class AddressChangedEvent final :
                &_AddressChangedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    51;
+    48;
 
   friend void swap(AddressChangedEvent& a, AddressChangedEvent& b) {
     a.Swap(&b);
@@ -9023,7 +8650,7 @@ class AddressChangedLogoutEvent final :
                &_AddressChangedLogoutEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    52;
+    49;
 
   friend void swap(AddressChangedLogoutEvent& a, AddressChangedLogoutEvent& b) {
     a.Swap(&b);
@@ -9175,7 +8802,7 @@ class ApiCertIssueEvent final :
                &_ApiCertIssueEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    53;
+    50;
 
   friend void swap(ApiCertIssueEvent& a, ApiCertIssueEvent& b) {
     a.Swap(&b);
@@ -9301,7 +8928,7 @@ class UserEvent final :
                &_UserEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    54;
+    51;
 
   friend void swap(UserEvent& a, UserEvent& b) {
     a.Swap(&b);
@@ -9512,7 +9139,7 @@ class ToggleSplitModeFinishedEvent final :
                &_ToggleSplitModeFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    55;
+    52;
 
   friend void swap(ToggleSplitModeFinishedEvent& a, ToggleSplitModeFinishedEvent& b) {
     a.Swap(&b);
@@ -9665,7 +9292,7 @@ class UserDisconnectedEvent final :
                &_UserDisconnectedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    56;
+    53;
 
   friend void swap(UserDisconnectedEvent& a, UserDisconnectedEvent& b) {
     a.Swap(&b);
@@ -9818,7 +9445,7 @@ class UserChangedEvent final :
                &_UserChangedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    57;
+    54;
 
   friend void swap(UserChangedEvent& a, UserChangedEvent& b) {
     a.Swap(&b);
@@ -9916,6 +9543,154 @@ class UserChangedEvent final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr userid_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_bridge_2eproto;
+};
+// -------------------------------------------------------------------
+
+class GenericErrorEvent final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.GenericErrorEvent) */ {
+ public:
+  inline GenericErrorEvent() : GenericErrorEvent(nullptr) {}
+  ~GenericErrorEvent() override;
+  explicit PROTOBUF_CONSTEXPR GenericErrorEvent(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  GenericErrorEvent(const GenericErrorEvent& from);
+  GenericErrorEvent(GenericErrorEvent&& from) noexcept
+    : GenericErrorEvent() {
+    *this = ::std::move(from);
+  }
+
+  inline GenericErrorEvent& operator=(const GenericErrorEvent& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline GenericErrorEvent& operator=(GenericErrorEvent&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const GenericErrorEvent& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const GenericErrorEvent* internal_default_instance() {
+    return reinterpret_cast<const GenericErrorEvent*>(
+               &_GenericErrorEvent_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    55;
+
+  friend void swap(GenericErrorEvent& a, GenericErrorEvent& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(GenericErrorEvent* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(GenericErrorEvent* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  GenericErrorEvent* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<GenericErrorEvent>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const GenericErrorEvent& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const GenericErrorEvent& from) {
+    GenericErrorEvent::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(GenericErrorEvent* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "grpc.GenericErrorEvent";
+  }
+  protected:
+  explicit GenericErrorEvent(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kCodeFieldNumber = 1,
+  };
+  // .grpc.ErrorCode code = 1;
+  void clear_code();
+  ::grpc::ErrorCode code() const;
+  void set_code(::grpc::ErrorCode value);
+  private:
+  ::grpc::ErrorCode _internal_code() const;
+  void _internal_set_code(::grpc::ErrorCode value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:grpc.GenericErrorEvent)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int code_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -10380,7 +10155,7 @@ inline void LoginRequest::set_allocated_username(std::string* username) {
   // @@protoc_insertion_point(field_set_allocated:grpc.LoginRequest.username)
 }
 
-// string password = 2;
+// bytes password = 2;
 inline void LoginRequest::clear_password() {
   _impl_.password_.ClearToEmpty();
 }
@@ -10392,7 +10167,7 @@ template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
 void LoginRequest::set_password(ArgT0&& arg0, ArgT... args) {
  
- _impl_.password_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+ _impl_.password_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:grpc.LoginRequest.password)
 }
 inline std::string* LoginRequest::mutable_password() {
@@ -10486,120 +10261,86 @@ inline void LoginAbortRequest::set_allocated_username(std::string* username) {
 
 // -------------------------------------------------------------------
 
-// ChangeLocalCacheRequest
-
-// bool enableDiskCache = 1;
-inline void ChangeLocalCacheRequest::clear_enablediskcache() {
-  _impl_.enablediskcache_ = false;
-}
-inline bool ChangeLocalCacheRequest::_internal_enablediskcache() const {
-  return _impl_.enablediskcache_;
-}
-inline bool ChangeLocalCacheRequest::enablediskcache() const {
-  // @@protoc_insertion_point(field_get:grpc.ChangeLocalCacheRequest.enableDiskCache)
-  return _internal_enablediskcache();
-}
-inline void ChangeLocalCacheRequest::_internal_set_enablediskcache(bool value) {
-  
-  _impl_.enablediskcache_ = value;
-}
-inline void ChangeLocalCacheRequest::set_enablediskcache(bool value) {
-  _internal_set_enablediskcache(value);
-  // @@protoc_insertion_point(field_set:grpc.ChangeLocalCacheRequest.enableDiskCache)
-}
-
-// string diskCachePath = 2;
-inline void ChangeLocalCacheRequest::clear_diskcachepath() {
-  _impl_.diskcachepath_.ClearToEmpty();
-}
-inline const std::string& ChangeLocalCacheRequest::diskcachepath() const {
-  // @@protoc_insertion_point(field_get:grpc.ChangeLocalCacheRequest.diskCachePath)
-  return _internal_diskcachepath();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE
-void ChangeLocalCacheRequest::set_diskcachepath(ArgT0&& arg0, ArgT... args) {
- 
- _impl_.diskcachepath_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:grpc.ChangeLocalCacheRequest.diskCachePath)
-}
-inline std::string* ChangeLocalCacheRequest::mutable_diskcachepath() {
-  std::string* _s = _internal_mutable_diskcachepath();
-  // @@protoc_insertion_point(field_mutable:grpc.ChangeLocalCacheRequest.diskCachePath)
-  return _s;
-}
-inline const std::string& ChangeLocalCacheRequest::_internal_diskcachepath() const {
-  return _impl_.diskcachepath_.Get();
-}
-inline void ChangeLocalCacheRequest::_internal_set_diskcachepath(const std::string& value) {
-  
-  _impl_.diskcachepath_.Set(value, GetArenaForAllocation());
-}
-inline std::string* ChangeLocalCacheRequest::_internal_mutable_diskcachepath() {
-  
-  return _impl_.diskcachepath_.Mutable(GetArenaForAllocation());
-}
-inline std::string* ChangeLocalCacheRequest::release_diskcachepath() {
-  // @@protoc_insertion_point(field_release:grpc.ChangeLocalCacheRequest.diskCachePath)
-  return _impl_.diskcachepath_.Release();
-}
-inline void ChangeLocalCacheRequest::set_allocated_diskcachepath(std::string* diskcachepath) {
-  if (diskcachepath != nullptr) {
-    
-  } else {
-    
-  }
-  _impl_.diskcachepath_.SetAllocated(diskcachepath, GetArenaForAllocation());
-#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.diskcachepath_.IsDefault()) {
-    _impl_.diskcachepath_.Set("", GetArenaForAllocation());
-  }
-#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:grpc.ChangeLocalCacheRequest.diskCachePath)
-}
-
-// -------------------------------------------------------------------
-
-// ChangePortsRequest
+// ImapSmtpSettings
 
 // int32 imapPort = 1;
-inline void ChangePortsRequest::clear_imapport() {
+inline void ImapSmtpSettings::clear_imapport() {
   _impl_.imapport_ = 0;
 }
-inline int32_t ChangePortsRequest::_internal_imapport() const {
+inline int32_t ImapSmtpSettings::_internal_imapport() const {
   return _impl_.imapport_;
 }
-inline int32_t ChangePortsRequest::imapport() const {
-  // @@protoc_insertion_point(field_get:grpc.ChangePortsRequest.imapPort)
+inline int32_t ImapSmtpSettings::imapport() const {
+  // @@protoc_insertion_point(field_get:grpc.ImapSmtpSettings.imapPort)
   return _internal_imapport();
 }
-inline void ChangePortsRequest::_internal_set_imapport(int32_t value) {
+inline void ImapSmtpSettings::_internal_set_imapport(int32_t value) {
   
   _impl_.imapport_ = value;
 }
-inline void ChangePortsRequest::set_imapport(int32_t value) {
+inline void ImapSmtpSettings::set_imapport(int32_t value) {
   _internal_set_imapport(value);
-  // @@protoc_insertion_point(field_set:grpc.ChangePortsRequest.imapPort)
+  // @@protoc_insertion_point(field_set:grpc.ImapSmtpSettings.imapPort)
 }
 
 // int32 smtpPort = 2;
-inline void ChangePortsRequest::clear_smtpport() {
+inline void ImapSmtpSettings::clear_smtpport() {
   _impl_.smtpport_ = 0;
 }
-inline int32_t ChangePortsRequest::_internal_smtpport() const {
+inline int32_t ImapSmtpSettings::_internal_smtpport() const {
   return _impl_.smtpport_;
 }
-inline int32_t ChangePortsRequest::smtpport() const {
-  // @@protoc_insertion_point(field_get:grpc.ChangePortsRequest.smtpPort)
+inline int32_t ImapSmtpSettings::smtpport() const {
+  // @@protoc_insertion_point(field_get:grpc.ImapSmtpSettings.smtpPort)
   return _internal_smtpport();
 }
-inline void ChangePortsRequest::_internal_set_smtpport(int32_t value) {
+inline void ImapSmtpSettings::_internal_set_smtpport(int32_t value) {
   
   _impl_.smtpport_ = value;
 }
-inline void ChangePortsRequest::set_smtpport(int32_t value) {
+inline void ImapSmtpSettings::set_smtpport(int32_t value) {
   _internal_set_smtpport(value);
-  // @@protoc_insertion_point(field_set:grpc.ChangePortsRequest.smtpPort)
+  // @@protoc_insertion_point(field_set:grpc.ImapSmtpSettings.smtpPort)
+}
+
+// bool useSSLForImap = 3;
+inline void ImapSmtpSettings::clear_usesslforimap() {
+  _impl_.usesslforimap_ = false;
+}
+inline bool ImapSmtpSettings::_internal_usesslforimap() const {
+  return _impl_.usesslforimap_;
+}
+inline bool ImapSmtpSettings::usesslforimap() const {
+  // @@protoc_insertion_point(field_get:grpc.ImapSmtpSettings.useSSLForImap)
+  return _internal_usesslforimap();
+}
+inline void ImapSmtpSettings::_internal_set_usesslforimap(bool value) {
+  
+  _impl_.usesslforimap_ = value;
+}
+inline void ImapSmtpSettings::set_usesslforimap(bool value) {
+  _internal_set_usesslforimap(value);
+  // @@protoc_insertion_point(field_set:grpc.ImapSmtpSettings.useSSLForImap)
+}
+
+// bool useSSLForSmtp = 4;
+inline void ImapSmtpSettings::clear_usesslforsmtp() {
+  _impl_.usesslforsmtp_ = false;
+}
+inline bool ImapSmtpSettings::_internal_usesslforsmtp() const {
+  return _impl_.usesslforsmtp_;
+}
+inline bool ImapSmtpSettings::usesslforsmtp() const {
+  // @@protoc_insertion_point(field_get:grpc.ImapSmtpSettings.useSSLForSmtp)
+  return _internal_usesslforsmtp();
+}
+inline void ImapSmtpSettings::_internal_set_usesslforsmtp(bool value) {
+  
+  _impl_.usesslforsmtp_ = value;
+}
+inline void ImapSmtpSettings::set_usesslforsmtp(bool value) {
+  _internal_set_usesslforsmtp(value);
+  // @@protoc_insertion_point(field_set:grpc.ImapSmtpSettings.useSSLForSmtp)
 }
 
 // -------------------------------------------------------------------
@@ -10835,24 +10576,24 @@ inline void User::set_allocated_avatartext(std::string* avatartext) {
   // @@protoc_insertion_point(field_set_allocated:grpc.User.avatarText)
 }
 
-// bool loggedIn = 4;
-inline void User::clear_loggedin() {
-  _impl_.loggedin_ = false;
+// .grpc.UserState state = 4;
+inline void User::clear_state() {
+  _impl_.state_ = 0;
 }
-inline bool User::_internal_loggedin() const {
-  return _impl_.loggedin_;
+inline ::grpc::UserState User::_internal_state() const {
+  return static_cast< ::grpc::UserState >(_impl_.state_);
 }
-inline bool User::loggedin() const {
-  // @@protoc_insertion_point(field_get:grpc.User.loggedIn)
-  return _internal_loggedin();
+inline ::grpc::UserState User::state() const {
+  // @@protoc_insertion_point(field_get:grpc.User.state)
+  return _internal_state();
 }
-inline void User::_internal_set_loggedin(bool value) {
+inline void User::_internal_set_state(::grpc::UserState value) {
   
-  _impl_.loggedin_ = value;
+  _impl_.state_ = value;
 }
-inline void User::set_loggedin(bool value) {
-  _internal_set_loggedin(value);
-  // @@protoc_insertion_point(field_set:grpc.User.loggedIn)
+inline void User::set_state(::grpc::UserState value) {
+  _internal_set_state(value);
+  // @@protoc_insertion_point(field_set:grpc.User.state)
 }
 
 // bool splitMode = 5;
@@ -10875,27 +10616,7 @@ inline void User::set_splitmode(bool value) {
   // @@protoc_insertion_point(field_set:grpc.User.splitMode)
 }
 
-// bool setupGuideSeen = 6;
-inline void User::clear_setupguideseen() {
-  _impl_.setupguideseen_ = false;
-}
-inline bool User::_internal_setupguideseen() const {
-  return _impl_.setupguideseen_;
-}
-inline bool User::setupguideseen() const {
-  // @@protoc_insertion_point(field_get:grpc.User.setupGuideSeen)
-  return _internal_setupguideseen();
-}
-inline void User::_internal_set_setupguideseen(bool value) {
-  
-  _impl_.setupguideseen_ = value;
-}
-inline void User::set_setupguideseen(bool value) {
-  _internal_set_setupguideseen(value);
-  // @@protoc_insertion_point(field_set:grpc.User.setupGuideSeen)
-}
-
-// int64 usedBytes = 7;
+// int64 usedBytes = 6;
 inline void User::clear_usedbytes() {
   _impl_.usedbytes_ = int64_t{0};
 }
@@ -10915,7 +10636,7 @@ inline void User::set_usedbytes(int64_t value) {
   // @@protoc_insertion_point(field_set:grpc.User.usedBytes)
 }
 
-// int64 totalBytes = 8;
+// int64 totalBytes = 7;
 inline void User::clear_totalbytes() {
   _impl_.totalbytes_ = int64_t{0};
 }
@@ -10935,7 +10656,7 @@ inline void User::set_totalbytes(int64_t value) {
   // @@protoc_insertion_point(field_set:grpc.User.totalBytes)
 }
 
-// string password = 9;
+// bytes password = 8;
 inline void User::clear_password() {
   _impl_.password_.ClearToEmpty();
 }
@@ -10947,7 +10668,7 @@ template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
 void User::set_password(ArgT0&& arg0, ArgT... args) {
  
- _impl_.password_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+ _impl_.password_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:grpc.User.password)
 }
 inline std::string* User::mutable_password() {
@@ -10985,7 +10706,7 @@ inline void User::set_allocated_password(std::string* password) {
   // @@protoc_insertion_point(field_set_allocated:grpc.User.password)
 }
 
-// repeated string addresses = 10;
+// repeated string addresses = 9;
 inline int User::_internal_addresses_size() const {
   return _impl_.addresses_.size();
 }
@@ -11562,7 +11283,7 @@ inline ::grpc::UpdateEvent* StreamEvent::mutable_update() {
   return _msg;
 }
 
-// .grpc.CacheEvent cache = 4;
+// .grpc.DiskCacheEvent cache = 4;
 inline bool StreamEvent::_internal_has_cache() const {
   return event_case() == kCache;
 }
@@ -11580,11 +11301,11 @@ inline void StreamEvent::clear_cache() {
     clear_has_event();
   }
 }
-inline ::grpc::CacheEvent* StreamEvent::release_cache() {
+inline ::grpc::DiskCacheEvent* StreamEvent::release_cache() {
   // @@protoc_insertion_point(field_release:grpc.StreamEvent.cache)
   if (_internal_has_cache()) {
     clear_has_event();
-    ::grpc::CacheEvent* temp = _impl_.event_.cache_;
+    ::grpc::DiskCacheEvent* temp = _impl_.event_.cache_;
     if (GetArenaForAllocation() != nullptr) {
       temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
     }
@@ -11594,27 +11315,27 @@ inline ::grpc::CacheEvent* StreamEvent::release_cache() {
     return nullptr;
   }
 }
-inline const ::grpc::CacheEvent& StreamEvent::_internal_cache() const {
+inline const ::grpc::DiskCacheEvent& StreamEvent::_internal_cache() const {
   return _internal_has_cache()
       ? *_impl_.event_.cache_
-      : reinterpret_cast< ::grpc::CacheEvent&>(::grpc::_CacheEvent_default_instance_);
+      : reinterpret_cast< ::grpc::DiskCacheEvent&>(::grpc::_DiskCacheEvent_default_instance_);
 }
-inline const ::grpc::CacheEvent& StreamEvent::cache() const {
+inline const ::grpc::DiskCacheEvent& StreamEvent::cache() const {
   // @@protoc_insertion_point(field_get:grpc.StreamEvent.cache)
   return _internal_cache();
 }
-inline ::grpc::CacheEvent* StreamEvent::unsafe_arena_release_cache() {
+inline ::grpc::DiskCacheEvent* StreamEvent::unsafe_arena_release_cache() {
   // @@protoc_insertion_point(field_unsafe_arena_release:grpc.StreamEvent.cache)
   if (_internal_has_cache()) {
     clear_has_event();
-    ::grpc::CacheEvent* temp = _impl_.event_.cache_;
+    ::grpc::DiskCacheEvent* temp = _impl_.event_.cache_;
     _impl_.event_.cache_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline void StreamEvent::unsafe_arena_set_allocated_cache(::grpc::CacheEvent* cache) {
+inline void StreamEvent::unsafe_arena_set_allocated_cache(::grpc::DiskCacheEvent* cache) {
   clear_event();
   if (cache) {
     set_has_cache();
@@ -11622,91 +11343,91 @@ inline void StreamEvent::unsafe_arena_set_allocated_cache(::grpc::CacheEvent* ca
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.StreamEvent.cache)
 }
-inline ::grpc::CacheEvent* StreamEvent::_internal_mutable_cache() {
+inline ::grpc::DiskCacheEvent* StreamEvent::_internal_mutable_cache() {
   if (!_internal_has_cache()) {
     clear_event();
     set_has_cache();
-    _impl_.event_.cache_ = CreateMaybeMessage< ::grpc::CacheEvent >(GetArenaForAllocation());
+    _impl_.event_.cache_ = CreateMaybeMessage< ::grpc::DiskCacheEvent >(GetArenaForAllocation());
   }
   return _impl_.event_.cache_;
 }
-inline ::grpc::CacheEvent* StreamEvent::mutable_cache() {
-  ::grpc::CacheEvent* _msg = _internal_mutable_cache();
+inline ::grpc::DiskCacheEvent* StreamEvent::mutable_cache() {
+  ::grpc::DiskCacheEvent* _msg = _internal_mutable_cache();
   // @@protoc_insertion_point(field_mutable:grpc.StreamEvent.cache)
   return _msg;
 }
 
-// .grpc.MailSettingsEvent mailSettings = 5;
-inline bool StreamEvent::_internal_has_mailsettings() const {
-  return event_case() == kMailSettings;
+// .grpc.MailServerSettingsEvent mailServerSettings = 5;
+inline bool StreamEvent::_internal_has_mailserversettings() const {
+  return event_case() == kMailServerSettings;
 }
-inline bool StreamEvent::has_mailsettings() const {
-  return _internal_has_mailsettings();
+inline bool StreamEvent::has_mailserversettings() const {
+  return _internal_has_mailserversettings();
 }
-inline void StreamEvent::set_has_mailsettings() {
-  _impl_._oneof_case_[0] = kMailSettings;
+inline void StreamEvent::set_has_mailserversettings() {
+  _impl_._oneof_case_[0] = kMailServerSettings;
 }
-inline void StreamEvent::clear_mailsettings() {
-  if (_internal_has_mailsettings()) {
+inline void StreamEvent::clear_mailserversettings() {
+  if (_internal_has_mailserversettings()) {
     if (GetArenaForAllocation() == nullptr) {
-      delete _impl_.event_.mailsettings_;
+      delete _impl_.event_.mailserversettings_;
     }
     clear_has_event();
   }
 }
-inline ::grpc::MailSettingsEvent* StreamEvent::release_mailsettings() {
-  // @@protoc_insertion_point(field_release:grpc.StreamEvent.mailSettings)
-  if (_internal_has_mailsettings()) {
+inline ::grpc::MailServerSettingsEvent* StreamEvent::release_mailserversettings() {
+  // @@protoc_insertion_point(field_release:grpc.StreamEvent.mailServerSettings)
+  if (_internal_has_mailserversettings()) {
     clear_has_event();
-    ::grpc::MailSettingsEvent* temp = _impl_.event_.mailsettings_;
+    ::grpc::MailServerSettingsEvent* temp = _impl_.event_.mailserversettings_;
     if (GetArenaForAllocation() != nullptr) {
       temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
     }
-    _impl_.event_.mailsettings_ = nullptr;
+    _impl_.event_.mailserversettings_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline const ::grpc::MailSettingsEvent& StreamEvent::_internal_mailsettings() const {
-  return _internal_has_mailsettings()
-      ? *_impl_.event_.mailsettings_
-      : reinterpret_cast< ::grpc::MailSettingsEvent&>(::grpc::_MailSettingsEvent_default_instance_);
+inline const ::grpc::MailServerSettingsEvent& StreamEvent::_internal_mailserversettings() const {
+  return _internal_has_mailserversettings()
+      ? *_impl_.event_.mailserversettings_
+      : reinterpret_cast< ::grpc::MailServerSettingsEvent&>(::grpc::_MailServerSettingsEvent_default_instance_);
 }
-inline const ::grpc::MailSettingsEvent& StreamEvent::mailsettings() const {
-  // @@protoc_insertion_point(field_get:grpc.StreamEvent.mailSettings)
-  return _internal_mailsettings();
+inline const ::grpc::MailServerSettingsEvent& StreamEvent::mailserversettings() const {
+  // @@protoc_insertion_point(field_get:grpc.StreamEvent.mailServerSettings)
+  return _internal_mailserversettings();
 }
-inline ::grpc::MailSettingsEvent* StreamEvent::unsafe_arena_release_mailsettings() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.StreamEvent.mailSettings)
-  if (_internal_has_mailsettings()) {
+inline ::grpc::MailServerSettingsEvent* StreamEvent::unsafe_arena_release_mailserversettings() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.StreamEvent.mailServerSettings)
+  if (_internal_has_mailserversettings()) {
     clear_has_event();
-    ::grpc::MailSettingsEvent* temp = _impl_.event_.mailsettings_;
-    _impl_.event_.mailsettings_ = nullptr;
+    ::grpc::MailServerSettingsEvent* temp = _impl_.event_.mailserversettings_;
+    _impl_.event_.mailserversettings_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline void StreamEvent::unsafe_arena_set_allocated_mailsettings(::grpc::MailSettingsEvent* mailsettings) {
+inline void StreamEvent::unsafe_arena_set_allocated_mailserversettings(::grpc::MailServerSettingsEvent* mailserversettings) {
   clear_event();
-  if (mailsettings) {
-    set_has_mailsettings();
-    _impl_.event_.mailsettings_ = mailsettings;
+  if (mailserversettings) {
+    set_has_mailserversettings();
+    _impl_.event_.mailserversettings_ = mailserversettings;
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.StreamEvent.mailSettings)
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.StreamEvent.mailServerSettings)
 }
-inline ::grpc::MailSettingsEvent* StreamEvent::_internal_mutable_mailsettings() {
-  if (!_internal_has_mailsettings()) {
+inline ::grpc::MailServerSettingsEvent* StreamEvent::_internal_mutable_mailserversettings() {
+  if (!_internal_has_mailserversettings()) {
     clear_event();
-    set_has_mailsettings();
-    _impl_.event_.mailsettings_ = CreateMaybeMessage< ::grpc::MailSettingsEvent >(GetArenaForAllocation());
+    set_has_mailserversettings();
+    _impl_.event_.mailserversettings_ = CreateMaybeMessage< ::grpc::MailServerSettingsEvent >(GetArenaForAllocation());
   }
-  return _impl_.event_.mailsettings_;
+  return _impl_.event_.mailserversettings_;
 }
-inline ::grpc::MailSettingsEvent* StreamEvent::mutable_mailsettings() {
-  ::grpc::MailSettingsEvent* _msg = _internal_mutable_mailsettings();
-  // @@protoc_insertion_point(field_mutable:grpc.StreamEvent.mailSettings)
+inline ::grpc::MailServerSettingsEvent* StreamEvent::mutable_mailserversettings() {
+  ::grpc::MailServerSettingsEvent* _msg = _internal_mutable_mailserversettings();
+  // @@protoc_insertion_point(field_mutable:grpc.StreamEvent.mailServerSettings)
   return _msg;
 }
 
@@ -11929,6 +11650,80 @@ inline ::grpc::UserEvent* StreamEvent::_internal_mutable_user() {
 inline ::grpc::UserEvent* StreamEvent::mutable_user() {
   ::grpc::UserEvent* _msg = _internal_mutable_user();
   // @@protoc_insertion_point(field_mutable:grpc.StreamEvent.user)
+  return _msg;
+}
+
+// .grpc.GenericErrorEvent genericError = 9;
+inline bool StreamEvent::_internal_has_genericerror() const {
+  return event_case() == kGenericError;
+}
+inline bool StreamEvent::has_genericerror() const {
+  return _internal_has_genericerror();
+}
+inline void StreamEvent::set_has_genericerror() {
+  _impl_._oneof_case_[0] = kGenericError;
+}
+inline void StreamEvent::clear_genericerror() {
+  if (_internal_has_genericerror()) {
+    if (GetArenaForAllocation() == nullptr) {
+      delete _impl_.event_.genericerror_;
+    }
+    clear_has_event();
+  }
+}
+inline ::grpc::GenericErrorEvent* StreamEvent::release_genericerror() {
+  // @@protoc_insertion_point(field_release:grpc.StreamEvent.genericError)
+  if (_internal_has_genericerror()) {
+    clear_has_event();
+    ::grpc::GenericErrorEvent* temp = _impl_.event_.genericerror_;
+    if (GetArenaForAllocation() != nullptr) {
+      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.event_.genericerror_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::grpc::GenericErrorEvent& StreamEvent::_internal_genericerror() const {
+  return _internal_has_genericerror()
+      ? *_impl_.event_.genericerror_
+      : reinterpret_cast< ::grpc::GenericErrorEvent&>(::grpc::_GenericErrorEvent_default_instance_);
+}
+inline const ::grpc::GenericErrorEvent& StreamEvent::genericerror() const {
+  // @@protoc_insertion_point(field_get:grpc.StreamEvent.genericError)
+  return _internal_genericerror();
+}
+inline ::grpc::GenericErrorEvent* StreamEvent::unsafe_arena_release_genericerror() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.StreamEvent.genericError)
+  if (_internal_has_genericerror()) {
+    clear_has_event();
+    ::grpc::GenericErrorEvent* temp = _impl_.event_.genericerror_;
+    _impl_.event_.genericerror_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void StreamEvent::unsafe_arena_set_allocated_genericerror(::grpc::GenericErrorEvent* genericerror) {
+  clear_event();
+  if (genericerror) {
+    set_has_genericerror();
+    _impl_.event_.genericerror_ = genericerror;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.StreamEvent.genericError)
+}
+inline ::grpc::GenericErrorEvent* StreamEvent::_internal_mutable_genericerror() {
+  if (!_internal_has_genericerror()) {
+    clear_event();
+    set_has_genericerror();
+    _impl_.event_.genericerror_ = CreateMaybeMessage< ::grpc::GenericErrorEvent >(GetArenaForAllocation());
+  }
+  return _impl_.event_.genericerror_;
+}
+inline ::grpc::GenericErrorEvent* StreamEvent::mutable_genericerror() {
+  ::grpc::GenericErrorEvent* _msg = _internal_mutable_genericerror();
+  // @@protoc_insertion_point(field_mutable:grpc.StreamEvent.genericError)
   return _msg;
 }
 
@@ -13089,6 +12884,26 @@ inline void LoginFinishedEvent::set_allocated_userid(std::string* userid) {
   // @@protoc_insertion_point(field_set_allocated:grpc.LoginFinishedEvent.userID)
 }
 
+// bool wasSignedOut = 2;
+inline void LoginFinishedEvent::clear_wassignedout() {
+  _impl_.wassignedout_ = false;
+}
+inline bool LoginFinishedEvent::_internal_wassignedout() const {
+  return _impl_.wassignedout_;
+}
+inline bool LoginFinishedEvent::wassignedout() const {
+  // @@protoc_insertion_point(field_get:grpc.LoginFinishedEvent.wasSignedOut)
+  return _internal_wassignedout();
+}
+inline void LoginFinishedEvent::_internal_set_wassignedout(bool value) {
+  
+  _impl_.wassignedout_ = value;
+}
+inline void LoginFinishedEvent::set_wassignedout(bool value) {
+  _internal_set_wassignedout(value);
+  // @@protoc_insertion_point(field_set:grpc.LoginFinishedEvent.wasSignedOut)
+}
+
 // -------------------------------------------------------------------
 
 // UpdateEvent
@@ -13848,19 +13663,19 @@ inline void UpdateForceEvent::set_allocated_version(std::string* version) {
 
 // -------------------------------------------------------------------
 
-// CacheEvent
+// DiskCacheEvent
 
-// .grpc.CacheErrorEvent error = 1;
-inline bool CacheEvent::_internal_has_error() const {
+// .grpc.DiskCacheErrorEvent error = 1;
+inline bool DiskCacheEvent::_internal_has_error() const {
   return event_case() == kError;
 }
-inline bool CacheEvent::has_error() const {
+inline bool DiskCacheEvent::has_error() const {
   return _internal_has_error();
 }
-inline void CacheEvent::set_has_error() {
+inline void DiskCacheEvent::set_has_error() {
   _impl_._oneof_case_[0] = kError;
 }
-inline void CacheEvent::clear_error() {
+inline void DiskCacheEvent::clear_error() {
   if (_internal_has_error()) {
     if (GetArenaForAllocation() == nullptr) {
       delete _impl_.event_.error_;
@@ -13868,11 +13683,11 @@ inline void CacheEvent::clear_error() {
     clear_has_event();
   }
 }
-inline ::grpc::CacheErrorEvent* CacheEvent::release_error() {
-  // @@protoc_insertion_point(field_release:grpc.CacheEvent.error)
+inline ::grpc::DiskCacheErrorEvent* DiskCacheEvent::release_error() {
+  // @@protoc_insertion_point(field_release:grpc.DiskCacheEvent.error)
   if (_internal_has_error()) {
     clear_has_event();
-    ::grpc::CacheErrorEvent* temp = _impl_.event_.error_;
+    ::grpc::DiskCacheErrorEvent* temp = _impl_.event_.error_;
     if (GetArenaForAllocation() != nullptr) {
       temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
     }
@@ -13882,469 +13697,269 @@ inline ::grpc::CacheErrorEvent* CacheEvent::release_error() {
     return nullptr;
   }
 }
-inline const ::grpc::CacheErrorEvent& CacheEvent::_internal_error() const {
+inline const ::grpc::DiskCacheErrorEvent& DiskCacheEvent::_internal_error() const {
   return _internal_has_error()
       ? *_impl_.event_.error_
-      : reinterpret_cast< ::grpc::CacheErrorEvent&>(::grpc::_CacheErrorEvent_default_instance_);
+      : reinterpret_cast< ::grpc::DiskCacheErrorEvent&>(::grpc::_DiskCacheErrorEvent_default_instance_);
 }
-inline const ::grpc::CacheErrorEvent& CacheEvent::error() const {
-  // @@protoc_insertion_point(field_get:grpc.CacheEvent.error)
+inline const ::grpc::DiskCacheErrorEvent& DiskCacheEvent::error() const {
+  // @@protoc_insertion_point(field_get:grpc.DiskCacheEvent.error)
   return _internal_error();
 }
-inline ::grpc::CacheErrorEvent* CacheEvent::unsafe_arena_release_error() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.CacheEvent.error)
+inline ::grpc::DiskCacheErrorEvent* DiskCacheEvent::unsafe_arena_release_error() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.DiskCacheEvent.error)
   if (_internal_has_error()) {
     clear_has_event();
-    ::grpc::CacheErrorEvent* temp = _impl_.event_.error_;
+    ::grpc::DiskCacheErrorEvent* temp = _impl_.event_.error_;
     _impl_.event_.error_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline void CacheEvent::unsafe_arena_set_allocated_error(::grpc::CacheErrorEvent* error) {
+inline void DiskCacheEvent::unsafe_arena_set_allocated_error(::grpc::DiskCacheErrorEvent* error) {
   clear_event();
   if (error) {
     set_has_error();
     _impl_.event_.error_ = error;
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.CacheEvent.error)
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.DiskCacheEvent.error)
 }
-inline ::grpc::CacheErrorEvent* CacheEvent::_internal_mutable_error() {
+inline ::grpc::DiskCacheErrorEvent* DiskCacheEvent::_internal_mutable_error() {
   if (!_internal_has_error()) {
     clear_event();
     set_has_error();
-    _impl_.event_.error_ = CreateMaybeMessage< ::grpc::CacheErrorEvent >(GetArenaForAllocation());
+    _impl_.event_.error_ = CreateMaybeMessage< ::grpc::DiskCacheErrorEvent >(GetArenaForAllocation());
   }
   return _impl_.event_.error_;
 }
-inline ::grpc::CacheErrorEvent* CacheEvent::mutable_error() {
-  ::grpc::CacheErrorEvent* _msg = _internal_mutable_error();
-  // @@protoc_insertion_point(field_mutable:grpc.CacheEvent.error)
+inline ::grpc::DiskCacheErrorEvent* DiskCacheEvent::mutable_error() {
+  ::grpc::DiskCacheErrorEvent* _msg = _internal_mutable_error();
+  // @@protoc_insertion_point(field_mutable:grpc.DiskCacheEvent.error)
   return _msg;
 }
 
-// .grpc.CacheLocationChangeSuccessEvent locationChangedSuccess = 2;
-inline bool CacheEvent::_internal_has_locationchangedsuccess() const {
-  return event_case() == kLocationChangedSuccess;
+// .grpc.DiskCachePathChangedEvent pathChanged = 2;
+inline bool DiskCacheEvent::_internal_has_pathchanged() const {
+  return event_case() == kPathChanged;
 }
-inline bool CacheEvent::has_locationchangedsuccess() const {
-  return _internal_has_locationchangedsuccess();
+inline bool DiskCacheEvent::has_pathchanged() const {
+  return _internal_has_pathchanged();
 }
-inline void CacheEvent::set_has_locationchangedsuccess() {
-  _impl_._oneof_case_[0] = kLocationChangedSuccess;
+inline void DiskCacheEvent::set_has_pathchanged() {
+  _impl_._oneof_case_[0] = kPathChanged;
 }
-inline void CacheEvent::clear_locationchangedsuccess() {
-  if (_internal_has_locationchangedsuccess()) {
+inline void DiskCacheEvent::clear_pathchanged() {
+  if (_internal_has_pathchanged()) {
     if (GetArenaForAllocation() == nullptr) {
-      delete _impl_.event_.locationchangedsuccess_;
+      delete _impl_.event_.pathchanged_;
     }
     clear_has_event();
   }
 }
-inline ::grpc::CacheLocationChangeSuccessEvent* CacheEvent::release_locationchangedsuccess() {
-  // @@protoc_insertion_point(field_release:grpc.CacheEvent.locationChangedSuccess)
-  if (_internal_has_locationchangedsuccess()) {
+inline ::grpc::DiskCachePathChangedEvent* DiskCacheEvent::release_pathchanged() {
+  // @@protoc_insertion_point(field_release:grpc.DiskCacheEvent.pathChanged)
+  if (_internal_has_pathchanged()) {
     clear_has_event();
-    ::grpc::CacheLocationChangeSuccessEvent* temp = _impl_.event_.locationchangedsuccess_;
+    ::grpc::DiskCachePathChangedEvent* temp = _impl_.event_.pathchanged_;
     if (GetArenaForAllocation() != nullptr) {
       temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
     }
-    _impl_.event_.locationchangedsuccess_ = nullptr;
+    _impl_.event_.pathchanged_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline const ::grpc::CacheLocationChangeSuccessEvent& CacheEvent::_internal_locationchangedsuccess() const {
-  return _internal_has_locationchangedsuccess()
-      ? *_impl_.event_.locationchangedsuccess_
-      : reinterpret_cast< ::grpc::CacheLocationChangeSuccessEvent&>(::grpc::_CacheLocationChangeSuccessEvent_default_instance_);
+inline const ::grpc::DiskCachePathChangedEvent& DiskCacheEvent::_internal_pathchanged() const {
+  return _internal_has_pathchanged()
+      ? *_impl_.event_.pathchanged_
+      : reinterpret_cast< ::grpc::DiskCachePathChangedEvent&>(::grpc::_DiskCachePathChangedEvent_default_instance_);
 }
-inline const ::grpc::CacheLocationChangeSuccessEvent& CacheEvent::locationchangedsuccess() const {
-  // @@protoc_insertion_point(field_get:grpc.CacheEvent.locationChangedSuccess)
-  return _internal_locationchangedsuccess();
+inline const ::grpc::DiskCachePathChangedEvent& DiskCacheEvent::pathchanged() const {
+  // @@protoc_insertion_point(field_get:grpc.DiskCacheEvent.pathChanged)
+  return _internal_pathchanged();
 }
-inline ::grpc::CacheLocationChangeSuccessEvent* CacheEvent::unsafe_arena_release_locationchangedsuccess() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.CacheEvent.locationChangedSuccess)
-  if (_internal_has_locationchangedsuccess()) {
+inline ::grpc::DiskCachePathChangedEvent* DiskCacheEvent::unsafe_arena_release_pathchanged() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.DiskCacheEvent.pathChanged)
+  if (_internal_has_pathchanged()) {
     clear_has_event();
-    ::grpc::CacheLocationChangeSuccessEvent* temp = _impl_.event_.locationchangedsuccess_;
-    _impl_.event_.locationchangedsuccess_ = nullptr;
+    ::grpc::DiskCachePathChangedEvent* temp = _impl_.event_.pathchanged_;
+    _impl_.event_.pathchanged_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline void CacheEvent::unsafe_arena_set_allocated_locationchangedsuccess(::grpc::CacheLocationChangeSuccessEvent* locationchangedsuccess) {
+inline void DiskCacheEvent::unsafe_arena_set_allocated_pathchanged(::grpc::DiskCachePathChangedEvent* pathchanged) {
   clear_event();
-  if (locationchangedsuccess) {
-    set_has_locationchangedsuccess();
-    _impl_.event_.locationchangedsuccess_ = locationchangedsuccess;
+  if (pathchanged) {
+    set_has_pathchanged();
+    _impl_.event_.pathchanged_ = pathchanged;
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.CacheEvent.locationChangedSuccess)
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.DiskCacheEvent.pathChanged)
 }
-inline ::grpc::CacheLocationChangeSuccessEvent* CacheEvent::_internal_mutable_locationchangedsuccess() {
-  if (!_internal_has_locationchangedsuccess()) {
+inline ::grpc::DiskCachePathChangedEvent* DiskCacheEvent::_internal_mutable_pathchanged() {
+  if (!_internal_has_pathchanged()) {
     clear_event();
-    set_has_locationchangedsuccess();
-    _impl_.event_.locationchangedsuccess_ = CreateMaybeMessage< ::grpc::CacheLocationChangeSuccessEvent >(GetArenaForAllocation());
+    set_has_pathchanged();
+    _impl_.event_.pathchanged_ = CreateMaybeMessage< ::grpc::DiskCachePathChangedEvent >(GetArenaForAllocation());
   }
-  return _impl_.event_.locationchangedsuccess_;
+  return _impl_.event_.pathchanged_;
 }
-inline ::grpc::CacheLocationChangeSuccessEvent* CacheEvent::mutable_locationchangedsuccess() {
-  ::grpc::CacheLocationChangeSuccessEvent* _msg = _internal_mutable_locationchangedsuccess();
-  // @@protoc_insertion_point(field_mutable:grpc.CacheEvent.locationChangedSuccess)
+inline ::grpc::DiskCachePathChangedEvent* DiskCacheEvent::mutable_pathchanged() {
+  ::grpc::DiskCachePathChangedEvent* _msg = _internal_mutable_pathchanged();
+  // @@protoc_insertion_point(field_mutable:grpc.DiskCacheEvent.pathChanged)
   return _msg;
 }
 
-// .grpc.ChangeLocalCacheFinishedEvent changeLocalCacheFinished = 3;
-inline bool CacheEvent::_internal_has_changelocalcachefinished() const {
-  return event_case() == kChangeLocalCacheFinished;
+// .grpc.DiskCachePathChangeFinishedEvent pathChangeFinished = 3;
+inline bool DiskCacheEvent::_internal_has_pathchangefinished() const {
+  return event_case() == kPathChangeFinished;
 }
-inline bool CacheEvent::has_changelocalcachefinished() const {
-  return _internal_has_changelocalcachefinished();
+inline bool DiskCacheEvent::has_pathchangefinished() const {
+  return _internal_has_pathchangefinished();
 }
-inline void CacheEvent::set_has_changelocalcachefinished() {
-  _impl_._oneof_case_[0] = kChangeLocalCacheFinished;
+inline void DiskCacheEvent::set_has_pathchangefinished() {
+  _impl_._oneof_case_[0] = kPathChangeFinished;
 }
-inline void CacheEvent::clear_changelocalcachefinished() {
-  if (_internal_has_changelocalcachefinished()) {
+inline void DiskCacheEvent::clear_pathchangefinished() {
+  if (_internal_has_pathchangefinished()) {
     if (GetArenaForAllocation() == nullptr) {
-      delete _impl_.event_.changelocalcachefinished_;
+      delete _impl_.event_.pathchangefinished_;
     }
     clear_has_event();
   }
 }
-inline ::grpc::ChangeLocalCacheFinishedEvent* CacheEvent::release_changelocalcachefinished() {
-  // @@protoc_insertion_point(field_release:grpc.CacheEvent.changeLocalCacheFinished)
-  if (_internal_has_changelocalcachefinished()) {
+inline ::grpc::DiskCachePathChangeFinishedEvent* DiskCacheEvent::release_pathchangefinished() {
+  // @@protoc_insertion_point(field_release:grpc.DiskCacheEvent.pathChangeFinished)
+  if (_internal_has_pathchangefinished()) {
     clear_has_event();
-    ::grpc::ChangeLocalCacheFinishedEvent* temp = _impl_.event_.changelocalcachefinished_;
+    ::grpc::DiskCachePathChangeFinishedEvent* temp = _impl_.event_.pathchangefinished_;
     if (GetArenaForAllocation() != nullptr) {
       temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
     }
-    _impl_.event_.changelocalcachefinished_ = nullptr;
+    _impl_.event_.pathchangefinished_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline const ::grpc::ChangeLocalCacheFinishedEvent& CacheEvent::_internal_changelocalcachefinished() const {
-  return _internal_has_changelocalcachefinished()
-      ? *_impl_.event_.changelocalcachefinished_
-      : reinterpret_cast< ::grpc::ChangeLocalCacheFinishedEvent&>(::grpc::_ChangeLocalCacheFinishedEvent_default_instance_);
+inline const ::grpc::DiskCachePathChangeFinishedEvent& DiskCacheEvent::_internal_pathchangefinished() const {
+  return _internal_has_pathchangefinished()
+      ? *_impl_.event_.pathchangefinished_
+      : reinterpret_cast< ::grpc::DiskCachePathChangeFinishedEvent&>(::grpc::_DiskCachePathChangeFinishedEvent_default_instance_);
 }
-inline const ::grpc::ChangeLocalCacheFinishedEvent& CacheEvent::changelocalcachefinished() const {
-  // @@protoc_insertion_point(field_get:grpc.CacheEvent.changeLocalCacheFinished)
-  return _internal_changelocalcachefinished();
+inline const ::grpc::DiskCachePathChangeFinishedEvent& DiskCacheEvent::pathchangefinished() const {
+  // @@protoc_insertion_point(field_get:grpc.DiskCacheEvent.pathChangeFinished)
+  return _internal_pathchangefinished();
 }
-inline ::grpc::ChangeLocalCacheFinishedEvent* CacheEvent::unsafe_arena_release_changelocalcachefinished() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.CacheEvent.changeLocalCacheFinished)
-  if (_internal_has_changelocalcachefinished()) {
+inline ::grpc::DiskCachePathChangeFinishedEvent* DiskCacheEvent::unsafe_arena_release_pathchangefinished() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.DiskCacheEvent.pathChangeFinished)
+  if (_internal_has_pathchangefinished()) {
     clear_has_event();
-    ::grpc::ChangeLocalCacheFinishedEvent* temp = _impl_.event_.changelocalcachefinished_;
-    _impl_.event_.changelocalcachefinished_ = nullptr;
+    ::grpc::DiskCachePathChangeFinishedEvent* temp = _impl_.event_.pathchangefinished_;
+    _impl_.event_.pathchangefinished_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline void CacheEvent::unsafe_arena_set_allocated_changelocalcachefinished(::grpc::ChangeLocalCacheFinishedEvent* changelocalcachefinished) {
+inline void DiskCacheEvent::unsafe_arena_set_allocated_pathchangefinished(::grpc::DiskCachePathChangeFinishedEvent* pathchangefinished) {
   clear_event();
-  if (changelocalcachefinished) {
-    set_has_changelocalcachefinished();
-    _impl_.event_.changelocalcachefinished_ = changelocalcachefinished;
+  if (pathchangefinished) {
+    set_has_pathchangefinished();
+    _impl_.event_.pathchangefinished_ = pathchangefinished;
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.CacheEvent.changeLocalCacheFinished)
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.DiskCacheEvent.pathChangeFinished)
 }
-inline ::grpc::ChangeLocalCacheFinishedEvent* CacheEvent::_internal_mutable_changelocalcachefinished() {
-  if (!_internal_has_changelocalcachefinished()) {
+inline ::grpc::DiskCachePathChangeFinishedEvent* DiskCacheEvent::_internal_mutable_pathchangefinished() {
+  if (!_internal_has_pathchangefinished()) {
     clear_event();
-    set_has_changelocalcachefinished();
-    _impl_.event_.changelocalcachefinished_ = CreateMaybeMessage< ::grpc::ChangeLocalCacheFinishedEvent >(GetArenaForAllocation());
+    set_has_pathchangefinished();
+    _impl_.event_.pathchangefinished_ = CreateMaybeMessage< ::grpc::DiskCachePathChangeFinishedEvent >(GetArenaForAllocation());
   }
-  return _impl_.event_.changelocalcachefinished_;
+  return _impl_.event_.pathchangefinished_;
 }
-inline ::grpc::ChangeLocalCacheFinishedEvent* CacheEvent::mutable_changelocalcachefinished() {
-  ::grpc::ChangeLocalCacheFinishedEvent* _msg = _internal_mutable_changelocalcachefinished();
-  // @@protoc_insertion_point(field_mutable:grpc.CacheEvent.changeLocalCacheFinished)
+inline ::grpc::DiskCachePathChangeFinishedEvent* DiskCacheEvent::mutable_pathchangefinished() {
+  ::grpc::DiskCachePathChangeFinishedEvent* _msg = _internal_mutable_pathchangefinished();
+  // @@protoc_insertion_point(field_mutable:grpc.DiskCacheEvent.pathChangeFinished)
   return _msg;
 }
 
-// .grpc.IsCacheOnDiskEnabledChanged isCacheOnDiskEnabledChanged = 4;
-inline bool CacheEvent::_internal_has_iscacheondiskenabledchanged() const {
-  return event_case() == kIsCacheOnDiskEnabledChanged;
-}
-inline bool CacheEvent::has_iscacheondiskenabledchanged() const {
-  return _internal_has_iscacheondiskenabledchanged();
-}
-inline void CacheEvent::set_has_iscacheondiskenabledchanged() {
-  _impl_._oneof_case_[0] = kIsCacheOnDiskEnabledChanged;
-}
-inline void CacheEvent::clear_iscacheondiskenabledchanged() {
-  if (_internal_has_iscacheondiskenabledchanged()) {
-    if (GetArenaForAllocation() == nullptr) {
-      delete _impl_.event_.iscacheondiskenabledchanged_;
-    }
-    clear_has_event();
-  }
-}
-inline ::grpc::IsCacheOnDiskEnabledChanged* CacheEvent::release_iscacheondiskenabledchanged() {
-  // @@protoc_insertion_point(field_release:grpc.CacheEvent.isCacheOnDiskEnabledChanged)
-  if (_internal_has_iscacheondiskenabledchanged()) {
-    clear_has_event();
-    ::grpc::IsCacheOnDiskEnabledChanged* temp = _impl_.event_.iscacheondiskenabledchanged_;
-    if (GetArenaForAllocation() != nullptr) {
-      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
-    }
-    _impl_.event_.iscacheondiskenabledchanged_ = nullptr;
-    return temp;
-  } else {
-    return nullptr;
-  }
-}
-inline const ::grpc::IsCacheOnDiskEnabledChanged& CacheEvent::_internal_iscacheondiskenabledchanged() const {
-  return _internal_has_iscacheondiskenabledchanged()
-      ? *_impl_.event_.iscacheondiskenabledchanged_
-      : reinterpret_cast< ::grpc::IsCacheOnDiskEnabledChanged&>(::grpc::_IsCacheOnDiskEnabledChanged_default_instance_);
-}
-inline const ::grpc::IsCacheOnDiskEnabledChanged& CacheEvent::iscacheondiskenabledchanged() const {
-  // @@protoc_insertion_point(field_get:grpc.CacheEvent.isCacheOnDiskEnabledChanged)
-  return _internal_iscacheondiskenabledchanged();
-}
-inline ::grpc::IsCacheOnDiskEnabledChanged* CacheEvent::unsafe_arena_release_iscacheondiskenabledchanged() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.CacheEvent.isCacheOnDiskEnabledChanged)
-  if (_internal_has_iscacheondiskenabledchanged()) {
-    clear_has_event();
-    ::grpc::IsCacheOnDiskEnabledChanged* temp = _impl_.event_.iscacheondiskenabledchanged_;
-    _impl_.event_.iscacheondiskenabledchanged_ = nullptr;
-    return temp;
-  } else {
-    return nullptr;
-  }
-}
-inline void CacheEvent::unsafe_arena_set_allocated_iscacheondiskenabledchanged(::grpc::IsCacheOnDiskEnabledChanged* iscacheondiskenabledchanged) {
-  clear_event();
-  if (iscacheondiskenabledchanged) {
-    set_has_iscacheondiskenabledchanged();
-    _impl_.event_.iscacheondiskenabledchanged_ = iscacheondiskenabledchanged;
-  }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.CacheEvent.isCacheOnDiskEnabledChanged)
-}
-inline ::grpc::IsCacheOnDiskEnabledChanged* CacheEvent::_internal_mutable_iscacheondiskenabledchanged() {
-  if (!_internal_has_iscacheondiskenabledchanged()) {
-    clear_event();
-    set_has_iscacheondiskenabledchanged();
-    _impl_.event_.iscacheondiskenabledchanged_ = CreateMaybeMessage< ::grpc::IsCacheOnDiskEnabledChanged >(GetArenaForAllocation());
-  }
-  return _impl_.event_.iscacheondiskenabledchanged_;
-}
-inline ::grpc::IsCacheOnDiskEnabledChanged* CacheEvent::mutable_iscacheondiskenabledchanged() {
-  ::grpc::IsCacheOnDiskEnabledChanged* _msg = _internal_mutable_iscacheondiskenabledchanged();
-  // @@protoc_insertion_point(field_mutable:grpc.CacheEvent.isCacheOnDiskEnabledChanged)
-  return _msg;
-}
-
-// .grpc.DiskCachePathChanged diskCachePathChanged = 5;
-inline bool CacheEvent::_internal_has_diskcachepathchanged() const {
-  return event_case() == kDiskCachePathChanged;
-}
-inline bool CacheEvent::has_diskcachepathchanged() const {
-  return _internal_has_diskcachepathchanged();
-}
-inline void CacheEvent::set_has_diskcachepathchanged() {
-  _impl_._oneof_case_[0] = kDiskCachePathChanged;
-}
-inline void CacheEvent::clear_diskcachepathchanged() {
-  if (_internal_has_diskcachepathchanged()) {
-    if (GetArenaForAllocation() == nullptr) {
-      delete _impl_.event_.diskcachepathchanged_;
-    }
-    clear_has_event();
-  }
-}
-inline ::grpc::DiskCachePathChanged* CacheEvent::release_diskcachepathchanged() {
-  // @@protoc_insertion_point(field_release:grpc.CacheEvent.diskCachePathChanged)
-  if (_internal_has_diskcachepathchanged()) {
-    clear_has_event();
-    ::grpc::DiskCachePathChanged* temp = _impl_.event_.diskcachepathchanged_;
-    if (GetArenaForAllocation() != nullptr) {
-      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
-    }
-    _impl_.event_.diskcachepathchanged_ = nullptr;
-    return temp;
-  } else {
-    return nullptr;
-  }
-}
-inline const ::grpc::DiskCachePathChanged& CacheEvent::_internal_diskcachepathchanged() const {
-  return _internal_has_diskcachepathchanged()
-      ? *_impl_.event_.diskcachepathchanged_
-      : reinterpret_cast< ::grpc::DiskCachePathChanged&>(::grpc::_DiskCachePathChanged_default_instance_);
-}
-inline const ::grpc::DiskCachePathChanged& CacheEvent::diskcachepathchanged() const {
-  // @@protoc_insertion_point(field_get:grpc.CacheEvent.diskCachePathChanged)
-  return _internal_diskcachepathchanged();
-}
-inline ::grpc::DiskCachePathChanged* CacheEvent::unsafe_arena_release_diskcachepathchanged() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.CacheEvent.diskCachePathChanged)
-  if (_internal_has_diskcachepathchanged()) {
-    clear_has_event();
-    ::grpc::DiskCachePathChanged* temp = _impl_.event_.diskcachepathchanged_;
-    _impl_.event_.diskcachepathchanged_ = nullptr;
-    return temp;
-  } else {
-    return nullptr;
-  }
-}
-inline void CacheEvent::unsafe_arena_set_allocated_diskcachepathchanged(::grpc::DiskCachePathChanged* diskcachepathchanged) {
-  clear_event();
-  if (diskcachepathchanged) {
-    set_has_diskcachepathchanged();
-    _impl_.event_.diskcachepathchanged_ = diskcachepathchanged;
-  }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.CacheEvent.diskCachePathChanged)
-}
-inline ::grpc::DiskCachePathChanged* CacheEvent::_internal_mutable_diskcachepathchanged() {
-  if (!_internal_has_diskcachepathchanged()) {
-    clear_event();
-    set_has_diskcachepathchanged();
-    _impl_.event_.diskcachepathchanged_ = CreateMaybeMessage< ::grpc::DiskCachePathChanged >(GetArenaForAllocation());
-  }
-  return _impl_.event_.diskcachepathchanged_;
-}
-inline ::grpc::DiskCachePathChanged* CacheEvent::mutable_diskcachepathchanged() {
-  ::grpc::DiskCachePathChanged* _msg = _internal_mutable_diskcachepathchanged();
-  // @@protoc_insertion_point(field_mutable:grpc.CacheEvent.diskCachePathChanged)
-  return _msg;
-}
-
-inline bool CacheEvent::has_event() const {
+inline bool DiskCacheEvent::has_event() const {
   return event_case() != EVENT_NOT_SET;
 }
-inline void CacheEvent::clear_has_event() {
+inline void DiskCacheEvent::clear_has_event() {
   _impl_._oneof_case_[0] = EVENT_NOT_SET;
 }
-inline CacheEvent::EventCase CacheEvent::event_case() const {
-  return CacheEvent::EventCase(_impl_._oneof_case_[0]);
+inline DiskCacheEvent::EventCase DiskCacheEvent::event_case() const {
+  return DiskCacheEvent::EventCase(_impl_._oneof_case_[0]);
 }
 // -------------------------------------------------------------------
 
-// CacheErrorEvent
+// DiskCacheErrorEvent
 
-// .grpc.CacheErrorType type = 1;
-inline void CacheErrorEvent::clear_type() {
+// .grpc.DiskCacheErrorType type = 1;
+inline void DiskCacheErrorEvent::clear_type() {
   _impl_.type_ = 0;
 }
-inline ::grpc::CacheErrorType CacheErrorEvent::_internal_type() const {
-  return static_cast< ::grpc::CacheErrorType >(_impl_.type_);
+inline ::grpc::DiskCacheErrorType DiskCacheErrorEvent::_internal_type() const {
+  return static_cast< ::grpc::DiskCacheErrorType >(_impl_.type_);
 }
-inline ::grpc::CacheErrorType CacheErrorEvent::type() const {
-  // @@protoc_insertion_point(field_get:grpc.CacheErrorEvent.type)
+inline ::grpc::DiskCacheErrorType DiskCacheErrorEvent::type() const {
+  // @@protoc_insertion_point(field_get:grpc.DiskCacheErrorEvent.type)
   return _internal_type();
 }
-inline void CacheErrorEvent::_internal_set_type(::grpc::CacheErrorType value) {
+inline void DiskCacheErrorEvent::_internal_set_type(::grpc::DiskCacheErrorType value) {
   
   _impl_.type_ = value;
 }
-inline void CacheErrorEvent::set_type(::grpc::CacheErrorType value) {
+inline void DiskCacheErrorEvent::set_type(::grpc::DiskCacheErrorType value) {
   _internal_set_type(value);
-  // @@protoc_insertion_point(field_set:grpc.CacheErrorEvent.type)
+  // @@protoc_insertion_point(field_set:grpc.DiskCacheErrorEvent.type)
 }
 
 // -------------------------------------------------------------------
 
-// CacheLocationChangeSuccessEvent
-
-// -------------------------------------------------------------------
-
-// ChangeLocalCacheFinishedEvent
-
-// bool willRestart = 1;
-inline void ChangeLocalCacheFinishedEvent::clear_willrestart() {
-  _impl_.willrestart_ = false;
-}
-inline bool ChangeLocalCacheFinishedEvent::_internal_willrestart() const {
-  return _impl_.willrestart_;
-}
-inline bool ChangeLocalCacheFinishedEvent::willrestart() const {
-  // @@protoc_insertion_point(field_get:grpc.ChangeLocalCacheFinishedEvent.willRestart)
-  return _internal_willrestart();
-}
-inline void ChangeLocalCacheFinishedEvent::_internal_set_willrestart(bool value) {
-  
-  _impl_.willrestart_ = value;
-}
-inline void ChangeLocalCacheFinishedEvent::set_willrestart(bool value) {
-  _internal_set_willrestart(value);
-  // @@protoc_insertion_point(field_set:grpc.ChangeLocalCacheFinishedEvent.willRestart)
-}
-
-// -------------------------------------------------------------------
-
-// IsCacheOnDiskEnabledChanged
-
-// bool enabled = 1;
-inline void IsCacheOnDiskEnabledChanged::clear_enabled() {
-  _impl_.enabled_ = false;
-}
-inline bool IsCacheOnDiskEnabledChanged::_internal_enabled() const {
-  return _impl_.enabled_;
-}
-inline bool IsCacheOnDiskEnabledChanged::enabled() const {
-  // @@protoc_insertion_point(field_get:grpc.IsCacheOnDiskEnabledChanged.enabled)
-  return _internal_enabled();
-}
-inline void IsCacheOnDiskEnabledChanged::_internal_set_enabled(bool value) {
-  
-  _impl_.enabled_ = value;
-}
-inline void IsCacheOnDiskEnabledChanged::set_enabled(bool value) {
-  _internal_set_enabled(value);
-  // @@protoc_insertion_point(field_set:grpc.IsCacheOnDiskEnabledChanged.enabled)
-}
-
-// -------------------------------------------------------------------
-
-// DiskCachePathChanged
+// DiskCachePathChangedEvent
 
 // string path = 1;
-inline void DiskCachePathChanged::clear_path() {
+inline void DiskCachePathChangedEvent::clear_path() {
   _impl_.path_.ClearToEmpty();
 }
-inline const std::string& DiskCachePathChanged::path() const {
-  // @@protoc_insertion_point(field_get:grpc.DiskCachePathChanged.path)
+inline const std::string& DiskCachePathChangedEvent::path() const {
+  // @@protoc_insertion_point(field_get:grpc.DiskCachePathChangedEvent.path)
   return _internal_path();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void DiskCachePathChanged::set_path(ArgT0&& arg0, ArgT... args) {
+void DiskCachePathChangedEvent::set_path(ArgT0&& arg0, ArgT... args) {
  
  _impl_.path_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:grpc.DiskCachePathChanged.path)
+  // @@protoc_insertion_point(field_set:grpc.DiskCachePathChangedEvent.path)
 }
-inline std::string* DiskCachePathChanged::mutable_path() {
+inline std::string* DiskCachePathChangedEvent::mutable_path() {
   std::string* _s = _internal_mutable_path();
-  // @@protoc_insertion_point(field_mutable:grpc.DiskCachePathChanged.path)
+  // @@protoc_insertion_point(field_mutable:grpc.DiskCachePathChangedEvent.path)
   return _s;
 }
-inline const std::string& DiskCachePathChanged::_internal_path() const {
+inline const std::string& DiskCachePathChangedEvent::_internal_path() const {
   return _impl_.path_.Get();
 }
-inline void DiskCachePathChanged::_internal_set_path(const std::string& value) {
+inline void DiskCachePathChangedEvent::_internal_set_path(const std::string& value) {
   
   _impl_.path_.Set(value, GetArenaForAllocation());
 }
-inline std::string* DiskCachePathChanged::_internal_mutable_path() {
+inline std::string* DiskCachePathChangedEvent::_internal_mutable_path() {
   
   return _impl_.path_.Mutable(GetArenaForAllocation());
 }
-inline std::string* DiskCachePathChanged::release_path() {
-  // @@protoc_insertion_point(field_release:grpc.DiskCachePathChanged.path)
+inline std::string* DiskCachePathChangedEvent::release_path() {
+  // @@protoc_insertion_point(field_release:grpc.DiskCachePathChangedEvent.path)
   return _impl_.path_.Release();
 }
-inline void DiskCachePathChanged::set_allocated_path(std::string* path) {
+inline void DiskCachePathChangedEvent::set_allocated_path(std::string* path) {
   if (path != nullptr) {
     
   } else {
@@ -14356,24 +13971,28 @@ inline void DiskCachePathChanged::set_allocated_path(std::string* path) {
     _impl_.path_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:grpc.DiskCachePathChanged.path)
+  // @@protoc_insertion_point(field_set_allocated:grpc.DiskCachePathChangedEvent.path)
 }
 
 // -------------------------------------------------------------------
 
-// MailSettingsEvent
+// DiskCachePathChangeFinishedEvent
 
-// .grpc.MailSettingsErrorEvent error = 1;
-inline bool MailSettingsEvent::_internal_has_error() const {
+// -------------------------------------------------------------------
+
+// MailServerSettingsEvent
+
+// .grpc.MailServerSettingsErrorEvent error = 1;
+inline bool MailServerSettingsEvent::_internal_has_error() const {
   return event_case() == kError;
 }
-inline bool MailSettingsEvent::has_error() const {
+inline bool MailServerSettingsEvent::has_error() const {
   return _internal_has_error();
 }
-inline void MailSettingsEvent::set_has_error() {
+inline void MailServerSettingsEvent::set_has_error() {
   _impl_._oneof_case_[0] = kError;
 }
-inline void MailSettingsEvent::clear_error() {
+inline void MailServerSettingsEvent::clear_error() {
   if (_internal_has_error()) {
     if (GetArenaForAllocation() == nullptr) {
       delete _impl_.event_.error_;
@@ -14381,11 +14000,11 @@ inline void MailSettingsEvent::clear_error() {
     clear_has_event();
   }
 }
-inline ::grpc::MailSettingsErrorEvent* MailSettingsEvent::release_error() {
-  // @@protoc_insertion_point(field_release:grpc.MailSettingsEvent.error)
+inline ::grpc::MailServerSettingsErrorEvent* MailServerSettingsEvent::release_error() {
+  // @@protoc_insertion_point(field_release:grpc.MailServerSettingsEvent.error)
   if (_internal_has_error()) {
     clear_has_event();
-    ::grpc::MailSettingsErrorEvent* temp = _impl_.event_.error_;
+    ::grpc::MailServerSettingsErrorEvent* temp = _impl_.event_.error_;
     if (GetArenaForAllocation() != nullptr) {
       temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
     }
@@ -14395,236 +14014,326 @@ inline ::grpc::MailSettingsErrorEvent* MailSettingsEvent::release_error() {
     return nullptr;
   }
 }
-inline const ::grpc::MailSettingsErrorEvent& MailSettingsEvent::_internal_error() const {
+inline const ::grpc::MailServerSettingsErrorEvent& MailServerSettingsEvent::_internal_error() const {
   return _internal_has_error()
       ? *_impl_.event_.error_
-      : reinterpret_cast< ::grpc::MailSettingsErrorEvent&>(::grpc::_MailSettingsErrorEvent_default_instance_);
+      : reinterpret_cast< ::grpc::MailServerSettingsErrorEvent&>(::grpc::_MailServerSettingsErrorEvent_default_instance_);
 }
-inline const ::grpc::MailSettingsErrorEvent& MailSettingsEvent::error() const {
-  // @@protoc_insertion_point(field_get:grpc.MailSettingsEvent.error)
+inline const ::grpc::MailServerSettingsErrorEvent& MailServerSettingsEvent::error() const {
+  // @@protoc_insertion_point(field_get:grpc.MailServerSettingsEvent.error)
   return _internal_error();
 }
-inline ::grpc::MailSettingsErrorEvent* MailSettingsEvent::unsafe_arena_release_error() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.MailSettingsEvent.error)
+inline ::grpc::MailServerSettingsErrorEvent* MailServerSettingsEvent::unsafe_arena_release_error() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.MailServerSettingsEvent.error)
   if (_internal_has_error()) {
     clear_has_event();
-    ::grpc::MailSettingsErrorEvent* temp = _impl_.event_.error_;
+    ::grpc::MailServerSettingsErrorEvent* temp = _impl_.event_.error_;
     _impl_.event_.error_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline void MailSettingsEvent::unsafe_arena_set_allocated_error(::grpc::MailSettingsErrorEvent* error) {
+inline void MailServerSettingsEvent::unsafe_arena_set_allocated_error(::grpc::MailServerSettingsErrorEvent* error) {
   clear_event();
   if (error) {
     set_has_error();
     _impl_.event_.error_ = error;
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.MailSettingsEvent.error)
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.MailServerSettingsEvent.error)
 }
-inline ::grpc::MailSettingsErrorEvent* MailSettingsEvent::_internal_mutable_error() {
+inline ::grpc::MailServerSettingsErrorEvent* MailServerSettingsEvent::_internal_mutable_error() {
   if (!_internal_has_error()) {
     clear_event();
     set_has_error();
-    _impl_.event_.error_ = CreateMaybeMessage< ::grpc::MailSettingsErrorEvent >(GetArenaForAllocation());
+    _impl_.event_.error_ = CreateMaybeMessage< ::grpc::MailServerSettingsErrorEvent >(GetArenaForAllocation());
   }
   return _impl_.event_.error_;
 }
-inline ::grpc::MailSettingsErrorEvent* MailSettingsEvent::mutable_error() {
-  ::grpc::MailSettingsErrorEvent* _msg = _internal_mutable_error();
-  // @@protoc_insertion_point(field_mutable:grpc.MailSettingsEvent.error)
+inline ::grpc::MailServerSettingsErrorEvent* MailServerSettingsEvent::mutable_error() {
+  ::grpc::MailServerSettingsErrorEvent* _msg = _internal_mutable_error();
+  // @@protoc_insertion_point(field_mutable:grpc.MailServerSettingsEvent.error)
   return _msg;
 }
 
-// .grpc.UseSslForSmtpFinishedEvent useSslForSmtpFinished = 2;
-inline bool MailSettingsEvent::_internal_has_usesslforsmtpfinished() const {
-  return event_case() == kUseSslForSmtpFinished;
+// .grpc.MailServerSettingsChangedEvent mailServerSettingsChanged = 2;
+inline bool MailServerSettingsEvent::_internal_has_mailserversettingschanged() const {
+  return event_case() == kMailServerSettingsChanged;
 }
-inline bool MailSettingsEvent::has_usesslforsmtpfinished() const {
-  return _internal_has_usesslforsmtpfinished();
+inline bool MailServerSettingsEvent::has_mailserversettingschanged() const {
+  return _internal_has_mailserversettingschanged();
 }
-inline void MailSettingsEvent::set_has_usesslforsmtpfinished() {
-  _impl_._oneof_case_[0] = kUseSslForSmtpFinished;
+inline void MailServerSettingsEvent::set_has_mailserversettingschanged() {
+  _impl_._oneof_case_[0] = kMailServerSettingsChanged;
 }
-inline void MailSettingsEvent::clear_usesslforsmtpfinished() {
-  if (_internal_has_usesslforsmtpfinished()) {
+inline void MailServerSettingsEvent::clear_mailserversettingschanged() {
+  if (_internal_has_mailserversettingschanged()) {
     if (GetArenaForAllocation() == nullptr) {
-      delete _impl_.event_.usesslforsmtpfinished_;
+      delete _impl_.event_.mailserversettingschanged_;
     }
     clear_has_event();
   }
 }
-inline ::grpc::UseSslForSmtpFinishedEvent* MailSettingsEvent::release_usesslforsmtpfinished() {
-  // @@protoc_insertion_point(field_release:grpc.MailSettingsEvent.useSslForSmtpFinished)
-  if (_internal_has_usesslforsmtpfinished()) {
+inline ::grpc::MailServerSettingsChangedEvent* MailServerSettingsEvent::release_mailserversettingschanged() {
+  // @@protoc_insertion_point(field_release:grpc.MailServerSettingsEvent.mailServerSettingsChanged)
+  if (_internal_has_mailserversettingschanged()) {
     clear_has_event();
-    ::grpc::UseSslForSmtpFinishedEvent* temp = _impl_.event_.usesslforsmtpfinished_;
+    ::grpc::MailServerSettingsChangedEvent* temp = _impl_.event_.mailserversettingschanged_;
     if (GetArenaForAllocation() != nullptr) {
       temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
     }
-    _impl_.event_.usesslforsmtpfinished_ = nullptr;
+    _impl_.event_.mailserversettingschanged_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline const ::grpc::UseSslForSmtpFinishedEvent& MailSettingsEvent::_internal_usesslforsmtpfinished() const {
-  return _internal_has_usesslforsmtpfinished()
-      ? *_impl_.event_.usesslforsmtpfinished_
-      : reinterpret_cast< ::grpc::UseSslForSmtpFinishedEvent&>(::grpc::_UseSslForSmtpFinishedEvent_default_instance_);
+inline const ::grpc::MailServerSettingsChangedEvent& MailServerSettingsEvent::_internal_mailserversettingschanged() const {
+  return _internal_has_mailserversettingschanged()
+      ? *_impl_.event_.mailserversettingschanged_
+      : reinterpret_cast< ::grpc::MailServerSettingsChangedEvent&>(::grpc::_MailServerSettingsChangedEvent_default_instance_);
 }
-inline const ::grpc::UseSslForSmtpFinishedEvent& MailSettingsEvent::usesslforsmtpfinished() const {
-  // @@protoc_insertion_point(field_get:grpc.MailSettingsEvent.useSslForSmtpFinished)
-  return _internal_usesslforsmtpfinished();
+inline const ::grpc::MailServerSettingsChangedEvent& MailServerSettingsEvent::mailserversettingschanged() const {
+  // @@protoc_insertion_point(field_get:grpc.MailServerSettingsEvent.mailServerSettingsChanged)
+  return _internal_mailserversettingschanged();
 }
-inline ::grpc::UseSslForSmtpFinishedEvent* MailSettingsEvent::unsafe_arena_release_usesslforsmtpfinished() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.MailSettingsEvent.useSslForSmtpFinished)
-  if (_internal_has_usesslforsmtpfinished()) {
+inline ::grpc::MailServerSettingsChangedEvent* MailServerSettingsEvent::unsafe_arena_release_mailserversettingschanged() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.MailServerSettingsEvent.mailServerSettingsChanged)
+  if (_internal_has_mailserversettingschanged()) {
     clear_has_event();
-    ::grpc::UseSslForSmtpFinishedEvent* temp = _impl_.event_.usesslforsmtpfinished_;
-    _impl_.event_.usesslforsmtpfinished_ = nullptr;
+    ::grpc::MailServerSettingsChangedEvent* temp = _impl_.event_.mailserversettingschanged_;
+    _impl_.event_.mailserversettingschanged_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline void MailSettingsEvent::unsafe_arena_set_allocated_usesslforsmtpfinished(::grpc::UseSslForSmtpFinishedEvent* usesslforsmtpfinished) {
+inline void MailServerSettingsEvent::unsafe_arena_set_allocated_mailserversettingschanged(::grpc::MailServerSettingsChangedEvent* mailserversettingschanged) {
   clear_event();
-  if (usesslforsmtpfinished) {
-    set_has_usesslforsmtpfinished();
-    _impl_.event_.usesslforsmtpfinished_ = usesslforsmtpfinished;
+  if (mailserversettingschanged) {
+    set_has_mailserversettingschanged();
+    _impl_.event_.mailserversettingschanged_ = mailserversettingschanged;
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.MailSettingsEvent.useSslForSmtpFinished)
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.MailServerSettingsEvent.mailServerSettingsChanged)
 }
-inline ::grpc::UseSslForSmtpFinishedEvent* MailSettingsEvent::_internal_mutable_usesslforsmtpfinished() {
-  if (!_internal_has_usesslforsmtpfinished()) {
+inline ::grpc::MailServerSettingsChangedEvent* MailServerSettingsEvent::_internal_mutable_mailserversettingschanged() {
+  if (!_internal_has_mailserversettingschanged()) {
     clear_event();
-    set_has_usesslforsmtpfinished();
-    _impl_.event_.usesslforsmtpfinished_ = CreateMaybeMessage< ::grpc::UseSslForSmtpFinishedEvent >(GetArenaForAllocation());
+    set_has_mailserversettingschanged();
+    _impl_.event_.mailserversettingschanged_ = CreateMaybeMessage< ::grpc::MailServerSettingsChangedEvent >(GetArenaForAllocation());
   }
-  return _impl_.event_.usesslforsmtpfinished_;
+  return _impl_.event_.mailserversettingschanged_;
 }
-inline ::grpc::UseSslForSmtpFinishedEvent* MailSettingsEvent::mutable_usesslforsmtpfinished() {
-  ::grpc::UseSslForSmtpFinishedEvent* _msg = _internal_mutable_usesslforsmtpfinished();
-  // @@protoc_insertion_point(field_mutable:grpc.MailSettingsEvent.useSslForSmtpFinished)
+inline ::grpc::MailServerSettingsChangedEvent* MailServerSettingsEvent::mutable_mailserversettingschanged() {
+  ::grpc::MailServerSettingsChangedEvent* _msg = _internal_mutable_mailserversettingschanged();
+  // @@protoc_insertion_point(field_mutable:grpc.MailServerSettingsEvent.mailServerSettingsChanged)
   return _msg;
 }
 
-// .grpc.ChangePortsFinishedEvent changePortsFinished = 3;
-inline bool MailSettingsEvent::_internal_has_changeportsfinished() const {
-  return event_case() == kChangePortsFinished;
+// .grpc.ChangeMailServerSettingsFinishedEvent changeMailServerSettingsFinished = 3;
+inline bool MailServerSettingsEvent::_internal_has_changemailserversettingsfinished() const {
+  return event_case() == kChangeMailServerSettingsFinished;
 }
-inline bool MailSettingsEvent::has_changeportsfinished() const {
-  return _internal_has_changeportsfinished();
+inline bool MailServerSettingsEvent::has_changemailserversettingsfinished() const {
+  return _internal_has_changemailserversettingsfinished();
 }
-inline void MailSettingsEvent::set_has_changeportsfinished() {
-  _impl_._oneof_case_[0] = kChangePortsFinished;
+inline void MailServerSettingsEvent::set_has_changemailserversettingsfinished() {
+  _impl_._oneof_case_[0] = kChangeMailServerSettingsFinished;
 }
-inline void MailSettingsEvent::clear_changeportsfinished() {
-  if (_internal_has_changeportsfinished()) {
+inline void MailServerSettingsEvent::clear_changemailserversettingsfinished() {
+  if (_internal_has_changemailserversettingsfinished()) {
     if (GetArenaForAllocation() == nullptr) {
-      delete _impl_.event_.changeportsfinished_;
+      delete _impl_.event_.changemailserversettingsfinished_;
     }
     clear_has_event();
   }
 }
-inline ::grpc::ChangePortsFinishedEvent* MailSettingsEvent::release_changeportsfinished() {
-  // @@protoc_insertion_point(field_release:grpc.MailSettingsEvent.changePortsFinished)
-  if (_internal_has_changeportsfinished()) {
+inline ::grpc::ChangeMailServerSettingsFinishedEvent* MailServerSettingsEvent::release_changemailserversettingsfinished() {
+  // @@protoc_insertion_point(field_release:grpc.MailServerSettingsEvent.changeMailServerSettingsFinished)
+  if (_internal_has_changemailserversettingsfinished()) {
     clear_has_event();
-    ::grpc::ChangePortsFinishedEvent* temp = _impl_.event_.changeportsfinished_;
+    ::grpc::ChangeMailServerSettingsFinishedEvent* temp = _impl_.event_.changemailserversettingsfinished_;
     if (GetArenaForAllocation() != nullptr) {
       temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
     }
-    _impl_.event_.changeportsfinished_ = nullptr;
+    _impl_.event_.changemailserversettingsfinished_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline const ::grpc::ChangePortsFinishedEvent& MailSettingsEvent::_internal_changeportsfinished() const {
-  return _internal_has_changeportsfinished()
-      ? *_impl_.event_.changeportsfinished_
-      : reinterpret_cast< ::grpc::ChangePortsFinishedEvent&>(::grpc::_ChangePortsFinishedEvent_default_instance_);
+inline const ::grpc::ChangeMailServerSettingsFinishedEvent& MailServerSettingsEvent::_internal_changemailserversettingsfinished() const {
+  return _internal_has_changemailserversettingsfinished()
+      ? *_impl_.event_.changemailserversettingsfinished_
+      : reinterpret_cast< ::grpc::ChangeMailServerSettingsFinishedEvent&>(::grpc::_ChangeMailServerSettingsFinishedEvent_default_instance_);
 }
-inline const ::grpc::ChangePortsFinishedEvent& MailSettingsEvent::changeportsfinished() const {
-  // @@protoc_insertion_point(field_get:grpc.MailSettingsEvent.changePortsFinished)
-  return _internal_changeportsfinished();
+inline const ::grpc::ChangeMailServerSettingsFinishedEvent& MailServerSettingsEvent::changemailserversettingsfinished() const {
+  // @@protoc_insertion_point(field_get:grpc.MailServerSettingsEvent.changeMailServerSettingsFinished)
+  return _internal_changemailserversettingsfinished();
 }
-inline ::grpc::ChangePortsFinishedEvent* MailSettingsEvent::unsafe_arena_release_changeportsfinished() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.MailSettingsEvent.changePortsFinished)
-  if (_internal_has_changeportsfinished()) {
+inline ::grpc::ChangeMailServerSettingsFinishedEvent* MailServerSettingsEvent::unsafe_arena_release_changemailserversettingsfinished() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:grpc.MailServerSettingsEvent.changeMailServerSettingsFinished)
+  if (_internal_has_changemailserversettingsfinished()) {
     clear_has_event();
-    ::grpc::ChangePortsFinishedEvent* temp = _impl_.event_.changeportsfinished_;
-    _impl_.event_.changeportsfinished_ = nullptr;
+    ::grpc::ChangeMailServerSettingsFinishedEvent* temp = _impl_.event_.changemailserversettingsfinished_;
+    _impl_.event_.changemailserversettingsfinished_ = nullptr;
     return temp;
   } else {
     return nullptr;
   }
 }
-inline void MailSettingsEvent::unsafe_arena_set_allocated_changeportsfinished(::grpc::ChangePortsFinishedEvent* changeportsfinished) {
+inline void MailServerSettingsEvent::unsafe_arena_set_allocated_changemailserversettingsfinished(::grpc::ChangeMailServerSettingsFinishedEvent* changemailserversettingsfinished) {
   clear_event();
-  if (changeportsfinished) {
-    set_has_changeportsfinished();
-    _impl_.event_.changeportsfinished_ = changeportsfinished;
+  if (changemailserversettingsfinished) {
+    set_has_changemailserversettingsfinished();
+    _impl_.event_.changemailserversettingsfinished_ = changemailserversettingsfinished;
   }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.MailSettingsEvent.changePortsFinished)
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.MailServerSettingsEvent.changeMailServerSettingsFinished)
 }
-inline ::grpc::ChangePortsFinishedEvent* MailSettingsEvent::_internal_mutable_changeportsfinished() {
-  if (!_internal_has_changeportsfinished()) {
+inline ::grpc::ChangeMailServerSettingsFinishedEvent* MailServerSettingsEvent::_internal_mutable_changemailserversettingsfinished() {
+  if (!_internal_has_changemailserversettingsfinished()) {
     clear_event();
-    set_has_changeportsfinished();
-    _impl_.event_.changeportsfinished_ = CreateMaybeMessage< ::grpc::ChangePortsFinishedEvent >(GetArenaForAllocation());
+    set_has_changemailserversettingsfinished();
+    _impl_.event_.changemailserversettingsfinished_ = CreateMaybeMessage< ::grpc::ChangeMailServerSettingsFinishedEvent >(GetArenaForAllocation());
   }
-  return _impl_.event_.changeportsfinished_;
+  return _impl_.event_.changemailserversettingsfinished_;
 }
-inline ::grpc::ChangePortsFinishedEvent* MailSettingsEvent::mutable_changeportsfinished() {
-  ::grpc::ChangePortsFinishedEvent* _msg = _internal_mutable_changeportsfinished();
-  // @@protoc_insertion_point(field_mutable:grpc.MailSettingsEvent.changePortsFinished)
+inline ::grpc::ChangeMailServerSettingsFinishedEvent* MailServerSettingsEvent::mutable_changemailserversettingsfinished() {
+  ::grpc::ChangeMailServerSettingsFinishedEvent* _msg = _internal_mutable_changemailserversettingsfinished();
+  // @@protoc_insertion_point(field_mutable:grpc.MailServerSettingsEvent.changeMailServerSettingsFinished)
   return _msg;
 }
 
-inline bool MailSettingsEvent::has_event() const {
+inline bool MailServerSettingsEvent::has_event() const {
   return event_case() != EVENT_NOT_SET;
 }
-inline void MailSettingsEvent::clear_has_event() {
+inline void MailServerSettingsEvent::clear_has_event() {
   _impl_._oneof_case_[0] = EVENT_NOT_SET;
 }
-inline MailSettingsEvent::EventCase MailSettingsEvent::event_case() const {
-  return MailSettingsEvent::EventCase(_impl_._oneof_case_[0]);
+inline MailServerSettingsEvent::EventCase MailServerSettingsEvent::event_case() const {
+  return MailServerSettingsEvent::EventCase(_impl_._oneof_case_[0]);
 }
 // -------------------------------------------------------------------
 
-// MailSettingsErrorEvent
+// MailServerSettingsErrorEvent
 
-// .grpc.MailSettingsErrorType type = 1;
-inline void MailSettingsErrorEvent::clear_type() {
+// .grpc.MailServerSettingsErrorType type = 1;
+inline void MailServerSettingsErrorEvent::clear_type() {
   _impl_.type_ = 0;
 }
-inline ::grpc::MailSettingsErrorType MailSettingsErrorEvent::_internal_type() const {
-  return static_cast< ::grpc::MailSettingsErrorType >(_impl_.type_);
+inline ::grpc::MailServerSettingsErrorType MailServerSettingsErrorEvent::_internal_type() const {
+  return static_cast< ::grpc::MailServerSettingsErrorType >(_impl_.type_);
 }
-inline ::grpc::MailSettingsErrorType MailSettingsErrorEvent::type() const {
-  // @@protoc_insertion_point(field_get:grpc.MailSettingsErrorEvent.type)
+inline ::grpc::MailServerSettingsErrorType MailServerSettingsErrorEvent::type() const {
+  // @@protoc_insertion_point(field_get:grpc.MailServerSettingsErrorEvent.type)
   return _internal_type();
 }
-inline void MailSettingsErrorEvent::_internal_set_type(::grpc::MailSettingsErrorType value) {
+inline void MailServerSettingsErrorEvent::_internal_set_type(::grpc::MailServerSettingsErrorType value) {
   
   _impl_.type_ = value;
 }
-inline void MailSettingsErrorEvent::set_type(::grpc::MailSettingsErrorType value) {
+inline void MailServerSettingsErrorEvent::set_type(::grpc::MailServerSettingsErrorType value) {
   _internal_set_type(value);
-  // @@protoc_insertion_point(field_set:grpc.MailSettingsErrorEvent.type)
+  // @@protoc_insertion_point(field_set:grpc.MailServerSettingsErrorEvent.type)
 }
 
 // -------------------------------------------------------------------
 
-// UseSslForSmtpFinishedEvent
+// MailServerSettingsChangedEvent
+
+// .grpc.ImapSmtpSettings settings = 1;
+inline bool MailServerSettingsChangedEvent::_internal_has_settings() const {
+  return this != internal_default_instance() && _impl_.settings_ != nullptr;
+}
+inline bool MailServerSettingsChangedEvent::has_settings() const {
+  return _internal_has_settings();
+}
+inline void MailServerSettingsChangedEvent::clear_settings() {
+  if (GetArenaForAllocation() == nullptr && _impl_.settings_ != nullptr) {
+    delete _impl_.settings_;
+  }
+  _impl_.settings_ = nullptr;
+}
+inline const ::grpc::ImapSmtpSettings& MailServerSettingsChangedEvent::_internal_settings() const {
+  const ::grpc::ImapSmtpSettings* p = _impl_.settings_;
+  return p != nullptr ? *p : reinterpret_cast<const ::grpc::ImapSmtpSettings&>(
+      ::grpc::_ImapSmtpSettings_default_instance_);
+}
+inline const ::grpc::ImapSmtpSettings& MailServerSettingsChangedEvent::settings() const {
+  // @@protoc_insertion_point(field_get:grpc.MailServerSettingsChangedEvent.settings)
+  return _internal_settings();
+}
+inline void MailServerSettingsChangedEvent::unsafe_arena_set_allocated_settings(
+    ::grpc::ImapSmtpSettings* settings) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.settings_);
+  }
+  _impl_.settings_ = settings;
+  if (settings) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:grpc.MailServerSettingsChangedEvent.settings)
+}
+inline ::grpc::ImapSmtpSettings* MailServerSettingsChangedEvent::release_settings() {
+  
+  ::grpc::ImapSmtpSettings* temp = _impl_.settings_;
+  _impl_.settings_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::grpc::ImapSmtpSettings* MailServerSettingsChangedEvent::unsafe_arena_release_settings() {
+  // @@protoc_insertion_point(field_release:grpc.MailServerSettingsChangedEvent.settings)
+  
+  ::grpc::ImapSmtpSettings* temp = _impl_.settings_;
+  _impl_.settings_ = nullptr;
+  return temp;
+}
+inline ::grpc::ImapSmtpSettings* MailServerSettingsChangedEvent::_internal_mutable_settings() {
+  
+  if (_impl_.settings_ == nullptr) {
+    auto* p = CreateMaybeMessage<::grpc::ImapSmtpSettings>(GetArenaForAllocation());
+    _impl_.settings_ = p;
+  }
+  return _impl_.settings_;
+}
+inline ::grpc::ImapSmtpSettings* MailServerSettingsChangedEvent::mutable_settings() {
+  ::grpc::ImapSmtpSettings* _msg = _internal_mutable_settings();
+  // @@protoc_insertion_point(field_mutable:grpc.MailServerSettingsChangedEvent.settings)
+  return _msg;
+}
+inline void MailServerSettingsChangedEvent::set_allocated_settings(::grpc::ImapSmtpSettings* settings) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.settings_;
+  }
+  if (settings) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(settings);
+    if (message_arena != submessage_arena) {
+      settings = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, settings, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.settings_ = settings;
+  // @@protoc_insertion_point(field_set_allocated:grpc.MailServerSettingsChangedEvent.settings)
+}
 
 // -------------------------------------------------------------------
 
-// ChangePortsFinishedEvent
+// ChangeMailServerSettingsFinishedEvent
 
 // -------------------------------------------------------------------
 
@@ -15745,13 +15454,33 @@ inline void UserChangedEvent::set_allocated_userid(std::string* userid) {
   // @@protoc_insertion_point(field_set_allocated:grpc.UserChangedEvent.userID)
 }
 
+// -------------------------------------------------------------------
+
+// GenericErrorEvent
+
+// .grpc.ErrorCode code = 1;
+inline void GenericErrorEvent::clear_code() {
+  _impl_.code_ = 0;
+}
+inline ::grpc::ErrorCode GenericErrorEvent::_internal_code() const {
+  return static_cast< ::grpc::ErrorCode >(_impl_.code_);
+}
+inline ::grpc::ErrorCode GenericErrorEvent::code() const {
+  // @@protoc_insertion_point(field_get:grpc.GenericErrorEvent.code)
+  return _internal_code();
+}
+inline void GenericErrorEvent::_internal_set_code(::grpc::ErrorCode value) {
+  
+  _impl_.code_ = value;
+}
+inline void GenericErrorEvent::set_code(::grpc::ErrorCode value) {
+  _internal_set_code(value);
+  // @@protoc_insertion_point(field_set:grpc.GenericErrorEvent.code)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
-// -------------------------------------------------------------------
-
-// -------------------------------------------------------------------
-
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------
@@ -15874,6 +15603,11 @@ template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::grpc::LogLevel>() {
   return ::grpc::LogLevel_descriptor();
 }
+template <> struct is_proto_enum< ::grpc::UserState> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::grpc::UserState>() {
+  return ::grpc::UserState_descriptor();
+}
 template <> struct is_proto_enum< ::grpc::LoginErrorType> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::grpc::LoginErrorType>() {
@@ -15884,15 +15618,20 @@ template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::grpc::UpdateErrorType>() {
   return ::grpc::UpdateErrorType_descriptor();
 }
-template <> struct is_proto_enum< ::grpc::CacheErrorType> : ::std::true_type {};
+template <> struct is_proto_enum< ::grpc::DiskCacheErrorType> : ::std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::grpc::CacheErrorType>() {
-  return ::grpc::CacheErrorType_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::grpc::DiskCacheErrorType>() {
+  return ::grpc::DiskCacheErrorType_descriptor();
 }
-template <> struct is_proto_enum< ::grpc::MailSettingsErrorType> : ::std::true_type {};
+template <> struct is_proto_enum< ::grpc::MailServerSettingsErrorType> : ::std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::grpc::MailSettingsErrorType>() {
-  return ::grpc::MailSettingsErrorType_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::grpc::MailServerSettingsErrorType>() {
+  return ::grpc::MailServerSettingsErrorType_descriptor();
+}
+template <> struct is_proto_enum< ::grpc::ErrorCode> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::grpc::ErrorCode>() {
+  return ::grpc::ErrorCode_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

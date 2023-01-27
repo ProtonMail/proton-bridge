@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -13,79 +13,57 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
 package updater
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/v2/pkg/pmapi"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
-var ErrManualUpdateRequired = errors.New("manual update is required")
+var (
+	ErrDownloadVerify         = errors.New("failed to download or verify the update")
+	ErrInstall                = errors.New("failed to install the update")
+	ErrUpdateAlreadyInstalled = errors.New("update is already installed")
+)
+
+type Downloader interface {
+	DownloadAndVerify(ctx context.Context, kr *crypto.KeyRing, url, sig string) ([]byte, error)
+}
 
 type Installer interface {
+	IsAlreadyInstalled(*semver.Version) bool
 	InstallUpdate(*semver.Version, io.Reader) error
 }
 
-type Settings interface {
-	Get(settings.Key) string
-	Set(settings.Key, string)
-	GetFloat64(settings.Key) float64
-}
-
 type Updater struct {
-	cm        pmapi.Manager
 	installer Installer
-	settings  Settings
-	kr        *crypto.KeyRing
-
-	curVer        *semver.Version
-	updateURLName string
-	platform      string
-
-	locker *locker
+	verifier  *crypto.KeyRing
+	product   string
+	platform  string
 }
 
-func New(
-	cm pmapi.Manager,
-	installer Installer,
-	s Settings,
-	kr *crypto.KeyRing,
-	curVer *semver.Version,
-	updateURLName, platform string,
-) *Updater {
-	// If there's some unexpected value in the preferences, we force it back onto the default channel.
-	// This prevents users from screwing up silent updates by modifying their prefs.json file.
-	if channel := UpdateChannel(s.Get(settings.UpdateChannelKey)); !(channel == StableChannel || channel == EarlyChannel) {
-		s.Set(settings.UpdateChannelKey, string(DefaultUpdateChannel))
-	}
-
+func NewUpdater(installer Installer, verifier *crypto.KeyRing, product, platform string) *Updater {
 	return &Updater{
-		cm:            cm,
-		installer:     installer,
-		settings:      s,
-		kr:            kr,
-		curVer:        curVer,
-		updateURLName: updateURLName,
-		platform:      platform,
-		locker:        newLocker(),
+		installer: installer,
+		verifier:  verifier,
+		product:   product,
+		platform:  platform,
 	}
 }
 
-func (u *Updater) Check() (VersionInfo, error) {
-	logrus.Info("Checking for updates")
-
-	b, err := u.cm.DownloadAndVerify(
-		u.kr,
+func (u *Updater) GetVersionInfo(ctx context.Context, downloader Downloader, channel Channel) (VersionInfo, error) {
+	b, err := downloader.DownloadAndVerify(
+		ctx,
+		u.verifier,
 		u.getVersionFileURL(),
 		u.getVersionFileURL()+".sig",
 	)
@@ -99,7 +77,7 @@ func (u *Updater) Check() (VersionInfo, error) {
 		return VersionInfo{}, err
 	}
 
-	version, ok := versionMap[u.settings.Get(settings.UpdateChannelKey)]
+	version, ok := versionMap[channel]
 	if !ok {
 		return VersionInfo{}, errors.New("no updates available for this channel")
 	}
@@ -107,45 +85,31 @@ func (u *Updater) Check() (VersionInfo, error) {
 	return version, nil
 }
 
-func (u *Updater) IsUpdateApplicable(version VersionInfo) bool {
-	if !version.Version.GreaterThan(u.curVer) {
-		return false
+func (u *Updater) InstallUpdate(ctx context.Context, downloader Downloader, update VersionInfo) error {
+	if u.installer.IsAlreadyInstalled(update.Version) {
+		return ErrUpdateAlreadyInstalled
 	}
 
-	if u.settings.GetFloat64(settings.RolloutKey) > version.RolloutProportion {
-		return false
+	b, err := downloader.DownloadAndVerify(
+		ctx,
+		u.verifier,
+		update.Package,
+		update.Package+".sig",
+	)
+	if err != nil {
+		return ErrDownloadVerify
 	}
 
-	return true
-}
-
-func (u *Updater) IsDowngrade(version VersionInfo) bool {
-	return version.Version.LessThan(u.curVer)
-}
-
-func (u *Updater) CanInstall(version VersionInfo) bool {
-	if version.MinAuto == nil {
-		return true
+	if err := u.installer.InstallUpdate(update.Version, bytes.NewReader(b)); err != nil {
+		return ErrInstall
 	}
 
-	return !u.curVer.LessThan(version.MinAuto)
+	return nil
 }
 
-func (u *Updater) InstallUpdate(update VersionInfo) error {
-	return u.locker.doOnce(func() error {
-		logrus.WithField("package", update.Package).Info("Installing update package")
-
-		b, err := u.cm.DownloadAndVerify(u.kr, update.Package, update.Package+".sig")
-		if err != nil {
-			return errors.Wrap(ErrDownloadVerify, err.Error())
-		}
-
-		if err := u.installer.InstallUpdate(update.Version, bytes.NewReader(b)); err != nil {
-			return errors.Wrap(ErrInstall, err.Error())
-		}
-
-		u.curVer = update.Version
-
-		return nil
-	})
+// getVersionFileURL returns the URL of the version file.
+// For example:
+//   - https://protonmail.com/download/bridge/version_linux.json
+func (u *Updater) getVersionFileURL() string {
+	return fmt.Sprintf("%v/%v/version_%v.json", Host, u.product, u.platform)
 }

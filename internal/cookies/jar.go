@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -22,32 +22,30 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/http/cookiejar"
 	"net/url"
 	"sync"
 	"time"
-
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
 )
 
 type cookiesByHost map[string][]*http.Cookie
 
+type Persister interface {
+	GetCookies() ([]byte, error)
+	SetCookies([]byte) error
+}
+
 // Jar implements http.CookieJar by wrapping the standard library's cookiejar.Jar.
 // The jar uses a pantry to load cookies at startup and save cookies when set.
 type Jar struct {
-	jar      *cookiejar.Jar
-	settings *settings.Settings
-	cookies  cookiesByHost
-	locker   sync.Locker
+	jar http.CookieJar
+
+	persister Persister
+	cookies   cookiesByHost
+	locker    sync.RWMutex
 }
 
-func NewCookieJar(s *settings.Settings) (*Jar, error) {
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		return nil, err
-	}
-
-	cookiesByHost, err := loadCookies(s)
+func NewCookieJar(jar http.CookieJar, persister Persister) (*Jar, error) {
+	cookiesByHost, err := loadCookies(persister)
 	if err != nil {
 		return nil, err
 	}
@@ -62,10 +60,10 @@ func NewCookieJar(s *settings.Settings) (*Jar, error) {
 	}
 
 	return &Jar{
-		jar:      jar,
-		settings: s,
-		cookies:  cookiesByHost,
-		locker:   &sync.Mutex{},
+		jar: jar,
+
+		persister: persister,
+		cookies:   cookiesByHost,
 	}, nil
 }
 
@@ -85,38 +83,39 @@ func (j *Jar) SetCookies(u *url.URL, cookies []*http.Cookie) {
 }
 
 func (j *Jar) Cookies(u *url.URL) []*http.Cookie {
-	j.locker.Lock()
-	defer j.locker.Unlock()
+	j.locker.RLock()
+	defer j.locker.RUnlock()
 
 	return j.jar.Cookies(u)
 }
 
 // PersistCookies persists the cookies to disk.
 func (j *Jar) PersistCookies() error {
-	j.locker.Lock()
-	defer j.locker.Unlock()
+	j.locker.RLock()
+	defer j.locker.RUnlock()
 
 	rawCookies, err := json.Marshal(j.cookies)
 	if err != nil {
 		return err
 	}
 
-	j.settings.Set(settings.CookiesKey, string(rawCookies))
-
-	return nil
+	return j.persister.SetCookies(rawCookies)
 }
 
 // loadCookies loads all non-expired cookies from disk.
-func loadCookies(s *settings.Settings) (cookiesByHost, error) {
-	rawCookies := s.Get(settings.CookiesKey)
+func loadCookies(persister Persister) (cookiesByHost, error) {
+	rawCookies, err := persister.GetCookies()
+	if err != nil {
+		return nil, err
+	}
 
-	if rawCookies == "" {
+	if len(rawCookies) == 0 {
 		return make(cookiesByHost), nil
 	}
 
 	var cookiesByHost cookiesByHost
 
-	if err := json.Unmarshal([]byte(rawCookies), &cookiesByHost); err != nil {
+	if err := json.Unmarshal(rawCookies, &cookiesByHost); err != nil {
 		return nil, err
 	}
 

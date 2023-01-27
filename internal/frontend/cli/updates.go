@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -18,36 +18,28 @@
 package cli
 
 import (
-	"strings"
-
-	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/v2/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/abiosoft/ishell"
 )
 
 func (f *frontendCLI) checkUpdates(c *ishell.Context) {
-	version, err := f.updater.Check()
-	if err != nil {
-		f.Println("An error occurred while checking for updates.")
-		return
-	}
+	updateCh, done := f.bridge.GetEvents(events.UpdateAvailable{}, events.UpdateNotAvailable{})
+	defer done()
 
-	if f.updater.IsUpdateApplicable(version) {
-		f.Println("An update is available.")
-	} else {
-		f.Println("Your version is up to date.")
-	}
-}
+	f.bridge.CheckForUpdates()
 
-func (f *frontendCLI) printCredits(c *ishell.Context) {
-	for _, pkg := range strings.Split(bridge.Credits, ";") {
-		f.Println(pkg)
+	switch (<-updateCh).(type) {
+	case events.UpdateAvailable:
+		// ... this is handled by the main event loop
+
+	case events.UpdateNotAvailable:
+		f.Println("Bridge is already up to date.")
 	}
 }
 
 func (f *frontendCLI) enableAutoUpdates(c *ishell.Context) {
-	if f.bridge.GetBool(settings.AutoUpdateKey) {
+	if f.bridge.GetAutoUpdate() {
 		f.Println("Bridge is already set to automatically install updates.")
 		return
 	}
@@ -55,12 +47,15 @@ func (f *frontendCLI) enableAutoUpdates(c *ishell.Context) {
 	f.Println("Bridge is currently set to NOT automatically install updates.")
 
 	if f.yesNoQuestion("Are you sure you want to allow bridge to do this") {
-		f.bridge.SetBool(settings.AutoUpdateKey, true)
+		if err := f.bridge.SetAutoUpdate(true); err != nil {
+			f.printAndLogError(err)
+			return
+		}
 	}
 }
 
 func (f *frontendCLI) disableAutoUpdates(c *ishell.Context) {
-	if !f.bridge.GetBool(settings.AutoUpdateKey) {
+	if !f.bridge.GetAutoUpdate() {
 		f.Println("Bridge is already set to NOT automatically install updates.")
 		return
 	}
@@ -68,7 +63,10 @@ func (f *frontendCLI) disableAutoUpdates(c *ishell.Context) {
 	f.Println("Bridge is currently set to automatically install updates.")
 
 	if f.yesNoQuestion("Are you sure you want to stop bridge from doing this") {
-		f.bridge.SetBool(settings.AutoUpdateKey, false)
+		if err := f.bridge.SetAutoUpdate(false); err != nil {
+			f.printAndLogError(err)
+			return
+		}
 	}
 }
 
@@ -81,7 +79,10 @@ func (f *frontendCLI) selectEarlyChannel(c *ishell.Context) {
 	f.Println("Bridge is currently on the stable update channel.")
 
 	if f.yesNoQuestion("Are you sure you want to switch to the early-access update channel") {
-		f.bridge.SetUpdateChannel(updater.EarlyChannel)
+		if err := f.bridge.SetUpdateChannel(updater.EarlyChannel); err != nil {
+			f.printAndLogError(err)
+			return
+		}
 	}
 }
 
@@ -95,6 +96,9 @@ func (f *frontendCLI) selectStableChannel(c *ishell.Context) {
 	f.Println("Switching to the stable channel may reset all data!")
 
 	if f.yesNoQuestion("Are you sure you want to switch to the stable update channel") {
-		f.bridge.SetUpdateChannel(updater.StableChannel)
+		if err := f.bridge.SetUpdateChannel(updater.StableChannel); err != nil {
+			f.printAndLogError(err)
+			return
+		}
 	}
 }

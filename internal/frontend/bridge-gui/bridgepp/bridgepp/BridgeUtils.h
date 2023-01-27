@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -23,17 +23,32 @@
 #include <bridgepp/User/User.h>
 
 
-namespace bridgepp
-{
+namespace bridgepp {
+
+
+//****************************************************************************************************************************************************
+/// \brief Enumeration for the operating system.
+//****************************************************************************************************************************************************
+enum class OS {
+    Linux = 0, ///< The Linux OS.
+    MacOS = 1, ///< The macOS OS.
+    Windows = 2, ///< The Windows OS.
+};
 
 
 QString userConfigDir(); ///< Get the path of the user configuration folder.
 QString userCacheDir(); ///< Get the path of the user cache folder.
+QString userLogsDir(); ///< Get the path of the user logs folder.
+QString sentryCacheDir(); ///< Get the path of the sentry cache folder.
 QString goos(); ///< return the value of Go's  GOOS for the current platform ("darwin", "linux" and "windows"  are supported).
 qint64 randN(qint64 n); ///< return a random integer in the half open range  [0,n)
 QString randomFirstName(); ///< Get a random first name from a pre-determined list.
 QString randomLastName(); ///< Get a random first name from a pre-determined list.
 SPUser randomUser(); ///< Get a random user.
+OS os(); ///< Return the operating system.
+bool onLinux(); ///< Check if the OS is Linux.
+bool onMacOS(); ///< Check if the OS is macOS.
+bool onWindows(); ///< Check if the OS in Windows.
 
 
 } // namespace

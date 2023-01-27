@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -19,14 +19,16 @@
 #include "UserDialog.h"
 
 
+using namespace bridgepp;
+
+
 //****************************************************************************************************************************************************
 /// \param[in] user The user.
 /// \param[in] parent The parent widget of the dialog.
 //****************************************************************************************************************************************************
 UserDialog::UserDialog(bridgepp::SPUser &user, QWidget *parent)
     : QDialog(parent)
-    , user_(user)
-{
+    , user_(user) {
     ui_.setupUi(this);
 
     connect(ui_.buttonOK, &QPushButton::clicked, this, &UserDialog::onOK);
@@ -37,9 +39,8 @@ UserDialog::UserDialog(bridgepp::SPUser &user, QWidget *parent)
     ui_.editPassword->setText(user->password());
     ui_.editAddresses->setPlainText(user->addresses().join("\n"));
     ui_.editAvatarText->setText(user_->avatarText());
-    ui_.checkLoggedIn->setChecked(user_->loggedIn());
+    this->setState(user->state());
     ui_.checkSplitMode->setChecked(user_->splitMode());
-    ui_.checkSetupGuideSeen->setChecked(user_->setupGuideSeen());
     ui_.spinUsedBytes->setValue(user->usedBytes());
     ui_.spinTotalBytes->setValue(user->totalBytes());
 }
@@ -48,18 +49,32 @@ UserDialog::UserDialog(bridgepp::SPUser &user, QWidget *parent)
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void UserDialog::onOK()
-{
+void UserDialog::onOK() {
     user_->setID(ui_.editUserID->text());
     user_->setUsername(ui_.editUsername->text());
     user_->setPassword(ui_.editPassword->text());
     user_->setAddresses(ui_.editAddresses->toPlainText().split(QRegularExpression(R"(\s+)"), Qt::SkipEmptyParts));
     user_->setAvatarText(ui_.editAvatarText->text());
-    user_->setLoggedIn(ui_.checkLoggedIn->isChecked());
+    user_->setState(this->state());
     user_->setSplitMode(ui_.checkSplitMode->isChecked());
-    user_->setSetupGuideSeen(ui_.checkSetupGuideSeen->isChecked());
     user_->setUsedBytes(float(ui_.spinUsedBytes->value()));
     user_->setTotalBytes(float(ui_.spinTotalBytes->value()));
 
     this->accept();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The user state  that is currently selected in the dialog.
+//****************************************************************************************************************************************************
+UserState UserDialog::state() {
+    return UserState(ui_.comboState->currentIndex());
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] state The user state to select in the dialog.
+//****************************************************************************************************************************************************
+void UserDialog::setState(UserState state) {
+    ui_.comboState->setCurrentIndex(qint32(state));
 }

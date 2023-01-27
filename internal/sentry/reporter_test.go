@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -35,30 +35,30 @@ func TestSkipDuringUnwind(t *testing.T) {
 	}()
 
 	wantSkippedFunctions := []string{
-		"github.com/ProtonMail/proton-bridge/v2/internal/sentry.TestSkipDuringUnwind",
-		"github.com/ProtonMail/proton-bridge/v2/internal/sentry.TestSkipDuringUnwind.func1",
+		"github.com/ProtonMail/proton-bridge/v3/internal/sentry.TestSkipDuringUnwind",
+		"github.com/ProtonMail/proton-bridge/v3/internal/sentry.TestSkipDuringUnwind.func1",
 	}
 	r.Equal(t, wantSkippedFunctions, skippedFunctions)
 }
 
 func TestFilterOutPanicHandlers(t *testing.T) {
 	skippedFunctions = []string{
-		"github.com/ProtonMail/proton-bridge/v2/pkg/config.(*PanicHandler).HandlePanic",
-		"github.com/ProtonMail/proton-bridge/v2/pkg/config.HandlePanic",
-		"github.com/ProtonMail/proton-bridge/v2/internal/sentry.ReportSentryCrash",
-		"github.com/ProtonMail/proton-bridge/v2/internal/sentry.ReportSentryCrash.func1",
+		"github.com/ProtonMail/proton-bridge/v3/pkg/config.(*PanicHandler).HandlePanic",
+		"github.com/ProtonMail/proton-bridge/v3/pkg/config.HandlePanic",
+		"github.com/ProtonMail/proton-bridge/v3/internal/sentry.ReportSentryCrash",
+		"github.com/ProtonMail/proton-bridge/v3/internal/sentry.ReportSentryCrash.func1",
 	}
 
 	frames := []sentry.Frame{
-		{Module: "github.com/ProtonMail/proton-bridge/v2/internal/cmd", Function: "main"},
+		{Module: "github.com/ProtonMail/proton-bridge/v3/internal/cmd", Function: "main"},
 		{Module: "github.com/urfave/cli", Function: "(*App).Run"},
-		{Module: "github.com/ProtonMail/proton-bridge/v2/internal/cmd", Function: "RegisterHandlePanic"},
+		{Module: "github.com/ProtonMail/proton-bridge/v3/internal/cmd", Function: "RegisterHandlePanic"},
 		{Module: "github.com/ProtonMail/pkg", Function: "HandlePanic"},
 		{Module: "main", Function: "run"},
-		{Module: "github.com/ProtonMail/proton-bridge/v2/pkg/config", Function: "(*PanicHandler).HandlePanic"},
-		{Module: "github.com/ProtonMail/proton-bridge/v2/pkg/config", Function: "HandlePanic"},
-		{Module: "github.com/ProtonMail/proton-bridge/v2/internal/sentry", Function: "ReportSentryCrash"},
-		{Module: "github.com/ProtonMail/proton-bridge/v2/internal/sentry", Function: "ReportSentryCrash.func1"},
+		{Module: "github.com/ProtonMail/proton-bridge/v3/pkg/config", Function: "(*PanicHandler).HandlePanic"},
+		{Module: "github.com/ProtonMail/proton-bridge/v3/pkg/config", Function: "HandlePanic"},
+		{Module: "github.com/ProtonMail/proton-bridge/v3/internal/sentry", Function: "ReportSentryCrash"},
+		{Module: "github.com/ProtonMail/proton-bridge/v3/internal/sentry", Function: "ReportSentryCrash.func1"},
 	}
 
 	gotFrames := filterOutPanicHandlers(frames)

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -21,13 +21,14 @@ import (
 	"context"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/v2/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/v2/internal/config/settings"
-	"github.com/ProtonMail/proton-bridge/v2/internal/users"
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/abiosoft/ishell"
 )
 
-func (f *frontendCLI) listAccounts(c *ishell.Context) {
+func (f *frontendCLI) listAccounts(_ *ishell.Context) {
 	spacing := "%-2d: %-20s (%-15s, %-15s)\n"
 	f.Printf(bold(strings.ReplaceAll(spacing, "d", "s")), "#", "account", "status", "address mode")
 	for idx, userID := range f.bridge.GetUserIDs() {
@@ -35,32 +36,43 @@ func (f *frontendCLI) listAccounts(c *ishell.Context) {
 		if err != nil {
 			panic(err)
 		}
-		connected := "disconnected"
-		if user.Connected {
-			connected = "connected"
+
+		var state string
+		switch user.State {
+		case bridge.SignedOut:
+			state = "signed out"
+		case bridge.Locked:
+			state = "locked"
+		case bridge.Connected:
+			state = "connected"
+		default:
+			panic("Unknown user state")
 		}
-		mode := "split"
-		if user.Mode == users.CombinedMode {
-			mode = "combined"
-		}
-		f.Printf(spacing, idx, user.Username, connected, mode)
+
+		f.Printf(spacing, idx, user.Username, state, user.AddressMode)
 	}
 	f.Println()
 }
 
 func (f *frontendCLI) showAccountInfo(c *ishell.Context) {
 	user := f.askUserByIndexOrName(c)
-	if user.ID == "" {
+	if user.UserID == "" {
 		return
 	}
 
-	if !user.Connected {
+	switch user.State {
+	case bridge.SignedOut:
 		f.Printf("Please login to %s to get email client configuration.\n", bold(user.Username))
 		return
+	case bridge.Locked:
+		f.Printf("User %s is currently locked. Please wait and try again.\n", bold(user.Username))
+		return
+	case bridge.Connected:
+	default:
 	}
 
-	if user.Mode == users.CombinedMode {
-		f.showAccountAddressInfo(user, user.Addresses[user.Primary])
+	if user.AddressMode == vault.CombinedMode {
+		f.showAccountAddressInfo(user, user.Addresses[0])
 	} else {
 		for _, address := range user.Addresses {
 			f.showAccountAddressInfo(user, address)
@@ -68,25 +80,36 @@ func (f *frontendCLI) showAccountInfo(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) showAccountAddressInfo(user users.UserInfo, address string) {
-	smtpSecurity := "STARTTLS"
-	if f.bridge.GetBool(settings.SMTPSSLKey) {
-		smtpSecurity = "SSL"
+func (f *frontendCLI) showAccountAddressInfo(user bridge.UserInfo, address string) {
+	const (
+		StartTLS = "STARTTLS"
+		SSL      = "SSL"
+	)
+
+	imapSecurity := StartTLS
+	if f.bridge.GetIMAPSSL() {
+		imapSecurity = SSL
 	}
+
+	smtpSecurity := StartTLS
+	if f.bridge.GetSMTPSSL() {
+		smtpSecurity = SSL
+	}
+
 	f.Println(bold("Configuration for " + address))
 	f.Printf("IMAP Settings\nAddress:   %s\nIMAP port: %d\nUsername:  %s\nPassword:  %s\nSecurity:  %s\n",
-		bridge.Host,
-		f.bridge.GetInt(settings.IMAPPortKey),
+		constants.Host,
+		f.bridge.GetIMAPPort(),
 		address,
-		user.Password,
-		"STARTTLS",
+		user.BridgePass,
+		imapSecurity,
 	)
 	f.Println("")
 	f.Printf("SMTP Settings\nAddress:   %s\nSMTP port: %d\nUsername:  %s\nPassword:  %s\nSecurity:  %s\n",
-		bridge.Host,
-		f.bridge.GetInt(settings.SMTPPortKey),
+		constants.Host,
+		f.bridge.GetSMTPPort(),
 		address,
-		user.Password,
+		user.BridgePass,
 		smtpSecurity,
 	)
 	f.Println("")
@@ -99,8 +122,8 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { //nolint:funlen
 	loginName := ""
 	if len(c.Args) > 0 {
 		user := f.getUserByIndexOrName(c.Args[0])
-		if user.ID != "" {
-			loginName = user.Addresses[user.Primary]
+		if user.UserID != "" {
+			loginName = user.Addresses[0]
 		}
 	}
 
@@ -119,38 +142,41 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) { //nolint:funlen
 	}
 
 	f.Println("Authenticating ... ")
-	client, auth, err := f.bridge.Login(loginName, []byte(password))
+
+	client, auth, err := f.bridge.LoginAuth(context.Background(), loginName, []byte(password))
+	if err != nil {
+		f.printAndLogError("Cannot login: ", err)
+		return
+	}
+
+	if auth.TwoFA.Enabled&proton.HasTOTP != 0 {
+		code := f.readStringInAttempts("Two factor code", c.ReadLine, isNotEmpty)
+		if code == "" {
+			f.printAndLogError("Cannot login: need two factor code")
+			return
+		}
+
+		if err := client.Auth2FA(context.Background(), proton.Auth2FAReq{TwoFactorCode: code}); err != nil {
+			f.printAndLogError("Cannot login: ", err)
+			return
+		}
+	}
+
+	var keyPass []byte
+
+	if auth.PasswordMode == proton.TwoPasswordMode {
+		keyPass = []byte(f.readStringInAttempts("Mailbox password", c.ReadPassword, isNotEmpty))
+		if len(keyPass) == 0 {
+			f.printAndLogError("Cannot login: need mailbox password")
+			return
+		}
+	} else {
+		keyPass = []byte(password)
+	}
+
+	userID, err := f.bridge.LoginUser(context.Background(), client, auth, keyPass)
 	if err != nil {
 		f.processAPIError(err)
-		return
-	}
-
-	if auth.HasTwoFactor() {
-		twoFactor := f.readStringInAttempts("Two factor code", c.ReadLine, isNotEmpty)
-		if twoFactor == "" {
-			return
-		}
-
-		err = client.Auth2FA(context.Background(), twoFactor)
-		if err != nil {
-			f.processAPIError(err)
-			return
-		}
-	}
-
-	mailboxPassword := password
-	if auth.HasMailboxPassword() {
-		mailboxPassword = f.readStringInAttempts("Mailbox password", c.ReadPassword, isNotEmpty)
-	}
-	if mailboxPassword == "" {
-		return
-	}
-
-	f.Println("Adding account ...")
-	userID, err := f.bridge.FinishLogin(client, auth, []byte(mailboxPassword))
-	if err != nil {
-		log.WithField("username", loginName).WithError(err).Error("Login was unsuccessful")
-		f.Println("Adding account was unsuccessful:", err)
 		return
 	}
 
@@ -167,11 +193,12 @@ func (f *frontendCLI) logoutAccount(c *ishell.Context) {
 	defer f.ShowPrompt(true)
 
 	user := f.askUserByIndexOrName(c)
-	if user.ID == "" {
+	if user.UserID == "" {
 		return
 	}
+
 	if f.yesNoQuestion("Are you sure you want to logout account " + bold(user.Username)) {
-		if err := f.bridge.LogoutUser(user.ID); err != nil {
+		if err := f.bridge.LogoutUser(context.Background(), user.UserID); err != nil {
 			f.printAndLogError("Logging out failed: ", err)
 		}
 	}
@@ -182,12 +209,12 @@ func (f *frontendCLI) deleteAccount(c *ishell.Context) {
 	defer f.ShowPrompt(true)
 
 	user := f.askUserByIndexOrName(c)
-	if user.ID == "" {
+	if user.UserID == "" {
 		return
 	}
+
 	if f.yesNoQuestion("Are you sure you want to " + bold("remove account "+user.Username)) {
-		clearCache := f.yesNoQuestion("Do you want to remove cache for this account")
-		if err := f.bridge.DeleteUser(user.ID, clearCache); err != nil {
+		if err := f.bridge.DeleteUser(context.Background(), user.UserID); err != nil {
 			f.printAndLogError("Cannot delete account: ", err)
 			return
 		}
@@ -205,10 +232,13 @@ func (f *frontendCLI) deleteAccounts(c *ishell.Context) {
 	for _, userID := range f.bridge.GetUserIDs() {
 		user, err := f.bridge.GetUserInfo(userID)
 		if err != nil {
-			panic(err)
+			f.printAndLogError("Cannot get user info: ", err)
+			return
 		}
-		if err := f.bridge.DeleteUser(user.ID, false); err != nil {
+
+		if err := f.bridge.DeleteUser(context.Background(), user.UserID); err != nil {
 			f.printAndLogError("Cannot delete account ", user.Username, ": ", err)
+			return
 		}
 	}
 
@@ -223,37 +253,54 @@ func (f *frontendCLI) deleteEverything(c *ishell.Context) {
 		return
 	}
 
-	f.bridge.FactoryReset()
+	f.bridge.FactoryReset(context.Background())
 
 	c.Println("Everything cleared")
 
-	// Clearing data removes everything (db, preferences, ...) so everything has to be stopped and started again.
-	f.restarter.SetToRestart()
+	f.restarter.Set(true, false)
 
 	f.Stop()
 }
 
 func (f *frontendCLI) changeMode(c *ishell.Context) {
 	user := f.askUserByIndexOrName(c)
-	if user.ID == "" {
+	if user.UserID == "" {
 		return
 	}
 
-	var targetMode users.AddressMode
+	var targetMode vault.AddressMode
 
-	if user.Mode == users.CombinedMode {
-		targetMode = users.SplitMode
+	if user.AddressMode == vault.CombinedMode {
+		targetMode = vault.SplitMode
 	} else {
-		targetMode = users.CombinedMode
+		targetMode = vault.CombinedMode
 	}
 
-	if !f.yesNoQuestion("Are you sure you want to change the mode for account " + bold(user.Username) + " to " + bold(targetMode)) {
+	if !f.yesNoQuestion("Are you sure you want to change the mode for account " + bold(user.Username) + " to " + bold(targetMode.String())) {
 		return
 	}
 
-	if err := f.bridge.SetAddressMode(user.ID, targetMode); err != nil {
+	if err := f.bridge.SetAddressMode(context.Background(), user.UserID, targetMode); err != nil {
 		f.printAndLogError("Cannot switch address mode:", err)
 	}
 
 	f.Printf("Address mode for account %s changed to %s\n", user.Username, targetMode)
+}
+
+func (f *frontendCLI) configureAppleMail(c *ishell.Context) {
+	user := f.askUserByIndexOrName(c)
+	if user.UserID == "" {
+		return
+	}
+
+	if !f.yesNoQuestion("Are you sure you want to configure Apple Mail for " + bold(user.Username) + " with address " + bold(user.Addresses[0])) {
+		return
+	}
+
+	if err := f.bridge.ConfigureAppleMail(user.UserID, user.Addresses[0]); err != nil {
+		f.printAndLogError(err)
+		return
+	}
+
+	f.Printf("Apple Mail configured for %v with address %v\n", user.Username, user.Addresses[0])
 }

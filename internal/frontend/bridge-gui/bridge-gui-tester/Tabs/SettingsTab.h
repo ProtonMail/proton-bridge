@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -26,8 +26,7 @@
 //****************************************************************************************************************************************************
 /// \brief The 'General' tab of the main window.
 //****************************************************************************************************************************************************
-class SettingsTab : public QWidget
-{
+class SettingsTab : public QWidget {
 Q_OBJECT
 public: // member functions.
     explicit SettingsTab(QWidget *parent = nullptr); ///< Default constructor.
@@ -55,19 +54,21 @@ public: // member functions.
     QString dependencyLicenseLink() const; ///< Get the content of the 'Dependency License Link' edit.
     QString landingPageLink() const; ///< Get the content of the 'Landing Page Link' edit.
     bool nextBugReportWillSucceed() const; ///< Get the status of the 'Next Bug Report Will Fail' check box.
+    bool nextTLSCertExportWillSucceed() const;  ///< Get the status of the 'Next TLS Cert export will succeed' check box.
+    bool nextTLSKeyExportWillSucceed() const;  ///< Get the status of the 'Next TLS Key export will succeed' check box.
     QString hostname() const; ///< Get the value of the 'Hostname' edit.
     qint32 imapPort(); ///< Get the value of the IMAP port spin.
     qint32 smtpPort(); ///< Get the value of the SMTP port spin.
     bool useSSLForSMTP() const; ///< Get the value for the 'Use SSL for SMTP' check box.
+    bool useSSLForIMAP() const; ///< Get the value for the 'Use SSL for IMAP' check box.
     bool isDoHEnabled() const; ///< Get the value for the 'DoH Enabled' check box.
     bool isPortFree() const; ///< Get the value for the "Is Port Free" check box.
-    bool isCacheOnDiskEnabled() const; ///< get the value for the 'Cache On Disk Enabled' check box.
     QString diskCachePath() const; ///< Get the value for the 'Disk Cache Path' edit.
     bool nextCacheChangeWillSucceed() const; ///< Get the value for the 'Next Cache Change will succeed' edit.
     qint32 cacheError() const; ///< Return the index of the selected cache error.
     bool isAutomaticUpdateOn() const; ///<Get the value for the 'Automatic Update' check box.
 
-public: // slots
+public slots:
     void updateGUIState(); ///< Update the GUI state.
     void setIsStreaming(bool isStreaming); ///< Set the isStreamingEvents value.
     void setClientPlatform(QString const &clientPlatform); ///< Set the client platform.
@@ -77,10 +78,10 @@ public: // slots
     void setColorSchemeName(QString const &name); ///< Set the value for the 'Use Dark Theme' check box.
     void setBugReport(QString const &osType, QString const &osVersion, QString const &emailClient, QString const &address, QString const &description,
         bool includeLogs); ///< Set the content of the bug report box.
-    void changePorts(qint32 imapPort, qint32 smtpPort); ///< Change the IMAP and SMTP ports.
-    void setUseSSLForSMTP(bool use); ///< Set the value for the 'Use SSL for SMTP' check box.
+    void exportTLSCertificates(QString const &folderPath); ///< Export the TLS certificates.
+    void setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Change the mail server settings.
     void setIsDoHEnabled(bool enabled); ///< Set the value for the 'DoH Enabled' check box.
-    void changeLocalCache(bool enabled, QString const &path); ///< Set the value for the 'Cache On Disk Enabled' check box.
+    void setDiskCachePath(QString const &path); ///< Set the value for the 'Cache On Disk Enabled' check box.
     void setIsAutomaticUpdateOn(bool on); ///< Set the value for the 'Automatic Update' check box.
 
 private: // member functions.
