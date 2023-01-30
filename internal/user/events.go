@@ -66,6 +66,10 @@ func (user *User) handleAPIEvent(ctx context.Context, event proton.Event) error 
 		}
 	}
 
+	if event.UsedSpace != nil {
+		user.handleUsedSpaceChange(*event.UsedSpace)
+	}
+
 	return nil
 }
 
@@ -653,6 +657,20 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 
 		return []imap.Update{update}, nil
 	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
+}
+
+func (user *User) handleUsedSpaceChange(usedSpace int) {
+	safe.Lock(func() {
+		if user.apiUser.UsedSpace == usedSpace {
+			return
+		}
+
+		user.apiUser.UsedSpace = usedSpace
+		user.eventCh.Enqueue(events.UsedSpaceChanged{
+			UserID:    user.apiUser.ID,
+			UsedSpace: usedSpace,
+		})
+	}, user.apiUserLock)
 }
 
 func getMailboxName(label proton.Label) []string {

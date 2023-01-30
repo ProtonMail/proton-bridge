@@ -78,6 +78,7 @@ SPStreamEvent newToggleSplitModeFinishedEvent(QString const &userID); ///< Creat
 SPStreamEvent newUserDisconnectedEvent(QString const &username); ///< Create a new UserDisconnectedEvent event.
 SPStreamEvent newUserChangedEvent(QString const &userID); ///< Create a new UserChangedEvent event.
 SPStreamEvent newUserBadEvent(QString const &userID, QString const& errorMessage); ///< Create a new UserBadEvent event.
+SPStreamEvent newUsedBytesChangedEvent(QString const &userID, qint64 usedBytes);  ///< Create a new UsedBytesChangedEvent event.
 
 // Generic error event
 SPStreamEvent newGenericErrorEvent(grpc::ErrorCode errorCode); ///< Create a new GenericErrrorEvent event.

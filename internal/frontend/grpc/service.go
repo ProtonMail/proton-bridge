@@ -305,6 +305,9 @@ func (s *Service) watchEvents() {
 		case events.AddressModeChanged:
 			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
 
+		case events.UsedSpaceChanged:
+			_ = s.SendEvent(NewUsedBytesChangedEvent(event.UserID, event.UsedSpace))
+
 		case events.UserDeauth:
 			// This is the event the GUI cares about.
 			_ = s.SendEvent(NewUserChangedEvent(event.UserID))

@@ -61,6 +61,7 @@ private slots:
     void onRemoveUserButton(); ///< Remove the currently selected user.
     void onSelectionChanged(QItemSelection, QItemSelection); ///< Slot for the change of the selection.
     void onSendUserBadEvent(); ///< Slot for the 'Send Bad Event Error' button.
+    void onSendUsedBytesChangedEvent(); ///< Slot for the 'Send Used Bytes Changed Event' button.
     void updateGUIState(); ///< Update the GUI state.
 
 private: // member functions.

@@ -67,6 +67,52 @@
       </spacer>
      </item>
      <item>
+      <widget class="QGroupBox" name="groupBoxUsedSpace">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>Used Bytes Changed</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <layout class="QHBoxLayout" name="hBoxUsedBytes" stretch="0,1">
+          <item>
+           <widget class="QLabel" name="labelUsedBytes">
+            <property name="text">
+             <string>Used Bytes</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDoubleSpinBox" name="spinUsedBytes">
+            <property name="buttonSymbols">
+             <enum>QAbstractSpinBox::NoButtons</enum>
+            </property>
+            <property name="decimals">
+             <number>0</number>
+            </property>
+            <property name="maximum">
+             <double>1000000000000000.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="buttonUsedBytesChanged">
+          <property name="text">
+           <string>Send Used Bytes Changed</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
       <widget class="QGroupBox" name="groupBoxBadEvent">
        <property name="minimumSize">
         <size>

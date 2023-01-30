@@ -52,6 +52,7 @@ UsersTab::UsersTab(QWidget *parent)
     connect(ui_.tableUserList, &QTableView::doubleClicked, this, &UsersTab::onEditUserButton);
     connect(ui_.buttonRemoveUser, &QPushButton::clicked, this, &UsersTab::onRemoveUserButton);
     connect(ui_.buttonUserBadEvent, &QPushButton::clicked, this, &UsersTab::onSendUserBadEvent);
+    connect(ui_.buttonUsedBytesChanged, &QPushButton::clicked, this, &UsersTab::onSendUsedBytesChangedEvent);
     connect(ui_.checkUsernamePasswordError, &QCheckBox::toggled, this, &UsersTab::updateGUIState);
 
     users_.append(randomUser());
@@ -161,13 +162,47 @@ void UsersTab::onSendUserBadEvent() {
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
+void UsersTab::onSendUsedBytesChangedEvent() {
+    SPUser const user = selectedUser();
+    int const index = this->selectedIndex();
+
+    if (!user) {
+        app().log().error(QString("%1 failed. Unkown user.").arg(__FUNCTION__));
+        return;
+    }
+
+    if (UserState::Connected != user->state()) {
+        app().log().error(QString("%1 failed. User is not connected").arg(__FUNCTION__));
+    }
+
+    qint64 const usedBytes = qint64(ui_.spinUsedBytes->value());
+    user->setUsedBytes(usedBytes);
+    users_.touch(index);
+
+    GRPCService &grpc = app().grpc();
+    if (grpc.isStreaming()) {
+        QString const userID = user->id();
+        grpc.sendEvent(newUsedBytesChangedEvent(userID, usedBytes));
+    }
+
+    this->updateGUIState();
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
 void UsersTab::updateGUIState() {
     SPUser const user = selectedUser();
     bool const hasSelectedUser = user.get();
+    UserState const state = user ? user->state() : UserState::SignedOut;
+
     ui_.buttonEditUser->setEnabled(hasSelectedUser);
     ui_.buttonRemoveUser->setEnabled(hasSelectedUser);
-    ui_.groupBoxBadEvent->setEnabled(hasSelectedUser && (UserState::SignedOut != user->state()));
+    ui_.groupBoxBadEvent->setEnabled(hasSelectedUser && (UserState::SignedOut != state));
+    ui_.groupBoxUsedSpace->setEnabled(hasSelectedUser && (UserState::Connected == state));
     ui_.editUsernamePasswordError->setEnabled(ui_.checkUsernamePasswordError->isChecked());
+    ui_.spinUsedBytes->setValue(user ? user->usedBytes() : 0.0);
 }
 
 

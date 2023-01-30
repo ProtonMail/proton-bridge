@@ -59,6 +59,7 @@ public:
 public slots: ///< handler for signals coming from the gRPC service
     void onUserChanged(QString const &userID);
     void onToggleSplitModeFinished(QString const &userID);
+    void onUsedBytesChanged(QString const &userID, qint64 usedBytes); ///< Slot for usedBytesChanged events.
 
 private: // data members
     QList<bridgepp::SPUser> users_; ///< The user list.

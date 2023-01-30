@@ -174,6 +174,7 @@ func (s *Service) StartEventTest() error { //nolint:funlen
 		NewUserToggleSplitModeFinishedEvent("userID"),
 		NewUserDisconnectedEvent("username"),
 		NewUserChangedEvent("userID"),
+		NewUsedBytesChangedEvent("userID", 1000),
 	}
 
 	for _, event := range events {

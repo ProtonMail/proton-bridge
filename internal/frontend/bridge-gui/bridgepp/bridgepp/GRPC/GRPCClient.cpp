@@ -1374,6 +1374,14 @@ void GRPCClient::processUserEvent(UserEvent const &event) {
         emit userBadEvent(userID, errorMessage);
         break;
     }
+    case UserEvent::kUsedBytesChangedEvent: {
+        UsedBytesChangedEvent const& e = event.usedbyteschangedevent();
+        QString const userID = QString::fromStdString(e.userid());
+        qint64 const usedBytes = e.usedbytes();
+        this->logTrace(QString("User event received: UsedBytesChangedEvent (userID = %1, usedBytes = %2).").arg(userID).arg(usedBytes));
+        emit usedBytesChanged(userID, usedBytes);
+        break;
+    }
     default:
         this->logError("Unknown User event received.");
     }
