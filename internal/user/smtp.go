@@ -23,6 +23,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"mime"
 	"net/mail"
 	"runtime"
 	"strings"
@@ -419,7 +420,7 @@ func createAttachments(
 		attachment, err := client.UploadAttachment(ctx, addrKR, proton.CreateAttachmentReq{
 			Filename:    att.Name,
 			MessageID:   draftID,
-			MIMEType:    rfc822.MIMEType(att.MIMEType),
+			MIMEType:    rfc822.MIMEType(mime.FormatMediaType(att.MIMEType, att.MIMEParams)),
 			Disposition: att.Disposition,
 			ContentID:   att.ContentID,
 			Body:        att.Data,
