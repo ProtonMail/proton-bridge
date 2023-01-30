@@ -54,6 +54,18 @@ stages:
       allow_failure: true
     - when: never
 
+.after-script-code-coverage:
+  after_script:
+    - go get github.com/boumenot/gocover-cobertura
+    - go run github.com/boumenot/gocover-cobertura < /tmp/coverage.out > coverage.xml
+    - "go tool cover -func=/tmp/coverage.out | grep total:"
+  coverage: '/total:.*\(statements\).*\d+\.\d+%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
 # Stage: TEST
 
 lint:
@@ -69,6 +81,7 @@ test-linux:
   stage: test
   extends:
     - .rules-branch-manual-MR-always
+    - .after-script-code-coverage
   script:
     - make test
   tags:
@@ -105,6 +118,8 @@ dependency-updates:
   stage: test
   script:
     - make updates
+
+
 
 # Stage: BUILD
 
