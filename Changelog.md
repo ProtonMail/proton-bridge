@@ -28,6 +28,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2271: Update README with new system files path.
 
 ### Fixed
+* GODT-2210: Fix splash screen always showing on CentOS and Ubuntu.
 * GODT-2296: Log error rather than fail if cannot get parent ID.
 * GODT-2266: Pause event stream while sending.
 * GODT-2266: Add test for sent message flags.
