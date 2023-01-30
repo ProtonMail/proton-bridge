@@ -66,6 +66,7 @@ type Attachment struct {
 	Name        string
 	ContentID   string
 	MIMEType    string
+	MIMEParams  map[string]string
 	Disposition proton.Disposition
 	Data        []byte
 }
@@ -523,6 +524,7 @@ func parseAttachment(h message.Header, body []byte) (Attachment, error) {
 		return Attachment{}, err
 	}
 	att.MIMEType = mimeType
+	att.MIMEParams = mimeTypeParams
 
 	// Prefer attachment name from filename param in content disposition.
 	// If not available, try to get it from name param in content type.
