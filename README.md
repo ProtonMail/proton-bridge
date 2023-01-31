@@ -89,6 +89,6 @@ There are now three types of system folders which Bridge recognises:
 | gluon messages        | sata     | gluon/backend/store        |
 | Update files          | data     | updates                    |
 | sentry cache          | data     | sentry_cache               |
-| Mac/Linux File Socket | temp     | bridge_{RANDOM_UUID}.sock  |
+| Mac/Linux File Socket | temp     | bridge{4_DIGITS}           |
 
 

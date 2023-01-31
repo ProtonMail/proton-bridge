@@ -25,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"math/rand"
 	"net"
 	"os"
 	"path/filepath"
@@ -580,10 +581,17 @@ func (s *Service) monitorParentPID() {
 func computeFileSocketPath() (string, error) {
 	tempPath := os.TempDir()
 	for i := 0; i < 1000; i++ {
-		path := filepath.Join(tempPath, fmt.Sprintf("bridge_%v.sock", uuid.NewString()))
+		path := filepath.Join(tempPath, fmt.Sprintf("bridge%04d", rand.Intn(10000))) // nolint:gosec
 		if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
 			return path, nil
 		}
+
+		if err := os.Remove(path); err != nil {
+			logrus.WithField("path", path).WithError(err).Warning("Could not remove existing socket file")
+			continue
+		}
+
+		return path, nil
 	}
 
 	return "", errors.New("unable to find a suitable file socket in user config folder")
