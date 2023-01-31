@@ -18,6 +18,7 @@
 package vault_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
@@ -103,6 +104,10 @@ func TestVault_Settings_UpdateRollout(t *testing.T) {
 
 	// Check the new update rollout.
 	require.Equal(t, float64(0.5), s.GetUpdateRollout())
+
+	// Since GODT-2319 0.6046602879796196 is not allowed as a rollout value (RNG was not seeded)
+	require.NoError(t, s.SetUpdateRollout(vault.ForbiddenRollout))
+	require.GreaterOrEqual(t, math.Abs(s.GetUpdateRollout()-vault.ForbiddenRollout), 0.00000001)
 }
 
 func TestVault_Settings_ColorScheme(t *testing.T) {
