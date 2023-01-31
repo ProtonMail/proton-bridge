@@ -18,8 +18,16 @@
 package vault
 
 import (
+	"math"
+	"math/rand"
+
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
+	"github.com/sirupsen/logrus"
+)
+
+const (
+	ForbiddenRollout = 0.6046602879796196
 )
 
 // GetIMAPPort sets the port that the IMAP server should listen on.
@@ -96,7 +104,17 @@ func (vault *Vault) SetUpdateChannel(channel updater.Channel) error {
 
 // GetUpdateRollout sets the update rollout.
 func (vault *Vault) GetUpdateRollout() float64 {
-	return vault.get().Settings.UpdateRollout
+	// The rollout value 0.6046602879796196 is forbidden. The RNG was not seeded when it was picked (GODT-2319).
+	rollout := vault.get().Settings.UpdateRollout
+	if math.Abs(rollout-ForbiddenRollout) >= 0.00000001 {
+		return rollout
+	}
+
+	rollout = rand.Float64() //nolint:gosec
+	if err := vault.SetUpdateRollout(rollout); err != nil {
+		logrus.WithError(err).Warning("Failed writing updateRollout value in vault")
+	}
+	return rollout
 }
 
 // SetUpdateRollout sets the update rollout.
