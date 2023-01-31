@@ -468,12 +468,12 @@ func getRecipients(
 	prefs, err := parallel.MapContext(ctx, runtime.NumCPU(), addresses, func(ctx context.Context, recipient string) (proton.SendPreferences, error) {
 		pubKeys, recType, err := client.GetPublicKeys(ctx, recipient)
 		if err != nil {
-			return proton.SendPreferences{}, fmt.Errorf("failed to get public keys: %w", err)
+			return proton.SendPreferences{}, fmt.Errorf("failed to get public key for %v: %w", recipient, err)
 		}
 
 		contactSettings, err := getContactSettings(ctx, client, userKR, recipient)
 		if err != nil {
-			return proton.SendPreferences{}, fmt.Errorf("failed to get contact settings: %w", err)
+			return proton.SendPreferences{}, fmt.Errorf("failed to get contact settings for %v: %w", recipient, err)
 		}
 
 		return buildSendPrefs(contactSettings, settings, pubKeys, draft.MIMEType, recType == proton.RecipientTypeInternal)
