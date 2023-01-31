@@ -1,5 +1,5 @@
 # Proton Mail Bridge and Import Export app
-Copyright (c) 2022 Proton AG
+Copyright (c) 2023 Proton AG
 
 This repository holds the Proton Mail Bridge and the Proton Mail Import-Export applications.
 For a detailed build information see [BUILDS](./BUILDS.md).
@@ -48,9 +48,6 @@ major problems.
 
 ## Environment Variables
 
-### Bridge application
-- `BRIDGESTRICTMODE`: tells bridge to turn on `bbolt`'s "strict mode" which checks the database after every `Commit`. Set to `1` to enable.
-
 ### Dev build or run
 - `APP_VERSION`: set the bridge app version used during testing or building
 - `PROTONMAIL_ENV`: when set to `dev` it is not using Sentry to report crashes
@@ -86,7 +83,7 @@ There are now three types of system folders which Bridge recognises:
 | gRPC client json      | config   | grpcClientConfig_<id>.json |
 | Logs                  | data     | logs                       |
 | gluon DB              | data     | gluon/backend/db           |
-| gluon messages        | sata     | gluon/backend/store        |
+| gluon messages        | data     | gluon/backend/store        |
 | Update files          | data     | updates                    |
 | sentry cache          | data     | sentry_cache               |
 | Mac/Linux File Socket | temp     | bridge{4_DIGITS}           |
