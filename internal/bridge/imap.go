@@ -100,6 +100,8 @@ func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 }
 
 // addIMAPUser connects the given user to gluon.
+//
+//nolint:funlen
 func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 	if bridge.imapServer == nil {
 		return fmt.Errorf("no imap server instance running")
@@ -125,13 +127,33 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 				return fmt.Errorf("failed to load IMAP user: %w", err)
 			}
 
-			// If the DB was newly created, clear the sync status; gluon's DB was not found.
 			if isNew {
+				// If the DB was newly created, clear the sync status; gluon's DB was not found.
 				logrus.Warn("IMAP user DB was newly created, clearing sync status")
 
 				if err := user.ClearSyncStatus(); err != nil {
 					return fmt.Errorf("failed to clear sync status: %w", err)
 				}
+			} else if status := user.GetSyncStatus(); !status.HasLabels {
+				// Otherwise, the DB already exists -- if the labels are not yet synced, we need to re-create the DB.
+				if err := bridge.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
+					return fmt.Errorf("failed to remove old IMAP user: %w", err)
+				}
+
+				if err := user.RemoveGluonID(addrID, gluonID); err != nil {
+					return fmt.Errorf("failed to remove old IMAP user ID: %w", err)
+				}
+
+				gluonID, err := bridge.imapServer.AddUser(ctx, imapConn, user.GluonKey())
+				if err != nil {
+					return fmt.Errorf("failed to add IMAP user: %w", err)
+				}
+
+				if err := user.SetGluonID(addrID, gluonID); err != nil {
+					return fmt.Errorf("failed to set IMAP user ID: %w", err)
+				}
+
+				log.WithField("gluonID", gluonID).Info("Re-created IMAP user")
 			}
 		} else {
 			log.Info("Creating new IMAP user")

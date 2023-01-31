@@ -477,6 +477,11 @@ func (user *User) OnStatusDown(context.Context) {
 	user.abortable.Abort()
 }
 
+// GetSyncStatus returns the sync status of the user.
+func (user *User) GetSyncStatus() vault.SyncStatus {
+	return user.vault.GetSyncStatus()
+}
+
 // ClearSyncStatus clears the sync status of the user. This triggers a resync.
 func (user *User) ClearSyncStatus() error {
 	user.abortable.Abort()
