@@ -42,7 +42,11 @@ type Settings struct {
 
 	LastVersion string
 	FirstStart  bool
+
+	MaxSyncMemory uint64
 }
+
+const DefaultMaxSyncMemory = 2 * 1024 * uint64(1024*1024)
 
 func newDefaultSettings(gluonDir string) Settings {
 	return Settings{
@@ -64,5 +68,7 @@ func newDefaultSettings(gluonDir string) Settings {
 
 		LastVersion: "0.0.0",
 		FirstStart:  true,
+
+		MaxSyncMemory: DefaultMaxSyncMemory,
 	}
 }

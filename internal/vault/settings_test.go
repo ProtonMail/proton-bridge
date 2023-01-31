@@ -202,3 +202,11 @@ func TestVault_Settings_FirstStart(t *testing.T) {
 	// Check the new first start value.
 	require.Equal(t, false, s.GetFirstStart())
 }
+
+func TestVault_Settings_MaxSyncMemory(t *testing.T) {
+	// create a new test vault.
+	s := newVault(t)
+
+	// Check the default first start value.
+	require.Equal(t, vault.DefaultMaxSyncMemory, s.GetMaxSyncMemory())
+}

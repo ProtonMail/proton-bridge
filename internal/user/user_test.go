@@ -209,14 +209,14 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 	saltedKeyPass, err := salts.SaltForKey([]byte(password), apiUser.Keys.Primary().ID)
 	require.NoError(tb, err)
 
-	vault, corrupt, err := vault.New(tb.TempDir(), tb.TempDir(), []byte("my secret key"))
+	v, corrupt, err := vault.New(tb.TempDir(), tb.TempDir(), []byte("my secret key"))
 	require.NoError(tb, err)
 	require.False(tb, corrupt)
 
-	vaultUser, err := vault.AddUser(apiUser.ID, username, username+"@pm.me", apiAuth.UID, apiAuth.RefreshToken, saltedKeyPass)
+	vaultUser, err := v.AddUser(apiUser.ID, username, username+"@pm.me", apiAuth.UID, apiAuth.RefreshToken, saltedKeyPass)
 	require.NoError(tb, err)
 
-	user, err := New(ctx, vaultUser, client, nil, apiUser, nil, true)
+	user, err := New(ctx, vaultUser, client, nil, apiUser, nil, true, vault.DefaultMaxSyncMemory)
 	require.NoError(tb, err)
 	defer user.Close()
 

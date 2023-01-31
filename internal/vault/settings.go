@@ -178,7 +178,7 @@ func (vault *Vault) SetLastVersion(version *semver.Version) error {
 	})
 }
 
-// GetFirstStart sets whether this is the first time the bridge has been started.
+// GetFirstStart returns whether this is the first time the bridge has been started.
 func (vault *Vault) GetFirstStart() bool {
 	return vault.get().Settings.FirstStart
 }
@@ -187,5 +187,23 @@ func (vault *Vault) GetFirstStart() bool {
 func (vault *Vault) SetFirstStart(firstStart bool) error {
 	return vault.mod(func(data *Data) {
 		data.Settings.FirstStart = firstStart
+	})
+}
+
+// GetMaxSyncMemory returns the maximum amount of memory the sync process should use.
+func (vault *Vault) GetMaxSyncMemory() uint64 {
+	v := vault.get().Settings.MaxSyncMemory
+	// can be zero if never written to vault before.
+	if v == 0 {
+		return DefaultMaxSyncMemory
+	}
+
+	return v
+}
+
+// SetMaxSyncMemory sets the maximum amount of memory the sync process should use.
+func (vault *Vault) SetMaxSyncMemory(maxMemory uint64) error {
+	return vault.mod(func(data *Data) {
+		data.Settings.MaxSyncMemory = maxMemory
 	})
 }

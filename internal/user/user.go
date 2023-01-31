@@ -85,6 +85,8 @@ type User struct {
 	goPollAPIEvents func(wait bool)
 
 	showAllMail uint32
+
+	maxSyncMemory uint64
 }
 
 // New returns a new user.
@@ -98,6 +100,7 @@ func New(
 	apiUser proton.User,
 	crashHandler async.PanicHandler,
 	showAllMail bool,
+	maxSyncMemory uint64,
 ) (*User, error) { //nolint:funlen
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
 
@@ -141,6 +144,8 @@ func New(
 		pollAPIEventsCh: make(chan chan struct{}),
 
 		showAllMail: b32(showAllMail),
+
+		maxSyncMemory: maxSyncMemory,
 	}
 
 	// Initialize the user's update channels for its current address mode.

@@ -141,6 +141,7 @@ func (user *User) sync(ctx context.Context) error {
 					addrKRs,
 					user.updateCh,
 					user.eventCh,
+					user.maxSyncMemory,
 				); err != nil {
 					return fmt.Errorf("failed to sync messages: %w", err)
 				}
@@ -229,6 +230,7 @@ func syncMessages(
 	addrKRs map[string]*crypto.KeyRing,
 	updateCh map[string]*queue.QueuedChannel[imap.Update],
 	eventCh *queue.QueuedChannel[events.Event],
+	maxSyncMemory uint64,
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -267,25 +269,43 @@ func syncMessages(
 	const maxParallelDownloads = 20
 
 	totalMemory := memory.TotalMemory()
+
+	if maxSyncMemory >= totalMemory/2 {
+		logrus.Warnf("Requested max sync memory of %v MB is greater than half of system memory (%v MB), forcing to half of system memory",
+			maxSyncMemory, toMB(totalMemory/2))
+		maxSyncMemory = totalMemory / 2
+	}
+
+	if maxSyncMemory < 800*Megabyte {
+		logrus.Warnf("Requested max sync memory of %v MB, but minimum recommended is 800 MB, forcing max syncMemory to 800MB", toMB(maxSyncMemory))
+		maxSyncMemory = 800 * Megabyte
+	}
+
 	logrus.Debugf("Total System Memory: %v", toMB(totalMemory))
 
 	syncMaxDownloadRequestMem := MaxDownloadRequestMem
 	syncMaxMessageBuildingMem := MaxMessageBuildingMem
 
 	// If less than 2GB available try and limit max memory to 512 MB
-	if totalMemory < 2*Gigabyte {
-		if totalMemory < 800*Megabyte {
+	switch {
+	case maxSyncMemory < 2*Gigabyte:
+		if maxSyncMemory < 800*Megabyte {
 			logrus.Warnf("System has less than 800MB of memory, you may experience issues sycing large mailboxes")
 		}
 		syncMaxDownloadRequestMem = MinDownloadRequestMem
 		syncMaxMessageBuildingMem = MinMessageBuildingMem
-	} else {
+	case maxSyncMemory == 2*Gigabyte:
 		// Increasing the max download capacity has very little effect on sync speed. We could increase the download
 		// memory but the user would see less sync notifications. A smaller value here leads to more frequent
 		// updates. Additionally, most of ot sync time is spent in the message building.
 		syncMaxDownloadRequestMem = MaxDownloadRequestMem
 		// Currently limited so that if a user has multiple accounts active it also doesn't cause excessive memory usage.
 		syncMaxMessageBuildingMem = MaxMessageBuildingMem
+	default:
+		// Divide by 8 as download stage and build stage will use aprox. 4x the specified memory.
+		remainingMemory := (maxSyncMemory - 2*Gigabyte) / 8
+		syncMaxDownloadRequestMem = MaxDownloadRequestMem + remainingMemory
+		syncMaxMessageBuildingMem = MaxMessageBuildingMem + remainingMemory
 	}
 
 	logrus.Debugf("Max memory usage for sync Download=%vMB Building=%vMB Predicted Max Total=%vMB",
@@ -504,14 +524,14 @@ func syncMessages(
 			}
 
 			for index, chunk := range chunks {
+				logrus.Debugf("Build request: %v of %v count=%v", index, len(chunks), len(chunk))
+
 				result, err := parallel.MapContext(ctx, maxMessagesInParallel, chunk, func(ctx context.Context, msg proton.FullMessage) (*buildRes, error) {
 					return buildRFC822(apiLabels, msg, addrKRs[msg.AddressID], new(bytes.Buffer)), nil
 				})
 				if err != nil {
 					return
 				}
-
-				logrus.Debugf("Build request: %v of %v", index, len(chunks))
 
 				select {
 				case flushCh <- builtMessageBatch{result}:

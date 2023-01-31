@@ -462,6 +462,7 @@ func (bridge *Bridge) addUserWithVault(
 		apiUser,
 		bridge.crashHandler,
 		bridge.vault.GetShowAllMail(),
+		bridge.vault.GetMaxSyncMemory(),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
