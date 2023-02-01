@@ -256,12 +256,6 @@ func (s *Service) watchEvents() {
 
 		case errors.Is(err, bridge.ErrVaultInsecure):
 			_ = s.SendEvent(NewKeychainHasNoKeychainEvent())
-
-		case errors.Is(err, bridge.ErrServeIMAP):
-			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_STARTUP_ERROR))
-
-		case errors.Is(err, bridge.ErrServeSMTP):
-			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_STARTUP_ERROR))
 		}
 	}
 
@@ -272,6 +266,12 @@ func (s *Service) watchEvents() {
 
 		case events.ConnStatusDown:
 			_ = s.SendEvent(NewInternetStatusEvent(false))
+
+		case events.IMAPServerError:
+			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_STARTUP_ERROR))
+
+		case events.SMTPServerError:
+			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_STARTUP_ERROR))
 
 		case events.Raise:
 			_ = s.SendEvent(NewShowMainWindowEvent())

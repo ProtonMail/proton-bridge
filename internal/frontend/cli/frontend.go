@@ -270,12 +270,6 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:funle
 
 		case errors.Is(err, bridge.ErrVaultInsecure):
 			f.notifyCredentialsError()
-
-		case errors.Is(err, bridge.ErrServeIMAP):
-			f.Println("IMAP server error:", err)
-
-		case errors.Is(err, bridge.ErrServeSMTP):
-			f.Println("SMTP server error:", err)
 		}
 	}
 
@@ -286,6 +280,12 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:funle
 
 		case events.ConnStatusDown:
 			f.notifyInternetOff()
+
+		case events.IMAPServerError:
+			f.Println("IMAP server error:", event.Error)
+
+		case events.SMTPServerError:
+			f.Println("SMTP server error:", event.Error)
 
 		case events.UserDeauth:
 			user, err := f.bridge.GetUserInfo(event.UserID)
