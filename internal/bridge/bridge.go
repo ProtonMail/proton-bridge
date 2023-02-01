@@ -30,6 +30,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon"
 	imapEvents "github.com/ProtonMail/gluon/events"
+	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/gluon/watcher"
 	"github.com/ProtonMail/go-proton-api"
@@ -122,6 +123,8 @@ type Bridge struct {
 
 	// goUpdate triggers a check/install of updates.
 	goUpdate func()
+
+	uidValidityGenerator imap.UIDValidityGenerator
 }
 
 // New creates a new bridge.
@@ -140,6 +143,7 @@ func New( //nolint:funlen
 	proxyCtl ProxyController, // the DoH controller
 	crashHandler async.PanicHandler,
 	reporter reporter.Reporter,
+	uidValidityGenerator imap.UIDValidityGenerator,
 
 	logIMAPClient, logIMAPServer bool, // whether to log IMAP client/server activity
 	logSMTP bool, // whether to log SMTP activity
@@ -169,6 +173,7 @@ func New( //nolint:funlen
 		api,
 		identifier,
 		proxyCtl,
+		uidValidityGenerator,
 		logIMAPClient, logIMAPServer, logSMTP,
 	)
 	if err != nil {
@@ -214,6 +219,7 @@ func newBridge(
 	api *proton.Manager,
 	identifier Identifier,
 	proxyCtl ProxyController,
+	uidValidityGenerator imap.UIDValidityGenerator,
 
 	logIMAPClient, logIMAPServer, logSMTP bool,
 ) (*Bridge, error) {
@@ -252,6 +258,7 @@ func newBridge(
 		logIMAPServer,
 		imapEventCh,
 		tasks,
+		uidValidityGenerator,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create IMAP server: %w", err)
@@ -298,6 +305,8 @@ func newBridge(
 		lastVersion: lastVersion,
 
 		tasks: tasks,
+
+		uidValidityGenerator: uidValidityGenerator,
 	}
 
 	bridge.smtpServer = newSMTPServer(bridge, tlsConfig, logSMTP)

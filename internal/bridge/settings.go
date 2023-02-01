@@ -163,6 +163,7 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 			bridge.logIMAPServer,
 			bridge.imapEventCh,
 			bridge.tasks,
+			bridge.uidValidityGenerator,
 		)
 		if err != nil {
 			panic(fmt.Errorf("failed to create new IMAP server: %w", err))

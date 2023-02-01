@@ -23,6 +23,7 @@ import (
 	"runtime"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/go-autostart"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
@@ -110,6 +111,7 @@ func withBridge( //nolint:funlen
 		// Crash and report stuff
 		crashHandler,
 		reporter,
+		imap.DefaultEpochUIDValidityGenerator(),
 
 		// The logging stuff.
 		c.String(flagLogIMAP) == "client" || c.String(flagLogIMAP) == "all",

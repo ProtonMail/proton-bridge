@@ -29,6 +29,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
@@ -160,6 +161,7 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 		t.mocks.ProxyCtl,
 		t.mocks.CrashHandler,
 		t.reporter,
+		imap.DefaultEpochUIDValidityGenerator(),
 
 		// Logging stuff
 		logIMAP,

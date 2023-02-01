@@ -477,16 +477,6 @@ func (conn *imapConnector) GetUpdates() <-chan imap.Update {
 	}, conn.updateChLock)
 }
 
-// GetUIDValidity returns the default UID validity for this user.
-func (conn *imapConnector) GetUIDValidity() imap.UID {
-	return conn.vault.GetUIDValidity(conn.addrID)
-}
-
-// SetUIDValidity sets the default UID validity for this user.
-func (conn *imapConnector) SetUIDValidity(validity imap.UID) error {
-	return conn.vault.SetUIDValidity(conn.addrID, validity)
-}
-
 // IsMailboxVisible returns whether this mailbox should be visible over IMAP.
 func (conn *imapConnector) IsMailboxVisible(_ context.Context, mailboxID imap.MailboxID) bool {
 	return atomic.LoadUint32(&conn.showAllMail) != 0 || mailboxID != proton.AllMailLabel

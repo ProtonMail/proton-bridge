@@ -17,8 +17,6 @@
 
 package vault
 
-import "github.com/ProtonMail/gluon/imap"
-
 // UserData holds information about a single bridge user.
 // The user may or may not be logged in.
 type UserData struct {
@@ -28,7 +26,6 @@ type UserData struct {
 
 	GluonKey    []byte
 	GluonIDs    map[string]string
-	UIDValidity map[string]imap.UID
 	BridgePass  []byte // raw token represented as byte slice (needs to be encoded)
 	AddressMode AddressMode
 
@@ -79,7 +76,6 @@ func newDefaultUser(userID, username, primaryEmail, authUID, authRef string, key
 
 		GluonKey:    newRandomToken(32),
 		GluonIDs:    make(map[string]string),
-		UIDValidity: make(map[string]imap.UID),
 		BridgePass:  newRandomToken(16),
 		AddressMode: CombinedMode,
 

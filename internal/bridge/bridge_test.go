@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/go-proton-api/server/backend"
@@ -594,6 +595,9 @@ func withMocks(t *testing.T, tests func(*bridge.Mocks)) {
 	tests(mocks)
 }
 
+// Needs to be global to survive bridge shutdown/startup in unit tests as they happen to fast.
+var testUIDValidityGenerator = imap.DefaultEpochUIDValidityGenerator()
+
 // withBridge creates a new bridge which points to the given API URL and uses the given keychain, and closes it when done.
 func withBridgeNoMocks(
 	ctx context.Context,
@@ -639,6 +643,7 @@ func withBridgeNoMocks(
 		mocks.ProxyCtl,
 		mocks.CrashHandler,
 		mocks.Reporter,
+		testUIDValidityGenerator,
 
 		// The logging stuff.
 		os.Getenv("BRIDGE_LOG_IMAP_CLIENT") == "1",

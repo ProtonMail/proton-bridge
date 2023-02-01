@@ -28,6 +28,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon"
 	imapEvents "github.com/ProtonMail/gluon/events"
+	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/gluon/store"
 	"github.com/ProtonMail/proton-bridge/v3/internal/async"
@@ -254,6 +255,7 @@ func newIMAPServer(
 	logClient, logServer bool,
 	eventCh chan<- imapEvents.Event,
 	tasks *async.Group,
+	uidValidityGenerator imap.UIDValidityGenerator,
 ) (*gluon.Server, error) {
 	gluonCacheDir = ApplyGluonCachePathSuffix(gluonCacheDir)
 	gluonConfigDir = ApplyGluonConfigPathSuffix(gluonConfigDir)
@@ -297,6 +299,7 @@ func newIMAPServer(
 		gluon.WithLogger(imapClientLog, imapServerLog),
 		getGluonVersionInfo(version),
 		gluon.WithReporter(reporter),
+		gluon.WithUIDValidityGenerator(uidValidityGenerator),
 	)
 	if err != nil {
 		return nil, err
