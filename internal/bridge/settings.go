@@ -131,26 +131,21 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 			return fmt.Errorf("new gluon dir is the same as the old one")
 		}
 
-		if err := bridge.stopEventLoops(); err != nil {
-			return err
+		if err := bridge.closeIMAP(context.Background()); err != nil {
+			return fmt.Errorf("failed to close IMAP: %w", err)
 		}
-		defer func() {
-			err := bridge.startEventLoops(ctx)
-			if err != nil {
-				panic(err)
-			}
-		}()
 
 		if err := bridge.moveGluonCacheDir(currentGluonDir, newGluonDir); err != nil {
 			logrus.WithError(err).Error("failed to move GluonCacheDir")
+
 			if err := bridge.vault.SetGluonDir(currentGluonDir); err != nil {
-				panic(err)
+				return fmt.Errorf("failed to revert GluonCacheDir: %w", err)
 			}
 		}
 
 		gluonDataDir, err := bridge.GetGluonDataDir()
 		if err != nil {
-			panic(fmt.Errorf("failed to get Gluon Database directory: %w", err))
+			return fmt.Errorf("failed to get Gluon Database directory: %w", err)
 		}
 
 		imapServer, err := newIMAPServer(
@@ -166,10 +161,20 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 			bridge.uidValidityGenerator,
 		)
 		if err != nil {
-			panic(fmt.Errorf("failed to create new IMAP server: %w", err))
+			return fmt.Errorf("failed to create new IMAP server: %w", err)
 		}
 
 		bridge.imapServer = imapServer
+
+		for _, user := range bridge.users {
+			if err := bridge.addIMAPUser(ctx, user); err != nil {
+				return fmt.Errorf("failed to add users to new IMAP server: %w", err)
+			}
+		}
+
+		if err := bridge.serveIMAP(); err != nil {
+			return fmt.Errorf("failed to serve IMAP: %w", err)
+		}
 
 		return nil
 	}, bridge.usersLock)
@@ -188,34 +193,6 @@ func (bridge *Bridge) moveGluonCacheDir(oldGluonDir, newGluonDir string) error {
 
 	if err := os.RemoveAll(oldCacheDir); err != nil {
 		logrus.WithError(err).Error("failed to remove old gluon cache dir")
-	}
-	return nil
-}
-
-func (bridge *Bridge) stopEventLoops() error {
-	if err := bridge.closeIMAP(context.Background()); err != nil {
-		return fmt.Errorf("failed to close IMAP: %w", err)
-	}
-
-	if err := bridge.closeSMTP(); err != nil {
-		return fmt.Errorf("failed to close SMTP: %w", err)
-	}
-	return nil
-}
-
-func (bridge *Bridge) startEventLoops(ctx context.Context) error {
-	for _, user := range bridge.users {
-		if err := bridge.addIMAPUser(ctx, user); err != nil {
-			return fmt.Errorf("failed to add users to new IMAP server: %w", err)
-		}
-	}
-
-	if err := bridge.serveIMAP(); err != nil {
-		panic(fmt.Errorf("failed to serve IMAP: %w", err))
-	}
-
-	if err := bridge.serveSMTP(); err != nil {
-		panic(fmt.Errorf("failed to serve SMTP: %w", err))
 	}
 	return nil
 }

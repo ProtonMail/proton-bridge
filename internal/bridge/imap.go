@@ -46,7 +46,7 @@ const (
 )
 
 func (bridge *Bridge) serveIMAP() error {
-	if port, err := func() (int, error) {
+	port, err := func() (int, error) {
 		if bridge.imapServer == nil {
 			return 0, fmt.Errorf("no IMAP server instance running")
 		}
@@ -69,19 +69,21 @@ func (bridge *Bridge) serveIMAP() error {
 		}
 
 		return getPort(imapListener.Addr()), nil
-	}(); err != nil {
+	}()
+
+	if err != nil {
 		bridge.publish(events.IMAPServerError{
 			Error: err,
 		})
 
 		return err
-	} else {
-		bridge.publish(events.IMAPServerReady{
-			Port: port,
-		})
-
-		return nil
 	}
+
+	bridge.publish(events.IMAPServerReady{
+		Port: port,
+	})
+
+	return nil
 }
 
 func (bridge *Bridge) restartIMAP() error {

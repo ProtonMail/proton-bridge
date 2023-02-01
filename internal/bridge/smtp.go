@@ -32,7 +32,7 @@ import (
 )
 
 func (bridge *Bridge) serveSMTP() error {
-	if port, err := func() (int, error) {
+	port, err := func() (int, error) {
 		logrus.Info("Starting SMTP server")
 
 		smtpListener, err := newListener(bridge.vault.GetSMTPPort(), bridge.vault.GetSMTPSSL(), bridge.tlsConfig)
@@ -53,19 +53,21 @@ func (bridge *Bridge) serveSMTP() error {
 		}
 
 		return getPort(smtpListener.Addr()), nil
-	}(); err != nil {
+	}()
+
+	if err != nil {
 		bridge.publish(events.SMTPServerError{
 			Error: err,
 		})
 
 		return err
-	} else {
-		bridge.publish(events.SMTPServerReady{
-			Port: port,
-		})
-
-		return nil
 	}
+
+	bridge.publish(events.SMTPServerReady{
+		Port: port,
+	})
+
+	return nil
 }
 
 func (bridge *Bridge) restartSMTP() error {
