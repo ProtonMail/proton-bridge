@@ -2,9 +2,7 @@
 - 2023-02-01
 
 ### New
-- **Please note: this update might cause one time resync of your local DB. The
-  default location of the database and storage files has changed. Please delete
-  the old cache location if necessary.**
+- Changed the default location of the database and storage files. **NOTE: Please delete the old cache location if necessary.**
 - Improved sending performance.
 - Optimised cache, IMAP database and storage placement.
 - Minor GUI improvements.
