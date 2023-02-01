@@ -46,28 +46,42 @@ const (
 )
 
 func (bridge *Bridge) serveIMAP() error {
-	if bridge.imapServer == nil {
-		return fmt.Errorf("no imap server instance running")
+	if port, err := func() (int, error) {
+		if bridge.imapServer == nil {
+			return 0, fmt.Errorf("no IMAP server instance running")
+		}
+
+		logrus.Info("Starting IMAP server")
+
+		imapListener, err := newListener(bridge.vault.GetIMAPPort(), bridge.vault.GetIMAPSSL(), bridge.tlsConfig)
+		if err != nil {
+			return 0, fmt.Errorf("failed to create IMAP listener: %w", err)
+		}
+
+		bridge.imapListener = imapListener
+
+		if err := bridge.imapServer.Serve(context.Background(), bridge.imapListener); err != nil {
+			return 0, fmt.Errorf("failed to serve IMAP: %w", err)
+		}
+
+		if err := bridge.vault.SetIMAPPort(getPort(imapListener.Addr())); err != nil {
+			return 0, fmt.Errorf("failed to store IMAP port in vault: %w", err)
+		}
+
+		return getPort(imapListener.Addr()), nil
+	}(); err != nil {
+		bridge.publish(events.IMAPServerError{
+			Error: err,
+		})
+
+		return err
+	} else {
+		bridge.publish(events.IMAPServerReady{
+			Port: port,
+		})
+
+		return nil
 	}
-
-	logrus.Info("Starting IMAP server")
-
-	imapListener, err := newListener(bridge.vault.GetIMAPPort(), bridge.vault.GetIMAPSSL(), bridge.tlsConfig)
-	if err != nil {
-		return fmt.Errorf("failed to create IMAP listener: %w", err)
-	}
-
-	bridge.imapListener = imapListener
-
-	if err := bridge.imapServer.Serve(context.Background(), bridge.imapListener); err != nil {
-		return fmt.Errorf("failed to serve IMAP: %w", err)
-	}
-
-	if err := bridge.vault.SetIMAPPort(getPort(imapListener.Addr())); err != nil {
-		return fmt.Errorf("failed to store IMAP port in vault: %w", err)
-	}
-
-	return nil
 }
 
 func (bridge *Bridge) restartIMAP() error {
@@ -77,6 +91,8 @@ func (bridge *Bridge) restartIMAP() error {
 		if err := bridge.imapListener.Close(); err != nil {
 			return fmt.Errorf("failed to close IMAP listener: %w", err)
 		}
+
+		bridge.publish(events.IMAPServerStopped{})
 	}
 
 	return bridge.serveIMAP()
@@ -89,6 +105,7 @@ func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 		if err := bridge.imapServer.Close(ctx); err != nil {
 			return fmt.Errorf("failed to close IMAP server: %w", err)
 		}
+
 		bridge.imapServer = nil
 	}
 
@@ -97,6 +114,8 @@ func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 			return fmt.Errorf("failed to close IMAP listener: %w", err)
 		}
 	}
+
+	bridge.publish(events.IMAPServerStopped{})
 
 	return nil
 }

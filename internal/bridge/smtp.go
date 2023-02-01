@@ -22,6 +22,7 @@ import (
 	"crypto/tls"
 	"fmt"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
@@ -31,26 +32,40 @@ import (
 )
 
 func (bridge *Bridge) serveSMTP() error {
-	logrus.Info("Starting SMTP server")
+	if port, err := func() (int, error) {
+		logrus.Info("Starting SMTP server")
 
-	smtpListener, err := newListener(bridge.vault.GetSMTPPort(), bridge.vault.GetSMTPSSL(), bridge.tlsConfig)
-	if err != nil {
-		return fmt.Errorf("failed to create SMTP listener: %w", err)
-	}
-
-	bridge.smtpListener = smtpListener
-
-	bridge.tasks.Once(func(context.Context) {
-		if err := bridge.smtpServer.Serve(smtpListener); err != nil {
-			logrus.WithError(err).Info("SMTP server stopped")
+		smtpListener, err := newListener(bridge.vault.GetSMTPPort(), bridge.vault.GetSMTPSSL(), bridge.tlsConfig)
+		if err != nil {
+			return 0, fmt.Errorf("failed to create SMTP listener: %w", err)
 		}
-	})
 
-	if err := bridge.vault.SetSMTPPort(getPort(smtpListener.Addr())); err != nil {
-		return fmt.Errorf("failed to store SMTP port in vault: %w", err)
+		bridge.smtpListener = smtpListener
+
+		bridge.tasks.Once(func(context.Context) {
+			if err := bridge.smtpServer.Serve(smtpListener); err != nil {
+				logrus.WithError(err).Info("SMTP server stopped")
+			}
+		})
+
+		if err := bridge.vault.SetSMTPPort(getPort(smtpListener.Addr())); err != nil {
+			return 0, fmt.Errorf("failed to store SMTP port in vault: %w", err)
+		}
+
+		return getPort(smtpListener.Addr()), nil
+	}(); err != nil {
+		bridge.publish(events.SMTPServerError{
+			Error: err,
+		})
+
+		return err
+	} else {
+		bridge.publish(events.SMTPServerReady{
+			Port: port,
+		})
+
+		return nil
 	}
-
-	return nil
 }
 
 func (bridge *Bridge) restartSMTP() error {
@@ -59,6 +74,8 @@ func (bridge *Bridge) restartSMTP() error {
 	if err := bridge.closeSMTP(); err != nil {
 		return fmt.Errorf("failed to close SMTP: %w", err)
 	}
+
+	bridge.publish(events.SMTPServerStopped{})
 
 	bridge.smtpServer = newSMTPServer(bridge, bridge.tlsConfig, bridge.logSMTP)
 
@@ -81,6 +98,8 @@ func (bridge *Bridge) closeSMTP() error {
 	if err := bridge.smtpServer.Close(); err != nil {
 		logrus.WithError(err).Debug("Failed to close SMTP server (expected -- we close the listener ourselves)")
 	}
+
+	bridge.publish(events.SMTPServerStopped{})
 
 	return nil
 }

@@ -671,6 +671,10 @@ func withBridgeNoMocks(
 
 	// Wait for bridge to finish loading users.
 	waitForEvent(t, eventCh, events.AllUsersLoaded{})
+	// Wait for bridge to start the IMAP server.
+	waitForEvent(t, eventCh, events.IMAPServerReady{})
+	// Wait for bridge to start the SMTP server.
+	waitForEvent(t, eventCh, events.SMTPServerReady{})
 
 	// Set random IMAP and SMTP ports for the tests.
 	require.NoError(t, bridge.SetIMAPPort(0))

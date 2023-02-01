@@ -188,18 +188,6 @@ func New( //nolint:funlen
 		return nil, nil, fmt.Errorf("failed to initialize bridge: %w", err)
 	}
 
-	// Start serving IMAP.
-	if err := bridge.serveIMAP(); err != nil {
-		logrus.WithError(err).Error("IMAP error")
-		bridge.PushError(ErrServeIMAP)
-	}
-
-	// Start serving SMTP.
-	if err := bridge.serveSMTP(); err != nil {
-		logrus.WithError(err).Error("SMTP error")
-		bridge.PushError(ErrServeSMTP)
-	}
-
 	return bridge, eventCh, nil
 }
 
@@ -383,15 +371,33 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 		})
 	})
 
-	// Attempt to lazy load users when triggered.
+	// Attempt to lazy load users when triggered. Only load once.
+	var loaded bool
 	bridge.goLoad = bridge.tasks.Trigger(func(ctx context.Context) {
+		if loaded {
+			logrus.Debug("All users are already loaded, skipping")
+			return
+		}
+
 		logrus.Info("Loading users")
 
 		if err := bridge.loadUsers(ctx); err != nil {
 			logrus.WithError(err).Error("Failed to load users")
-		} else {
-			bridge.publish(events.AllUsersLoaded{})
+			return
 		}
+
+		bridge.publish(events.AllUsersLoaded{})
+
+		// Once all users have been loaded, start the bridge's IMAP and SMTP servers.
+		if err := bridge.serveIMAP(); err != nil {
+			logrus.WithError(err).Error("Failed to start IMAP server")
+		}
+
+		if err := bridge.serveSMTP(); err != nil {
+			logrus.WithError(err).Error("Failed to start SMTP server")
+		}
+
+		loaded = true
 	})
 	defer bridge.goLoad()
 
