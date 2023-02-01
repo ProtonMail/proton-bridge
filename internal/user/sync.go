@@ -344,7 +344,7 @@ func syncMessages(
 
 	flushUpdateCh := make(chan flushUpdate)
 
-	errorCh := make(chan error, maxParallelDownloads+2)
+	errorCh := make(chan error, maxParallelDownloads*4)
 
 	// Go routine in charge of downloading message metadata
 	logging.GoAnnotated(ctx, func(ctx context.Context) {
@@ -360,13 +360,15 @@ func syncMessages(
 			metadata, err := client.GetMessageMetadataPage(ctx, 0, len(metadataChunk), proton.MessageFilter{ID: metadataChunk})
 			if err != nil {
 				downloadReq.err = err
-				downloadCh <- downloadReq
+				select {
+				case downloadCh <- downloadReq:
+				case <-ctx.Done():
+					return
+				}
 				return
 			}
 
 			if ctx.Err() != nil {
-				downloadReq.err = err
-				downloadCh <- downloadReq
 				return
 			}
 
@@ -789,7 +791,11 @@ func (a *attachmentDownloader) getAttachments(ctx context.Context, attachments [
 	resultChs := make([]chan attachmentResult, len(attachments))
 	for i, id := range attachments {
 		resultChs[i] = make(chan attachmentResult, 1)
-		a.workerCh <- attachmentJob{id: id.ID, result: resultChs[i], size: id.Size}
+		select {
+		case a.workerCh <- attachmentJob{id: id.ID, result: resultChs[i], size: id.Size}:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
 	}
 
 	result := make([][]byte, len(attachments))
