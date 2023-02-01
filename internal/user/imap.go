@@ -443,7 +443,7 @@ func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.M
 			result = result || true
 		}
 
-		if v, ok := conn.apiLabels[string(labelToID)]; ok && v.Type == proton.LabelTypeFolder {
+		if v, ok := conn.apiLabels[string(labelToID)]; ok && (v.Type == proton.LabelTypeFolder || v.Type == proton.LabelTypeSystem) {
 			result = result || true
 		}
 

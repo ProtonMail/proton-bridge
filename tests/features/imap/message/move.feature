@@ -64,6 +64,29 @@ Feature: IMAP move messages
        | john.doe@mail.com | [user:user]@[domain] | baz     | false  |
      And IMAP client "1" sees 0 messages in "Labels/label2"
 
+  Scenario: Move message from system label to system label
+    When IMAP client "1" moves the message with subject "foo" from "INBOX" to "Trash"
+    And it succeeds
+    And IMAP client "1" sees the following messages in "INBOX":
+      | from              | to                   | subject | unread |
+      | jane.doe@mail.com | name@[domain]        | bar     | true   |
+    And IMAP client "1" sees the following messages in "Trash":
+      | from              | to                   | subject | unread |
+      | john.doe@mail.com | [user:user]@[domain] | foo     | false  |
+
+  Scenario: Move message from folder to system label
+    When IMAP client "1" moves the message with subject "baz" from "Labels/label2" to "Folders/mbox"
+    And it succeeds
+    And IMAP client "1" sees the following messages in "Folders/mbox":
+      | from              | to                   | subject | unread |
+      | john.doe@mail.com | [user:user]@[domain] | baz     | false  |
+    When IMAP client "1" moves the message with subject "baz" from "Folders/mbox" to "Trash"
+    And it succeeds
+    And IMAP client "1" sees 0 messages in "Folders/mbox"
+    And IMAP client "1" sees the following messages in "Trash":
+      | from              | to                   | subject | unread |
+      | john.doe@mail.com | [user:user]@[domain] | baz     | false  |
+
    Scenario: Move message from All Mail is not possible
      When IMAP client "1" moves the message with subject "baz" from "All Mail" to "Folders/folder"
      Then it fails
