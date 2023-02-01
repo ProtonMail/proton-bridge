@@ -3,14 +3,13 @@
 
 ### New
 - Changed the default location of the database and storage files. **NOTE: Please delete the old cache location if necessary.**
-- Improved sending performance.
-- Optimised cache, IMAP database and storage placement.
-- Minor GUI improvements.
-- Optimised unexpected event handling.
+- Optimised cache, database and storage placement
+- Improved email sending performance
+- Improved unexpected event handling
 
 ### Fixed
-- Outlook does not show sent messages as drafts.
-- Improved 'Reply to' behaviour.
+- Outlook does not show sent messages as drafts
+- Improved 'Reply to' behaviour
 
 
 ## v3.0.10
