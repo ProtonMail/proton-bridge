@@ -2,6 +2,13 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.13] Perth Narrows
+
+### Fixed
+GODT-2319: Seed the math/rand RNG on app startup.
+GODT-1804: Preserve MIME parameters when uploading attachments.
+
+
 ## [Bridge 3.0.12] Perth Narrows
 
 ### Added
