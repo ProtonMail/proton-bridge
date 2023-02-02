@@ -197,6 +197,11 @@ func (user *User) RemFailedMessageID(messageID string) error {
 	})
 }
 
+// GetSyncStatus returns the user's sync status.
+func (user *User) GetSyncStatus() SyncStatus {
+	return user.vault.getUser(user.userID).SyncStatus
+}
+
 // ClearSyncStatus clears the user's sync status.
 func (user *User) ClearSyncStatus() error {
 	return user.vault.modUser(user.userID, func(data *UserData) {

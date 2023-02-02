@@ -149,6 +149,7 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 		}
 	}
 
+	user.TriggerSync()
 	return nil
 }
 
