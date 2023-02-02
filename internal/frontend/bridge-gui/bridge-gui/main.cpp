@@ -28,6 +28,7 @@
 #include <bridgepp/Log/Log.h>
 #include <bridgepp/ProcessMonitor.h>
 #include <sentry.h>
+#include <SentryUtils.h>
 #include <project_sentry_config.h>
 
 
@@ -238,7 +239,8 @@ void focusOtherInstance() {
     }
     catch (Exception const &e) {
         app().log().error(e.qwhat());
-        reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during focusOtherInstance()", "Exception", e.what());
+        auto uuid = reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during focusOtherInstance()", "Exception", e.what());
+        app().log().fatal(QString("reportID: %1 Captured exception: %2").arg(QByteArray(uuid.bytes, 16).toHex()).arg(e.qwhat()));
     }
 }
 
@@ -296,13 +298,13 @@ int main(int argc, char *argv[]) {
         const QString sentryCachePath = sentryCacheDir();
         sentry_options_set_database_path(sentryOptions, sentryCachePath.toStdString().c_str());
     }
-    sentry_options_set_release(sentryOptions, SentryProductID);
+    sentry_options_set_release(sentryOptions, QByteArray(PROJECT_REVISION).toHex());
     // Enable this for debugging sentry.
     // sentry_options_set_debug(sentryOptions, 1);
     if (sentry_init(sentryOptions) != 0) {
         std::cerr << "Failed to initialize sentry" << std::endl;
     }
-
+    setSentryReportScope();
     auto sentryClose = qScopeGuard([] { sentry_close(); });
 
     // The application instance is needed to display system message boxes. As we may have to do it in the exception handler,
@@ -426,9 +428,9 @@ int main(int argc, char *argv[]) {
         return result;
     }
     catch (Exception const &e) {
-        reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during main", "Exception", e.what());
+        auto uuid = reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during main", "Exception", e.what());
         QMessageBox::critical(nullptr, "Error", e.qwhat());
-        QTextStream(stderr) << e.qwhat() << "\n";
+        QTextStream(stderr) << "reportID: " << QByteArray(uuid.bytes, 16).toHex() << "Captured exception :" << e.qwhat() << "\n";
         return EXIT_FAILURE;
     }
 }

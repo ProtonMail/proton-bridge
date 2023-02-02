@@ -76,10 +76,10 @@ ProcessMonitor *AppController::bridgeMonitor() const {
 //****************************************************************************************************************************************************
 void AppController::onFatalError(QString const &function, QString const &message) {
     QString const fullMessage = QString("%1(): %2").arg(function, message);
-    reportSentryException(SENTRY_LEVEL_ERROR, "AppController got notified of a fatal error", "Exception", fullMessage.toLocal8Bit());
+    auto uuid = reportSentryException(SENTRY_LEVEL_ERROR, "AppController got notified of a fatal error", "Exception", fullMessage.toLocal8Bit());
     QMessageBox::critical(nullptr, tr("Error"), message);
     restart(true);
-    log().fatal(fullMessage);
+    log().fatal(QString("reportID: %1 Captured exception: %2").arg(QByteArray(uuid.bytes, 16).toHex()).arg(fullMessage));
     qApp->exit(EXIT_FAILURE);
 }
 

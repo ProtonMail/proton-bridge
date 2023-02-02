@@ -18,6 +18,7 @@
 package sentry
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"log"
@@ -62,10 +63,19 @@ type Reporter struct {
 	appVersion string
 	identifier Identifier
 	hostArch   string
+	serverName string
 }
 
 type Identifier interface {
 	GetUserAgent() string
+}
+
+func getProtectedHostname() string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "Unknown"
+	}
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(hostname)))
 }
 
 // NewReporter creates new sentry reporter with appName and appVersion to report.
@@ -75,6 +85,7 @@ func NewReporter(appName, appVersion string, identifier Identifier) *Reporter {
 		appVersion: appVersion,
 		identifier: identifier,
 		hostArch:   getHostArch(),
+		serverName: getProtectedHostname(),
 	}
 }
 
@@ -126,11 +137,12 @@ func (r *Reporter) scopedReport(context map[string]interface{}, doReport func())
 	}
 
 	tags := map[string]string{
-		"OS":        runtime.GOOS,
-		"Client":    r.appName,
-		"Version":   r.appVersion,
-		"UserAgent": r.identifier.GetUserAgent(),
-		"HostArch":  r.hostArch,
+		"OS":          runtime.GOOS,
+		"Client":      r.appName,
+		"Version":     r.appVersion,
+		"UserAgent":   r.identifier.GetUserAgent(),
+		"HostArch":    r.hostArch,
+		"server_name": r.serverName,
 	}
 
 	sentry.WithScope(func(scope *sentry.Scope) {
