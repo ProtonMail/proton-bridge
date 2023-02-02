@@ -728,7 +728,12 @@ func wantLabel(label proton.Label) bool {
 
 func wantLabels(apiLabels map[string]proton.Label, labelIDs []string) []string {
 	return xslices.Filter(labelIDs, func(labelID string) bool {
-		return wantLabel(apiLabels[labelID])
+		apiLabel, ok := apiLabels[labelID]
+		if !ok {
+			return false
+		}
+
+		return wantLabel(apiLabel)
 	})
 }
 
