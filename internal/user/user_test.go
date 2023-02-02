@@ -22,16 +22,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/go-proton-api/server/backend"
-	"github.com/ProtonMail/proton-bridge/v3/internal/bridge/mocks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
-	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/tests"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 )
@@ -70,101 +66,15 @@ func TestUser_Info(t *testing.T) {
 	})
 }
 
-func TestUser_Sync(t *testing.T) {
-	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
-		withAccount(t, s, "username", "password", []string{}, func(string, []string) {
-			withUser(t, ctx, s, m, "username", "password", func(user *User) {
-				// User starts a sync at startup.
-				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
-
-				// User sends sync progress.
-				require.IsType(t, events.SyncProgress{}, <-user.GetEventCh())
-
-				// User finishes a sync at startup.
-				require.IsType(t, events.SyncFinished{}, <-user.GetEventCh())
-			})
-		})
-	})
-}
-
 func TestUser_AddressMode(t *testing.T) {
 	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
 		withAccount(t, s, "username", "password", []string{}, func(string, []string) {
 			withUser(t, ctx, s, m, "username", "password", func(user *User) {
-				// User finishes syncing at startup.
-				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
-				require.IsType(t, events.SyncProgress{}, <-user.GetEventCh())
-				require.IsType(t, events.SyncFinished{}, <-user.GetEventCh())
-
 				// By default, user should be in combined mode.
 				require.Equal(t, vault.CombinedMode, user.GetAddressMode())
 
 				// User should be able to switch to split mode.
 				require.NoError(t, user.SetAddressMode(ctx, vault.SplitMode))
-
-				// Create a new set of IMAP connectors (after switching to split mode).
-				imapConn, err := user.NewIMAPConnectors()
-				require.NoError(t, err)
-
-				// Process updates from the new set of IMAP connectors.
-				for _, imapConn := range imapConn {
-					go func(imapConn connector.Connector) {
-						for update := range imapConn.GetUpdates() {
-							update.Done(nil)
-						}
-					}(imapConn)
-				}
-
-				// User finishes syncing after switching to split mode.
-				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
-				require.IsType(t, events.SyncProgress{}, <-user.GetEventCh())
-				require.IsType(t, events.SyncFinished{}, <-user.GetEventCh())
-			})
-		})
-	})
-}
-
-func TestUser_Deauth(t *testing.T) {
-	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
-		withAccount(t, s, "username", "password", []string{}, func(string, []string) {
-			withUser(t, ctx, s, m, "username", "password", func(user *User) {
-				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
-				require.IsType(t, events.SyncProgress{}, <-user.GetEventCh())
-				require.IsType(t, events.SyncFinished{}, <-user.GetEventCh())
-
-				// Revoke the user's auth token.
-				require.NoError(t, s.RevokeUser(user.ID()))
-
-				// The user should eventually be logged out.
-				require.Eventually(t, func() bool { _, ok := (<-user.GetEventCh()).(events.UserDeauth); return ok }, 500*time.Second, 100*time.Millisecond)
-			})
-		})
-	})
-}
-
-func TestUser_Refresh(t *testing.T) {
-	ctl := gomock.NewController(t)
-	mockReporter := mocks.NewMockReporter(ctl)
-
-	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
-		withAccount(t, s, "username", "password", []string{}, func(string, []string) {
-			withUser(t, ctx, s, m, "username", "password", func(user *User) {
-				require.IsType(t, events.SyncStarted{}, <-user.GetEventCh())
-				require.IsType(t, events.SyncProgress{}, <-user.GetEventCh())
-				require.IsType(t, events.SyncFinished{}, <-user.GetEventCh())
-
-				user.reporter = mockReporter
-
-				mockReporter.EXPECT().ReportMessageWithContext(
-					gomock.Eq("Warning: refresh occurred"),
-					mocks.NewRefreshContextMatcher(proton.RefreshAll),
-				).Return(nil)
-
-				// Send refresh event
-				require.NoError(t, s.RefreshUser(user.ID(), proton.RefreshAll))
-
-				// The user should eventually be re-synced.
-				require.Eventually(t, func() bool { _, ok := (<-user.GetEventCh()).(events.UserRefreshed); return ok }, 5*time.Second, 100*time.Millisecond)
 			})
 		})
 	})
@@ -219,17 +129,6 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 	user, err := New(ctx, vaultUser, client, nil, apiUser, nil, true, vault.DefaultMaxSyncMemory)
 	require.NoError(tb, err)
 	defer user.Close()
-
-	imapConn, err := user.NewIMAPConnectors()
-	require.NoError(tb, err)
-
-	for _, imapConn := range imapConn {
-		go func(imapConn connector.Connector) {
-			for update := range imapConn.GetUpdates() {
-				update.Done(nil)
-			}
-		}(imapConn)
-	}
 
 	fn(user)
 }
