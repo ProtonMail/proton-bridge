@@ -5,6 +5,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## [Bridge 3.0.13] Perth Narrows
 
 ### Fixed
+GODT-2328: Ignore labels that aren't part of user label set.
 GODT-2326: Sync issue on missing fresh DB file.
 GODT-2319: Seed the math/rand RNG on app startup.
 GODT-1804: Preserve MIME parameters when uploading attachments.
