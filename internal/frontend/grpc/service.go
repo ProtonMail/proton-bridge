@@ -309,6 +309,9 @@ func (s *Service) watchEvents() {
 		case events.UsedSpaceChanged:
 			_ = s.SendEvent(NewUsedBytesChangedEvent(event.UserID, event.UsedSpace))
 
+		case events.IMAPLoginFailed:
+			_ = s.SendEvent(newIMAPLoginFailedEvent(event.Username))
+
 		case events.UserDeauth:
 			// This is the event the GUI cares about.
 			_ = s.SendEvent(NewUserChangedEvent(event.UserID))

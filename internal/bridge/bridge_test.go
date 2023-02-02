@@ -21,6 +21,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -493,6 +494,21 @@ func TestBridge_InitGluonDirectory(t *testing.T) {
 
 			_, err = os.ReadDir(bridge.ApplyGluonConfigPathSuffix(configDir))
 			require.False(t, os.IsNotExist(err))
+		})
+	})
+}
+
+func TestBridge_LoginFailed(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			failCh, done := chToType[events.Event, events.IMAPLoginFailed](bridge.GetEvents(events.IMAPLoginFailed{}))
+			defer done()
+
+			imapClient, err := client.Dial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetIMAPPort())))
+			require.NoError(t, err)
+
+			require.Error(t, imapClient.Login("badUser", "badPass"))
+			require.Equal(t, "badUser", (<-failCh).Username)
 		})
 	})
 }

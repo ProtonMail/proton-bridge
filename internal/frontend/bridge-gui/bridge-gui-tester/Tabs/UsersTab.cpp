@@ -52,6 +52,7 @@ UsersTab::UsersTab(QWidget *parent)
     connect(ui_.tableUserList, &QTableView::doubleClicked, this, &UsersTab::onEditUserButton);
     connect(ui_.buttonRemoveUser, &QPushButton::clicked, this, &UsersTab::onRemoveUserButton);
     connect(ui_.buttonUserBadEvent, &QPushButton::clicked, this, &UsersTab::onSendUserBadEvent);
+    connect(ui_.buttonImapLoginFailed, &QPushButton::clicked, this, &UsersTab::onSendIMAPLoginFailedEvent);
     connect(ui_.buttonUsedBytesChanged, &QPushButton::clicked, this, &UsersTab::onSendUsedBytesChangedEvent);
     connect(ui_.checkUsernamePasswordError, &QCheckBox::toggled, this, &UsersTab::updateGUIState);
 
@@ -192,6 +193,19 @@ void UsersTab::onSendUsedBytesChangedEvent() {
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
+void UsersTab::onSendIMAPLoginFailedEvent() {
+    GRPCService &grpc = app().grpc();
+    if (grpc.isStreaming()) {
+        grpc.sendEvent(newIMAPLoginFailedEvent(ui_.editIMAPLoginFailedUsername->text()));
+    }
+
+    this->updateGUIState();
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
 void UsersTab::updateGUIState() {
     SPUser const user = selectedUser();
     bool const hasSelectedUser = user.get();
@@ -203,6 +217,9 @@ void UsersTab::updateGUIState() {
     ui_.groupBoxUsedSpace->setEnabled(hasSelectedUser && (UserState::Connected == state));
     ui_.editUsernamePasswordError->setEnabled(ui_.checkUsernamePasswordError->isChecked());
     ui_.spinUsedBytes->setValue(user ? user->usedBytes() : 0.0);
+
+    if (user)
+        ui_.editIMAPLoginFailedUsername->setText(user->primaryEmailOrUsername());
 }
 
 

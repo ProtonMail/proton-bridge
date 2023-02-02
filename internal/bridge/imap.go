@@ -33,6 +33,7 @@ import (
 	"github.com/ProtonMail/gluon/store"
 	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
@@ -228,6 +229,13 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 		if event.IMAPID.Name != "" && event.IMAPID.Version != "" {
 			bridge.identifier.SetClient(event.IMAPID.Name, event.IMAPID.Version)
 		}
+
+	case imapEvents.LoginFailed:
+		logrus.WithFields(logrus.Fields{
+			"sessionID": event.SessionID,
+			"username":  event.Username,
+		}).Info("Received IMAP login failure notification")
+		bridge.publish(events.IMAPLoginFailed{Username: event.Username})
 	}
 }
 

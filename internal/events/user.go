@@ -169,3 +169,13 @@ type UsedSpaceChanged struct {
 func (event UsedSpaceChanged) String() string {
 	return fmt.Sprintf("UsedSpaceChanged: UserID: %s, UsedSpace: %v", event.UserID, event.UsedSpace)
 }
+
+type IMAPLoginFailed struct {
+	eventBase
+
+	Username string
+}
+
+func (event IMAPLoginFailed) String() string {
+	return fmt.Sprintf("IMAPLoginFailed: Username: %s", event.Username)
+}

@@ -448,7 +448,8 @@ message UserEvent {
     UserDisconnectedEvent userDisconnected = 2;
     UserChangedEvent userChanged = 3;
     UserBadEvent userBadEvent = 4;
-    UsedBytesChangedEvent  usedBytesChangedEvent= 5;
+    UsedBytesChangedEvent  usedBytesChangedEvent = 5;
+    ImapLoginFailedEvent imapLoginFailedEvent = 6;
   }
 }
 
@@ -472,6 +473,10 @@ message UserBadEvent {
 message UsedBytesChangedEvent {
   string userID = 1;
   int64 usedBytes = 2;
+}
+
+message ImapLoginFailedEvent {
+  string username = 1;
 }
 
 //**********************************************************

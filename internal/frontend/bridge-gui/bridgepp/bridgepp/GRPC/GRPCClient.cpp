@@ -1382,6 +1382,13 @@ void GRPCClient::processUserEvent(UserEvent const &event) {
         emit usedBytesChanged(userID, usedBytes);
         break;
     }
+    case UserEvent::kImapLoginFailedEvent: {
+        ImapLoginFailedEvent const& e = event.imaploginfailedevent();
+        QString const username = QString::fromStdString(e.username());
+        this->logTrace(QString("User event received: IMAPLoginFailed (username = %1).:").arg(username));
+        emit imapLoginFailed(username);
+        break;
+    }
     default:
         this->logError("Unknown User event received.");
     }

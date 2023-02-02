@@ -589,6 +589,19 @@ SPStreamEvent newUsedBytesChangedEvent(QString const &userID, qint64 usedBytes) 
 
 
 //****************************************************************************************************************************************************
+/// \param[in] username The username that was provided for the failed IMAP login attempt.
+/// \return The event.
+//****************************************************************************************************************************************************
+SPStreamEvent newIMAPLoginFailedEvent(QString const &username) {
+    auto event = new grpc::ImapLoginFailedEvent;
+    event->set_username(username.toStdString());
+    auto userEvent = new grpc::UserEvent;
+    userEvent->set_allocated_imaploginfailedevent(event);
+    return wrapUserEvent(userEvent);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] errorCode The error errorCode.
 /// \return The event.
 //****************************************************************************************************************************************************

@@ -181,6 +181,10 @@ func NewUsedBytesChangedEvent(userID string, usedBytes int) *StreamEvent {
 	return userEvent(&UserEvent{Event: &UserEvent_UsedBytesChangedEvent{UsedBytesChangedEvent: &UsedBytesChangedEvent{UserID: userID, UsedBytes: int64(usedBytes)}}})
 }
 
+func newIMAPLoginFailedEvent(username string) *StreamEvent {
+	return userEvent(&UserEvent{Event: &UserEvent_ImapLoginFailedEvent{ImapLoginFailedEvent: &ImapLoginFailedEvent{Username: username}}})
+}
+
 func NewGenericErrorEvent(errorCode ErrorCode) *StreamEvent {
 	return genericErrorEvent(&GenericErrorEvent{Code: errorCode})
 }
