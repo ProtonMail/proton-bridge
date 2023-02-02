@@ -20,6 +20,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"os"
 	"runtime"
 
 	"github.com/ProtonMail/go-proton-api"
@@ -33,6 +34,7 @@ func (t *testCtx) withProton(fn func(*proton.Manager) error) error {
 		proton.WithHostURL(t.api.GetHostURL()),
 		proton.WithTransport(proton.InsecureTransport()),
 		proton.WithAppVersion(t.api.GetAppVersion()),
+		proton.WithDebug(os.Getenv("FEATURE_API_DEBUG") != ""),
 	)
 	defer m.Close()
 
