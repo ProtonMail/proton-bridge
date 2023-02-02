@@ -234,10 +234,11 @@ func New(
 		})
 	})
 
-	// Trigger an initial sync (if necessary).
-	user.goSync()
-
 	return user, nil
+}
+
+func (user *User) TriggerSync() {
+	user.goSync()
 }
 
 // ID returns the user's ID.
@@ -482,11 +483,8 @@ func (user *User) GetSyncStatus() vault.SyncStatus {
 	return user.vault.GetSyncStatus()
 }
 
-// ClearSyncStatus clears the sync status of the user. This triggers a resync.
+// ClearSyncStatus clears the sync status of the user.
 func (user *User) ClearSyncStatus() error {
-	user.abortable.Abort()
-	defer user.goSync()
-
 	return user.vault.ClearSyncStatus()
 }
 
