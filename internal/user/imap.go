@@ -275,6 +275,10 @@ func (conn *imapConnector) CreateMessage(
 ) (imap.Message, []byte, error) {
 	defer conn.goPollAPIEvents(false)
 
+	if mailboxID == proton.AllMailLabel {
+		return imap.Message{}, nil, fmt.Errorf("not allowed")
+	}
+
 	// Compute the hash of the message (to match it against SMTP messages).
 	hash, err := getMessageHash(literal)
 	if err != nil {
@@ -378,12 +382,20 @@ func (conn *imapConnector) GetMessageLiteral(ctx context.Context, id imap.Messag
 func (conn *imapConnector) AddMessagesToMailbox(ctx context.Context, messageIDs []imap.MessageID, mailboxID imap.MailboxID) error {
 	defer conn.goPollAPIEvents(false)
 
+	if mailboxID == proton.AllMailLabel {
+		return fmt.Errorf("not allowed")
+	}
+
 	return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(mailboxID))
 }
 
 // RemoveMessagesFromMailbox unlabels the given messages with the given label ID.
 func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messageIDs []imap.MessageID, mailboxID imap.MailboxID) error {
 	defer conn.goPollAPIEvents(false)
+
+	if mailboxID == proton.AllMailLabel {
+		return fmt.Errorf("not allowed")
+	}
 
 	if err := conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(mailboxID)); err != nil {
 		return err
@@ -429,7 +441,9 @@ func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.M
 	defer conn.goPollAPIEvents(false)
 
 	if (labelFromID == proton.InboxLabel && labelToID == proton.SentLabel) ||
-		(labelFromID == proton.SentLabel && labelToID == proton.InboxLabel) {
+		(labelFromID == proton.SentLabel && labelToID == proton.InboxLabel) ||
+		labelFromID == proton.AllMailLabel ||
+		labelToID == proton.AllMailLabel {
 		return false, fmt.Errorf("not allowed")
 	}
 
