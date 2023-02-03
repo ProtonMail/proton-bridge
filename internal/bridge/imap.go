@@ -152,8 +152,21 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 				// If the DB was newly created, clear the sync status; gluon's DB was not found.
 				logrus.Warn("IMAP user DB was newly created, clearing sync status")
 
+				// Remove the user from IMAP so we can clear the sync status.
+				if err := bridge.imapServer.RemoveUser(ctx, gluonID, false); err != nil {
+					return fmt.Errorf("failed to remove IMAP user: %w", err)
+				}
+
+				// Clear the sync status -- we need to resync all messages.
 				if err := user.ClearSyncStatus(); err != nil {
 					return fmt.Errorf("failed to clear sync status: %w", err)
+				}
+
+				// Add the user back to the IMAP server.
+				if isNew, err := bridge.imapServer.LoadUser(ctx, imapConn, gluonID, user.GluonKey()); err != nil {
+					return fmt.Errorf("failed to add IMAP user: %w", err)
+				} else if isNew {
+					panic("IMAP user should already have a database")
 				}
 			} else if status := user.GetSyncStatus(); !status.HasLabels {
 				// Otherwise, the DB already exists -- if the labels are not yet synced, we need to re-create the DB.
@@ -192,7 +205,9 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 		}
 	}
 
+	// Trigger a sync for the user, if needed.
 	user.TriggerSync()
+
 	return nil
 }
 

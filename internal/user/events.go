@@ -90,8 +90,10 @@ func (user *User) handleRefreshEvent(ctx context.Context, refresh proton.Refresh
 		l.WithError(err).Error("Failed to report refresh to sentry")
 	}
 
-	// Cancel and restart ongoing syncs.
-	user.abortable.Abort()
+	// Cancel the event stream once this refresh is done.
+	defer user.pollAbort.Abort()
+
+	// Resync after the refresh.
 	defer user.goSync()
 
 	return safe.LockRet(func() error {
@@ -118,11 +120,8 @@ func (user *User) handleRefreshEvent(ctx context.Context, refresh proton.Refresh
 		user.apiAddrs = groupBy(apiAddrs, func(addr proton.Address) string { return addr.ID })
 		user.apiLabels = groupBy(apiLabels, func(label proton.Label) string { return label.ID })
 
-		// Reinitialize the update channels.
-		user.initUpdateCh(user.vault.AddressMode())
-
 		// Clear sync status; we want to sync everything again.
-		if err := user.vault.ClearSyncStatus(); err != nil {
+		if err := user.clearSyncStatus(); err != nil {
 			return fmt.Errorf("failed to clear sync status: %w", err)
 		}
 

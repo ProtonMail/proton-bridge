@@ -78,7 +78,8 @@ type User struct {
 	updateChLock safe.RWMutex
 
 	tasks     *async.Group
-	abortable async.Abortable
+	syncAbort async.Abortable
+	pollAbort async.Abortable
 	goSync    func()
 
 	pollAPIEventsCh chan chan struct{}
@@ -171,42 +172,6 @@ func New(
 		return nil
 	})
 
-	// Stream events from the API, logging any errors that occur.
-	// This does nothing until the sync has been marked as complete.
-	// When we receive an API event, we attempt to handle it.
-	// If successful, we update the event ID in the vault.
-	user.tasks.Once(func(ctx context.Context) {
-		ticker := proton.NewTicker(EventPeriod, EventJitter)
-		defer ticker.Stop()
-
-		for {
-			var doneCh chan struct{}
-
-			select {
-			case <-ctx.Done():
-				return
-
-			case doneCh = <-user.pollAPIEventsCh:
-				// ...
-
-			case <-ticker.C:
-				// ...
-			}
-
-			user.log.Debug("Event poll triggered")
-
-			if !user.vault.SyncStatus().IsComplete() {
-				user.log.Debug("Sync is incomplete, skipping event poll")
-			} else if err := user.doEventPoll(ctx); err != nil {
-				user.log.WithError(err).Error("Failed to poll events")
-			}
-
-			if doneCh != nil {
-				close(doneCh)
-			}
-		}
-	})
-
 	// When triggered, poll the API for events, optionally blocking until the poll is complete.
 	user.goPollAPIEvents = func(wait bool) {
 		doneCh := make(chan struct{})
@@ -218,18 +183,37 @@ func New(
 		}
 	}
 
-	// When triggered, attempt to sync the user.
+	// When triggered, sync the user and then begin streaming API events.
 	user.goSync = user.tasks.Trigger(func(ctx context.Context) {
-		user.log.Debug("Sync triggered")
+		user.log.Info("Sync triggered")
 
-		user.abortable.Do(ctx, func(ctx context.Context) {
+		// Sync the user.
+		user.syncAbort.Do(ctx, func(ctx context.Context) {
 			if user.vault.SyncStatus().IsComplete() {
-				user.log.Debug("Sync is already complete, skipping")
-			} else if err := user.doSync(ctx); err != nil {
-				user.log.WithError(err).Error("Failed to sync, will retry later")
-				time.AfterFunc(SyncRetryCooldown, user.goSync)
+				user.log.Info("Sync already complete, skipping")
+				return
+			}
+
+			for {
+				if err := ctx.Err(); err != nil {
+					user.log.WithError(err).Error("Sync aborted")
+					return
+				} else if err := user.doSync(ctx); err != nil {
+					user.log.WithError(err).Error("Failed to sync, will retry later")
+					sleepCtx(ctx, SyncRetryCooldown)
+				} else {
+					user.log.Info("Sync complete, starting API event stream")
+					return
+				}
 			}
 		})
+
+		// Once we know the sync has completed, we can start polling for API events.
+		if user.vault.SyncStatus().IsComplete() {
+			user.pollAbort.Do(ctx, func(ctx context.Context) {
+				user.startEvents(ctx)
+			})
+		}
 	})
 
 	return user, nil
@@ -295,22 +279,21 @@ func (user *User) GetAddressMode() vault.AddressMode {
 func (user *User) SetAddressMode(_ context.Context, mode vault.AddressMode) error {
 	user.log.WithField("mode", mode).Info("Setting address mode")
 
-	user.abortable.Abort()
+	user.syncAbort.Abort()
+	user.pollAbort.Abort()
 	defer user.goSync()
 
 	return safe.LockRet(func() error {
-		user.initUpdateCh(mode)
-
 		if err := user.vault.SetAddressMode(mode); err != nil {
 			return fmt.Errorf("failed to set address mode: %w", err)
 		}
 
-		if err := user.vault.ClearSyncStatus(); err != nil {
+		if err := user.clearSyncStatus(); err != nil {
 			return fmt.Errorf("failed to clear sync status: %w", err)
 		}
 
 		return nil
-	}, user.apiAddrsLock, user.updateChLock)
+	}, user.eventLock, user.apiAddrsLock, user.updateChLock)
 }
 
 // SetShowAllMail sets whether to show the All Mail mailbox.
@@ -486,7 +469,8 @@ func (user *User) OnStatusUp(context.Context) {
 func (user *User) OnStatusDown(context.Context) {
 	user.log.Info("Connection is down")
 
-	user.abortable.Abort()
+	user.syncAbort.Abort()
+	user.pollAbort.Abort()
 }
 
 // GetSyncStatus returns the sync status of the user.
@@ -495,8 +479,30 @@ func (user *User) GetSyncStatus() vault.SyncStatus {
 }
 
 // ClearSyncStatus clears the sync status of the user.
+// This also drops any updates in the update channel(s).
+// Warning: the gluon user must be removed and re-added if this happens!
 func (user *User) ClearSyncStatus() error {
-	return user.vault.ClearSyncStatus()
+	user.log.Info("Clearing sync status")
+
+	return safe.LockRet(func() error {
+		return user.clearSyncStatus()
+	}, user.eventLock, user.apiAddrsLock, user.updateChLock)
+}
+
+// clearSyncStatus clears the sync status of the user.
+// This also drops any updates in the update channel(s).
+// Warning: the gluon user must be removed and re-added if this happens!
+// It is assumed that the eventLock, apiAddrsLock and updateChLock are already locked.
+func (user *User) clearSyncStatus() error {
+	user.log.Info("Clearing sync status")
+
+	user.initUpdateCh(user.vault.AddressMode())
+
+	if err := user.vault.ClearSyncStatus(); err != nil {
+		return fmt.Errorf("failed to clear sync status: %w", err)
+	}
+
+	return nil
 }
 
 // Logout logs the user out from the API.
@@ -574,6 +580,40 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 	}
 }
 
+// startEvents streams events from the API, logging any errors that occur.
+// This does nothing until the sync has been marked as complete.
+// When we receive an API event, we attempt to handle it.
+// If successful, we update the event ID in the vault.
+func (user *User) startEvents(ctx context.Context) {
+	ticker := proton.NewTicker(EventPeriod, EventJitter)
+	defer ticker.Stop()
+
+	for {
+		var doneCh chan struct{}
+
+		select {
+		case <-ctx.Done():
+			return
+
+		case doneCh = <-user.pollAPIEventsCh:
+			// ...
+
+		case <-ticker.C:
+			// ...
+		}
+
+		user.log.Debug("Event poll triggered")
+
+		if err := user.doEventPoll(ctx); err != nil {
+			user.log.WithError(err).Error("Failed to poll events")
+		}
+
+		if doneCh != nil {
+			close(doneCh)
+		}
+	}
+}
+
 // doEventPoll is called whenever API events should be polled.
 func (user *User) doEventPoll(ctx context.Context) error {
 	user.eventLock.Lock()
@@ -642,4 +682,12 @@ func b32(b bool) uint32 {
 	}
 
 	return 0
+}
+
+// sleepCtx sleeps for the given duration, or until the context is canceled.
+func sleepCtx(ctx context.Context, d time.Duration) {
+	select {
+	case <-ctx.Done():
+	case <-time.After(d):
+	}
 }
