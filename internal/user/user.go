@@ -171,6 +171,39 @@ func New(
 		return nil
 	})
 
+	// When triggered, poll the API for events, optionally blocking until the poll is complete.
+	user.goPollAPIEvents = func(wait bool) {
+		doneCh := make(chan struct{})
+
+		go func() { user.pollAPIEventsCh <- doneCh }()
+
+		if wait {
+			<-doneCh
+		}
+	}
+
+	// When triggered, attempt to sync the user.
+	user.goSync = user.tasks.Trigger(func(ctx context.Context) {
+		user.log.Debug("Sync triggered")
+
+		user.abortable.Do(ctx, func(ctx context.Context) {
+			if user.vault.SyncStatus().IsComplete() {
+				user.log.Debug("Sync is already complete, skipping")
+			} else if err := user.doSync(ctx); err != nil {
+				user.log.WithError(err).Error("Failed to sync, will retry later")
+				time.AfterFunc(SyncRetryCooldown, user.goSync)
+			}
+		})
+	})
+
+	return user, nil
+}
+
+func (user *User) TriggerSync() {
+	user.goSync()
+}
+
+func (user *User) StartEvents() {
 	// Stream events from the API, logging any errors that occur.
 	// This does nothing until the sync has been marked as complete.
 	// When we receive an API event, we attempt to handle it.
@@ -206,37 +239,6 @@ func New(
 			}
 		}
 	})
-
-	// When triggered, poll the API for events, optionally blocking until the poll is complete.
-	user.goPollAPIEvents = func(wait bool) {
-		doneCh := make(chan struct{})
-
-		go func() { user.pollAPIEventsCh <- doneCh }()
-
-		if wait {
-			<-doneCh
-		}
-	}
-
-	// When triggered, attempt to sync the user.
-	user.goSync = user.tasks.Trigger(func(ctx context.Context) {
-		user.log.Debug("Sync triggered")
-
-		user.abortable.Do(ctx, func(ctx context.Context) {
-			if user.vault.SyncStatus().IsComplete() {
-				user.log.Debug("Sync is already complete, skipping")
-			} else if err := user.doSync(ctx); err != nil {
-				user.log.WithError(err).Error("Failed to sync, will retry later")
-				time.AfterFunc(SyncRetryCooldown, user.goSync)
-			}
-		})
-	})
-
-	return user, nil
-}
-
-func (user *User) TriggerSync() {
-	user.goSync()
 }
 
 // ID returns the user's ID.
@@ -497,8 +499,19 @@ func (user *User) GetSyncStatus() vault.SyncStatus {
 }
 
 // ClearSyncStatus clears the sync status of the user.
+// This also drops any updates in the update channel(s).
 func (user *User) ClearSyncStatus() error {
-	return user.vault.ClearSyncStatus()
+	user.log.Info("Clearing sync status")
+
+	return safe.LockRet(func() error {
+		user.initUpdateCh(user.vault.AddressMode())
+
+		if err := user.vault.ClearSyncStatus(); err != nil {
+			return fmt.Errorf("failed to clear sync status: %w", err)
+		}
+
+		return nil
+	}, user.eventLock, user.apiAddrsLock, user.updateChLock)
 }
 
 // Logout logs the user out from the API.
