@@ -81,7 +81,7 @@ const (
 	appUsage = "Proton Mail IMAP and SMTP Bridge"
 )
 
-func New() *cli.App { //nolint:funlen
+func New() *cli.App {
 	app := cli.NewApp()
 
 	app.Name = constants.FullAppName
@@ -156,7 +156,7 @@ func New() *cli.App { //nolint:funlen
 	return app
 }
 
-func run(c *cli.Context) error { //nolint:funlen
+func run(c *cli.Context) error {
 	// Seed the default RNG from the math/rand package.
 	rand.Seed(time.Now().UnixNano())
 

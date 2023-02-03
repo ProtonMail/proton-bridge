@@ -47,8 +47,6 @@ import (
 )
 
 // sendMail sends an email from the given address to the given recipients.
-//
-// nolint:funlen
 func (user *User) sendMail(authID string, from string, to []string, r io.Reader) error {
 	return safe.RLockRet(func() error {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -165,7 +163,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 }
 
 // sendWithKey sends the message with the given address key.
-func sendWithKey( //nolint:funlen
+func sendWithKey(
 	ctx context.Context,
 	client *proton.Client,
 	sentry reporter.Reporter,
@@ -247,7 +245,7 @@ func sendWithKey( //nolint:funlen
 	return res, nil
 }
 
-func getParentID( //nolint:funlen
+func getParentID(
 	ctx context.Context,
 	client *proton.Client,
 	authAddrID string,
@@ -375,7 +373,6 @@ func createDraft(
 	})
 }
 
-// nolint:funlen
 func createAttachments(
 	ctx context.Context,
 	client *proton.Client,

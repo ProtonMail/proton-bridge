@@ -433,7 +433,7 @@ func getPlainBody(part *parser.Part) []byte {
 	}
 }
 
-func parseMessageHeader(h message.Header) (Message, error) { //nolint:funlen
+func parseMessageHeader(h message.Header) (Message, error) {
 	var m Message
 
 	for fields := h.Fields(); fields.Next(); {

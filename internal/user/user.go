@@ -90,8 +90,6 @@ type User struct {
 }
 
 // New returns a new user.
-//
-// nolint:funlen
 func New(
 	ctx context.Context,
 	encVault *vault.User,
@@ -101,7 +99,7 @@ func New(
 	crashHandler async.PanicHandler,
 	showAllMail bool,
 	maxSyncMemory uint64,
-) (*User, error) { //nolint:funlen
+) (*User, error) {
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
 
 	// Get the user's API addresses.
@@ -419,8 +417,6 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 }
 
 // SendMail sends an email from the given address to the given recipients.
-//
-// nolint:funlen
 func (user *User) SendMail(authID string, from string, to []string, r io.Reader) error {
 	defer user.goPollAPIEvents(true)
 

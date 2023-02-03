@@ -415,7 +415,7 @@ func (user *User) handleDeleteLabelEvent(ctx context.Context, event proton.Label
 }
 
 // handleMessageEvents handles the given message events.
-func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proton.MessageEvent) error { //nolint:funlen
+func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proton.MessageEvent) error {
 	for _, event := range messageEvents {
 		ctx = logging.WithLogrusField(ctx, "messageID", event.ID)
 

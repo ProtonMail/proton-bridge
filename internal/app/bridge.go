@@ -47,7 +47,7 @@ const vaultSecretName = "bridge-vault-key"
 var deleteOldGoIMAPFiles bool //nolint:gochecknoglobals
 
 // withBridge creates creates and tears down the bridge.
-func withBridge( //nolint:funlen
+func withBridge(
 	c *cli.Context,
 	exe string,
 	locations *locations.Locations,

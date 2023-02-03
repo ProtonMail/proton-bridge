@@ -264,8 +264,6 @@ func (conn *imapConnector) DeleteMailbox(ctx context.Context, labelID imap.Mailb
 }
 
 // CreateMessage creates a new message on the remote.
-//
-// nolint:funlen
 func (conn *imapConnector) CreateMessage(
 	ctx context.Context,
 	mailboxID imap.MailboxID,
@@ -589,7 +587,7 @@ func toIMAPMessage(message proton.MessageMetadata) imap.Message {
 	}
 }
 
-func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addrKR *crypto.KeyRing, sender proton.Address) (proton.Message, error) { //nolint:funlen
+func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addrKR *crypto.KeyRing, sender proton.Address) (proton.Message, error) {
 	// Create a new message parser from the reader.
 	parser, err := parser.New(bytes.NewReader(literal))
 	if err != nil {

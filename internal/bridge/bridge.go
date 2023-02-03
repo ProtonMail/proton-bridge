@@ -128,7 +128,7 @@ type Bridge struct {
 }
 
 // New creates a new bridge.
-func New( //nolint:funlen
+func New(
 	locator Locator, // the locator to provide paths to store data
 	vault *vault.Vault, // the bridge's encrypted data store
 	autostarter Autostarter, // the autostarter to manage autostart settings
@@ -191,7 +191,6 @@ func New( //nolint:funlen
 	return bridge, eventCh, nil
 }
 
-// nolint:funlen
 func newBridge(
 	tasks *async.Group,
 	imapEventCh chan imapEvents.Event,
@@ -302,7 +301,6 @@ func newBridge(
 	return bridge, nil
 }
 
-// nolint:funlen
 func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	// Enable or disable the proxy at startup.
 	if bridge.vault.GetProxyAllowed() {

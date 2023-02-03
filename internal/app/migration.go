@@ -187,7 +187,6 @@ func migrateOldAccount(userID string, store *credentials.Store, v *vault.Vault) 
 	return nil
 }
 
-// nolint:funlen
 func migratePrefsToVault(vault *vault.Vault, b []byte) error {
 	var prefs struct {
 		IMAPPort int  `json:"user_port_imap,,string"`

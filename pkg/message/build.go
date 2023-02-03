@@ -325,7 +325,7 @@ func buildPGPMIMEFallbackRFC822(msg proton.Message, opts JobOptions, buf *bytes.
 	return nil
 }
 
-func writeMultipartSignedRFC822(header message.Header, body []byte, sig proton.Signature, buf *bytes.Buffer) error { //nolint:funlen
+func writeMultipartSignedRFC822(header message.Header, body []byte, sig proton.Signature, buf *bytes.Buffer) error {
 	boundary := newBoundary("").gen()
 
 	header.SetContentType("multipart/signed", map[string]string{
@@ -427,7 +427,7 @@ func addressEmpty(address *mail.Address) bool {
 	return false
 }
 
-func getMessageHeader(msg proton.Message, opts JobOptions) message.Header { //nolint:funlen
+func getMessageHeader(msg proton.Message, opts JobOptions) message.Header {
 	hdr := toMessageHeader(msg.ParsedHeaders)
 
 	// SetText will RFC2047-encode.

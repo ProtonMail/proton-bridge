@@ -94,8 +94,6 @@ type Service struct { // nolint:structcheck
 }
 
 // NewService returns a new instance of the service.
-//
-// nolint:funlen
 func NewService(
 	panicHandler CrashHandler,
 	restarter Restarter,
@@ -246,7 +244,7 @@ func (s *Service) WaitUntilFrontendIsReady() {
 	s.initializing.Wait()
 }
 
-// nolint:funlen,gocyclo
+// nolint:gocyclo
 func (s *Service) watchEvents() {
 	// GODT-1949 Better error events.
 	for _, err := range s.bridge.GetErrors() {

@@ -110,7 +110,7 @@ func (s *Service) SendEvent(event *StreamEvent) error {
 }
 
 // StartEventTest sends all the known event via gRPC.
-func (s *Service) StartEventTest() error { //nolint:funlen
+func (s *Service) StartEventTest() error {
 	const dummyAddress = "dummy@proton.me"
 	events := []*StreamEvent{
 		// app

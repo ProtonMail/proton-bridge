@@ -123,8 +123,6 @@ func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 }
 
 // addIMAPUser connects the given user to gluon.
-//
-//nolint:funlen
 func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 	if bridge.imapServer == nil {
 		return fmt.Errorf("no imap server instance running")
@@ -276,7 +274,6 @@ func ApplyGluonConfigPathSuffix(basePath string) string {
 	return filepath.Join(basePath, "backend", "db")
 }
 
-// nolint:funlen
 func newIMAPServer(
 	gluonCacheDir, gluonConfigDir string,
 	version *semver.Version,

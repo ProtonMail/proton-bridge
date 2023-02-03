@@ -87,7 +87,6 @@ func (user *User) doSync(ctx context.Context) error {
 	return nil
 }
 
-// nolint:funlen
 func (user *User) sync(ctx context.Context) error {
 	return safe.RLockRet(func() error {
 		return withAddrKRs(user.apiUser, user.apiAddrs, user.vault.KeyPass(), func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
@@ -218,7 +217,7 @@ func toMB(v uint64) float64 {
 	return float64(v) / float64(Megabyte)
 }
 
-// nolint:funlen,gocyclo
+// nolint:gocyclo
 func syncMessages(
 	ctx context.Context,
 	userID string,
