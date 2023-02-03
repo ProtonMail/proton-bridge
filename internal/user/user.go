@@ -327,12 +327,25 @@ func (user *User) GetGluonIDs() map[string]string {
 
 // GetGluonID returns the gluon ID for the given address, if present.
 func (user *User) GetGluonID(addrID string) (string, bool) {
-	gluonID, ok := user.vault.GetGluonIDs()[addrID]
-	if !ok {
+	if gluonID, ok := user.vault.GetGluonIDs()[addrID]; ok {
+		return gluonID, true
+	}
+
+	if user.vault.AddressMode() != vault.CombinedMode {
 		return "", false
 	}
 
-	return gluonID, true
+	// If there is only one address, return its gluon ID.
+	// This can happen if we are in combined mode and the primary address ID has changed.
+	if gluonIDs := maps.Values(user.vault.GetGluonIDs()); len(gluonIDs) == 1 {
+		if err := user.vault.SetGluonID(addrID, gluonIDs[0]); err != nil {
+			user.log.WithError(err).Error("Failed to set gluon ID for updated primary address")
+		}
+
+		return gluonIDs[0], true
+	}
+
+	return "", false
 }
 
 // SetGluonID sets the gluon ID for the given address.
