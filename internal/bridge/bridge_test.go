@@ -559,6 +559,69 @@ func TestBridge_ChangeCacheDirectory(t *testing.T) {
 	})
 }
 
+func TestBridge_ChangeAddressOrder(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		// Create a user.
+		userID, addrID, err := s.CreateUser("imap", password)
+		require.NoError(t, err)
+
+		// Create a second address for the user.
+		aliasID, err := s.CreateAddress(userID, "alias@"+s.GetDomain(), password)
+		require.NoError(t, err)
+
+		// Create 10 messages for the user.
+		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *proton.Client) {
+			createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			// Log the user in with its first address.
+			syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
+			defer done()
+			userID, err := b.LoginFull(ctx, "imap", password, nil, nil)
+			require.NoError(t, err)
+			require.Equal(t, userID, (<-syncCh).UserID)
+
+			// We should see 10 messages in the inbox.
+			info, err := b.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.True(t, info.State == bridge.Connected)
+
+			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			require.NoError(t, err)
+			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+			defer func() { _ = client.Logout() }()
+
+			status, err := client.Select(`Inbox`, false)
+			require.NoError(t, err)
+			require.Equal(t, uint32(10), status.Messages)
+		})
+
+		// Make the second address the primary one.
+		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *proton.Client) {
+			require.NoError(t, c.OrderAddresses(ctx, proton.OrderAddressesReq{AddressIDs: []string{aliasID, addrID}}))
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			// We should still see 10 messages in the inbox.
+			info, err := b.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.True(t, info.State == bridge.Connected)
+
+			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			require.NoError(t, err)
+			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+			defer func() { _ = client.Logout() }()
+
+			require.Eventually(t, func() bool {
+				status, err := client.Select(`Inbox`, false)
+				require.NoError(t, err)
+				return status.Messages == 10
+			}, 5*time.Second, 100*time.Millisecond)
+		})
+	})
+}
+
 // withEnv creates the full test environment and runs the tests.
 func withEnv(t *testing.T, tests func(context.Context, *server.Server, *proton.NetCtl, bridge.Locator, []byte), opts ...server.Option) {
 	server := server.New(opts...)
