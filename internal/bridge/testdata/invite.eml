@@ -1,0 +1,85 @@
+From: <username@proton.local>
+To: <recipient@proton.local>
+Subject: Testing calendar invite
+Date: Fri, 3 Feb 2023 01:04:32 +0100
+Message-ID: <000001d93763$183b74e0$48b25ea0$@proton.local>
+MIME-Version: 1.0
+Content-Type: text/calendar; method=REQUEST;
+	charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Mailer: Microsoft Outlook 16.0
+Thread-Index: Adk3Yw5pLdgwsT46RviXb/nfvQlesQAAAmGA
+Content-Language: en-gb
+
+BEGIN:VCALENDAR
+PRODID:-//Microsoft Corporation//Outlook 16.0 MIMEDIR//EN
+VERSION:2.0
+METHOD:REQUEST
+X-MS-OLK-FORCEINSPECTOROPEN:TRUE
+BEGIN:VTIMEZONE
+TZID:Central European Standard Time
+BEGIN:STANDARD
+DTSTART:16011028T030000
+RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:16010325T020000
+RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+END:DAYLIGHT
+END:VTIMEZONE
+BEGIN:VEVENT
+ATTENDEE;CN=recipient@proton.local;RSVP=TRUE:mailto:recipient@proton.local
+CLASS:PUBLIC
+CREATED:20230203T000432Z
+DESCRIPTION:qweqweqweqweqweqwe/gn\\n
+DTEND;TZID="Central European Standard Time":20230203T020000
+DTSTAMP:20230203T000432Z
+DTSTART;TZID="Central European Standard Time":20230203T013000
+LAST-MODIFIED:20230203T000432Z
+LOCATION:qweqwe
+ORGANIZER;CN=username@proton.local:mailto:username@proton.local
+PRIORITY:5
+SEQUENCE:0
+SUMMARY;LANGUAGE=en-gb:Testing calendar invite
+TRANSP:OPAQUE
+UID:040000008200E00074C5B7101A82E008000000003080B2796B37D901000000000000000
+	0100000001236CD1CD93CA9449C6FF1AC4DEAC44E
+X-ALT-DESC;FMTTYPE=text/html:<html xmlns:v="urn:schemas-microsoft-com:vml" 
+	xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-mic
+	rosoft-com:office:word" xmlns:m="http://schemas.microsoft.com/office/2004/
+	12/omml" xmlns="http://www.w3.org/TR/REC-html40"><head><meta http-equiv=Co
+	ntent-Type content="text/html/g; charset=us-ascii"><meta name=Generator con
+	tent="Microsoft Word 15 (filtered medium)"><style><!--/gn/* Font Definition
+	s *//gn@font-face\\n	{font-family:"Cambria Math"\\;\\n	panose-1:2 4 5 3 5 4 6 
+	3 2 4/g;}\\n@font-face\\n	{font-family:Calibri\\;\\n	panose-1:2 15 5 2 2 2 4 3 
+	2 4/g;}\\n/* Style Definitions */\\np.MsoNormal\\, li.MsoNormal\\, div.MsoNorma
+	l/gn	{margin:0cm\\;\\n	font-size:11.0pt\\;\\n	font-family:"Calibri"\\,sans-serif
+	/g;\\n	mso-fareast-language:EN-US\\;}\\nspan.EmailStyle18\\n	{mso-style-type:pe
+	rsonal-compose/g;\\n	font-family:"Calibri"\\,sans-serif\\;\\n	color:windowtext\\
+	;}/gn.MsoChpDefault\\n	{mso-style-type:export-only\\;\\n	font-size:10.0pt\\;}\\n
+	@page WordSection1/gn	{size:612.0pt 792.0pt\\;\\n	margin:72.0pt 72.0pt 72.0pt
+	 72.0pt/g;}\\ndiv.WordSection1\\n	{page:WordSection1\\;}\\n--></style><!--[if g
+	te mso 9]><xml>/gn<o:shapedefaults v:ext="edit" spidmax="1026" />\\n</xml><!
+	[endif]--><!--[if gte mso 9]><xml>/gn<o:shapelayout v:ext="edit">\\n<o:idmap
+	 v:ext="edit" data="1" />/gn</o:shapelayout></xml><![endif]--></head><body 
+	lang=EN-GB link="#0563C1" vlink="#954F72" style='word-wrap:break-word'><di
+	v class=WordSection1><p class=MsoNormal><span lang=EN-US>qweqweqweqweqweqw
+	e<o:p></o:p></span></p></div></body></html>
+X-MICROSOFT-CDO-BUSYSTATUS:TENTATIVE
+X-MICROSOFT-CDO-IMPORTANCE:1
+X-MICROSOFT-CDO-INTENDEDSTATUS:BUSY
+X-MICROSOFT-DISALLOW-COUNTER:FALSE
+X-MS-OLK-AUTOSTARTCHECK:FALSE
+X-MS-OLK-CONFTYPE:0
+BEGIN:VALARM
+TRIGGER:-PT15M
+ACTION:DISPLAY
+DESCRIPTION:Reminder
+END:VALARM
+END:VEVENT
+END:VCALENDAR
+

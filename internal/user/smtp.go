@@ -120,7 +120,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 			}
 
 			// If we have to attach the public key, do it now.
-			if settings.AttachPublicKey == proton.AttachPublicKeyEnabled {
+			if settings.AttachPublicKey {
 				key, err := addrKR.GetKey(0)
 				if err != nil {
 					return fmt.Errorf("failed to get sending key: %w", err)

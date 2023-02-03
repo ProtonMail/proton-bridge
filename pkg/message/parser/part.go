@@ -186,9 +186,17 @@ func (p *Part) isMultipartMixed() bool {
 func getContentHeaders(header message.Header) message.Header {
 	var res message.Header
 
-	res.Set("Content-Type", header.Get("Content-Type"))
-	res.Set("Content-Disposition", header.Get("Content-Disposition"))
-	res.Set("Content-Transfer-Encoding", header.Get("Content-Transfer-Encoding"))
+	if contentType := header.Get("Content-Type"); contentType != "" {
+		res.Set("Content-Type", contentType)
+	}
+
+	if contentDisposition := header.Get("Content-Disposition"); contentDisposition != "" {
+		res.Set("Content-Disposition", contentDisposition)
+	}
+
+	if contentTransferEncoding := header.Get("Content-Transfer-Encoding"); contentTransferEncoding != "" {
+		res.Set("Content-Transfer-Encoding", contentTransferEncoding)
+	}
 
 	return res
 }
