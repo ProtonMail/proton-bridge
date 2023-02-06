@@ -113,11 +113,8 @@ func (user *User) handleRefreshEvent(ctx context.Context, refresh proton.Refresh
 		user.apiAddrs = groupBy(apiAddrs, func(addr proton.Address) string { return addr.ID })
 		user.apiLabels = groupBy(apiLabels, func(label proton.Label) string { return label.ID })
 
-		// Reinitialize the update channels.
-		user.initUpdateCh(user.vault.AddressMode())
-
 		// Clear sync status; we want to sync everything again.
-		if err := user.vault.ClearSyncStatus(); err != nil {
+		if err := user.clearSyncStatus(); err != nil {
 			return fmt.Errorf("failed to clear sync status: %w", err)
 		}
 

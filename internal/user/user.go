@@ -274,18 +274,16 @@ func (user *User) SetAddressMode(_ context.Context, mode vault.AddressMode) erro
 	defer user.goSync()
 
 	return safe.LockRet(func() error {
-		user.initUpdateCh(mode)
-
 		if err := user.vault.SetAddressMode(mode); err != nil {
 			return fmt.Errorf("failed to set address mode: %w", err)
 		}
 
-		if err := user.vault.ClearSyncStatus(); err != nil {
+		if err := user.clearSyncStatus(); err != nil {
 			return fmt.Errorf("failed to clear sync status: %w", err)
 		}
 
 		return nil
-	}, user.apiAddrsLock, user.updateChLock)
+	}, user.eventLock, user.apiAddrsLock, user.updateChLock)
 }
 
 // SetShowAllMail sets whether to show the All Mail mailbox.
@@ -477,14 +475,23 @@ func (user *User) ClearSyncStatus() error {
 	user.log.Info("Clearing sync status")
 
 	return safe.LockRet(func() error {
-		user.initUpdateCh(user.vault.AddressMode())
-
-		if err := user.vault.ClearSyncStatus(); err != nil {
-			return fmt.Errorf("failed to clear sync status: %w", err)
-		}
-
-		return nil
+		return user.clearSyncStatus()
 	}, user.eventLock, user.apiAddrsLock, user.updateChLock)
+}
+
+// clearSyncStatus clears the sync status of the user.
+// This also drops any updates in the update channel(s).
+// It is assumed that the eventLock, apiAddrsLock and updateChLock are already locked.
+func (user *User) clearSyncStatus() error {
+	user.log.Info("Clearing sync status")
+
+	user.initUpdateCh(user.vault.AddressMode())
+
+	if err := user.vault.ClearSyncStatus(); err != nil {
+		return fmt.Errorf("failed to clear sync status: %w", err)
+	}
+
+	return nil
 }
 
 // Logout logs the user out from the API.
