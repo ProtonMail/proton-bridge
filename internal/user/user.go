@@ -206,7 +206,6 @@ func New(
 					}
 				}()
 			}
-
 		})
 
 		// Once we know the sync has completed, we can start polling for API events.
