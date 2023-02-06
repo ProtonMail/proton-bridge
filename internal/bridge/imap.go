@@ -187,9 +187,6 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 	// Trigger a sync for the user, if needed.
 	user.TriggerSync()
 
-	// Start processing events for the user.
-	user.StartEvents()
-
 	return nil
 }
 

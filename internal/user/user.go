@@ -187,12 +187,23 @@ func New(
 		user.log.Debug("Sync triggered")
 
 		user.abortable.Do(ctx, func(ctx context.Context) {
-			if user.vault.SyncStatus().IsComplete() {
-				user.log.Debug("Sync is already complete, skipping")
-			} else if err := user.doSync(ctx); err != nil {
-				user.log.WithError(err).Error("Failed to sync, will retry later")
-				time.AfterFunc(SyncRetryCooldown, user.goSync)
+			if !user.vault.SyncStatus().IsComplete() {
+				if err := user.doSync(ctx); err != nil {
+					user.log.WithError(err).Error("Failed to sync, will retry later")
+
+					go func() {
+						select {
+						case <-ctx.Done():
+							user.log.WithError(err).Warn("Aborting sync retry")
+						case <-time.After(SyncRetryCooldown):
+							user.goSync()
+						}
+					}()
+				}
 			}
+
+			// Once we know the sync has completed, we can start polling for API events.
+			user.startEvents(ctx)
 		})
 	})
 
@@ -201,44 +212,6 @@ func New(
 
 func (user *User) TriggerSync() {
 	user.goSync()
-}
-
-func (user *User) StartEvents() {
-	// Stream events from the API, logging any errors that occur.
-	// This does nothing until the sync has been marked as complete.
-	// When we receive an API event, we attempt to handle it.
-	// If successful, we update the event ID in the vault.
-	user.tasks.Once(func(ctx context.Context) {
-		ticker := proton.NewTicker(EventPeriod, EventJitter)
-		defer ticker.Stop()
-
-		for {
-			var doneCh chan struct{}
-
-			select {
-			case <-ctx.Done():
-				return
-
-			case doneCh = <-user.pollAPIEventsCh:
-				// ...
-
-			case <-ticker.C:
-				// ...
-			}
-
-			user.log.Debug("Event poll triggered")
-
-			if !user.vault.SyncStatus().IsComplete() {
-				user.log.Debug("Sync is incomplete, skipping event poll")
-			} else if err := user.doEventPoll(ctx); err != nil {
-				user.log.WithError(err).Error("Failed to poll events")
-			}
-
-			if doneCh != nil {
-				close(doneCh)
-			}
-		}
-	})
 }
 
 // ID returns the user's ID.
@@ -585,6 +558,42 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 	case vault.SplitMode:
 		for addrID := range user.apiAddrs {
 			user.updateCh[addrID] = queue.NewQueuedChannel[imap.Update](0, 0)
+		}
+	}
+}
+
+// startEvents streams events from the API, logging any errors that occur.
+// This does nothing until the sync has been marked as complete.
+// When we receive an API event, we attempt to handle it.
+// If successful, we update the event ID in the vault.
+func (user *User) startEvents(ctx context.Context) {
+	ticker := proton.NewTicker(EventPeriod, EventJitter)
+	defer ticker.Stop()
+
+	for {
+		var doneCh chan struct{}
+
+		select {
+		case <-ctx.Done():
+			return
+
+		case doneCh = <-user.pollAPIEventsCh:
+			// ...
+
+		case <-ticker.C:
+			// ...
+		}
+
+		user.log.Debug("Event poll triggered")
+
+		if !user.vault.SyncStatus().IsComplete() {
+			user.log.Debug("Sync is incomplete, skipping event poll")
+		} else if err := user.doEventPoll(ctx); err != nil {
+			user.log.WithError(err).Error("Failed to poll events")
+		}
+
+		if doneCh != nil {
+			close(doneCh)
 		}
 	}
 }
