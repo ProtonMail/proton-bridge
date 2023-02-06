@@ -32,7 +32,7 @@ stages:
 
 .rules-branch-and-MR-always:
   rules:
-    - if: $CI_COMMIT_BRANCH ||  $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
       allow_failure: false
     - when: never
@@ -47,6 +47,16 @@ stages:
 .rules-branch-manual-MR-always:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+      allow_failure: false
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+      allow_failure: true
+    - when: never
+
+.rules-branch-manual-MR-and-devel-always:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "devel" || $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
       allow_failure: false
     - if: $CI_COMMIT_BRANCH
@@ -80,7 +90,7 @@ lint:
 test-linux:
   stage: test
   extends:
-    - .rules-branch-manual-MR-always
+    - .rules-branch-manual-MR-and-devel-always
     - .after-script-code-coverage
   script:
     - make test
