@@ -88,8 +88,7 @@ func (user *User) handleRefreshEvent(ctx context.Context, refresh proton.Refresh
 	// Cancel the event stream once this refresh is done.
 	defer user.pollAbort.Abort()
 
-	// Cancel and restart ongoing syncs.
-	user.syncAbort.Abort()
+	// Resync after the refresh.
 	defer user.goSync()
 
 	return safe.LockRet(func() error {
