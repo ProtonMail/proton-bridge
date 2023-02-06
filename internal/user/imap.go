@@ -287,12 +287,28 @@ func (conn *imapConnector) CreateMessage(
 	} else if ok {
 		conn.log.WithField("messageID", messageID).Warn("Message already sent")
 
-		message, err := conn.client.GetMessage(ctx, messageID)
+		// Query the server-side message.
+		full, err := conn.client.GetFullMessage(ctx, messageID)
 		if err != nil {
 			return imap.Message{}, nil, fmt.Errorf("failed to fetch message: %w", err)
 		}
 
-		return toIMAPMessage(message.MessageMetadata), nil, nil
+		// Build the message as it is on the server.
+		if err := safe.RLockRet(func() error {
+			return withAddrKR(conn.apiUser, conn.apiAddrs[full.AddressID], conn.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+				var err error
+
+				if literal, err = message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts()); err != nil {
+					return err
+				}
+
+				return nil
+			})
+		}, conn.apiUserLock, conn.apiAddrsLock); err != nil {
+			return imap.Message{}, nil, fmt.Errorf("failed to build message: %w", err)
+		}
+
+		return toIMAPMessage(full.MessageMetadata), literal, nil
 	}
 
 	wantLabelIDs := []string{string(mailboxID)}
