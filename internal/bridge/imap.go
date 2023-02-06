@@ -140,7 +140,7 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 				if err := user.ClearSyncStatus(); err != nil {
 					return fmt.Errorf("failed to clear sync status: %w", err)
 				}
-				
+
 				// Add the user back to the IMAP server.
 				if isNew, err := bridge.imapServer.LoadUser(ctx, imapConn, gluonID, user.GluonKey()); err != nil {
 					return fmt.Errorf("failed to add IMAP user: %w", err)

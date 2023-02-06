@@ -196,15 +196,7 @@ func New(
 
 			if err := user.doSync(ctx); err != nil {
 				user.log.WithError(err).Error("Failed to sync, will retry later")
-
-				go func() {
-					select {
-					case <-ctx.Done():
-						user.log.WithError(err).Warn("Aborting sync retry")
-					case <-time.After(SyncRetryCooldown):
-						user.goSync()
-					}
-				}()
+				time.AfterFunc(SyncRetryCooldown, user.goSync)
 			}
 		})
 
