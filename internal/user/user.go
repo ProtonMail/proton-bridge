@@ -431,7 +431,9 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 
 // SendMail sends an email from the given address to the given recipients.
 func (user *User) SendMail(authID string, from string, to []string, r io.Reader) error {
-	defer user.goPollAPIEvents(true)
+	if user.vault.SyncStatus().IsComplete() {
+		defer user.goPollAPIEvents(true)
+	}
 
 	if len(to) == 0 {
 		return ErrInvalidRecipient
