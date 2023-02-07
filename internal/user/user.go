@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -617,6 +618,8 @@ func (user *User) startEvents(ctx context.Context) {
 }
 
 // doEventPoll is called whenever API events should be polled.
+//
+//nolint:funlen
 func (user *User) doEventPoll(ctx context.Context) error {
 	user.eventLock.Lock()
 	defer user.eventLock.Unlock()
@@ -642,6 +645,11 @@ func (user *User) doEventPoll(ctx context.Context) error {
 		// If the error is a network error, return error to retry later.
 		if netErr := new(proton.NetError); errors.As(err, &netErr) {
 			return fmt.Errorf("failed to handle event due to network issue: %w", err)
+		}
+
+		// If the error is a url.Error, return error to retry later.
+		if urlErr := new(url.Error); errors.As(err, &urlErr) {
+			return fmt.Errorf("failed to handle event due to URL issue: %w", err)
 		}
 
 		// If the error is a server-side issue, return error to retry later.
