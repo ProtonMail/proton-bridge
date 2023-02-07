@@ -420,9 +420,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 
 		switch event.Action {
 		case proton.EventCreate:
-			updates, err := user.handleCreateMessageEvent(
-				logging.WithLogrusField(ctx, "action", "create message"),
-				event)
+			updates, err := user.handleCreateMessageEvent(logging.WithLogrusField(ctx, "action", "create message"), event)
 			if err != nil {
 				if rerr := user.reporter.ReportMessageWithContext("Failed to apply create message event", reporter.Context{
 					"error": err,

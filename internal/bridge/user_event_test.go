@@ -113,22 +113,18 @@ func TestBridge_User_BadMessage_NoBadEvent(t *testing.T) {
 
 			var messageIDs []string
 
+			// Create 10 more messages for the user, generating events.
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				messageIDs = createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
+			})
+
 			// If bridge attempts to sync the new messages, it should get a BadRequest error.
 			s.AddStatusHook(func(req *http.Request) (int, bool) {
-				if len(messageIDs) < 3 {
-					return 0, false
-				}
-
 				if strings.Contains(req.URL.Path, "/mail/v4/messages/"+messageIDs[2]) {
 					return http.StatusUnprocessableEntity, true
 				}
 
 				return 0, false
-			})
-
-			// Create 10 more messages for the user, generating events.
-			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
-				messageIDs = createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
 			})
 
 			// Remove messages
