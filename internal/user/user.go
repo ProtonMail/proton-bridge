@@ -281,7 +281,6 @@ func (user *User) SetAddressMode(_ context.Context, mode vault.AddressMode) erro
 
 	user.syncAbort.Abort()
 	user.pollAbort.Abort()
-	defer user.goSync()
 
 	return safe.LockRet(func() error {
 		if err := user.vault.SetAddressMode(mode); err != nil {
