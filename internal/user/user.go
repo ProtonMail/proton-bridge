@@ -194,9 +194,17 @@ func New(
 				return
 			}
 
-			if err := user.doSync(ctx); err != nil {
-				user.log.WithError(err).Error("Failed to sync, will retry later")
-				time.AfterFunc(SyncRetryCooldown, user.goSync)
+			for {
+				if err := ctx.Err(); err != nil {
+					user.log.WithError(err).Error("Sync aborted")
+					return
+				} else if err := user.doSync(ctx); err != nil {
+					user.log.WithError(err).Error("Failed to sync, will retry later")
+					time.Sleep(SyncRetryCooldown)
+				} else {
+					user.log.Info("Sync complete, starting API event stream")
+					return
+				}
 			}
 		})
 
