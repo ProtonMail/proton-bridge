@@ -2,6 +2,21 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.14] Perth Narrows
+
+### Fixed
+* GODT-2323: Fix Expunge not issued for move.
+* GODT-2341: Handle URL error.
+* GODT-2340: Improve logging.
+* GODT-2278: Improve sentry logs.
+* GODT-2327: Sync issues when migrating DB.
+* GODT-2318: Remove gluon DB if label sync was incomplete.
+* GODT-1804: Only promote content headers if non-empty.
+* GODT-2343: Only poll after send if sync is complete.
+* GODT-2336: Recover from changed address order while bridge is down.
+
+
+
 ## [Bridge 3.0.13] Perth Narrows
 
 ### Fixed
