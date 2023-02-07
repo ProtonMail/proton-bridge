@@ -40,11 +40,84 @@ import (
 	"github.com/emersion/go-imap/client"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"
 )
 
 var defaultVersion = semver.MustParse("3.0.6")
+
+type testUser struct {
+	name       string      // the test user name
+	userID     string      // the user's account ID
+	addresses  []*testAddr // the user's addresses
+	userPass   string      // the user's account password
+	bridgePass string      // the user's bridge password
+}
+
+func newTestUser(userID, name, userPass string) *testUser {
+	return &testUser{
+		userID:   userID,
+		name:     name,
+		userPass: userPass,
+	}
+}
+
+func (user *testUser) getName() string {
+	return user.name
+}
+
+func (user *testUser) getUserID() string {
+	return user.userID
+}
+
+func (user *testUser) getEmails() []string {
+	return xslices.Map(user.addresses, func(addr *testAddr) string {
+		return addr.email
+	})
+}
+
+func (user *testUser) getAddrID(email string) string {
+	for _, addr := range user.addresses {
+		if addr.email == email {
+			return addr.addrID
+		}
+	}
+
+	panic(fmt.Sprintf("unknown email %q", email))
+}
+
+func (user *testUser) addAddress(addrID, email string) {
+	user.addresses = append(user.addresses, newTestAddr(addrID, email))
+}
+
+func (user *testUser) remAddress(addrID string) {
+	user.addresses = xslices.Filter(user.addresses, func(addr *testAddr) bool {
+		return addr.addrID != addrID
+	})
+}
+
+func (user *testUser) getUserPass() string {
+	return user.userPass
+}
+
+func (user *testUser) getBridgePass() string {
+	return user.bridgePass
+}
+
+func (user *testUser) setBridgePass(pass string) {
+	user.bridgePass = pass
+}
+
+type testAddr struct {
+	addrID string // the remote address ID
+	email  string // the test address email
+}
+
+func newTestAddr(addrID, email string) *testAddr {
+	return &testAddr{
+		addrID: addrID,
+		email:  email,
+	}
+}
 
 type testCtx struct {
 	// These are the objects supporting the test.
@@ -70,13 +143,11 @@ type testCtx struct {
 	clientConn    *grpc.ClientConn
 	clientEventCh *queue.QueuedChannel[*frontend.StreamEvent]
 
-	// These maps hold expected userIDByName, their primary addresses and bridge passwords.
-	userUUIDByName     map[string]string
-	addrUUIDByName     map[string]string
-	userIDByName       map[string]string
-	userAddrByEmail    map[string]map[string]string
-	userPassByID       map[string]string
-	userBridgePassByID map[string][]byte
+	// These maps hold test objects created during the test.
+	userByID       map[string]*testUser
+	userUUIDByName map[string]string
+	addrByID       map[string]*testAddr
+	addrUUIDByName map[string]string
 
 	// These are the IMAP and SMTP clients used to connect to bridge.
 	imapClients map[string]*imapClient
@@ -115,12 +186,10 @@ func newTestCtx(tb testing.TB) *testCtx {
 		events:   newEventCollector(),
 		reporter: newReportRecorder(tb),
 
-		userUUIDByName:     make(map[string]string),
-		addrUUIDByName:     make(map[string]string),
-		userIDByName:       make(map[string]string),
-		userAddrByEmail:    make(map[string]map[string]string),
-		userPassByID:       make(map[string]string),
-		userBridgePassByID: make(map[string][]byte),
+		userByID:       make(map[string]*testUser),
+		userUUIDByName: make(map[string]string),
+		addrByID:       make(map[string]*testAddr),
+		addrUUIDByName: make(map[string]string),
 
 		imapClients: make(map[string]*imapClient),
 		smtpClients: make(map[string]*smtpClient),
@@ -192,62 +261,22 @@ func (t *testCtx) afterStep(st *godog.Step, status godog.StepResultStatus) {
 	logrus.Debugf("Finished step (%v): %s", status, st.Text)
 }
 
-func (t *testCtx) getName(wantUserID string) string {
-	for name, userID := range t.userIDByName {
-		if userID == wantUserID {
-			return name
+func (t *testCtx) addUser(userID, name, userPass string) {
+	t.userByID[userID] = newTestUser(userID, name, userPass)
+}
+
+func (t *testCtx) getUserByName(name string) *testUser {
+	for _, user := range t.userByID {
+		if user.name == name {
+			return user
 		}
 	}
 
-	panic(fmt.Sprintf("unknown user ID %q", wantUserID))
+	panic(fmt.Sprintf("user %q not found", name))
 }
 
-func (t *testCtx) getUserID(username string) string {
-	return t.userIDByName[username]
-}
-
-func (t *testCtx) setUserID(username, userID string) {
-	t.userIDByName[username] = userID
-}
-
-func (t *testCtx) getUserAddrID(userID, email string) string {
-	return t.userAddrByEmail[userID][email]
-}
-
-func (t *testCtx) getUserAddrs(userID string) []string {
-	return maps.Keys(t.userAddrByEmail[userID])
-}
-
-func (t *testCtx) setUserAddr(userID, addrID, email string) {
-	if _, ok := t.userAddrByEmail[userID]; !ok {
-		t.userAddrByEmail[userID] = make(map[string]string)
-	}
-
-	t.userAddrByEmail[userID][email] = addrID
-}
-
-func (t *testCtx) unsetUserAddr(userID, wantAddrID string) {
-	for email, addrID := range t.userAddrByEmail[userID] {
-		if addrID == wantAddrID {
-			delete(t.userAddrByEmail[userID], email)
-		}
-	}
-}
-
-func (t *testCtx) getUserPass(userID string) string {
-	return t.userPassByID[userID]
-}
-
-func (t *testCtx) setUserPass(userID, pass string) {
-	t.userPassByID[userID] = pass
-}
-
-func (t *testCtx) getUserBridgePass(userID string) string {
-	return string(t.userBridgePassByID[userID])
-}
-
-func (t *testCtx) setUserBridgePass(userID string, pass []byte) {
-	t.userBridgePassByID[userID] = pass
+func (t *testCtx) getUserByID(userID string) *testUser {
+	return t.userByID[userID]
 }
 
 func (t *testCtx) getMBoxID(userID string, name string) string {
@@ -256,7 +285,7 @@ func (t *testCtx) getMBoxID(userID string, name string) string {
 
 	var labelID string
 
-	if err := t.withClient(ctx, t.getName(userID), func(ctx context.Context, client *proton.Client) error {
+	if err := t.withClient(ctx, t.getUserByID(userID).getName(), func(ctx context.Context, client *proton.Client) error {
 		labels, err := client.GetLabels(ctx, proton.LabelTypeLabel, proton.LabelTypeFolder, proton.LabelTypeSystem)
 		if err != nil {
 			panic(err)

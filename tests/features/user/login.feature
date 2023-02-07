@@ -14,8 +14,8 @@ Feature: A user can login
     Then user "[user:user]" is not listed
 
   Scenario: Login to nonexistent account
-    When the user logs in with username "[user:other]" and password "unknown"
-    Then user "[user:other]" is not listed
+    When the user logs in with username "nonexistent" and password "unknown"
+    Then user "nonexistent" is not listed
 
   Scenario: Login to account without internet
     Given the internet is turned off

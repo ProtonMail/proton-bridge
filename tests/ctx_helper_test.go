@@ -43,7 +43,7 @@ func (t *testCtx) withProton(fn func(*proton.Manager) error) error {
 
 // withClient executes the given function with a client that is logged in as the given (known) user.
 func (t *testCtx) withClient(ctx context.Context, username string, fn func(context.Context, *proton.Client) error) error {
-	return t.withClientPass(ctx, username, t.getUserPass(t.getUserID(username)), fn)
+	return t.withClientPass(ctx, username, t.getUserByName(username).getUserPass(), fn)
 }
 
 // withClient executes the given function with a client that is logged in with the given username and password.
@@ -108,7 +108,7 @@ func (t *testCtx) withAddrKR(
 		return err
 	}
 
-	keyPass, err := salt.SaltForKey([]byte(t.getUserPass(t.getUserID(username))), user.Keys.Primary().ID)
+	keyPass, err := salt.SaltForKey([]byte(t.getUserByName(username).getUserPass()), user.Keys.Primary().ID)
 	if err != nil {
 		return err
 	}
