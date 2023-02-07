@@ -330,17 +330,18 @@ func (bridge *Bridge) loginUser(ctx context.Context, client *proton.Client, auth
 // loadUsers tries to load each user in the vault that isn't already loaded.
 func (bridge *Bridge) loadUsers(ctx context.Context) error {
 	logrus.WithField("count", len(bridge.vault.GetUserIDs())).Info("Loading users")
+	defer logrus.Info("Finished loading users")
 
 	return bridge.vault.ForUser(runtime.NumCPU(), func(user *vault.User) error {
 		log := logrus.WithField("userID", user.UserID())
 
 		if user.AuthUID() == "" {
-			log.Info("Not loading disconnected user")
+			log.Info("User is not connected (skipping)")
 			return nil
 		}
 
 		if safe.RLockRet(func() bool { return mapHas(bridge.users, user.UserID()) }, bridge.usersLock) {
-			log.Debug("Not loading already-loaded user")
+			log.Info("User is already loaded (skipping)")
 			return nil
 		}
 

@@ -185,12 +185,12 @@ func New(
 
 	// When triggered, sync the user and then begin streaming API events.
 	user.goSync = user.tasks.Trigger(func(ctx context.Context) {
-		user.log.Debug("Sync triggered")
+		user.log.Info("Sync triggered")
 
 		// Sync the user.
 		user.syncAbort.Do(ctx, func(ctx context.Context) {
 			if user.vault.SyncStatus().IsComplete() {
-				user.log.Debug("Sync already complete, skipping")
+				user.log.Info("Sync already complete, skipping")
 				return
 			}
 
@@ -200,7 +200,7 @@ func New(
 					return
 				} else if err := user.doSync(ctx); err != nil {
 					user.log.WithError(err).Error("Failed to sync, will retry later")
-					time.Sleep(SyncRetryCooldown)
+					sleepCtx(ctx, SyncRetryCooldown)
 				} else {
 					user.log.Info("Sync complete, starting API event stream")
 					return
@@ -684,4 +684,12 @@ func b32(b bool) uint32 {
 	}
 
 	return 0
+}
+
+// sleepCtx sleeps for the given duration, or until the context is canceled.
+func sleepCtx(ctx context.Context, d time.Duration) {
+	select {
+	case <-ctx.Done():
+	case <-time.After(d):
+	}
 }

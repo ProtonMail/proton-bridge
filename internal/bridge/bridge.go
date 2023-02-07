@@ -376,8 +376,6 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 
 	// Attempt to lazy load users when triggered.
 	bridge.goLoad = bridge.tasks.Trigger(func(ctx context.Context) {
-		logrus.Info("Loading users")
-
 		if err := bridge.loadUsers(ctx); err != nil {
 			logrus.WithError(err).Error("Failed to load users")
 		} else {
