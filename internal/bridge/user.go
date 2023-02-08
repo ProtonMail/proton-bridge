@@ -380,6 +380,7 @@ func (bridge *Bridge) loadUser(ctx context.Context, user *vault.User) error {
 				logrus.WithError(err).Warn("Failed to clear user secrets")
 			}
 		}
+
 		return fmt.Errorf("failed to create API client: %w", err)
 	}
 
