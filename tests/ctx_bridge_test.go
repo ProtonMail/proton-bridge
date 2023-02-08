@@ -36,6 +36,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	frontend "github.com/ProtonMail/proton-bridge/v3/internal/frontend/grpc"
+	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/sirupsen/logrus"
@@ -262,7 +263,7 @@ func (t *testCtx) initFrontendClient() error {
 		return fmt.Errorf("could not read grpcServerConfig.json: %w", err)
 	}
 
-	var cfg frontend.Config
+	var cfg service.Config
 
 	if err := json.Unmarshal(b, &cfg); err != nil {
 		return fmt.Errorf("could not unmarshal grpcServerConfig.json: %w", err)

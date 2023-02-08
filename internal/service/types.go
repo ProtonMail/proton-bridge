@@ -15,14 +15,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-package grpc
+package service
 
-type CrashHandler interface {
-	HandlePanic()
-}
-
-type Restarter interface {
-	Set(restart, crash bool)
-	AddFlags(flags ...string)
-	Override(exe string)
+type Locator interface {
+	ProvideSettingsPath() (string, error)
 }

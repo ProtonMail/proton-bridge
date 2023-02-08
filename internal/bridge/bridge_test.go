@@ -123,8 +123,11 @@ func TestBridge_Focus(t *testing.T) {
 			raiseCh, done := bridge.GetEvents(events.Raise{})
 			defer done()
 
+			settingsFolder, err := locator.ProvideSettingsPath()
+			require.NoError(t, err)
+
 			// Simulate a focus event.
-			focus.TryRaise()
+			focus.TryRaise(settingsFolder)
 
 			// Wait for the event.
 			require.IsType(t, events.Raise{}, <-raiseCh)

@@ -251,7 +251,7 @@ func newBridge(
 		return nil, fmt.Errorf("failed to create IMAP server: %w", err)
 	}
 
-	focusService, err := focus.NewService(curVersion)
+	focusService, err := focus.NewService(locator, curVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create focus service: %w", err)
 	}

@@ -38,6 +38,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/elastic/go-sysinfo"
@@ -97,7 +98,7 @@ type Service struct { // nolint:structcheck
 func NewService(
 	panicHandler CrashHandler,
 	restarter Restarter,
-	locations Locator,
+	locations service.Locator,
 	bridge *bridge.Bridge,
 	eventCh <-chan events.Event,
 	quitCh <-chan struct{},
@@ -109,7 +110,7 @@ func NewService(
 		logrus.WithError(err).Panic("Could not generate gRPC TLS config")
 	}
 
-	config := Config{
+	config := service.Config{
 		Cert:  string(certPEM),
 		Token: uuid.NewString(),
 	}
@@ -140,7 +141,7 @@ func NewService(
 		config.Port = address.Port
 	}
 
-	if path, err := saveGRPCServerConfigFile(locations, &config); err != nil {
+	if path, err := service.SaveGRPCServerConfigFile(locations, &config, serverConfigFileName); err != nil {
 		logrus.WithError(err).WithField("path", path).Panic("Could not write gRPC service config file")
 	} else {
 		logrus.WithField("path", path).Info("Successfully saved gRPC service config file")
@@ -484,17 +485,6 @@ func newTLSConfig() (*tls.Config, []byte, error) {
 		ClientAuth:   tls.NoClientCert,
 		MinVersion:   tls.VersionTLS12,
 	}, certPEM, nil
-}
-
-func saveGRPCServerConfigFile(locations Locator, config *Config) (string, error) {
-	settingsPath, err := locations.ProvideSettingsPath()
-	if err != nil {
-		return "", err
-	}
-
-	configPath := filepath.Join(settingsPath, serverConfigFileName)
-
-	return configPath, config.save(configPath)
 }
 
 // validateServerToken verify that the server token provided by the client is valid.

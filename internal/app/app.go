@@ -208,7 +208,12 @@ func run(c *cli.Context) error {
 						}
 
 						// Ensure we are the only instance running.
-						return withSingleInstance(locations, version, func() error {
+						settings, err := locations.ProvideSettingsPath()
+						if err != nil {
+							logrus.WithError(err).Error("Failed to get settings path")
+						}
+
+						return withSingleInstance(settings, locations.GetLockFile(), version, func() error {
 							// Unlock the encrypted vault.
 							return WithVault(locations, func(v *vault.Vault, insecure, corrupt bool) error {
 								// Report insecure vault.
@@ -278,15 +283,15 @@ func run(c *cli.Context) error {
 }
 
 // If there's another instance already running, try to raise it and exit.
-func withSingleInstance(locations *locations.Locations, version *semver.Version, fn func() error) error {
+func withSingleInstance(settingPath, lockFile string, version *semver.Version, fn func() error) error {
 	logrus.Debug("Checking for other instances")
 	defer logrus.Debug("Single instance stopped")
 
-	lock, err := checkSingleInstance(locations.GetLockFile(), version)
+	lock, err := checkSingleInstance(settingPath, lockFile, version)
 	if err != nil {
 		logrus.Info("Another instance is already running; raising it")
 
-		if ok := focus.TryRaise(); !ok {
+		if ok := focus.TryRaise(settingPath); !ok {
 			return fmt.Errorf("another instance is already running but it could not be raised")
 		}
 

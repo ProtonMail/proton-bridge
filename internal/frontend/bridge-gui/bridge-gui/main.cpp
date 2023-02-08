@@ -229,8 +229,21 @@ bool isBridgeRunning() {
 void focusOtherInstance() {
     try {
         FocusGRPCClient client;
+        GRPCConfig sc;
+        QString const path = FocusGRPCClient::grpcFocusServerConfigPath();
+        QFile file(path);
+        if (file.exists()) {
+            if (!sc.load(path)) {
+                throw Exception("The gRPC focus service configuration file is invalid.");
+            }
+        }
+        else {
+            throw Exception("Server did not provide gRPC Focus service configuration.");
+        }
+
+
         QString error;
-        if (!client.connectToServer(5000, &error)) {
+        if (!client.connectToServer(5000, sc.port, &error)) {
             throw Exception(QString("Could not connect to bridge focus service for a raise call: %1").arg(error));
         }
         if (!client.raise().ok()) {
@@ -344,6 +357,7 @@ int main(int argc, char *argv[]) {
             }
 
             // before launching bridge, we remove any trailing service config file, because we need to make sure we get a newly generated one.
+            FocusGRPCClient::removeServiceConfigFile();
             GRPCClient::removeServiceConfigFile();
             launchBridge(cliOptions.bridgeArgs);
         }
