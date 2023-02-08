@@ -43,6 +43,7 @@ func init() { //nolint:gochecknoinits
 		Release:    constants.Revision,
 		BeforeSend: EnhanceSentryEvent,
 		Transport:  sentrySyncTransport,
+		ServerName: getProtectedHostname(),
 	}); err != nil {
 		logrus.WithError(err).Error("Failed to initialize sentry options")
 	}
@@ -63,7 +64,6 @@ type Reporter struct {
 	appVersion string
 	identifier Identifier
 	hostArch   string
-	serverName string
 }
 
 type Identifier interface {
@@ -85,7 +85,6 @@ func NewReporter(appName, appVersion string, identifier Identifier) *Reporter {
 		appVersion: appVersion,
 		identifier: identifier,
 		hostArch:   getHostArch(),
-		serverName: getProtectedHostname(),
 	}
 }
 
@@ -137,12 +136,11 @@ func (r *Reporter) scopedReport(context map[string]interface{}, doReport func())
 	}
 
 	tags := map[string]string{
-		"OS":          runtime.GOOS,
-		"Client":      r.appName,
-		"Version":     r.appVersion,
-		"UserAgent":   r.identifier.GetUserAgent(),
-		"HostArch":    r.hostArch,
-		"server_name": r.serverName,
+		"OS":        runtime.GOOS,
+		"Client":    r.appName,
+		"Version":   r.appVersion,
+		"UserAgent": r.identifier.GetUserAgent(),
+		"HostArch":  r.hostArch,
 	}
 
 	sentry.WithScope(func(scope *sentry.Scope) {
