@@ -96,9 +96,9 @@ endif
 
 ifeq "${GOOS}" "windows"
 	go-build-finalize= \
-		powershell Copy-Item ${ROOT_DIR}/${RESOURCE_FILE} ${4}  && \
-		$(call go-build,$(1),$(2),$(3)) && \
-		powershell Remove-Item ${4} -Force
+		$(if $(4),powershell Copy-Item ${ROOT_DIR}/${RESOURCE_FILE} ${4}  &&,) \
+		$(call go-build,$(1),$(2),$(3)) \
+		$(if $(4), && powershell Remove-Item ${4} -Force,)
 endif
 
 ${EXE_NAME}: gofiles  ${RESOURCE_FILE}
