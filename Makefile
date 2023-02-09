@@ -112,7 +112,7 @@ versioner:
 	go build ${BUILD_FLAGS} -o versioner utils/versioner/main.go
 
 vault-editor:
-	go build -tags debug -o vault-editor utils/vault-editor/main.go
+	$(call go-build-finalize,"-tags=debug","vault-editor","./utils/vault-editor/main.go")
 
 hasher:
 	go build -o hasher utils/hasher/main.go
