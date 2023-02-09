@@ -1,3 +1,14 @@
+## v3.0.14
+- 2023-02-09
+
+### New
+- Improved error detection
+
+### Fixed
+- Fixed the sync issues that can happen when updating from an earlier v3 version
+- Improved attachment handling by setting proper MIME parameters
+- Improved update processing while Bridge is not active or performs a synchronization with Proton servers
+
 ## v3.0.12
 - 2023-02-01
 
@@ -47,7 +58,7 @@
 - 2022-12-20
 
 ### New
-- Impoved error detection when Proton server updates cannot be processed
+- Improved error detection when Proton server updates cannot be processed
 
 ### Fixed
 - Proton server update processing will not stop after a folder update failure
