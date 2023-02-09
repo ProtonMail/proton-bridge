@@ -124,14 +124,19 @@ func (t *testCtx) withAddrKR(
 func (t *testCtx) createMessages(ctx context.Context, username, addrID string, req []proton.ImportReq) error {
 	return t.withClient(ctx, username, func(ctx context.Context, c *proton.Client) error {
 		return t.withAddrKR(ctx, c, username, addrID, func(ctx context.Context, addrKR *crypto.KeyRing) error {
-			if _, err := stream.Collect(ctx, c.ImportMessages(
+			str, err := c.ImportMessages(
 				ctx,
 				addrKR,
 				runtime.NumCPU(),
 				runtime.NumCPU(),
 				req...,
-			)); err != nil {
-				return err
+			)
+			if err != nil {
+				return fmt.Errorf("failed to prepare messages for import: %w", err)
+			}
+
+			if _, err := stream.Collect(ctx, str); err != nil {
+				return fmt.Errorf("failed to import messages: %w", err)
 			}
 
 			return nil

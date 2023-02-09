@@ -538,7 +538,7 @@ func (conn *imapConnector) importMessage(
 
 				messageID = msg.ID
 			} else {
-				res, err := stream.Collect(ctx, conn.client.ImportMessages(ctx, addrKR, 1, 1, []proton.ImportReq{{
+				str, err := conn.client.ImportMessages(ctx, addrKR, 1, 1, []proton.ImportReq{{
 					Metadata: proton.ImportMetadata{
 						AddressID: conn.addrID,
 						LabelIDs:  labelIDs,
@@ -546,7 +546,12 @@ func (conn *imapConnector) importMessage(
 						Flags:     flags,
 					},
 					Message: literal,
-				}}...))
+				}}...)
+				if err != nil {
+					return fmt.Errorf("failed to prepare message for import: %w", err)
+				}
+
+				res, err := stream.Collect(ctx, str)
 				if err != nil {
 					return fmt.Errorf("failed to import message: %w", err)
 				}
