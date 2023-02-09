@@ -770,7 +770,7 @@ func withBridge(
 	})
 }
 
-func waitForEvent[T any](t *testing.T, eventCh <-chan events.Event, wantEvent T) {
+func waitForEvent[T any](t *testing.T, eventCh <-chan events.Event, _ T) {
 	t.Helper()
 
 	for event := range eventCh {

@@ -505,9 +505,20 @@ func (conn *imapConnector) GetUpdates() <-chan imap.Update {
 	}, conn.updateChLock)
 }
 
-// IsMailboxVisible returns whether this mailbox should be visible over IMAP.
-func (conn *imapConnector) IsMailboxVisible(_ context.Context, mailboxID imap.MailboxID) bool {
-	return atomic.LoadUint32(&conn.showAllMail) != 0 || mailboxID != proton.AllMailLabel
+// GetMailboxVisibility returns the visibility of a mailbox over IMAP.
+func (conn *imapConnector) GetMailboxVisibility(_ context.Context, mailboxID imap.MailboxID) imap.MailboxVisibility {
+	switch mailboxID {
+	case proton.AllMailLabel:
+		if atomic.LoadUint32(&conn.showAllMail) != 0 {
+			return imap.Visible
+		}
+		return imap.Hidden
+
+	case proton.AllScheduledLabel:
+		return imap.HiddenIfEmpty
+	default:
+		return imap.Visible
+	}
 }
 
 // Close the connector will no longer be used and all resources should be closed/released.

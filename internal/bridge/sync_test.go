@@ -24,6 +24,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -42,6 +43,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
+
+const scheduled = "Scheduled"
 
 func TestBridge_Sync(t *testing.T) {
 	numMsg := 1 << 8
@@ -467,4 +470,46 @@ func countBytesRead(ctl *proton.NetCtl, fn func()) uint64 {
 	fn()
 
 	return read
+}
+
+func TestBridge_ScheduledLabel(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		hasScheduledSystemLabel := func(imapClient *client.Client) bool {
+			return xslices.Any(clientList(imapClient), func(mailboxInfo *imap.MailboxInfo) bool { return mailboxInfo.Name == scheduled })
+		}
+
+		_, _, err := s.CreateUser(username, password)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, _ *bridge.Mocks) {
+			// Perform initial sync
+			syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
+			defer done()
+			userID, err := b.LoginFull(ctx, username, password, nil, nil)
+			require.NoError(t, err)
+			require.Equal(t, userID, (<-syncCh).UserID)
+
+			// connect an IMAP client
+			info, err := b.GetUserInfo(userID)
+			require.NoError(t, err)
+			imapClient, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			require.NoError(t, err)
+			require.NoError(t, imapClient.Login(info.Addresses[0], string(info.BridgePass)))
+			defer func() { _ = imapClient.Logout() }()
+
+			// Scheduled mailbox is empty. It's not listed.
+			require.False(t, hasScheduledSystemLabel(imapClient))
+
+			// Add a message to the Schedule mailbox. It's now listed.
+			require.NoError(t, imapClient.Append(scheduled, []string{}, time.Now(), strings.NewReader("To: no_reply@pm.me")))
+			require.True(t, hasScheduledSystemLabel(imapClient))
+
+			// delete message from Scheduled. The mailbox is now empty and not listed anymore
+			_, err = imapClient.Select(scheduled, false)
+			require.NoError(t, err)
+			require.NoError(t, clientStore(imapClient, 1, 1, true, imap.FormatFlagsOp(imap.AddFlags, true), imap.DeletedFlag))
+			require.NoError(t, imapClient.Expunge(nil))
+			require.False(t, hasScheduledSystemLabel(imapClient))
+		})
+	})
 }

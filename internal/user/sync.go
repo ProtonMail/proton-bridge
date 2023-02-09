@@ -43,7 +43,31 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-// doSync begins syncing the users data.
+// syncSystemLabels ensures that system labels are all known to gluon.
+func (user *User) syncSystemLabels(ctx context.Context) error {
+	return safe.RLockRet(func() error {
+		var updates []imap.Update
+
+		for _, label := range xslices.Filter(maps.Values(user.apiLabels), func(label proton.Label) bool { return label.Type == proton.LabelTypeSystem }) {
+			if !wantLabel(label) {
+				continue
+			}
+
+			for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
+				update := newSystemMailboxCreatedUpdate(imap.MailboxID(label.ID), label.Name)
+				updateCh.Enqueue(update)
+				updates = append(updates, update)
+			}
+		}
+		if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+			return fmt.Errorf("could not sync system labels: %w", err)
+		}
+
+		return nil
+	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
+}
+
+// doSync begins syncing the user's data.
 // It first ensures the latest event ID is known; if not, it fetches it.
 // It sends a SyncStarted event and then either SyncFinished or SyncFailed
 // depending on whether the sync was successful.
@@ -658,6 +682,9 @@ func newSystemMailboxCreatedUpdate(labelID imap.MailboxID, labelName string) *im
 
 	case proton.StarredLabel:
 		attrs = attrs.Add(imap.AttrFlagged)
+
+	case proton.AllScheduledLabel:
+		labelName = "Scheduled" // API actual name is "All Scheduled"
 	}
 
 	return imap.NewMailboxCreated(imap.Mailbox{
@@ -718,6 +745,9 @@ func wantLabel(label proton.Label) bool {
 		return true
 
 	case proton.StarredLabel:
+		return true
+
+	case proton.AllScheduledLabel:
 		return true
 
 	default:

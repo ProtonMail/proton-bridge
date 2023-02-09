@@ -190,7 +190,12 @@ func New(
 		// Sync the user.
 		user.syncAbort.Do(ctx, func(ctx context.Context) {
 			if user.vault.SyncStatus().IsComplete() {
-				user.log.Info("Sync already complete, skipping")
+				user.log.Info("Sync already complete, only system label will be updated")
+				if err := user.syncSystemLabels(ctx); err != nil {
+					user.log.WithError(err).Error("Failed to update system labels")
+					return
+				}
+				user.log.Info("System label update complete, starting API event stream")
 				return
 			}
 
