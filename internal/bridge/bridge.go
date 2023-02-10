@@ -21,6 +21,7 @@ package bridge
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -38,6 +39,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/focus"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
@@ -378,6 +380,9 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	bridge.goLoad = bridge.tasks.Trigger(func(ctx context.Context) {
 		if err := bridge.loadUsers(ctx); err != nil {
 			logrus.WithError(err).Error("Failed to load users")
+			if netErr := new(proton.NetError); !errors.As(err, &netErr) {
+				sentry.ReportError(bridge.reporter, "Failed to load users", err)
+			}
 		} else {
 			bridge.publish(events.AllUsersLoaded{})
 		}

@@ -26,6 +26,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/restarter"
 	"github.com/getsentry/sentry-go"
@@ -161,6 +162,14 @@ func (r *Reporter) scopedReport(context map[string]interface{}, doReport func())
 	}
 
 	return nil
+}
+
+func ReportError(r reporter.Reporter, msg string, err error) {
+	if rerr := r.ReportMessageWithContext(msg, reporter.Context{
+		"error": err.Error(),
+	}); rerr != nil {
+		logrus.WithError(rerr).WithField("msg", msg).Error("Failed to send report")
+	}
 }
 
 // SkipDuringUnwind removes caller from the traceback.
