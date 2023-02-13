@@ -2,6 +2,17 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.15/16] Perth Narrows
+
+### Changed
+* GODT-2355: Improve wording and actions on bad event.
+
+### Fixed
+* GODT-2354: Report failed load users.
+* GODT-2353: Show popup only after 3.0.16.
+* GODT-2351: Bump GPA to better handle net.OpError.
+
+
 ## [Bridge 3.0.14] Perth Narrows
 
 ### Fixed
