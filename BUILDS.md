@@ -11,7 +11,7 @@
 * libglvnd and libsecret development files (linux)
 
 To enable the sending of crash reports using Sentry please set the
-`main.DSNSentry` value with the client key of your sentry project before build.
+`DSN_SENTRY` environment variable with the client key of your sentry project before build.
 Otherwise, the sending of crash reports will be disabled.
 
 ## Build

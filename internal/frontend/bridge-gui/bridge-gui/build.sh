@@ -56,6 +56,8 @@ BUILD_CONFIG=${BRIDGE_GUI_BUILD_CONFIG:-Debug}
 BUILD_DIR=$(echo "./cmake-build-${BUILD_CONFIG}" | tr '[:upper:]' '[:lower:]')
 VCPKG_ROOT="${BRIDGE_REPO_ROOT}/extern/vcpkg"
 BRIDGE_REVISION=$(git rev-parse --short=10 HEAD)
+BRIDGE_DSN_SENTRY=${BRIDGE_DSN_SENTRY}
+BRIDGE_BUILD_TIME=${BRIDGE_BUILD_TIME}
 git submodule update --init --recursive ${VCPKG_ROOT}
 check_exit "Failed to initialize vcpkg as a submodule."
 
@@ -94,6 +96,8 @@ cmake  \
     -DBRIDGE_APP_FULL_NAME="${BRIDGE_APP_FULL_NAME}" \
     -DBRIDGE_VENDOR="${BRIDGE_VENDOR}" \
     -DBRIDGE_REVISION="${BRIDGE_REVISION}" \
+    -DBRIDGE_DSN_SENTRY="${BRIDGE_DSN_SENTRY}" \
+    -DBRIDGE_BRIDGE_TIME="${BRIDGE_BRIDGE_TIME}" \
     -DBRIDGE_APP_VERSION="${BRIDGE_APP_VERSION}" "${BRIDGE_CMAKE_MACOS_OPTS}" \
     -G Ninja \
     -S . \

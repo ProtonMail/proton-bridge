@@ -30,9 +30,10 @@ BUILD_FLAGS_GUI:=-tags='${BUILD_TAGS} build_qt'
 GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/v3/internal/constants., Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
 GO_LDFLAGS+=-X "github.com/ProtonMail/proton-bridge/v3/internal/constants.FullAppName=${APP_FULL_NAME}"
 
-ifneq "${BUILD_LDFLAGS}" ""
-	GO_LDFLAGS+=${BUILD_LDFLAGS}
+ifneq "${DSN_SENTRY}" ""
+	GO_LDFLAGS+=-X github.com/ProtonMail/proton-bridge/v3/internal/constants.DSNSentry=${DSN_SENTRY}
 endif
+
 GO_LDFLAGS_LAUNCHER:=${GO_LDFLAGS}
 ifeq "${TARGET_OS}" "windows"
 	#GO_LDFLAGS+=-H=windowsgui # Disabled so we can inspect trace logs from the bridge for debugging.
@@ -154,7 +155,8 @@ ${EXE_TARGET}: check-build-essentials ${EXE_NAME}
 		BRIDGE_VENDOR="${APP_VENDOR}" \
 		BRIDGE_APP_VERSION=${APP_VERSION} \
 		BRIDGE_REVISION=${REVISION} \
-		BRIDGE_BUILD_TIME=${BUILD_TIME} \
+		BRIDGE_DSN_SENTRY=${DSN_SENTRY} \
+ 		BRIDGE_BUILD_TIME=${BUILD_TIME} \
 		BRIDGE_GUI_BUILD_CONFIG=Release \
 		BRIDGE_INSTALL_PATH=${ROOT_DIR}/${DEPLOY_DIR}/${GOOS} \
 		./build.sh install
@@ -340,7 +342,7 @@ clean-vendor:
 
 clean-gui:
 	cd internal/frontend/bridge-gui/ && \
-		rm -f Version.h && \
+		rm -f BuildConfig.h && \
 		rm -rf cmake-build-*/
 
 clean-vcpkg:

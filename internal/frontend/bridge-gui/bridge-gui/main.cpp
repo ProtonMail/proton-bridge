@@ -21,7 +21,7 @@
 #include "CommandLine.h"
 #include "QMLBackend.h"
 #include "SentryUtils.h"
-#include "Version.h"
+#include "BuildConfig.h"
 #include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/FocusGRPC/FocusGRPCClient.h>
@@ -29,7 +29,6 @@
 #include <bridgepp/ProcessMonitor.h>
 #include <sentry.h>
 #include <SentryUtils.h>
-#include <project_sentry_config.h>
 
 
 #ifdef Q_OS_MACOS
@@ -293,7 +292,7 @@ void closeBridgeApp() {
 int main(int argc, char *argv[]) {
     // Init sentry.
     sentry_options_t *sentryOptions = sentry_options_new();
-    sentry_options_set_dsn(sentryOptions, SentryDNS);
+    sentry_options_set_dsn(sentryOptions, PROJECT_DSN_SENTRY);
     {
         const QString sentryCachePath = sentryCacheDir();
         sentry_options_set_database_path(sentryOptions, sentryCachePath.toStdString().c_str());

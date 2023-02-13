@@ -85,20 +85,12 @@ message(STATUS "Using Qt ${Qt6_VERSION}")
 #*****************************************************************************************************************************************************
 find_package(sentry CONFIG REQUIRED)
 
-set(DSN_SENTRY "https://ea31dfe8574849108fb8ba044fec3620@api.protonmail.ch/core/v4/reports/sentry/7")
-set(SENTRY_CONFIG_GENERATED_FILE_DIR ${CMAKE_CURRENT_BINARY_DIR}/sentry-generated)
-set(SENTRY_CONFIG_FILE ${SENTRY_CONFIG_GENERATED_FILE_DIR}/project_sentry_config.h)
-file(GENERATE OUTPUT ${SENTRY_CONFIG_FILE} CONTENT
-    "// AUTO GENERATED FILE, DO NOT MODIFY\n#pragma once\nconst char* SentryDNS=\"${DSN_SENTRY}\";\nconst char* SentryProductID=\"bridge-mail@${BRIDGE_APP_VERSION}\";\n"
-)
-
-
 
 #*****************************************************************************************************************************************************
 # Source files and output
 #*****************************************************************************************************************************************************
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/Version.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/BuildConfig.h.in ${CMAKE_CURRENT_SOURCE_DIR}/BuildConfig.h)
 
 if (NOT TARGET bridgepp)
     add_subdirectory(../bridgepp bridgepp)
@@ -122,7 +114,7 @@ add_executable(bridge-gui
     EventStreamWorker.cpp EventStreamWorker.h
     main.cpp
     Pch.h
-    Version.h
+    BuildConfig.h
     QMLBackend.cpp QMLBackend.h
     UserList.cpp UserList.h
     SentryUtils.cpp SentryUtils.h
