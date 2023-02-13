@@ -170,6 +170,10 @@ SettingsView {
         }
     }
 
+    function setDescription(message) {
+        description.text = message
+    }
+
     function setDefaultValue() {
         description.text = ""
         address.text = root.selectedAddress

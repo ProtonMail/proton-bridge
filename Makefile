@@ -294,7 +294,7 @@ gofiles: ./internal/bridge/credits.go
 	cd ./utils/ && ./credits.sh bridge
 
 ## Run and debug
-.PHONY: run run-qt run-qt-cli run-nogui run-cli run-noninteractive run-debug run-qml-preview clean-vendor clean-frontend-qt clean-frontend-qt-common clean
+.PHONY: run run-qt run-qt-cli run-nogui run-cli run-noninteractive run-debug run-gui-tester clean-vendor clean-frontend-qt clean-frontend-qt-common clean
 
 LOG?=debug
 LOG_IMAP?=client # client/server/all, or empty to turn it off
@@ -320,6 +320,20 @@ run-nogui: build-nogui clean-vendor gofiles
 
 run-debug:
 	dlv debug ./cmd/Desktop-Bridge/main.go -- -l=debug
+
+ifeq "${TARGET_OS}" "windows"
+	EXE_SUFFIX=.exe
+endif
+
+bridge-gui-tester:  build-gui
+	cp ./cmd/Desktop-Bridge/deploy/${TARGET_OS}/bridge-gui${EXE_SUFFIX} .
+	cd ./internal/frontend/bridge-gui/bridge-gui-tester && cmake . && make
+
+run-gui-tester: bridge-gui-tester
+	# copying tester as bridge so bridge-gui will start it and connect to it automatically
+	cp ./internal/frontend/bridge-gui/bridge-gui-tester/bridge-gui-tester${EXE_SUFFIX} bridge${EXE_SUFFIX}
+	./bridge-gui${EXE_SUFFIX}
+
 
 clean-vendor:
 	rm -rf ./vendor

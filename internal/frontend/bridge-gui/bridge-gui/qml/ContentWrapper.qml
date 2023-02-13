@@ -348,6 +348,7 @@ Item {
                 }
 
                 BugReportView { // 8
+                    id: bugReport
                     colorScheme: root.colorScheme
                     selectedAddress: {
                         if (accounts.currentIndex < 0) return ""
@@ -409,10 +410,14 @@ Item {
             }
             accounts.currentIndex = i;
             if (user.state === EUserState.SignedOut)
-                showSignIn(user.primaryEmailOrUsername())
+            showSignIn(user.primaryEmailOrUsername())
             return;
         }
         console.error("User with ID ", userID, " was not found in the account list")
     }
 
+    function showBugReportAndPrefill(description) {
+        rightContent.showBugReport()
+        bugReport.setDescription(description)
+    }
 }

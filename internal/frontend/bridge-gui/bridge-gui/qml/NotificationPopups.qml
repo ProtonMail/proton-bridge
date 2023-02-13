@@ -131,6 +131,11 @@ Item {
 
     NotificationDialog {
         colorScheme: root.colorScheme
+        notification: root.notifications.userBadEvent
+    }
+
+    NotificationDialog {
+        colorScheme: root.colorScheme
         notification: root.notifications.genericError
     }
 }

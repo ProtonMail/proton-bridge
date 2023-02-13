@@ -169,7 +169,6 @@ ApplicationWindow {
                 root.showSetup(null,"")
             }
         }
-
     }
 
     NotificationPopups {
@@ -187,6 +186,10 @@ ApplicationWindow {
     function showSettings() { contentWrapper.showSettings() }
     function showHelp() { contentWrapper.showHelp() }
     function selectUser(userID) { contentWrapper.selectUser(userID) }
+
+    function showBugReportAndPrefill(message) {
+        contentWrapper.showBugReportAndPrefill(message)
+    }
 
     function showSignIn(username) {
         if (contentLayout.currentIndex == 1) return

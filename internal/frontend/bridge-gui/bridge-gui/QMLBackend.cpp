@@ -874,12 +874,14 @@ void QMLBackend::onLoginAlreadyLoggedIn(QString const &userID) {
 //****************************************************************************************************************************************************
 void QMLBackend::onUserBadEvent(QString const &userID, QString const &errorMessage) {
     HANDLE_EXCEPTION(
-        Q_UNUSED(errorMessage);
         SPUser const user = users_->getUserWithID(userID);
         if (!user)
             app().log().error(QString("Received bad event for unknown user %1").arg(user->id()));
         user->setState(UserState::SignedOut);
-        emit userBadEvent(tr("%1 was logged out because of an internal error.").arg(user->primaryEmailOrUsername()));
+        emit userBadEvent(
+            tr("Internal error: %1 was automatically logged out. Please log in again or report this problem if the issue persists.").arg(user->primaryEmailOrUsername()),
+            errorMessage
+            );
         emit selectUser(userID);
         emit showMainWindow();
     )

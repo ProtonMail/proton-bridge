@@ -1046,8 +1046,8 @@ QtObject {
     property Notification apiCertIssue: Notification {
         title: qsTr("Unable to establish a \nsecure connection to \nProton servers")
         description: qsTr("Bridge cannot verify the authenticity of Proton servers on your current network due to a TLS certificate error. " +
-            "Start Bridge again after ensuring your connection is secure and/or connecting to a VPN. Learn more about TLS pinning " +
-            "<a href=\"https://proton.me/blog/tls-ssl-certificate#Extra-security-precautions-taken-by-ProtonMail\">here</a>.")
+        "Start Bridge again after ensuring your connection is secure and/or connecting to a VPN. Learn more about TLS pinning " +
+        "<a href=\"https://proton.me/blog/tls-ssl-certificate#Extra-security-precautions-taken-by-ProtonMail\">here</a>.")
 
         brief: title
         icon: "./icons/ic-exclamation-circle-filled.svg"
@@ -1086,7 +1086,7 @@ QtObject {
 
             function onNoActiveKeyForRecipient(email) {
                 root.noActiveKeyForRecipient.description = qsTr("There are no active keys to encrypt your message to %1. "+
-                    "Please update the setting for this contact.").arg(email)
+                "Please update the setting for this contact.").arg(email)
                 root.noActiveKeyForRecipient.active = true
             }
         }
@@ -1103,17 +1103,21 @@ QtObject {
     }
 
     property Notification userBadEvent: Notification {
-        title: qsTr("User was logged out")
+        title: qsTr("Your account was logged out")
         brief: title
         description: "#PlaceHolderText"
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
-        group: Notifications.Group.Connection
+        group: Notifications.Group.Connection | Notifications.Group.Dialogs
+
+        property var bugReportMsg: "Reporting an issue:\n\n\"%1\"\n\nError: %2\n\nThe issue persists even after loggin back in."
+        property var errorMessage: ""
 
         Connections {
             target: Backend
-            function onUserBadEvent(message) {
-                root.userBadEvent.description = message
+            function onUserBadEvent(description, errorMessage) {
+                root.userBadEvent.description = description
+                root.userBadEvent.errorMessage = errorMessage
                 root.userBadEvent.active = true
             }
         }
@@ -1125,8 +1129,22 @@ QtObject {
                 onTriggered: {
                     root.userBadEvent.active = false
                 }
+            },
+
+            Action {
+                text: qsTr("Report")
+
+                onTriggered: {
+                    root.frontendMain.showBugReportAndPrefill(
+                        root.userBadEvent.bugReportMsg.
+                        arg( root.userBadEvent.description).
+                        arg(root.userBadEvent.errorMessage)
+                    )
+                    root.userBadEvent.active = false
+                }
             }
         ]
+
     }
 
     property Notification genericError: Notification {
@@ -1135,14 +1153,14 @@ QtObject {
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Dialogs
-            Connections {
-              target: Backend
-                 function onGenericError(title, description) {
-                  root.genericError.title = title
-                  root.genericError.description = description
-                  root.genericError.active = true;
-              }
+        Connections {
+            target: Backend
+            function onGenericError(title, description) {
+                root.genericError.title = title
+                root.genericError.description = description
+                root.genericError.active = true;
             }
+        }
 
         action: [
             Action {

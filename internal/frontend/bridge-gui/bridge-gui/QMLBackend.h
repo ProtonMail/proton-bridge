@@ -222,7 +222,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void addressChangedLogout(QString const &address); ///< Signal for the 'addressChangedLogout' gRPC stream event.
     void apiCertIssue(); ///< Signal for the 'apiCertIssue' gRPC stream event.
     void userDisconnected(QString const &username); ///< Signal for the 'userDisconnected' gRPC stream event.
-    void userBadEvent(QString const &message); ///< Signal for the 'userBadEvent' gRPC stream event.
+    void userBadEvent(QString const &description, QString const &errorMessage); ///< Signal for the 'userBadEvent' gRPC stream event.
     void internetOff(); ///< Signal for the 'internetOff' gRPC stream event.
     void internetOn(); ///< Signal for the 'internetOn' gRPC stream event.
     void resetFinished(); ///< Signal for the 'resetFinished' gRPC stream event.
