@@ -21,7 +21,7 @@
 
 
 #include "MacOS/DockIcon.h"
-#include "Version.h"
+#include "BuildConfig.h"
 #include "UserList.h"
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/GRPC/GRPCUtils.h>

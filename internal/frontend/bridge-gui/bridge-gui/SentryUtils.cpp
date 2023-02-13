@@ -16,7 +16,7 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 #include "SentryUtils.h"
-#include "Version.h"
+#include "BuildConfig.h"
 #include <bridgepp/BridgeUtils.h>
 
 #include <QByteArray>

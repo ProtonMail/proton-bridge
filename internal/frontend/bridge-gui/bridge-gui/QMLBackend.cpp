@@ -18,7 +18,7 @@
 
 #include "QMLBackend.h"
 #include "EventStreamWorker.h"
-#include "Version.h"
+#include "BuildConfig.h"
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/Worker/Overseer.h>
