@@ -44,6 +44,9 @@ var (
 
 	// DSNSentry client keys to be able to report crashes to Sentry.
 	DSNSentry = ""
+
+	// BuildEnv tags used at build time.
+	BuildEnv = ""
 )
 
 const (
