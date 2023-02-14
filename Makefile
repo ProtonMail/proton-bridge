@@ -23,15 +23,19 @@ REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
 MACOS_MIN_VERSION_ARM64=11.0
 MACOS_MIN_VERSION_AMD64=10.15
+BUILD_ENV?=dev
 
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
 BUILD_FLAGS_LAUNCHER:=${BUILD_FLAGS}
-BUILD_FLAGS_GUI:=-tags='${BUILD_TAGS} build_qt'
 GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/v3/internal/constants., Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
 GO_LDFLAGS+=-X "github.com/ProtonMail/proton-bridge/v3/internal/constants.FullAppName=${APP_FULL_NAME}"
 
 ifneq "${DSN_SENTRY}" ""
 	GO_LDFLAGS+=-X github.com/ProtonMail/proton-bridge/v3/internal/constants.DSNSentry=${DSN_SENTRY}
+endif
+
+ifneq "${BUILD_ENV}" ""
+	GO_LDFLAGS+=-X github.com/ProtonMail/proton-bridge/v3/internal/constants.BuildEnv=${BUILD_ENV}
 endif
 
 GO_LDFLAGS_LAUNCHER:=${GO_LDFLAGS}
@@ -41,7 +45,6 @@ ifeq "${TARGET_OS}" "windows"
 endif
 
 BUILD_FLAGS+=-ldflags '${GO_LDFLAGS}'
-BUILD_FLAGS_GUI+=-ldflags "${GO_LDFLAGS}"
 BUILD_FLAGS_LAUNCHER+=-ldflags '${GO_LDFLAGS_LAUNCHER}'
 DEPLOY_DIR:=cmd/${TARGET_CMD}/deploy
 DIRNAME:=$(shell basename ${CURDIR})
@@ -158,6 +161,7 @@ ${EXE_TARGET}: check-build-essentials ${EXE_NAME}
 		BRIDGE_DSN_SENTRY=${DSN_SENTRY} \
  		BRIDGE_BUILD_TIME=${BUILD_TIME} \
 		BRIDGE_GUI_BUILD_CONFIG=Release \
+		BRIDGE_BUILD_ENV=BUILD_ENV \
 		BRIDGE_INSTALL_PATH=${ROOT_DIR}/${DEPLOY_DIR}/${GOOS} \
 		./build.sh install
 	mv "${ROOT_DIR}/${BRIDGE_EXE}" "$(ROOT_DIR)/${EXE_TARGET}"

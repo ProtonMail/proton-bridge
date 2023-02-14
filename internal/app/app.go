@@ -170,7 +170,7 @@ func run(c *cli.Context) error {
 	identifier := useragent.New()
 
 	// Create a new Sentry client that will be used to report crashes etc.
-	reporter := sentry.NewReporter(constants.FullAppName, constants.Version, identifier)
+	reporter := sentry.NewReporter(constants.FullAppName, identifier)
 
 	// Determine the exe that should be used to restart/autostart the app.
 	// By default, this is the launcher, if used. Otherwise, we try to get

@@ -304,15 +304,8 @@ void closeBridgeApp() {
 //****************************************************************************************************************************************************
 int main(int argc, char *argv[]) {
     // Init sentry.
-    sentry_options_t *sentryOptions = sentry_options_new();
-    sentry_options_set_dsn(sentryOptions, PROJECT_DSN_SENTRY);
-    {
-        const QString sentryCachePath = sentryCacheDir();
-        sentry_options_set_database_path(sentryOptions, sentryCachePath.toStdString().c_str());
-    }
-    sentry_options_set_release(sentryOptions, QByteArray(PROJECT_REVISION).toHex());
-    // Enable this for debugging sentry.
-    // sentry_options_set_debug(sentryOptions, 1);
+    sentry_options_t *sentryOptions = newSentryOptions(PROJECT_DSN_SENTRY, sentryCacheDir().toStdString().c_str());
+
     if (sentry_init(sentryOptions) != 0) {
         std::cerr << "Failed to initialize sentry" << std::endl;
     }
