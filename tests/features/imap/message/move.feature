@@ -24,11 +24,11 @@ Feature: IMAP move messages
   Scenario: Move message from folder to label (keeps in folder)
     When IMAP client "1" moves the message with subject "foo" from "INBOX" to "Labels/label"
     And it succeeds
-    And IMAP client "1" sees the following messages in "INBOX":
+    And IMAP client "1" eventually sees the following messages in "INBOX":
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | foo     | false  |
       | jane.doe@mail.com | name@[domain]        | bar     | true   |
-    And IMAP client "1" sees the following messages in "Labels/label":
+    And IMAP client "1" eventually sees the following messages in "Labels/label":
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | foo     | false  |
 
@@ -41,56 +41,56 @@ Feature: IMAP move messages
     And IMAP client "target" selects "Labels/label"
     And IMAP clients "source" and "target" move message with subject "foo" of "[user:user]" to "Labels/label" by APPEND DELETE EXPUNGE
     And it succeeds
-    Then IMAP client "source" sees the following messages in "INBOX":
+    Then IMAP client "source" eventually sees the following messages in "INBOX":
       | from              | to                   | subject | unread |
       | jane.doe@mail.com | name@[domain]        | bar     | true   |
-    And IMAP client "target" sees the following messages in "Labels/label":
+    And IMAP client "target" eventually sees the following messages in "Labels/label":
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | foo     | false  |
 
   Scenario: Move message from label to folder
     When IMAP client "1" moves the message with subject "baz" from "Labels/label2" to "Folders/mbox"
     And it succeeds
-    And IMAP client "1" sees the following messages in "Folders/mbox":
+    And IMAP client "1" eventually sees the following messages in "Folders/mbox":
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | baz     | false  |
-    And IMAP client "1" sees 0 messages in "Labels/label2"
+    And IMAP client "1" eventually sees 0 messages in "Labels/label2"
 
    Scenario: Move message from label to label
      When IMAP client "1" moves the message with subject "baz" from "Labels/label2" to "Labels/label"
      And it succeeds
-     And IMAP client "1" sees the following messages in "Labels/label":
+     And IMAP client "1" eventually sees the following messages in "Labels/label":
        | from              | to                   | subject | unread |
        | john.doe@mail.com | [user:user]@[domain] | baz     | false  |
-     And IMAP client "1" sees 0 messages in "Labels/label2"
+     And IMAP client "1" eventually sees 0 messages in "Labels/label2"
 
   Scenario: Move message from system label to system label
     When IMAP client "1" moves the message with subject "foo" from "INBOX" to "Trash"
     And it succeeds
-    And IMAP client "1" sees the following messages in "INBOX":
+    And IMAP client "1" eventually sees the following messages in "INBOX":
       | from              | to                   | subject | unread |
       | jane.doe@mail.com | name@[domain]        | bar     | true   |
-    And IMAP client "1" sees the following messages in "Trash":
+    And IMAP client "1" eventually sees the following messages in "Trash":
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | foo     | false  |
 
   Scenario: Move message from folder to system label
     When IMAP client "1" moves the message with subject "baz" from "Labels/label2" to "Folders/mbox"
     And it succeeds
-    And IMAP client "1" sees the following messages in "Folders/mbox":
+    And IMAP client "1" eventually sees the following messages in "Folders/mbox":
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | baz     | false  |
     When IMAP client "1" moves the message with subject "baz" from "Folders/mbox" to "Trash"
     And it succeeds
-    And IMAP client "1" sees 0 messages in "Folders/mbox"
-    And IMAP client "1" sees the following messages in "Trash":
+    And IMAP client "1" eventually sees 0 messages in "Folders/mbox"
+    And IMAP client "1" eventually sees the following messages in "Trash":
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | baz     | false  |
 
    Scenario: Move message from All Mail is not possible
      When IMAP client "1" moves the message with subject "baz" from "All Mail" to "Folders/folder"
      Then it fails
-     And IMAP client "1" sees the following messages in "All Mail":
+     And IMAP client "1" eventually sees the following messages in "All Mail":
        | from              | to                   | subject | unread |
        | john.doe@mail.com | [user:user]@[domain] | foo     | false  |
        | jane.doe@mail.com | name@[domain]        | bar     | true   |

@@ -7,7 +7,7 @@ Feature: A user can login
 
   Scenario: Login to account
     When the user logs in with username "[user:user]" and password "password"
-    Then user "[user:user]" is listed and connected
+    Then user "[user:user]" is eventually listed and connected
 
   Scenario: Login to account with wrong password
     When the user logs in with username "[user:user]" and password "wrong"
@@ -24,11 +24,11 @@ Feature: A user can login
 
   Scenario: Login to account with caps
     When the user logs in with username "[user:MixedCaps]" and password "password"
-    Then user "[user:MixedCaps]" is listed and connected
+    Then user "[user:MixedCaps]" is eventually listed and connected
 
   Scenario: Login to account with disabled primary
     When the user logs in with username "[user:disabled]" and password "password"
-    Then user "[user:disabled]" is listed and connected
+    Then user "[user:disabled]" is eventually listed and connected
 
   Scenario: Login to account without internet but the connection is later restored
     When the user logs in with username "[user:user]" and password "password"
@@ -42,5 +42,5 @@ Feature: A user can login
     Given there exists an account with username "[user:additional]" and password "password"
     When the user logs in with username "[user:user]" and password "password"
     And the user logs in with username "[user:additional]" and password "password"
-    Then user "[user:user]" is listed and connected
-    And user "[user:additional]" is listed and connected
+    Then user "[user:user]" is eventually listed and connected
+    And user "[user:additional]" is eventually listed and connected

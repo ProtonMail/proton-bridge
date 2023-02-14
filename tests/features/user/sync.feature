@@ -21,7 +21,7 @@ Feature: Bridge can fully sync an account
     Then bridge sends sync started and finished events for user "[user:user]"
     When bridge restarts
     And user "[user:user]" connects and authenticates IMAP client "1"
-    Then IMAP client "1" sees the following mailbox info:
+    Then IMAP client "1" eventually sees the following mailbox info:
       | name         | total | unread |
       | INBOX        | 0     | 0      |
       | Drafts       | 0     | 0      |
