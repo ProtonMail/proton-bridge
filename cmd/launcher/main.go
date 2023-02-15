@@ -59,7 +59,7 @@ func main() { //nolint:funlen
 	logrus.SetLevel(logrus.DebugLevel)
 	l := logrus.WithField("launcher_version", constants.Version)
 
-	reporter := sentry.NewReporter(appName, constants.Version, useragent.New())
+	reporter := sentry.NewReporter(appName, useragent.New())
 
 	crashHandler := crash.NewHandler(reporter.ReportException)
 	defer crashHandler.HandlePanic()

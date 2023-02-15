@@ -44,6 +44,7 @@ public: // member functions.
     void appendUser(bridgepp::SPUser const &user); ///< Add a new user.
     void updateUserAtRow(int row, bridgepp::User const &user); ///< Update the user at given row.
     bridgepp::SPUser getUserWithID(QString const &userID) const; ///< Retrieve the user with the given ID.
+    bridgepp::SPUser getUserWithUsernameOrEmail(QString const& username) const; ///< Retrieve the user with the given primary email address or username
 
     // the userCount property.
     Q_PROPERTY(int count READ count NOTIFY countChanged)
@@ -59,6 +60,7 @@ public:
 public slots: ///< handler for signals coming from the gRPC service
     void onUserChanged(QString const &userID);
     void onToggleSplitModeFinished(QString const &userID);
+    void onUsedBytesChanged(QString const &userID, qint64 usedBytes); ///< Slot for usedBytesChanged events.
 
 private: // data members
     QList<bridgepp::SPUser> users_; ///< The user list.

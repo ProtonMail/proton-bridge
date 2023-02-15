@@ -81,13 +81,6 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QLabel" name="labelUserBadEvent">
-            <property name="text">
-             <string>Message: </string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QLineEdit" name="editUserBadEvent">
             <property name="minimumSize">
              <size>
@@ -96,18 +89,102 @@
              </size>
             </property>
             <property name="text">
-             <string>Bad event error.</string>
+             <string/>
+            </property>
+            <property name="placeholderText">
+             <string>error message</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="buttonUserBadEvent">
+            <property name="text">
+             <string>Send</string>
             </property>
            </widget>
           </item>
          </layout>
         </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBoxUsedSpace">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>Used Bytes Changed</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <widget class="QPushButton" name="buttonUserBadEvent">
-          <property name="text">
-           <string>Send Bad Event Error</string>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="hBoxUsedBytes" stretch="1,0">
+          <item>
+           <widget class="QDoubleSpinBox" name="spinUsedBytes">
+            <property name="buttonSymbols">
+             <enum>QAbstractSpinBox::NoButtons</enum>
+            </property>
+            <property name="decimals">
+             <number>0</number>
+            </property>
+            <property name="maximum">
+             <double>1000000000000000.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="buttonUsedBytesChanged">
+            <property name="text">
+             <string>Send</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBoxIMAPLoginFailed">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>IMAP Login Failure</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_8">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QLineEdit" name="editIMAPLoginFailedUsername">
+            <property name="minimumSize">
+             <size>
+              <width>200</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="placeholderText">
+             <string>username or primary email</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="buttonImapLoginFailed">
+            <property name="text">
+             <string>Send</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>

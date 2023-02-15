@@ -32,7 +32,6 @@ import (
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/godog"
 	"github.com/google/uuid"
-	"golang.org/x/exp/slices"
 )
 
 func (s *scenario) thereExistsAnAccountWithUsernameAndPassword(username, password string) error {
@@ -52,7 +51,7 @@ func (s *scenario) theAccountHasAdditionalDisabledAddress(username, address stri
 }
 
 func (s *scenario) theAccountHasAdditionalAddressWithoutKeys(username, address string) error {
-	userID := s.t.getUserID(username)
+	userID := s.t.getUserByName(username).getUserID()
 
 	// Decrypt the user's encrypted ID for use with quark.
 	userDecID, err := s.t.runQuarkCmd(context.Background(), "encryption:id", "--decrypt", userID)
@@ -65,7 +64,8 @@ func (s *scenario) theAccountHasAdditionalAddressWithoutKeys(username, address s
 		context.Background(),
 		"user:create:address",
 		string(userDecID),
-		s.t.getUserPass(userID),
+		s.t.getUserByID(userID).getUserPass(),
+
 		address,
 	); err != nil {
 		return err
@@ -78,15 +78,15 @@ func (s *scenario) theAccountHasAdditionalAddressWithoutKeys(username, address s
 		}
 
 		// Set the new address of the user.
-		s.t.setUserAddr(userID, addr[len(addr)-1].ID, address)
+		s.t.getUserByID(userID).addAddress(addr[len(addr)-1].ID, address)
 
 		return nil
 	})
 }
 
 func (s *scenario) theAccountNoLongerHasAdditionalAddress(username, address string) error {
-	userID := s.t.getUserID(username)
-	addrID := s.t.getUserAddrID(userID, address)
+	userID := s.t.getUserByName(username).getUserID()
+	addrID := s.t.getUserByName(username).getAddrID(address)
 
 	if err := s.t.withClient(context.Background(), username, func(ctx context.Context, c *proton.Client) error {
 		if err := c.DisableAddress(ctx, addrID); err != nil {
@@ -98,7 +98,7 @@ func (s *scenario) theAccountNoLongerHasAdditionalAddress(username, address stri
 		return err
 	}
 
-	s.t.unsetUserAddr(userID, addrID)
+	s.t.getUserByID(userID).remAddress(addrID)
 
 	return nil
 }
@@ -184,21 +184,13 @@ func (s *scenario) theAddressOfAccountHasTheFollowingMessagesInMailbox(address, 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	userID := s.t.getUserID(username)
-	addrID := s.t.getUserAddrID(userID, address)
+	userID := s.t.getUserByName(username).getUserID()
+	addrID := s.t.getUserByName(username).getAddrID(address)
 	mboxID := s.t.getMBoxID(userID, mailbox)
 
 	wantMessages, err := unmarshalTable[Message](table)
 	if err != nil {
 		return err
-	}
-
-	var messageFlags proton.MessageFlag
-
-	if !strings.EqualFold(mailbox, "Sent") {
-		messageFlags = proton.MessageFlagReceived
-	} else {
-		messageFlags = proton.MessageFlagSent
 	}
 
 	return s.t.createMessages(ctx, username, addrID, xslices.Map(wantMessages, func(message Message) proton.ImportReq {
@@ -208,7 +200,7 @@ func (s *scenario) theAddressOfAccountHasTheFollowingMessagesInMailbox(address, 
 				AddressID: addrID,
 				LabelIDs:  []string{mboxID},
 				Unread:    proton.Bool(message.Unread),
-				Flags:     messageFlags,
+				Flags:     flagsForMailbox(mailbox),
 			},
 			Message: message.Build(),
 		}
@@ -219,8 +211,8 @@ func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username str
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	userID := s.t.getUserID(username)
-	addrID := s.t.getUserAddrID(userID, address)
+	userID := s.t.getUserByName(username).getUserID()
+	addrID := s.t.getUserByName(username).getAddrID(address)
 	mboxID := s.t.getMBoxID(userID, mailbox)
 
 	return s.t.createMessages(ctx, username, addrID, iterator.Collect(iterator.Map(iterator.Counter(count), func(idx int) proton.ImportReq {
@@ -228,7 +220,7 @@ func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username str
 			Metadata: proton.ImportMetadata{
 				AddressID: addrID,
 				LabelIDs:  []string{mboxID},
-				Flags:     proton.MessageFlagReceived,
+				Flags:     flagsForMailbox(mailbox),
 			},
 			Message: Message{
 				Subject: fmt.Sprintf("%d", idx),
@@ -238,6 +230,18 @@ func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username str
 			}.Build(),
 		}
 	})))
+}
+
+func flagsForMailbox(mailboxName string) proton.MessageFlag {
+	if strings.EqualFold(mailboxName, "Sent") {
+		return proton.MessageFlagSent
+	}
+
+	if strings.EqualFold(mailboxName, "Scheduled") {
+		return proton.MessageFlagScheduledSend
+	}
+
+	return proton.MessageFlagReceived
 }
 
 // accountDraftChanged changes the draft attributes, where draftIndex is
@@ -262,7 +266,7 @@ func (s *scenario) theFollowingFieldsWereChangedInDraftForAddressOfAccount(draft
 	defer cancel()
 
 	return s.t.withClient(ctx, username, func(ctx context.Context, c *proton.Client) error {
-		return s.t.withAddrKR(ctx, c, username, s.t.getUserAddrID(s.t.getUserID(username), address), func(_ context.Context, addrKR *crypto.KeyRing) error {
+		return s.t.withAddrKR(ctx, c, username, s.t.getUserByName(username).getAddrID(address), func(_ context.Context, addrKR *crypto.KeyRing) error {
 			var changes proton.DraftTemplate
 
 			if wantMessages[0].From != "" {
@@ -311,7 +315,7 @@ func (s *scenario) drafAtIndexWasMovedToTrashForAddressOfAccount(draftIndex int,
 	defer cancel()
 
 	return s.t.withClient(ctx, username, func(ctx context.Context, c *proton.Client) error {
-		return s.t.withAddrKR(ctx, c, username, s.t.getUserAddrID(s.t.getUserID(username), address), func(_ context.Context, addrKR *crypto.KeyRing) error {
+		return s.t.withAddrKR(ctx, c, username, s.t.getUserByName(username).getAddrID(address), func(_ context.Context, addrKR *crypto.KeyRing) error {
 			if err := c.UnlabelMessages(ctx, []string{draftID}, proton.DraftsLabel); err != nil {
 				return fmt.Errorf("failed to unlabel draft")
 			}
@@ -329,7 +333,7 @@ func (s *scenario) userLogsInWithUsernameAndPassword(username, password string) 
 	if err != nil {
 		s.t.pushError(err)
 	} else {
-		if userID != s.t.getUserID(username) {
+		if userID != s.t.getUserByName(username).getUserID() {
 			return errors.New("user ID mismatch")
 		}
 
@@ -338,18 +342,18 @@ func (s *scenario) userLogsInWithUsernameAndPassword(username, password string) 
 			return err
 		}
 
-		s.t.setUserBridgePass(userID, info.BridgePass)
+		s.t.getUserByID(userID).setBridgePass(string(info.BridgePass))
 	}
 
 	return nil
 }
 
 func (s *scenario) userLogsOut(username string) error {
-	return s.t.bridge.LogoutUser(context.Background(), s.t.getUserID(username))
+	return s.t.bridge.LogoutUser(context.Background(), s.t.getUserByName(username).getUserID())
 }
 
 func (s *scenario) userIsDeleted(username string) error {
-	return s.t.bridge.DeleteUser(context.Background(), s.t.getUserID(username))
+	return s.t.bridge.DeleteUser(context.Background(), s.t.getUserByName(username).getUserID())
 }
 
 func (s *scenario) theAuthOfUserIsRevoked(username string) error {
@@ -359,7 +363,7 @@ func (s *scenario) theAuthOfUserIsRevoked(username string) error {
 }
 
 func (s *scenario) userIsListedAndConnected(username string) error {
-	user, err := s.t.bridge.GetUserInfo(s.t.getUserID(username))
+	user, err := s.t.bridge.GetUserInfo(s.t.getUserByName(username).getUserID())
 	if err != nil {
 		return err
 	}
@@ -382,7 +386,7 @@ func (s *scenario) userIsEventuallyListedAndConnected(username string) error {
 }
 
 func (s *scenario) userIsListedButNotConnected(username string) error {
-	user, err := s.t.bridge.GetUserInfo(s.t.getUserID(username))
+	user, err := s.t.bridge.GetUserInfo(s.t.getUserByName(username).getUserID())
 	if err != nil {
 		return err
 	}
@@ -399,7 +403,7 @@ func (s *scenario) userIsListedButNotConnected(username string) error {
 }
 
 func (s *scenario) userIsNotListed(username string) error {
-	if slices.Contains(s.t.bridge.GetUserIDs(), s.t.getUserID(username)) {
+	if _, err := s.t.bridge.QueryUserInfo(username); !errors.Is(err, bridge.ErrNoSuchUser) {
 		return errors.New("user listed")
 	}
 
@@ -411,7 +415,7 @@ func (s *scenario) userFinishesSyncing(username string) error {
 }
 
 func (s *scenario) addAdditionalAddressToAccount(username, address string, disabled bool) error {
-	userID := s.t.getUserID(username)
+	userID := s.t.getUserByName(username).getUserID()
 
 	// Decrypt the user's encrypted ID for use with quark.
 	userDecID, err := s.t.runQuarkCmd(context.Background(), "encryption:id", "--decrypt", userID)
@@ -429,7 +433,7 @@ func (s *scenario) addAdditionalAddressToAccount(username, address string, disab
 
 	args = append(args,
 		string(userDecID),
-		s.t.getUserPass(userID),
+		s.t.getUserByID(userID).getUserPass(),
 		address,
 	)
 
@@ -449,7 +453,7 @@ func (s *scenario) addAdditionalAddressToAccount(username, address string, disab
 		}
 
 		// Set the new address of the user.
-		s.t.setUserAddr(userID, addr[len(addr)-1].ID, address)
+		s.t.getUserByID(userID).addAddress(addr[len(addr)-1].ID, address)
 
 		return nil
 	})
@@ -503,14 +507,11 @@ func (s *scenario) createUserAccount(username, password string, disabled bool) e
 			return err
 		}
 
-		// Set the ID of the user.
-		s.t.setUserID(username, user.ID)
-
-		// Set the password of the user.
-		s.t.setUserPass(user.ID, password)
+		// Add the test user.
+		s.t.addUser(user.ID, username, password)
 
 		// Set the address of the user.
-		s.t.setUserAddr(user.ID, addr[0].ID, addr[0].Email)
+		s.t.getUserByID(user.ID).addAddress(addr[0].ID, addr[0].Email)
 
 		return nil
 	})

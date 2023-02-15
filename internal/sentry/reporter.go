@@ -26,6 +26,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/restarter"
@@ -38,13 +39,23 @@ var skippedFunctions = []string{} //nolint:gochecknoglobals
 func init() { //nolint:gochecknoinits
 	sentrySyncTransport := sentry.NewHTTPSyncTransport()
 	sentrySyncTransport.Timeout = time.Second * 3
+	appVersion := constants.Version
+	version, _ := semver.NewVersion(appVersion)
+	if version != nil {
+		appVersion = version.Original()
+	}
 
-	if err := sentry.Init(sentry.ClientOptions{
-		Dsn:        constants.DSNSentry,
-		Release:    constants.Revision,
-		BeforeSend: EnhanceSentryEvent,
-		Transport:  sentrySyncTransport,
-	}); err != nil {
+	options := sentry.ClientOptions{
+		Dsn:            constants.DSNSentry,
+		Release:        constants.AppVersion(appVersion),
+		BeforeSend:     EnhanceSentryEvent,
+		Transport:      sentrySyncTransport,
+		ServerName:     getProtectedHostname(),
+		Environment:    constants.BuildEnv,
+		MaxBreadcrumbs: 50,
+	}
+
+	if err := sentry.Init(options); err != nil {
 		logrus.WithError(err).Error("Failed to initialize sentry options")
 	}
 
@@ -80,10 +91,10 @@ func getProtectedHostname() string {
 }
 
 // NewReporter creates new sentry reporter with appName and appVersion to report.
-func NewReporter(appName, appVersion string, identifier Identifier) *Reporter {
+func NewReporter(appName string, identifier Identifier) *Reporter {
 	return &Reporter{
 		appName:    appName,
-		appVersion: appVersion,
+		appVersion: constants.Revision,
 		identifier: identifier,
 		hostArch:   getHostArch(),
 		serverName: getProtectedHostname(),
@@ -138,12 +149,11 @@ func (r *Reporter) scopedReport(context map[string]interface{}, doReport func())
 	}
 
 	tags := map[string]string{
-		"OS":          runtime.GOOS,
-		"Client":      r.appName,
-		"Version":     r.appVersion,
-		"UserAgent":   r.identifier.GetUserAgent(),
-		"HostArch":    r.hostArch,
-		"server_name": r.serverName,
+		"OS":        runtime.GOOS,
+		"Client":    r.appName,
+		"Version":   r.appVersion,
+		"UserAgent": r.identifier.GetUserAgent(),
+		"HostArch":  r.hostArch,
 	}
 
 	sentry.WithScope(func(scope *sentry.Scope) {

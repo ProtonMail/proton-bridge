@@ -21,7 +21,7 @@
 #include "CommandLine.h"
 #include "QMLBackend.h"
 #include "SentryUtils.h"
-#include "Version.h"
+#include "BuildConfig.h"
 #include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/FocusGRPC/FocusGRPCClient.h>
@@ -29,7 +29,6 @@
 #include <bridgepp/ProcessMonitor.h>
 #include <sentry.h>
 #include <SentryUtils.h>
-#include <project_sentry_config.h>
 
 
 #ifdef Q_OS_MACOS
@@ -229,8 +228,21 @@ bool isBridgeRunning() {
 void focusOtherInstance() {
     try {
         FocusGRPCClient client;
+        GRPCConfig sc;
+        QString const path = FocusGRPCClient::grpcFocusServerConfigPath();
+        QFile file(path);
+        if (file.exists()) {
+            if (!sc.load(path)) {
+                throw Exception("The gRPC focus service configuration file is invalid.");
+            }
+        }
+        else {
+            throw Exception("Server did not provide gRPC Focus service configuration.");
+        }
+
+
         QString error;
-        if (!client.connectToServer(5000, &error)) {
+        if (!client.connectToServer(5000, sc.port, &error)) {
             throw Exception(QString("Could not connect to bridge focus service for a raise call: %1").arg(error));
         }
         if (!client.raise().ok()) {
@@ -292,15 +304,8 @@ void closeBridgeApp() {
 //****************************************************************************************************************************************************
 int main(int argc, char *argv[]) {
     // Init sentry.
-    sentry_options_t *sentryOptions = sentry_options_new();
-    sentry_options_set_dsn(sentryOptions, SentryDNS);
-    {
-        const QString sentryCachePath = sentryCacheDir();
-        sentry_options_set_database_path(sentryOptions, sentryCachePath.toStdString().c_str());
-    }
-    sentry_options_set_release(sentryOptions, QByteArray(PROJECT_REVISION).toHex());
-    // Enable this for debugging sentry.
-    // sentry_options_set_debug(sentryOptions, 1);
+    sentry_options_t *sentryOptions = newSentryOptions(PROJECT_DSN_SENTRY, sentryCacheDir().toStdString().c_str());
+
     if (sentry_init(sentryOptions) != 0) {
         std::cerr << "Failed to initialize sentry" << std::endl;
     }
@@ -344,6 +349,7 @@ int main(int argc, char *argv[]) {
             }
 
             // before launching bridge, we remove any trailing service config file, because we need to make sure we get a newly generated one.
+            FocusGRPCClient::removeServiceConfigFile();
             GRPCClient::removeServiceConfigFile();
             launchBridge(cliOptions.bridgeArgs);
         }

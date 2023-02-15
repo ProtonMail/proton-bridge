@@ -23,7 +23,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/url"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -86,13 +85,12 @@ type User struct {
 	pollAPIEventsCh chan chan struct{}
 	goPollAPIEvents func(wait bool)
 
-	syncWorkers int
 	showAllMail uint32
+
+	maxSyncMemory uint64
 }
 
 // New returns a new user.
-//
-// nolint:funlen
 func New(
 	ctx context.Context,
 	encVault *vault.User,
@@ -100,9 +98,9 @@ func New(
 	reporter reporter.Reporter,
 	apiUser proton.User,
 	crashHandler async.PanicHandler,
-	syncWorkers int,
 	showAllMail bool,
-) (*User, error) { //nolint:funlen
+	maxSyncMemory uint64,
+) (*User, error) {
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
 
 	// Get the user's API addresses.
@@ -144,8 +142,9 @@ func New(
 		tasks:           async.NewGroup(context.Background(), crashHandler),
 		pollAPIEventsCh: make(chan chan struct{}),
 
-		syncWorkers: syncWorkers,
 		showAllMail: b32(showAllMail),
+
+		maxSyncMemory: maxSyncMemory,
 	}
 
 	// Initialize the user's update channels for its current address mode.
@@ -191,7 +190,12 @@ func New(
 		// Sync the user.
 		user.syncAbort.Do(ctx, func(ctx context.Context) {
 			if user.vault.SyncStatus().IsComplete() {
-				user.log.Info("Sync already complete, skipping")
+				user.log.Info("Sync already complete, only system label will be updated")
+				if err := user.syncSystemLabels(ctx); err != nil {
+					user.log.WithError(err).Error("Failed to update system labels")
+					return
+				}
+				user.log.Info("System label update complete, starting API event stream")
 				return
 			}
 
@@ -282,7 +286,6 @@ func (user *User) SetAddressMode(_ context.Context, mode vault.AddressMode) erro
 
 	user.syncAbort.Abort()
 	user.pollAbort.Abort()
-	defer user.goSync()
 
 	return safe.LockRet(func() error {
 		if err := user.vault.SetAddressMode(mode); err != nil {
@@ -414,8 +417,6 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 }
 
 // SendMail sends an email from the given address to the given recipients.
-//
-// nolint:funlen
 func (user *User) SendMail(authID string, from string, to []string, r io.Reader) error {
 	if user.vault.SyncStatus().IsComplete() {
 		defer user.goPollAPIEvents(true)
@@ -618,8 +619,6 @@ func (user *User) startEvents(ctx context.Context) {
 }
 
 // doEventPoll is called whenever API events should be polled.
-//
-//nolint:funlen
 func (user *User) doEventPoll(ctx context.Context) error {
 	user.eventLock.Lock()
 	defer user.eventLock.Unlock()
@@ -645,11 +644,6 @@ func (user *User) doEventPoll(ctx context.Context) error {
 		// If the error is a network error, return error to retry later.
 		if netErr := new(proton.NetError); errors.As(err, &netErr) {
 			return fmt.Errorf("failed to handle event due to network issue: %w", err)
-		}
-
-		// If the error is a url.Error, return error to retry later.
-		if urlErr := new(url.Error); errors.As(err, &urlErr) {
-			return fmt.Errorf("failed to handle event due to URL issue: %w", err)
 		}
 
 		// If the error is a server-side issue, return error to retry later.

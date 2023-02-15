@@ -21,7 +21,7 @@
 
 
 #include "MacOS/DockIcon.h"
-#include "Version.h"
+#include "BuildConfig.h"
 #include "UserList.h"
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/GRPC/GRPCUtils.h>
@@ -180,6 +180,7 @@ public slots: // slot for signals received from gRPC that need transformation in
     void onLoginFinished(QString const &userID, bool wasSignedOut); ///< Slot for LoginFinished gRPC event.
     void onLoginAlreadyLoggedIn(QString const &userID); ///< Slot for the LoginAlreadyLoggedIn gRPC event.
     void onUserBadEvent(QString const& userID, QString const& errorMessage); ///< Slot for the userBadEvent gRPC event.
+    void onIMAPLoginFailed(QString const& username); ///< Slot the the imapLoginFailed event.
 
 signals: // Signals received from the Go backend, to be forwarded to QML
     void toggleAutostartFinished(); ///< Signal for the 'toggleAutostartFinished' gRPC stream event.
@@ -233,6 +234,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void hideMainWindow(); ///< Signal for the 'hideMainWindow' gRPC stream event.
     void genericError(QString const &title, QString const &description); ///< Signal for the 'genericError' gRPC stream event.
     void selectUser(QString const); ///< Signal that request the given user account to be displayed.
+    void imapLoginWhileSignedOut(QString const& username); ///< Signal for the notification of IMAP login attempt on a signed out account.
 
     // This signal is emitted when an exception is intercepted is calls triggered by QML. QML engine would intercept the exception otherwise.
     void fatalError(QString const &function, QString const &message) const; ///< Signal emitted when an fatal error occurs.

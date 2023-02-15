@@ -18,7 +18,7 @@
 
 #include "QMLBackend.h"
 #include "EventStreamWorker.h"
-#include "Version.h"
+#include "BuildConfig.h"
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/Worker/Overseer.h>
@@ -467,6 +467,7 @@ bool QMLBackend::isDoHEnabled() const {
     )
 }
 
+
 //****************************************************************************************************************************************************
 /// \return The value for the 'isAutomaticUpdateOn' property.
 //****************************************************************************************************************************************************
@@ -875,8 +876,9 @@ void QMLBackend::onLoginAlreadyLoggedIn(QString const &userID) {
 void QMLBackend::onUserBadEvent(QString const &userID, QString const &errorMessage) {
     HANDLE_EXCEPTION(
         SPUser const user = users_->getUserWithID(userID);
-        if (!user)
+        if (!user) {
             app().log().error(QString("Received bad event for unknown user %1").arg(user->id()));
+        }
         user->setState(UserState::SignedOut);
         emit userBadEvent(
             tr("Internal error: %1 was automatically logged out. Please log in again or report this problem if the issue persists.").arg(user->primaryEmailOrUsername()),
@@ -884,6 +886,24 @@ void QMLBackend::onUserBadEvent(QString const &userID, QString const &errorMessa
             );
         emit selectUser(userID);
         emit showMainWindow();
+    )
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] username The username (or primary email address)
+//****************************************************************************************************************************************************
+void QMLBackend::onIMAPLoginFailed(QString const &username) {
+    HANDLE_EXCEPTION(
+        SPUser const user = users_->getUserWithUsernameOrEmail(username);
+        if ((!user) || (user->state() != UserState::SignedOut)) { // We want to pop-up only if a signed-out user has been detected
+            return;
+        }
+        if (user->isInIMAPLoginFailureCooldown())
+            return;
+        user->startImapLoginFailureCooldown(60 * 60 * 1000); // 1 hour cooldown during which we will not display this notification to this user again.
+        emit selectUser(user->id());
+        emit imapLoginWhileSignedOut(username);
     )
 }
 
@@ -996,5 +1016,7 @@ void QMLBackend::connectGrpcEvents() {
     // user events
     connect(client, &GRPCClient::userDisconnected, this, &QMLBackend::userDisconnected);
     connect(client, &GRPCClient::userBadEvent, this, &QMLBackend::onUserBadEvent);
+    connect(client, &GRPCClient::imapLoginFailed, this, &QMLBackend::onIMAPLoginFailed);
+
     users_->connectGRPCEvents();
 }

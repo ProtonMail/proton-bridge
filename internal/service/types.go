@@ -1,6 +1,6 @@
 // Copyright (c) 2023 Proton AG
 //
-// This file is part of Proton Mail Bridge.
+// This file is part of Proton Mail Bridge.Bridge.
 //
 // Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,25 +13,10 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
+// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-//go:build !build_qa
+package service
 
-package bridge
-
-import (
-	"net/http"
-
-	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/go-proton-api"
-)
-
-// newAPIOptions returns a set of API options for the given parameters.
-func newAPIOptions(
-	apiURL string,
-	version *semver.Version,
-	cookieJar http.CookieJar,
-	transport http.RoundTripper,
-) []proton.Option {
-	return defaultAPIOptions(apiURL, version, cookieJar, transport)
+type Locator interface {
+	ProvideSettingsPath() (string, error)
 }

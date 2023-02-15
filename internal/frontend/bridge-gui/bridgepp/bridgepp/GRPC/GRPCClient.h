@@ -179,6 +179,8 @@ signals:
     void userDisconnected(QString const &username);
     void userChanged(QString const &userID);
     void userBadEvent(QString const &userID, QString const& errorMessage);
+    void usedBytesChanged(QString const &userID, qint64 usedBytes);
+    void imapLoginFailed(QString const& username);
 
 public: // keychain related calls
     grpc::Status availableKeychains(QStringList &outKeychains);

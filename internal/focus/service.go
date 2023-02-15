@@ -25,16 +25,16 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v3/internal/focus/proto"
+	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-// Host is the local host to listen on.
-const Host = "127.0.0.1"
-
-// Port is the port to listen on.
-var Port = 1042 // nolint:gochecknoglobals
+const (
+	Host                 = "127.0.0.1"
+	serverConfigFileName = "grpcFocusServerConfig.json"
+)
 
 // Service is a gRPC service that can be used to raise the application.
 type Service struct {
@@ -47,26 +47,39 @@ type Service struct {
 
 // NewService creates a new focus service.
 // It listens on the local host and port 1042 (by default).
-func NewService(version *semver.Version) (*Service, error) {
-	service := &Service{
+func NewService(locator service.Locator, version *semver.Version) (*Service, error) {
+	serv := &Service{
 		server:  grpc.NewServer(),
 		raiseCh: make(chan struct{}, 1),
 		version: version,
 	}
 
-	proto.RegisterFocusServer(service.server, service)
+	proto.RegisterFocusServer(serv.server, serv)
 
-	if listener, err := net.Listen("tcp", net.JoinHostPort(Host, fmt.Sprint(Port))); err != nil {
-		logrus.WithError(err).Warn("Failed to start focus service")
+	if listener, err := net.Listen("tcp", net.JoinHostPort(Host, fmt.Sprint(0))); err != nil {
+		logrus.WithError(err).Warn("Failed to start focus serv")
 	} else {
+		config := service.Config{}
+		// retrieve the port assigned by the system, so that we can put it in the config file.
+		address, ok := listener.Addr().(*net.TCPAddr)
+		if !ok {
+			return nil, fmt.Errorf("could not retrieve gRPC service listener address")
+		}
+		config.Port = address.Port
+		if path, err := service.SaveGRPCServerConfigFile(locator, &config, serverConfigFileName); err != nil {
+			logrus.WithError(err).WithField("path", path).Warn("Could not write focus gRPC service config file")
+		} else {
+			logrus.WithField("path", path).Info("Successfully saved gRPC Focus service config file")
+		}
+
 		go func() {
-			if err := service.server.Serve(listener); err != nil {
+			if err := serv.server.Serve(listener); err != nil {
 				fmt.Printf("failed to serve: %v", err)
 			}
 		}()
 	}
 
-	return service, nil
+	return serv, nil
 }
 
 // Raise implements the gRPC FocusService interface; it raises the application.

@@ -32,7 +32,7 @@ stages:
 
 .rules-branch-and-MR-always:
   rules:
-    - if: $CI_COMMIT_BRANCH ||  $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
       allow_failure: false
     - when: never
@@ -54,6 +54,28 @@ stages:
       allow_failure: true
     - when: never
 
+.rules-branch-manual-MR-and-devel-always:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "devel" || $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+      allow_failure: false
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+      allow_failure: true
+    - when: never
+
+.after-script-code-coverage:
+  after_script:
+    - go get github.com/boumenot/gocover-cobertura
+    - go run github.com/boumenot/gocover-cobertura < /tmp/coverage.out > coverage.xml
+    - "go tool cover -func=/tmp/coverage.out | grep total:"
+  coverage: '/total:.*\(statements\).*\d+\.\d+%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
 # Stage: TEST
 
 lint:
@@ -68,7 +90,8 @@ lint:
 test-linux:
   stage: test
   extends:
-    - .rules-branch-manual-MR-always
+    - .rules-branch-manual-MR-and-devel-always
+    - .after-script-code-coverage
   script:
     - make test
   tags:
@@ -105,6 +128,8 @@ dependency-updates:
   stage: test
   script:
     - make updates
+
+
 
 # Stage: BUILD
 

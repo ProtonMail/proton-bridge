@@ -431,7 +431,7 @@ func createMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID,
 	_, ok := addrKRs[addrID]
 	require.True(t, ok)
 
-	res, err := stream.Collect(ctx, c.ImportMessages(
+	str, err := c.ImportMessages(
 		ctx,
 		addrKRs[addrID],
 		runtime.NumCPU(),
@@ -446,7 +446,10 @@ func createMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID,
 				Message: message,
 			}
 		})...,
-	))
+	)
+	require.NoError(t, err)
+
+	res, err := stream.Collect(ctx, str)
 	require.NoError(t, err)
 
 	return xslices.Map(res, func(res proton.ImportRes) string {

@@ -20,6 +20,8 @@ package bridge_test
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
 	"testing"
 	"time"
 
@@ -59,6 +61,50 @@ func TestBridge_Login(t *testing.T) {
 			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
 		})
 	})
+}
+
+func TestBridge_Login_DropConn(t *testing.T) {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+
+	dropListener := proton.NewListener(l, proton.NewDropConn)
+	defer func() { _ = dropListener.Close() }()
+
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Login the user.
+			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
+			require.NoError(t, err)
+
+			// The user is now connected.
+			require.Equal(t, []string{userID}, bridge.GetUserIDs())
+			require.Equal(t, []string{userID}, getConnectedUserIDs(t, bridge))
+		})
+
+		// Whether to allow the user to be created.
+		var allowUser bool
+
+		s.AddStatusHook(func(req *http.Request) (int, bool) {
+			// Drop any request to the users endpoint.
+			if !allowUser && req.URL.Path == "/core/v4/users" {
+				dropListener.DropAll()
+			}
+
+			// After the ping request, allow the user to be created.
+			if req.URL.Path == "/tests/ping" {
+				allowUser = true
+			}
+
+			return 0, false
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// The user is eventually connected.
+			require.Eventually(t, func() bool {
+				return len(bridge.GetUserIDs()) == 1 && len(getConnectedUserIDs(t, bridge)) == 1
+			}, 5*time.Second, 100*time.Millisecond)
+		})
+	}, server.WithListener(dropListener))
 }
 
 func TestBridge_LoginTwice(t *testing.T) {

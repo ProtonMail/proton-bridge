@@ -31,6 +31,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon"
 	imapEvents "github.com/ProtonMail/gluon/events"
+	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/gluon/watcher"
 	"github.com/ProtonMail/go-proton-api"
@@ -124,10 +125,12 @@ type Bridge struct {
 
 	// goUpdate triggers a check/install of updates.
 	goUpdate func()
+
+	uidValidityGenerator imap.UIDValidityGenerator
 }
 
 // New creates a new bridge.
-func New( //nolint:funlen
+func New(
 	locator Locator, // the locator to provide paths to store data
 	vault *vault.Vault, // the bridge's encrypted data store
 	autostarter Autostarter, // the autostarter to manage autostart settings
@@ -142,12 +145,13 @@ func New( //nolint:funlen
 	proxyCtl ProxyController, // the DoH controller
 	crashHandler async.PanicHandler,
 	reporter reporter.Reporter,
+	uidValidityGenerator imap.UIDValidityGenerator,
 
 	logIMAPClient, logIMAPServer bool, // whether to log IMAP client/server activity
 	logSMTP bool, // whether to log SMTP activity
 ) (*Bridge, <-chan events.Event, error) {
 	// api is the user's API manager.
-	api := proton.New(newAPIOptions(apiURL, curVersion, cookieJar, roundTripper, vault.SyncAttPool())...)
+	api := proton.New(newAPIOptions(apiURL, curVersion, cookieJar, roundTripper)...)
 
 	// tasks holds all the bridge's background tasks.
 	tasks := async.NewGroup(context.Background(), crashHandler)
@@ -171,6 +175,7 @@ func New( //nolint:funlen
 		api,
 		identifier,
 		proxyCtl,
+		uidValidityGenerator,
 		logIMAPClient, logIMAPServer, logSMTP,
 	)
 	if err != nil {
@@ -185,22 +190,9 @@ func New( //nolint:funlen
 		return nil, nil, fmt.Errorf("failed to initialize bridge: %w", err)
 	}
 
-	// Start serving IMAP.
-	if err := bridge.serveIMAP(); err != nil {
-		logrus.WithError(err).Error("IMAP error")
-		bridge.PushError(ErrServeIMAP)
-	}
-
-	// Start serving SMTP.
-	if err := bridge.serveSMTP(); err != nil {
-		logrus.WithError(err).Error("SMTP error")
-		bridge.PushError(ErrServeSMTP)
-	}
-
 	return bridge, eventCh, nil
 }
 
-// nolint:funlen
 func newBridge(
 	tasks *async.Group,
 	imapEventCh chan imapEvents.Event,
@@ -216,6 +208,7 @@ func newBridge(
 	api *proton.Manager,
 	identifier Identifier,
 	proxyCtl ProxyController,
+	uidValidityGenerator imap.UIDValidityGenerator,
 
 	logIMAPClient, logIMAPServer, logSMTP bool,
 ) (*Bridge, error) {
@@ -254,12 +247,13 @@ func newBridge(
 		logIMAPServer,
 		imapEventCh,
 		tasks,
+		uidValidityGenerator,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create IMAP server: %w", err)
 	}
 
-	focusService, err := focus.NewService(curVersion)
+	focusService, err := focus.NewService(locator, curVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create focus service: %w", err)
 	}
@@ -300,6 +294,8 @@ func newBridge(
 		lastVersion: lastVersion,
 
 		tasks: tasks,
+
+		uidValidityGenerator: uidValidityGenerator,
 	}
 
 	bridge.smtpServer = newSMTPServer(bridge, tlsConfig, logSMTP)
@@ -307,7 +303,6 @@ func newBridge(
 	return bridge, nil
 }
 
-// nolint:funlen
 func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	// Enable or disable the proxy at startup.
 	if bridge.vault.GetProxyAllowed() {
@@ -376,16 +371,32 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 		})
 	})
 
-	// Attempt to lazy load users when triggered.
+	// We need to load users before we can start the IMAP and SMTP servers.
+	// We must only start the servers once.
+	var once sync.Once
+
+	// Attempt to load users from the vault when triggered.
 	bridge.goLoad = bridge.tasks.Trigger(func(ctx context.Context) {
 		if err := bridge.loadUsers(ctx); err != nil {
 			logrus.WithError(err).Error("Failed to load users")
 			if netErr := new(proton.NetError); !errors.As(err, &netErr) {
 				sentry.ReportError(bridge.reporter, "Failed to load users", err)
 			}
-		} else {
-			bridge.publish(events.AllUsersLoaded{})
+			return
 		}
+
+		bridge.publish(events.AllUsersLoaded{})
+
+		// Once all users have been loaded, start the bridge's IMAP and SMTP servers.
+		once.Do(func() {
+			if err := bridge.serveIMAP(); err != nil {
+				logrus.WithError(err).Error("Failed to start IMAP server")
+			}
+
+			if err := bridge.serveSMTP(); err != nil {
+				logrus.WithError(err).Error("Failed to start SMTP server")
+			}
+		})
 	})
 	defer bridge.goLoad()
 

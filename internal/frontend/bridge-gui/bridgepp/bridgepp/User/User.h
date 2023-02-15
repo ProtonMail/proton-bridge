@@ -74,6 +74,8 @@ public: // member functions.
     User &operator=(User &&) = delete; ///< Disabled move assignment operator.
     void update(User const &user); ///< Update the user.
     Q_INVOKABLE QString primaryEmailOrUsername() const; ///< Return the user primary email, or, if unknown its username.
+    void startImapLoginFailureCooldown(qint64 durationMSecs); ///< Start the user cooldown period for the IMAP login attempt while signed-out notification.
+    bool isInIMAPLoginFailureCooldown() const; ///< Check if the user in a IMAP login failure notification.
 
 public slots:
     // slots for QML generated calls
@@ -137,6 +139,7 @@ private: // member functions.
     User(QObject *parent); ///< Default constructor.
 
 private: // data members.
+    QDateTime imapFailureCooldownEndTime_; ///< The end date/time for the IMAP login failure notification cooldown period.
     QString id_; ///< The userID.
     QString username_; ///< The username
     QString password_; ///< The IMAP password of the user.

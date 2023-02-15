@@ -32,7 +32,7 @@ func main() {
 	}
 }
 
-func createApp() *cli.App { //nolint:funlen
+func createApp() *cli.App {
 	app := cli.NewApp()
 
 	app.Name = "hasher"

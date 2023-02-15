@@ -20,6 +20,7 @@ package user
 import (
 	"fmt"
 	"reflect"
+	"runtime"
 	"strings"
 
 	"github.com/ProtonMail/go-proton-api"
@@ -90,4 +91,8 @@ func sortSlice[Item any](items []Item, less func(Item, Item) bool) []Item {
 	slices.SortFunc(sorted, less)
 
 	return sorted
+}
+
+func newProtonAPIScheduler() proton.Scheduler {
+	return proton.NewParallelScheduler(runtime.NumCPU() / 2)
 }

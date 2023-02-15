@@ -40,7 +40,7 @@ type frontendCLI struct {
 }
 
 // New returns a new CLI frontend configured with the given options.
-func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan events.Event) *frontendCLI { //nolint:funlen,revive
+func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan events.Event) *frontendCLI { //nolint:revive
 	fe := &frontendCLI{
 		Shell:     ishell.New(),
 		bridge:    bridge,
@@ -261,7 +261,7 @@ func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan e
 	return fe
 }
 
-func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:funlen
+func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:gocyclo
 	// GODT-1949: Better error events.
 	for _, err := range f.bridge.GetErrors() {
 		switch {
@@ -270,12 +270,6 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:funle
 
 		case errors.Is(err, bridge.ErrVaultInsecure):
 			f.notifyCredentialsError()
-
-		case errors.Is(err, bridge.ErrServeIMAP):
-			f.Println("IMAP server error:", err)
-
-		case errors.Is(err, bridge.ErrServeSMTP):
-			f.Println("SMTP server error:", err)
 		}
 	}
 
@@ -286,6 +280,12 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:funle
 
 		case events.ConnStatusDown:
 			f.notifyInternetOff()
+
+		case events.IMAPServerError:
+			f.Println("IMAP server error:", event.Error)
+
+		case events.SMTPServerError:
+			f.Println("SMTP server error:", event.Error)
 
 		case events.UserDeauth:
 			user, err := f.bridge.GetUserInfo(event.UserID)
@@ -302,6 +302,9 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:funle
 			}
 
 			f.Printf("User %s received a bad event and was logged out.\n", user.Username)
+
+		case events.IMAPLoginFailed:
+			f.Printf("An IMAP login attempt failed for user %v\n", event.Username)
 
 		case events.UserAddressUpdated:
 			user, err := f.bridge.GetUserInfo(event.UserID)

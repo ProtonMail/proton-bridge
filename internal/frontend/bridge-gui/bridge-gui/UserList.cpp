@@ -38,6 +38,7 @@ void UserList::connectGRPCEvents() const {
     GRPCClient &client = app().grpc();
     connect(&client, &GRPCClient::userChanged, this, &UserList::onUserChanged);
     connect(&client, &GRPCClient::toggleSplitModeFinished, this, &UserList::onToggleSplitModeFinished);
+    connect(&client, &GRPCClient::usedBytesChanged, this, &UserList::onUsedBytesChanged);
 }
 
 
@@ -149,6 +150,19 @@ bridgepp::SPUser UserList::getUserWithID(QString const &userID) const {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] username The username or email.
+/// \return The user with the given ID.
+/// \return A null pointer if the user could not be found.
+//****************************************************************************************************************************************************
+bridgepp::SPUser UserList::getUserWithUsernameOrEmail(QString const &username) const {
+    QList<SPUser>::const_iterator it = std::find_if(users_.begin(), users_.end(), [username](SPUser const &user) -> bool {
+        return user && ((username.compare(user->username(), Qt::CaseInsensitive) == 0) || user->addresses().contains(username, Qt::CaseInsensitive));
+    });
+    return (it == users_.end()) ? nullptr : *it;
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] row The row.
 //****************************************************************************************************************************************************
 User *UserList::get(int row) const {
@@ -222,4 +236,18 @@ void UserList::onToggleSplitModeFinished(QString const &userID) {
 //****************************************************************************************************************************************************
 int UserList::count() const {
     return users_.size();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \param[in] usedBytes The used space, in bytes.
+//****************************************************************************************************************************************************
+void UserList::onUsedBytesChanged(QString const &userID, qint64 usedBytes) {
+    int const index = this->rowOfUserID(userID);
+    if (index < 0) {
+        app().log().error(QString("Received usedBytesChanged event for unknown userID %1").arg(userID));
+        return;
+    }
+    users_[index]->setUsedBytes(usedBytes);
 }

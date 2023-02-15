@@ -20,6 +20,7 @@ package bridge_test
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"sync/atomic"
@@ -113,22 +114,18 @@ func TestBridge_User_BadMessage_NoBadEvent(t *testing.T) {
 
 			var messageIDs []string
 
+			// Create 10 more messages for the user, generating events.
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				messageIDs = createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
+			})
+
 			// If bridge attempts to sync the new messages, it should get a BadRequest error.
 			s.AddStatusHook(func(req *http.Request) (int, bool) {
-				if len(messageIDs) < 3 {
-					return 0, false
-				}
-
 				if strings.Contains(req.URL.Path, "/mail/v4/messages/"+messageIDs[2]) {
 					return http.StatusUnprocessableEntity, true
 				}
 
 				return 0, false
-			})
-
-			// Create 10 more messages for the user, generating events.
-			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
-				messageIDs = createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
 			})
 
 			// Remove messages
@@ -293,6 +290,63 @@ func TestBridge_User_Network_NoBadEvents(t *testing.T) {
 			userContinueEventProcess(ctx, t, s, bridge)
 		})
 	})
+}
+
+func TestBridge_User_DropConn_NoBadEvent(t *testing.T) {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+
+	dropListener := proton.NewListener(l, proton.NewDropConn)
+	defer func() { _ = dropListener.Close() }()
+
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		_, addrID, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		// Create 10 messages for the user.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+
+			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).AnyTimes()
+
+			// Create 10 more messages for the user, generating events.
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
+			})
+
+			var count int
+
+			// The first 10 times bridge attempts to sync any of the messages, drop the connection.
+			s.AddStatusHook(func(req *http.Request) (int, bool) {
+				if strings.Contains(req.URL.Path, "/mail/v4/messages") {
+					if count++; count < 10 {
+						dropListener.DropAll()
+					}
+				}
+
+				return 0, false
+			})
+
+			info, err := bridge.QueryUserInfo("user")
+			require.NoError(t, err)
+
+			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+			require.NoError(t, err)
+			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+			defer func() { _ = client.Logout() }()
+
+			// The IMAP client will eventually see 20 messages.
+			require.Eventually(t, func() bool {
+				status, err := client.Status("INBOX", []imap.StatusItem{imap.StatusMessages})
+				return err == nil && status.Messages == 20
+			}, 10*time.Second, 100*time.Millisecond)
+		})
+	}, server.WithListener(dropListener))
 }
 
 // userLoginAndSync logs in user and waits until user is fully synced.

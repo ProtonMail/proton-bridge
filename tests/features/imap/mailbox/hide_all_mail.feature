@@ -7,7 +7,7 @@ Feature: IMAP Hide All Mail
     And user "[user:user]" connects and authenticates IMAP client "1"
 
   Scenario: Hide All Mail Mailbox
-    Given IMAP client "1" sees the following mailbox info:
+    Given IMAP client "1" eventually sees the following mailbox info:
       | name     |
       | INBOX    |
       | Drafts   |
@@ -20,7 +20,7 @@ Feature: IMAP Hide All Mail
       | Folders  |
       | Labels   |
     When the user hides All Mail
-    Then IMAP client "1" sees the following mailbox info:
+    Then IMAP client "1" eventually sees the following mailbox info:
       | name    |
       | INBOX   |
       | Drafts  |
@@ -32,7 +32,7 @@ Feature: IMAP Hide All Mail
       | Folders |
       | Labels  |
     When the user shows All Mail
-    Then IMAP client "1" sees the following mailbox info:
+    Then IMAP client "1" eventually sees the following mailbox info:
       | name     |
       | INBOX    |
       | Drafts   |

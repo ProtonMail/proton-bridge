@@ -38,35 +38,35 @@ import (
 )
 
 func (s *scenario) userConnectsIMAPClient(username, clientID string) error {
-	return s.t.newIMAPClient(s.t.getUserID(username), clientID)
+	return s.t.newIMAPClient(s.t.getUserByName(username).getUserID(), clientID)
 }
 
 func (s *scenario) userConnectsIMAPClientOnPort(username, clientID string, port int) error {
-	return s.t.newIMAPClientOnPort(s.t.getUserID(username), clientID, port)
+	return s.t.newIMAPClientOnPort(s.t.getUserByName(username).getUserID(), clientID, port)
 }
 
 func (s *scenario) userConnectsAndAuthenticatesIMAPClient(username, clientID string) error {
-	return s.userConnectsAndAuthenticatesIMAPClientWithAddress(username, clientID, s.t.getUserAddrs(s.t.getUserID(username))[0])
+	return s.userConnectsAndAuthenticatesIMAPClientWithAddress(username, clientID, s.t.getUserByName(username).getEmails()[0])
 }
 
 func (s *scenario) userConnectsAndAuthenticatesIMAPClientWithAddress(username, clientID, address string) error {
-	if err := s.t.newIMAPClient(s.t.getUserID(username), clientID); err != nil {
+	if err := s.t.newIMAPClient(s.t.getUserByName(username).getUserID(), clientID); err != nil {
 		return err
 	}
 
 	userID, client := s.t.getIMAPClient(clientID)
 
-	return client.Login(address, s.t.getUserBridgePass(userID))
+	return client.Login(address, s.t.getUserByID(userID).getBridgePass())
 }
 
 func (s *scenario) userConnectsAndCanNotAuthenticateIMAPClientWithAddress(username, clientID, address string) error {
-	if err := s.t.newIMAPClient(s.t.getUserID(username), clientID); err != nil {
+	if err := s.t.newIMAPClient(s.t.getUserByName(username).getUserID(), clientID); err != nil {
 		return err
 	}
 
 	userID, client := s.t.getIMAPClient(clientID)
 
-	if err := client.Login(address, s.t.getUserBridgePass(userID)); err == nil {
+	if err := client.Login(address, s.t.getUserByID(userID).getBridgePass()); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 
@@ -76,19 +76,19 @@ func (s *scenario) userConnectsAndCanNotAuthenticateIMAPClientWithAddress(userna
 func (s *scenario) imapClientCanAuthenticate(clientID string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 
-	return client.Login(s.t.getUserAddrs(userID)[0], s.t.getUserBridgePass(userID))
+	return client.Login(s.t.getUserByID(userID).getEmails()[0], s.t.getUserByID(userID).getBridgePass())
 }
 
 func (s *scenario) imapClientCanAuthenticateWithAddress(clientID string, address string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 
-	return client.Login(address, s.t.getUserBridgePass(userID))
+	return client.Login(address, s.t.getUserByID(userID).getBridgePass())
 }
 
 func (s *scenario) imapClientCannotAuthenticate(clientID string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 
-	if err := client.Login(s.t.getUserAddrs(userID)[0], s.t.getUserBridgePass(userID)); err == nil {
+	if err := client.Login(s.t.getUserByID(userID).getEmails()[0], s.t.getUserByID(userID).getBridgePass()); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 
@@ -98,7 +98,7 @@ func (s *scenario) imapClientCannotAuthenticate(clientID string) error {
 func (s *scenario) imapClientCannotAuthenticateWithAddress(clientID, address string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 
-	if err := client.Login(address, s.t.getUserBridgePass(userID)); err == nil {
+	if err := client.Login(address, s.t.getUserByID(userID).getBridgePass()); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 
@@ -108,7 +108,7 @@ func (s *scenario) imapClientCannotAuthenticateWithAddress(clientID, address str
 func (s *scenario) imapClientCannotAuthenticateWithIncorrectUsername(clientID string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 
-	if err := client.Login(s.t.getUserAddrs(userID)[0]+"bad", s.t.getUserBridgePass(userID)); err == nil {
+	if err := client.Login(s.t.getUserByID(userID).getEmails()[0]+"bad", s.t.getUserByID(userID).getBridgePass()); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 
@@ -118,7 +118,7 @@ func (s *scenario) imapClientCannotAuthenticateWithIncorrectUsername(clientID st
 func (s *scenario) imapClientCannotAuthenticateWithIncorrectPassword(clientID string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 
-	if err := client.Login(s.t.getUserAddrs(userID)[0], s.t.getUserBridgePass(userID)+"bad"); err == nil {
+	if err := client.Login(s.t.getUserByID(userID).getEmails()[0], s.t.getUserByID(userID).getBridgePass()+"bad"); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 

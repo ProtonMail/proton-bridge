@@ -18,6 +18,7 @@
 package user
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -63,6 +64,10 @@ func (user *User) handleAPIEvent(ctx context.Context, event proton.Event) error 
 		if err := user.handleMessageEvents(ctx, event.Messages); err != nil {
 			return err
 		}
+	}
+
+	if event.UsedSpace != nil {
+		user.handleUsedSpaceChange(*event.UsedSpace)
 	}
 
 	return nil
@@ -409,15 +414,13 @@ func (user *User) handleDeleteLabelEvent(ctx context.Context, event proton.Label
 }
 
 // handleMessageEvents handles the given message events.
-func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proton.MessageEvent) error { //nolint:funlen
+func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proton.MessageEvent) error {
 	for _, event := range messageEvents {
 		ctx = logging.WithLogrusField(ctx, "messageID", event.ID)
 
 		switch event.Action {
 		case proton.EventCreate:
-			updates, err := user.handleCreateMessageEvent(
-				logging.WithLogrusField(ctx, "action", "create message"),
-				event)
+			updates, err := user.handleCreateMessageEvent(logging.WithLogrusField(ctx, "action", "create message"), event)
 			if err != nil {
 				if rerr := user.reporter.ReportMessageWithContext("Failed to apply create message event", reporter.Context{
 					"error": err,
@@ -501,7 +504,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 }
 
 func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) {
-	full, err := user.client.GetFullMessage(ctx, event.Message.ID)
+	full, err := user.client.GetFullMessage(ctx, event.Message.ID, newProtonAPIScheduler(), proton.NewDefaultAttachmentAllocator())
 	if err != nil {
 		// If the message is not found, it means that it has been deleted before we could fetch it.
 		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
@@ -520,7 +523,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.Mes
 
 		var update imap.Update
 		if err := withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
-			res := buildRFC822(user.apiLabels, full, addrKR)
+			res := buildRFC822(user.apiLabels, full, addrKR, new(bytes.Buffer))
 
 			if res.err != nil {
 				user.log.WithError(err).Error("Failed to build RFC822 message")
@@ -598,7 +601,7 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 			"subject":   logging.Sensitive(event.Message.Subject),
 		}).Info("Handling draft updated event")
 
-		full, err := user.client.GetFullMessage(ctx, event.Message.ID)
+		full, err := user.client.GetFullMessage(ctx, event.Message.ID, newProtonAPIScheduler(), proton.NewDefaultAttachmentAllocator())
 		if err != nil {
 			// If the message is not found, it means that it has been deleted before we could fetch it.
 			if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
@@ -612,7 +615,7 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 		var update imap.Update
 
 		if err := withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
-			res := buildRFC822(user.apiLabels, full, addrKR)
+			res := buildRFC822(user.apiLabels, full, addrKR, new(bytes.Buffer))
 
 			if res.err != nil {
 				logrus.WithError(err).Error("Failed to build RFC822 message")
@@ -651,6 +654,20 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 
 		return []imap.Update{update}, nil
 	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
+}
+
+func (user *User) handleUsedSpaceChange(usedSpace int) {
+	safe.Lock(func() {
+		if user.apiUser.UsedSpace == usedSpace {
+			return
+		}
+
+		user.apiUser.UsedSpace = usedSpace
+		user.eventCh.Enqueue(events.UsedSpaceChanged{
+			UserID:    user.apiUser.ID,
+			UsedSpace: usedSpace,
+		})
+	}, user.apiUserLock)
 }
 
 func getMailboxName(label proton.Label) []string {

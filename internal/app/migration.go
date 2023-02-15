@@ -187,7 +187,6 @@ func migrateOldAccount(userID string, store *credentials.Store, v *vault.Vault) 
 	return nil
 }
 
-// nolint:funlen
 func migratePrefsToVault(vault *vault.Vault, b []byte) error {
 	var prefs struct {
 		IMAPPort int  `json:"user_port_imap,,string"`
@@ -263,14 +262,6 @@ func migratePrefsToVault(vault *vault.Vault, b []byte) error {
 
 	if err := vault.SetShowAllMail(prefs.ShowAllMail); err != nil {
 		errs = multierror.Append(errs, fmt.Errorf("failed to migrate show all mail: %w", err))
-	}
-
-	if err := vault.SetSyncWorkers(prefs.FetchWorkers); err != nil {
-		errs = multierror.Append(errs, fmt.Errorf("failed to migrate sync workers: %w", err))
-	}
-
-	if err := vault.SetSyncAttPool(prefs.AttachmentWorkers); err != nil {
-		errs = multierror.Append(errs, fmt.Errorf("failed to migrate sync attachment pool: %w", err))
 	}
 
 	if err := vault.SetCookies([]byte(prefs.Cookies)); err != nil {

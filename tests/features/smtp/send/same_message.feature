@@ -16,6 +16,7 @@ Feature: SMTP sending the same message twice
       """
     And it succeeds
 
+  @long-black
   Scenario: The exact same message is not sent twice
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
       """
@@ -36,6 +37,7 @@ Feature: SMTP sending the same message twice
       | [user:user]@[domain] | [user:to]@[domain] | Hello   | World |
 
 
+  @long-black
   Scenario: Slight change means different message and is sent twice
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
       """

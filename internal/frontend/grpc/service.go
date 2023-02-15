@@ -25,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"math/rand"
 	"net"
 	"os"
 	"path/filepath"
@@ -37,6 +38,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/elastic/go-sysinfo"
@@ -93,12 +95,10 @@ type Service struct { // nolint:structcheck
 }
 
 // NewService returns a new instance of the service.
-//
-// nolint:funlen
 func NewService(
 	panicHandler CrashHandler,
 	restarter Restarter,
-	locations Locator,
+	locations service.Locator,
 	bridge *bridge.Bridge,
 	eventCh <-chan events.Event,
 	quitCh <-chan struct{},
@@ -110,7 +110,7 @@ func NewService(
 		logrus.WithError(err).Panic("Could not generate gRPC TLS config")
 	}
 
-	config := Config{
+	config := service.Config{
 		Cert:  string(certPEM),
 		Token: uuid.NewString(),
 	}
@@ -141,7 +141,7 @@ func NewService(
 		config.Port = address.Port
 	}
 
-	if path, err := saveGRPCServerConfigFile(locations, &config); err != nil {
+	if path, err := service.SaveGRPCServerConfigFile(locations, &config, serverConfigFileName); err != nil {
 		logrus.WithError(err).WithField("path", path).Panic("Could not write gRPC service config file")
 	} else {
 		logrus.WithField("path", path).Info("Successfully saved gRPC service config file")
@@ -245,7 +245,7 @@ func (s *Service) WaitUntilFrontendIsReady() {
 	s.initializing.Wait()
 }
 
-// nolint:funlen,gocyclo
+// nolint:gocyclo
 func (s *Service) watchEvents() {
 	// GODT-1949 Better error events.
 	for _, err := range s.bridge.GetErrors() {
@@ -255,12 +255,6 @@ func (s *Service) watchEvents() {
 
 		case errors.Is(err, bridge.ErrVaultInsecure):
 			_ = s.SendEvent(NewKeychainHasNoKeychainEvent())
-
-		case errors.Is(err, bridge.ErrServeIMAP):
-			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_STARTUP_ERROR))
-
-		case errors.Is(err, bridge.ErrServeSMTP):
-			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_STARTUP_ERROR))
 		}
 	}
 
@@ -271,6 +265,12 @@ func (s *Service) watchEvents() {
 
 		case events.ConnStatusDown:
 			_ = s.SendEvent(NewInternetStatusEvent(false))
+
+		case events.IMAPServerError:
+			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_STARTUP_ERROR))
+
+		case events.SMTPServerError:
+			_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_STARTUP_ERROR))
 
 		case events.Raise:
 			_ = s.SendEvent(NewShowMainWindowEvent())
@@ -304,6 +304,12 @@ func (s *Service) watchEvents() {
 
 		case events.AddressModeChanged:
 			_ = s.SendEvent(NewUserChangedEvent(event.UserID))
+
+		case events.UsedSpaceChanged:
+			_ = s.SendEvent(NewUsedBytesChangedEvent(event.UserID, event.UsedSpace))
+
+		case events.IMAPLoginFailed:
+			_ = s.SendEvent(newIMAPLoginFailedEvent(event.Username))
 
 		case events.UserDeauth:
 			// This is the event the GUI cares about.
@@ -481,17 +487,6 @@ func newTLSConfig() (*tls.Config, []byte, error) {
 	}, certPEM, nil
 }
 
-func saveGRPCServerConfigFile(locations Locator, config *Config) (string, error) {
-	settingsPath, err := locations.ProvideSettingsPath()
-	if err != nil {
-		return "", err
-	}
-
-	configPath := filepath.Join(settingsPath, serverConfigFileName)
-
-	return configPath, config.save(configPath)
-}
-
 // validateServerToken verify that the server token provided by the client is valid.
 func validateServerToken(ctx context.Context, wantToken string) error {
 	values, ok := metadata.FromIncomingContext(ctx)
@@ -577,10 +572,17 @@ func (s *Service) monitorParentPID() {
 func computeFileSocketPath() (string, error) {
 	tempPath := os.TempDir()
 	for i := 0; i < 1000; i++ {
-		path := filepath.Join(tempPath, fmt.Sprintf("bridge_%v.sock", uuid.NewString()))
+		path := filepath.Join(tempPath, fmt.Sprintf("bridge%04d", rand.Intn(10000))) // nolint:gosec
 		if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
 			return path, nil
 		}
+
+		if err := os.Remove(path); err != nil {
+			logrus.WithField("path", path).WithError(err).Warning("Could not remove existing socket file")
+			continue
+		}
+
+		return path, nil
 	}
 
 	return "", errors.New("unable to find a suitable file socket in user config folder")

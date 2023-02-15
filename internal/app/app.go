@@ -81,7 +81,7 @@ const (
 	appUsage = "Proton Mail IMAP and SMTP Bridge"
 )
 
-func New() *cli.App { //nolint:funlen
+func New() *cli.App {
 	app := cli.NewApp()
 
 	app.Name = constants.FullAppName
@@ -156,7 +156,7 @@ func New() *cli.App { //nolint:funlen
 	return app
 }
 
-func run(c *cli.Context) error { //nolint:funlen
+func run(c *cli.Context) error {
 	// Seed the default RNG from the math/rand package.
 	rand.Seed(time.Now().UnixNano())
 
@@ -170,7 +170,7 @@ func run(c *cli.Context) error { //nolint:funlen
 	identifier := useragent.New()
 
 	// Create a new Sentry client that will be used to report crashes etc.
-	reporter := sentry.NewReporter(constants.FullAppName, constants.Version, identifier)
+	reporter := sentry.NewReporter(constants.FullAppName, identifier)
 
 	// Determine the exe that should be used to restart/autostart the app.
 	// By default, this is the launcher, if used. Otherwise, we try to get
@@ -208,9 +208,14 @@ func run(c *cli.Context) error { //nolint:funlen
 						}
 
 						// Ensure we are the only instance running.
-						return withSingleInstance(locations, version, func() error {
+						settings, err := locations.ProvideSettingsPath()
+						if err != nil {
+							logrus.WithError(err).Error("Failed to get settings path")
+						}
+
+						return withSingleInstance(settings, locations.GetLockFile(), version, func() error {
 							// Unlock the encrypted vault.
-							return WithVault(locations, func(vault *vault.Vault, insecure, corrupt bool) error {
+							return WithVault(locations, func(v *vault.Vault, insecure, corrupt bool) error {
 								// Report insecure vault.
 								if insecure {
 									_ = reporter.ReportMessageWithContext("Vault is insecure", map[string]interface{}{})
@@ -221,27 +226,39 @@ func run(c *cli.Context) error { //nolint:funlen
 									_ = reporter.ReportMessageWithContext("Vault is corrupt", map[string]interface{}{})
 								}
 
-								if !vault.Migrated() {
+								// Force re-sync if last version <= 3.0.12 due to chances in the gluon cache format.
+								if lastVersion := v.GetLastVersion(); lastVersion != nil {
+									versionWithLZ4Cache := semver.MustParse("3.0.13")
+									if lastVersion.LessThan(versionWithLZ4Cache) {
+										if err := v.ForUser(1, func(user *vault.User) error {
+											return user.ClearSyncStatus()
+										}); err != nil {
+											logrus.WithError(err).Error("Failed to force resync on user")
+										}
+									}
+								}
+
+								if !v.Migrated() {
 									// Migrate old settings into the vault.
-									if err := migrateOldSettings(vault); err != nil {
+									if err := migrateOldSettings(v); err != nil {
 										logrus.WithError(err).Error("Failed to migrate old settings")
 									}
 
 									// Migrate old accounts into the vault.
-									if err := migrateOldAccounts(locations, vault); err != nil {
+									if err := migrateOldAccounts(locations, v); err != nil {
 										logrus.WithError(err).Error("Failed to migrate old accounts")
 									}
 
 									// The vault has been migrated.
-									if err := vault.SetMigrated(); err != nil {
+									if err := v.SetMigrated(); err != nil {
 										logrus.WithError(err).Error("Failed to mark vault as migrated")
 									}
 								}
 
 								// Load the cookies from the vault.
-								return withCookieJar(vault, func(cookieJar http.CookieJar) error {
+								return withCookieJar(v, func(cookieJar http.CookieJar) error {
 									// Create a new bridge instance.
-									return withBridge(c, exe, locations, version, identifier, crashHandler, reporter, vault, cookieJar, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
+									return withBridge(c, exe, locations, version, identifier, crashHandler, reporter, v, cookieJar, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
 										if insecure {
 											logrus.Warn("The vault key could not be retrieved; the vault will not be encrypted")
 											b.PushError(bridge.ErrVaultInsecure)
@@ -266,15 +283,15 @@ func run(c *cli.Context) error { //nolint:funlen
 }
 
 // If there's another instance already running, try to raise it and exit.
-func withSingleInstance(locations *locations.Locations, version *semver.Version, fn func() error) error {
+func withSingleInstance(settingPath, lockFile string, version *semver.Version, fn func() error) error {
 	logrus.Debug("Checking for other instances")
 	defer logrus.Debug("Single instance stopped")
 
-	lock, err := checkSingleInstance(locations.GetLockFile(), version)
+	lock, err := checkSingleInstance(settingPath, lockFile, version)
 	if err != nil {
 		logrus.Info("Another instance is already running; raising it")
 
-		if ok := focus.TryRaise(); !ok {
+		if ok := focus.TryRaise(settingPath); !ok {
 			return fmt.Errorf("another instance is already running but it could not be raised")
 		}
 

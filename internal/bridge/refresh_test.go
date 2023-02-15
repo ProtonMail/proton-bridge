@@ -57,6 +57,7 @@ func TestBridge_Refresh(t *testing.T) {
 			require.Equal(t, userID, (<-syncCh).UserID)
 		})
 
+		var uidValidities = make(map[string]uint32, len(names))
 		// If we then connect an IMAP client, it should see all the labels with UID validity of 1.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
 			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).AnyTimes()
@@ -73,7 +74,7 @@ func TestBridge_Refresh(t *testing.T) {
 			for _, name := range names {
 				status, err := client.Select("Folders/"+name, false)
 				require.NoError(t, err)
-				require.Equal(t, uint32(1000), status.UidValidity)
+				uidValidities[name] = status.UidValidity
 			}
 		})
 
@@ -106,7 +107,7 @@ func TestBridge_Refresh(t *testing.T) {
 			for _, name := range names {
 				status, err := client.Select("Folders/"+name, false)
 				require.NoError(t, err)
-				require.Equal(t, uint32(1001), status.UidValidity)
+				require.Greater(t, status.UidValidity, uidValidities[name])
 			}
 		})
 	})

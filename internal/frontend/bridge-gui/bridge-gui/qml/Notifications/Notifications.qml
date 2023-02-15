@@ -81,6 +81,7 @@ QtObject {
         root.apiCertIssue,
         root.noActiveKeyForRecipient,
         root.userBadEvent,
+        root.imapLoginWhileSignedOut,
         root.genericError
     ]
 
@@ -1145,6 +1146,34 @@ QtObject {
             }
         ]
 
+    }
+
+    property Notification imapLoginWhileSignedOut: Notification {
+        title: qsTr("IMAP Login failed")
+        brief: title
+        description: "#PlaceHolderText"
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Danger
+        group: Notifications.Group.Connection
+
+        Connections {
+            target: Backend
+            function onImapLoginWhileSignedOut(username) {
+                root.imapLoginWhileSignedOut.description = qsTr("An email client tried to connect to the account %1, but this account is signed " +
+                "out. Please sign-in to continue.").arg(username)
+                root.imapLoginWhileSignedOut.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: qsTr("OK")
+
+                onTriggered: {
+                    root.imapLoginWhileSignedOut.active = false
+                }
+            }
+        ]
     }
 
     property Notification genericError: Notification {

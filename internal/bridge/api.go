@@ -32,14 +32,12 @@ func defaultAPIOptions(
 	version *semver.Version,
 	cookieJar http.CookieJar,
 	transport http.RoundTripper,
-	poolSize int,
 ) []proton.Option {
 	return []proton.Option{
 		proton.WithHostURL(apiURL),
 		proton.WithAppVersion(constants.AppVersion(version.Original())),
 		proton.WithCookieJar(cookieJar),
 		proton.WithTransport(transport),
-		proton.WithAttPoolSize(poolSize),
 		proton.WithLogger(logrus.StandardLogger()),
 	}
 }

@@ -5,9 +5,9 @@ go 1.18
 require (
 	github.com/0xAX/notificator v0.0.0-20220220101646-ee9b8921e557
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/ProtonMail/gluon v0.14.2-0.20230207072331-53797c5aa3f6
+	github.com/ProtonMail/gluon v0.14.2-0.20230207142445-9f98ae47a031
 	github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a
-	github.com/ProtonMail/go-proton-api v0.3.1-0.20230209110241-fe7894c4931a
+	github.com/ProtonMail/go-proton-api v0.4.1-0.20230214130336-4056d48a12e1
 	github.com/ProtonMail/go-rfc5322 v0.11.0
 	github.com/ProtonMail/gopenpgp/v2 v2.4.10
 	github.com/PuerkitoBio/goquery v1.8.0
@@ -35,6 +35,7 @@ require (
 	github.com/jaytaylor/html2text v0.0.0-20211105163654-bc68cce691ba
 	github.com/keybase/go-keychain v0.0.0
 	github.com/miekg/dns v1.1.50
+	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/profile v1.6.0
 	github.com/sirupsen/logrus v1.9.0
@@ -99,6 +100,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
+	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rivo/uniseg v0.4.2 // indirect

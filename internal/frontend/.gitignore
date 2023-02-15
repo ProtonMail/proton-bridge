@@ -10,5 +10,5 @@ rcc_cgo_*.go
 *.qmlc
 
 # Generated file
-bridge-gui/bridge-gui/Version.h
+bridge-gui/bridge-gui/BuildConfig.h
 bridge-gui/bridge-gui/Resources.rc

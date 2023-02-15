@@ -156,3 +156,26 @@ type AddressModeChanged struct {
 func (event AddressModeChanged) String() string {
 	return fmt.Sprintf("AddressModeChanged: UserID: %s, AddressMode: %s", event.UserID, event.AddressMode)
 }
+
+// UsedSpaceChanged is emitted when the storage space used by the user has changed.
+type UsedSpaceChanged struct {
+	eventBase
+
+	UserID string
+
+	UsedSpace int
+}
+
+func (event UsedSpaceChanged) String() string {
+	return fmt.Sprintf("UsedSpaceChanged: UserID: %s, UsedSpace: %v", event.UserID, event.UsedSpace)
+}
+
+type IMAPLoginFailed struct {
+	eventBase
+
+	Username string
+}
+
+func (event IMAPLoginFailed) String() string {
+	return fmt.Sprintf("IMAPLoginFailed: Username: %s", event.Username)
+}

@@ -8,7 +8,7 @@ Feature: A logged out user can login again
     When user "[user:user]" logs out
     And bridge restarts
     And the user logs in with username "[user:user]" and password "password"
-    Then user "[user:user]" is listed and connected
+    Then user "[user:user]" is eventually listed and connected
 
   Scenario: Cannot login to removed account
     When user "[user:user]" is deleted

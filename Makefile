@@ -23,16 +23,21 @@ REVISION:=$(shell git rev-parse --short=10 HEAD)
 BUILD_TIME:=$(shell date +%FT%T%z)
 MACOS_MIN_VERSION_ARM64=11.0
 MACOS_MIN_VERSION_AMD64=10.15
+BUILD_ENV?=dev
 
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
 BUILD_FLAGS_LAUNCHER:=${BUILD_FLAGS}
-BUILD_FLAGS_GUI:=-tags='${BUILD_TAGS} build_qt'
 GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/v3/internal/constants., Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
 GO_LDFLAGS+=-X "github.com/ProtonMail/proton-bridge/v3/internal/constants.FullAppName=${APP_FULL_NAME}"
 
-ifneq "${BUILD_LDFLAGS}" ""
-	GO_LDFLAGS+=${BUILD_LDFLAGS}
+ifneq "${DSN_SENTRY}" ""
+	GO_LDFLAGS+=-X github.com/ProtonMail/proton-bridge/v3/internal/constants.DSNSentry=${DSN_SENTRY}
 endif
+
+ifneq "${BUILD_ENV}" ""
+	GO_LDFLAGS+=-X github.com/ProtonMail/proton-bridge/v3/internal/constants.BuildEnv=${BUILD_ENV}
+endif
+
 GO_LDFLAGS_LAUNCHER:=${GO_LDFLAGS}
 ifeq "${TARGET_OS}" "windows"
 	#GO_LDFLAGS+=-H=windowsgui # Disabled so we can inspect trace logs from the bridge for debugging.
@@ -40,7 +45,6 @@ ifeq "${TARGET_OS}" "windows"
 endif
 
 BUILD_FLAGS+=-ldflags '${GO_LDFLAGS}'
-BUILD_FLAGS_GUI+=-ldflags "${GO_LDFLAGS}"
 BUILD_FLAGS_LAUNCHER+=-ldflags '${GO_LDFLAGS_LAUNCHER}'
 DEPLOY_DIR:=cmd/${TARGET_CMD}/deploy
 DIRNAME:=$(shell basename ${CURDIR})
@@ -96,9 +100,9 @@ endif
 
 ifeq "${GOOS}" "windows"
 	go-build-finalize= \
-		powershell Copy-Item ${ROOT_DIR}/${RESOURCE_FILE} ${4}  && \
-		$(call go-build,$(1),$(2),$(3)) && \
-		powershell Remove-Item ${4} -Force
+		$(if $(4),powershell Copy-Item ${ROOT_DIR}/${RESOURCE_FILE} ${4}  &&,) \
+		$(call go-build,$(1),$(2),$(3)) \
+		$(if $(4), && powershell Remove-Item ${4} -Force,)
 endif
 
 ${EXE_NAME}: gofiles  ${RESOURCE_FILE}
@@ -112,7 +116,7 @@ versioner:
 	go build ${BUILD_FLAGS} -o versioner utils/versioner/main.go
 
 vault-editor:
-	go build -tags debug -o vault-editor utils/vault-editor/main.go
+	$(call go-build-finalize,"-tags=debug","vault-editor","./utils/vault-editor/main.go")
 
 hasher:
 	go build -o hasher utils/hasher/main.go
@@ -154,8 +158,10 @@ ${EXE_TARGET}: check-build-essentials ${EXE_NAME}
 		BRIDGE_VENDOR="${APP_VENDOR}" \
 		BRIDGE_APP_VERSION=${APP_VERSION} \
 		BRIDGE_REVISION=${REVISION} \
-		BRIDGE_BUILD_TIME=${BUILD_TIME} \
+		BRIDGE_DSN_SENTRY=${DSN_SENTRY} \
+ 		BRIDGE_BUILD_TIME=${BUILD_TIME} \
 		BRIDGE_GUI_BUILD_CONFIG=Release \
+		BRIDGE_BUILD_ENV=BUILD_ENV \
 		BRIDGE_INSTALL_PATH=${ROOT_DIR}/${DEPLOY_DIR}/${GOOS} \
 		./build.sh install
 	mv "${ROOT_DIR}/${BRIDGE_EXE}" "$(ROOT_DIR)/${EXE_TARGET}"
@@ -222,13 +228,13 @@ change-copyright-year:
 	./utils/missing_license.sh change-year
 
 test: gofiles
-	go test -v -timeout=5m -p=1 -count=1 -coverprofile=/tmp/coverage.out -run=${TESTRUN} ./internal/... ./pkg/...
+	go test -v -timeout=10m -p=1 -count=1 -coverprofile=/tmp/coverage.out -run=${TESTRUN} ./internal/... ./pkg/...
 
 test-race: gofiles
 	go test -v -timeout=30m -p=1 -count=1 -race -failfast -run=${TESTRUN} ./internal/... ./pkg/...
 
 test-integration: gofiles
-	go test -v -timeout=10m -p=1 -count=1 github.com/ProtonMail/proton-bridge/v3/tests
+	go test -v -timeout=20m -p=1 -count=1 github.com/ProtonMail/proton-bridge/v3/tests
 
 test-integration-debug: gofiles
 	dlv test github.com/ProtonMail/proton-bridge/v3/tests -- -test.v -test.timeout=10m -test.parallel=1 -test.count=1
@@ -340,7 +346,7 @@ clean-vendor:
 
 clean-gui:
 	cd internal/frontend/bridge-gui/ && \
-		rm -f Version.h && \
+		rm -f BuildConfig.h && \
 		rm -rf cmake-build-*/
 
 clean-vcpkg:
