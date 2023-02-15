@@ -51,6 +51,9 @@ void setSentryReportScope() {
     sentry_set_tag("Version", PROJECT_REVISION);
     sentry_set_tag("HostArch", QSysInfo::currentCpuArchitecture().toUtf8());
     sentry_set_tag("server_name", getProtectedHostname());
+    sentry_value_t user = sentry_value_new_object();
+    sentry_value_set_by_key(user, "id", sentry_value_new_string(getProtectedHostname()));
+    sentry_set_user(user);
 }
 
 sentry_options_t* newSentryOptions(const char *sentryDNS, const char *cacheDir) {

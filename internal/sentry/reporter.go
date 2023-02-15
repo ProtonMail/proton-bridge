@@ -61,7 +61,7 @@ func init() { //nolint:gochecknoinits
 
 	sentry.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetFingerprint([]string{"{{ default }}"})
-		scope.SetTag("UserID", "not-defined")
+		scope.SetUser(sentry.User{ID: getProtectedHostname()})
 	})
 
 	sentry.Logger = log.New(
