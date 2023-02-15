@@ -305,6 +305,8 @@ void closeBridgeApp() {
 int main(int argc, char *argv[]) {
     // Init sentry.
     sentry_options_t *sentryOptions = newSentryOptions(PROJECT_DSN_SENTRY, sentryCacheDir().toStdString().c_str());
+    if (!QString(PROJECT_CRASHPAD_HANDLER_PATH).isEmpty())
+        sentry_options_set_handler_path(sentryOptions, PROJECT_CRASHPAD_HANDLER_PATH);
 
     if (sentry_init(sentryOptions) != 0) {
         std::cerr << "Failed to initialize sentry" << std::endl;
