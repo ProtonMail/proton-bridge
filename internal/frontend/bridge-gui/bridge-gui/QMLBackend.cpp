@@ -25,8 +25,8 @@
 
 
 #define HANDLE_EXCEPTION(x) try { x } \
-    catch (Exception const &e) { emit fatalError(__func__, e.qwhat()); } \
-    catch (...)  { emit fatalError(__func__, QString("An unknown exception occurred")); }
+    catch (Exception const &e) { emit fatalError(__func__, e.qwhat(), e.details()); } \
+    catch (...)  { emit fatalError(__func__, QString("An unknown exception occurred"), QString()); }
 #define HANDLE_EXCEPTION_RETURN_BOOL(x) HANDLE_EXCEPTION(x) return false;
 #define HANDLE_EXCEPTION_RETURN_QSTRING(x) HANDLE_EXCEPTION(x) return QString();
 #define HANDLE_EXCEPTION_RETURN_ZERO(x) HANDLE_EXCEPTION(x) return 0;
@@ -56,12 +56,8 @@ void QMLBackend::init(GRPCConfig const &serviceConfig) {
     app().grpc().setLog(&log);
     this->connectGrpcEvents();
 
-    QString error;
-    if (app().grpc().connectToServer(serviceConfig, app().bridgeMonitor(), error)) {
-        app().log().info("Connected to backend via gRPC service.");
-    } else {
-        throw Exception(QString("Cannot connectToServer to go backend via gRPC: %1").arg(error));
-    }
+    app().grpc().connectToServer(serviceConfig, app().bridgeMonitor());
+    app().log().info("Connected to backend via gRPC service.");
 
     QString bridgeVer;
     app().grpc().version(bridgeVer);
@@ -597,7 +593,8 @@ void QMLBackend::setDiskCachePath(QUrl const &path) const {
 void QMLBackend::login(QString const &username, QString const &password) const {
     HANDLE_EXCEPTION(
         if (username.compare("coco@bandicoot", Qt::CaseInsensitive) == 0) {
-            throw Exception("User requested bridge-gui to crash by trying to log as coco@bandicoot");
+            throw Exception("User requested bridge-gui to crash by trying to log as coco@bandicoot",
+                "This error exists for test purposes and should be ignored.");
         }
         app().grpc().login(username, password);
     )

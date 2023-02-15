@@ -428,9 +428,16 @@ int main(int argc, char *argv[]) {
         return result;
     }
     catch (Exception const &e) {
-        auto uuid = reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during main", "Exception", e.what());
+        QString fullMessage = e.qwhat();
+        bool const hasDetails = !e.details().isEmpty();
+        if (hasDetails)
+            fullMessage += "\n\nDetails:\n" + e.details();
+        sentry_uuid_s const uuid = reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during main", "Exception", fullMessage.toLocal8Bit());
         QMessageBox::critical(nullptr, "Error", e.qwhat());
-        QTextStream(stderr) << "reportID: " << QByteArray(uuid.bytes, 16).toHex() << "Captured exception :" << e.qwhat() << "\n";
+        QTextStream errStream(stderr);
+        errStream << "reportID: " << QByteArray(uuid.bytes, 16).toHex() << " Captured exception :" << e.qwhat() << "\n";
+        if (hasDetails)
+            errStream << "\nDetails:\n" << e.details() << "\n";
         return EXIT_FAILURE;
     }
 }

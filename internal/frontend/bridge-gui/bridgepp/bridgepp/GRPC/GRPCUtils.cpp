@@ -76,10 +76,12 @@ QString grpcClientConfigBasePath() {
 
 //****************************************************************************************************************************************************
 /// \param[in] token The token to put in the file.
+/// \param[out] outError if the function returns an empty string and this pointer is not null, the pointer variable holds a description of the error
+/// on exit.
 /// \return The path of the created file.
-/// \return A null string if the file could not be saved..
+/// \return A null string if the file could not be saved.
 //****************************************************************************************************************************************************
-QString createClientConfigFile(QString const &token) {
+QString createClientConfigFile(QString const &token, QString *outError) {
     QString const basePath = grpcClientConfigBasePath();
     QString path, error;
     for (qint32 i = 0; i < 1000; ++i) // we try a decent amount of times
@@ -88,13 +90,16 @@ QString createClientConfigFile(QString const &token) {
         if (!QFileInfo(path).exists()) {
             GRPCConfig config;
             config.token = token;
-            if (!config.save(path)) {
+
+            if (!config.save(path, outError)) {
                 return QString();
             }
             return path;
         }
     }
 
+    if (outError)
+        *outError = "no usable client configuration file name could be found.";
     return QString();
 }
 

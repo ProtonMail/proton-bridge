@@ -31,17 +31,19 @@ namespace bridgepp {
 //****************************************************************************************************************************************************
 class Exception : public std::exception {
 public: // member functions
-    explicit Exception(QString what = QString()) noexcept; ///< Constructor
+    explicit Exception(QString what = QString(), QString details = QString()) noexcept; ///< Constructor
     Exception(Exception const &ref) noexcept; ///< copy constructor
     Exception(Exception &&ref) noexcept; ///< copy constructor
     Exception &operator=(Exception const &) = delete; ///< Disabled assignment operator
     Exception &operator=(Exception &&) = delete; ///< Disabled assignment operator
     ~Exception() noexcept override = default; ///< Destructor
-    QString const &qwhat() const noexcept; ///< Return the description of the exception as a QString
+    QString qwhat() const noexcept; ///< Return the description of the exception as a QString
     const char *what() const noexcept override; ///< Return the description of the exception as C style string
+    QString details() const noexcept; ///< Return the details for the exception
 
 private: // data members
-    QString const what_; ///< The description of the exception
+    QString const what_; ///< The description of the exception.
+    QString const details_; ///< The optional details for the exception.
 };
 
 

@@ -23,11 +23,13 @@ namespace bridgepp {
 
 
 //****************************************************************************************************************************************************
-/// \param[in] what A description of the exception
+/// \param[in] what A description of the exception.
+/// \param[in] details The optional details for the exception.
 //****************************************************************************************************************************************************
-Exception::Exception(QString what) noexcept
+Exception::Exception(QString what, QString details) noexcept
     : std::exception()
-    , what_(std::move(what)) {
+    , what_(std::move(what))
+    , details_(std::move(details)) {
 }
 
 
@@ -36,7 +38,8 @@ Exception::Exception(QString what) noexcept
 //****************************************************************************************************************************************************
 Exception::Exception(Exception const &ref) noexcept
     : std::exception(ref)
-    , what_(ref.what_) {
+    , what_(ref.what_)
+    , details_(ref.details_) {
 }
 
 
@@ -45,14 +48,15 @@ Exception::Exception(Exception const &ref) noexcept
 //****************************************************************************************************************************************************
 Exception::Exception(Exception &&ref) noexcept
     : std::exception(ref)
-    , what_(ref.what_) {
+    , what_(ref.what_)
+    , details_(ref.details_) {
 }
 
 
 //****************************************************************************************************************************************************
 /// \return a string describing the exception
 //****************************************************************************************************************************************************
-QString const &Exception::qwhat() const noexcept {
+QString Exception::qwhat() const noexcept {
     return what_;
 }
 
@@ -62,6 +66,14 @@ QString const &Exception::qwhat() const noexcept {
 //****************************************************************************************************************************************************
 const char *Exception::what() const noexcept {
     return what_.toLocal8Bit().constData();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The details for the exception.
+//****************************************************************************************************************************************************
+QString Exception::details() const noexcept {
+    return details_;
 }
 
 
