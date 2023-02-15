@@ -88,8 +88,9 @@ GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(qint64 timeoutMs, ProcessMon
     }
 
     GRPCConfig sc;
-    if (!sc.load(path)) {
-        throw Exception("The gRPC service configuration file is invalid.");
+    QString err;
+    if (!sc.load(path, &err)) {
+        throw Exception("The gRPC service configuration file is invalid.", err);
     }
 
     return sc;
@@ -105,11 +106,10 @@ void GRPCClient::setLog(Log *log) {
 
 
 //****************************************************************************************************************************************************
-/// \param[out] outError If the function returns false, this variable contains a description of the error.
 /// \param[in] serverProcess An optional server process to monitor. If the process it, no need and retry, as connexion cannot be established. Ignored if null.
 /// \return true iff the connection was successful.
 //****************************************************************************************************************************************************
-bool GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serverProcess, QString &outError) {
+void GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serverProcess) {
     try {
         serverToken_ = config.token.toStdString();
         QString address;
@@ -158,9 +158,10 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serve
         this->logInfo("Successfully connected to gRPC server.");
 
         QString const clientToken = QUuid::createUuid().toString();
-        QString clientConfigPath = createClientConfigFile(clientToken);
+        QString error;
+        QString clientConfigPath = createClientConfigFile(clientToken, &error);
         if (clientConfigPath.isEmpty()) {
-            throw Exception("gRPC client config could not be saved.");
+            throw Exception("gRPC client config could not be saved.", error);
         }
         this->logInfo(QString("Client config file was saved to '%1'").arg(QDir::toNativeSeparators(clientConfigPath)));
 
@@ -176,12 +177,9 @@ bool GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serve
         }
 
         log_->info("gRPC token was validated");
-
-        return true;
     }
     catch (Exception const &e) {
-        outError = e.qwhat();
-        return false;
+        throw Exception("Cannot connect to Go backend via gRPC: " + e.qwhat(), e.details());
     }
 }
 

@@ -58,7 +58,7 @@ public: // member functions.
     void setLauncherArgs(const QString& launcher, const QStringList& args);
 
 public slots:
-    void onFatalError(QString const &function, QString const &message); ///< Handle fatal errors.
+    void onFatalError(QString const &function, QString const &message, QString const& details); ///< Handle fatal errors.
 
 private: // member functions
     AppController(); ///< Default constructor.

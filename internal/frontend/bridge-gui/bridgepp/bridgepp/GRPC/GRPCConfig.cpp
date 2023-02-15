@@ -25,8 +25,7 @@ using namespace bridgepp;
 
 namespace {
 
-Exception const invalidFileException("The service configuration file is invalid"); // Exception for invalid config.
-Exception const couldNotSaveException("The service configuration file could not be saved"); ///< Exception for write errors.
+Exception const invalidFileException("The content of the service configuration file is invalid"); // Exception for invalid config.
 QString const keyPort = "port"; ///< The JSON key for the port.
 QString const keyCert = "cert"; ///< The JSON key for the TLS certificate.
 QString const keyToken = "token"; ///< The JSON key for the identification token.
@@ -78,8 +77,11 @@ qint32 jsonIntValue(QJsonObject const &object, QString const &key) {
 bool GRPCConfig::load(QString const &path, QString *outError) {
     try {
         QFile file(path);
+        if (!file.exists())
+            throw Exception("The file service configuration file does not exist.");
+
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            throw Exception("Could not open gRPC service config file.");
+            throw Exception("The file exists but cannot be opened.");
         }
 
         QJsonDocument const doc = QJsonDocument::fromJson(file.readAll());
@@ -93,7 +95,7 @@ bool GRPCConfig::load(QString const &path, QString *outError) {
     }
     catch (Exception const &e) {
         if (outError) {
-            *outError = e.qwhat();
+            *outError = QString("Error loading gRPC service configuration file '%1'.\n%2").arg(QFileInfo(path).absoluteFilePath(), e.qwhat());
         }
         return false;
     }
@@ -115,19 +117,19 @@ bool GRPCConfig::save(QString const &path, QString *outError) {
 
         QFile file(path);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-            throw couldNotSaveException;
+            throw Exception("The file could not be opened for writing.");
         }
 
         QByteArray const array = QJsonDocument(object).toJson();
         if (array.size() != file.write(array)) {
-            throw couldNotSaveException;
+            throw Exception("An error occurred while writing to the file.");
         }
 
         return true;
     }
     catch (Exception const &e) {
         if (outError) {
-            *outError = e.qwhat();
+            *outError = QString("Error saving gRPC service configuration file '%1'.\n%2").arg(QFileInfo(path).absoluteFilePath(), e.qwhat());
         }
         return false;
     }
