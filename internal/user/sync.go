@@ -36,7 +36,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/bradenaw/juniper/parallel"
 	"github.com/bradenaw/juniper/xslices"
-	"github.com/google/uuid"
 	"github.com/pbnjay/memory"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/maps"
@@ -59,6 +58,7 @@ func (user *User) syncSystemLabels(ctx context.Context) error {
 				updates = append(updates, update)
 			}
 		}
+
 		if err := waitOnIMAPUpdates(ctx, updates); err != nil {
 			return fmt.Errorf("could not sync system labels: %w", err)
 		}
@@ -187,7 +187,7 @@ func (user *User) sync(ctx context.Context) error {
 func syncLabels(ctx context.Context, apiLabels map[string]proton.Label, updateCh ...*queue.QueuedChannel[imap.Update]) error {
 	var updates []imap.Update
 
-	// Create placeholder Folders/Labels mailboxes with a random ID and with the \Noselect attribute.
+	// Create placeholder Folders/Labels mailboxes with the \Noselect attribute.
 	for _, prefix := range []string{folderPrefix, labelPrefix} {
 		for _, updateCh := range updateCh {
 			update := newPlaceHolderMailboxCreatedUpdate(prefix)
@@ -698,7 +698,7 @@ func newSystemMailboxCreatedUpdate(labelID imap.MailboxID, labelName string) *im
 
 func newPlaceHolderMailboxCreatedUpdate(labelName string) *imap.MailboxCreated {
 	return imap.NewMailboxCreated(imap.Mailbox{
-		ID:             imap.MailboxID(uuid.NewString()),
+		ID:             imap.MailboxID(labelName),
 		Name:           []string{labelName},
 		Flags:          defaultFlags,
 		PermanentFlags: defaultPermanentFlags,
