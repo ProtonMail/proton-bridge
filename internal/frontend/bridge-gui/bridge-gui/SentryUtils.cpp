@@ -48,7 +48,7 @@ QString appVersion(const QString& version) {
 void setSentryReportScope() {
     sentry_set_tag("OS", bridgepp::goos().toUtf8());
     sentry_set_tag("Client", PROJECT_FULL_NAME);
-    sentry_set_tag("Version", QByteArray(PROJECT_REVISION).toHex());
+    sentry_set_tag("Version", PROJECT_REVISION);
     sentry_set_tag("HostArch", QSysInfo::currentCpuArchitecture().toUtf8());
     sentry_set_tag("server_name", getProtectedHostname());
 }
