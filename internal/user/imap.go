@@ -380,7 +380,7 @@ func (conn *imapConnector) GetMessageLiteral(ctx context.Context, id imap.Messag
 func (conn *imapConnector) AddMessagesToMailbox(ctx context.Context, messageIDs []imap.MessageID, mailboxID imap.MailboxID) error {
 	defer conn.goPollAPIEvents(false)
 
-	if mailboxID == proton.AllMailLabel {
+	if isAllMailOrScheduled(mailboxID) {
 		return fmt.Errorf("not allowed")
 	}
 
@@ -391,7 +391,7 @@ func (conn *imapConnector) AddMessagesToMailbox(ctx context.Context, messageIDs 
 func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messageIDs []imap.MessageID, mailboxID imap.MailboxID) error {
 	defer conn.goPollAPIEvents(false)
 
-	if mailboxID == proton.AllMailLabel {
+	if isAllMailOrScheduled(mailboxID) {
 		return fmt.Errorf("not allowed")
 	}
 
@@ -440,8 +440,8 @@ func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.M
 
 	if (labelFromID == proton.InboxLabel && labelToID == proton.SentLabel) ||
 		(labelFromID == proton.SentLabel && labelToID == proton.InboxLabel) ||
-		labelFromID == proton.AllMailLabel ||
-		labelToID == proton.AllMailLabel {
+		isAllMailOrScheduled(labelFromID) ||
+		isAllMailOrScheduled(labelToID) {
 		return false, fmt.Errorf("not allowed")
 	}
 
@@ -690,4 +690,8 @@ func toIMAPMailbox(label proton.Label, flags, permFlags, attrs imap.FlagSet) ima
 		PermanentFlags: permFlags,
 		Attributes:     attrs,
 	}
+}
+
+func isAllMailOrScheduled(mailboxID imap.MailboxID) bool {
+	return (mailboxID == proton.AllMailLabel) || (mailboxID == proton.AllScheduledLabel)
 }

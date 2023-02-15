@@ -6,6 +6,7 @@ Feature: IMAP remove messages from mailbox
       | mbox  | folder |
       | label | label  |
     And the address "[user:user]@[domain]" of account "[user:user]" has 10 messages in "Folders/mbox"
+    And the address "[user:user]@[domain]" of account "[user:user]" has 1 messages in "Scheduled"
     And bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And user "[user:user]" finishes syncing
@@ -43,5 +44,12 @@ Feature: IMAP remove messages from mailbox
     When IMAP client "1" selects "All Mail"
     And IMAP client "1" marks message 2 as deleted
     And it succeeds
+    And IMAP client "1" expunges
+    Then it fails
+
+  Scenario: Not possible to delete from Scheduled and expunge does nothing
+    When IMAP client "1" selects "Scheduled"
+    And IMAP client "1" marks message 1 as deleted
+    Then it succeeds
     And IMAP client "1" expunges
     Then it fails

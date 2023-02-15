@@ -37,3 +37,26 @@ Feature: IMAP list mailboxes
     And  IMAP client "1" counts 60 mailboxes under "Labels"
     Then IMAP client "2" counts 20 mailboxes under "Folders"
     And  IMAP client "2" counts 60 mailboxes under "Labels"
+
+  Scenario: List with scheduled mail
+    Given there exists an account with username "[user:user]" and password "password"
+    And the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Scheduled":
+      | from              | to                   | subject | unread |
+      | john.doe@mail.com | [user:user]@[domain] | sch     | false  |
+    When bridge starts
+    And the user logs in with username "[user:user]" and password "password"
+    And user "[user:user]" finishes syncing
+    And user "[user:user]" connects and authenticates IMAP client "1"
+    Then IMAP client "1" eventually sees the following mailbox info:
+      | name          | total |
+      | INBOX         | 0     |
+      | Drafts        | 0     |
+      | Sent          | 0     |
+      | Starred       | 0     |
+      | Archive       | 0     |
+      | Spam          | 0     |
+      | Trash         | 0     |
+      | All Mail      | 1     |
+      | Folders       | 0     |
+      | Labels        | 0     |
+      | Scheduled     | 1     |

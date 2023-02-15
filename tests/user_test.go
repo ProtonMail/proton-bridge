@@ -193,14 +193,6 @@ func (s *scenario) theAddressOfAccountHasTheFollowingMessagesInMailbox(address, 
 		return err
 	}
 
-	var messageFlags proton.MessageFlag
-
-	if !strings.EqualFold(mailbox, "Sent") {
-		messageFlags = proton.MessageFlagReceived
-	} else {
-		messageFlags = proton.MessageFlagSent
-	}
-
 	return s.t.createMessages(ctx, username, addrID, xslices.Map(wantMessages, func(message Message) proton.ImportReq {
 		return proton.ImportReq{
 
@@ -208,7 +200,7 @@ func (s *scenario) theAddressOfAccountHasTheFollowingMessagesInMailbox(address, 
 				AddressID: addrID,
 				LabelIDs:  []string{mboxID},
 				Unread:    proton.Bool(message.Unread),
-				Flags:     messageFlags,
+				Flags:     flagsForMailbox(mailbox),
 			},
 			Message: message.Build(),
 		}
@@ -228,7 +220,7 @@ func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username str
 			Metadata: proton.ImportMetadata{
 				AddressID: addrID,
 				LabelIDs:  []string{mboxID},
-				Flags:     proton.MessageFlagReceived,
+				Flags:     flagsForMailbox(mailbox),
 			},
 			Message: Message{
 				Subject: fmt.Sprintf("%d", idx),
@@ -238,6 +230,18 @@ func (s *scenario) theAddressOfAccountHasMessagesInMailbox(address, username str
 			}.Build(),
 		}
 	})))
+}
+
+func flagsForMailbox(mailboxName string) proton.MessageFlag {
+	if strings.EqualFold(mailboxName, "Sent") {
+		return proton.MessageFlagSent
+	}
+
+	if strings.EqualFold(mailboxName, "Scheduled") {
+		return proton.MessageFlagScheduledSend
+	}
+
+	return proton.MessageFlagReceived
 }
 
 // accountDraftChanged changes the draft attributes, where draftIndex is
