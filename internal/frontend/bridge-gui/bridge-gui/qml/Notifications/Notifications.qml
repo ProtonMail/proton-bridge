@@ -32,7 +32,7 @@ QtObject {
     signal askResetBridge()
     signal askChangeAllMailVisibility(var isVisibleNow)
     signal askDeleteAccount(var user)
-
+    signal askQuestion(var title, var description, var option1, var option2, var action1, var action2)
     enum Group {
         Connection    = 1,
         Update        = 2,
@@ -82,7 +82,8 @@ QtObject {
         root.noActiveKeyForRecipient,
         root.userBadEvent,
         root.imapLoginWhileSignedOut,
-        root.genericError
+        root.genericError,
+        root.genericQuestion,
     ]
 
     // Connection
@@ -1197,6 +1198,52 @@ QtObject {
 
                 onTriggered: {
                     root.genericError.active = false
+                }
+            }
+        ]
+    }
+
+    property Notification genericQuestion: Notification {
+        title: ""
+        brief: ""
+        description: ""
+        type: Notification.NotificationType.Warning
+        group: Notifications.Group.Dialogs
+        property var option1: ""
+        property var option2: ""
+        property variant action1: null
+        property variant action2: null
+
+        Connections {
+            target: root
+            function onAskQuestion(title, description, option1, option2, action1, action2) {
+                root.genericQuestion.title  = title
+                root.genericQuestion.description  = description
+                root.genericQuestion.option1  = option1
+                root.genericQuestion.option2  = option2
+                root.genericQuestion.action1  = action1
+                root.genericQuestion.action2  = action2
+                root.genericQuestion.active = true
+            }
+        }
+
+        action: [
+            Action {
+                text: root.genericQuestion.option1
+
+                onTriggered: {
+                    root.genericQuestion.active = false
+                    if (root.genericQuestion.action1)
+                        root.genericQuestion.action1()
+                }
+            },
+            Action {
+                text: root.genericQuestion.option2
+
+                onTriggered: {
+                    root.genericQuestion.active = false
+                    if (root.genericQuestion.action2)
+                        root.genericQuestion.action2()
                 }
             }
         ]

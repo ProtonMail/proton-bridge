@@ -142,6 +142,17 @@ ApplicationWindow {
             onShowSetupGuide: function(user, address) {
                 root.showSetup(user,address)
             }
+
+            onCloseWindow: {
+                root.close()
+            }
+
+            onQuitBridge: {
+                // If we ever want to add a confirmation dialog before quitting:
+                //root.notifications.askQuestion("Quit Bridge", "Insert warning message here.", "Quit", "Cancel", Backend.quit, null)
+                 root.close()
+                 Backend.quit()
+            }
         }
 
         WelcomeGuide { // 1
