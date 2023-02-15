@@ -78,10 +78,13 @@ bool GRPCConfig::load(QString const &path, QString *outError) {
     try {
         QFile file(path);
         if (!file.exists())
-            throw Exception("The file service configuration file does not exist.");
+            throw Exception("The gRPC service configuration file does not exist.");
 
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            throw Exception("The file exists but cannot be opened.");
+            QThread::msleep(500); // we wait a bit and retry once, just in case server is not done writing/moving the config file.
+            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                throw Exception("The gRPC service configuration file exists but cannot be opened.");
+            }
         }
 
         QJsonDocument const doc = QJsonDocument::fromJson(file.readAll());
