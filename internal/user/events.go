@@ -453,7 +453,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 					return err
 				}
 
-				return nil
+				continue
 			}
 
 			// GODT-2028 - Use better events here. It should be possible to have 3 separate events that refrain to
