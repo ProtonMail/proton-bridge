@@ -2,7 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
-## [Bridge 3.0.15/16] Perth Narrows
+## [Bridge 3.0.16/17] Perth Narrows
+
+### Fixed
+* GODT-2354: Report failed load users.
+
+## [Bridge 3.0.15] Perth Narrows
 
 ### Changed
 * GODT-2355: Improve wording and actions on bad event.

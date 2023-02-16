@@ -96,11 +96,11 @@ func (s *Service) GuiReady(ctx context.Context, _ *emptypb.Empty) (*GuiReadyResp
 
 	s.initializationDone.Do(s.initializing.Done)
 
-	// Splash screen should be displayed only to users who start v3.0.16 or later for the first time after upgrading from v2.
+	// Splash screen should be displayed only to users who start v3.0.17 or later for the first time after upgrading from v2.
 	return &GuiReadyResponse{
 		ShowSplashScreen: (!s.bridge.GetFirstStart()) &&
 			s.bridge.GetLastVersion().LessThan(semver.MustParse("3.0.0")) &&
-			s.bridge.GetCurrentVersion().GreaterThan(semver.MustParse("3.0.15")),
+			s.bridge.GetCurrentVersion().GreaterThan(semver.MustParse("3.0.16")),
 	}, nil
 }
 
