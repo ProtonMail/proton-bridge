@@ -22,17 +22,20 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/mail"
 	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
+	"github.com/bradenaw/juniper/stream"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
@@ -347,6 +350,88 @@ func TestBridge_User_DropConn_NoBadEvent(t *testing.T) {
 			}, 10*time.Second, 100*time.Millisecond)
 		})
 	}, server.WithListener(dropListener))
+}
+
+func TestBridge_User_UpdateDraftAndCreateOtherMessage(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a bridge user.
+		_, _, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		// Initially sync the user.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+		})
+
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			user, err := c.GetUser(ctx)
+			require.NoError(t, err)
+
+			addrs, err := c.GetAddresses(ctx)
+			require.NoError(t, err)
+
+			salts, err := c.GetSalts(ctx)
+			require.NoError(t, err)
+
+			keyPass, err := salts.SaltForKey(password, user.Keys.Primary().ID)
+			require.NoError(t, err)
+
+			_, addrKRs, err := proton.Unlock(user, addrs, keyPass)
+			require.NoError(t, err)
+
+			// Create a draft (generating a "create draft message" event).
+			draft, err := c.CreateDraft(ctx, addrKRs[addrs[0].ID], proton.CreateDraftReq{
+				Message: proton.DraftTemplate{
+					Subject:  "subject",
+					Sender:   &mail.Address{Name: "sender", Address: addrs[0].Email},
+					Body:     "body",
+					MIMEType: rfc822.TextPlain,
+				},
+			})
+			require.NoError(t, err)
+
+			// Process those events
+			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+				userContinueEventProcess(ctx, t, s, bridge)
+			})
+
+			// Update the draft (generating an "update draft message" event).
+			require.NoError(t, getErr(c.UpdateDraft(ctx, draft.ID, addrKRs[addrs[0].ID], proton.UpdateDraftReq{
+				Message: proton.DraftTemplate{
+					Subject:  "subject 2",
+					Sender:   &mail.Address{Name: "sender", Address: addrs[0].Email},
+					Body:     "body 2",
+					MIMEType: rfc822.TextPlain,
+				},
+			})))
+
+			// Import a message (generating a "create message" event).
+			str, err := c.ImportMessages(ctx, addrKRs[addrs[0].ID], 1, 1, proton.ImportReq{
+				Metadata: proton.ImportMetadata{
+					AddressID: addrs[0].ID,
+					Flags:     proton.MessageFlagReceived,
+				},
+				Message: []byte("From: someone@example.com\r\nTo: blabla@example.com\r\n\r\nhello"),
+			})
+			require.NoError(t, err)
+
+			res, err := stream.Collect(ctx, str)
+			require.NoError(t, err)
+
+			// Process those events.
+			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+				userContinueEventProcess(ctx, t, s, bridge)
+			})
+
+			// Update the imported message (generating an "update message" event).
+			require.NoError(t, c.MarkMessagesUnread(ctx, res[0].MessageID))
+
+			// Process those events.
+			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+				userContinueEventProcess(ctx, t, s, bridge)
+			})
+		})
+	})
 }
 
 // userLoginAndSync logs in user and waits until user is fully synced.
