@@ -59,18 +59,19 @@ bool useFileSocketForGRPC() {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] configDir The folder containing the configuration files.
 /// \return The absolute path of the service config path.
 //****************************************************************************************************************************************************
-QString grpcServerConfigPath() {
-    return QDir(userConfigDir()).absoluteFilePath(grpcServerConfigFilename());
+QString grpcServerConfigPath(QString const &configDir) {
+    return QDir(configDir).absoluteFilePath(grpcServerConfigFilename());
 }
 
 
 //****************************************************************************************************************************************************
 /// \return The absolute path of the service config path.
 //****************************************************************************************************************************************************
-QString grpcClientConfigBasePath() {
-    return QDir(userConfigDir()).absoluteFilePath(grpcClientConfigBaseFilename());
+QString grpcClientConfigBasePath(QString const &configDir) {
+    return QDir(configDir).absoluteFilePath(grpcClientConfigBaseFilename());
 }
 
 
@@ -81,8 +82,8 @@ QString grpcClientConfigBasePath() {
 /// \return The path of the created file.
 /// \return A null string if the file could not be saved.
 //****************************************************************************************************************************************************
-QString createClientConfigFile(QString const &token, QString *outError) {
-    QString const basePath = grpcClientConfigBasePath();
+QString createClientConfigFile(QString const &configDir, QString const &token, QString *outError) {
+    QString const basePath = grpcClientConfigBasePath(configDir);
     QString path, error;
     for (qint32 i = 0; i < 1000; ++i) // we try a decent amount of times
     {

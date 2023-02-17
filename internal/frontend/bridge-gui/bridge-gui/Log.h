@@ -15,16 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef BRIDGE_GUI_SENTRYUTILS_H
-#define BRIDGE_GUI_SENTRYUTILS_H
+
+#ifndef BRIDGE_GUI_LOG_H
+#define BRIDGE_GUI_LOG_H
 
 
-#include <sentry.h>
+#include <bridgepp/Log/Log.h>
 
-void initSentry();
-void setSentryReportScope();
-sentry_options_t* newSentryOptions(const char * sentryDNS, const char * cacheDir);
-sentry_uuid_t reportSentryEvent(sentry_level_t level, const char *message);
-sentry_uuid_t reportSentryException(sentry_level_t level, const char *message, const char *exceptionType, const char *exception);
 
-#endif //BRIDGE_GUI_SENTRYUTILS_H
+bridgepp::Log &initLog(); ///< Initialize the application log.
+
+
+#endif //BRIDGE_GUI_LOG_H

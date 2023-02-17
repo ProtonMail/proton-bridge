@@ -37,7 +37,6 @@ type BridgeClient interface {
 	IsBetaEnabled(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
 	SetIsAllMailVisible(ctx context.Context, in *wrapperspb.BoolValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	IsAllMailVisible(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
-	GoOs(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	TriggerReset(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Version(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	LogsPath(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
@@ -198,15 +197,6 @@ func (c *bridgeClient) SetIsAllMailVisible(ctx context.Context, in *wrapperspb.B
 func (c *bridgeClient) IsAllMailVisible(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error) {
 	out := new(wrapperspb.BoolValue)
 	err := c.cc.Invoke(ctx, "/grpc.Bridge/IsAllMailVisible", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) GoOs(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error) {
-	out := new(wrapperspb.StringValue)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/GoOs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -622,7 +612,6 @@ type BridgeServer interface {
 	IsBetaEnabled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
 	SetIsAllMailVisible(context.Context, *wrapperspb.BoolValue) (*emptypb.Empty, error)
 	IsAllMailVisible(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
-	GoOs(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	TriggerReset(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	Version(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	LogsPath(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
@@ -713,9 +702,6 @@ func (UnimplementedBridgeServer) SetIsAllMailVisible(context.Context, *wrappersp
 }
 func (UnimplementedBridgeServer) IsAllMailVisible(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsAllMailVisible not implemented")
-}
-func (UnimplementedBridgeServer) GoOs(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GoOs not implemented")
 }
 func (UnimplementedBridgeServer) TriggerReset(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TriggerReset not implemented")
@@ -1065,24 +1051,6 @@ func _Bridge_IsAllMailVisible_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BridgeServer).IsAllMailVisible(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_GoOs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).GoOs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/GoOs",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).GoOs(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1882,10 +1850,6 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsAllMailVisible",
 			Handler:    _Bridge_IsAllMailVisible_Handler,
-		},
-		{
-			MethodName: "GoOs",
-			Handler:    _Bridge_GoOs_Handler,
 		},
 		{
 			MethodName: "TriggerReset",

@@ -211,12 +211,6 @@ func (s *Service) IsAllMailVisible(ctx context.Context, _ *emptypb.Empty) (*wrap
 	return wrapperspb.Bool(s.bridge.GetShowAllMail()), nil
 }
 
-func (s *Service) GoOs(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
-	s.log.Debug("GoOs") // TO-DO We can probably get rid of this and use QSysInfo::product name
-
-	return wrapperspb.String(runtime.GOOS), nil
-}
-
 func (s *Service) TriggerReset(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
 	s.log.Debug("TriggerReset")
 

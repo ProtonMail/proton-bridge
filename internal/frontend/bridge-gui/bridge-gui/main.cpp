@@ -18,7 +18,9 @@
 
 #include "Pch.h"
 #include "BridgeApp.h"
+#include "BridgeLib.h"
 #include "CommandLine.h"
+#include "Log.h"
 #include "QMLBackend.h"
 #include "SentryUtils.h"
 #include "BuildConfig.h"
@@ -27,8 +29,6 @@
 #include <bridgepp/FocusGRPC/FocusGRPCClient.h>
 #include <bridgepp/Log/Log.h>
 #include <bridgepp/ProcessMonitor.h>
-#include <sentry.h>
-#include <SentryUtils.h>
 
 
 #ifdef Q_OS_MACOS
@@ -98,38 +98,6 @@ void initQtApplication() {
 }
 
 
-//****************************************************************************************************************************************************
-/// \return A reference to the log.
-//****************************************************************************************************************************************************
-Log &initLog() {
-    Log &log = app().log();
-    log.registerAsQtMessageHandler();
-    log.setEchoInConsole(true);
-
-    // remove old gui log files
-    QDir const logsDir(userLogsDir());
-    for (QFileInfo const fileInfo: logsDir.entryInfoList({ "gui_v*.log" }, QDir::Filter::Files)) { // entryInfolist apparently only support wildcards, not regex.
-        QFile(fileInfo.absoluteFilePath()).remove();
-    }
-
-    // create new GUI log file
-    QString error;
-    if (!log.startWritingToFile(logsDir.absoluteFilePath(QString("gui_v%1_%2.log").arg(PROJECT_VER).arg(QDateTime::currentSecsSinceEpoch())), &error)) {
-        log.error(error);
-    }
-
-    log.info("bridge-gui starting");
-    QString const qtCompileTimeVersion = QT_VERSION_STR;
-    QString const qtRuntimeVersion = qVersion();
-    QString msg = QString("Using Qt %1").arg(qtRuntimeVersion);
-    if (qtRuntimeVersion != qtCompileTimeVersion) {
-        msg += QString(" (compiled against %1)").arg(qtCompileTimeVersion);
-    }
-    log.info(msg);
-
-    return log;
-}
-
 
 //****************************************************************************************************************************************************
 /// \param[in] engine The QML component.
@@ -189,7 +157,7 @@ QUrl getApiUrl() {
     url.setPort(1042);
 
     // override with what can be found in the prefs.json file.
-    QFile prefFile(QString("%1/%2").arg(bridgepp::userConfigDir(), "prefs.json"));
+    QFile prefFile(QString("%1/%2").arg(bridgelib::userConfigDir(), "prefs.json"));
     if (prefFile.exists()) {
         prefFile.open(QIODevice::ReadOnly | QIODevice::Text);
         QByteArray data = prefFile.readAll();
@@ -217,7 +185,7 @@ QUrl getApiUrl() {
 /// \return true if an instance of bridge is already running.
 //****************************************************************************************************************************************************
 bool isBridgeRunning() {
-    QLockFile lockFile(QDir(userCacheDir()).absoluteFilePath(bridgeLock));
+    QLockFile lockFile(QDir(bridgelib::userCacheDir()).absoluteFilePath(bridgeLock));
     return (!lockFile.tryLock()) && (lockFile.error() == QLockFile::LockFailedError);
 }
 
@@ -229,7 +197,7 @@ void focusOtherInstance() {
     try {
         FocusGRPCClient client;
         GRPCConfig sc;
-        QString const path = FocusGRPCClient::grpcFocusServerConfigPath();
+        QString const path = FocusGRPCClient::grpcFocusServerConfigPath(bridgelib::userConfigDir());
         QFile file(path);
         if (file.exists()) {
             if (!sc.load(path)) {
@@ -252,7 +220,7 @@ void focusOtherInstance() {
     catch (Exception const &e) {
         app().log().error(e.qwhat());
         auto uuid = reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during focusOtherInstance()", "Exception", e.what());
-        app().log().fatal(QString("reportID: %1 Captured exception: %2").arg(QByteArray(uuid.bytes, 16).toHex()).arg(e.qwhat()));
+        app().log().fatal(QString("reportID: %1 Captured exception: %2").arg(QByteArray(uuid.bytes, 16).toHex(), e.qwhat()));
     }
 }
 
@@ -303,31 +271,29 @@ void closeBridgeApp() {
 /// \return The exit code for the application.
 //****************************************************************************************************************************************************
 int main(int argc, char *argv[]) {
-    // Init sentry.
-    sentry_options_t *sentryOptions = newSentryOptions(PROJECT_DSN_SENTRY, sentryCacheDir().toStdString().c_str());
-    if (!QString(PROJECT_CRASHPAD_HANDLER_PATH).isEmpty())
-        sentry_options_set_handler_path(sentryOptions, PROJECT_CRASHPAD_HANDLER_PATH);
-
-    if (sentry_init(sentryOptions) != 0) {
-        std::cerr << "Failed to initialize sentry" << std::endl;
-    }
-    setSentryReportScope();
-    auto sentryClose = qScopeGuard([] { sentry_close(); });
-
     // The application instance is needed to display system message boxes. As we may have to do it in the exception handler,
     // application instance is create outside the try/catch clause.
     if (QSysInfo::productType() != "windows") {
-        QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
+        QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL); // must be called before instantiating the BridgeApp
     }
 
     BridgeApp guiApp(argc, argv);
 
     try {
+        bridgelib::loadLibrary();
+        QString const& configDir = bridgelib::userConfigDir();
+
+        // Init sentry.
+        initSentry();
+
+        auto sentryClose = qScopeGuard([] { sentry_close(); });
+
+
         initQtApplication();
 
         Log &log = initLog();
 
-        QLockFile lock(bridgepp::userCacheDir() + "/" + bridgeGUILock);
+        QLockFile lock(bridgelib::userCacheDir() + "/" + bridgeGUILock);
         if (!checkSingleInstance(lock)) {
             focusOtherInstance();
             return EXIT_FAILURE;
@@ -351,15 +317,16 @@ int main(int argc, char *argv[]) {
             }
 
             // before launching bridge, we remove any trailing service config file, because we need to make sure we get a newly generated one.
-            FocusGRPCClient::removeServiceConfigFile();
-            GRPCClient::removeServiceConfigFile();
+            FocusGRPCClient::removeServiceConfigFile(configDir);
+            GRPCClient::removeServiceConfigFile(configDir);
             launchBridge(cliOptions.bridgeArgs);
         }
 
-        log.info(QString("Retrieving gRPC service configuration from '%1'").arg(QDir::toNativeSeparators(grpcServerConfigPath())));
-        app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(cliOptions.attach ? 0 : grpcServiceConfigWaitDelayMs, app().bridgeMonitor()));
+        log.info(QString("Retrieving gRPC service configuration from '%1'").arg(QDir::toNativeSeparators(grpcServerConfigPath(configDir))));
+        app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(configDir, cliOptions.attach ? 0 : grpcServiceConfigWaitDelayMs,
+            app().bridgeMonitor()));
         if (!cliOptions.attach) {
-            GRPCClient::removeServiceConfigFile();
+            GRPCClient::removeServiceConfigFile(configDir);
         }
 
         // gRPC communication is established. From now on, log events will be sent to bridge via gRPC. bridge will write these to file,
@@ -409,11 +376,11 @@ int main(int argc, char *argv[]) {
         int result = 0;
         if (!startError) {
             // we succeeded in launching bridge, so we can be set as mainExecutable.
-            QString mainexec = QString::fromLocal8Bit(argv[0]);
-            app().grpc().setMainExecutable(mainexec);
+            QString mainExe = QString::fromLocal8Bit(argv[0]);
+            app().grpc().setMainExecutable(mainExe);
             QStringList args = cliOptions.bridgeGuiArgs;
             args.append(waitFlag);
-            args.append(mainexec);
+            args.append(mainExe);
             app().setLauncherArgs(cliOptions.launcher, args);
             result = QGuiApplication::exec();
         }

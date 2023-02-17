@@ -17,7 +17,6 @@
 
 
 #include "FocusGRPCClient.h"
-#include "../BridgeUtils.h"
 #include "../Exception/Exception.h"
 
 
@@ -50,16 +49,16 @@ QString grpcFocusServerConfigFilename() {
 //****************************************************************************************************************************************************
 /// \return The absolute path of the focus service config path.
 //****************************************************************************************************************************************************
-QString FocusGRPCClient::grpcFocusServerConfigPath() {
-    return QDir(userConfigDir()).absoluteFilePath(grpcFocusServerConfigFilename());
+QString FocusGRPCClient::grpcFocusServerConfigPath(QString const &configDir) {
+    return QDir(configDir).absoluteFilePath(grpcFocusServerConfigFilename());
 }
 
 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void FocusGRPCClient::removeServiceConfigFile() {
-    QString const path = grpcFocusServerConfigPath();
+void FocusGRPCClient::removeServiceConfigFile(QString const &configDir) {
+    QString const path = grpcFocusServerConfigPath(configDir);
     if (!QFile(path).exists()) {
         return;
     }

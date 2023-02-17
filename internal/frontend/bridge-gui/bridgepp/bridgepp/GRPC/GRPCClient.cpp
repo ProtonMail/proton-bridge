@@ -45,8 +45,8 @@ qint64 const grpcConnectionRetryDelayMs = 10000; ///< Retry delay for the gRPC c
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void GRPCClient::removeServiceConfigFile() {
-    QString const path = grpcServerConfigPath();
+void GRPCClient::removeServiceConfigFile(QString const &configDir) {
+    QString const path = grpcServerConfigPath(configDir);
     if (!QFile(path).exists()) {
         return;
     }
@@ -61,8 +61,8 @@ void GRPCClient::removeServiceConfigFile() {
 /// \param[in] serverProcess An optional server process to monitor. If the process it, no need and retry, as connexion cannot be established. Ignored if null.
 /// \return The service config.
 //****************************************************************************************************************************************************
-GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(qint64 timeoutMs, ProcessMonitor *serverProcess) {
-    QString const path = grpcServerConfigPath();
+GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(QString const &configDir, qint64 timeoutMs, ProcessMonitor *serverProcess) {
+    QString const path = grpcServerConfigPath(configDir);
     QFile file(path);
 
     QElapsedTimer timer;
@@ -109,7 +109,7 @@ void GRPCClient::setLog(Log *log) {
 /// \param[in] serverProcess An optional server process to monitor. If the process it, no need and retry, as connexion cannot be established. Ignored if null.
 /// \return true iff the connection was successful.
 //****************************************************************************************************************************************************
-void GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serverProcess) {
+void GRPCClient::connectToServer(QString const &configDir, GRPCConfig const &config, ProcessMonitor *serverProcess) {
     try {
         serverToken_ = config.token.toStdString();
         QString address;
@@ -147,8 +147,9 @@ void GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serve
                 break;
             } // connection established.
 
-            if (QDateTime::currentDateTime() > giveUpTime)
+            if (QDateTime::currentDateTime() > giveUpTime) {
                 throw Exception("Connection to the RPC server failed.");
+            }
         }
 
         if (channel_->GetState(true) != GRPC_CHANNEL_READY) {
@@ -159,7 +160,7 @@ void GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serve
 
         QString const clientToken = QUuid::createUuid().toString();
         QString error;
-        QString clientConfigPath = createClientConfigFile(clientToken, &error);
+        QString clientConfigPath = createClientConfigFile(configDir, clientToken, &error);
         if (clientConfigPath.isEmpty()) {
             throw Exception("gRPC client config could not be saved.", error);
         }
@@ -223,8 +224,9 @@ grpc::Status GRPCClient::addLogEntry(Log::Level level, QString const &package, Q
 grpc::Status GRPCClient::guiReady(bool &outShowSplashScreen) {
     GuiReadyResponse response;
     Status status = this->logGRPCCallStatus(stub_->GuiReady(this->clientContext().get(), empty, &response), __FUNCTION__);
-    if (status.ok())
+    if (status.ok()) {
         outShowSplashScreen = response.showsplashscreen();
+    }
     return status;
 }
 
@@ -455,15 +457,6 @@ grpc::Status GRPCClient::isPortFree(qint32 port, bool &outFree) {
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::showOnStartup(bool &outValue) {
     return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::ShowOnStartup, outValue), __FUNCTION__);
-}
-
-
-//****************************************************************************************************************************************************
-/// \param[out] outGoos The value for the property.
-/// \return The status for the gRPC call.
-//****************************************************************************************************************************************************
-grpc::Status GRPCClient::goos(QString &outGoos) {
-    return this->logGRPCCallStatus(this->getString(&Bridge::Stub::GoOs, outGoos), __FUNCTION__);
 }
 
 
@@ -1365,7 +1358,7 @@ void GRPCClient::processUserEvent(UserEvent const &event) {
         break;
     }
     case UserEvent::kUserBadEvent: {
-        UserBadEvent const& e = event.userbadevent();
+        UserBadEvent const &e = event.userbadevent();
         QString const userID = QString::fromStdString(e.userid());
         QString const errorMessage = QString::fromStdString(e.errormessage());
         this->logTrace(QString("User event received: UserBadEvent (userID = %1, errorMessage = %2).").arg(userID, errorMessage));
@@ -1373,7 +1366,7 @@ void GRPCClient::processUserEvent(UserEvent const &event) {
         break;
     }
     case UserEvent::kUsedBytesChangedEvent: {
-        UsedBytesChangedEvent const& e = event.usedbyteschangedevent();
+        UsedBytesChangedEvent const &e = event.usedbyteschangedevent();
         QString const userID = QString::fromStdString(e.userid());
         qint64 const usedBytes = e.usedbytes();
         this->logTrace(QString("User event received: UsedBytesChangedEvent (userID = %1, usedBytes = %2).").arg(userID).arg(usedBytes));
@@ -1381,7 +1374,7 @@ void GRPCClient::processUserEvent(UserEvent const &event) {
         break;
     }
     case UserEvent::kImapLoginFailedEvent: {
-        ImapLoginFailedEvent const& e = event.imaploginfailedevent();
+        ImapLoginFailedEvent const &e = event.imaploginfailedevent();
         QString const username = QString::fromStdString(e.username());
         this->logTrace(QString("User event received: IMAPLoginFailed (username = %1).:").arg(username));
         emit imapLoginFailed(username);

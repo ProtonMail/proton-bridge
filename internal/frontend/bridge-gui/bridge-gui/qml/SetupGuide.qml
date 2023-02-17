@@ -45,7 +45,7 @@ Item {
         property string link: "https://proton.me/support/protonmail-bridge-clients-apple-mail"
 
         Component.onCompleted : {
-            if (Backend.goos == "darwin") {
+            if (Backend.goOS() == "darwin") {
                 append({
                     "name"          : "Apple Mail",
                     "iconSource"    : "/qml/icons/ic-apple-mail.svg",
@@ -59,7 +59,7 @@ Item {
                     "link"          : "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019"
                 })
             }
-            if (Backend.goos == "windows") {
+            if (Backend.goOS() == "windows") {
                 append({
                     "name"          : "Microsoft Outlook",
                     "iconSource"    : "/qml/icons/ic-microsoft-outlook.svg",

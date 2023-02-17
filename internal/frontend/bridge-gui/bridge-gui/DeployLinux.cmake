@@ -43,6 +43,9 @@ macro( AppendQt6Lib LIB_NAME)
     AppendLib("${LIB_NAME}" "${QT_DIR}/lib/")
 endmacro()
 
+# bridgelib
+install(FILES ${BRIDGELIB_OUTPUT_PATH} DESTINATION ${CMAKE_INSTALL_PREFIX})
+
 #Qt6
 AppendQt6Lib("libQt6QuickControls2.so.6")
 AppendQt6Lib("libQt6Quick.so.6")

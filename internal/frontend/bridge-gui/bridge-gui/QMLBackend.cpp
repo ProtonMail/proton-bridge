@@ -17,8 +17,9 @@
 
 
 #include "QMLBackend.h"
-#include "EventStreamWorker.h"
 #include "BuildConfig.h"
+#include "BridgeLib.h"
+#include "EventStreamWorker.h"
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/Worker/Overseer.h>
@@ -56,7 +57,7 @@ void QMLBackend::init(GRPCConfig const &serviceConfig) {
     app().grpc().setLog(&log);
     this->connectGrpcEvents();
 
-    app().grpc().connectToServer(serviceConfig, app().bridgeMonitor());
+    app().grpc().connectToServer(bridgelib::userConfigDir(), serviceConfig, app().bridgeMonitor());
     app().log().info("Connected to backend via gRPC service.");
 
     QString bridgeVer;
@@ -73,7 +74,6 @@ void QMLBackend::init(GRPCConfig const &serviceConfig) {
     });
 
     // Grab from bridge the value that will not change during the execution of this app (or that will only change locally).
-    app().grpc().goos(goos_);
     app().grpc().logsPath(logsPath_);
     app().grpc().licensePath(licensePath_);
     bool sslForIMAP = false, sslForSMTP = false;
@@ -152,6 +152,16 @@ bool QMLBackend::areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs) const {
 
 
 //****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+QString QMLBackend::goOS() {
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        return bridgelib::goos();
+    )
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The value for the 'showOnStartup' property.
 //****************************************************************************************************************************************************
 bool QMLBackend::showOnStartup() const {
@@ -182,16 +192,6 @@ void QMLBackend::setShowSplashScreen(bool show) {
 bool QMLBackend::showSplashScreen() const {
     HANDLE_EXCEPTION_RETURN_BOOL(
         return showSplashScreen_;
-    )
-}
-
-
-//****************************************************************************************************************************************************
-/// \return The value for the 'GOOS' property.
-//****************************************************************************************************************************************************
-QString QMLBackend::goos() const {
-    HANDLE_EXCEPTION_RETURN_QSTRING(
-        return goos_;
     )
 }
 

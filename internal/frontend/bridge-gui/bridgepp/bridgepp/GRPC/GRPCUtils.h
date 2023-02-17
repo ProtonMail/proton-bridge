@@ -34,9 +34,9 @@ extern std::string const grpcMetadataServerTokenKey; ///< The key for the server
 typedef std::shared_ptr<grpc::StreamEvent> SPStreamEvent; ///< Type definition for shared pointer to grpc::StreamEvent.
 
 
-QString grpcServerConfigPath(); ///< Return the path of the gRPC server config file.
-QString grpcClientConfigBasePath(); ///< Return the path of the gRPC client config file.
-QString createClientConfigFile(QString const &token, QString *outError); ///< Create the client config file the server will retrieve and return its path.
+QString grpcServerConfigPath(QString const &configDir); ///< Return the path of the gRPC server config file.
+QString grpcClientConfigBasePath(QString const &configDir); ///< Return the path of the gRPC client config file.
+QString createClientConfigFile(QString const &configDir, QString const &token, QString *outError); ///< Create the client config file the server will retrieve and return its path.
 grpc::LogLevel logLevelToGRPC(Log::Level level); ///< Convert a Log::Level to gRPC enum value.
 Log::Level logLevelFromGRPC(grpc::LogLevel level); ///< Convert a grpc::LogLevel to a Log::Level.
 grpc::UserState userStateToGRPC(UserState state); ///< Convert a bridgepp::UserState to a grpc::UserState.

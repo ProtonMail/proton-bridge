@@ -27,13 +27,14 @@
 namespace bridgepp {
 
 
-//**********************************************************************************************************************
+//****************************************************************************************************************************************************
 /// \brief Focus GRPC client class
-//**********************************************************************************************************************
+//****************************************************************************************************************************************************
 class FocusGRPCClient {
 public: // static member functions
-    static void removeServiceConfigFile(); ///< Delete the service config file.
-    static QString grpcFocusServerConfigPath(); ///< Return the path of the gRPC Focus server config file.
+    static void removeServiceConfigFile(QString const &configDir); ///< Delete the service config file.
+    static QString grpcFocusServerConfigPath(QString const &configDir); ///< Return the path of the gRPC Focus server config file.
+
 public: // member functions.
     FocusGRPCClient() = default; ///< Default constructor.
     FocusGRPCClient(FocusGRPCClient const &) = delete; ///< Disabled copy-constructor.
@@ -41,8 +42,8 @@ public: // member functions.
     ~FocusGRPCClient() = default; ///< Destructor.
     FocusGRPCClient &operator=(FocusGRPCClient const &) = delete; ///< Disabled assignment operator.
     FocusGRPCClient &operator=(FocusGRPCClient &&) = delete; ///< Disabled move assignment operator.
-    bool connectToServer(qint64 timeoutMs, quint16 port, QString *outError = nullptr); ///< Connect to the focus server
 
+    bool connectToServer(qint64 timeoutMs, quint16 port, QString *outError = nullptr); ///< Connect to the focus server
     grpc::Status raise(); ///< Performs the 'raise' call.
     grpc::Status version(QString &outVersion); ///< Performs the 'version' call.
 
