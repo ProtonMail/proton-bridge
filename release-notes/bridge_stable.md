@@ -1,7 +1,31 @@
-## v2.4.8
-- 2022-11-22
+## v3.0.17
+- 2023-02-22
 
 ### New
+- Improved error detection
+- Changed the default location of the database and storage files.
+- Optimised cache, database and storage placement
+- Improved email sending performance
+- Improved unexpected event handling
+- Program argument to use software rendering
+- Improved exception handling in GUI
+- Added an option to the GUI to export TLS certificates
+- Increased tolerance of invalid messages
+- Improved error detection when Proton server updates cannot be processed
+- Increase worker count (performance improvement)
+- New IMAP library (https://github.com/ProtonMail/gluon)
+    - IMAP state managed entirely by the new IMAP library, to increase robustness and performance
+    - Used ANTLR to generate a correct IMAP parser directly from RFC protocol description
+    - Implemented an IMAP 'snapshot' system to ensure correct execution of IMAP commands when multiple clients are connected simultaneously
+    - Full support of IMAP subscription
+    - Full support of IMAP SEARCH
+    - Allow users to modify the Gluon data location
+    - Improved synchronization of local and remote changes
+- New API library (https://github.com/ProtonMail/go-proton-api)
+    - Switched from pmapi to go-proton-api
+    - Stability and performance improvement
+- Added an option to change IMAP connection mode
+- Subfolder support
 - Native Mac M1 release
 - Upgrade to Qt 6:
     - Change the app architecture
@@ -18,6 +42,40 @@
 - New icon for .dmg installer
 
 ### Fixed
+- Desynchronization while creating draft.
+- Improved network error handling
+- Fixed the sync issues that can happen when updating from an earlier v3 version
+- Improved attachment handling by setting proper MIME parameters
+- Improved update processing while Bridge is not active or performs a synchronization with Proton servers
+- Outlook does not show sent messages as drafts
+- Improved 'Reply to' behaviour
+- API event processing more robust
+- Improve the startup process
+- Fixed sub-folder creation bug
+- Autostart is set only when changed by the user
+- Folders that are created during initial sync are synchronized correctly
+- Improved settings migration from 2.x to 3.x
+- Error reporting improvements on Intel Macs
+- Show the setup guide after the first login
+- User name and password validation messages are shown only when the Sign in button is pressed
+- The Bridge main window is not shown on startup or after a crash
+- Sign in button is not greyed out after the first login
+- Proton server update processing will not stop after a folder update failure
+- Bridge password migration from 2.x to 3.x
+- Ensure proper handling of folders and labels with non-US ASCII chars
+- Stability & Reliability improvements
+    - Optimized SELECT, FETCH and SEARCH performance
+    - Parallel user unlock (faster startup times)
+    - Parallel file upload (faster send with attachments)
+    - Parallel contact fetch (faster send to multiple addresses)
+    - Implemented batching for increased performance for COPY/MOVE/STORE on multiple messages
+    - Reduced reliance on OS keychain
+- Implemented sync manager
+- Improved handling SMTP send deduplication
+- Better user management
+- Improved Sentry reporting for easier debugging
+- Increase test coverage
+- GUI improvements
 - Improved robustness of Bridge restart
 - The notification for when Bridge ports are occupied
 - Fixed vulnerabilities of golang.org/x/crypto
