@@ -556,7 +556,7 @@ func (bridge *Bridge) onStatusDown(ctx context.Context) {
 }
 
 func loadTLSConfig(vault *vault.Vault) (*tls.Config, error) {
-	cert, err := tls.X509KeyPair(vault.GetBridgeTLSCert(), vault.GetBridgeTLSKey())
+	cert, err := tls.X509KeyPair(vault.GetBridgeTLSCert())
 	if err != nil {
 		return nil, err
 	}

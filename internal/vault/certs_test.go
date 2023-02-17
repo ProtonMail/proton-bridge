@@ -28,8 +28,9 @@ func TestVault_TLSCerts(t *testing.T) {
 	s := newVault(t)
 
 	// Check the default bridge TLS certs.
-	require.NotEmpty(t, s.GetBridgeTLSCert())
-	require.NotEmpty(t, s.GetBridgeTLSKey())
+	cert, key := s.GetBridgeTLSCert()
+	require.NotEmpty(t, cert)
+	require.NotEmpty(t, key)
 
 	// Check the certificates are not installed.
 	require.False(t, s.GetCertsInstalled())

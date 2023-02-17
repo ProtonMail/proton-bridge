@@ -51,7 +51,9 @@ func WithVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool)
 	if installed := encVault.GetCertsInstalled(); !installed {
 		logrus.Debug("Installing certificates")
 
-		if err := certs.NewInstaller().InstallCert(encVault.GetBridgeTLSCert()); err != nil {
+		certPEM, _ := encVault.GetBridgeTLSCert()
+
+		if err := certs.NewInstaller().InstallCert(certPEM); err != nil {
 			return fmt.Errorf("failed to install certs: %w", err)
 		}
 

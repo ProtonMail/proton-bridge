@@ -135,12 +135,16 @@ func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan e
 	fe.AddCmd(configureCmd)
 
 	// TLS commands.
-	exportTLSCmd := &ishell.Cmd{
-		Name: "export-tls",
+	fe.AddCmd(&ishell.Cmd{
+		Name: "export-tls-cert",
 		Help: "Export the TLS certificate used by the Bridge",
 		Func: fe.exportTLSCerts,
-	}
-	fe.AddCmd(exportTLSCmd)
+	})
+	fe.AddCmd(&ishell.Cmd{
+		Name: "import-tls-cert",
+		Help: "Import a TLS certificate to be used by the Bridge",
+		Func: fe.importTLSCerts,
+	})
 
 	// All mail visibility commands.
 	allMailCmd := &ishell.Cmd{
