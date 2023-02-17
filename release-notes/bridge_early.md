@@ -1,8 +1,16 @@
+## v3.0.16
+- 2023-02-17
+
+### Fixed
+- Desynchronization while creating draft.
+
+
 ## v3.0.15
 - 2023-02-14
 
 ### Fixed
 - Better network error handling
+
 
 ## v3.0.14
 - 2023-02-09
