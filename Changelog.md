@@ -5,7 +5,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## [Bridge 3.0.16/17] Perth Narrows
 
 ### Fixed
-* GODT-2354: Report failed load users.
+* GODT-2371: Continue, not return, when handling draft.
 
 ## [Bridge 3.0.15] Perth Narrows
 
