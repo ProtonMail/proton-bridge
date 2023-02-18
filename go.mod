@@ -43,9 +43,9 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.3.5
 	go.uber.org/goleak v1.2.0
 	golang.org/x/exp v0.0.0-20221023144134-a1e5550cf13e
-	golang.org/x/net v0.1.0
-	golang.org/x/sys v0.1.0
-	golang.org/x/text v0.4.0
+	golang.org/x/net v0.7.0
+	golang.org/x/sys v0.5.0
+	golang.org/x/text v0.7.0
 	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.28.1
 	howett.net/plist v1.0.0
