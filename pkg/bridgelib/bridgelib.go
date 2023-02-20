@@ -106,3 +106,11 @@ func withLocationProvider(fn func(provider *locations.DefaultProvider) string) *
 
 	return C.CString(fn(locs))
 }
+
+// cStringToGoString converts a cString to a GoString and release the memory for the C-String. This function is implemented
+// here because cgo code is not allowed in Go test files.
+func cStringToGoString(cStr *C.char) string {
+	str := C.GoString(cStr)
+	DeleteCString(cStr) // preferred over a direct call to C.free so that the former is covered in tests.
+	return str
+}
