@@ -479,7 +479,9 @@ func getMessageHeader(msg proton.Message, opts JobOptions) message.Header {
 	// Set our external ID if requested.
 	// This was useful during debugging of applemail recovered messages; doesn't help with any behaviour.
 	if opts.AddExternalID {
-		hdr.Set("X-Pm-External-Id", "<"+msg.ExternalID+">")
+		if msg.ExternalID != "" {
+			hdr.Set("X-Pm-External-Id", "<"+msg.ExternalID+">")
+		}
 	}
 
 	// Set our server date if requested.
