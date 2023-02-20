@@ -31,6 +31,7 @@ import (
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
@@ -429,6 +430,105 @@ func TestBridge_User_UpdateDraftAndCreateOtherMessage(t *testing.T) {
 			// Process those events.
 			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 				userContinueEventProcess(ctx, t, s, bridge)
+			})
+		})
+	})
+}
+
+func TestBridge_User_SendDraftRemoveDraftFlag(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a bridge user.
+		_, _, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		// Initially sync the user.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+		})
+
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			user, err := c.GetUser(ctx)
+			require.NoError(t, err)
+
+			addrs, err := c.GetAddresses(ctx)
+			require.NoError(t, err)
+
+			salts, err := c.GetSalts(ctx)
+			require.NoError(t, err)
+
+			keyPass, err := salts.SaltForKey(password, user.Keys.Primary().ID)
+			require.NoError(t, err)
+
+			_, addrKRs, err := proton.Unlock(user, addrs, keyPass)
+			require.NoError(t, err)
+
+			// Create a draft (generating a "create draft message" event).
+			draft, err := c.CreateDraft(ctx, addrKRs[addrs[0].ID], proton.CreateDraftReq{
+				Message: proton.DraftTemplate{
+					Subject:  "subject",
+					ToList:   []*mail.Address{{Address: addrs[0].Email}},
+					Sender:   &mail.Address{Name: "sender", Address: addrs[0].Email},
+					Body:     "body",
+					MIMEType: rfc822.TextPlain,
+				},
+			})
+			require.NoError(t, err)
+
+			// Process those events
+			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+				userContinueEventProcess(ctx, t, s, bridge)
+
+				info, err := bridge.QueryUserInfo("user")
+				require.NoError(t, err)
+
+				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+				require.NoError(t, err)
+				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+				defer func() { _ = client.Logout() }()
+
+				messages, err := clientFetch(client, "Drafts")
+				require.NoError(t, err)
+				require.Len(t, messages, 1)
+				require.Contains(t, messages[0].Flags, imap.DraftFlag)
+			})
+
+			// Send the draft (generating an "update message" event).
+			{
+				pubKeys, recType, err := c.GetPublicKeys(ctx, addrs[0].Email)
+				require.NoError(t, err)
+				require.Equal(t, recType, proton.RecipientTypeInternal)
+
+				var req proton.SendDraftReq
+
+				require.NoError(t, req.AddTextPackage(addrKRs[addrs[0].ID], "body", rfc822.TextPlain, map[string]proton.SendPreferences{
+					addrs[0].Email: {
+						Encrypt:          true,
+						PubKey:           must(crypto.NewKeyRing(must(crypto.NewKeyFromArmored(pubKeys[0].PublicKey)))),
+						SignatureType:    proton.DetachedSignature,
+						EncryptionScheme: proton.InternalScheme,
+						MIMEType:         rfc822.TextPlain,
+					},
+				}, nil))
+
+				require.NoError(t, getErr(c.SendDraft(ctx, draft.ID, req)))
+			}
+
+			// Process those events; the draft will move to the sent folder and lose the draft flag.
+			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+				userContinueEventProcess(ctx, t, s, bridge)
+
+				info, err := bridge.QueryUserInfo("user")
+				require.NoError(t, err)
+
+				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+				require.NoError(t, err)
+				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+				defer func() { _ = client.Logout() }()
+
+				messages, err := clientFetch(client, "Sent")
+				require.NoError(t, err)
+				require.Len(t, messages, 1)
+				require.NotContains(t, messages[0].Flags, imap.DraftFlag)
 			})
 		})
 	})

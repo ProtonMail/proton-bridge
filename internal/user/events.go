@@ -570,6 +570,7 @@ func (user *User) handleUpdateMessageEvent(ctx context.Context, event proton.Mes
 			mapTo[string, imap.MailboxID](wantLabels(user.apiLabels, event.Message.LabelIDs)),
 			event.Message.Seen(),
 			event.Message.Starred(),
+			event.Message.IsDraft(),
 		)
 
 		user.updateCh[event.Message.AddressID].Enqueue(update)
