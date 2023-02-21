@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ProtonMail/gluon"
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gluon/reporter"
@@ -420,7 +421,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 
 		switch event.Action {
 		case proton.EventCreate:
-			updates, err := user.handleCreateMessageEvent(logging.WithLogrusField(ctx, "action", "create message"), event)
+			updates, err := user.handleCreateMessageEvent(logging.WithLogrusField(ctx, "action", "create message"), event.Message)
 			if err != nil {
 				if rerr := user.reporter.ReportMessageWithContext("Failed to apply create message event", reporter.Context{
 					"error": err,
@@ -449,6 +450,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 					}); rerr != nil {
 						user.log.WithError(err).Error("Failed to report update draft message event error")
 					}
+
 					return fmt.Errorf("failed to handle update draft event: %w", err)
 				}
 
@@ -465,7 +467,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 			// Issue regular update to handle mailboxes and flag changes.
 			updates, err := user.handleUpdateMessageEvent(
 				logging.WithLogrusField(ctx, "action", "update message"),
-				event,
+				event.Message,
 			)
 			if err != nil {
 				if rerr := user.reporter.ReportMessageWithContext("Failed to apply update message event", reporter.Context{
@@ -473,10 +475,23 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 				}); rerr != nil {
 					user.log.WithError(err).Error("Failed to report update message event error")
 				}
+
 				return fmt.Errorf("failed to handle update message event: %w", err)
 			}
 
-			if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+			// If the update fails on the gluon side because it doesn't exist, we try to create the message instead.
+			if err := waitOnIMAPUpdates(ctx, updates); gluon.IsNoSuchMessage(err) {
+				user.log.WithError(err).Error("Failed to handle update message event in gluon, will try creating it")
+
+				updates, err := user.handleCreateMessageEvent(ctx, event.Message)
+				if err != nil {
+					return fmt.Errorf("failed to handle update message event as create: %w", err)
+				}
+
+				if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+					return err
+				}
+			} else if err != nil {
 				return err
 			}
 
@@ -491,6 +506,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 				}); rerr != nil {
 					user.log.WithError(err).Error("Failed to report delete message event error")
 				}
+
 				return fmt.Errorf("failed to handle delete message event: %w", err)
 			}
 
@@ -503,17 +519,17 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 	return nil
 }
 
-func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) {
+func (user *User) handleCreateMessageEvent(ctx context.Context, message proton.MessageMetadata) ([]imap.Update, error) {
 	user.log.WithFields(logrus.Fields{
-		"messageID": event.ID,
-		"subject":   logging.Sensitive(event.Message.Subject),
+		"messageID": message.ID,
+		"subject":   logging.Sensitive(message.Subject),
 	}).Info("Handling message created event")
 
-	full, err := user.client.GetFullMessage(ctx, event.Message.ID, newProtonAPIScheduler(), proton.NewDefaultAttachmentAllocator())
+	full, err := user.client.GetFullMessage(ctx, message.ID, newProtonAPIScheduler(), proton.NewDefaultAttachmentAllocator())
 	if err != nil {
 		// If the message is not found, it means that it has been deleted before we could fetch it.
 		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
-			user.log.WithField("messageID", event.Message.ID).Warn("Cannot create new message: full message is missing on API")
+			user.log.WithField("messageID", message.ID).Warn("Cannot create new message: full message is missing on API")
 			return nil, nil
 		}
 
@@ -523,13 +539,13 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.Mes
 	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		var update imap.Update
 
-		if err := withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+		if err := withAddrKR(user.apiUser, user.apiAddrs[message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
 			res := buildRFC822(user.apiLabels, full, addrKR, new(bytes.Buffer))
 
 			if res.err != nil {
 				user.log.WithError(err).Error("Failed to build RFC822 message")
 
-				if err := user.vault.AddFailedMessageID(event.ID); err != nil {
+				if err := user.vault.AddFailedMessageID(message.ID); err != nil {
 					user.log.WithError(err).Error("Failed to add failed message ID to vault")
 				}
 
@@ -543,7 +559,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.Mes
 				return nil
 			}
 
-			if err := user.vault.RemFailedMessageID(event.ID); err != nil {
+			if err := user.vault.RemFailedMessageID(message.ID); err != nil {
 				user.log.WithError(err).Error("Failed to remove failed message ID from vault")
 			}
 
@@ -559,22 +575,22 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.Mes
 	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleUpdateMessageEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) { //nolint:unparam
+func (user *User) handleUpdateMessageEvent(ctx context.Context, message proton.MessageMetadata) ([]imap.Update, error) { //nolint:unparam
 	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		user.log.WithFields(logrus.Fields{
-			"messageID": event.ID,
-			"subject":   logging.Sensitive(event.Message.Subject),
+			"messageID": message.ID,
+			"subject":   logging.Sensitive(message.Subject),
 		}).Info("Handling message updated event")
 
 		update := imap.NewMessageMailboxesUpdated(
-			imap.MessageID(event.ID),
-			mapTo[string, imap.MailboxID](wantLabels(user.apiLabels, event.Message.LabelIDs)),
-			event.Message.Seen(),
-			event.Message.Starred(),
-			event.Message.IsDraft(),
+			imap.MessageID(message.ID),
+			mapTo[string, imap.MailboxID](wantLabels(user.apiLabels, message.LabelIDs)),
+			message.Seen(),
+			message.Starred(),
+			message.IsDraft(),
 		)
 
-		user.updateCh[event.Message.AddressID].Enqueue(update)
+		user.updateCh[message.AddressID].Enqueue(update)
 
 		return []imap.Update{update}, nil
 	}, user.apiLabelsLock, user.updateChLock)
