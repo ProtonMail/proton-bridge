@@ -18,12 +18,12 @@
 
 #include "Pch.h"
 #include "BridgeApp.h"
-#include "BridgeLib.h"
 #include "CommandLine.h"
-#include "Log.h"
+#include "LogUtils.h"
 #include "QMLBackend.h"
 #include "SentryUtils.h"
 #include "BuildConfig.h"
+#include <bridgepp/BridgeLib.h>
 #include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/FocusGRPC/FocusGRPCClient.h>

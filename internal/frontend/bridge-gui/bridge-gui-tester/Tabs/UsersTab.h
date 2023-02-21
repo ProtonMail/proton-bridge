@@ -54,7 +54,6 @@ public slots:
     void logoutUser(QString const &userID); ///< slot for the logging out of a user.
     void removeUser(QString const &userID); ///< Slot for the removal of a user.
     void configureUserAppleMail(QString const &userID, QString const &address); ///< Slot for the configuration of Apple mail.
-
 private slots:
     void onAddUserButton(); ///< Add a user to the user list.
     void onEditUserButton(); ///< Edit the currently selected user.
@@ -63,6 +62,8 @@ private slots:
     void onSendUserBadEvent(); ///< Slot for the 'Send Bad Event Error' button.
     void onSendUsedBytesChangedEvent(); ///< Slot for the 'Send Used Bytes Changed Event' button.
     void onSendIMAPLoginFailedEvent(); ///< Slot for the 'Send IMAP Login failure Event' button.
+    void onCheckSyncToggled(bool checked); ///< Slot for the 'Synchronizing' check box.
+    void onSliderSyncValueChanged(int value); ///< Slot for the sync 'Progress' slider.
     void updateGUIState(); ///< Update the GUI state.
 
 private: // member functions.

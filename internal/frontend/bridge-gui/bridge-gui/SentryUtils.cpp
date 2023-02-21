@@ -17,12 +17,8 @@
 
 #include "SentryUtils.h"
 #include "BuildConfig.h"
-#include "BridgeLib.h"
+#include <bridgepp/BridgeLib.h>
 #include <bridgepp/BridgeUtils.h>
-#include <QByteArray>
-#include <QCryptographicHash>
-#include <QString>
-#include <QSysInfo>
 
 
 using namespace bridgepp;

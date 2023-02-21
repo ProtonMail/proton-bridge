@@ -181,6 +181,9 @@ signals:
     void userBadEvent(QString const &userID, QString const& errorMessage);
     void usedBytesChanged(QString const &userID, qint64 usedBytes);
     void imapLoginFailed(QString const& username);
+    void syncStarted(QString const &userID);
+    void syncFinished(QString const &userID);
+    void syncProgress(QString const &userID, double progress, qint64 elapsedMs, qint64 remainingMs);
 
 public: // keychain related calls
     grpc::Status availableKeychains(QStringList &outKeychains);

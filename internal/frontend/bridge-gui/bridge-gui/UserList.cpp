@@ -39,6 +39,9 @@ void UserList::connectGRPCEvents() const {
     connect(&client, &GRPCClient::userChanged, this, &UserList::onUserChanged);
     connect(&client, &GRPCClient::toggleSplitModeFinished, this, &UserList::onToggleSplitModeFinished);
     connect(&client, &GRPCClient::usedBytesChanged, this, &UserList::onUsedBytesChanged);
+    connect(&client, &GRPCClient::syncStarted, this, &UserList::onSyncStarted);
+    connect(&client, &GRPCClient::syncFinished, this, &UserList::onSyncFinished);
+    connect(&client, &GRPCClient::syncProgress, this, &UserList::onSyncProgress);
 }
 
 
@@ -250,4 +253,48 @@ void UserList::onUsedBytesChanged(QString const &userID, qint64 usedBytes) {
         return;
     }
     users_[index]->setUsedBytes(usedBytes);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+//****************************************************************************************************************************************************
+void UserList::onSyncStarted(QString const &userID) {
+    int const index = this->rowOfUserID(userID);
+    if (index < 0) {
+        app().log().error(QString("Received onSyncStarted event for unknown userID %1").arg(userID));
+        return;
+    }
+    users_[index]->setIsSyncing(true);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+//****************************************************************************************************************************************************
+void UserList::onSyncFinished(QString const &userID) {
+    int const index = this->rowOfUserID(userID);
+    if (index < 0) {
+        app().log().error(QString("Received onSyncFinished event for unknown userID %1").arg(userID));
+        return;
+    }
+    users_[index]->setIsSyncing(false);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \param[in] progress The sync progress ratio.
+/// \param[in] elapsedMs The elapsed sync time in milliseconds.
+/// \param[in] remainingMs The remaining sync time in milliseconds.
+//****************************************************************************************************************************************************
+void UserList::onSyncProgress(QString const &userID, double progress, float elapsedMs, float remainingMs) {
+    Q_UNUSED(elapsedMs)
+    Q_UNUSED(remainingMs)
+    int const index = this->rowOfUserID(userID);
+    if (index < 0) {
+        app().log().error(QString("Received onSyncFinished event for unknown userID %1").arg(userID));
+        return;
+    }
+    users_[index]->setSyncProgress(progress);
 }

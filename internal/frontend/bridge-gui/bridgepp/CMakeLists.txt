@@ -135,6 +135,7 @@ add_custom_command(
 
 
 add_library(bridgepp
+    bridgepp/BridgeLib.cpp bridgepp/BridgeLib.h
     bridgepp/BridgeUtils.cpp bridgepp/BridgeUtils.h
     bridgepp/Exception/Exception.h bridgepp/Exception/Exception.cpp
     bridgepp/GRPC/GRPCClient.cpp bridgepp/GRPC/GRPCClient.h

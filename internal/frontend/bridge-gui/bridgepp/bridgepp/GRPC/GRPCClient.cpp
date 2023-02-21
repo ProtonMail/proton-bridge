@@ -1380,6 +1380,28 @@ void GRPCClient::processUserEvent(UserEvent const &event) {
         emit imapLoginFailed(username);
         break;
     }
+    case UserEvent::kSyncStartedEvent: {
+        SyncStartedEvent const &e = event.syncstartedevent();
+        QString const &userID = QString::fromStdString(e.userid());
+        this->logTrace(QString("User event received: SyncStarted (userID = %1).:").arg(userID));
+        emit syncStarted(userID);
+        break;
+    }
+    case UserEvent::kSyncFinishedEvent: {
+        SyncFinishedEvent const &e = event.syncfinishedevent();
+        QString const &userID = QString::fromStdString(e.userid());
+        this->logTrace(QString("User event received: SyncFinished (userID = %1).:").arg(userID));
+        emit syncFinished(userID);
+        break;
+    }
+    case UserEvent::kSyncProgressEvent: {
+        SyncProgressEvent const &e = event.syncprogressevent();
+        QString const &userID = QString::fromStdString(e.userid());
+        this->logTrace(QString("User event received SyncProgress (userID = %1, progress = %2, elapsedMs = %3, remainingMs = %4).").arg(userID)
+            .arg(e.progress()).arg(e.elapsedms()).arg(e.remainingms()));
+        emit syncProgress(userID, e.progress(), e.elapsedms(), e.remainingms());
+        break;
+    }
     default:
         this->logError("Unknown User event received.");
     }

@@ -16,9 +16,9 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#include "Log.h"
-#include "BridgeLib.h"
+#include "LogUtils.h"
 #include "BuildConfig.h"
+#include <bridgepp/BridgeLib.h>
 
 
 using namespace bridgepp;

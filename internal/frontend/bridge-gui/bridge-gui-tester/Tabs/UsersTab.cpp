@@ -55,6 +55,8 @@ UsersTab::UsersTab(QWidget *parent)
     connect(ui_.buttonImapLoginFailed, &QPushButton::clicked, this, &UsersTab::onSendIMAPLoginFailedEvent);
     connect(ui_.buttonUsedBytesChanged, &QPushButton::clicked, this, &UsersTab::onSendUsedBytesChangedEvent);
     connect(ui_.checkUsernamePasswordError, &QCheckBox::toggled, this, &UsersTab::updateGUIState);
+    connect(ui_.checkSync, &QCheckBox::toggled, this, &UsersTab::onCheckSyncToggled);
+    connect(ui_.sliderSync, &QSlider::valueChanged, this, &UsersTab::onSliderSyncValueChanged);
 
     users_.append(randomUser());
 
@@ -217,9 +219,19 @@ void UsersTab::updateGUIState() {
     ui_.groupBoxUsedSpace->setEnabled(hasSelectedUser && (UserState::Connected == state));
     ui_.editUsernamePasswordError->setEnabled(ui_.checkUsernamePasswordError->isChecked());
     ui_.spinUsedBytes->setValue(user ? user->usedBytes() : 0.0);
+    ui_.groupboxSync->setEnabled(user.get());
 
     if (user)
         ui_.editIMAPLoginFailedUsername->setText(user->primaryEmailOrUsername());
+
+    QSignalBlocker b(ui_.checkSync);
+    bool const syncing = user && user->isSyncing();
+    ui_.checkSync->setChecked(syncing);
+    b = QSignalBlocker(ui_.sliderSync);
+    ui_.sliderSync->setEnabled(syncing);
+    qint32 const progressPercent = syncing ? qint32(user->syncProgress() * 100.0f) : 0;
+    ui_.sliderSync->setValue(progressPercent);
+    ui_.labelSync->setText(syncing ? QString("%1%").arg(progressPercent) : "" );
 }
 
 
@@ -397,4 +409,45 @@ void UsersTab::removeUser(QString const &userID) {
 void UsersTab::configureUserAppleMail(QString const &userID, QString const &address) {
     app().log().info(QString("Apple mail configuration was requested for user %1, address %2").arg(userID, address));
 
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] checked Is the sync checkbox checked?
+//****************************************************************************************************************************************************
+void UsersTab::onCheckSyncToggled(bool checked) {
+    SPUser const user = this->selectedUser();
+    if ((!user) || (user->isSyncing() == checked)) {
+        return;
+    }
+
+    user->setIsSyncing(checked);
+    user->setSyncProgress(0.0);
+    GRPCService &grpc = app().grpc();
+
+    // we do not apply delay for these event.
+    if (checked) {
+        grpc.sendEvent(newSyncStartedEvent(user->id()));
+        grpc.sendEvent(newSyncProgressEvent(user->id(), 0.0, 1, 1));
+    } else {
+        grpc.sendEvent(newSyncFinishedEvent(user->id()));
+    }
+
+    this->updateGUIState();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] value The value for the slider.
+//****************************************************************************************************************************************************
+void UsersTab::onSliderSyncValueChanged(int value) {
+    SPUser const user = this->selectedUser();
+    if ((!user) || (!user->isSyncing()) || user->syncProgress() == value) {
+        return;
+    }
+
+    double const progress = value / 100.0;
+    user->setSyncProgress(progress);
+    app().grpc().sendEvent(newSyncProgressEvent(user->id(), progress, 1, 1));  // we do not simulate elapsed & remaining.
+    this->updateGUIState();
 }

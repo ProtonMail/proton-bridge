@@ -193,17 +193,6 @@ Status GRPCService::IsAllMailVisible(ServerContext *, Empty const *request, Bool
 
 
 //****************************************************************************************************************************************************
-/// \param[out] response The response.
-/// \return The status for the call.
-//****************************************************************************************************************************************************
-Status GRPCService::GoOs(ServerContext *, Empty const *, StringValue *response) {
-    app().log().debug(__FUNCTION__);
-    response->set_value(app().mainWindow().settingsTab().os().toStdString());
-    return Status::OK;
-}
-
-
-//****************************************************************************************************************************************************
 /// \return The status for the call.
 //****************************************************************************************************************************************************
 Status GRPCService::TriggerReset(ServerContext *, Empty const *, Empty *) {

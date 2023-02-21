@@ -101,6 +101,8 @@ public:
     Q_PROPERTY(bool splitMode READ splitMode WRITE setSplitMode NOTIFY splitModeChanged)
     Q_PROPERTY(float usedBytes READ usedBytes WRITE setUsedBytes NOTIFY usedBytesChanged)
     Q_PROPERTY(float totalBytes READ totalBytes WRITE setTotalBytes NOTIFY totalBytesChanged)
+    Q_PROPERTY(bool isSyncing READ isSyncing WRITE setIsSyncing NOTIFY isSyncingChanged)
+    Q_PROPERTY(float syncProgress READ syncProgress WRITE setSyncProgress NOTIFY syncProgressChanged)
 
     QString id() const;
     void setID(QString const &id);
@@ -120,6 +122,10 @@ public:
     void setUsedBytes(float usedBytes);
     float totalBytes() const;
     void setTotalBytes(float totalBytes);
+    bool isSyncing() const;
+    void setIsSyncing(bool syncing);
+    float syncProgress() const;
+    void setSyncProgress(float progress);
 
 signals:
     // signals used for Qt properties
@@ -134,6 +140,8 @@ signals:
     void usedBytesChanged(float byteCount);
     void totalBytesChanged(float byteCount);
     void toggleSplitModeFinished();
+    void isSyncingChanged(bool syncing);
+    void syncProgressChanged(float syncProgress);
 
 private: // member functions.
     User(QObject *parent); ///< Default constructor.
@@ -149,6 +157,8 @@ private: // data members.
     bool splitMode_ { false }; ///< Is split mode active.
     float usedBytes_ { 0.0f }; ///< The storage used by the user.
     float totalBytes_ { 1.0f }; ///< The storage quota of the user.
+    bool isSyncing_ { false }; ///< Is a sync in progress for the user.
+    float syncProgress_ { 0.0f }; ///< The sync progress.
 };
 
 

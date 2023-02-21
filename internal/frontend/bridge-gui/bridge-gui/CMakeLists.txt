@@ -152,10 +152,9 @@ add_executable(bridge-gui
     Resources.qrc
     AppController.cpp AppController.h
     BridgeApp.cpp BridgeApp.h
-    BridgeLib.cpp BridgeLib.h
     CommandLine.cpp CommandLine.h
     EventStreamWorker.cpp EventStreamWorker.h
-    Log.cpp Log.h
+    LogUtils.cpp LogUtils.h
     main.cpp
     Pch.h
     QMLBackend.cpp QMLBackend.h

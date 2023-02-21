@@ -16,8 +16,8 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_LOG_H
-#define BRIDGE_GUI_LOG_H
+#ifndef BRIDGE_GUI_LOG_UTILS_H
+#define BRIDGE_GUI_LOG_UTILS_H
 
 
 #include <bridgepp/Log/Log.h>
@@ -26,4 +26,4 @@
 bridgepp::Log &initLog(); ///< Initialize the application log.
 
 
-#endif //BRIDGE_GUI_LOG_H
+#endif //BRIDGE_GUI_LOG_UTILS_H

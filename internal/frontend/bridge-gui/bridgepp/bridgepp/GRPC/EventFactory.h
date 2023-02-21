@@ -80,6 +80,9 @@ SPStreamEvent newUserChangedEvent(QString const &userID); ///< Create a new User
 SPStreamEvent newUserBadEvent(QString const &userID, QString const& errorMessage); ///< Create a new UserBadEvent event.
 SPStreamEvent newUsedBytesChangedEvent(QString const &userID, qint64 usedBytes);  ///< Create a new UsedBytesChangedEvent event.
 SPStreamEvent newIMAPLoginFailedEvent(QString const &username); ///< Create a new ImapLoginFailedEvent event.
+SPStreamEvent newSyncStartedEvent(QString const &userID); ///< Create a new SyncStarted event.
+SPStreamEvent newSyncFinishedEvent(QString const &userID); ///< Create a new SyncFinished event.
+SPStreamEvent newSyncProgressEvent(QString const &userID, double progress, qint64 elapsedMs, qint64 remainingMs); ///< Create a new SyncFinished event.
 
 // Generic error event
 SPStreamEvent newGenericErrorEvent(grpc::ErrorCode errorCode); ///< Create a new GenericErrrorEvent event.

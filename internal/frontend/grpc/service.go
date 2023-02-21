@@ -323,6 +323,15 @@ func (s *Service) watchEvents() {
 		case events.UserBadEvent:
 			_ = s.SendEvent(NewUserBadEvent(event.UserID, event.Error.Error()))
 
+		case events.SyncStarted:
+			_ = s.SendEvent(NewSyncStartedEvent(event.UserID))
+
+		case events.SyncFinished:
+			_ = s.SendEvent(NewSyncFinishedEvent(event.UserID))
+
+		case events.SyncProgress:
+			_ = s.SendEvent(NewSyncProgressEvent(event.UserID, event.Progress, event.Elapsed.Milliseconds(), event.Remaining.Milliseconds()))
+
 		case events.UpdateLatest:
 			safe.RLock(func() {
 				s.latest = event.Version

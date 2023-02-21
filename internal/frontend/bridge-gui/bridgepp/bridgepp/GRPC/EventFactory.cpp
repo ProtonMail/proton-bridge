@@ -602,6 +602,51 @@ SPStreamEvent newIMAPLoginFailedEvent(QString const &username) {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \return The event.
+//****************************************************************************************************************************************************
+SPStreamEvent newSyncStartedEvent(QString const &userID) {
+    auto event = new grpc::SyncStartedEvent;
+    event->set_userid(userID.toStdString());
+    auto userEvent = new grpc::UserEvent;
+    userEvent->set_allocated_syncstartedevent(event);
+    return wrapUserEvent(userEvent);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \return The event.
+//****************************************************************************************************************************************************
+SPStreamEvent newSyncFinishedEvent(QString const &userID) {
+    auto event = new grpc::SyncFinishedEvent;
+    event->set_userid(userID.toStdString());
+    auto userEvent = new grpc::UserEvent;
+    userEvent->set_allocated_syncfinishedevent(event);
+    return wrapUserEvent(userEvent);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \param[in] progress The progress ratio.
+/// \param[in] elapsedMs The elapsed time in milliseconds.
+/// \param[in] remainingMs The remaining time in milliseconds.
+/// \return The event.
+//****************************************************************************************************************************************************
+SPStreamEvent newSyncProgressEvent(QString const &userID, double progress, qint64 elapsedMs, qint64 remainingMs) {
+    auto event = new grpc::SyncProgressEvent;
+    event->set_userid(userID.toStdString());
+    event->set_progress(progress);
+    event->set_elapsedms(elapsedMs);
+    event->set_remainingms(remainingMs);
+    auto userEvent = new grpc::UserEvent;
+    userEvent->set_allocated_syncprogressevent(event);
+    return wrapUserEvent(userEvent);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] errorCode The error errorCode.
 /// \return The event.
 //****************************************************************************************************************************************************
