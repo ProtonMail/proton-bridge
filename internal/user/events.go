@@ -501,11 +501,16 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 }
 
 func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) {
+	user.log.WithFields(logrus.Fields{
+		"messageID": event.ID,
+		"subject":   logging.Sensitive(event.Message.Subject),
+	}).Info("Handling message created event")
+
 	full, err := user.client.GetFullMessage(ctx, event.Message.ID)
 	if err != nil {
 		// If the message is not found, it means that it has been deleted before we could fetch it.
 		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
-			user.log.WithField("messageID", event.Message.ID).Warn("Cannot add new message: full message is missing on API")
+			user.log.WithField("messageID", event.Message.ID).Warn("Cannot create new message: full message is missing on API")
 			return nil, nil
 		}
 
@@ -513,12 +518,8 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, event proton.Mes
 	}
 
 	return safe.RLockRetErr(func() ([]imap.Update, error) {
-		user.log.WithFields(logrus.Fields{
-			"messageID": event.ID,
-			"subject":   logging.Sensitive(event.Message.Subject),
-		}).Info("Handling message created event")
-
 		var update imap.Update
+
 		if err := withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
 			res := buildRFC822(user.apiLabels, full, addrKR)
 
@@ -602,7 +603,7 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 		if err != nil {
 			// If the message is not found, it means that it has been deleted before we could fetch it.
 			if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
-				user.log.WithField("messageID", event.Message.ID).Warn("Cannot add new draft: full message is missing on API")
+				user.log.WithField("messageID", event.Message.ID).Warn("Cannot update draft: full message is missing on API")
 				return nil, nil
 			}
 
@@ -640,6 +641,7 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 				res.update.Literal,
 				res.update.MailboxIDs,
 				res.update.ParsedMessage,
+				true, // Is the message doesn't exist, silently create it.
 			)
 
 			user.updateCh[full.AddressID].Enqueue(update)
