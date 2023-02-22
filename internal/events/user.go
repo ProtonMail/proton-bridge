@@ -156,3 +156,14 @@ type AddressModeChanged struct {
 func (event AddressModeChanged) String() string {
 	return fmt.Sprintf("AddressModeChanged: UserID: %s, AddressMode: %s", event.UserID, event.AddressMode)
 }
+
+type UncategorizedEventError struct {
+	eventBase
+
+	UserID string
+	Error  error
+}
+
+func (event UncategorizedEventError) String() string {
+	return fmt.Sprintf("UncategorizedEventError: UserID: %s, Source:%T, Error: %s", event.UserID, event.Error, event.Error)
+}
