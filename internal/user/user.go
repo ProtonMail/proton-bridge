@@ -20,9 +20,11 @@ package user
 import (
 	"context"
 	"crypto/subtle"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -647,6 +649,24 @@ func (user *User) doEventPoll(ctx context.Context) error {
 		// If the error is a network error, return error to retry later.
 		if netErr := new(proton.NetError); errors.As(err, &netErr) {
 			return fmt.Errorf("failed to handle event due to network issue: %w", err)
+		}
+
+		// Catch all for uncategorized net errors that may slip through.
+		if netErr := new(net.OpError); errors.As(err, &netErr) {
+			user.eventCh.Enqueue(events.UncategorizedEventError{
+				UserID: user.ID(),
+				Error:  err,
+			})
+
+			return fmt.Errorf("failed to handle event due to network issues (uncategorized): %w", err)
+		}
+
+		// In case a json decode error slips through.
+		if jsonErr := new(json.UnmarshalTypeError); errors.As(err, &jsonErr) {
+			user.eventCh.Enqueue(events.UncategorizedEventError{
+				UserID: user.ID(),
+				Error:  err,
+			})
 		}
 
 		// If the error is a server-side issue, return error to retry later.

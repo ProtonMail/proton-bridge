@@ -179,3 +179,14 @@ type IMAPLoginFailed struct {
 func (event IMAPLoginFailed) String() string {
 	return fmt.Sprintf("IMAPLoginFailed: Username: %s", event.Username)
 }
+
+type UncategorizedEventError struct {
+	eventBase
+
+	UserID string
+	Error  error
+}
+
+func (event UncategorizedEventError) String() string {
+	return fmt.Sprintf("UncategorizedEventError: UserID: %s, Source:%T, Error: %s", event.UserID, event.Error, event.Error)
+}
