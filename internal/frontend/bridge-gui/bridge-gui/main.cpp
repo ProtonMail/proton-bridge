@@ -117,8 +117,9 @@ QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine) {
 
     rootComponent->loadUrl(QUrl(qrcQmlDir + "/Bridge.qml"));
     if (rootComponent->status() != QQmlComponent::Status::Ready) {
-        app().log().error(rootComponent->errorString());
-        throw Exception("Could not load QML component");
+        QString const &err =rootComponent->errorString();
+            app().log().error(err);
+        throw Exception("Could not load QML component", err);
     }
     return rootComponent;
 }
@@ -255,12 +256,8 @@ void closeBridgeApp() {
     app().grpc().quit(); // this will cause the grpc service and the bridge app to close.
 
     UPOverseer &overseer = app().bridgeOverseer();
-    if (!overseer) { // The app was run in 'attach' mode and attached to an existing instance of Bridge. We're not monitoring it.
-        return;
-    }
-
-    while (!overseer->isFinished()) {
-        QThread::msleep(20);
+    if (overseer) {  // A null overseer means the app was run in 'attach' mode. We're not monitoring it.
+        overseer->wait(Overseer::maxTerminationWaitTimeMs);
     }
 }
 
@@ -387,7 +384,7 @@ int main(int argc, char *argv[]) {
 
         QObject::disconnect(connection);
         app().grpc().stopEventStreamReader();
-        if (!app().backend().waitForEventStreamReaderToFinish(5000)) {
+        if (!app().backend().waitForEventStreamReaderToFinish(Overseer::maxTerminationWaitTimeMs)) {
             log.warn("Event stream reader took too long to finish.");
         }
 
@@ -413,6 +410,7 @@ int main(int argc, char *argv[]) {
         errStream << "reportID: " << QByteArray(uuid.bytes, 16).toHex() << " Captured exception :" << e.qwhat() << "\n";
         if (hasDetails)
             errStream << "\nDetails:\n" << e.details() << "\n";
+        closeBridgeApp();
         return EXIT_FAILURE;
     }
 }
