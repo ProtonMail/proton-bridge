@@ -47,6 +47,7 @@ void (*deleteCStringFunc)(char *) = nullptr; ///< A pointer to the deleteCString
 
 
 #if defined(Q_OS_WINDOWS)
+#include <windows.h>
 typedef HINSTANCE LibHandle;
 #else
 typedef void *LibHandle;
