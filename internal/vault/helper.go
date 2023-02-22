@@ -18,12 +18,20 @@
 package vault
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
+
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
+	"golang.org/x/exp/slices"
 )
+
+const vaultSecretName = "bridge-vault-key"
 
 type Keychain struct {
 	Helper string
@@ -59,4 +67,44 @@ func SetHelper(vaultDir, helper string) error {
 	}
 
 	return os.WriteFile(getKeychainPrefPath(vaultDir), b, 0o600)
+}
+
+func HasVaultKey(kc *keychain.Keychain) (bool, error) {
+	secrets, err := kc.List()
+	if err != nil {
+		return false, fmt.Errorf("could not list keychain: %w", err)
+	}
+
+	return slices.Contains(secrets, vaultSecretName), nil
+}
+
+func GetVaultKey(kc *keychain.Keychain) ([]byte, error) {
+	_, keyEnc, err := kc.Get(vaultSecretName)
+	if err != nil {
+		return nil, fmt.Errorf("could not get keychain item: %w", err)
+	}
+
+	keyDec, err := base64.StdEncoding.DecodeString(keyEnc)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode keychain item: %w", err)
+	}
+
+	return keyDec, nil
+}
+
+func SetVaultKey(kc *keychain.Keychain, key []byte) error {
+	return kc.Put(vaultSecretName, base64.StdEncoding.EncodeToString(key))
+}
+
+func NewVaultKey(kc *keychain.Keychain) ([]byte, error) {
+	tok, err := crypto.RandomToken(32)
+	if err != nil {
+		return nil, fmt.Errorf("could not generate random token: %w", err)
+	}
+
+	if err := kc.Put(vaultSecretName, base64.StdEncoding.EncodeToString(tok)); err != nil {
+		return nil, fmt.Errorf("could not put keychain item: %w", err)
+	}
+
+	return tok, nil
 }

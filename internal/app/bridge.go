@@ -41,8 +41,6 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const vaultSecretName = "bridge-vault-key"
-
 // deleteOldGoIMAPFiles Set with `-ldflags -X app.deleteOldGoIMAPFiles=true` to enable cleanup of old imap cache data.
 var deleteOldGoIMAPFiles bool //nolint:gochecknoglobals
 

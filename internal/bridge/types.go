@@ -30,7 +30,7 @@ type Locator interface {
 	ProvideGluonDataPath() (string, error)
 	GetLicenseFilePath() string
 	GetDependencyLicensesLink() string
-	Clear() error
+	Clear(...string) error
 }
 
 type Identifier interface {

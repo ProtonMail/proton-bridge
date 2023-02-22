@@ -25,11 +25,9 @@ import (
 	"path/filepath"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
-	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/sirupsen/logrus"
 )
 
@@ -310,6 +308,9 @@ func (bridge *Bridge) SetColorScheme(colorScheme string) error {
 	return bridge.vault.SetColorScheme(colorScheme)
 }
 
+// FactoryReset deletes all users, wipes the vault, and deletes all files.
+// Note: it does not clear the keychain. The only entry in the keychain is the vault password,
+// which we need at next startup to decrypt the vault.
 func (bridge *Bridge) FactoryReset(ctx context.Context) {
 	// Delete all the users.
 	safe.Lock(func() {
@@ -326,21 +327,9 @@ func (bridge *Bridge) FactoryReset(ctx context.Context) {
 		logrus.WithError(err).Error("Failed to reset vault")
 	}
 
-	// Then delete all files.
-	if err := bridge.locator.Clear(); err != nil {
+	// Lastly, delete all files except the vault.
+	if err := bridge.locator.Clear(bridge.vault.Path()); err != nil {
 		logrus.WithError(err).Error("Failed to clear data paths")
-	}
-
-	// Lastly clear the keychain.
-	vaultDir, err := bridge.locator.ProvideSettingsPath()
-	if err != nil {
-		logrus.WithError(err).Error("Failed to get vault dir")
-	} else if helper, err := vault.GetHelper(vaultDir); err != nil {
-		logrus.WithError(err).Error("Failed to get keychain helper")
-	} else if keychain, err := keychain.NewKeychain(helper, constants.KeyChainName); err != nil {
-		logrus.WithError(err).Error("Failed to get keychain")
-	} else if err := keychain.Clear(); err != nil {
-		logrus.WithError(err).Error("Failed to clear keychain")
 	}
 }
 
