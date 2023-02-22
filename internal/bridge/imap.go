@@ -31,6 +31,7 @@ import (
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/gluon/store"
+	"github.com/ProtonMail/gluon/store/fallback_v0"
 	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
@@ -377,6 +378,7 @@ func (*storeBuilder) New(path, userID string, passphrase []byte) (store.Store, e
 	return store.NewOnDiskStore(
 		filepath.Join(path, userID),
 		passphrase,
+		store.WithFallback(fallback_v0.NewOnDiskStoreV0WithCompressor(&fallback_v0.GZipCompressor{})),
 	)
 }
 

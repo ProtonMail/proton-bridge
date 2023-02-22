@@ -226,18 +226,6 @@ func run(c *cli.Context) error {
 									_ = reporter.ReportMessageWithContext("Vault is corrupt", map[string]interface{}{})
 								}
 
-								// Force re-sync if last version <= 3.0.12 due to chances in the gluon cache format.
-								if lastVersion := v.GetLastVersion(); lastVersion != nil {
-									versionWithLZ4Cache := semver.MustParse("3.0.13")
-									if lastVersion.LessThan(versionWithLZ4Cache) {
-										if err := v.ForUser(1, func(user *vault.User) error {
-											return user.ClearSyncStatus()
-										}); err != nil {
-											logrus.WithError(err).Error("Failed to force resync on user")
-										}
-									}
-								}
-
 								if !v.Migrated() {
 									// Migrate old settings into the vault.
 									if err := migrateOldSettings(v); err != nil {
