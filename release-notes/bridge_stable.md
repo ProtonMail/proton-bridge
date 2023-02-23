@@ -1,3 +1,13 @@
+## v3.0.18
+- 2023-02-24
+
+### New
+- Improved event processing related error handling
+
+### Fixed
+- Fixed manual update errors on Windows by ensuring that all new files are deployed by the Bridge installer
+
+
 ## v3.0.17
 - 2023-02-22
 
