@@ -60,6 +60,7 @@ public: // member functions.
     GRPCClient &operator=(GRPCClient &&) = delete; ///< Disabled move assignment operator.
     void setLog(Log *log); ///< Set the log for the client.
     void connectToServer(QString const &configDir, GRPCConfig const &config, class ProcessMonitor *serverProcess); ///< Establish connection to the gRPC server.
+    bool isConnected() const; ///< Check whether the gRPC client is connected to the server.
 
     grpc::Status checkTokens(QString const &clientConfigPath, QString &outReturnedClientToken); ///< Performs a token check.
     grpc::Status addLogEntry(Log::Level level, QString const &package, QString const &message); ///< Performs the "AddLogEntry" gRPC call.

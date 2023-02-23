@@ -186,6 +186,14 @@ void GRPCClient::connectToServer(QString const &configDir, GRPCConfig const &con
 
 
 //****************************************************************************************************************************************************
+/// \return true if the gRPC client is connected to the server.
+//****************************************************************************************************************************************************
+bool GRPCClient::isConnected() const {
+    return stub_.get();
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] clientConfigPath The path to the gRPC client config path.-
 /// \param[in] serverToken The token obtained from the server config file.
 /// \param[out] outReturnedClientToken The client token returned by the server.
@@ -397,6 +405,8 @@ grpc::Status GRPCClient::setIsDoHEnabled(bool enabled) {
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::quit() {
     // quitting will shut down the gRPC service, to we may get an 'Unavailable' response for the call
+    if (!this->isConnected())
+        return Status::OK; // We're not even connected, we return OK. This maybe be an attempt to do 'a proper' shutdown after an unrecoverable error.
     return this->logGRPCCallStatus(stub_->Quit(this->clientContext().get(), empty, &empty), __FUNCTION__, { StatusCode::UNAVAILABLE });
 }
 
