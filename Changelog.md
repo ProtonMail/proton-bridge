@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.18] Perth Narrows
+
+### Fixed
+* GODT-2392: Create message if gluon updateMessage returns `no such message`.
+* GODT-2391: Create draft if missing during message update on gluon side.
+
 ## [Bridge 3.0.16/17] Perth Narrows
 
 ### Fixed
