@@ -310,6 +310,14 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:gocyc
 		case events.IMAPLoginFailed:
 			f.Printf("An IMAP login attempt failed for user %v\n", event.Username)
 
+		case events.UserAddressEnabled:
+			user, err := f.bridge.GetUserInfo(event.UserID)
+			if err != nil {
+				return
+			}
+
+			f.Printf("An address for %s was enabled. You may need to reconfigure your email client.\n", user.Username)
+
 		case events.UserAddressUpdated:
 			user, err := f.bridge.GetUserInfo(event.UserID)
 			if err != nil {
@@ -318,8 +326,21 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:gocyc
 
 			f.Printf("Address changed for %s. You may need to reconfigure your email client.\n", user.Username)
 
+		case events.UserAddressDisabled:
+			user, err := f.bridge.GetUserInfo(event.UserID)
+			if err != nil {
+				return
+			}
+
+			f.Printf("An address for %s was disabled. You may need to reconfigure your email client.\n", user.Username)
+
 		case events.UserAddressDeleted:
-			f.notifyLogout(event.Email)
+			user, err := f.bridge.GetUserInfo(event.UserID)
+			if err != nil {
+				return
+			}
+
+			f.Printf("An address for %s was disabled. You may need to reconfigure your email client.\n", user.Username)
 
 		case events.SyncStarted:
 			user, err := f.bridge.GetUserInfo(event.UserID)

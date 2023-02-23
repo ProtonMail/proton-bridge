@@ -534,6 +534,83 @@ func TestBridge_User_SendDraftRemoveDraftFlag(t *testing.T) {
 	})
 }
 
+func TestBridge_User_DisableEnableAddress(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		userID, _, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		// Create an additional address for the user.
+		aliasID, err := s.CreateAddress(userID, "alias@"+s.GetDomain(), password)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			require.NoError(t, getErr(bridge.LoginFull(ctx, "user", password, nil, nil)))
+
+			// Initially we should list the address.
+			info, err := bridge.QueryUserInfo("user")
+			require.NoError(t, err)
+			require.Contains(t, info.Addresses, "alias@"+s.GetDomain())
+		})
+
+		// Disable the address.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			require.NoError(t, c.DisableAddress(ctx, aliasID))
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Eventually we shouldn't list the address.
+			require.Eventually(t, func() bool {
+				info, err := bridge.QueryUserInfo("user")
+				require.NoError(t, err)
+
+				return xslices.Index(info.Addresses, "alias@"+s.GetDomain()) < 0
+			}, 5*time.Second, 100*time.Millisecond)
+		})
+
+		// Enable the address.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			require.NoError(t, c.EnableAddress(ctx, aliasID))
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Eventually we should list the address.
+			require.Eventually(t, func() bool {
+				info, err := bridge.QueryUserInfo("user")
+				require.NoError(t, err)
+
+				return xslices.Index(info.Addresses, "alias@"+s.GetDomain()) >= 0
+			}, 5*time.Second, 100*time.Millisecond)
+		})
+	})
+}
+
+func TestBridge_User_CreateDisabledAddress(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		userID, _, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		// Create an additional address for the user.
+		aliasID, err := s.CreateAddress(userID, "alias@"+s.GetDomain(), password)
+		require.NoError(t, err)
+
+		// Immediately disable the address.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			require.NoError(t, c.DisableAddress(ctx, aliasID))
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			require.NoError(t, getErr(bridge.LoginFull(ctx, "user", password, nil, nil)))
+
+			// Initially we shouldn't list the address.
+			info, err := bridge.QueryUserInfo("user")
+			require.NoError(t, err)
+			require.NotContains(t, info.Addresses, "alias@"+s.GetDomain())
+		})
+	})
+}
+
 // userLoginAndSync logs in user and waits until user is fully synced.
 func userLoginAndSync(
 	ctx context.Context,

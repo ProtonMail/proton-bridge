@@ -205,6 +205,12 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event proton.Add
 
 		user.apiAddrs[event.Address.ID] = event.Address
 
+		// If the address is disabled.
+		if event.Address.Status != proton.AddressStatusEnabled {
+			return nil
+		}
+
+		// If the address is enabled, we need to hook it up to the update channels.
 		switch user.vault.AddressMode() {
 		case vault.CombinedMode:
 			primAddr, err := getAddrIdx(user.apiAddrs, 0)
@@ -231,6 +237,10 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event proton.Add
 
 	// Perform the sync in an RLock.
 	return safe.RLockRet(func() error {
+		if event.Address.Status != proton.AddressStatusEnabled {
+			return nil
+		}
+
 		if user.vault.AddressMode() == vault.SplitMode {
 			if err := syncLabels(ctx, user.apiLabels, user.updateCh[event.Address.ID]); err != nil {
 				return fmt.Errorf("failed to sync labels to new address: %w", err)
@@ -248,18 +258,58 @@ func (user *User) handleUpdateAddressEvent(_ context.Context, event proton.Addre
 			"email":     logging.Sensitive(event.Address.Email),
 		}).Info("Handling address updated event")
 
-		if _, ok := user.apiAddrs[event.Address.ID]; !ok {
+		oldAddr, ok := user.apiAddrs[event.Address.ID]
+		if !ok {
 			user.log.Debugf("Address %q does not exist", event.Address.ID)
 			return nil
 		}
 
 		user.apiAddrs[event.Address.ID] = event.Address
 
-		user.eventCh.Enqueue(events.UserAddressUpdated{
-			UserID:    user.apiUser.ID,
-			AddressID: event.Address.ID,
-			Email:     event.Address.Email,
-		})
+		switch {
+		// If the address was newly enabled:
+		case oldAddr.Status != proton.AddressStatusEnabled && event.Address.Status == proton.AddressStatusEnabled:
+			switch user.vault.AddressMode() {
+			case vault.CombinedMode:
+				primAddr, err := getAddrIdx(user.apiAddrs, 0)
+				if err != nil {
+					return fmt.Errorf("failed to get primary address: %w", err)
+				}
+
+				user.updateCh[event.Address.ID] = user.updateCh[primAddr.ID]
+
+			case vault.SplitMode:
+				user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0)
+			}
+
+			user.eventCh.Enqueue(events.UserAddressEnabled{
+				UserID:    user.apiUser.ID,
+				AddressID: event.Address.ID,
+				Email:     event.Address.Email,
+			})
+
+		// If the address was newly disabled:
+		case oldAddr.Status == proton.AddressStatusEnabled && event.Address.Status != proton.AddressStatusEnabled:
+			if user.vault.AddressMode() == vault.SplitMode {
+				user.updateCh[event.ID].CloseAndDiscardQueued()
+			}
+
+			delete(user.updateCh, event.ID)
+
+			user.eventCh.Enqueue(events.UserAddressDisabled{
+				UserID:    user.apiUser.ID,
+				AddressID: event.Address.ID,
+				Email:     event.Address.Email,
+			})
+
+		// Otherwise it's just an update:
+		default:
+			user.eventCh.Enqueue(events.UserAddressUpdated{
+				UserID:    user.apiUser.ID,
+				AddressID: event.Address.ID,
+				Email:     event.Address.Email,
+			})
+		}
 
 		return nil
 	}, user.apiAddrsLock)
@@ -275,12 +325,20 @@ func (user *User) handleDeleteAddressEvent(_ context.Context, event proton.Addre
 			return nil
 		}
 
-		if user.vault.AddressMode() == vault.SplitMode {
-			user.updateCh[event.ID].CloseAndDiscardQueued()
-			delete(user.updateCh, event.ID)
+		delete(user.apiAddrs, event.ID)
+
+		// If the address was disabled to begin with, we don't need to do anything.
+		if addr.Status != proton.AddressStatusEnabled {
+			return nil
 		}
 
-		delete(user.apiAddrs, event.ID)
+		// Otherwise, in split mode, drop the update queue.
+		if user.vault.AddressMode() == vault.SplitMode {
+			user.updateCh[event.ID].CloseAndDiscardQueued()
+		}
+
+		// And in either mode, remove the address from the update channel map.
+		delete(user.updateCh, event.ID)
 
 		user.eventCh.Enqueue(events.UserAddressDeleted{
 			UserID:    user.apiUser.ID,

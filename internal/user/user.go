@@ -264,11 +264,13 @@ func (user *User) Match(query string) bool {
 	}, user.apiUserLock, user.apiAddrsLock)
 }
 
-// Emails returns all the user's email addresses.
+// Emails returns all the user's active email addresses.
 // It returns them in sorted order; the user's primary address is first.
 func (user *User) Emails() []string {
 	return safe.RLockRet(func() []string {
-		addresses := maps.Values(user.apiAddrs)
+		addresses := xslices.Filter(maps.Values(user.apiAddrs), func(addr proton.Address) bool {
+			return addr.Status == proton.AddressStatusEnabled
+		})
 
 		slices.SortFunc(addresses, func(a, b proton.Address) bool {
 			return a.Order < b.Order
