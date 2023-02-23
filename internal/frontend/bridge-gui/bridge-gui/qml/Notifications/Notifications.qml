@@ -1111,7 +1111,7 @@ QtObject {
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Connection | Notifications.Group.Dialogs
 
-        property var bugReportMsg: "Reporting an issue:\n\n\"%1\"\n\nError: %2\n\nThe issue persists even after loggin back in."
+        property var bugReportMsg: "Reporting an issue:\n\n\"%1\"\n\nError: %2\n\nThe issue persists even after logging back in."
         property var errorMessage: ""
 
         Connections {
