@@ -627,6 +627,33 @@ func (user *User) doEventPoll(ctx context.Context) error {
 
 	event, err := user.client.GetEvent(ctx, user.vault.EventID())
 	if err != nil {
+		if netErr := new(proton.NetError); errors.As(err, &netErr) {
+			return fmt.Errorf("failed to get event due to network issue: %w", err)
+		}
+
+		// Catch all for uncategorized net errors that may slip through.
+		if netErr := new(net.OpError); errors.As(err, &netErr) {
+			user.eventCh.Enqueue(events.UncategorizedEventError{
+				UserID: user.ID(),
+				Error:  err,
+			})
+
+			return fmt.Errorf("failed to get event due to network issues (uncategorized): %w", err)
+		}
+
+		// In case a json decode error slips through.
+		if jsonErr := new(json.UnmarshalTypeError); errors.As(err, &jsonErr) {
+			user.eventCh.Enqueue(events.UncategorizedEventError{
+				UserID: user.ID(),
+				Error:  err,
+			})
+		}
+
+		// If the error is a server-side issue, return error to retry later.
+		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status >= 500 {
+			return fmt.Errorf("failed to get event due to server error: %w", err)
+		}
+
 		return fmt.Errorf("failed to get event: %w", err)
 	}
 
