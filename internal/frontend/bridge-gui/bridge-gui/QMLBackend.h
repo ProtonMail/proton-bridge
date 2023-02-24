@@ -50,11 +50,11 @@ public: // member functions.
     Q_INVOKABLE bool isPortFree(int port) const; ///< Check if a given network port is available.
     Q_INVOKABLE QString nativePath(QUrl const &url) const; ///< Retrieve the native path of a local URL.
     Q_INVOKABLE bool areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs) const; ///< Check if two local URL point to the same file.
-    Q_INVOKABLE QString goOS(); ///< Return the OS string from golang's runtime.GOOS.
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
     Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)
     Q_PROPERTY(bool showSplashScreen READ showSplashScreen WRITE setShowSplashScreen NOTIFY showSplashScreenChanged)
+    Q_PROPERTY(QString goos READ goos NOTIFY goosChanged)
     Q_PROPERTY(QUrl logsPath READ logsPath NOTIFY logsPathChanged)
     Q_PROPERTY(QUrl licensePath READ licensePath NOTIFY licensePathChanged)
     Q_PROPERTY(QUrl releaseNotesLink READ releaseNotesLink NOTIFY releaseNotesLinkChanged)
@@ -86,6 +86,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     bool showOnStartup() const; ///< Getter for the 'showOnStartup' property.
     void setShowSplashScreen(bool show);  ///< Setter for the 'showSplashScreen' property.
     bool showSplashScreen() const; ///< Getter for the 'showSplashScreen' property.
+    QString goos() const; ///< Getter for the 'GOOS' property.
     QUrl logsPath() const; ///< Getter for the 'logsPath' property.
     QUrl licensePath() const; ///< Getter for the 'licensePath' property.
     QUrl releaseNotesLink() const;///< Getter for the 'releaseNotesLink' property.
@@ -119,6 +120,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
 signals: // Signal used by the Qt property system. Many of them are unused but required to avoid warning from the QML engine.
     void showSplashScreenChanged(bool value); ///<Signal for the change of the 'showSplashScreen' property.
     void showOnStartupChanged(bool value); ///<Signal for the change of the 'showOnStartup' property.
+    void goosChanged(QString const &value); ///<Signal for the change of the 'GOOS' property.
     void diskCachePathChanged(QUrl const &url); ///<Signal for the change of the 'diskCachePath' property.
     void imapPortChanged(int port); ///<Signal for the change of the 'imapPort' property.
     void smtpPortChanged(int port); ///<Signal for the change of the 'smtpPort' property.
@@ -245,6 +247,7 @@ private: // data members
     UserList *users_ { nullptr }; ///< The user list. Owned by backend.
     std::unique_ptr<bridgepp::Overseer> eventStreamOverseer_; ///< The event stream overseer.
     bool showSplashScreen_ { false }; ///< The cached version of show splash screen. Retrieved on startup from bridge, and potentially modified locally.
+    QString goos_; ///< The cached version of the GOOS variable.
     QUrl logsPath_; ///< The logs path. Retrieved from bridge on startup.
     QUrl licensePath_; ///< The license path. Retrieved from bridge on startup.
     int imapPort_ { 0 }; ///< The cached value for the IMAP port.

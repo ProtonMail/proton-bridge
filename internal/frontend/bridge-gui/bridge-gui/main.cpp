@@ -23,7 +23,6 @@
 #include "QMLBackend.h"
 #include "SentryUtils.h"
 #include "BuildConfig.h"
-#include <bridgepp/BridgeLib.h>
 #include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/FocusGRPC/FocusGRPCClient.h>
@@ -158,7 +157,7 @@ QUrl getApiUrl() {
     url.setPort(1042);
 
     // override with what can be found in the prefs.json file.
-    QFile prefFile(QString("%1/%2").arg(bridgelib::userConfigDir(), "prefs.json"));
+    QFile prefFile(QString("%1/%2").arg(bridgepp::userConfigDir(), "prefs.json"));
     if (prefFile.exists()) {
         prefFile.open(QIODevice::ReadOnly | QIODevice::Text);
         QByteArray data = prefFile.readAll();
@@ -186,7 +185,7 @@ QUrl getApiUrl() {
 /// \return true if an instance of bridge is already running.
 //****************************************************************************************************************************************************
 bool isBridgeRunning() {
-    QLockFile lockFile(QDir(bridgelib::userCacheDir()).absoluteFilePath(bridgeLock));
+    QLockFile lockFile(QDir(bridgepp::userCacheDir()).absoluteFilePath(bridgeLock));
     return (!lockFile.tryLock()) && (lockFile.error() == QLockFile::LockFailedError);
 }
 
@@ -198,7 +197,7 @@ void focusOtherInstance() {
     try {
         FocusGRPCClient client;
         GRPCConfig sc;
-        QString const path = FocusGRPCClient::grpcFocusServerConfigPath(bridgelib::userConfigDir());
+        QString const path = FocusGRPCClient::grpcFocusServerConfigPath(bridgepp::userConfigDir());
         QFile file(path);
         if (file.exists()) {
             if (!sc.load(path)) {
@@ -277,8 +276,7 @@ int main(int argc, char *argv[]) {
     BridgeApp guiApp(argc, argv);
 
     try {
-        bridgelib::loadLibrary();
-        QString const& configDir = bridgelib::userConfigDir();
+        QString const& configDir = bridgepp::userConfigDir();
 
         // Init sentry.
         initSentry();
@@ -290,7 +288,7 @@ int main(int argc, char *argv[]) {
 
         Log &log = initLog();
 
-        QLockFile lock(bridgelib::userCacheDir() + "/" + bridgeGUILock);
+        QLockFile lock(bridgepp::userCacheDir() + "/" + bridgeGUILock);
         if (!checkSingleInstance(lock)) {
             focusOtherInstance();
             return EXIT_FAILURE;

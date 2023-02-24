@@ -18,7 +18,6 @@
 
 #include "SettingsTab.h"
 #include "GRPCService.h"
-#include <bridgepp/BridgeLib.h>
 #include <bridgepp/GRPC/EventFactory.h>
 #include <bridgepp/BridgeUtils.h>
 
@@ -439,7 +438,7 @@ void SettingsTab::resetUI() {
     this->setClientPlatform("Unknown");
 
     ui_.editVersion->setText(BRIDGE_APP_VERSION);
-    ui_.comboOS->setCurrentText(bridgelib::goos());
+    ui_.comboOS->setCurrentText(bridgepp::goos());
     ui_.editCurrentEmailClient->setText("Thunderbird/102.0.3");
     ui_.checkShowOnStartup->setChecked(true);
     ui_.checkShowSplashScreen->setChecked(false);

@@ -85,49 +85,6 @@ message(STATUS "Using Qt ${Qt6_VERSION}")
 #*****************************************************************************************************************************************************
 find_package(sentry CONFIG REQUIRED)
 
-
-#*****************************************************************************************************************************************************
-# bridgelib
-#*****************************************************************************************************************************************************
-find_program(GO_BIN "go")
-if (NOT GO_BIN)
-    message(FATAL_ERROR "Could not location go compiler")
-endif()
-message(STATUS "go compiler is ${GO_BIN}")
-
-if (APPLE) # set some env variable for go compiler on macOS. Note the CGO_ENABLED=1 is required when cross-compiling.
-    if (CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
-        set(GO_BIN "MACOSX_DEPLOYMENT_TARGET=11.0" "GOARCH=arm64" "CGO_CFLAGS=\"-mmacosx-version-min=11.0\"" CGO_ENABLED=1 ${GO_BIN})
-    else ()
-        set(GO_BIN "MACOSX_DEPLOYMENT_TARGET=10.15" "GOARCH=amd64" "CGO_CFLAGS=\"-mmacosx-version-min=10.15\"" CGO_ENABLED=1 ${GO_BIN})
-    endif()
-endif()
-
-file(REAL_PATH "pkg/bridgelib" BRIDGELIB_DIR BASE_DIRECTORY  "${BRIDGE_REPO_ROOT}")
-message(STATUS "bridgelib folder is ${BRIDGELIB_DIR}")
-
-set(BRIDGELIB_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR})
-set(BRIDGELIB_BASE_NAME "bridgelib")
-if (UNIX AND NOT APPLE)
-    set(BRIDGELIB_LIB_FILE "${BRIDGELIB_BASE_NAME}.so")
-endif()
-if (APPLE)
-    set(BRIDGELIB_OUTPUT_DIR ${BRIDGELIB_OUTPUT_DIR}/${CMAKE_PROJECT_NAME}.app/Contents/MacOS)
-    set(BRIDGELIB_LIB_FILE "${BRIDGELIB_BASE_NAME}.dylib")
-endif()
-if (WIN32)
-    set(BRIDGELIB_LIB_FILE "${BRIDGELIB_BASE_NAME}.dll")
-endif()
-
-set(BRIDGELIB_OUTPUT_PATH "${BRIDGELIB_OUTPUT_DIR}/${BRIDGELIB_LIB_FILE}")
-
-add_custom_target(
-    bridgelib
-    COMMAND ${GO_BIN} build -o ${BRIDGELIB_OUTPUT_PATH} --buildmode c-shared
-    WORKING_DIRECTORY ${BRIDGELIB_DIR}
-    COMMENT "Compile bridgelib library"
-)
-
 #*****************************************************************************************************************************************************
 # Source files and output
 #*****************************************************************************************************************************************************
@@ -152,6 +109,7 @@ add_executable(bridge-gui
     Resources.qrc
     AppController.cpp AppController.h
     BridgeApp.cpp BridgeApp.h
+    BuildConfig.h
     CommandLine.cpp CommandLine.h
     EventStreamWorker.cpp EventStreamWorker.h
     LogUtils.cpp LogUtils.h
@@ -166,8 +124,6 @@ add_executable(bridge-gui
 if (APPLE)
     target_sources(bridge-gui PRIVATE MacOS/SecondInstance.mm MacOS/SecondInstance.h)
 endif(APPLE)
-
-add_dependencies(bridge-gui bridgelib)
 
 if (WIN32) # on Windows, we add a (non-Qt) resource file that contains the application icon and version information.
     string(TIMESTAMP BRIDGE_BUILD_YEAR "%Y")

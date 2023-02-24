@@ -18,7 +18,7 @@
 
 #include "LogUtils.h"
 #include "BuildConfig.h"
-#include <bridgepp/BridgeLib.h>
+#include <bridgepp/BridgeUtils.h>
 
 
 using namespace bridgepp;
@@ -28,7 +28,7 @@ using namespace bridgepp;
 /// \return user logs directory used by bridge.
 //****************************************************************************************************************************************************
 QString userLogsDir() {
-    QString const path = QDir(bridgelib::userDataDir()).absoluteFilePath("logs");
+    QString const path = QDir(bridgepp::userDataDir()).absoluteFilePath("logs");
     QDir().mkpath(path);
     return path;
 }

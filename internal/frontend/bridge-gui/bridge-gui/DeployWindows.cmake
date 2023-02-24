@@ -47,9 +47,6 @@ endmacro()
 # Force plugins to be installed near the exe.
 install(SCRIPT ${deploy_script})
 
-# bridgelib
-install(FILES ${BRIDGELIB_OUTPUT_PATH} DESTINATION ${CMAKE_INSTALL_PREFIX})
-
 # Vcpkg DLLs
 AppendVCPKGLib("abseil_dll.dll")
 AppendVCPKGLib("cares.dll")

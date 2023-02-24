@@ -34,6 +34,7 @@ static const char* Bridge_method_names[] = {
   "/grpc.Bridge/IsBetaEnabled",
   "/grpc.Bridge/SetIsAllMailVisible",
   "/grpc.Bridge/IsAllMailVisible",
+  "/grpc.Bridge/GoOs",
   "/grpc.Bridge/TriggerReset",
   "/grpc.Bridge/Version",
   "/grpc.Bridge/LogsPath",
@@ -96,47 +97,48 @@ Bridge::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, co
   , rpcmethod_IsBetaEnabled_(Bridge_method_names[9], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_SetIsAllMailVisible_(Bridge_method_names[10], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_IsAllMailVisible_(Bridge_method_names[11], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_TriggerReset_(Bridge_method_names[12], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Version_(Bridge_method_names[13], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_LogsPath_(Bridge_method_names[14], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_LicensePath_(Bridge_method_names[15], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ReleaseNotesPageLink_(Bridge_method_names[16], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_DependencyLicensesLink_(Bridge_method_names[17], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_LandingPageLink_(Bridge_method_names[18], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_SetColorSchemeName_(Bridge_method_names[19], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ColorSchemeName_(Bridge_method_names[20], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_CurrentEmailClient_(Bridge_method_names[21], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ReportBug_(Bridge_method_names[22], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ExportTLSCertificates_(Bridge_method_names[23], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ForceLauncher_(Bridge_method_names[24], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_SetMainExecutable_(Bridge_method_names[25], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Login_(Bridge_method_names[26], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Login2FA_(Bridge_method_names[27], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Login2Passwords_(Bridge_method_names[28], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_LoginAbort_(Bridge_method_names[29], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_CheckUpdate_(Bridge_method_names[30], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_InstallUpdate_(Bridge_method_names[31], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_SetIsAutomaticUpdateOn_(Bridge_method_names[32], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_IsAutomaticUpdateOn_(Bridge_method_names[33], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_DiskCachePath_(Bridge_method_names[34], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_SetDiskCachePath_(Bridge_method_names[35], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_SetIsDoHEnabled_(Bridge_method_names[36], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_IsDoHEnabled_(Bridge_method_names[37], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_MailServerSettings_(Bridge_method_names[38], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_SetMailServerSettings_(Bridge_method_names[39], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Hostname_(Bridge_method_names[40], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_IsPortFree_(Bridge_method_names[41], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_AvailableKeychains_(Bridge_method_names[42], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_SetCurrentKeychain_(Bridge_method_names[43], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_CurrentKeychain_(Bridge_method_names[44], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_GetUserList_(Bridge_method_names[45], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_GetUser_(Bridge_method_names[46], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_SetUserSplitMode_(Bridge_method_names[47], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_LogoutUser_(Bridge_method_names[48], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_RemoveUser_(Bridge_method_names[49], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ConfigureUserAppleMail_(Bridge_method_names[50], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_RunEventStream_(Bridge_method_names[51], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
-  , rpcmethod_StopEventStream_(Bridge_method_names[52], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GoOs_(Bridge_method_names[12], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_TriggerReset_(Bridge_method_names[13], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_Version_(Bridge_method_names[14], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_LogsPath_(Bridge_method_names[15], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_LicensePath_(Bridge_method_names[16], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ReleaseNotesPageLink_(Bridge_method_names[17], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_DependencyLicensesLink_(Bridge_method_names[18], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_LandingPageLink_(Bridge_method_names[19], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_SetColorSchemeName_(Bridge_method_names[20], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ColorSchemeName_(Bridge_method_names[21], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_CurrentEmailClient_(Bridge_method_names[22], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ReportBug_(Bridge_method_names[23], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ExportTLSCertificates_(Bridge_method_names[24], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ForceLauncher_(Bridge_method_names[25], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_SetMainExecutable_(Bridge_method_names[26], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_Login_(Bridge_method_names[27], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_Login2FA_(Bridge_method_names[28], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_Login2Passwords_(Bridge_method_names[29], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_LoginAbort_(Bridge_method_names[30], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_CheckUpdate_(Bridge_method_names[31], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_InstallUpdate_(Bridge_method_names[32], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_SetIsAutomaticUpdateOn_(Bridge_method_names[33], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_IsAutomaticUpdateOn_(Bridge_method_names[34], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_DiskCachePath_(Bridge_method_names[35], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_SetDiskCachePath_(Bridge_method_names[36], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_SetIsDoHEnabled_(Bridge_method_names[37], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_IsDoHEnabled_(Bridge_method_names[38], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_MailServerSettings_(Bridge_method_names[39], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_SetMailServerSettings_(Bridge_method_names[40], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_Hostname_(Bridge_method_names[41], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_IsPortFree_(Bridge_method_names[42], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_AvailableKeychains_(Bridge_method_names[43], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_SetCurrentKeychain_(Bridge_method_names[44], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_CurrentKeychain_(Bridge_method_names[45], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetUserList_(Bridge_method_names[46], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetUser_(Bridge_method_names[47], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_SetUserSplitMode_(Bridge_method_names[48], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_LogoutUser_(Bridge_method_names[49], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_RemoveUser_(Bridge_method_names[50], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ConfigureUserAppleMail_(Bridge_method_names[51], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_RunEventStream_(Bridge_method_names[52], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
+  , rpcmethod_StopEventStream_(Bridge_method_names[53], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status Bridge::Stub::CheckTokens(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::google::protobuf::StringValue* response) {
@@ -411,6 +413,29 @@ void Bridge::Stub::async::IsAllMailVisible(::grpc::ClientContext* context, const
 ::grpc::ClientAsyncResponseReader< ::google::protobuf::BoolValue>* Bridge::Stub::AsyncIsAllMailVisibleRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
   auto* result =
     this->PrepareAsyncIsAllMailVisibleRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status Bridge::Stub::GoOs(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::StringValue* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::google::protobuf::Empty, ::google::protobuf::StringValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_GoOs_, context, request, response);
+}
+
+void Bridge::Stub::async::GoOs(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::google::protobuf::Empty, ::google::protobuf::StringValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GoOs_, context, request, response, std::move(f));
+}
+
+void Bridge::Stub::async::GoOs(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_GoOs_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::StringValue>* Bridge::Stub::PrepareAsyncGoOsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_GoOs_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::StringValue>* Bridge::Stub::AsyncGoOsRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncGoOsRaw(context, request, cq);
   result->StartCall();
   return result;
 }
@@ -1475,22 +1500,22 @@ Bridge::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[12],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::StringValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](Bridge::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::google::protobuf::Empty* req,
+             ::google::protobuf::StringValue* resp) {
+               return service->GoOs(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      Bridge_method_names[13],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
              ::grpc::ServerContext* ctx,
              const ::google::protobuf::Empty* req,
              ::google::protobuf::Empty* resp) {
                return service->TriggerReset(ctx, req, resp);
-             }, this)));
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[13],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::StringValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
-          [](Bridge::Service* service,
-             ::grpc::ServerContext* ctx,
-             const ::google::protobuf::Empty* req,
-             ::google::protobuf::StringValue* resp) {
-               return service->Version(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[14],
@@ -1500,7 +1525,7 @@ Bridge::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::google::protobuf::Empty* req,
              ::google::protobuf::StringValue* resp) {
-               return service->LogsPath(ctx, req, resp);
+               return service->Version(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[15],
@@ -1510,7 +1535,7 @@ Bridge::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::google::protobuf::Empty* req,
              ::google::protobuf::StringValue* resp) {
-               return service->LicensePath(ctx, req, resp);
+               return service->LogsPath(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[16],
@@ -1520,7 +1545,7 @@ Bridge::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::google::protobuf::Empty* req,
              ::google::protobuf::StringValue* resp) {
-               return service->ReleaseNotesPageLink(ctx, req, resp);
+               return service->LicensePath(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[17],
@@ -1530,7 +1555,7 @@ Bridge::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::google::protobuf::Empty* req,
              ::google::protobuf::StringValue* resp) {
-               return service->DependencyLicensesLink(ctx, req, resp);
+               return service->ReleaseNotesPageLink(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[18],
@@ -1540,10 +1565,20 @@ Bridge::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::google::protobuf::Empty* req,
              ::google::protobuf::StringValue* resp) {
-               return service->LandingPageLink(ctx, req, resp);
+               return service->DependencyLicensesLink(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[19],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::StringValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](Bridge::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::google::protobuf::Empty* req,
+             ::google::protobuf::StringValue* resp) {
+               return service->LandingPageLink(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      Bridge_method_names[20],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1553,7 +1588,7 @@ Bridge::Service::Service() {
                return service->SetColorSchemeName(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[20],
+      Bridge_method_names[21],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::StringValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1563,7 +1598,7 @@ Bridge::Service::Service() {
                return service->ColorSchemeName(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[21],
+      Bridge_method_names[22],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::StringValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1573,7 +1608,7 @@ Bridge::Service::Service() {
                return service->CurrentEmailClient(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[22],
+      Bridge_method_names[23],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::grpc::ReportBugRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1583,7 +1618,7 @@ Bridge::Service::Service() {
                return service->ReportBug(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[23],
+      Bridge_method_names[24],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1593,7 +1628,7 @@ Bridge::Service::Service() {
                return service->ExportTLSCertificates(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[24],
+      Bridge_method_names[25],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1603,7 +1638,7 @@ Bridge::Service::Service() {
                return service->ForceLauncher(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[25],
+      Bridge_method_names[26],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1613,7 +1648,7 @@ Bridge::Service::Service() {
                return service->SetMainExecutable(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[26],
+      Bridge_method_names[27],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::grpc::LoginRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1623,7 +1658,7 @@ Bridge::Service::Service() {
                return service->Login(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[27],
+      Bridge_method_names[28],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::grpc::LoginRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1633,7 +1668,7 @@ Bridge::Service::Service() {
                return service->Login2FA(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[28],
+      Bridge_method_names[29],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::grpc::LoginRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1643,7 +1678,7 @@ Bridge::Service::Service() {
                return service->Login2Passwords(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[29],
+      Bridge_method_names[30],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::grpc::LoginAbortRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1653,7 +1688,7 @@ Bridge::Service::Service() {
                return service->LoginAbort(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[30],
+      Bridge_method_names[31],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1663,7 +1698,7 @@ Bridge::Service::Service() {
                return service->CheckUpdate(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[31],
+      Bridge_method_names[32],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1673,7 +1708,7 @@ Bridge::Service::Service() {
                return service->InstallUpdate(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[32],
+      Bridge_method_names[33],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::BoolValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1683,7 +1718,7 @@ Bridge::Service::Service() {
                return service->SetIsAutomaticUpdateOn(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[33],
+      Bridge_method_names[34],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::BoolValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1693,7 +1728,7 @@ Bridge::Service::Service() {
                return service->IsAutomaticUpdateOn(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[34],
+      Bridge_method_names[35],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::StringValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1703,7 +1738,7 @@ Bridge::Service::Service() {
                return service->DiskCachePath(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[35],
+      Bridge_method_names[36],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1713,7 +1748,7 @@ Bridge::Service::Service() {
                return service->SetDiskCachePath(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[36],
+      Bridge_method_names[37],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::BoolValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1723,7 +1758,7 @@ Bridge::Service::Service() {
                return service->SetIsDoHEnabled(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[37],
+      Bridge_method_names[38],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::BoolValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1733,7 +1768,7 @@ Bridge::Service::Service() {
                return service->IsDoHEnabled(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[38],
+      Bridge_method_names[39],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::grpc::ImapSmtpSettings, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1743,7 +1778,7 @@ Bridge::Service::Service() {
                return service->MailServerSettings(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[39],
+      Bridge_method_names[40],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::grpc::ImapSmtpSettings, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1753,7 +1788,7 @@ Bridge::Service::Service() {
                return service->SetMailServerSettings(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[40],
+      Bridge_method_names[41],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::StringValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1763,7 +1798,7 @@ Bridge::Service::Service() {
                return service->Hostname(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[41],
+      Bridge_method_names[42],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Int32Value, ::google::protobuf::BoolValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1773,7 +1808,7 @@ Bridge::Service::Service() {
                return service->IsPortFree(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[42],
+      Bridge_method_names[43],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::grpc::AvailableKeychainsResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1783,7 +1818,7 @@ Bridge::Service::Service() {
                return service->AvailableKeychains(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[43],
+      Bridge_method_names[44],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1793,7 +1828,7 @@ Bridge::Service::Service() {
                return service->SetCurrentKeychain(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[44],
+      Bridge_method_names[45],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::StringValue, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1803,7 +1838,7 @@ Bridge::Service::Service() {
                return service->CurrentKeychain(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[45],
+      Bridge_method_names[46],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::grpc::UserListResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1813,7 +1848,7 @@ Bridge::Service::Service() {
                return service->GetUserList(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[46],
+      Bridge_method_names[47],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::StringValue, ::grpc::User, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1823,7 +1858,7 @@ Bridge::Service::Service() {
                return service->GetUser(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[47],
+      Bridge_method_names[48],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::grpc::UserSplitModeRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1833,7 +1868,7 @@ Bridge::Service::Service() {
                return service->SetUserSplitMode(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[48],
+      Bridge_method_names[49],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1843,7 +1878,7 @@ Bridge::Service::Service() {
                return service->LogoutUser(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[49],
+      Bridge_method_names[50],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1853,7 +1888,7 @@ Bridge::Service::Service() {
                return service->RemoveUser(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[50],
+      Bridge_method_names[51],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::grpc::ConfigureAppleMailRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1863,7 +1898,7 @@ Bridge::Service::Service() {
                return service->ConfigureUserAppleMail(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[51],
+      Bridge_method_names[52],
       ::grpc::internal::RpcMethod::SERVER_STREAMING,
       new ::grpc::internal::ServerStreamingHandler< Bridge::Service, ::grpc::EventStreamRequest, ::grpc::StreamEvent>(
           [](Bridge::Service* service,
@@ -1873,7 +1908,7 @@ Bridge::Service::Service() {
                return service->RunEventStream(ctx, req, writer);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[52],
+      Bridge_method_names[53],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1965,6 +2000,13 @@ Bridge::Service::~Service() {
 }
 
 ::grpc::Status Bridge::Service::IsAllMailVisible(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::BoolValue* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status Bridge::Service::GoOs(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::StringValue* response) {
   (void) context;
   (void) request;
   (void) response;

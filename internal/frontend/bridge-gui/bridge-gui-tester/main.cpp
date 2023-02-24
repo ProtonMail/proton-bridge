@@ -19,7 +19,6 @@
 #include "MainWindow.h"
 #include "AppController.h"
 #include "GRPCServerWorker.h"
-#include <bridgepp/BridgeLib.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/Worker/Overseer.h>
 
@@ -54,8 +53,6 @@ int main(int argc, char **argv) {
         QApplication::setOrganizationName("Proton AG");
         QApplication::setOrganizationDomain("proton.ch");
         QApplication::setQuitOnLastWindowClosed(true);
-
-        bridgelib::loadLibrary();
 
         Log &log = app().log();
         log.setEchoInConsole(true);

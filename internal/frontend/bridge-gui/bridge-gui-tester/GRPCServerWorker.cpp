@@ -19,8 +19,8 @@
 #include "GRPCServerWorker.h"
 #include "Cert.h"
 #include "GRPCService.h"
-#include <bridgepp/BridgeLib.h>
 #include <bridgepp/Exception/Exception.h>
+#include <bridgepp/BridgeUtils.h>
 #include <bridgepp/GRPC/GRPCUtils.h>
 #include <bridgepp/GRPC/GRPCConfig.h>
 
@@ -81,7 +81,7 @@ void GRPCServerWorker::run() {
 
         config.port = port;
         QString err;
-        if (!config.save(grpcServerConfigPath(bridgelib::userConfigDir()), &err)) {
+        if (!config.save(grpcServerConfigPath(bridgepp::userConfigDir()), &err)) {
             throw Exception(QString("Could not save gRPC server config. %1").arg(err));
         }
 

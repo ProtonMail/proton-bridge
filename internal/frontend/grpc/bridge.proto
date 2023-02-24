@@ -42,6 +42,7 @@ service Bridge {
   rpc IsBetaEnabled(google.protobuf.Empty) returns (google.protobuf.BoolValue);
   rpc SetIsAllMailVisible(google.protobuf.BoolValue) returns (google.protobuf.Empty);
   rpc IsAllMailVisible(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc GoOs(google.protobuf.Empty) returns (google.protobuf.StringValue);
   rpc TriggerReset(google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc Version(google.protobuf.Empty) returns (google.protobuf.StringValue);
   rpc LogsPath(google.protobuf.Empty) returns (google.protobuf.StringValue);

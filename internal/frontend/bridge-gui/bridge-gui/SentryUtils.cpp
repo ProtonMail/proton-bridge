@@ -17,7 +17,6 @@
 
 #include "SentryUtils.h"
 #include "BuildConfig.h"
-#include <bridgepp/BridgeLib.h>
 #include <bridgepp/BridgeUtils.h>
 
 
@@ -25,18 +24,6 @@ using namespace bridgepp;
 
 
 static constexpr const char *LoggerName = "bridge-gui";
-
-
-//****************************************************************************************************************************************************
-/// \brief Get the path of the sentry cache folder.
-///
-/// \return sentry cache directory used by bridge.
-//****************************************************************************************************************************************************
-QString sentryCacheDir() {
-    QString const path = QDir(bridgelib::userDataDir()).absoluteFilePath("sentry_cache");
-    QDir().mkpath(path);
-    return path;
-}
 
 
 //****************************************************************************************************************************************************
@@ -88,7 +75,7 @@ void initSentry() {
 //
 //****************************************************************************************************************************************************
 void setSentryReportScope() {
-    sentry_set_tag("OS", bridgelib::goos().toUtf8());
+    sentry_set_tag("OS", bridgepp::goos().toUtf8());
     sentry_set_tag("Client", PROJECT_FULL_NAME);
     sentry_set_tag("Version", PROJECT_REVISION);
     sentry_set_tag("HostArch", QSysInfo::currentCpuArchitecture().toUtf8());

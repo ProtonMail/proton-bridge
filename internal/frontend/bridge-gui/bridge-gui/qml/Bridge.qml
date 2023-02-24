@@ -231,7 +231,7 @@ QtObject {
         }
 
         function getTrayIconPath() {
-            var color = Backend.goOS() == "darwin" ? "mono" : "color"
+            var color = Backend.goos == "darwin" ? "mono" : "color"
 
             var level = "norm"
             if (_systrayfilter.topmost) {
