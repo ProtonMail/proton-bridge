@@ -647,6 +647,8 @@ func (user *User) doEventPoll(ctx context.Context) error {
 				UserID: user.ID(),
 				Error:  err,
 			})
+
+			return fmt.Errorf("failed to get event due to JSON issue: %w", err)
 		}
 
 		// If the error is a server-side issue, return error to retry later.
@@ -691,6 +693,18 @@ func (user *User) doEventPoll(ctx context.Context) error {
 				UserID: user.ID(),
 				Error:  err,
 			})
+
+			return fmt.Errorf("failed to handle event due to JSON issue: %w", err)
+		}
+
+		// If the error is an unexpected EOF, return error to retry later.
+		if errors.Is(err, io.ErrUnexpectedEOF) {
+			user.eventCh.Enqueue(events.UncategorizedEventError{
+				UserID: user.ID(),
+				Error:  err,
+			})
+
+			return fmt.Errorf("failed to handle event due to EOF: %w", err)
 		}
 
 		// If the error is a server-side issue, return error to retry later.
