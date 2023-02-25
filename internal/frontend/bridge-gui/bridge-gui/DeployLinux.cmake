@@ -18,6 +18,11 @@
 cmake_minimum_required(VERSION 3.22)
 
 #*****************************************************************************************************************************************************
+# International Components for Unicode (ICU)
+#*****************************************************************************************************************************************************
+find_package(ICU 56.0 COMPONENTS i18n uc data REQUIRED)
+
+#*****************************************************************************************************************************************************
 # Deploy
 #*****************************************************************************************************************************************************
 
@@ -54,9 +59,9 @@ AppendQt6Lib("libQt6Gui.so.6")
 AppendQt6Lib("libQt6Core.so.6")
 AppendQt6Lib("libQt6QuickTemplates2.so.6")
 AppendQt6Lib("libQt6DBus.so.6")
-AppendQt6Lib("libicui18n.so.56")
-AppendQt6Lib("libicuuc.so.56")
-AppendQt6Lib("libicudata.so.56")
+AppendQt6Lib("libicui18n.so")
+AppendQt6Lib("libicuuc.so")
+AppendQt6Lib("libicudata.so")
 AppendQt6Lib("libQt6XcbQpa.so.6")
 AppendQt6Lib("libQt6WaylandClient.so.6")
 AppendQt6Lib("libQt6WlShellIntegration.so.6")
