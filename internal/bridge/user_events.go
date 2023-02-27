@@ -19,10 +19,10 @@ package bridge
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/ProtonMail/gluon/reporter"
+	"github.com/ProtonMail/proton-bridge/v3/internal"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
@@ -143,7 +143,7 @@ func (bridge *Bridge) handleUserDeauth(ctx context.Context, user *user.User) {
 func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User, err error) {
 	safe.Lock(func() {
 		if rerr := bridge.reporter.ReportMessageWithContext("Failed to handle event", reporter.Context{
-			"error_type": fmt.Sprintf("%T", getUnwrappedError(err)),
+			"error_type": fmt.Sprintf("%T", internal.ErrCause(err)),
 			"error":      err,
 		}); rerr != nil {
 			logrus.WithError(rerr).Error("Failed to report failed event handling")
@@ -155,22 +155,9 @@ func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User, e
 
 func (bridge *Bridge) handleUncategorizedErrorEvent(event events.UncategorizedEventError) {
 	if rerr := bridge.reporter.ReportMessageWithContext("Failed to handle due to uncategorized error", reporter.Context{
-		"error_type": fmt.Sprintf("%T", getUnwrappedError(event.Error)),
+		"error_type": fmt.Sprintf("%T", internal.ErrCause(event.Error)),
 		"error":      event.Error,
 	}); rerr != nil {
 		logrus.WithError(rerr).Error("Failed to report failed event handling")
 	}
-}
-
-func getUnwrappedError(err error) error {
-	for {
-		unwrapped := errors.Unwrap(err)
-		if unwrapped == nil {
-			break
-		}
-
-		err = unwrapped
-	}
-
-	return err
 }

@@ -34,6 +34,7 @@ import (
 	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/proton-bridge/v3/internal"
 	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
@@ -627,36 +628,7 @@ func (user *User) doEventPoll(ctx context.Context) error {
 
 	event, err := user.client.GetEvent(ctx, user.vault.EventID())
 	if err != nil {
-		if netErr := new(proton.NetError); errors.As(err, &netErr) {
-			return fmt.Errorf("failed to get event due to network issue: %w", err)
-		}
-
-		// Catch all for uncategorized net errors that may slip through.
-		if netErr := new(net.OpError); errors.As(err, &netErr) {
-			user.eventCh.Enqueue(events.UncategorizedEventError{
-				UserID: user.ID(),
-				Error:  err,
-			})
-
-			return fmt.Errorf("failed to get event due to network issues (uncategorized): %w", err)
-		}
-
-		// In case a json decode error slips through.
-		if jsonErr := new(json.UnmarshalTypeError); errors.As(err, &jsonErr) {
-			user.eventCh.Enqueue(events.UncategorizedEventError{
-				UserID: user.ID(),
-				Error:  err,
-			})
-
-			return fmt.Errorf("failed to get event due to JSON issue: %w", err)
-		}
-
-		// If the error is a server-side issue, return error to retry later.
-		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status >= 500 {
-			return fmt.Errorf("failed to get event due to server error: %w", err)
-		}
-
-		return fmt.Errorf("failed to get event: %w", err)
+		return fmt.Errorf("failed to get event (caused by %T): %w", internal.ErrCause(err), err)
 	}
 
 	// If the event ID hasn't changed, there are no new events.
@@ -672,6 +644,11 @@ func (user *User) doEventPoll(ctx context.Context) error {
 
 	// Handle the event.
 	if err := user.handleAPIEvent(ctx, event); err != nil {
+		// If the error is a context cancellation, return error to retry later.
+		if errors.Is(err, context.Canceled) {
+			return fmt.Errorf("failed to handle event due to context cancellation: %w", err)
+		}
+
 		// If the error is a network error, return error to retry later.
 		if netErr := new(proton.NetError); errors.As(err, &netErr) {
 			return fmt.Errorf("failed to handle event due to network issue: %w", err)
