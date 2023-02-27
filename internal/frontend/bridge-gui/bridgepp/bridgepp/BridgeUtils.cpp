@@ -71,20 +71,20 @@ std::mt19937_64 &rng() {
 QString userConfigDir() {
     QString dir;
 #ifdef Q_OS_WIN
-    dir = qgetenv ("AppData");
+    dir = qEnvironmentVariable("AppData");
     if (dir.isEmpty())
         throw Exception("%AppData% is not defined.");
 #elif defined(Q_OS_IOS) || defined(Q_OS_DARWIN)
-    dir = qgetenv("HOME");
+    dir = qEnvironmentVariable("HOME");
     if (dir.isEmpty()) {
         throw Exception("$HOME is not defined.");
     }
     dir += "/Library/Application Support";
 #else
-    dir = qgetenv ("XDG_CONFIG_HOME");
+    dir = qEnvironmentVariable("XDG_CONFIG_HOME");
     if (dir.isEmpty())
     {
-        dir = qgetenv ("HOME");
+        dir = qEnvironmentVariable("HOME");
         if (dir.isEmpty())
             throw Exception("neither $XDG_CONFIG_HOME nor $HOME are defined");
         dir += "/.config";
@@ -104,20 +104,20 @@ QString userCacheDir() {
     QString dir;
 
 #ifdef Q_OS_WIN
-    dir = qgetenv ("LocalAppData");
+    dir = qEnvironmentVariable("LocalAppData");
     if (dir.isEmpty())
         throw Exception("%LocalAppData% is not defined.");
 #elif defined(Q_OS_IOS) || defined(Q_OS_DARWIN)
-    dir = qgetenv("HOME");
+    dir = qEnvironmentVariable("HOME");
     if (dir.isEmpty()) {
         throw Exception("$HOME is not defined.");
     }
     dir += "/Library/Caches";
 #else
-    dir = qgetenv ("XDG_CACHE_HOME");
+    dir = qEnvironmentVariable("XDG_CACHE_HOME");
     if (dir.isEmpty())
     {
-        dir = qgetenv ("HOME");
+        dir = qEnvironmentVariable("HOME");
         if (dir.isEmpty())
             throw Exception("neither $XDG_CACHE_HOME nor $HOME are defined");
         dir += "/.cache";
@@ -138,10 +138,10 @@ QString userDataDir() {
     QString folder;
 
 #ifdef Q_OS_LINUX
-    QString dir = qgetenv ("XDG_DATA_HOME");
+    QString dir = qEnvironmentVariable("XDG_DATA_HOME");
     if (dir.isEmpty())
     {
-        dir = qgetenv ("HOME");
+        dir = qEnvironmentVariable("HOME");
         if (dir.isEmpty())
             throw Exception("neither $XDG_DATA_HOME nor $HOME are defined");
         dir += "/.local/share";
