@@ -1,3 +1,15 @@
+## v3.0.19
+- 2023-03-01
+
+### New
+- Improved inter-process communication error detection
+- Improved exceptions related error detection
+
+### Fixed
+- Fixed numerous sources of errors leading to logout (internal errors)
+- Fixed inter-process communication related startup issues (e.g., gRPC, service configuration file exchange)
+
+
 ## v3.0.18
 - 2023-02-24
 
