@@ -611,6 +611,81 @@ func TestBridge_User_CreateDisabledAddress(t *testing.T) {
 	})
 }
 
+func TestBridge_User_HandleParentLabelRename(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			require.NoError(t, getErr(bridge.LoginFull(ctx, username, password, nil, nil)))
+
+			info, err := bridge.QueryUserInfo(username)
+			require.NoError(t, err)
+
+			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+			require.NoError(t, err)
+			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+			defer func() { _ = client.Logout() }()
+
+			withClient(ctx, t, s, username, password, func(ctx context.Context, c *proton.Client) {
+				parentName := uuid.NewString()
+				childName := uuid.NewString()
+
+				// Create a folder.
+				parentLabel, err := c.CreateLabel(ctx, proton.CreateLabelReq{
+					Name:  parentName,
+					Type:  proton.LabelTypeFolder,
+					Color: "#f66",
+				})
+				require.NoError(t, err)
+
+				// Wait for the parent folder to be created.
+				require.Eventually(t, func() bool {
+					return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+						return mailbox.Name == fmt.Sprintf("Folders/%v", parentName)
+					}) >= 0
+				}, 100*user.EventPeriod, user.EventPeriod)
+
+				// Create a subfolder.
+				childLabel, err := c.CreateLabel(ctx, proton.CreateLabelReq{
+					Name:     childName,
+					Type:     proton.LabelTypeFolder,
+					Color:    "#f66",
+					ParentID: parentLabel.ID,
+				})
+				require.NoError(t, err)
+				require.Equal(t, parentLabel.ID, childLabel.ParentID)
+
+				// Wait for the parent folder to be created.
+				require.Eventually(t, func() bool {
+					return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+						return mailbox.Name == fmt.Sprintf("Folders/%v/%v", parentName, childName)
+					}) >= 0
+				}, 100*user.EventPeriod, user.EventPeriod)
+
+				newParentName := uuid.NewString()
+
+				// Rename the parent folder.
+				require.NoError(t, getErr(c.UpdateLabel(ctx, parentLabel.ID, proton.UpdateLabelReq{
+					Color: "#f66",
+					Name:  newParentName,
+				})))
+
+				// Wait for the parent folder to be renamed.
+				require.Eventually(t, func() bool {
+					return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+						return mailbox.Name == fmt.Sprintf("Folders/%v", newParentName)
+					}) >= 0
+				}, 100*user.EventPeriod, user.EventPeriod)
+
+				// Wait for the child folder to be renamed.
+				require.Eventually(t, func() bool {
+					return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+						return mailbox.Name == fmt.Sprintf("Folders/%v/%v", newParentName, childName)
+					}) >= 0
+				}, 100*user.EventPeriod, user.EventPeriod)
+			})
+		})
+	})
+}
+
 // userLoginAndSync logs in user and waits until user is fully synced.
 func userLoginAndSync(
 	ctx context.Context,

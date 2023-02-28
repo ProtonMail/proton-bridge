@@ -425,25 +425,51 @@ func (user *User) handleUpdateLabelEvent(ctx context.Context, event proton.Label
 			"name":    logging.Sensitive(event.Label.Name),
 		}).Info("Handling label updated event")
 
-		// Only update the label if it exists; we don't want to create it as a client may have just deleted it.
-		if _, ok := user.apiLabels[event.Label.ID]; ok {
-			user.apiLabels[event.Label.ID] = event.Label
-		}
+		stack := []proton.Label{event.Label}
 
-		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
-			update := imap.NewMailboxUpdated(
-				imap.MailboxID(event.ID),
-				getMailboxName(event.Label),
-			)
-			updateCh.Enqueue(update)
-			updates = append(updates, update)
-		}
+		for len(stack) > 0 {
+			label := stack[0]
+			stack = stack[1:]
 
-		user.eventCh.Enqueue(events.UserLabelUpdated{
-			UserID:  user.apiUser.ID,
-			LabelID: event.Label.ID,
-			Name:    event.Label.Name,
-		})
+			// Only update the label if it exists; we don't want to create it as a client may have just deleted it.
+			if _, ok := user.apiLabels[label.ID]; ok {
+				user.apiLabels[label.ID] = event.Label
+			}
+
+			// API doesn't notify us that the path has changed. We need to fetch it again.
+			apiLabel, err := user.client.GetLabel(ctx, label.ID, label.Type)
+			if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
+				user.log.WithError(apiErr).Warn("Failed to get label: label does not exist")
+				continue
+			} else if err != nil {
+				return nil, fmt.Errorf("failed to get label %q: %w", label.ID, err)
+			}
+
+			// Update the label in the map.
+			user.apiLabels[apiLabel.ID] = apiLabel
+
+			// Notify the IMAP clients.
+			for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
+				update := imap.NewMailboxUpdated(
+					imap.MailboxID(apiLabel.ID),
+					getMailboxName(apiLabel),
+				)
+				updateCh.Enqueue(update)
+				updates = append(updates, update)
+			}
+
+			user.eventCh.Enqueue(events.UserLabelUpdated{
+				UserID:  user.apiUser.ID,
+				LabelID: apiLabel.ID,
+				Name:    apiLabel.Name,
+			})
+
+			children := xslices.Filter(maps.Values(user.apiLabels), func(other proton.Label) bool {
+				return other.ParentID == label.ID
+			})
+
+			stack = append(stack, children...)
+		}
 
 		return updates, nil
 	}, user.apiLabelsLock, user.updateChLock)
