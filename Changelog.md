@@ -5,6 +5,21 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## [Bridge 3.0.18] Perth Narrows
 
 ### Fixed
+* GODT-2364: Wait and retry once if the gRPC service config file exists but cannot be opened.
+* GODT-2364: Added optional details to C++ exceptions.
+* GODT-2413: Use qEnvironmentVariable() instead of qgetenv().
+* GODT-2412: Don't treat context cancellation as BadEvent.
+* GODT-2404: Handle unexpected EOF.
+* GODT-2400: Allow state updates to be applied if command fails.
+* GODT-2399: Fix immediate message deletion during updates.
+* GODT-2390: Missing changes from pervious commit.
+* GODT-2390: Add reports for uncaught json and net.opErr.
+* GODT-2414: Multiple deletion bug in WriteControlledStore.
+
+
+## [Bridge 3.0.18] Perth Narrows
+
+### Fixed
 * GODT-2392: Create message if gluon updateMessage returns `no such message`.
 * GODT-2391: Create draft if missing during message update on gluon side.
 
