@@ -118,6 +118,7 @@ add_executable(bridge-gui
     QMLBackend.cpp QMLBackend.h
     UserList.cpp UserList.h
     SentryUtils.cpp SentryUtils.h
+    Settings.cpp Settings.h
     ${DOCK_ICON_SRC_FILE} MacOS/DockIcon.h
     )
 

@@ -16,13 +16,13 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#include "Pch.h"
 #include "BridgeApp.h"
+#include "BuildConfig.h"
 #include "CommandLine.h"
 #include "LogUtils.h"
 #include "QMLBackend.h"
 #include "SentryUtils.h"
-#include "BuildConfig.h"
+#include "Settings.h"
 #include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/FocusGRPC/FocusGRPCClient.h>
@@ -334,7 +334,7 @@ int main(int argc, char *argv[]) {
         // The following allows to render QML content in software with a 'Rendering Hardware Interface' (OpenGL, Vulkan, Metal, Direct3D...)
         // Note that it is different from the Qt::AA_UseSoftwareOpenGL attribute we use on some platforms that instruct Qt that we would like
         // to use a software-only implementation of OpenGL.
-        QQuickWindow::setSceneGraphBackend(cliOptions.useSoftwareRenderer ? "software" : "rhi");
+        QQuickWindow::setSceneGraphBackend((app().settings().useSoftwareRenderer() || cliOptions.useSoftwareRenderer) ? "software" : "rhi");
         log.info(QString("Qt Quick renderer: %1").arg(QQuickWindow::sceneGraphBackend()));
 
         QQmlApplicationEngine engine;
