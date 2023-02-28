@@ -92,7 +92,7 @@ func (conn *imapConnector) CreateMailbox(ctx context.Context, name []string) (im
 	defer conn.goPollAPIEvents(false)
 
 	if len(name) < 2 {
-		return imap.Mailbox{}, fmt.Errorf("invalid mailbox name %q", name)
+		return imap.Mailbox{}, fmt.Errorf("invalid mailbox name %q: %w", name, connector.ErrOperationNotAllowed)
 	}
 
 	switch name[0] {
@@ -103,13 +103,13 @@ func (conn *imapConnector) CreateMailbox(ctx context.Context, name []string) (im
 		return conn.createLabel(ctx, name[1:])
 
 	default:
-		return imap.Mailbox{}, fmt.Errorf("invalid mailbox name %q", name)
+		return imap.Mailbox{}, fmt.Errorf("invalid mailbox name %q: %w", name, connector.ErrOperationNotAllowed)
 	}
 }
 
 func (conn *imapConnector) createLabel(ctx context.Context, name []string) (imap.Mailbox, error) {
 	if len(name) != 1 {
-		return imap.Mailbox{}, fmt.Errorf("a label cannot have children")
+		return imap.Mailbox{}, fmt.Errorf("a label cannot have children: %w", connector.ErrOperationNotAllowed)
 	}
 
 	return safe.LockRetErr(func() (imap.Mailbox, error) {
@@ -144,7 +144,7 @@ func (conn *imapConnector) createFolder(ctx context.Context, name []string) (ima
 			}
 
 			if parentID == "" {
-				return imap.Mailbox{}, fmt.Errorf("parent folder %q does not exist", name[:len(name)-1])
+				return imap.Mailbox{}, fmt.Errorf("parent folder %q does not exist: %w", name[:len(name)-1], connector.ErrOperationNotAllowed)
 			}
 		}
 
@@ -171,7 +171,7 @@ func (conn *imapConnector) UpdateMailboxName(ctx context.Context, labelID imap.M
 		defer conn.goPollAPIEvents(false)
 
 		if len(name) < 2 {
-			return fmt.Errorf("invalid mailbox name %q", name)
+			return fmt.Errorf("invalid mailbox name %q: %w", name, connector.ErrOperationNotAllowed)
 		}
 
 		switch name[0] {
@@ -182,14 +182,14 @@ func (conn *imapConnector) UpdateMailboxName(ctx context.Context, labelID imap.M
 			return conn.updateLabel(ctx, labelID, name[1:])
 
 		default:
-			return fmt.Errorf("invalid mailbox name %q", name)
+			return fmt.Errorf("invalid mailbox name %q: %w", name, connector.ErrOperationNotAllowed)
 		}
 	}, conn.apiLabelsLock)
 }
 
 func (conn *imapConnector) updateLabel(ctx context.Context, labelID imap.MailboxID, name []string) error {
 	if len(name) != 1 {
-		return fmt.Errorf("a label cannot have children")
+		return fmt.Errorf("a label cannot have children: %w", connector.ErrOperationNotAllowed)
 	}
 
 	label, err := conn.client.GetLabel(ctx, string(labelID), proton.LabelTypeLabel)
@@ -225,7 +225,7 @@ func (conn *imapConnector) updateFolder(ctx context.Context, labelID imap.Mailbo
 		}
 
 		if parentID == "" {
-			return fmt.Errorf("parent folder %q does not exist", name[:len(name)-1])
+			return fmt.Errorf("parent folder %q does not exist: %w", name[:len(name)-1], connector.ErrOperationNotAllowed)
 		}
 	}
 
@@ -276,7 +276,7 @@ func (conn *imapConnector) CreateMessage(
 	defer conn.goPollAPIEvents(false)
 
 	if mailboxID == proton.AllMailLabel {
-		return imap.Message{}, nil, fmt.Errorf("not allowed")
+		return imap.Message{}, nil, connector.ErrOperationNotAllowed
 	}
 
 	// Compute the hash of the message (to match it against SMTP messages).
@@ -383,7 +383,7 @@ func (conn *imapConnector) AddMessagesToMailbox(ctx context.Context, messageIDs 
 	defer conn.goPollAPIEvents(false)
 
 	if mailboxID == proton.AllMailLabel {
-		return fmt.Errorf("not allowed")
+		return connector.ErrOperationNotAllowed
 	}
 
 	return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(mailboxID))
@@ -394,7 +394,7 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 	defer conn.goPollAPIEvents(false)
 
 	if mailboxID == proton.AllMailLabel {
-		return fmt.Errorf("not allowed")
+		return connector.ErrOperationNotAllowed
 	}
 
 	if err := conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(mailboxID)); err != nil {
@@ -444,7 +444,7 @@ func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.M
 		(labelFromID == proton.SentLabel && labelToID == proton.InboxLabel) ||
 		labelFromID == proton.AllMailLabel ||
 		labelToID == proton.AllMailLabel {
-		return false, fmt.Errorf("not allowed")
+		return false, connector.ErrOperationNotAllowed
 	}
 
 	shouldExpungeOldLocation := func() bool {
