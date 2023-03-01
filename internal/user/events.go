@@ -257,7 +257,7 @@ func (user *User) handleUpdateAddressEvent(_ context.Context, event proton.Addre
 		})
 
 		return nil
-	}, user.apiAddrsLock)
+	}, user.apiAddrsLock, user.updateChLock)
 }
 
 func (user *User) handleDeleteAddressEvent(_ context.Context, event proton.AddressEvent) error {

@@ -546,7 +546,7 @@ func (user *User) Close() {
 	user.client.Close()
 
 	// Close the user's update channels.
-	safe.RLock(func() {
+	safe.Lock(func() {
 		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
 			updateCh.CloseAndDiscardQueued()
 		}
