@@ -503,41 +503,7 @@ func syncMessages(
 				return
 			}
 
-			var expectedMemUsage uint64
-			var chunks [][]proton.FullMessage
-
-			{
-				var lastIndex int
-				var index int
-				for _, v := range buildBatch.batch {
-					var dataSize uint64
-					for _, a := range v.Attachments {
-						dataSize += uint64(a.Size)
-					}
-
-					// 2x increase for attachment due to extra memory needed for decrypting and writing
-					// in memory buffer.
-					dataSize *= 2
-					dataSize += uint64(len(v.Body))
-
-					nextMemSize := expectedMemUsage + dataSize
-					if nextMemSize >= syncMaxMessageBuildingMem {
-						chunks = append(chunks, buildBatch.batch[lastIndex:index])
-						lastIndex = index
-						expectedMemUsage = dataSize
-					} else {
-						expectedMemUsage = nextMemSize
-					}
-
-					index++
-				}
-
-				if index < len(buildBatch.batch) {
-					chunks = append(chunks, buildBatch.batch[index:])
-				} else if index == len(buildBatch.batch) && len(chunks) == 0 {
-					chunks = [][]proton.FullMessage{buildBatch.batch}
-				}
-			}
+			chunks := chunkSyncBuilderBatch(buildBatch.batch, syncMaxMessageBuildingMem)
 
 			for index, chunk := range chunks {
 				logrus.Debugf("Build request: %v of %v count=%v", index, len(chunks), len(chunk))
@@ -851,4 +817,40 @@ func (a *attachmentDownloader) getAttachments(ctx context.Context, attachments [
 
 func (a *attachmentDownloader) close() {
 	a.cancel()
+}
+
+func chunkSyncBuilderBatch(batch []proton.FullMessage, maxMemory uint64) [][]proton.FullMessage {
+	var expectedMemUsage uint64
+	var chunks [][]proton.FullMessage
+	var lastIndex int
+	var index int
+
+	for _, v := range batch {
+		var dataSize uint64
+		for _, a := range v.Attachments {
+			dataSize += uint64(a.Size)
+		}
+
+		// 2x increase for attachment due to extra memory needed for decrypting and writing
+		// in memory buffer.
+		dataSize *= 2
+		dataSize += uint64(len(v.Body))
+
+		nextMemSize := expectedMemUsage + dataSize
+		if nextMemSize >= maxMemory {
+			chunks = append(chunks, batch[lastIndex:index])
+			lastIndex = index
+			expectedMemUsage = dataSize
+		} else {
+			expectedMemUsage = nextMemSize
+		}
+
+		index++
+	}
+
+	if lastIndex < len(batch) {
+		chunks = append(chunks, batch[lastIndex:])
+	}
+
+	return chunks
 }
