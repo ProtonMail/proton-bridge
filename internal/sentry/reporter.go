@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/restarter"
 	"github.com/getsentry/sentry-go"
