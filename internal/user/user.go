@@ -693,8 +693,11 @@ func (user *User) doEventPoll(ctx context.Context) error {
 		user.log.WithField("event", event).Warn("Failed to handle API event")
 
 		user.eventCh.Enqueue(events.UserBadEvent{
-			UserID: user.ID(),
-			Error:  err,
+			UserID:     user.ID(),
+			OldEventID: user.vault.EventID(),
+			NewEventID: event.EventID,
+			EventInfo:  event.String(),
+			Error:      err,
 		})
 
 		return fmt.Errorf("failed to handle event due to client error: %w", err)

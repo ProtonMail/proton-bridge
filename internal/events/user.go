@@ -103,12 +103,23 @@ func (event UserDeauth) String() string {
 type UserBadEvent struct {
 	eventBase
 
-	UserID string
-	Error  error
+	UserID     string
+	OldEventID string
+	NewEventID string
+	EventInfo  string
+
+	Error error
 }
 
 func (event UserBadEvent) String() string {
-	return fmt.Sprintf("UserBadEvent: UserID: %s, Error: %s", event.UserID, event.Error)
+	return fmt.Sprintf(
+		"UserBadEvent: UserID: %s, OldEventID: %s, NewEventID: %s, EventInfo: %v, Error: %s",
+		event.UserID,
+		event.OldEventID,
+		event.NewEventID,
+		event.EventInfo,
+		event.Error,
+	)
 }
 
 // UserDeleted is emitted when a user has been deleted.

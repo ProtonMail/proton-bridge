@@ -56,7 +56,7 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 		bridge.handleUserDeauth(ctx, user)
 
 	case events.UserBadEvent:
-		bridge.handleUserBadEvent(ctx, user, event.Error)
+		bridge.handleUserBadEvent(ctx, user, event)
 
 	case events.UncategorizedEventError:
 		bridge.handleUncategorizedErrorEvent(event)
@@ -140,11 +140,15 @@ func (bridge *Bridge) handleUserDeauth(ctx context.Context, user *user.User) {
 	}, bridge.usersLock)
 }
 
-func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User, err error) {
+func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User, event events.UserBadEvent) {
 	safe.Lock(func() {
 		if rerr := bridge.reporter.ReportMessageWithContext("Failed to handle event", reporter.Context{
-			"error_type": fmt.Sprintf("%T", internal.ErrCause(err)),
-			"error":      err,
+			"user_id":      user.ID(),
+			"old_event_id": event.OldEventID,
+			"new_event_id": event.NewEventID,
+			"event_info":   event.EventInfo,
+			"error":        event.Error,
+			"error_type":   fmt.Sprintf("%T", internal.ErrCause(event.Error)),
 		}); rerr != nil {
 			logrus.WithError(rerr).Error("Failed to report failed event handling")
 		}
