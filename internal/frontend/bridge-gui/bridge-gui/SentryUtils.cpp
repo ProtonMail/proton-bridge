@@ -118,6 +118,16 @@ sentry_uuid_t reportSentryEvent(sentry_level_t level, const char *message) {
 sentry_uuid_t reportSentryException(sentry_level_t level, const char *message, const char *exceptionType, const char *exception) {
     auto event = sentry_value_new_message_event(level, LoggerName, message);
     sentry_event_add_exception(event, sentry_value_new_exception(exceptionType, exception));
+
+    // reject exception content from the fingerprint if there is not enough content
+    if ( strlen(exception) < 5) {
+        sentry_value_t fingerprint = sentry_value_new_list();
+        sentry_value_append(fingerprint, sentry_value_new_string("level"));
+        sentry_value_append(fingerprint, sentry_value_new_string(message));
+        sentry_value_append(fingerprint, sentry_value_new_string(LoggerName));
+        sentry_value_set_by_key(event, "fingerprint", fingerprint);
+    }
+
     return sentry_capture_event(event);
 }
 
