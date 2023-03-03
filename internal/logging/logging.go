@@ -144,7 +144,14 @@ func getLogName(version, revision string) string {
 func getLogTime(name string) int {
 	re := regexp.MustCompile(`^v.*_.*_(?P<timestamp>\d+).log$`)
 
-	timestamp, err := strconv.Atoi(re.FindStringSubmatch(name)[re.SubexpIndex("timestamp")])
+	match := re.FindStringSubmatch(name)
+
+	if len(match) == 0 {
+		logrus.Warn("Could not parse log name: ", name)
+		return 0
+	}
+
+	timestamp, err := strconv.Atoi(match[re.SubexpIndex("timestamp")])
 	if err != nil {
 		return 0
 	}
