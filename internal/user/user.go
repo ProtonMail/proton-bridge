@@ -626,6 +626,17 @@ func (user *User) doEventPoll(ctx context.Context) error {
 	user.eventLock.Lock()
 	defer user.eventLock.Unlock()
 
+	eventID := user.vault.EventID()
+	if eventID == "" {
+		err := errors.New("current eventID is empty")
+		user.eventCh.Enqueue(events.UncategorizedEventError{ // this might be bad event.. I hope sync is ongoing
+			UserID: user.ID(),
+			Error:  err,
+		})
+
+		return err
+	}
+
 	event, err := user.client.GetEvent(ctx, user.vault.EventID())
 	if err != nil {
 		return fmt.Errorf("failed to get event (caused by %T): %w", internal.ErrCause(err), err)
