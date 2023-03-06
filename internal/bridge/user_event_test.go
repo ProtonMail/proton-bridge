@@ -68,9 +68,13 @@ func TestBridge_User_RefreshEvent(t *testing.T) {
 		require.NoError(t, s.RefreshUser(userID, proton.RefreshMail))
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			syncCh, closeCh := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+
 			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).MinTimes(1)
 
-			time.Sleep(time.Second)
+			require.Equal(t, userID, (<-syncCh).UserID)
+			closeCh()
+
 			userContinueEventProcess(ctx, t, s, bridge)
 		})
 
@@ -85,64 +89,86 @@ func TestBridge_User_RefreshEvent(t *testing.T) {
 }
 
 func TestBridge_User_BadMessage_BadEvent(t *testing.T) {
-	t.Run("Logout-Login", badMessage_badEvent)
+	t.Run("Resync", test_badMessage_badEvent(func(t *testing.T, ctx context.Context, bridge *bridge.Bridge, badUserID string) {
+		// User feedback is resync
+		require.NoError(t, bridge.SendBadEventUserFeedback(ctx, badUserID, true))
+
+		// Wait for sync to finish
+		syncCh, closeCh := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+		require.Equal(t, badUserID, (<-syncCh).UserID)
+		closeCh()
+	}))
+
+	t.Run("LogoutAndLogin", test_badMessage_badEvent(func(t *testing.T, ctx context.Context, bridge *bridge.Bridge, badUserID string) {
+		// User feedback is logout
+		require.NoError(t, bridge.SendBadEventUserFeedback(ctx, badUserID, false))
+
+		// The user will eventually be logged out due to the bad request errors.
+		require.Eventually(t, func() bool {
+			return len(bridge.GetUserIDs()) == 1 && len(getConnectedUserIDs(t, bridge)) == 0
+		}, 100*user.EventPeriod, user.EventPeriod)
+
+		// Login again
+		_, err := bridge.LoginFull(ctx, "user", password, nil, nil)
+		require.NoError(t, err)
+	}))
 }
 
-func badMessage_badEvent(t *testing.T) {
-	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		// Create a user.
-		userID, addrID, err := s.CreateUser("user", password)
-		require.NoError(t, err)
-
-		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
-		require.NoError(t, err)
-
-		// Create 10 messages for the user.
-		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
-			createNumMessages(ctx, t, c, addrID, labelID, 10)
-		})
-
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			userLoginAndSync(ctx, t, bridge, "user", password)
-
-			var messageIDs []string
-
-			// Create 10 more messages for the user, generating events.
-			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
-				messageIDs = createNumMessages(ctx, t, c, addrID, labelID, 10)
-			})
-
-			// If bridge attempts to sync the new messages, it should get a BadRequest error.
-			doBadRequest := true
-			s.AddStatusHook(func(req *http.Request) (int, bool) {
-				if !doBadRequest {
-					return 0, false
-				}
-
-				if xslices.Index(xslices.Map(messageIDs, func(messageID string) string {
-					return "/mail/v4/messages/" + messageID
-				}), req.URL.Path) < 0 {
-					return 0, false
-				}
-
-				return http.StatusBadRequest, true
-			})
-
-			userReceiveBadErrorAndLogout(t, bridge, mocks)
-
-			// Remove messages
-			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
-				require.NoError(t, c.DeleteMessage(ctx, messageIDs...))
-			})
-			doBadRequest = false
-
-			// Login again
-			_, err := bridge.LoginFull(ctx, "user", password, nil, nil)
+func test_badMessage_badEvent(userFeedback func(t *testing.T, ctx context.Context, bridge *bridge.Bridge, badUserID string)) func(t *testing.T) {
+	return func(t *testing.T) {
+		withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+			// Create a user.
+			userID, addrID, err := s.CreateUser("user", password)
 			require.NoError(t, err)
 
-			userContinueEventProcess(ctx, t, s, bridge)
+			labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
+			require.NoError(t, err)
+
+			// Create 10 messages for the user.
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				createNumMessages(ctx, t, c, addrID, labelID, 10)
+			})
+
+			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+				userLoginAndSync(ctx, t, bridge, "user", password)
+
+				var messageIDs []string
+
+				// Create 10 more messages for the user, generating events.
+				withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+					messageIDs = createNumMessages(ctx, t, c, addrID, labelID, 10)
+				})
+
+				// If bridge attempts to sync the new messages, it should get a BadRequest error.
+				doBadRequest := true
+				s.AddStatusHook(func(req *http.Request) (int, bool) {
+					if !doBadRequest {
+						return 0, false
+					}
+
+					if xslices.Index(xslices.Map(messageIDs[0:5], func(messageID string) string {
+						return "/mail/v4/messages/" + messageID
+					}), req.URL.Path) < 0 {
+						return 0, false
+					}
+
+					return http.StatusBadRequest, true
+				})
+
+				badUserID := userReceivesBadError(t, bridge, mocks)
+
+				// Remove messages, make response OK again
+				withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+					require.NoError(t, c.DeleteMessage(ctx, messageIDs[0:5]...))
+				})
+				doBadRequest = false
+
+				userFeedback(t, ctx, bridge, badUserID)
+
+				userContinueEventProcess(ctx, t, s, bridge)
+			})
 		})
-	})
+	}
 }
 
 func TestBridge_User_BadMessage_NoBadEvent(t *testing.T) {
@@ -359,21 +385,24 @@ func userLoginAndSync(
 	require.Equal(t, userID, (<-syncCh).UserID)
 }
 
-func userReceiveBadErrorAndLogout(
+func userReceivesBadError(
 	t *testing.T,
 	bridge *bridge.Bridge,
 	mocks *bridge.Mocks,
-) {
+) (userID string) {
+	badEventCh, closeCh := bridge.GetEvents(events.UserBadEvent{})
+
 	// The user will continue to process events and will receive bad request errors.
 	mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).MinTimes(1)
 
-	// The user will eventually be logged out due to the bad request errors.
-	require.Eventually(t, func() bool {
-		return len(bridge.GetUserIDs()) == 1 && len(getConnectedUserIDs(t, bridge)) == 0
-	}, 100*user.EventPeriod, user.EventPeriod)
+	badEvent, ok := (<-badEventCh).(events.UserBadEvent)
+	require.True(t, ok)
+
+	closeCh()
+
+	return badEvent.UserID
 }
 
-// userContinueEventProcess checks that user will continue to process events and will not receive any bad request errors.
 func userContinueEventProcess(
 	ctx context.Context,
 	t *testing.T,

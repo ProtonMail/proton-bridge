@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/ProtonMail/gluon v0.14.2-0.20230307115918-2c30af37e4dd
 	github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a
-	github.com/ProtonMail/go-proton-api v0.3.1-0.20230209110241-fe7894c4931a
+	github.com/ProtonMail/go-proton-api v0.3.1-0.20230306124657-5801649f875e
 	github.com/ProtonMail/go-rfc5322 v0.11.0
 	github.com/ProtonMail/gopenpgp/v2 v2.4.10
 	github.com/PuerkitoBio/goquery v1.8.0
@@ -119,7 +119,6 @@ require (
 )
 
 replace (
-	github.com/ProtonMail/go-proton-api => /home/dev/gopath18/src/go-proton-api
 	github.com/docker/docker-credential-helpers => github.com/ProtonMail/docker-credential-helpers v1.1.0
 	github.com/emersion/go-message => github.com/ProtonMail/go-message v0.0.0-20210611055058-fabeff2ec753
 	github.com/keybase/go-keychain => github.com/cuthix/go-keychain v0.0.0-20220405075754-31e7cee908fe

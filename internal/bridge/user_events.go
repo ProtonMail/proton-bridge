@@ -141,7 +141,7 @@ func (bridge *Bridge) handleUserDeauth(ctx context.Context, user *user.User) {
 }
 
 func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User, event events.UserBadEvent) {
-	safe.Lock(func() {
+	go safe.Lock(func() {
 		reportContext := reporter.Context{
 			"user_id":      user.ID(),
 			"old_event_id": event.OldEventID,
@@ -184,6 +184,9 @@ func (bridge *Bridge) getBadEventUserFeedback(userID string) (doResyc bool, err 
 	if !ok {
 		return false, ErrNoSuchUser
 	}
+
+	user.LockEvents()
+	defer user.UnlockEvents()
 
 	return user.GetBadEventFeedback(), nil
 }

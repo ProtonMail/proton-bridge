@@ -525,6 +525,14 @@ func (user *User) clearSyncStatus() error {
 	return nil
 }
 
+func (user *User) LockEvents() {
+	user.eventLock.Lock()
+}
+
+func (user *User) UnlockEvents() {
+	user.eventLock.Unlock()
+}
+
 // Logout logs the user out from the API.
 func (user *User) Logout(ctx context.Context, withAPI bool) error {
 	user.log.WithField("withAPI", withAPI).Info("Logging out user")

@@ -90,17 +90,11 @@ func (user *User) handleRefreshEvent(ctx context.Context, refresh proton.Refresh
 }
 
 func (user *User) SyncEvent(ctx context.Context) error {
-	// Cancel the event stream
-	user.pollAbort.Abort() // ??? There was a defer here. But I think it's best to do this immediately, there is no reason to continue with polls while having re-sync.
+	// Abort the event stream
+	defer user.pollAbort.Abort()
 
 	// Re-sync messages after the user, address and label refresh.
 	defer user.goSync()
-
-	// stop IMAP and SMTP
-
-	if err := user.vault.SetEventID(""); err != nil {
-		return fmt.Errorf("failed to clean latest event ID: %w", err)
-	}
 
 	return safe.LockRet(func() error {
 		// Fetch latest user info.
