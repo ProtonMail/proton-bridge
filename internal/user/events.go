@@ -669,9 +669,12 @@ func (user *User) handleUpdateMessageEvent(ctx context.Context, message proton.M
 		update := imap.NewMessageMailboxesUpdated(
 			imap.MessageID(message.ID),
 			mapTo[string, imap.MailboxID](wantLabels(user.apiLabels, message.LabelIDs)),
-			message.Seen(),
-			message.Starred(),
-			message.IsDraft(),
+			imap.MessageCustomFlags{
+				Seen:     message.Seen(),
+				Flagged:  message.Starred(),
+				Draft:    message.IsDraft(),
+				Answered: message.IsRepliedAll == true || message.IsReplied == true, //nolint: gosimple
+			},
 		)
 
 		user.updateCh[message.AddressID].Enqueue(update)
