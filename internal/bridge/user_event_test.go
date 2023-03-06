@@ -40,6 +40,50 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestBridge_User_RefreshEvent(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		userID, addrID, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
+		require.NoError(t, err)
+
+		var messageIDs []string
+
+		// Create 10 messages for the user.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			messageIDs = createNumMessages(ctx, t, c, addrID, labelID, 10)
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+		})
+
+		// Remove a message
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			require.NoError(t, c.DeleteMessage(ctx, messageIDs[0]))
+		})
+
+		require.NoError(t, s.RefreshUser(userID, proton.RefreshMail))
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).MinTimes(1)
+
+			time.Sleep(time.Second)
+			userContinueEventProcess(ctx, t, s, bridge)
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				createNumMessages(ctx, t, c, addrID, labelID, 10)
+			})
+
+			userContinueEventProcess(ctx, t, s, bridge)
+		})
+	})
+}
+
 func TestBridge_User_BadMessage_BadEvent(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		// Create a user.
