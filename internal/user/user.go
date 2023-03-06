@@ -90,6 +90,9 @@ type User struct {
 
 	syncWorkers int
 	showAllMail uint32
+
+	// doResyncFeedback must be non-blocking for first attempt (i.e. buffered)
+	doResyncFeedback chan bool
 }
 
 // New returns a new user.
@@ -148,6 +151,8 @@ func New(
 
 		syncWorkers: syncWorkers,
 		showAllMail: b32(showAllMail),
+
+		doResyncFeedback: make(chan bool, 1),
 	}
 
 	// Initialize the user's update channels for its current address mode.
@@ -297,6 +302,16 @@ func (user *User) SetAddressMode(_ context.Context, mode vault.AddressMode) erro
 
 		return nil
 	}, user.eventLock, user.apiAddrsLock, user.updateChLock)
+}
+
+// SendBadEventFeedback sends user feedback whether should do message re-sync.
+func (user *User) SendBadEventFeedback(doResync bool) {
+	user.doResyncFeedback <- doResync
+}
+
+// GetBadEventFeedback read the user feedback whether should do message re-sync.
+func (user *User) GetBadEventFeedback() bool {
+	return <-user.doResyncFeedback
 }
 
 // SetShowAllMail sets whether to show the All Mail mailbox.

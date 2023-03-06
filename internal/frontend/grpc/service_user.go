@@ -95,6 +95,24 @@ func (s *Service) SetUserSplitMode(ctx context.Context, splitMode *UserSplitMode
 	return &emptypb.Empty{}, nil
 }
 
+func (s *Service) SendBadEventUserFeedback(ctx context.Context, feedback *UserBadEventFeedbackRequest) (*emptypb.Empty, error) {
+	l := s.log.WithField("UserID", feedback.UserID).WithField("doResync", feedback.DoResync)
+	l.Debug("SendBadEventUserFeedback")
+
+	user, err := s.bridge.GetUserInfo(feedback.UserID)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "user not found %v", feedback.UserID)
+	}
+
+	if err := s.bridge.SendBadEventUserFeedback(context.Background(), user.UserID, feedback.DoResync); err != nil {
+		l.WithError(err).Error("Failed to send bad event feedback")
+	}
+
+	l.Info("Sending bad event feedback finished.")
+
+	return &emptypb.Empty{}, nil
+}
+
 func (s *Service) LogoutUser(ctx context.Context, userID *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	s.log.WithField("UserID", userID.Value).Debug("LogoutUser")
 

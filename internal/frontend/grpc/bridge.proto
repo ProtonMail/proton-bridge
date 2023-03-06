@@ -91,6 +91,7 @@ service Bridge {
   rpc GetUserList(google.protobuf.Empty) returns (UserListResponse);
   rpc GetUser(google.protobuf.StringValue) returns (User);
   rpc SetUserSplitMode(UserSplitModeRequest) returns (google.protobuf.Empty);
+  rpc SendBadEventUserFeedback(UserBadEventFeedbackRequest) returns (google.protobuf.Empty);
   rpc LogoutUser(google.protobuf.StringValue) returns (google.protobuf.Empty);
   rpc RemoveUser(google.protobuf.StringValue) returns (google.protobuf.Empty);
   rpc ConfigureUserAppleMail(ConfigureAppleMailRequest) returns (google.protobuf.Empty);
@@ -202,6 +203,12 @@ message UserSplitModeRequest {
   string userID = 1;
   bool active = 2;
 }
+
+message UserBadEventFeedbackRequest {
+  string userID = 1;
+  bool doResync = 2;
+}
+
 
 message UserListResponse {
   repeated User users = 1;

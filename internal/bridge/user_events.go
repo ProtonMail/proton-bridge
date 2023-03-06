@@ -153,7 +153,7 @@ func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User, e
 
 		// blockEventsIMAPandSMTP()
 
-		if doResyc, err := bridge.getBadEventUserFeedback(); err != nil || !doResyc {
+		if doResyc, err := bridge.getBadEventUserFeedback(user.ID()); err != nil || !doResyc {
 			if rerr := bridge.reporter.ReportMessageWithContext("Failed to handle event: logout", reportContext); rerr != nil {
 				logrus.WithError(rerr).Error("Failed to report failed event handling")
 			}
@@ -179,8 +179,13 @@ func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User, e
 	}, bridge.usersLock)
 }
 
-func (bridge *Bridge) getBadEventUserFeedback() (doResyc bool, err error) {
-	return true, nil
+func (bridge *Bridge) getBadEventUserFeedback(userID string) (doResyc bool, err error) {
+	user, ok := bridge.users[userID]
+	if !ok {
+		return false, ErrNoSuchUser
+	}
+
+	return user.GetBadEventFeedback(), nil
 }
 
 func (bridge *Bridge) handleUncategorizedErrorEvent(event events.UncategorizedEventError) {

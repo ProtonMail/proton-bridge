@@ -85,6 +85,10 @@ func TestBridge_User_RefreshEvent(t *testing.T) {
 }
 
 func TestBridge_User_BadMessage_BadEvent(t *testing.T) {
+	t.Run("Logout-Login", badMessage_badEvent)
+}
+
+func badMessage_badEvent(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		// Create a user.
 		userID, addrID, err := s.CreateUser("user", password)

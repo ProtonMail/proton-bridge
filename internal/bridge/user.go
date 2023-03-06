@@ -298,6 +298,21 @@ func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode va
 	}, bridge.usersLock)
 }
 
+// SendBadEventUserFeedback sets the address mode for the given user.
+func (bridge *Bridge) SendBadEventUserFeedback(ctx context.Context, userID string, doResync bool) error {
+	l := logrus.WithField("userID", userID).WithField("doResycn", doResync)
+	l.Info("Passing bad event feedback to user")
+
+	user, ok := bridge.users[userID]
+	if !ok {
+		return ErrNoSuchUser
+	}
+
+	user.SendBadEventFeedback(doResync)
+
+	return nil
+}
+
 func (bridge *Bridge) loginUser(ctx context.Context, client *proton.Client, authUID, authRef string, keyPass []byte) (string, error) {
 	apiUser, err := client.GetUser(ctx)
 	if err != nil {
