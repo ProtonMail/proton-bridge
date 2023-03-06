@@ -26,9 +26,10 @@ namespace bridgepp {
 /// \param[in] what A description of the exception.
 /// \param[in] details The optional details for the exception.
 //****************************************************************************************************************************************************
-Exception::Exception(QString what, QString details) noexcept
+Exception::Exception(QString qwhat, QString details) noexcept
     : std::exception()
-    , what_(std::move(what))
+    , qwhat_(std::move(qwhat))
+    , what_(qwhat_.toLocal8Bit())
     , details_(std::move(details)) {
 }
 
@@ -38,6 +39,7 @@ Exception::Exception(QString what, QString details) noexcept
 //****************************************************************************************************************************************************
 Exception::Exception(Exception const &ref) noexcept
     : std::exception(ref)
+    , qwhat_(ref.qwhat_)
     , what_(ref.what_)
     , details_(ref.details_) {
 }
@@ -48,6 +50,7 @@ Exception::Exception(Exception const &ref) noexcept
 //****************************************************************************************************************************************************
 Exception::Exception(Exception &&ref) noexcept
     : std::exception(ref)
+    , qwhat_(ref.qwhat_)
     , what_(ref.what_)
     , details_(ref.details_) {
 }
@@ -57,7 +60,7 @@ Exception::Exception(Exception &&ref) noexcept
 /// \return a string describing the exception
 //****************************************************************************************************************************************************
 QString Exception::qwhat() const noexcept {
-    return what_;
+    return qwhat_;
 }
 
 
@@ -65,7 +68,7 @@ QString Exception::qwhat() const noexcept {
 /// \return A pointer to the description string of the exception.
 //****************************************************************************************************************************************************
 const char *Exception::what() const noexcept {
-    return what_.toLocal8Bit().constData();
+    return what_.constData();
 }
 
 

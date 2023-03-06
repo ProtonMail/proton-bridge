@@ -31,7 +31,7 @@ namespace bridgepp {
 //****************************************************************************************************************************************************
 class Exception : public std::exception {
 public: // member functions
-    explicit Exception(QString what = QString(), QString details = QString()) noexcept; ///< Constructor
+    explicit Exception(QString qwhat = QString(), QString details = QString()) noexcept; ///< Constructor
     Exception(Exception const &ref) noexcept; ///< copy constructor
     Exception(Exception &&ref) noexcept; ///< copy constructor
     Exception &operator=(Exception const &) = delete; ///< Disabled assignment operator
@@ -42,7 +42,8 @@ public: // member functions
     QString details() const noexcept; ///< Return the details for the exception
 
 private: // data members
-    QString const what_; ///< The description of the exception.
+    QString const qwhat_; ///< The description of the exception.
+    QByteArray const what_; ///< The c-string version of the qwhat message. Stored as a QByteArray for automatic lifetime management.
     QString const details_; ///< The optional details for the exception.
 };
 
