@@ -22,6 +22,7 @@
 #include "QMLBackend.h"
 #include "SentryUtils.h"
 #include "BuildConfig.h"
+#include "LogUtils.h"
 #include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/FocusGRPC/FocusGRPCClient.h>
@@ -238,7 +239,7 @@ void focusOtherInstance() {
     }
     catch (Exception const &e) {
         app().log().error(e.qwhat());
-        auto uuid = reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during focusOtherInstance()", "Exception", e.what());
+        auto uuid = reportSentryException("Exception occurred during focusOtherInstance()", e);
         app().log().fatal(QString("reportID: %1 Captured exception: %2").arg(QByteArray(uuid.bytes, 16).toHex()).arg(e.qwhat()));
     }
 }
@@ -332,7 +333,8 @@ int main(int argc, char *argv[]) {
 
         if (!cliOptions.attach) {
             if (isBridgeRunning()) {
-                throw Exception("An orphan instance of bridge is already running. Please terminate it and relaunch the application.");
+                throw Exception("An orphan instance of bridge is already running. Please terminate it and relaunch the application.",
+                    QString(), QString(), tailOfLatestBridgeLog());
             }
 
             // before launching bridge, we remove any trailing service config file, because we need to make sure we get a newly generated one.
@@ -358,6 +360,7 @@ int main(int argc, char *argv[]) {
         // to use a software-only implementation of OpenGL.
         QQuickWindow::setSceneGraphBackend(cliOptions.useSoftwareRenderer ? "software" : "rhi");
         log.info(QString("Qt Quick renderer: %1").arg(QQuickWindow::sceneGraphBackend()));
+
 
         QQmlApplicationEngine engine;
         std::unique_ptr<QQmlComponent> rootComponent(createRootQmlComponent(engine));
@@ -420,16 +423,9 @@ int main(int argc, char *argv[]) {
         return result;
     }
     catch (Exception const &e) {
-        QString fullMessage = e.qwhat();
-        bool const hasDetails = !e.details().isEmpty();
-        if (hasDetails)
-            fullMessage += "\n\nDetails:\n" + e.details();
-        sentry_uuid_s const uuid = reportSentryException(SENTRY_LEVEL_ERROR, "Exception occurred during main", "Exception", fullMessage.toLocal8Bit());
+        sentry_uuid_s const uuid = reportSentryException("Exception occurred during main", e);
         QMessageBox::critical(nullptr, "Error", e.qwhat());
-        QTextStream errStream(stderr);
-        errStream << "reportID: " << QByteArray(uuid.bytes, 16).toHex() << " Captured exception :" << e.qwhat() << "\n";
-        if (hasDetails)
-            errStream << "\nDetails:\n" << e.details() << "\n";
+        QTextStream(stderr) << "reportID: " << QByteArray(uuid.bytes, 16).toHex() << " Captured exception :" << e.detailedWhat() << "\n";
         return EXIT_FAILURE;
     }
 }

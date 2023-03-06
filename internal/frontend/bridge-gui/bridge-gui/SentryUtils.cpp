@@ -18,13 +18,33 @@
 #include "SentryUtils.h"
 #include "BuildConfig.h"
 #include <bridgepp/BridgeUtils.h>
+#include <bridgepp/Exception/Exception.h>
 
 #include <QByteArray>
 #include <QCryptographicHash>
 #include <QString>
 #include <QSysInfo>
 
+
 static constexpr const char *LoggerName = "bridge-gui";
+
+
+//****************************************************************************************************************************************************
+/// \return The temporary file used for sentry attachment.
+//****************************************************************************************************************************************************
+QString sentryAttachmentFilePath() {
+    static QString path;
+    if (!path.isEmpty()) {
+        return path;
+    }
+    while (true) {
+        path = QDir::temp().absoluteFilePath(QUuid::createUuid().toString(QUuid::WithoutBraces) + ".txt"); // Sentry does not offer preview for .log files.
+        if (!QFileInfo::exists(path)) {
+            return path;
+        }
+    }
+}
+
 
 QByteArray getProtectedHostname() {
     QByteArray hostname = QCryptographicHash::hash(QSysInfo::machineHostName().toUtf8(), QCryptographicHash::Sha256);
@@ -63,11 +83,14 @@ sentry_options_t* newSentryOptions(const char *sentryDNS, const char *cacheDir) 
     sentry_options_set_release(sentryOptions, appVersion(PROJECT_VER).toUtf8());
     sentry_options_set_max_breadcrumbs(sentryOptions, 50);
     sentry_options_set_environment(sentryOptions, PROJECT_BUILD_ENV);
+    QByteArray const array = sentryAttachmentFilePath().toLocal8Bit();
+    sentry_options_add_attachment(sentryOptions, array.constData());
     // Enable this for debugging sentry.
     // sentry_options_set_debug(sentryOptions, 1);
 
     return sentryOptions;
 }
+
 
 sentry_uuid_t reportSentryEvent(sentry_level_t level, const char *message) {
     auto event = sentry_value_new_message_event(level, LoggerName, message);
@@ -91,4 +114,31 @@ sentry_uuid_t reportSentryException(sentry_level_t level, const char *message, c
     return sentry_capture_event(event);
 }
 
+
+//****************************************************************************************************************************************************
+/// \param[in] message The message for the exception.
+/// \param[in] function The name of the function that triggered the exception.
+/// \param[in] exception The exception.
+/// \return The Sentry exception UUID.
+//****************************************************************************************************************************************************
+sentry_uuid_t reportSentryException(QString const &message, bridgepp::Exception const exception) {
+    QByteArray const attachment = exception.attachment();
+    QFile file(sentryAttachmentFilePath());
+    bool const hasAttachment = !attachment.isEmpty();
+    if (hasAttachment) {
+        if (file.open(QIODevice::Text | QIODevice::WriteOnly)) {
+            file.write(attachment);
+            file.close();
+        }
+    }
+
+    sentry_uuid_t const uuid = reportSentryException(SENTRY_LEVEL_ERROR, message.toLocal8Bit(), "Exception",
+        exception.detailedWhat().toLocal8Bit());
+
+    if (hasAttachment) {
+        file.remove();
+    }
+
+    return uuid;
+}
 

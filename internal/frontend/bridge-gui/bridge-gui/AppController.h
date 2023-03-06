@@ -20,21 +20,16 @@
 #define BRIDGE_GUI_APP_CONTROLLER_H
 
 
+// @formatter:off
 class QMLBackend;
-
-
 namespace bridgepp {
 class Log;
-
-
 class Overseer;
-
-
 class GRPCClient;
-
-
 class ProcessMonitor;
+class Exception;
 }
+// @formatter:off
 
 
 //****************************************************************************************************************************************************
@@ -58,7 +53,7 @@ public: // member functions.
     void setLauncherArgs(const QString& launcher, const QStringList& args);
 
 public slots:
-    void onFatalError(QString const &function, QString const &message, QString const& details); ///< Handle fatal errors.
+    void onFatalError(bridgepp::Exception const& e); ///< Handle fatal errors.
 
 private: // member functions
     AppController(); ///< Default constructor.

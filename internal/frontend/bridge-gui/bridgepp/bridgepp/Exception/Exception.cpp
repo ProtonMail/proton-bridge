@@ -25,12 +25,15 @@ namespace bridgepp {
 //****************************************************************************************************************************************************
 /// \param[in] what A description of the exception.
 /// \param[in] details The optional details for the exception.
+/// \param[in] function The name of the calling function.
 //****************************************************************************************************************************************************
-Exception::Exception(QString qwhat, QString details) noexcept
+Exception::Exception(QString qwhat, QString details, QString function, QByteArray attachment) noexcept
     : std::exception()
     , qwhat_(std::move(qwhat))
     , what_(qwhat_.toLocal8Bit())
-    , details_(std::move(details)) {
+    , details_(std::move(details))
+    , function_(std::move(function))
+    , attachment_(std::move(attachment)) {
 }
 
 
@@ -41,7 +44,9 @@ Exception::Exception(Exception const &ref) noexcept
     : std::exception(ref)
     , qwhat_(ref.qwhat_)
     , what_(ref.what_)
-    , details_(ref.details_) {
+    , details_(ref.details_)
+    , function_(ref.function_)
+    , attachment_(ref.attachment_) {
 }
 
 
@@ -52,7 +57,9 @@ Exception::Exception(Exception &&ref) noexcept
     : std::exception(ref)
     , qwhat_(ref.qwhat_)
     , what_(ref.what_)
-    , details_(ref.details_) {
+    , details_(ref.details_)
+    , function_(ref.function_)
+    , attachment_(ref.attachment_) {
 }
 
 
@@ -79,5 +86,27 @@ QString Exception::details() const noexcept {
     return details_;
 }
 
+
+//****************************************************************************************************************************************************
+/// \return The attachment for the exception.
+//****************************************************************************************************************************************************
+QByteArray Exception::attachment() const noexcept {
+    return attachment_;
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The details exception.
+//****************************************************************************************************************************************************
+QString Exception::detailedWhat() const {
+    QString result = qwhat_;
+    if (!function_.isEmpty()) {
+        result = QString("%1(): %2").arg(function_, result);
+    }
+    if (!details_.isEmpty()) {
+        result += "\n\nDetails:\n" + details_;
+    }
+    return result;
+}
 
 } // namespace bridgepp

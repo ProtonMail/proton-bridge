@@ -112,6 +112,7 @@ add_executable(bridge-gui
     BridgeApp.cpp BridgeApp.h
     CommandLine.cpp CommandLine.h
     EventStreamWorker.cpp EventStreamWorker.h
+    LogUtils.cpp LogUtils.h
     main.cpp
     Pch.h
     BuildConfig.h

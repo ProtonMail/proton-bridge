@@ -32,6 +32,7 @@ namespace {
 QString const noWindowFlag = "--no-window"; ///< The no-window command-line flag.
 }
 
+
 //****************************************************************************************************************************************************
 /// \return The AppController instance.
 //****************************************************************************************************************************************************
@@ -71,36 +72,34 @@ ProcessMonitor *AppController::bridgeMonitor() const {
 
 
 //****************************************************************************************************************************************************
-/// \param[in] function The function that caught the exception.
-/// \param[in] message The error message.
-/// \param[in] details The details for the error.
+/// \param[in] exception The exception that triggered the fatal error.
 //****************************************************************************************************************************************************
-void AppController::onFatalError(QString const &function, QString const &message, QString const& details) {
-    QString fullMessage = QString("%1(): %2").arg(function, message);
-    if (!details.isEmpty())
-        fullMessage += "\n\nDetails:\n" + details;
-    sentry_uuid_s const uuid = reportSentryException(SENTRY_LEVEL_ERROR, "AppController got notified of a fatal error", "Exception",
-        fullMessage.toLocal8Bit());
-    QMessageBox::critical(nullptr, tr("Error"), message);
+void AppController::onFatalError(Exception const &exception) {
+    sentry_uuid_t uuid = reportSentryException("AppController got notified of a fatal error", exception);
+
+    QMessageBox::critical(nullptr, tr("Error"), exception.what());
     restart(true);
-    log().fatal(QString("reportID: %1 Captured exception: %2").arg(QByteArray(uuid.bytes, 16).toHex(), fullMessage));
+    log().fatal(QString("reportID: %1 Captured exception: %2").arg(QByteArray(uuid.bytes, 16).toHex(), exception.detailedWhat()));
     qApp->exit(EXIT_FAILURE);
 }
+
 
 void AppController::restart(bool isCrashing) {
     if (!launcher_.isEmpty()) {
         QProcess p;
-        log_->info(QString("Restarting - App : %1 - Args : %2").arg(launcher_,launcherArgs_.join(" ")));
+        log_->info(QString("Restarting - App : %1 - Args : %2").arg(launcher_, launcherArgs_.join(" ")));
         QStringList args = launcherArgs_;
-        if (isCrashing)
+        if (isCrashing) {
             args.append(noWindowFlag);
+        }
 
         p.startDetached(launcher_, args);
         p.waitForStarted();
     }
 }
 
-void AppController::setLauncherArgs(const QString& launcher, const QStringList& args){
+
+void AppController::setLauncherArgs(const QString &launcher, const QStringList &args) {
     launcher_ = launcher;
     launcherArgs_ = args;
 }
