@@ -227,8 +227,9 @@ void focusOtherInstance() {
 
 //****************************************************************************************************************************************************
 /// \param [in] args list of arguments to pass to bridge.
+/// \return bridge executable path
 //****************************************************************************************************************************************************
-void launchBridge(QStringList const &args) {
+const QString launchBridge(QStringList const &args) {
     UPOverseer &overseer = app().bridgeOverseer();
     overseer.reset();
 
@@ -245,6 +246,7 @@ void launchBridge(QStringList const &args) {
     app().log().info(QString("Launching bridge process with command \"%1\" %2").arg(bridgeExePath, params.join(" ")));
     overseer = std::make_unique<Overseer>(new ProcessMonitor(bridgeExePath, params, nullptr), nullptr);
     overseer->startWorker(true);
+    return bridgeExePath;
 }
 
 
@@ -305,7 +307,7 @@ int main(int argc, char *argv[]) {
         // When not in attached mode, log entries are forwarded to bridge, which output it on stdout/stderr. bridge-gui's process monitor intercept
         // these outputs and output them on the command-line.
         log.setLevel(cliOptions.logLevel);
-
+        QString bridgeexec;
         if (!cliOptions.attach) {
             if (isBridgeRunning()) {
                 throw Exception("An orphan instance of bridge is already running. Please terminate it and relaunch the application.",
@@ -315,7 +317,7 @@ int main(int argc, char *argv[]) {
             // before launching bridge, we remove any trailing service config file, because we need to make sure we get a newly generated one.
             FocusGRPCClient::removeServiceConfigFile(configDir);
             GRPCClient::removeServiceConfigFile(configDir);
-            launchBridge(cliOptions.bridgeArgs);
+            bridgeexec = launchBridge(cliOptions.bridgeArgs);
         }
 
         log.info(QString("Retrieving gRPC service configuration from '%1'").arg(QDir::toNativeSeparators(grpcServerConfigPath(configDir))));
@@ -373,11 +375,15 @@ int main(int argc, char *argv[]) {
         int result = 0;
         if (!startError) {
             // we succeeded in launching bridge, so we can be set as mainExecutable.
-            QString mainExe = QString::fromLocal8Bit(argv[0]);
-            app().grpc().setMainExecutable(mainExe);
+            QString mainexec = QString::fromLocal8Bit(argv[0]);
+            app().grpc().setMainExecutable(mainexec);
             QStringList args = cliOptions.bridgeGuiArgs;
             args.append(waitFlag);
-            args.append(mainExe);
+            args.append(mainexec);
+            if (!bridgeexec.isEmpty()) {
+                args.append(waitFlag);
+                args.append(bridgeexec);
+            }
             app().setLauncherArgs(cliOptions.launcher, args);
             result = QGuiApplication::exec();
         }
