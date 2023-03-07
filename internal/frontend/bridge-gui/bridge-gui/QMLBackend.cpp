@@ -19,15 +19,16 @@
 #include "QMLBackend.h"
 #include "BuildConfig.h"
 #include "EventStreamWorker.h"
+#include "LogUtils.h"
 #include <bridgepp/BridgeUtils.h>
-#include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Exception/Exception.h>
+#include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Worker/Overseer.h>
 
 
 #define HANDLE_EXCEPTION(x) try { x } \
-    catch (Exception const &e) { emit fatalError(__func__, e.qwhat(), e.details()); } \
-    catch (...)  { emit fatalError(__func__, QString("An unknown exception occurred"), QString()); }
+    catch (Exception const &e) { emit fatalError(e); } \
+    catch (...)  { emit fatalError(Exception("An unknown exception occurred", QString(), __func__)); }
 #define HANDLE_EXCEPTION_RETURN_BOOL(x) HANDLE_EXCEPTION(x) return false;
 #define HANDLE_EXCEPTION_RETURN_QSTRING(x) HANDLE_EXCEPTION(x) return QString();
 #define HANDLE_EXCEPTION_RETURN_ZERO(x) HANDLE_EXCEPTION(x) return 0;
@@ -596,7 +597,7 @@ void QMLBackend::login(QString const &username, QString const &password) const {
     HANDLE_EXCEPTION(
         if (username.compare("coco@bandicoot", Qt::CaseInsensitive) == 0) {
             throw Exception("User requested bridge-gui to crash by trying to log as coco@bandicoot",
-                "This error exists for test purposes and should be ignored.");
+                "This error exists for test purposes and should be ignored.", __func__, tailOfLatestBridgeLog());
         }
         app().grpc().login(username, password);
     )

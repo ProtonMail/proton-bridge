@@ -24,6 +24,11 @@
 using namespace bridgepp;
 
 
+namespace {
+qsizetype const logFileTailMaxLength = 25 * 1024; ///< The maximum length of the portion of log returned by tailOfLatestBridgeLog()
+}
+
+
 //****************************************************************************************************************************************************
 /// \return user logs directory used by bridge.
 //****************************************************************************************************************************************************
@@ -64,3 +69,36 @@ Log &initLog() {
 
     return log;
 }
+
+
+//****************************************************************************************************************************************************
+/// \brief Return the path of the latest bridge log.
+/// \return The path of the latest bridge log file.
+/// \return An empty string if no bridge log file was found.
+//****************************************************************************************************************************************************
+QString latestBridgeLogPath() {
+    QDir const logsDir(userLogsDir());
+    if (logsDir.isEmpty()) {
+        return QString();
+    }
+    QFileInfoList files = logsDir.entryInfoList({ "v*.log" }, QDir::Files); // could do sorting, but only by last modification time. we want to sort by creation time.
+    std::sort(files.begin(), files.end(), [](QFileInfo const &lhs, QFileInfo const &rhs) -> bool {
+        return lhs.birthTime() < rhs.birthTime();
+    });
+    return files.back().absoluteFilePath();
+}
+
+
+//****************************************************************************************************************************************************
+/// Return the maxSize last bytes of the latest bridge log.
+//****************************************************************************************************************************************************
+QByteArray tailOfLatestBridgeLog() {
+    QString path = latestBridgeLogPath();
+    if (path.isEmpty()) {
+        return QByteArray();
+    }
+
+    QFile file(path);
+    return file.open(QIODevice::Text | QIODevice::ReadOnly) ? file.readAll().right(logFileTailMaxLength) : QByteArray();
+}
+

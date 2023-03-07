@@ -237,7 +237,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void imapLoginWhileSignedOut(QString const& username); ///< Signal for the notification of IMAP login attempt on a signed out account.
 
     // This signal is emitted when an exception is intercepted is calls triggered by QML. QML engine would intercept the exception otherwise.
-    void fatalError(QString const &function, QString const &message, QString const &details) const; ///< Signal emitted when an fatal error occurs.
+    void fatalError(bridgepp::Exception const& e) const; ///< Signal emitted when an fatal error occurs.
 
 private: // member functions
     void retrieveUserList(); ///< Retrieve the list of users via gRPC.

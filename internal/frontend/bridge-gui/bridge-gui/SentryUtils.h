@@ -25,6 +25,7 @@ void initSentry();
 void setSentryReportScope();
 sentry_options_t* newSentryOptions(const char * sentryDNS, const char * cacheDir);
 sentry_uuid_t reportSentryEvent(sentry_level_t level, const char *message);
-sentry_uuid_t reportSentryException(sentry_level_t level, const char *message, const char *exceptionType, const char *exception);
+sentry_uuid_t reportSentryException(QString const& message, bridgepp::Exception const exception);
+
 
 #endif //BRIDGE_GUI_SENTRYUTILS_H

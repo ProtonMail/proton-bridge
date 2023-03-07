@@ -24,6 +24,7 @@
 
 
 bridgepp::Log &initLog(); ///< Initialize the application log.
+QByteArray tailOfLatestBridgeLog(); ///< Return the last bytes of the last bridge log.
 
 
 #endif //BRIDGE_GUI_LOG_UTILS_H

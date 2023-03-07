@@ -52,7 +52,7 @@ void EventStreamReader::run() {
         emit finished();
     }
     catch (Exception const &e) {
-        reportSentryException(SENTRY_LEVEL_ERROR, "Error during event stream read", "Exception", e.what());
+        reportSentryException("Error during event stream read", e);
         emit error(e.qwhat());
     }
 }
