@@ -157,31 +157,19 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []proto
 		switch event.Action {
 		case proton.EventCreate:
 			if err := user.handleCreateAddressEvent(ctx, event); err != nil {
-				if rerr := user.reporter.ReportMessageWithContext("Failed to apply address create event", reporter.Context{
-					"error": err,
-				}); rerr != nil {
-					user.log.WithError(err).Error("Failed to report address create event error")
-				}
+				user.reportError("Failed to apply address create event", err)
 				return fmt.Errorf("failed to handle create address event: %w", err)
 			}
 
 		case proton.EventUpdate, proton.EventUpdateFlags:
 			if err := user.handleUpdateAddressEvent(ctx, event); err != nil {
-				if rerr := user.reporter.ReportMessageWithContext("Failed to apply address update event", reporter.Context{
-					"error": err,
-				}); rerr != nil {
-					user.log.WithError(err).Error("Failed to report address update event error")
-				}
+				user.reportError("Failed to apply address update event", err)
 				return fmt.Errorf("failed to handle update address event: %w", err)
 			}
 
 		case proton.EventDelete:
 			if err := user.handleDeleteAddressEvent(ctx, event); err != nil {
-				if rerr := user.reporter.ReportMessageWithContext("Failed to apply address delete event", reporter.Context{
-					"error": err,
-				}); rerr != nil {
-					user.log.WithError(err).Error("Failed to report address delete event error")
-				}
+				user.reportError("Failed to apply address delete event", err)
 				return fmt.Errorf("failed to delete address: %w", err)
 			}
 		}
@@ -422,12 +410,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 		case proton.EventCreate:
 			updates, err := user.handleCreateMessageEvent(logging.WithLogrusField(ctx, "action", "create message"), event.Message)
 			if err != nil {
-				if rerr := user.reporter.ReportMessageWithContext("Failed to apply create message event", reporter.Context{
-					"error": err,
-				}); rerr != nil {
-					user.log.WithError(err).Error("Failed to report create message event error")
-				}
-
+				user.reportError("Failed to apply create message event", err)
 				return fmt.Errorf("failed to handle create message event: %w", err)
 			}
 
@@ -444,12 +427,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 					event,
 				)
 				if err != nil {
-					if rerr := user.reporter.ReportMessageWithContext("Failed to apply update draft message event", reporter.Context{
-						"error": err,
-					}); rerr != nil {
-						user.log.WithError(err).Error("Failed to report update draft message event error")
-					}
-
+					user.reportError("Failed to apply update draft message event", err)
 					return fmt.Errorf("failed to handle update draft event: %w", err)
 				}
 
@@ -469,12 +447,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 				event.Message,
 			)
 			if err != nil {
-				if rerr := user.reporter.ReportMessageWithContext("Failed to apply update message event", reporter.Context{
-					"error": err,
-				}); rerr != nil {
-					user.log.WithError(err).Error("Failed to report update message event error")
-				}
-
+				user.reportError("Failed to apply update message event", err)
 				return fmt.Errorf("failed to handle update message event: %w", err)
 			}
 
@@ -500,12 +473,7 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 				event,
 			)
 			if err != nil {
-				if rerr := user.reporter.ReportMessageWithContext("Failed to apply delete message event", reporter.Context{
-					"error": err,
-				}); rerr != nil {
-					user.log.WithError(err).Error("Failed to report delete message event error")
-				}
-
+				user.reportError("Failed to apply delete message event", err)
 				return fmt.Errorf("failed to handle delete message event: %w", err)
 			}
 
@@ -548,12 +516,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, message proton.M
 					user.log.WithError(err).Error("Failed to add failed message ID to vault")
 				}
 
-				if err := user.reporter.ReportMessageWithContext("Failed to build message (event create)", reporter.Context{
-					"messageID": res.messageID,
-					"error":     res.err,
-				}); err != nil {
-					user.log.WithError(err).Error("Failed to report message build error")
-				}
+				user.reportErrorAndMessageID("Failed to build message (event create)", res.err, res.messageID)
 
 				return nil
 			}
@@ -644,12 +607,7 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 					user.log.WithError(err).Error("Failed to add failed message ID to vault")
 				}
 
-				if err := user.reporter.ReportMessageWithContext("Failed to build draft message (event update)", reporter.Context{
-					"messageID": res.messageID,
-					"error":     res.err,
-				}); err != nil {
-					logrus.WithError(err).Error("Failed to report message build error")
-				}
+				user.reportErrorAndMessageID("Failed to build draft message (event update)", res.err, res.messageID)
 
 				return nil
 			}
@@ -706,4 +664,21 @@ func waitOnIMAPUpdates(ctx context.Context, updates []imap.Update) error {
 	}
 
 	return nil
+}
+
+func (user *User) reportError(title string, err error) {
+	user.reportErrorNoContextCancel(title, err, reporter.Context{})
+}
+
+func (user *User) reportErrorAndMessageID(title string, err error, messgeID string) {
+	user.reportErrorNoContextCancel(title, err, reporter.Context{"messageID": messgeID})
+}
+
+func (user *User) reportErrorNoContextCancel(title string, err error, reportContext reporter.Context) {
+	if !errors.Is(err, context.Canceled) {
+		reportContext["error"] = err
+		if rerr := user.reporter.ReportMessageWithContext(title, reportContext); rerr != nil {
+			user.log.WithError(err).WithField("title", title).Error("Failed to report message")
+		}
+	}
 }
