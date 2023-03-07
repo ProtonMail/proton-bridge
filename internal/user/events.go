@@ -86,16 +86,16 @@ func (user *User) handleRefreshEvent(ctx context.Context, refresh proton.Refresh
 		l.WithError(err).Error("Failed to report refresh to sentry")
 	}
 
-	return user.SyncEvent(ctx)
-}
-
-func (user *User) SyncEvent(ctx context.Context) error {
 	// Abort the event stream
 	defer user.pollAbort.Abort()
 
 	// Re-sync messages after the user, address and label refresh.
 	defer user.goSync()
 
+	return user.syncUserAddressesAndLabels(ctx)
+}
+
+func (user *User) syncUserAddressesAndLabels(ctx context.Context) error {
 	return safe.LockRet(func() error {
 		// Fetch latest user info.
 		apiUser, err := user.client.GetUser(ctx)

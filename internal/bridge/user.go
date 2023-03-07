@@ -24,6 +24,7 @@ import (
 	"runtime"
 
 	"github.com/ProtonMail/gluon/imap"
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
@@ -299,17 +300,52 @@ func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode va
 }
 
 // SendBadEventUserFeedback passes the feedback to the given user.
-func (bridge *Bridge) SendBadEventUserFeedback(ctx context.Context, userID string, doResync bool) error {
-	logrus.WithField("userID", userID).WithField("doResycn", doResync).Info("Passing bad event feedback to user")
+func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string, doResync bool) error {
+	logrus.WithField("userID", userID).WithField("doResync", doResync).Info("Passing bad event feedback to user")
 
-	user, ok := bridge.users[userID]
-	if !ok {
-		return ErrNoSuchUser
-	}
+	return safe.LockRet(func() error {
+		ctx := context.Background()
 
-	user.SendBadEventFeedback(doResync)
+		user, ok := bridge.users[userID]
+		if !ok {
+			if rerr := bridge.reporter.ReportMessageWithContext(
+				"Failed to handle event: feedback failed: no such user",
+				reporter.Context{"user_id": userID},
+			); rerr != nil {
+				logrus.WithError(rerr).Error("Failed to report feedback failure")
+			}
 
-	return nil
+			// Cannot recover from this
+			panic(ErrNoSuchUser)
+		}
+
+		if doResync {
+			if rerr := bridge.reporter.ReportMessageWithContext(
+				"Failed to handle event: feedback resync",
+				reporter.Context{"user_id": userID},
+			); rerr != nil {
+				logrus.WithError(rerr).Error("Failed to report feedback failure")
+			}
+
+			user.BadEventFeedbackResync(ctx)
+
+			if err := bridge.addIMAPUser(ctx, user); err != nil {
+				return fmt.Errorf("failed to add IMAP user: %w", err)
+			}
+
+			return nil
+		}
+
+		if rerr := bridge.reporter.ReportMessageWithContext(
+			"Failed to handle event: feedback logout",
+			reporter.Context{"user_id": userID},
+		); rerr != nil {
+			logrus.WithError(rerr).Error("Failed to report feedback failure")
+		}
+
+		bridge.logoutUser(ctx, user, true, false)
+		return nil
+	}, bridge.usersLock)
 }
 
 func (bridge *Bridge) loginUser(ctx context.Context, client *proton.Client, authUID, authRef string, keyPass []byte) (string, error) {

@@ -90,9 +90,6 @@ type User struct {
 
 	syncWorkers int
 	showAllMail uint32
-
-	// doResyncFeedback must be non-blocking for first attempt (i.e. buffered)
-	doResyncFeedback chan bool
 }
 
 // New returns a new user.
@@ -151,8 +148,6 @@ func New(
 
 		syncWorkers: syncWorkers,
 		showAllMail: b32(showAllMail),
-
-		doResyncFeedback: make(chan bool, 1),
 	}
 
 	// Initialize the user's update channels for its current address mode.
@@ -304,14 +299,17 @@ func (user *User) SetAddressMode(_ context.Context, mode vault.AddressMode) erro
 	}, user.eventLock, user.apiAddrsLock, user.updateChLock)
 }
 
-// SendBadEventFeedback sends user feedback whether should do message re-sync.
-func (user *User) SendBadEventFeedback(doResync bool) {
-	user.doResyncFeedback <- doResync
+// BadEventAbort stops user to communicate. The resolution is either logout or resync.
+func (user *User) BadEventAbort() {
+	user.syncAbort.Abort()
+	user.pollAbort.Abort()
 }
 
-// GetBadEventFeedback read the user feedback whether should do message re-sync.
-func (user *User) GetBadEventFeedback() bool {
-	return <-user.doResyncFeedback
+// BadEventFeedbackResync sends user feedback whether should do message re-sync.
+func (user *User) BadEventFeedbackResync(ctx context.Context) {
+	if err := user.syncUserAddressesAndLabels(ctx); err != nil {
+		user.log.WithError(err).Error("Bad event resync failed")
+	}
 }
 
 // SetShowAllMail sets whether to show the All Mail mailbox.

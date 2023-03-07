@@ -140,55 +140,26 @@ func (bridge *Bridge) handleUserDeauth(ctx context.Context, user *user.User) {
 	}, bridge.usersLock)
 }
 
-func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User, event events.UserBadEvent) {
-	go safe.Lock(func() {
-		reportContext := reporter.Context{
+func (bridge *Bridge) handleUserBadEvent(_ context.Context, user *user.User, event events.UserBadEvent) {
+	safe.Lock(func() {
+		if rerr := bridge.reporter.ReportMessageWithContext("Failed to handle event", reporter.Context{
 			"user_id":      user.ID(),
 			"old_event_id": event.OldEventID,
 			"new_event_id": event.NewEventID,
 			"event_info":   event.EventInfo,
 			"error":        event.Error,
 			"error_type":   fmt.Sprintf("%T", internal.ErrCause(event.Error)),
+		}); rerr != nil {
+			logrus.WithError(rerr).Error("Failed to report failed event handling")
 		}
 
-		// blockEventsIMAPandSMTP()
+		user.BadEventAbort()
 
-		if doResyc, err := bridge.getBadEventUserFeedback(user.ID()); err != nil || !doResyc {
-			if rerr := bridge.reporter.ReportMessageWithContext("Failed to handle event: logout", reportContext); rerr != nil {
-				logrus.WithError(rerr).Error("Failed to report failed event handling")
-			}
-
-			bridge.logoutUser(ctx, user, true, false)
-			return
-		}
-
-		if rerr := bridge.reporter.ReportMessageWithContext("Failed to handle event: repair", reportContext); rerr != nil {
-			logrus.WithError(rerr).Error("Failed to report event handling failure")
-		}
-
-		if syncErr := user.SyncEvent(ctx); syncErr != nil {
-			reportContext["error"] = syncErr
-			reportContext["error_type"] = fmt.Sprintf("%T", internal.ErrCause(syncErr))
-			if rerr := bridge.reporter.ReportMessageWithContext("Failed to handle event: repair failed: logging out", reportContext); rerr != nil {
-				logrus.WithError(rerr).Error("Failed to report repair failure")
-			}
-
-			bridge.logoutUser(ctx, user, true, false)
-			return
+		// Disable IMAP user
+		if err := bridge.removeIMAPUser(context.Background(), user, false); err != nil {
+			logrus.WithError(err).Error("Failed to remove IMAP user")
 		}
 	}, bridge.usersLock)
-}
-
-func (bridge *Bridge) getBadEventUserFeedback(userID string) (doResyc bool, err error) {
-	user, ok := bridge.users[userID]
-	if !ok {
-		return false, ErrNoSuchUser
-	}
-
-	user.LockEvents()
-	defer user.UnlockEvents()
-
-	return user.GetBadEventFeedback(), nil
 }
 
 func (bridge *Bridge) handleUncategorizedErrorEvent(event events.UncategorizedEventError) {
