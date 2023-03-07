@@ -304,3 +304,30 @@ func (f *frontendCLI) configureAppleMail(c *ishell.Context) {
 
 	f.Printf("Apple Mail configured for %v with address %v\n", user.Username, user.Addresses[0])
 }
+
+func (f *frontendCLI) badEventSynchronize(c *ishell.Context) {
+	f.badEventFeedback(true)
+}
+
+func (f *frontendCLI) badEventLogout(c *ishell.Context) {
+	f.badEventFeedback(false)
+}
+
+func (f *frontendCLI) badEventFeedback(doResync bool) {
+	if f.badUserID == "" {
+		f.Printf("Error: There was no unresolved bad event.")
+		return
+	}
+
+	action := "synchronize"
+	if !doResync {
+		action = "logout"
+	}
+
+	if err := f.bridge.SendBadEventUserFeedback(context.Background(), f.badUserID, doResync); err != nil {
+		f.Printf("Error: failed to send %s feedback: %w", action, err)
+		return
+	}
+
+	f.badUserID = ""
+}

@@ -37,6 +37,8 @@ type frontendCLI struct {
 
 	bridge    *bridge.Bridge
 	restarter *restarter.Restarter
+
+	badUserID string
 }
 
 // New returns a new CLI frontend configured with the given options.
@@ -45,6 +47,7 @@ func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan e
 		Shell:     ishell.New(),
 		bridge:    bridge,
 		restarter: restarter,
+		badUserID: "",
 	}
 
 	// Clear commands.
@@ -256,6 +259,22 @@ func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan e
 		Completer: fe.completeUsernames,
 	})
 
+	badEventCmd := &ishell.Cmd{
+		Name: "bad-event",
+		Help: "manage actions when bad event error occurs",
+	}
+	badEventCmd.AddCmd(&ishell.Cmd{
+		Name: "synchronize",
+		Help: "synchronize your local database to resolve the bad event error",
+		Func: fe.badEventSynchronize,
+	})
+	badEventCmd.AddCmd(&ishell.Cmd{
+		Name: "logout",
+		Help: "logout to deal with bad event error later",
+		Func: fe.badEventLogout,
+	})
+	fe.AddCmd(badEventCmd)
+
 	go fe.watchEvents(eventCh)
 
 	return fe
@@ -301,7 +320,16 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:funle
 				return
 			}
 
-			f.Printf("User %s received a bad event and was logged out.\n", user.Username)
+			f.badUserID = event.UserID
+
+			f.Printf("\nInternal Error\n\n")
+			f.Printf("Bridge ran into an internal error and it is not able proceed with %s.\n", user.Username)
+			f.Printf("Synchronize your local database now or logout to do it later.\n")
+			f.Printf("Synchronization time depends on the size of your mailbox.\n")
+			f.Printf("\n\n")
+			f.Printf("The allowed actions are:")
+			f.Printf("* bad-event synchronize")
+			f.Printf("* bad-event logout")
 
 		case events.UserAddressUpdated:
 			user, err := f.bridge.GetUserInfo(event.UserID)
