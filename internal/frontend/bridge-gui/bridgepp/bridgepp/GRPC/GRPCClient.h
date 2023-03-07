@@ -173,6 +173,7 @@ public: // user related calls
     grpc::Status removeUser(QString const &userID); ///< Performs the 'removeUser' call.
     grpc::Status configureAppleMail(QString const &userID, QString const &address); ///< Performs the 'configureAppleMail' call.
     grpc::Status setUserSplitMode(QString const &userID, bool active); ///< Performs the 'SetUserSplitMode' call.
+    grpc::Status sendBadEventUserFeedback(QString const& userID, bool doResync); ///< Performs the 'SendBadEventUserFeedback' call.
 
 signals:
     void toggleSplitModeFinished(QString const &userID);

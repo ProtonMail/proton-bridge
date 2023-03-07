@@ -53,6 +53,7 @@ void GRPCQtProxy::connectSignals() {
     connect(this, &GRPCQtProxy::logoutUserReceived, &usersTab, &UsersTab::logoutUser);
     connect(this, &GRPCQtProxy::setUserSplitModeReceived, &usersTab, &UsersTab::setUserSplitMode);
     connect(this, &GRPCQtProxy::configureUserAppleMailReceived, &usersTab, &UsersTab::configureUserAppleMail);
+    connect(this, &GRPCQtProxy::sendBadEventUserFeedbackReceived, &usersTab, &UsersTab::processBadEventUserFeedback);
 }
 
 
@@ -175,6 +176,15 @@ void GRPCQtProxy::setIsAutomaticUpdateOn(bool on) {
 //****************************************************************************************************************************************************
 void GRPCQtProxy::setUserSplitMode(QString const &userID, bool makeItActive) {
     emit setUserSplitModeReceived(userID, makeItActive);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \param[in] doResync Did the user request a resync?
+//****************************************************************************************************************************************************
+void GRPCQtProxy::sendBadEventUserFeedback(QString const &userID, bool doResync) {
+    emit sendBadEventUserFeedbackReceived(userID, doResync);
 }
 
 

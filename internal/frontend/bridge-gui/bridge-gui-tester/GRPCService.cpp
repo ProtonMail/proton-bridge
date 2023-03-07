@@ -698,6 +698,17 @@ Status GRPCService::SetUserSplitMode(ServerContext *, UserSplitModeRequest const
 /// \param[in] request The request.
 /// \return The status for the call.
 //****************************************************************************************************************************************************
+Status GRPCService::SendBadEventUserFeedback(ServerContext *, UserBadEventFeedbackRequest const *request, Empty *) {
+    app().log().debug(__FUNCTION__);
+    qtProxy_.sendBadEventUserFeedback(QString::fromStdString(request->userid()), request->doresync());
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] request The request.
+/// \return The status for the call.
+//****************************************************************************************************************************************************
 Status GRPCService::LogoutUser(ServerContext *, StringValue const *request, Empty *) {
     app().log().debug(__FUNCTION__);
     qtProxy_.logoutUser(QString::fromStdString(request->value()));

@@ -52,6 +52,7 @@ public: // member functions.
     void setDiskCachePath(QString const &path); ///< Forwards a setDiskCachePath call via a Qt signal.
     void setIsAutomaticUpdateOn(bool on); ///< Forwards a SetIsAutomaticUpdateOn call via a Qt signal.
     void setUserSplitMode(QString const &userID, bool makeItActive); ///< Forwards a setUserSplitMode call via a Qt signal.
+    void sendBadEventUserFeedback(QString const &userID, bool doResync); ///< Forwards a sendBadEventUserFeedback call via a Qt signal.
     void logoutUser(QString const &userID); ///< Forwards a logoutUser call via a Qt signal.
     void removeUser(QString const &userID); ///< Forwards a removeUser call via a Qt signal.
     void configureUserAppleMail(QString const &userID, QString const &address); ///< Forwards a configureUserAppleMail call via a Qt signal.
@@ -72,6 +73,7 @@ signals:
     void setDiskCachePathReceived(QString const &path); ///< Signal for the setDiskCachePath gRPC call.
     void setIsAutomaticUpdateOnReceived(bool on); ///< Signal for the SetIsAutomaticUpdateOn gRPC call.
     void setUserSplitModeReceived(QString const &userID, bool makeItActive); ///< Signal for the SetUserSplitModeReceived gRPC call.
+    void sendBadEventUserFeedbackReceived(QString const &userID, bool doResync); ///< Signal for the SendBadEventUserFeedback gRPC call.
     void logoutUserReceived(QString const &userID); ///< Signal for the LogoutUserReceived gRPC call.
     void removeUserReceived(QString const &userID); ///< Signal for the RemoveUserReceived gRPC call.
     void configureUserAppleMailReceived(QString const &userID, QString const &address); ///< Signal for the ConfigureAppleMail gRPC call.

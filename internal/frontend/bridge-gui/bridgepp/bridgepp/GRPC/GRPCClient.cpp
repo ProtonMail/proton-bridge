@@ -676,6 +676,18 @@ grpc::Status GRPCClient::setUserSplitMode(QString const &userID, bool active) {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \param[in] doResync Did the user request a resync.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::sendBadEventUserFeedback(QString const &userID, bool doResync) {
+    UserBadEventFeedbackRequest request;
+    request.set_userid(userID.toStdString());
+    request.set_doresync(doResync);
+    return this->logGRPCCallStatus(stub_->SendBadEventUserFeedback(this->clientContext().get(), request, &empty), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[out] outUsers The user list.
 /// \return The status code for the gRPC call.
 //****************************************************************************************************************************************************

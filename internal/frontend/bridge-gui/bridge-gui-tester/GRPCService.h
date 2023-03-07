@@ -88,12 +88,12 @@ public: // member functions.
     grpc::Status GetUserList(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::grpc::UserListResponse *response) override;
     grpc::Status GetUser(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::grpc::User *response) override;
     grpc::Status SetUserSplitMode(::grpc::ServerContext *, ::grpc::UserSplitModeRequest const *request, ::google::protobuf::Empty *) override;
+    grpc::Status SendBadEventUserFeedback(::grpc::ServerContext *context, ::grpc::UserBadEventFeedbackRequest const *request, ::google::protobuf::Empty *response) override;
     grpc::Status LogoutUser(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) override;
     grpc::Status RemoveUser(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) override;
     grpc::Status ConfigureUserAppleMail(::grpc::ServerContext *, ::grpc::ConfigureAppleMailRequest const *request, ::google::protobuf::Empty *) override;
     grpc::Status RunEventStream(::grpc::ServerContext *ctx, ::grpc::EventStreamRequest const *request, ::grpc::ServerWriter<::grpc::StreamEvent> *writer) override;
     grpc::Status StopEventStream(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::Empty *) override;
-
     bool sendEvent(bridgepp::SPStreamEvent const &event); ///< Queue an event for sending through the event stream.
 
 private: // member functions

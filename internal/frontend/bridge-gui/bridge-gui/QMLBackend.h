@@ -173,6 +173,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void onResetFinished(); ///< Slot for the reset finish signal.
     void onVersionChanged(); ///< Slot for the version change signal.
     void setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) const; ///< Forwards a connection mode change request from QML to gRPC
+    void sendBadEventUserFeedback(QString const &userID, bool doResync); ///< Slot the providing user feedback for a bad event.
 
 public slots: // slot for signals received from gRPC that need transformation instead of simple forwarding
     void onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Slot for the ConnectionModeChanged gRPC event.
@@ -222,7 +223,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void addressChangedLogout(QString const &address); ///< Signal for the 'addressChangedLogout' gRPC stream event.
     void apiCertIssue(); ///< Signal for the 'apiCertIssue' gRPC stream event.
     void userDisconnected(QString const &username); ///< Signal for the 'userDisconnected' gRPC stream event.
-    void userBadEvent(QString const &description, QString const &errorMessage); ///< Signal for the 'userBadEvent' gRPC stream event.
+    void userBadEvent(QString const &userID, QString const &description); ///< Signal for the 'userBadEvent' gRPC stream event.
     void internetOff(); ///< Signal for the 'internetOff' gRPC stream event.
     void internetOn(); ///< Signal for the 'internetOn' gRPC stream event.
     void resetFinished(); ///< Signal for the 'resetFinished' gRPC stream event.

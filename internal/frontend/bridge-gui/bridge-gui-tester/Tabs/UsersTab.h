@@ -54,6 +54,7 @@ public slots:
     void logoutUser(QString const &userID); ///< slot for the logging out of a user.
     void removeUser(QString const &userID); ///< Slot for the removal of a user.
     void configureUserAppleMail(QString const &userID, QString const &address); ///< Slot for the configuration of Apple mail.
+    void processBadEventUserFeedback(QString const& userID, bool doResync); ///< Slot for the reception of a bad event user feedback.
 
 private slots:
     void onAddUserButton(); ///< Add a user to the user list.

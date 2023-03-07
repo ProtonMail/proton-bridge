@@ -816,6 +816,17 @@ void QMLBackend::setMailServerSettings(int imapPort, int smtpPort, bool useSSLFo
 
 
 //****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \param[in] doResync Did the user request a resync.
+//****************************************************************************************************************************************************
+void QMLBackend::sendBadEventUserFeedback(QString const &userID, bool doResync) {
+    HANDLE_EXCEPTION(
+        app().grpc().sendBadEventUserFeedback(userID, doResync);
+    )
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] imapPort The IMAP port.
 /// \param[in] smtpPort The SMTP port.
 /// \param[in] useSSLForIMAP The value for the 'Use SSL for IMAP' property
@@ -874,12 +885,11 @@ void QMLBackend::onUserBadEvent(QString const &userID, QString const &errorMessa
     HANDLE_EXCEPTION(
         SPUser const user = users_->getUserWithID(userID);
         if (!user)
-            app().log().error(QString("Received bad event for unknown user %1").arg(user->id()));
-        user->setState(UserState::SignedOut);
-        emit userBadEvent(
-            tr("Internal error: %1 was automatically logged out. Please log in again or report this problem if the issue persists.").arg(user->primaryEmailOrUsername()),
-            errorMessage
-            );
+            app().log().error(QString("Received bad event for unknown user %1: %2").arg(user->id(), errorMessage));
+//        user->setState(UserState::SignedOut);
+        emit userBadEvent(userID,
+            tr("Bridge ran into an internal error and it is not able to proceed with the account %1. Synchronize your local database now or logout"
+               " to do it later. Synchronization time depends on the size of your mailbox.").arg(user->primaryEmailOrUsername()));
         emit selectUser(userID);
         emit showMainWindow();
     )

@@ -1103,43 +1103,39 @@ QtObject {
     }
 
     property Notification userBadEvent: Notification {
-        title: qsTr("Your account was logged out")
+        title: qsTr("Internal error")
         brief: title
         description: "#PlaceHolderText"
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Connection | Notifications.Group.Dialogs
 
-        property var bugReportMsg: "Reporting an issue:\n\n\"%1\"\n\nError: %2\n\nThe issue persists even after loggin back in."
-        property var errorMessage: ""
+        property var userID: ""
 
         Connections {
             target: Backend
-            function onUserBadEvent(description, errorMessage) {
-                root.userBadEvent.description = description
-                root.userBadEvent.errorMessage = errorMessage
+            function onUserBadEvent(userID, errorMessage) {
+                root.userBadEvent.userID = userID
+                root.userBadEvent.description = errorMessage
                 root.userBadEvent.active = true
             }
         }
 
         action: [
             Action {
-                text: qsTr("OK")
+                text: qsTr("Synchronize")
 
                 onTriggered: {
+                    Backend.sendBadEventUserFeedback(root.userBadEvent.userID, true)
                     root.userBadEvent.active = false
                 }
             },
 
             Action {
-                text: qsTr("Report")
+                text: qsTr("Logout")
 
                 onTriggered: {
-                    root.frontendMain.showBugReportAndPrefill(
-                        root.userBadEvent.bugReportMsg.
-                        arg( root.userBadEvent.description).
-                        arg(root.userBadEvent.errorMessage)
-                    )
+                    Backend.sendBadEventUserFeedback(root.userBadEvent.userID, false)
                     root.userBadEvent.active = false
                 }
             }

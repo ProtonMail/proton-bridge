@@ -144,9 +144,6 @@ void UsersTab::onSendUserBadEvent() {
         app().log().error(QString("%1 failed. User is already signed out").arg(__FUNCTION__));
     }
 
-    user->setState(UserState::SignedOut);
-    users_.touch(index);
-
     GRPCService &grpc = app().grpc();
     if (grpc.isStreaming()) {
         QString const userID = user->id();
@@ -344,5 +341,13 @@ void UsersTab::removeUser(QString const &userID) {
 //****************************************************************************************************************************************************
 void UsersTab::configureUserAppleMail(QString const &userID, QString const &address) {
     app().log().info(QString("Apple mail configuration was requested for user %1, address %2").arg(userID, address));
+}
 
+
+//****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \param[in] doResync Did the user request a resync?
+//****************************************************************************************************************************************************
+void UsersTab::processBadEventUserFeedback(QString const &userID, bool doResync) {
+    app().log().info(QString("Feedback received for bad event: doResync = %1, userID = %2").arg(doResync ? "true" : "false", userID));
 }
