@@ -2,6 +2,79 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.1.0] Quebec
+
+### Changed
+* GODT-2224: Refactor bridge sync to use less memory.
+* GODT-2446: Attach logs to sentry reports for relevant bridge-gui exceptions.
+* GODT-2448: Supported Answered flag.
+* GODT-2435: Group report exception by message if exception message looks corrupted.
+* GODT-2382: Added bridge-gui settings file with 'UseSoftwareRenderer' value.
+* GODT-2411: allow qmake executable to be named qmake6.
+* GODT-2273: Menu with "Close window" and "Quit Bridge" button in main window.
+* GODT-2261: Sync progress in GUI.
+* GODT-2385: Gluon cache fallback.
+* GODT-2366: Handle failed message updates as creates.
+* GODT-2201: Bump Gluon to use pure Go IMAP parser.
+* GODT-2374: Import TLS certs via shell.
+* GODT-2361: Bump GPA to use simple encrypter.
+* GODT-2364: Wait and retry once if the gRPC service config file exists but cannot be opened.
+* GODT-2364: Added optional details to C++ exceptions.
+* GODT-1264: Constraint on Scheduled mailbox in connector + Integration tests.
+* GODT-2356: Unify sentry release description and add more context to it.
+* GODT-2357: Hide DSN_SENTRY and use single setting point for DSN_SENTRY.
+* GODT-1264: Creation and visibility of the 'Scheduled' system label.
+* GODT-2283: Limit max import size to 30MB (bump GPA to v0.4.0).
+* GODT-2352: Only copy resource file when needed.
+* GODT-2352: Use go-build-finalize macro to build vault-editor for both mac arch.
+* GODT-2278: Properly override server_name for go.
+* GODT-2255: Randomize the focus service port.
+* GODT-2144: Handle IMAP/SMTP server errors via event stream.
+* GODT-2144: Delay IMAP/SMTP server start until all users are loaded.
+* GODT-2295: Notifications for IMAP login when signed out.
+* GODT-2278: Improve sentry logs.
+* GODT-2289: UIDValidity as Timestamp.
+
+### Fixed
+* GODT-2449: Fix bug in Bridge-GUI's Exception::what().
+* GODT-2427: Fix header parser.
+* GODT-2424: Sync Builder Message Split.
+* GODT-2426: Fix crash on user delete.
+* GODT-2419: Use connector.ErrOperationNotAllowed.
+* GODT-2413: Use qEnvironmentVariable() instead of qgetenv().
+* GODT-2418: Ensure child folders are updated when parent is.
+* GODT-2399: Fix immediate message deletion during updates.
+* GODT-2412: Don't treat context cancellation as BadEvent.
+* GODT-1945: Handle disabled addresses correctly.
+* GODT-2404: Handle unexpected EOF.
+* GODT-2390: Add reports for uncaught json and net.opErr.
+* GODT-2393: Improved handling of unrecoverable error.
+* GODT-2394: Bump Gluon for golang.org/x/text DoS risk.
+* GODT-2387: Ensure vault can be unlocked after factory reset.
+* GODT-2389: Close bridge on exception and add max termination wait time.
+* GODT-2201: Add missing rfc5322.CharsetReader initialization.
+* GODT-1804: Preserve MIME parameters when uploading attachments.
+* GODT-2312: Used space is properly updated.
+* GODT-2319: Seed the math/rand RNG on app startup.
+* GODT-2272: Use shorter filename for gRPC file socket.
+* GODT-2318: Remove gluon DB if label sync was incomplete.
+* GODT-2326: Only run sync after addIMAPUser().
+* GODT-2323: Fix Expunge not issued for move.
+* GODT-2224: Properly handle context cancellation during sync.
+* GODT-2328: Ignore labels that aren't part of user label set.
+* GODT-2333: Do not allow modifications to All Mail label.
+* GODT-2326: Fix potential Win32 API deadlock.
+* GODT-1804: Only promote content headers if non-empty.
+* GODT-2327: Remove unnecessary sync when changing address mode.
+* GODT-2343: Only poll after send if sync is complete.
+* GODT-2336: Recover from changed address order while bridge is down.
+* GODT-2347: Prevent updates from being dropped if goroutine doesn't start fast.
+* GODT-2351: Bump GPA to properly handle net.OpError and add tests.
+* GODT-2351: Bump GPA to automatically retry on net.OpError.
+* GODT-2365: Use predictable remote ID for placeholder mailboxes.
+* GODT-2381: Unset draft flag on sent messages.
+* GODT-2380: Only set external ID in header if non-empty.
+
 ## [Bridge 3.0.15/16] Perth Narrows
 
 ### Changed
