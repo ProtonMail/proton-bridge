@@ -127,9 +127,11 @@ func main() { //nolint:funlen
 
 	l = l.WithField("exe_path", exe)
 
-	args, wait, mainExe := findAndStripWait(args)
+	args, wait, mainExes := findAndStripWait(args)
 	if wait {
-		waitForProcessToFinish(mainExe)
+		for _, mainExe := range mainExes {
+			waitForProcessToFinish(mainExe)
+		}
 	}
 
 	cmd := execabs.Command(exe, appendLauncherPath(launcher, args)...) //nolint:gosec
@@ -186,12 +188,11 @@ func findAndStrip[T comparable](slice []T, v T) (strippedList []T, found bool) {
 }
 
 // findAndStripWait Check for waiter flag get its value and clean them both.
-func findAndStripWait(args []string) ([]string, bool, string) {
+func findAndStripWait(args []string) ([]string, bool, []string) {
 	res := append([]string{}, args...)
 
 	hasFlag := false
-	var value string
-
+	values := make([]string, 0)
 	for k, v := range res {
 		if v != FlagWait {
 			continue
@@ -200,14 +201,16 @@ func findAndStripWait(args []string) ([]string, bool, string) {
 			continue
 		}
 		hasFlag = true
-		value = res[k+1]
+		values = append(values, res[k+1])
 	}
 
 	if hasFlag {
 		res, _ = findAndStrip(res, FlagWait)
-		res, _ = findAndStrip(res, value)
+		for _, v := range values {
+			res, _ = findAndStrip(res, v)
+		}
 	}
-	return res, hasFlag, value
+	return res, hasFlag, values
 }
 
 func getPathToUpdatedExecutable(

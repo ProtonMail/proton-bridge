@@ -56,3 +56,25 @@ func TestFindAndStrip(t *testing.T) {
 	assert.False(t, found)
 	assert.True(t, xslices.Equal(result, []string{}))
 }
+
+func TestFindAndStripWait(t *testing.T) {
+	result, found, values := findAndStripWait([]string{"a", "b", "c"})
+	assert.False(t, found)
+	assert.True(t, xslices.Equal(result, []string{"a", "b", "c"}))
+	assert.True(t, xslices.Equal(values, []string{}))
+
+	result, found, values = findAndStripWait([]string{"a", "--wait", "b"})
+	assert.True(t, found)
+	assert.True(t, xslices.Equal(result, []string{"a"}))
+	assert.True(t, xslices.Equal(values, []string{"b"}))
+
+	result, found, values = findAndStripWait([]string{"a", "--wait", "b", "--wait", "c"})
+	assert.True(t, found)
+	assert.True(t, xslices.Equal(result, []string{"a"}))
+	assert.True(t, xslices.Equal(values, []string{"b", "c"}))
+
+	result, found, values = findAndStripWait([]string{"a", "--wait", "b", "--wait", "c", "--wait", "d"})
+	assert.True(t, found)
+	assert.True(t, xslices.Equal(result, []string{"a"}))
+	assert.True(t, xslices.Equal(values, []string{"b", "c", "d"}))
+}
