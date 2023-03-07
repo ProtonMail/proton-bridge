@@ -315,8 +315,7 @@ func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string,
 				logrus.WithError(rerr).Error("Failed to report feedback failure")
 			}
 
-			// Cannot recover from this
-			panic(ErrNoSuchUser)
+			return ErrNoSuchUser
 		}
 
 		if doResync {

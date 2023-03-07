@@ -369,6 +369,6 @@ clean: clean-vendor clean-gui clean-vcpkg
 .PHONY: generate
 generate:
 	go generate ./...
-	$(MAKE) add-license
+	$(MAKE) build
 
 .FORCE:

@@ -307,7 +307,7 @@ func (user *User) BadEventAbort() {
 
 // BadEventFeedbackResync sends user feedback whether should do message re-sync.
 func (user *User) BadEventFeedbackResync(ctx context.Context) {
-	if err := user.syncUserAddressesAndLabels(ctx); err != nil {
+	if err := user.syncUserAddressesLabelsAndClearSync(ctx); err != nil {
 		user.log.WithError(err).Error("Bad event resync failed")
 	}
 }
@@ -523,14 +523,6 @@ func (user *User) clearSyncStatus() error {
 	return nil
 }
 
-func (user *User) LockEvents() {
-	user.eventLock.Lock()
-}
-
-func (user *User) UnlockEvents() {
-	user.eventLock.Unlock()
-}
-
 // Logout logs the user out from the API.
 func (user *User) Logout(ctx context.Context, withAPI bool) error {
 	user.log.WithField("withAPI", withAPI).Info("Logging out user")
@@ -646,17 +638,6 @@ func (user *User) startEvents(ctx context.Context) {
 func (user *User) doEventPoll(ctx context.Context) error {
 	user.eventLock.Lock()
 	defer user.eventLock.Unlock()
-
-	eventID := user.vault.EventID()
-	if eventID == "" {
-		err := errors.New("current eventID is empty")
-		user.eventCh.Enqueue(events.UncategorizedEventError{ // this might be bad event.. I hope sync is ongoing
-			UserID: user.ID(),
-			Error:  err,
-		})
-
-		return err
-	}
 
 	event, err := user.client.GetEvent(ctx, user.vault.EventID())
 	if err != nil {

@@ -208,6 +208,9 @@ extern UserDefaultTypeInternal _User_default_instance_;
 class UserBadEvent;
 struct UserBadEventDefaultTypeInternal;
 extern UserBadEventDefaultTypeInternal _UserBadEvent_default_instance_;
+class UserBadEventFeedbackRequest;
+struct UserBadEventFeedbackRequestDefaultTypeInternal;
+extern UserBadEventFeedbackRequestDefaultTypeInternal _UserBadEventFeedbackRequest_default_instance_;
 class UserChangedEvent;
 struct UserChangedEventDefaultTypeInternal;
 extern UserChangedEventDefaultTypeInternal _UserChangedEvent_default_instance_;
@@ -278,6 +281,7 @@ template<> ::grpc::UpdateSilentRestartNeeded* Arena::CreateMaybeMessage<::grpc::
 template<> ::grpc::UpdateVersionChanged* Arena::CreateMaybeMessage<::grpc::UpdateVersionChanged>(Arena*);
 template<> ::grpc::User* Arena::CreateMaybeMessage<::grpc::User>(Arena*);
 template<> ::grpc::UserBadEvent* Arena::CreateMaybeMessage<::grpc::UserBadEvent>(Arena*);
+template<> ::grpc::UserBadEventFeedbackRequest* Arena::CreateMaybeMessage<::grpc::UserBadEventFeedbackRequest>(Arena*);
 template<> ::grpc::UserChangedEvent* Arena::CreateMaybeMessage<::grpc::UserChangedEvent>(Arena*);
 template<> ::grpc::UserDisconnectedEvent* Arena::CreateMaybeMessage<::grpc::UserDisconnectedEvent>(Arena*);
 template<> ::grpc::UserEvent* Arena::CreateMaybeMessage<::grpc::UserEvent>(Arena*);
@@ -2138,6 +2142,170 @@ class UserSplitModeRequest final :
 };
 // -------------------------------------------------------------------
 
+class UserBadEventFeedbackRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.UserBadEventFeedbackRequest) */ {
+ public:
+  inline UserBadEventFeedbackRequest() : UserBadEventFeedbackRequest(nullptr) {}
+  ~UserBadEventFeedbackRequest() override;
+  explicit PROTOBUF_CONSTEXPR UserBadEventFeedbackRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  UserBadEventFeedbackRequest(const UserBadEventFeedbackRequest& from);
+  UserBadEventFeedbackRequest(UserBadEventFeedbackRequest&& from) noexcept
+    : UserBadEventFeedbackRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline UserBadEventFeedbackRequest& operator=(const UserBadEventFeedbackRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline UserBadEventFeedbackRequest& operator=(UserBadEventFeedbackRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const UserBadEventFeedbackRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const UserBadEventFeedbackRequest* internal_default_instance() {
+    return reinterpret_cast<const UserBadEventFeedbackRequest*>(
+               &_UserBadEventFeedbackRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    9;
+
+  friend void swap(UserBadEventFeedbackRequest& a, UserBadEventFeedbackRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(UserBadEventFeedbackRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(UserBadEventFeedbackRequest* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  UserBadEventFeedbackRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<UserBadEventFeedbackRequest>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const UserBadEventFeedbackRequest& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const UserBadEventFeedbackRequest& from) {
+    UserBadEventFeedbackRequest::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(UserBadEventFeedbackRequest* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "grpc.UserBadEventFeedbackRequest";
+  }
+  protected:
+  explicit UserBadEventFeedbackRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kUserIDFieldNumber = 1,
+    kDoResyncFieldNumber = 2,
+  };
+  // string userID = 1;
+  void clear_userid();
+  const std::string& userid() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_userid(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_userid();
+  PROTOBUF_NODISCARD std::string* release_userid();
+  void set_allocated_userid(std::string* userid);
+  private:
+  const std::string& _internal_userid() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_userid(const std::string& value);
+  std::string* _internal_mutable_userid();
+  public:
+
+  // bool doResync = 2;
+  void clear_doresync();
+  bool doresync() const;
+  void set_doresync(bool value);
+  private:
+  bool _internal_doresync() const;
+  void _internal_set_doresync(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:grpc.UserBadEventFeedbackRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr userid_;
+    bool doresync_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_bridge_2eproto;
+};
+// -------------------------------------------------------------------
+
 class UserListResponse final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:grpc.UserListResponse) */ {
  public:
@@ -2186,7 +2354,7 @@ class UserListResponse final :
                &_UserListResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    10;
 
   friend void swap(UserListResponse& a, UserListResponse& b) {
     a.Swap(&b);
@@ -2343,7 +2511,7 @@ class ConfigureAppleMailRequest final :
                &_ConfigureAppleMailRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    11;
 
   friend void swap(ConfigureAppleMailRequest& a, ConfigureAppleMailRequest& b) {
     a.Swap(&b);
@@ -2512,7 +2680,7 @@ class EventStreamRequest final :
                &_EventStreamRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    12;
 
   friend void swap(EventStreamRequest& a, EventStreamRequest& b) {
     a.Swap(&b);
@@ -2678,7 +2846,7 @@ class StreamEvent final :
                &_StreamEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    13;
 
   friend void swap(StreamEvent& a, StreamEvent& b) {
     a.Swap(&b);
@@ -3026,7 +3194,7 @@ class AppEvent final :
                &_AppEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    13;
+    14;
 
   friend void swap(AppEvent& a, AppEvent& b) {
     a.Swap(&b);
@@ -3321,7 +3489,7 @@ class InternetStatusEvent final :
                &_InternetStatusEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    14;
+    15;
 
   friend void swap(InternetStatusEvent& a, InternetStatusEvent& b) {
     a.Swap(&b);
@@ -3468,7 +3636,7 @@ class ToggleAutostartFinishedEvent final :
                &_ToggleAutostartFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    16;
 
   friend void swap(ToggleAutostartFinishedEvent& a, ToggleAutostartFinishedEvent& b) {
     a.Swap(&b);
@@ -3586,7 +3754,7 @@ class ResetFinishedEvent final :
                &_ResetFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    17;
 
   friend void swap(ResetFinishedEvent& a, ResetFinishedEvent& b) {
     a.Swap(&b);
@@ -3704,7 +3872,7 @@ class ReportBugFinishedEvent final :
                &_ReportBugFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    18;
 
   friend void swap(ReportBugFinishedEvent& a, ReportBugFinishedEvent& b) {
     a.Swap(&b);
@@ -3822,7 +3990,7 @@ class ReportBugSuccessEvent final :
                &_ReportBugSuccessEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    19;
 
   friend void swap(ReportBugSuccessEvent& a, ReportBugSuccessEvent& b) {
     a.Swap(&b);
@@ -3940,7 +4108,7 @@ class ReportBugErrorEvent final :
                &_ReportBugErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    20;
 
   friend void swap(ReportBugErrorEvent& a, ReportBugErrorEvent& b) {
     a.Swap(&b);
@@ -4058,7 +4226,7 @@ class ShowMainWindowEvent final :
                &_ShowMainWindowEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    21;
 
   friend void swap(ShowMainWindowEvent& a, ShowMainWindowEvent& b) {
     a.Swap(&b);
@@ -4186,7 +4354,7 @@ class LoginEvent final :
                &_LoginEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    22;
 
   friend void swap(LoginEvent& a, LoginEvent& b) {
     a.Swap(&b);
@@ -4439,7 +4607,7 @@ class LoginErrorEvent final :
                &_LoginErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    23;
 
   friend void swap(LoginErrorEvent& a, LoginErrorEvent& b) {
     a.Swap(&b);
@@ -4603,7 +4771,7 @@ class LoginTfaRequestedEvent final :
                &_LoginTfaRequestedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    23;
+    24;
 
   friend void swap(LoginTfaRequestedEvent& a, LoginTfaRequestedEvent& b) {
     a.Swap(&b);
@@ -4755,7 +4923,7 @@ class LoginTwoPasswordsRequestedEvent final :
                &_LoginTwoPasswordsRequestedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    24;
+    25;
 
   friend void swap(LoginTwoPasswordsRequestedEvent& a, LoginTwoPasswordsRequestedEvent& b) {
     a.Swap(&b);
@@ -4874,7 +5042,7 @@ class LoginFinishedEvent final :
                &_LoginFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    25;
+    26;
 
   friend void swap(LoginFinishedEvent& a, LoginFinishedEvent& b) {
     a.Swap(&b);
@@ -5050,7 +5218,7 @@ class UpdateEvent final :
                &_UpdateEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    26;
+    27;
 
   friend void swap(UpdateEvent& a, UpdateEvent& b) {
     a.Swap(&b);
@@ -5366,7 +5534,7 @@ class UpdateErrorEvent final :
                &_UpdateErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    27;
+    28;
 
   friend void swap(UpdateErrorEvent& a, UpdateErrorEvent& b) {
     a.Swap(&b);
@@ -5514,7 +5682,7 @@ class UpdateManualReadyEvent final :
                &_UpdateManualReadyEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    28;
+    29;
 
   friend void swap(UpdateManualReadyEvent& a, UpdateManualReadyEvent& b) {
     a.Swap(&b);
@@ -5666,7 +5834,7 @@ class UpdateManualRestartNeededEvent final :
                &_UpdateManualRestartNeededEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    29;
+    30;
 
   friend void swap(UpdateManualRestartNeededEvent& a, UpdateManualRestartNeededEvent& b) {
     a.Swap(&b);
@@ -5785,7 +5953,7 @@ class UpdateForceEvent final :
                &_UpdateForceEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    30;
+    31;
 
   friend void swap(UpdateForceEvent& a, UpdateForceEvent& b) {
     a.Swap(&b);
@@ -5937,7 +6105,7 @@ class UpdateSilentRestartNeeded final :
                &_UpdateSilentRestartNeeded_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    31;
+    32;
 
   friend void swap(UpdateSilentRestartNeeded& a, UpdateSilentRestartNeeded& b) {
     a.Swap(&b);
@@ -6055,7 +6223,7 @@ class UpdateIsLatestVersion final :
                &_UpdateIsLatestVersion_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    32;
+    33;
 
   friend void swap(UpdateIsLatestVersion& a, UpdateIsLatestVersion& b) {
     a.Swap(&b);
@@ -6173,7 +6341,7 @@ class UpdateCheckFinished final :
                &_UpdateCheckFinished_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    33;
+    34;
 
   friend void swap(UpdateCheckFinished& a, UpdateCheckFinished& b) {
     a.Swap(&b);
@@ -6291,7 +6459,7 @@ class UpdateVersionChanged final :
                &_UpdateVersionChanged_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    34;
+    35;
 
   friend void swap(UpdateVersionChanged& a, UpdateVersionChanged& b) {
     a.Swap(&b);
@@ -6417,7 +6585,7 @@ class DiskCacheEvent final :
                &_DiskCacheEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    35;
+    36;
 
   friend void swap(DiskCacheEvent& a, DiskCacheEvent& b) {
     a.Swap(&b);
@@ -6628,7 +6796,7 @@ class DiskCacheErrorEvent final :
                &_DiskCacheErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    36;
+    37;
 
   friend void swap(DiskCacheErrorEvent& a, DiskCacheErrorEvent& b) {
     a.Swap(&b);
@@ -6776,7 +6944,7 @@ class DiskCachePathChangedEvent final :
                &_DiskCachePathChangedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    37;
+    38;
 
   friend void swap(DiskCachePathChangedEvent& a, DiskCachePathChangedEvent& b) {
     a.Swap(&b);
@@ -6928,7 +7096,7 @@ class DiskCachePathChangeFinishedEvent final :
                &_DiskCachePathChangeFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    38;
+    39;
 
   friend void swap(DiskCachePathChangeFinishedEvent& a, DiskCachePathChangeFinishedEvent& b) {
     a.Swap(&b);
@@ -7054,7 +7222,7 @@ class MailServerSettingsEvent final :
                &_MailServerSettingsEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    39;
+    40;
 
   friend void swap(MailServerSettingsEvent& a, MailServerSettingsEvent& b) {
     a.Swap(&b);
@@ -7265,7 +7433,7 @@ class MailServerSettingsErrorEvent final :
                &_MailServerSettingsErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    40;
+    41;
 
   friend void swap(MailServerSettingsErrorEvent& a, MailServerSettingsErrorEvent& b) {
     a.Swap(&b);
@@ -7413,7 +7581,7 @@ class MailServerSettingsChangedEvent final :
                &_MailServerSettingsChangedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    41;
+    42;
 
   friend void swap(MailServerSettingsChangedEvent& a, MailServerSettingsChangedEvent& b) {
     a.Swap(&b);
@@ -7569,7 +7737,7 @@ class ChangeMailServerSettingsFinishedEvent final :
                &_ChangeMailServerSettingsFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    42;
+    43;
 
   friend void swap(ChangeMailServerSettingsFinishedEvent& a, ChangeMailServerSettingsFinishedEvent& b) {
     a.Swap(&b);
@@ -7695,7 +7863,7 @@ class KeychainEvent final :
                &_KeychainEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    43;
+    44;
 
   friend void swap(KeychainEvent& a, KeychainEvent& b) {
     a.Swap(&b);
@@ -7905,7 +8073,7 @@ class ChangeKeychainFinishedEvent final :
                &_ChangeKeychainFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    44;
+    45;
 
   friend void swap(ChangeKeychainFinishedEvent& a, ChangeKeychainFinishedEvent& b) {
     a.Swap(&b);
@@ -8023,7 +8191,7 @@ class HasNoKeychainEvent final :
                &_HasNoKeychainEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    45;
+    46;
 
   friend void swap(HasNoKeychainEvent& a, HasNoKeychainEvent& b) {
     a.Swap(&b);
@@ -8141,7 +8309,7 @@ class RebuildKeychainEvent final :
                &_RebuildKeychainEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    46;
+    47;
 
   friend void swap(RebuildKeychainEvent& a, RebuildKeychainEvent& b) {
     a.Swap(&b);
@@ -8268,7 +8436,7 @@ class MailEvent final :
                &_MailEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    47;
+    48;
 
   friend void swap(MailEvent& a, MailEvent& b) {
     a.Swap(&b);
@@ -8500,7 +8668,7 @@ class NoActiveKeyForRecipientEvent final :
                &_NoActiveKeyForRecipientEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    48;
+    49;
 
   friend void swap(NoActiveKeyForRecipientEvent& a, NoActiveKeyForRecipientEvent& b) {
     a.Swap(&b);
@@ -8653,7 +8821,7 @@ class AddressChangedEvent final :
                &_AddressChangedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    49;
+    50;
 
   friend void swap(AddressChangedEvent& a, AddressChangedEvent& b) {
     a.Swap(&b);
@@ -8806,7 +8974,7 @@ class AddressChangedLogoutEvent final :
                &_AddressChangedLogoutEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    50;
+    51;
 
   friend void swap(AddressChangedLogoutEvent& a, AddressChangedLogoutEvent& b) {
     a.Swap(&b);
@@ -8958,7 +9126,7 @@ class ApiCertIssueEvent final :
                &_ApiCertIssueEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    51;
+    52;
 
   friend void swap(ApiCertIssueEvent& a, ApiCertIssueEvent& b) {
     a.Swap(&b);
@@ -9085,7 +9253,7 @@ class UserEvent final :
                &_UserEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    52;
+    53;
 
   friend void swap(UserEvent& a, UserEvent& b) {
     a.Swap(&b);
@@ -9317,7 +9485,7 @@ class ToggleSplitModeFinishedEvent final :
                &_ToggleSplitModeFinishedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    53;
+    54;
 
   friend void swap(ToggleSplitModeFinishedEvent& a, ToggleSplitModeFinishedEvent& b) {
     a.Swap(&b);
@@ -9470,7 +9638,7 @@ class UserDisconnectedEvent final :
                &_UserDisconnectedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    54;
+    55;
 
   friend void swap(UserDisconnectedEvent& a, UserDisconnectedEvent& b) {
     a.Swap(&b);
@@ -9623,7 +9791,7 @@ class UserChangedEvent final :
                &_UserChangedEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    55;
+    56;
 
   friend void swap(UserChangedEvent& a, UserChangedEvent& b) {
     a.Swap(&b);
@@ -9776,7 +9944,7 @@ class UserBadEvent final :
                &_UserBadEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    56;
+    57;
 
   friend void swap(UserBadEvent& a, UserBadEvent& b) {
     a.Swap(&b);
@@ -9945,7 +10113,7 @@ class GenericErrorEvent final :
                &_GenericErrorEvent_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    57;
+    58;
 
   friend void swap(GenericErrorEvent& a, GenericErrorEvent& b) {
     a.Swap(&b);
@@ -11224,6 +11392,80 @@ inline void UserSplitModeRequest::_internal_set_active(bool value) {
 inline void UserSplitModeRequest::set_active(bool value) {
   _internal_set_active(value);
   // @@protoc_insertion_point(field_set:grpc.UserSplitModeRequest.active)
+}
+
+// -------------------------------------------------------------------
+
+// UserBadEventFeedbackRequest
+
+// string userID = 1;
+inline void UserBadEventFeedbackRequest::clear_userid() {
+  _impl_.userid_.ClearToEmpty();
+}
+inline const std::string& UserBadEventFeedbackRequest::userid() const {
+  // @@protoc_insertion_point(field_get:grpc.UserBadEventFeedbackRequest.userID)
+  return _internal_userid();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void UserBadEventFeedbackRequest::set_userid(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.userid_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:grpc.UserBadEventFeedbackRequest.userID)
+}
+inline std::string* UserBadEventFeedbackRequest::mutable_userid() {
+  std::string* _s = _internal_mutable_userid();
+  // @@protoc_insertion_point(field_mutable:grpc.UserBadEventFeedbackRequest.userID)
+  return _s;
+}
+inline const std::string& UserBadEventFeedbackRequest::_internal_userid() const {
+  return _impl_.userid_.Get();
+}
+inline void UserBadEventFeedbackRequest::_internal_set_userid(const std::string& value) {
+  
+  _impl_.userid_.Set(value, GetArenaForAllocation());
+}
+inline std::string* UserBadEventFeedbackRequest::_internal_mutable_userid() {
+  
+  return _impl_.userid_.Mutable(GetArenaForAllocation());
+}
+inline std::string* UserBadEventFeedbackRequest::release_userid() {
+  // @@protoc_insertion_point(field_release:grpc.UserBadEventFeedbackRequest.userID)
+  return _impl_.userid_.Release();
+}
+inline void UserBadEventFeedbackRequest::set_allocated_userid(std::string* userid) {
+  if (userid != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.userid_.SetAllocated(userid, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.userid_.IsDefault()) {
+    _impl_.userid_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:grpc.UserBadEventFeedbackRequest.userID)
+}
+
+// bool doResync = 2;
+inline void UserBadEventFeedbackRequest::clear_doresync() {
+  _impl_.doresync_ = false;
+}
+inline bool UserBadEventFeedbackRequest::_internal_doresync() const {
+  return _impl_.doresync_;
+}
+inline bool UserBadEventFeedbackRequest::doresync() const {
+  // @@protoc_insertion_point(field_get:grpc.UserBadEventFeedbackRequest.doResync)
+  return _internal_doresync();
+}
+inline void UserBadEventFeedbackRequest::_internal_set_doresync(bool value) {
+  
+  _impl_.doresync_ = value;
+}
+inline void UserBadEventFeedbackRequest::set_doresync(bool value) {
+  _internal_set_doresync(value);
+  // @@protoc_insertion_point(field_set:grpc.UserBadEventFeedbackRequest.doResync)
 }
 
 // -------------------------------------------------------------------
@@ -16030,6 +16272,8 @@ inline void GenericErrorEvent::set_code(::grpc::ErrorCode value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

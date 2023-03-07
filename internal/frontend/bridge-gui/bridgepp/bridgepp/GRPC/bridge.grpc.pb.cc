@@ -71,6 +71,7 @@ static const char* Bridge_method_names[] = {
   "/grpc.Bridge/GetUserList",
   "/grpc.Bridge/GetUser",
   "/grpc.Bridge/SetUserSplitMode",
+  "/grpc.Bridge/SendBadEventUserFeedback",
   "/grpc.Bridge/LogoutUser",
   "/grpc.Bridge/RemoveUser",
   "/grpc.Bridge/ConfigureUserAppleMail",
@@ -134,11 +135,12 @@ Bridge::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, co
   , rpcmethod_GetUserList_(Bridge_method_names[46], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_GetUser_(Bridge_method_names[47], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_SetUserSplitMode_(Bridge_method_names[48], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_LogoutUser_(Bridge_method_names[49], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_RemoveUser_(Bridge_method_names[50], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_ConfigureUserAppleMail_(Bridge_method_names[51], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_RunEventStream_(Bridge_method_names[52], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
-  , rpcmethod_StopEventStream_(Bridge_method_names[53], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_SendBadEventUserFeedback_(Bridge_method_names[49], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_LogoutUser_(Bridge_method_names[50], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_RemoveUser_(Bridge_method_names[51], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_ConfigureUserAppleMail_(Bridge_method_names[52], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_RunEventStream_(Bridge_method_names[53], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
+  , rpcmethod_StopEventStream_(Bridge_method_names[54], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status Bridge::Stub::CheckTokens(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::google::protobuf::StringValue* response) {
@@ -1268,6 +1270,29 @@ void Bridge::Stub::async::SetUserSplitMode(::grpc::ClientContext* context, const
   return result;
 }
 
+::grpc::Status Bridge::Stub::SendBadEventUserFeedback(::grpc::ClientContext* context, const ::grpc::UserBadEventFeedbackRequest& request, ::google::protobuf::Empty* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::grpc::UserBadEventFeedbackRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_SendBadEventUserFeedback_, context, request, response);
+}
+
+void Bridge::Stub::async::SendBadEventUserFeedback(::grpc::ClientContext* context, const ::grpc::UserBadEventFeedbackRequest* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::grpc::UserBadEventFeedbackRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_SendBadEventUserFeedback_, context, request, response, std::move(f));
+}
+
+void Bridge::Stub::async::SendBadEventUserFeedback(::grpc::ClientContext* context, const ::grpc::UserBadEventFeedbackRequest* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_SendBadEventUserFeedback_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Bridge::Stub::PrepareAsyncSendBadEventUserFeedbackRaw(::grpc::ClientContext* context, const ::grpc::UserBadEventFeedbackRequest& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::google::protobuf::Empty, ::grpc::UserBadEventFeedbackRequest, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_SendBadEventUserFeedback_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Bridge::Stub::AsyncSendBadEventUserFeedbackRaw(::grpc::ClientContext* context, const ::grpc::UserBadEventFeedbackRequest& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncSendBadEventUserFeedbackRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 ::grpc::Status Bridge::Stub::LogoutUser(::grpc::ClientContext* context, const ::google::protobuf::StringValue& request, ::google::protobuf::Empty* response) {
   return ::grpc::internal::BlockingUnaryCall< ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_LogoutUser_, context, request, response);
 }
@@ -1870,12 +1895,12 @@ Bridge::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[49],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+      new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::grpc::UserBadEventFeedbackRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
              ::grpc::ServerContext* ctx,
-             const ::google::protobuf::StringValue* req,
+             const ::grpc::UserBadEventFeedbackRequest* req,
              ::google::protobuf::Empty* resp) {
-               return service->LogoutUser(ctx, req, resp);
+               return service->SendBadEventUserFeedback(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[50],
@@ -1885,10 +1910,20 @@ Bridge::Service::Service() {
              ::grpc::ServerContext* ctx,
              const ::google::protobuf::StringValue* req,
              ::google::protobuf::Empty* resp) {
-               return service->RemoveUser(ctx, req, resp);
+               return service->LogoutUser(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       Bridge_method_names[51],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::StringValue, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](Bridge::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::google::protobuf::StringValue* req,
+             ::google::protobuf::Empty* resp) {
+               return service->RemoveUser(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      Bridge_method_names[52],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::grpc::ConfigureAppleMailRequest, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -1898,7 +1933,7 @@ Bridge::Service::Service() {
                return service->ConfigureUserAppleMail(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[52],
+      Bridge_method_names[53],
       ::grpc::internal::RpcMethod::SERVER_STREAMING,
       new ::grpc::internal::ServerStreamingHandler< Bridge::Service, ::grpc::EventStreamRequest, ::grpc::StreamEvent>(
           [](Bridge::Service* service,
@@ -1908,7 +1943,7 @@ Bridge::Service::Service() {
                return service->RunEventStream(ctx, req, writer);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      Bridge_method_names[53],
+      Bridge_method_names[54],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< Bridge::Service, ::google::protobuf::Empty, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](Bridge::Service* service,
@@ -2259,6 +2294,13 @@ Bridge::Service::~Service() {
 }
 
 ::grpc::Status Bridge::Service::SetUserSplitMode(::grpc::ServerContext* context, const ::grpc::UserSplitModeRequest* request, ::google::protobuf::Empty* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status Bridge::Service::SendBadEventUserFeedback(::grpc::ServerContext* context, const ::grpc::UserBadEventFeedbackRequest* request, ::google::protobuf::Empty* response) {
   (void) context;
   (void) request;
   (void) response;
