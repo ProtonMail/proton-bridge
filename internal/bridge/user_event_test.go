@@ -100,8 +100,13 @@ func TestBridge_User_BadMessage_BadEvent(t *testing.T) {
 	}))
 
 	t.Run("LogoutAndLogin", test_badMessage_badEvent(func(t *testing.T, ctx context.Context, bridge *bridge.Bridge, badUserID string) {
+		logoutCh, closeCh := chToType[events.Event, events.UserLoggedOut](bridge.GetEvents(events.UserLoggedOut{}))
+
 		// User feedback is logout
 		require.NoError(t, bridge.SendBadEventUserFeedback(ctx, badUserID, false))
+
+		require.Equal(t, badUserID, (<-logoutCh).UserID)
+		closeCh()
 
 		// The user will eventually be logged out due to the bad request errors.
 		require.Eventually(t, func() bool {

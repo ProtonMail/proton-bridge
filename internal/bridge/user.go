@@ -343,6 +343,11 @@ func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string,
 		}
 
 		bridge.logoutUser(ctx, user, true, false)
+
+		bridge.publish(events.UserLoggedOut{
+			UserID: userID,
+		})
+
 		return nil
 	}, bridge.usersLock)
 }
