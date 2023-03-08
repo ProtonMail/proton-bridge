@@ -148,7 +148,7 @@ func (bridge *Bridge) handleUserBadEvent(_ context.Context, user *user.User, eve
 			"new_event_id": event.NewEventID,
 			"event_info":   event.EventInfo,
 			"error":        event.Error,
-			"error_type":   fmt.Sprintf("%T", internal.ErrCause(event.Error)),
+			"error_type":   internal.ErrCauseType(event.Error),
 		}); rerr != nil {
 			logrus.WithError(rerr).Error("Failed to report failed event handling")
 		}
@@ -164,7 +164,7 @@ func (bridge *Bridge) handleUserBadEvent(_ context.Context, user *user.User, eve
 
 func (bridge *Bridge) handleUncategorizedErrorEvent(event events.UncategorizedEventError) {
 	if rerr := bridge.reporter.ReportMessageWithContext("Failed to handle due to uncategorized error", reporter.Context{
-		"error_type": fmt.Sprintf("%T", internal.ErrCause(event.Error)),
+		"error_type": internal.ErrCauseType(event.Error),
 		"error":      event.Error,
 	}); rerr != nil {
 		logrus.WithError(rerr).Error("Failed to report failed event handling")

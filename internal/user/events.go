@@ -29,6 +29,7 @@ import (
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/v3/internal"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
@@ -677,6 +678,7 @@ func (user *User) reportErrorAndMessageID(title string, err error, messgeID stri
 func (user *User) reportErrorNoContextCancel(title string, err error, reportContext reporter.Context) {
 	if !errors.Is(err, context.Canceled) {
 		reportContext["error"] = err
+		reportContext["error_type"] = internal.ErrCauseType(err)
 		if rerr := user.reporter.ReportMessageWithContext(title, reportContext); rerr != nil {
 			user.log.WithError(err).WithField("title", title).Error("Failed to report message")
 		}

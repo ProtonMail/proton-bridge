@@ -17,7 +17,10 @@
 
 package internal
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // ErrCause returns the cause of the error, the inner-most error in the wrapped chain.
 func ErrCause(err error) error {
@@ -28,4 +31,8 @@ func ErrCause(err error) error {
 	}
 
 	return cause
+}
+
+func ErrCauseType(err error) string {
+	return fmt.Sprintf("%T", ErrCause(err))
 }
