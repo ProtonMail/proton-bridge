@@ -1126,8 +1126,8 @@ QtObject {
                 text: qsTr("Synchronize")
 
                 onTriggered: {
-                    Backend.sendBadEventUserFeedback(root.userBadEvent.userID, true)
                     root.userBadEvent.active = false
+                    Backend.sendBadEventUserFeedback(root.userBadEvent.userID, true)
                 }
             },
 
@@ -1135,8 +1135,8 @@ QtObject {
                 text: qsTr("Logout")
 
                 onTriggered: {
-                    Backend.sendBadEventUserFeedback(root.userBadEvent.userID, false)
                     root.userBadEvent.active = false
+                    Backend.sendBadEventUserFeedback(root.userBadEvent.userID, false)
                 }
             }
         ]

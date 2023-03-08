@@ -350,4 +350,21 @@ void UsersTab::configureUserAppleMail(QString const &userID, QString const &addr
 //****************************************************************************************************************************************************
 void UsersTab::processBadEventUserFeedback(QString const &userID, bool doResync) {
     app().log().info(QString("Feedback received for bad event: doResync = %1, userID = %2").arg(doResync ? "true" : "false", userID));
+    if (doResync) {
+        return; // we do not do any form of emulation for resync.
+    }
+
+    SPUser user = users_.userWithID(userID);
+    if (!user) {
+        app().log().error(QString("%1(): could not find user with id %1.").arg(__func__, userID));
+    }
+
+    user->setState(UserState::SignedOut);
+    users_.touch(userID);
+    GRPCService &grpc = app().grpc();
+    if (grpc.isStreaming()) {
+        grpc.sendEvent(newUserChangedEvent(userID));
+    }
+
+    this->updateGUIState();
 }

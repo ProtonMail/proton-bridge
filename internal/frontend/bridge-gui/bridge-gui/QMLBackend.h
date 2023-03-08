@@ -241,6 +241,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
 private: // member functions
     void retrieveUserList(); ///< Retrieve the list of users via gRPC.
     void connectGrpcEvents(); ///< Connect gRPC that need to be forwarded to QML via backend signals
+    void displayBadEventDialog(QString const& userID); ///< Displays the bad event dialog for a user.
 
 private: // data members
     UserList *users_ { nullptr }; ///< The user list. Owned by backend.
@@ -253,6 +254,7 @@ private: // data members
     int smtpPort_ { 0 }; ///< The cached value for the SMTP port.
     bool useSSLForIMAP_ { false }; ///< The cached value for useSSLForIMAP.
     bool useSSLForSMTP_ { false }; ///< The cached value for useSSLForSMTP.
+    QList<QString> badEventDisplayQueue_; ///< THe queue for displaying 'bad event feedback request dialog'.
 
     friend class AppController;
 };

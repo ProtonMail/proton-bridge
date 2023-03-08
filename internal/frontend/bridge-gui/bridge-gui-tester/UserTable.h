@@ -43,6 +43,7 @@ public: // member functions.
     bridgepp::SPUser userWithUsername(QString const &username); ///< Return the user with a given username.
     qint32 indexOfUser(QString const &userID); ///< Return the index of a given User.
     void touch(qint32 index); ///< touch the user at a given index (indicates it has been modified).
+    void touch(QString const& userID); ///< touch the user with the given userID (indicates it has been modified).
     void remove(qint32 index); ///< Remove the user at a given index.
     QList<bridgepp::SPUser> users() const; ///< Return a copy of the user list.
 

@@ -822,6 +822,15 @@ void QMLBackend::setMailServerSettings(int imapPort, int smtpPort, bool useSSLFo
 void QMLBackend::sendBadEventUserFeedback(QString const &userID, bool doResync) {
     HANDLE_EXCEPTION(
         app().grpc().sendBadEventUserFeedback(userID, doResync);
+
+        // Notification dialog has just been dismissed, we remove the userID from the queue, and if there are other events in the queue, we show
+        // the dialog again.
+        badEventDisplayQueue_.removeOne(userID);
+        if (!badEventDisplayQueue_.isEmpty()) {
+            // we introduce a small delay here, so that the user notices the dialog disappear and pops up again.
+            QTimer::singleShot(500, [&]() { this->displayBadEventDialog(badEventDisplayQueue_.front()); });
+
+        }
     )
 }
 
@@ -879,19 +888,23 @@ void QMLBackend::onLoginAlreadyLoggedIn(QString const &userID) {
 
 //****************************************************************************************************************************************************
 /// \param[in] userID The userID.
-/// \param[in] errorMessage. Unused
 //****************************************************************************************************************************************************
-void QMLBackend::onUserBadEvent(QString const &userID, QString const &errorMessage) {
+void QMLBackend::onUserBadEvent(QString const &userID, QString const& ) {
     HANDLE_EXCEPTION(
+        if (badEventDisplayQueue_.contains(userID)) {
+            app().log().error("Received 'bad event' for a user that is already in the queue.");
+            return;
+        }
+
         SPUser const user = users_->getUserWithID(userID);
-        if (!user)
-            app().log().error(QString("Received bad event for unknown user %1: %2").arg(user->id(), errorMessage));
-//        user->setState(UserState::SignedOut);
-        emit userBadEvent(userID,
-            tr("Bridge ran into an internal error and it is not able to proceed with the account %1. Synchronize your local database now or logout"
-               " to do it later. Synchronization time depends on the size of your mailbox.").arg(user->primaryEmailOrUsername()));
-        emit selectUser(userID);
-        emit showMainWindow();
+        if (!user) {
+            app().log().error(QString("Received bad event for unknown user %1."));
+        }
+
+        badEventDisplayQueue_.append(userID);
+        if (badEventDisplayQueue_.size() == 1) { // there was no other item is the queue, we can display the dialog immediately.
+            this->displayBadEventDialog(userID);
+        }
     )
 }
 
@@ -1005,4 +1018,23 @@ void QMLBackend::connectGrpcEvents() {
     connect(client, &GRPCClient::userDisconnected, this, &QMLBackend::userDisconnected);
     connect(client, &GRPCClient::userBadEvent, this, &QMLBackend::onUserBadEvent);
     users_->connectGRPCEvents();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+//****************************************************************************************************************************************************
+void QMLBackend::displayBadEventDialog(QString const &userID) {
+    HANDLE_EXCEPTION(
+        SPUser const user = users_->getUserWithID(userID);
+        if (!user) {
+            return;
+        }
+
+        emit userBadEvent(userID,
+            tr("Bridge ran into an internal error and it is not able to proceed with the account %1. Synchronize your local database now or logout"
+               " to do it later. Synchronization time depends on the size of your mailbox.").arg(user->primaryEmailOrUsername()));
+        emit selectUser(userID);
+        emit showMainWindow();
+    )
 }
