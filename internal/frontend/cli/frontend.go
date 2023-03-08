@@ -327,9 +327,9 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:funle
 			f.Printf("Synchronize your local database now or logout to do it later.\n")
 			f.Printf("Synchronization time depends on the size of your mailbox.\n")
 			f.Printf("\n\n")
-			f.Printf("The allowed actions are:")
-			f.Printf("* bad-event synchronize")
-			f.Printf("* bad-event logout")
+			f.Printf("The allowed actions are:\n")
+			f.Printf("* bad-event synchronize\n")
+			f.Printf("* bad-event logout\n\n")
 
 		case events.UserAddressUpdated:
 			user, err := f.bridge.GetUserInfo(event.UserID)
