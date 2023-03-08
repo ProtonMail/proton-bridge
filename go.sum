@@ -28,8 +28,6 @@ github.com/ProtonMail/bcrypt v0.0.0-20211005172633-e235017c1baf h1:yc9daCCYUefEs
 github.com/ProtonMail/bcrypt v0.0.0-20211005172633-e235017c1baf/go.mod h1:o0ESU9p83twszAU8LBeJKFAAMX14tISa0yk4Oo5TOqo=
 github.com/ProtonMail/docker-credential-helpers v1.1.0 h1:+kvUIpwWcbtP3WFv5sSvkFn/XLzSqPOB5AAthuk9xPk=
 github.com/ProtonMail/docker-credential-helpers v1.1.0/go.mod h1:mK0aBveCxhnQ756AmaTfXMZDeULvheYVhF/MWMErN5g=
-github.com/ProtonMail/gluon v0.14.2-0.20230307115918-2c30af37e4dd h1:ro7rzBieJNSsgaTZJUG1PmV2EzBlKU660uli/sfpLPA=
-github.com/ProtonMail/gluon v0.14.2-0.20230307115918-2c30af37e4dd/go.mod h1:z2AxLIiBCT1K+0OBHyaDI7AEaO5qI6/BEC2TE42vs4Q=
 github.com/ProtonMail/gluon v0.14.2-0.20230308154551-831ae4974682 h1:vdQ+7CXU4W8ikImoWLcR/GN905gpiebF/5kYif7gmqE=
 github.com/ProtonMail/gluon v0.14.2-0.20230308154551-831ae4974682/go.mod h1:z2AxLIiBCT1K+0OBHyaDI7AEaO5qI6/BEC2TE42vs4Q=
 github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a h1:D+aZah+k14Gn6kmL7eKxoo/4Dr/lK3ChBcwce2+SQP4=
@@ -43,8 +41,8 @@ github.com/ProtonMail/go-message v0.0.0-20210611055058-fabeff2ec753/go.mod h1:NB
 github.com/ProtonMail/go-mime v0.0.0-20220302105931-303f85f7fe0f/go.mod h1:NYt+V3/4rEeDuaev/zw1zCq8uqVEuPHzDPo3OZrlGJ4=
 github.com/ProtonMail/go-mime v0.0.0-20220429130430-2192574d760f h1:4IWzKjHzZxdrW9k4zl/qCwenOVHDbVDADPPHFLjs0Oc=
 github.com/ProtonMail/go-mime v0.0.0-20220429130430-2192574d760f/go.mod h1:qRZgbeASl2a9OwmsV85aWwRqic0NHPh+9ewGAzb4cgM=
-github.com/ProtonMail/go-proton-api v0.3.1-0.20230306124657-5801649f875e h1:hx3jf6I2VRGLG1Kd/kvwks9rtByHiQKhD7mCd9LVcJ0=
-github.com/ProtonMail/go-proton-api v0.3.1-0.20230306124657-5801649f875e/go.mod h1:JUo5IQG0hNuPRuDpOUsCOvtee6UjTEHHF1QN2i8RSos=
+github.com/ProtonMail/go-proton-api v0.3.1-0.20230308164916-42e487b4ad74 h1:gtzxYZcF7rGdsYi0g2+PcLYBCa9H1+CrVKY+5N/yYGE=
+github.com/ProtonMail/go-proton-api v0.3.1-0.20230308164916-42e487b4ad74/go.mod h1:JUo5IQG0hNuPRuDpOUsCOvtee6UjTEHHF1QN2i8RSos=
 github.com/ProtonMail/go-rfc5322 v0.11.0 h1:o5Obrm4DpmQEffvgsVqG6S4BKwC1Wat+hYwjIp2YcCY=
 github.com/ProtonMail/go-rfc5322 v0.11.0/go.mod h1:6oOKr0jXvpoE6pwTx/HukigQpX2J9WUf6h0auplrFTw=
 github.com/ProtonMail/go-srp v0.0.5 h1:xhUioxZgDbCnpo9JehyFhwwsn9JLWkUGfB0oiKXgiGg=
