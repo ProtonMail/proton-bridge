@@ -48,7 +48,7 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 		}
 
 	case events.UserRefreshed:
-		if err := bridge.handleUserRefreshed(ctx, user); err != nil {
+		if err := bridge.handleUserRefreshed(ctx, user, event); err != nil {
 			return fmt.Errorf("failed to handle user refreshed event: %w", err)
 		}
 
@@ -120,8 +120,12 @@ func (bridge *Bridge) handleUserAddressDeleted(ctx context.Context, user *user.U
 	return nil
 }
 
-func (bridge *Bridge) handleUserRefreshed(ctx context.Context, user *user.User) error {
+func (bridge *Bridge) handleUserRefreshed(ctx context.Context, user *user.User, event events.UserRefreshed) error {
 	return safe.RLockRet(func() error {
+		if event.CancelEventPool {
+			user.CancelSyncAndEventPoll()
+		}
+
 		if err := bridge.removeIMAPUser(ctx, user, true); err != nil {
 			return fmt.Errorf("failed to remove IMAP user: %w", err)
 		}
@@ -153,7 +157,7 @@ func (bridge *Bridge) handleUserBadEvent(_ context.Context, user *user.User, eve
 			logrus.WithError(rerr).Error("Failed to report failed event handling")
 		}
 
-		user.BadEventAbort()
+		user.CancelSyncAndEventPoll()
 
 		// Disable IMAP user
 		if err := bridge.removeIMAPUser(context.Background(), user, false); err != nil {

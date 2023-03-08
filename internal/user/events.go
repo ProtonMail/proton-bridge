@@ -93,10 +93,10 @@ func (user *User) handleRefreshEvent(ctx context.Context, refresh proton.Refresh
 	// Re-sync messages after the user, address and label refresh.
 	defer user.goSync()
 
-	return user.syncUserAddressesLabelsAndClearSync(ctx)
+	return user.syncUserAddressesLabelsAndClearSync(ctx, false)
 }
 
-func (user *User) syncUserAddressesLabelsAndClearSync(ctx context.Context) error {
+func (user *User) syncUserAddressesLabelsAndClearSync(ctx context.Context, cancelEventPool bool) error {
 	return safe.LockRet(func() error {
 		// Fetch latest user info.
 		apiUser, err := user.client.GetUser(ctx)
@@ -128,7 +128,8 @@ func (user *User) syncUserAddressesLabelsAndClearSync(ctx context.Context) error
 
 		// The user was refreshed.
 		user.eventCh.Enqueue(events.UserRefreshed{
-			UserID: user.apiUser.ID,
+			UserID:          user.apiUser.ID,
+			CancelEventPool: cancelEventPool,
 		})
 
 		return nil

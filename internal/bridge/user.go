@@ -326,11 +326,11 @@ func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string,
 				logrus.WithError(rerr).Error("Failed to report feedback failure")
 			}
 
-			user.BadEventFeedbackResync(ctx)
-
 			if err := bridge.addIMAPUser(ctx, user); err != nil {
 				return fmt.Errorf("failed to add IMAP user: %w", err)
 			}
+
+			user.BadEventFeedbackResync(ctx)
 
 			return nil
 		}

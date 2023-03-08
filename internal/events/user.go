@@ -148,7 +148,8 @@ func (event UserChanged) String() string {
 type UserRefreshed struct {
 	eventBase
 
-	UserID string
+	UserID          string
+	CancelEventPool bool
 }
 
 func (event UserRefreshed) String() string {

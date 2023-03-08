@@ -299,15 +299,19 @@ func (user *User) SetAddressMode(_ context.Context, mode vault.AddressMode) erro
 	}, user.eventLock, user.apiAddrsLock, user.updateChLock)
 }
 
-// BadEventAbort stops user to communicate. The resolution is either logout or resync.
-func (user *User) BadEventAbort() {
+// CancelSyncAndEventPoll stops the sync or event poll go-routine.
+func (user *User) CancelSyncAndEventPoll() {
 	user.syncAbort.Abort()
 	user.pollAbort.Abort()
 }
 
 // BadEventFeedbackResync sends user feedback whether should do message re-sync.
 func (user *User) BadEventFeedbackResync(ctx context.Context) {
-	if err := user.syncUserAddressesLabelsAndClearSync(ctx); err != nil {
+	user.CancelSyncAndEventPoll()
+
+	// We need to cancel the event poll later again as it is not guaranteed, due to timing, that we have a
+	// task to cancel.
+	if err := user.syncUserAddressesLabelsAndClearSync(ctx, true); err != nil {
 		user.log.WithError(err).Error("Bad event resync failed")
 	}
 }
