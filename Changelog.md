@@ -2,7 +2,33 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
-## [Bridge 3.0.18] Perth Narrows
+## [Bridge 3.0.20] Perth Narrows
+
+### Added
+* GODT-2442: Allow user to re-sync DB without logout.
+
+### Changed
+GODT-2419: Reduce sentry reports.
+GODT-2458: Wait for both bridge and bridge-gui to be ended before restarting on crash.
+GODT-2457: Include address if GetPublickKeys() error message.
+GODT-2446: Attach logs to sentry reports for relevant bridge-gui exceptions.
+GODT-2425: Out of sync messages and read status.
+GODT-2435: Group report exception by message if exception message looks corrupted.
+GODT-2356: Unify sentry release description and add more context to it.
+GODT-2357: Hide DSN_SENTRY and use single setting point for DSN_SENTRY.
+GODT-2444: Bad event info.
+GODT-2447: Don't assume timestamp exists in log filename.
+GODT-2333: Do not allow modifications to All Mail label.
+GODT-2429: Do not report context cancel to sentry.
+
+### Fixed
+GODT-2449: fix bug in Bridge-GUI's Exception::what().
+GODT-2427: Parsing header issues.
+GODT-2426: Fix crash on user delete.
+GODT-2417: Do not request gluon recovered message from API.
+
+
+## [Bridge 3.0.19] Perth Narrows
 
 ### Fixed
 * GODT-2364: Wait and retry once if the gRPC service config file exists but cannot be opened.
