@@ -1,3 +1,17 @@
+## v3.0.20
+- 2023-03-09
+
+### New
+- Added better explanation when an email cannot be sent because of non-existing email addresses
+- Added a dialog to Bridge where users can repair the application when it encounters an internal error
+- Improved error detection
+
+### Fixed
+- Reduced the cases when Bridge could not restart automatically
+- Fixed the bug that could cause email states (e.g., read, unread, answered) to come out of sync with the web application. **NOTE: This fix is only applied to new emails. In order to fix older emails in Bridge, the account in Bridge needs to be removed and added back.**
+- Fixed incorrect subject parsing caused by double quotes
+
+
 ## v3.0.19
 - 2023-03-01
 
