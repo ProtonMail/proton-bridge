@@ -23,6 +23,7 @@
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/Worker/Overseer.h>
+#include <bridgepp/BridgeUtils.h>
 
 
 #define HANDLE_EXCEPTION(x) try { x } \
@@ -1033,7 +1034,7 @@ void QMLBackend::displayBadEventDialog(QString const &userID) {
 
         emit userBadEvent(userID,
             tr("Bridge ran into an internal error and it is not able to proceed with the account %1. Synchronize your local database now or logout"
-               " to do it later. Synchronization time depends on the size of your mailbox.").arg(user->primaryEmailOrUsername()));
+               " to do it later. Synchronization time depends on the size of your mailbox.").arg(elideLongString(user->primaryEmailOrUsername(), 30)));
         emit selectUser(userID);
         emit showMainWindow();
     )

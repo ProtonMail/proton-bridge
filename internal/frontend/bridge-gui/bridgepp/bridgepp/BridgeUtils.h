@@ -49,6 +49,7 @@ OS os(); ///< Return the operating system.
 bool onLinux(); ///< Check if the OS is Linux.
 bool onMacOS(); ///< Check if the OS is macOS.
 bool onWindows(); ///< Check if the OS in Windows.
+QString elideLongString(QString const &str, qint32 maxLength); ///< Elide a string in the middle if its length exceed maxLength.
 
 
 } // namespace

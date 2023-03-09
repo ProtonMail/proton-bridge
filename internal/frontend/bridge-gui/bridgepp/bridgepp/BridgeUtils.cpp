@@ -280,4 +280,20 @@ bool onWindows() {
 }
 
 
+//****************************************************************************************************************************************************
+/// Elision is performed by inserting '...' around the (maxLen / 2) - 2 left-most and right-most characters of the string.
+///
+/// \return The elided string, or the original string if its length does not exceed maxLength.
+//****************************************************************************************************************************************************
+QString elideLongString(QString const &str, qint32 maxLength) {
+    qint32 const len = str.length();
+    if (len <= maxLength) {
+        return str;
+    }
+
+    qint32 const hLen = qMax(0, (maxLength / 2) - 2);
+    return str.left(hLen) + "..." + str.right(hLen);
+}
+
+
 } // namespace bridgepp
