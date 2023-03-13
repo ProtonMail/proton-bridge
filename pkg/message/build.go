@@ -466,8 +466,10 @@ func getMessageHeader(msg proton.Message, opts JobOptions) message.Header {
 		if date, err := rfc5322.ParseDateTime(hdr.Get("Date")); err != nil || date.Before(time.Unix(0, 0)) {
 			msgDate := SanitizeMessageDate(msg.Time)
 			hdr.Set("Date", msgDate.In(time.UTC).Format(time.RFC1123Z))
-			// We clobbered the date so we save it under X-Original-Date.
-			hdr.Set("X-Original-Date", date.In(time.UTC).Format(time.RFC1123Z))
+			// We clobbered the date so we save it under X-Original-Date only if no such value exists.
+			if !hdr.Has("X-Original-Date") {
+				hdr.Set("X-Original-Date", date.In(time.UTC).Format(time.RFC1123Z))
+			}
 		}
 	}
 

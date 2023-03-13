@@ -648,7 +648,7 @@ func (user *User) doEventPoll(ctx context.Context) error {
 	user.eventLock.Lock()
 	defer user.eventLock.Unlock()
 
-	event, _, err := user.client.GetEvent(ctx, user.vault.EventID())
+	event, more, err := user.client.GetEvent(ctx, user.vault.EventID())
 	if err != nil {
 		return fmt.Errorf("failed to get event (caused by %T): %w", internal.ErrCause(err), err)
 	}
@@ -738,6 +738,10 @@ func (user *User) doEventPoll(ctx context.Context) error {
 	}
 
 	user.log.WithField("eventID", event.EventID).Debug("Updated event ID in vault")
+
+	if more {
+		user.goPollAPIEvents(false)
+	}
 
 	return nil
 }
