@@ -8,7 +8,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2224: Refactor bridge sync to use less memory.
 * GODT-2448: Supported Answered flag.
 * GODT-2382: Added bridge-gui settings file with 'UseSoftwareRenderer' value.
-* GODT-2411: allow qmake executable to be named qmake6.
+* GODT-2411: Allow qmake executable to be named qmake6.
 * GODT-2273: Menu with "Close window" and "Quit Bridge" button in main window.
 * GODT-2261: Sync progress in GUI.
 * GODT-2385: Gluon cache fallback.
@@ -30,6 +30,10 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2289: UIDValidity as Timestamp.
 
 ### Fixed
+* GODT-2455: Upper limit for number of merged events.
+* GODT-2480: Do not override X-Original-Date with invalid Date.
+* GODT-2473: Fix handling of complex mime types.
+* GODT-2469: Fix sentry revision hash for cmake on windows.
 * GODT-2424: Sync Builder Message Split.
 * GODT-2419: Use connector.ErrOperationNotAllowed.
 * GODT-2418: Ensure child folders are updated when parent is.
@@ -67,24 +71,25 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2442: Allow user to re-sync DB without logout.
 
 ### Changed
-GODT-2419: Reduce sentry reports.
-GODT-2458: Wait for both bridge and bridge-gui to be ended before restarting on crash.
-GODT-2457: Include address if GetPublickKeys() error message.
-GODT-2446: Attach logs to sentry reports for relevant bridge-gui exceptions.
-GODT-2425: Out of sync messages and read status.
-GODT-2435: Group report exception by message if exception message looks corrupted.
-GODT-2356: Unify sentry release description and add more context to it.
-GODT-2357: Hide DSN_SENTRY and use single setting point for DSN_SENTRY.
-GODT-2444: Bad event info.
-GODT-2447: Don't assume timestamp exists in log filename.
-GODT-2333: Do not allow modifications to All Mail label.
-GODT-2429: Do not report context cancel to sentry.
+* GODT-2419: Reduce sentry reports.
+* GODT-2458: Wait for both bridge and bridge-gui to be ended before restarting on crash.
+* GODT-2457: Include address if GetPublickKeys() error message.
+* GODT-2446: Attach logs to sentry reports for relevant bridge-gui exceptions.
+* GODT-2425: Out of sync messages and read status.
+* GODT-2435: Group report exception by message if exception message looks corrupted.
+* GODT-2356: Unify sentry release description and add more context to it.
+* GODT-2357: Hide DSN_SENTRY and use single setting point for DSN_SENTRY.
+* GODT-2444: Bad event info.
+* GODT-2447: Don't assume timestamp exists in log filename.
+* GODT-2333: Do not allow modifications to All Mail label.
+* GODT-2429: Do not report context cancel to sentry.
 
 ### Fixed
-GODT-2449: fix bug in Bridge-GUI's Exception::what().
-GODT-2427: Parsing header issues.
-GODT-2426: Fix crash on user delete.
-GODT-2417: Do not request gluon recovered message from API.
+* GODT-2467: elide long email adresses in 'bad event' QML notification dialog.
+* GODT-2449: fix bug in Bridge-GUI's Exception::what().
+* GODT-2427: Parsing header issues.
+* GODT-2426: Fix crash on user delete.
+* GODT-2417: Do not request gluon recovered message from API.
 
 
 ## [Bridge 3.0.19] Perth Narrows
