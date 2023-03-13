@@ -27,6 +27,7 @@
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/FocusGRPC/FocusGRPCClient.h>
 #include <bridgepp/Log/Log.h>
+#include <bridgepp/Log/LogUtils.h>
 #include <bridgepp/ProcessMonitor.h>
 
 
@@ -116,7 +117,7 @@ QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine) {
 
     rootComponent->loadUrl(QUrl(qrcQmlDir + "/Bridge.qml"));
     if (rootComponent->status() != QQmlComponent::Status::Ready) {
-        QString const &err =rootComponent->errorString();
+        QString const &err = rootComponent->errorString();
             app().log().error(err);
         throw Exception("Could not load QML component", err);
     }
@@ -211,7 +212,7 @@ void focusOtherInstance() {
 
         QString error;
         if (!client.connectToServer(5000, sc.port, &error)) {
-            throw Exception(QString("Could not connect to bridge focus service for a raise call: %1").arg(error));
+            throw Exception("Could not connect to bridge focus service for a raise call.", error);
         }
         if (!client.raise().ok()) {
             throw Exception(QString("The raise call to the bridge focus service failed."));
@@ -220,7 +221,7 @@ void focusOtherInstance() {
     catch (Exception const &e) {
         app().log().error(e.qwhat());
         auto uuid = reportSentryException("Exception occurred during focusOtherInstance()", e);
-        app().log().fatal(QString("reportID: %1 Captured exception: %2").arg(QByteArray(uuid.bytes, 16).toHex()).arg(e.qwhat()));
+        app().log().fatal(QString("reportID: %1 Captured exception: %2").arg(QByteArray(uuid.bytes, 16).toHex(), e.qwhat()));
     }
 }
 
@@ -276,14 +277,11 @@ int main(int argc, char *argv[]) {
     }
 
     BridgeApp guiApp(argc, argv);
+    initSentry();
+    auto sentryCloser = qScopeGuard([] { sentry_close(); });
 
     try {
         QString const& configDir = bridgepp::userConfigDir();
-
-        // Init sentry.
-        initSentry();
-
-        auto sentryClose = qScopeGuard([] { sentry_close(); });
 
 
         initQtApplication();
@@ -311,7 +309,7 @@ int main(int argc, char *argv[]) {
         if (!cliOptions.attach) {
             if (isBridgeRunning()) {
                 throw Exception("An orphan instance of bridge is already running. Please terminate it and relaunch the application.",
-                    QString(), QString(), tailOfLatestBridgeLog());
+                    QString(), __FUNCTION__, tailOfLatestBridgeLog());
             }
 
             // before launching bridge, we remove any trailing service config file, because we need to make sure we get a newly generated one.
@@ -345,7 +343,7 @@ int main(int argc, char *argv[]) {
         std::unique_ptr<QQmlComponent> rootComponent(createRootQmlComponent(engine));
         std::unique_ptr<QObject> rootObject(rootComponent->create(engine.rootContext()));
         if (!rootObject) {
-            throw Exception("Could not create root object.");
+            throw Exception("Could not create QML root object.");
         }
 
         ProcessMonitor *bridgeMonitor = app().bridgeMonitor();

@@ -22,6 +22,7 @@
 #include "../BridgeUtils.h"
 #include "../Exception/Exception.h"
 #include "../ProcessMonitor.h"
+#include "../Log/LogUtils.h"
 
 
 using namespace google::protobuf;
@@ -70,7 +71,8 @@ GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(QString const &configDir, qi
     bool found = false;
     while (true) {
         if (serverProcess && serverProcess->getStatus().ended) {
-            throw Exception("Bridge application exited before providing a gRPC service configuration file.");
+            throw Exception("Bridge application exited before providing a gRPC service configuration file.", QString(), __FUNCTION__,
+                tailOfLatestBridgeLog());
         }
 
         if (file.exists()) {
@@ -84,13 +86,20 @@ GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(QString const &configDir, qi
     }
 
     if (!found) {
-        throw Exception("Server did not provide gRPC service configuration in time.");
+        throw Exception("Server did not provide gRPC service configuration in time.", QString(), __FUNCTION__, tailOfLatestBridgeLog());
     }
 
     GRPCConfig sc;
     QString err;
     if (!sc.load(path, &err)) {
-        throw Exception("The gRPC service configuration file is invalid.", err);
+        // include the file content in the exception, if any
+        QByteArray array;
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            file.readAll();
+            array = array.right(Exception::attachmentMaxLength);
+        }
+
+        throw Exception("The gRPC service configuration file is invalid.", err, __FUNCTION__, array);
     }
 
     return sc;
@@ -126,19 +135,20 @@ void GRPCClient::connectToServer(QString const &configDir, GRPCConfig const &con
 
         channel_ = CreateCustomChannel(address.toStdString(), grpc::SslCredentials(opts), chanArgs);
         if (!channel_) {
-            throw Exception("Channel creation failed.");
+            throw Exception("gRPC channel creation failed.");
         }
 
         stub_ = Bridge::NewStub(channel_);
         if (!stub_) {
-            throw Exception("Stub creation failed.");
+            throw Exception("gRPC stub creation failed.");
         }
 
         QDateTime const giveUpTime = QDateTime::currentDateTime().addMSecs(grpcConnectionWaitTimeoutMs); // if we reach giveUpTime without connecting, we give up
         int i = 0;
         while (true) {
             if (serverProcess && serverProcess->getStatus().ended) {
-                throw Exception("Bridge application ended before gRPC connexion could be established.");
+                throw Exception("Bridge application ended before gRPC connexion could be established.", QString(), __FUNCTION__,
+                    tailOfLatestBridgeLog());
             }
 
             this->logInfo(QString("Connection to gRPC server at %1. attempt #%2").arg(address).arg(++i));
@@ -148,7 +158,8 @@ void GRPCClient::connectToServer(QString const &configDir, GRPCConfig const &con
             } // connection established.
 
             if (QDateTime::currentDateTime() > giveUpTime) {
-                throw Exception("Connection to the RPC server failed.");
+                throw Exception("Connection to the gRPC server failed because of a timeout.", QString(), __FUNCTION__,
+                    tailOfLatestBridgeLog());
             }
         }
 
@@ -180,7 +191,7 @@ void GRPCClient::connectToServer(QString const &configDir, GRPCConfig const &con
         log_->info("gRPC token was validated");
     }
     catch (Exception const &e) {
-        throw Exception("Cannot connect to Go backend via gRPC: " + e.qwhat(), e.details());
+        throw Exception("Cannot connect to Go backend via gRPC: " + e.qwhat(), e.details(), __FUNCTION__, e.attachment());
     }
 }
 

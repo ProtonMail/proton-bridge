@@ -19,9 +19,9 @@
 #include "QMLBackend.h"
 #include "BuildConfig.h"
 #include "EventStreamWorker.h"
-#include "LogUtils.h"
 #include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
+#include <bridgepp/Log/LogUtils.h>
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Worker/Overseer.h>
 #include <bridgepp/BridgeUtils.h>

@@ -16,14 +16,18 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_LOG_UTILS_H
-#define BRIDGE_GUI_LOG_UTILS_H
+#ifndef BRIDGE_PP_LOG_UTILS_H
+#define BRIDGE_PP_LOG_UTILS_H
 
 
-#include <bridgepp/Log/Log.h>
+namespace bridgepp {
 
 
-bridgepp::Log &initLog(); ///< Initialize the application log.
+QString userLogsDir(); ///< Return the path of the user logs dir.
+QByteArray tailOfLatestBridgeLog(); ///< Return the last bytes of the last bridge log.
 
 
-#endif //BRIDGE_GUI_LOG_UTILS_H
+} // namespace bridgepp
+
+
+#endif //BRIDGE_PP_LOG_UTILS_H

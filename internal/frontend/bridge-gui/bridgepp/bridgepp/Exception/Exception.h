@@ -23,6 +23,7 @@
 #include <stdexcept>
 
 
+
 namespace bridgepp {
 
 
@@ -43,6 +44,9 @@ public: // member functions
     QString details() const noexcept; ///< Return the details for the exception
     QByteArray attachment() const noexcept; ///< Return the attachment for the exception.
     QString detailedWhat() const; ///< Return the detailed description of the message (i.e. including the function name and the details).
+
+public: // static data members
+    static qsizetype const attachmentMaxLength {25 * 1024}; ///< The maximum length text attachment sent in Sentry reports, in bytes.
 
 private: // data members
     QString const qwhat_; ///< The description of the exception.

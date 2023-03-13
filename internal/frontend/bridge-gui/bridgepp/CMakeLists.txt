@@ -146,6 +146,7 @@ add_library(bridgepp
     ${FOCUS_PROTO_CPP_FILE} ${FOCUS_PROTO_H_FILE} ${FOCUS_GRPC_CPP_FILE} ${FOCUS_GRPC_H_FILE}
     bridgepp/FocusGRPC/FocusGRPCClient.cpp bridgepp/FocusGRPC/FocusGRPCClient.h
     bridgepp/Log/Log.h bridgepp/Log/Log.cpp
+    bridgepp/Log/LogUtils.h bridgepp/Log/LogUtils.cpp
     bridgepp/ProcessMonitor.cpp bridgepp/ProcessMonitor.h
     bridgepp/User/User.cpp bridgepp/User/User.h
     bridgepp/Worker/Worker.h bridgepp/Worker/Overseer.h bridgepp/Worker/Overseer.cpp)
