@@ -45,8 +45,8 @@ qint64 const grpcConnectionRetryDelayMs = 10000; ///< Retry delay for the gRPC c
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void GRPCClient::removeServiceConfigFile() {
-    QString const path = grpcServerConfigPath();
+void GRPCClient::removeServiceConfigFile(QString const &configDir) {
+    QString const path = grpcServerConfigPath(configDir);
     if (!QFile(path).exists()) {
         return;
     }
@@ -61,8 +61,8 @@ void GRPCClient::removeServiceConfigFile() {
 /// \param[in] serverProcess An optional server process to monitor. If the process it, no need and retry, as connexion cannot be established. Ignored if null.
 /// \return The service config.
 //****************************************************************************************************************************************************
-GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(qint64 timeoutMs, ProcessMonitor *serverProcess) {
-    QString const path = grpcServerConfigPath();
+GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(QString const &configDir, qint64 timeoutMs, ProcessMonitor *serverProcess) {
+    QString const path = grpcServerConfigPath(configDir);
     QFile file(path);
 
     QElapsedTimer timer;
@@ -109,7 +109,7 @@ void GRPCClient::setLog(Log *log) {
 /// \param[in] serverProcess An optional server process to monitor. If the process it, no need and retry, as connexion cannot be established. Ignored if null.
 /// \return true iff the connection was successful.
 //****************************************************************************************************************************************************
-void GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serverProcess) {
+void GRPCClient::connectToServer(QString const &configDir, GRPCConfig const &config, ProcessMonitor *serverProcess) {
     try {
         serverToken_ = config.token.toStdString();
         QString address;
@@ -147,8 +147,9 @@ void GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serve
                 break;
             } // connection established.
 
-            if (QDateTime::currentDateTime() > giveUpTime)
+            if (QDateTime::currentDateTime() > giveUpTime) {
                 throw Exception("Connection to the RPC server failed.");
+            }
         }
 
         if (channel_->GetState(true) != GRPC_CHANNEL_READY) {
@@ -159,7 +160,7 @@ void GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serve
 
         QString const clientToken = QUuid::createUuid().toString();
         QString error;
-        QString clientConfigPath = createClientConfigFile(clientToken, &error);
+        QString clientConfigPath = createClientConfigFile(configDir, clientToken, &error);
         if (clientConfigPath.isEmpty()) {
             throw Exception("gRPC client config could not be saved.", error);
         }
@@ -181,6 +182,14 @@ void GRPCClient::connectToServer(GRPCConfig const &config, ProcessMonitor *serve
     catch (Exception const &e) {
         throw Exception("Cannot connect to Go backend via gRPC: " + e.qwhat(), e.details());
     }
+}
+
+
+//****************************************************************************************************************************************************
+/// \return true if the gRPC client is connected to the server.
+//****************************************************************************************************************************************************
+bool GRPCClient::isConnected() const {
+    return stub_.get();
 }
 
 
@@ -223,8 +232,9 @@ grpc::Status GRPCClient::addLogEntry(Log::Level level, QString const &package, Q
 grpc::Status GRPCClient::guiReady(bool &outShowSplashScreen) {
     GuiReadyResponse response;
     Status status = this->logGRPCCallStatus(stub_->GuiReady(this->clientContext().get(), empty, &response), __FUNCTION__);
-    if (status.ok())
+    if (status.ok()) {
         outShowSplashScreen = response.showsplashscreen();
+    }
     return status;
 }
 
@@ -395,6 +405,8 @@ grpc::Status GRPCClient::setIsDoHEnabled(bool enabled) {
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::quit() {
     // quitting will shut down the gRPC service, to we may get an 'Unavailable' response for the call
+    if (!this->isConnected())
+        return Status::OK; // We're not even connected, we return OK. This maybe be an attempt to do 'a proper' shutdown after an unrecoverable error.
     return this->logGRPCCallStatus(stub_->Quit(this->clientContext().get(), empty, &empty), __FUNCTION__, { StatusCode::UNAVAILABLE });
 }
 
@@ -459,20 +471,20 @@ grpc::Status GRPCClient::showOnStartup(bool &outValue) {
 
 
 //****************************************************************************************************************************************************
-/// \param[out] outGoos The value for the property.
-/// \return The status for the gRPC call.
-//****************************************************************************************************************************************************
-grpc::Status GRPCClient::goos(QString &outGoos) {
-    return this->logGRPCCallStatus(this->getString(&Bridge::Stub::GoOs, outGoos), __FUNCTION__);
-}
-
-
-//****************************************************************************************************************************************************
 /// \param[out] outPath The value for the property.
 /// \return The status for the gRPC call.
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::logsPath(QUrl &outPath) {
     return this->logGRPCCallStatus(this->getURLForLocalFile(&Bridge::Stub::LogsPath, outPath), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[out] outGoos The value for the property.
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::goos(QString &outGoos) {
+    return this->logGRPCCallStatus(this->getString(&Bridge::Stub::GoOs, outGoos), __FUNCTION__);
 }
 
 
@@ -1377,11 +1389,48 @@ void GRPCClient::processUserEvent(UserEvent const &event) {
         break;
     }
     case UserEvent::kUserBadEvent: {
-        UserBadEvent const& e = event.userbadevent();
+        UserBadEvent const &e = event.userbadevent();
         QString const userID = QString::fromStdString(e.userid());
         QString const errorMessage = QString::fromStdString(e.errormessage());
         this->logTrace(QString("User event received: UserBadEvent (userID = %1, errorMessage = %2).").arg(userID, errorMessage));
         emit userBadEvent(userID, errorMessage);
+        break;
+    }
+    case UserEvent::kUsedBytesChangedEvent: {
+        UsedBytesChangedEvent const &e = event.usedbyteschangedevent();
+        QString const userID = QString::fromStdString(e.userid());
+        qint64 const usedBytes = e.usedbytes();
+        this->logTrace(QString("User event received: UsedBytesChangedEvent (userID = %1, usedBytes = %2).").arg(userID).arg(usedBytes));
+        emit usedBytesChanged(userID, usedBytes);
+        break;
+    }
+    case UserEvent::kImapLoginFailedEvent: {
+        ImapLoginFailedEvent const &e = event.imaploginfailedevent();
+        QString const username = QString::fromStdString(e.username());
+        this->logTrace(QString("User event received: IMAPLoginFailed (username = %1).:").arg(username));
+        emit imapLoginFailed(username);
+        break;
+    }
+    case UserEvent::kSyncStartedEvent: {
+        SyncStartedEvent const &e = event.syncstartedevent();
+        QString const &userID = QString::fromStdString(e.userid());
+        this->logTrace(QString("User event received: SyncStarted (userID = %1).:").arg(userID));
+        emit syncStarted(userID);
+        break;
+    }
+    case UserEvent::kSyncFinishedEvent: {
+        SyncFinishedEvent const &e = event.syncfinishedevent();
+        QString const &userID = QString::fromStdString(e.userid());
+        this->logTrace(QString("User event received: SyncFinished (userID = %1).:").arg(userID));
+        emit syncFinished(userID);
+        break;
+    }
+    case UserEvent::kSyncProgressEvent: {
+        SyncProgressEvent const &e = event.syncprogressevent();
+        QString const &userID = QString::fromStdString(e.userid());
+        this->logTrace(QString("User event received SyncProgress (userID = %1, progress = %2, elapsedMs = %3, remainingMs = %4).").arg(userID)
+            .arg(e.progress()).arg(e.elapsedms()).arg(e.remainingms()));
+        emit syncProgress(userID, e.progress(), e.elapsedms(), e.remainingms());
         break;
     }
     default:

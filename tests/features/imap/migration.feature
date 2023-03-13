@@ -17,7 +17,7 @@ Feature: Bridge can fully sync an account
   Scenario: The user changes the gluon path
     When the user changes the gluon path
     And user "[user:user]" connects and authenticates IMAP client "2"
-    Then IMAP client "2" sees the following messages in "INBOX":
+    Then IMAP client "2" eventually sees the following messages in "INBOX":
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | foo     | false  |
       | jane.doe@mail.com | name@[domain]        | bar     | true   |

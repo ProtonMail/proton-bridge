@@ -19,6 +19,7 @@
 #include "AppController.h"
 #include "QMLBackend.h"
 #include "SentryUtils.h"
+#include "Settings.h"
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/ProcessMonitor.h>
@@ -48,8 +49,17 @@ AppController &app() {
 AppController::AppController()
     : backend_(std::make_unique<QMLBackend>())
     , grpc_(std::make_unique<GRPCClient>())
-    , log_(std::make_unique<Log>()) {
+    , log_(std::make_unique<Log>())
+    , settings_(new Settings) {
 }
+
+
+
+//****************************************************************************************************************************************************
+// The following is in the implementation file because of unique pointers with incomplete types in headers.
+// See https://stackoverflow.com/questions/6012157/is-stdunique-ptrt-required-to-know-the-full-definition-of-t
+//****************************************************************************************************************************************************
+AppController::~AppController() = default;
 
 
 //****************************************************************************************************************************************************
@@ -68,6 +78,14 @@ ProcessMonitor *AppController::bridgeMonitor() const {
     }
 
     return monitor;
+}
+
+
+//****************************************************************************************************************************************************
+/// \return A reference to the application settings.
+//****************************************************************************************************************************************************
+Settings &AppController::settings() {
+    return *settings_;
 }
 
 

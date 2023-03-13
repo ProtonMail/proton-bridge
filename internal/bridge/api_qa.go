@@ -33,9 +33,8 @@ func newAPIOptions(
 	version *semver.Version,
 	cookieJar http.CookieJar,
 	transport http.RoundTripper,
-	poolSize int,
 ) []proton.Option {
-	opt := defaultAPIOptions(apiURL, version, cookieJar, transport, poolSize)
+	opt := defaultAPIOptions(apiURL, version, cookieJar, transport)
 
 	if host := os.Getenv("BRIDGE_API_HOST"); host != "" {
 		opt = append(opt, proton.WithHostURL(host))

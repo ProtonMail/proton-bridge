@@ -27,25 +27,25 @@ import (
 )
 
 func (s *scenario) userConnectsSMTPClient(username, clientID string) error {
-	return s.t.newSMTPClient(s.t.getUserID(username), clientID)
+	return s.t.newSMTPClient(s.t.getUserByName(username).getUserID(), clientID)
 }
 
 func (s *scenario) userConnectsSMTPClientOnPort(username, clientID string, port int) error {
-	return s.t.newSMTPClientOnPort(s.t.getUserID(username), clientID, port)
+	return s.t.newSMTPClientOnPort(s.t.getUserByName(username).getUserID(), clientID, port)
 }
 
 func (s *scenario) userConnectsAndAuthenticatesSMTPClient(username, clientID string) error {
-	return s.userConnectsAndAuthenticatesSMTPClientWithAddress(username, clientID, s.t.getUserAddrs(s.t.getUserID(username))[0])
+	return s.userConnectsAndAuthenticatesSMTPClientWithAddress(username, clientID, s.t.getUserByName(username).getEmails()[0])
 }
 
 func (s *scenario) userConnectsAndAuthenticatesSMTPClientWithAddress(username, clientID, address string) error {
-	if err := s.t.newSMTPClient(s.t.getUserID(username), clientID); err != nil {
+	if err := s.t.newSMTPClient(s.t.getUserByName(username).getUserID(), clientID); err != nil {
 		return err
 	}
 
 	userID, client := s.t.getSMTPClient(clientID)
 
-	s.t.pushError(client.Auth(smtp.PlainAuth("", address, s.t.getUserBridgePass(userID), constants.Host)))
+	s.t.pushError(client.Auth(smtp.PlainAuth("", address, s.t.getUserByID(userID).getBridgePass(), constants.Host)))
 
 	return nil
 }
@@ -53,7 +53,7 @@ func (s *scenario) userConnectsAndAuthenticatesSMTPClientWithAddress(username, c
 func (s *scenario) smtpClientCanAuthenticate(clientID string) error {
 	userID, client := s.t.getSMTPClient(clientID)
 
-	if err := client.Auth(smtp.PlainAuth("", s.t.getUserAddrs(userID)[0], s.t.getUserBridgePass(userID), constants.Host)); err != nil {
+	if err := client.Auth(smtp.PlainAuth("", s.t.getUserByID(userID).getEmails()[0], s.t.getUserByID(userID).getBridgePass(), constants.Host)); err != nil {
 		return fmt.Errorf("expected no error, got %v", err)
 	}
 
@@ -63,7 +63,7 @@ func (s *scenario) smtpClientCanAuthenticate(clientID string) error {
 func (s *scenario) smtpClientCannotAuthenticate(clientID string) error {
 	userID, client := s.t.getSMTPClient(clientID)
 
-	if err := client.Auth(smtp.PlainAuth("", s.t.getUserAddrs(userID)[0], s.t.getUserBridgePass(userID), constants.Host)); err == nil {
+	if err := client.Auth(smtp.PlainAuth("", s.t.getUserByID(userID).getEmails()[0], s.t.getUserByID(userID).getBridgePass(), constants.Host)); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 
@@ -73,7 +73,7 @@ func (s *scenario) smtpClientCannotAuthenticate(clientID string) error {
 func (s *scenario) smtpClientCannotAuthenticateWithIncorrectUsername(clientID string) error {
 	userID, client := s.t.getSMTPClient(clientID)
 
-	if err := client.Auth(smtp.PlainAuth("", s.t.getUserAddrs(userID)[0]+"bad", s.t.getUserBridgePass(userID), constants.Host)); err == nil {
+	if err := client.Auth(smtp.PlainAuth("", s.t.getUserByID(userID).getEmails()[0]+"bad", s.t.getUserByID(userID).getBridgePass(), constants.Host)); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 
@@ -83,7 +83,7 @@ func (s *scenario) smtpClientCannotAuthenticateWithIncorrectUsername(clientID st
 func (s *scenario) smtpClientCannotAuthenticateWithIncorrectPassword(clientID string) error {
 	userID, client := s.t.getSMTPClient(clientID)
 
-	if err := client.Auth(smtp.PlainAuth("", s.t.getUserAddrs(userID)[0], s.t.getUserBridgePass(userID)+"bad", constants.Host)); err == nil {
+	if err := client.Auth(smtp.PlainAuth("", s.t.getUserByID(userID).getEmails()[0], s.t.getUserByID(userID).getBridgePass()+"bad", constants.Host)); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 

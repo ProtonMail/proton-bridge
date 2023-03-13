@@ -26,13 +26,12 @@ T.MenuItem {
 
     property ColorScheme colorScheme
 
-    implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
-    implicitContentWidth + leftPadding + rightPadding)
+    width: parent.width // required. Other item overflows to the right of the menu and get clipped.
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
     implicitContentHeight + topPadding + bottomPadding,
     implicitIndicatorHeight + topPadding + bottomPadding)
 
-    padding: 6
+    padding: 12
     spacing: 6
 
     icon.width: 24

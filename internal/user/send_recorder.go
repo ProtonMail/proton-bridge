@@ -218,8 +218,6 @@ func (h *sendRecorder) getWaitCh(hash string) (<-chan struct{}, bool) {
 // - the Content-Type header of each (leaf) part,
 // - the Content-Disposition header of each (leaf) part,
 // - the (decoded) body of each part.
-//
-// nolint:funlen
 func getMessageHash(b []byte) (string, error) {
 	section := rfc822.Parse(b)
 

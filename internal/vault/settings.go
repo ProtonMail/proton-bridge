@@ -196,7 +196,7 @@ func (vault *Vault) SetLastVersion(version *semver.Version) error {
 	})
 }
 
-// GetFirstStart sets whether this is the first time the bridge has been started.
+// GetFirstStart returns whether this is the first time the bridge has been started.
 func (vault *Vault) GetFirstStart() bool {
 	return vault.get().Settings.FirstStart
 }
@@ -208,26 +208,20 @@ func (vault *Vault) SetFirstStart(firstStart bool) error {
 	})
 }
 
-// SyncWorkers returns the number of workers to use for syncing.
-func (vault *Vault) SyncWorkers() int {
-	return vault.get().Settings.SyncWorkers
+// GetMaxSyncMemory returns the maximum amount of memory the sync process should use.
+func (vault *Vault) GetMaxSyncMemory() uint64 {
+	v := vault.get().Settings.MaxSyncMemory
+	// can be zero if never written to vault before.
+	if v == 0 {
+		return DefaultMaxSyncMemory
+	}
+
+	return v
 }
 
-// SetSyncWorkers sets the number of workers to use for syncing.
-func (vault *Vault) SetSyncWorkers(workers int) error {
+// SetMaxSyncMemory sets the maximum amount of memory the sync process should use.
+func (vault *Vault) SetMaxSyncMemory(maxMemory uint64) error {
 	return vault.mod(func(data *Data) {
-		data.Settings.SyncWorkers = workers
-	})
-}
-
-// SyncAttPool returns the size of the attachment pool.
-func (vault *Vault) SyncAttPool() int {
-	return vault.get().Settings.SyncAttPool
-}
-
-// SetSyncAttPool sets the size of the attachment pool.
-func (vault *Vault) SetSyncAttPool(pool int) error {
-	return vault.mod(func(data *Data) {
-		data.Settings.SyncAttPool = pool
+		data.Settings.MaxSyncMemory = maxMemory
 	})
 }

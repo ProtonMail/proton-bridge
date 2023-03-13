@@ -85,7 +85,10 @@ int main(int argc, char **argv) {
         return exitCode;
     }
     catch (Exception const &e) {
-        QTextStream(stderr) << QString("A fatal error occurred: %1\n").arg(e.qwhat());
+        QString message = e.qwhat();
+        if (!e.details().isEmpty())
+            message += "\n\nDetails:\n" + e.details();
+        QTextStream(stderr) << QString("A fatal error occurred: %1\n").arg(message);
         return EXIT_FAILURE;
     }
 }

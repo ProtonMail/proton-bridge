@@ -29,7 +29,6 @@ namespace {
 
 
 Empty empty; ///< Empty protobuf message, re-used across calls.
-qint64 const port = 1042; ///< The port for the focus service.
 QString const hostname = "127.0.0.1"; ///< The hostname of the focus service.
 
 
@@ -40,11 +39,42 @@ namespace bridgepp {
 
 
 //****************************************************************************************************************************************************
+/// \return the gRPC Focus server config file name
+//****************************************************************************************************************************************************
+QString grpcFocusServerConfigFilename() {
+    return "grpcFocusServerConfig.json";
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The absolute path of the focus service config path.
+//****************************************************************************************************************************************************
+QString FocusGRPCClient::grpcFocusServerConfigPath(QString const &configDir) {
+    return QDir(configDir).absoluteFilePath(grpcFocusServerConfigFilename());
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void FocusGRPCClient::removeServiceConfigFile(QString const &configDir) {
+    QString const path = grpcFocusServerConfigPath(configDir);
+    if (!QFile(path).exists()) {
+        return;
+    }
+    if (!QFile().remove(path)) {
+        throw Exception("Could not remove gRPC focus service config file.");
+    }
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] timeoutMs The timeout for the connexion.
+/// \param[in] port The gRPC server port.
 /// \param[out] outError if not null and the function returns false.
 /// \return true iff the connexion was successfully established.
 //****************************************************************************************************************************************************
-bool FocusGRPCClient::connectToServer(qint64 timeoutMs, QString *outError) {
+bool FocusGRPCClient::connectToServer(qint64 timeoutMs, quint16 port, QString *outError) {
     try {
         QString const address = QString("%1:%2").arg(hostname).arg(port);
         channel_ = grpc::CreateChannel(address.toStdString(), grpc::InsecureChannelCredentials());

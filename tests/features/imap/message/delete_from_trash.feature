@@ -20,14 +20,14 @@ Feature: IMAP remove messages from Trash
     Then it succeeds
     When IMAP client "1" marks the message with subject "foo" as deleted
     Then it succeeds
-    And IMAP client "1" sees 2 messages in "Trash"
-    And IMAP client "1" sees 2 messages in "All Mail"
-    And IMAP client "1" sees 1 messages in "Labels/label"
+    And IMAP client "1" eventually sees 2 messages in "Trash"
+    And IMAP client "1" eventually sees 2 messages in "All Mail"
+    And IMAP client "1" eventually sees 1 messages in "Labels/label"
     When IMAP client "1" expunges
     Then it succeeds
-    And IMAP client "1" sees 1 messages in "Trash"
-    And IMAP client "1" sees 2 messages in "All Mail"
-    And IMAP client "1" sees 1 messages in "Labels/label"
+    And IMAP client "1" eventually sees 1 messages in "Trash"
+    And IMAP client "1" eventually sees 2 messages in "All Mail"
+    And IMAP client "1" eventually sees 1 messages in "Labels/label"
 
   Scenario Outline: Message in Trash only is permanently deleted
     Given the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Trash":
@@ -41,9 +41,9 @@ Feature: IMAP remove messages from Trash
     And IMAP client "1" selects "Trash"
     When IMAP client "1" marks the message with subject "foo" as deleted
     Then it succeeds
-    And IMAP client "1" sees 2 messages in "Trash"
-    And IMAP client "1" sees 2 messages in "All Mail"
+    And IMAP client "1" eventually sees 2 messages in "Trash"
+    And IMAP client "1" eventually sees 2 messages in "All Mail"
     When IMAP client "1" expunges
     Then it succeeds
-    And IMAP client "1" sees 1 messages in "Trash"
+    And IMAP client "1" eventually sees 1 messages in "Trash"
     And IMAP client "1" eventually sees 1 messages in "All Mail"

@@ -25,11 +25,9 @@ import (
 	"path/filepath"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
-	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/sirupsen/logrus"
 )
 
@@ -131,26 +129,21 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 			return fmt.Errorf("new gluon dir is the same as the old one")
 		}
 
-		if err := bridge.stopEventLoops(); err != nil {
-			return err
+		if err := bridge.closeIMAP(context.Background()); err != nil {
+			return fmt.Errorf("failed to close IMAP: %w", err)
 		}
-		defer func() {
-			err := bridge.startEventLoops(ctx)
-			if err != nil {
-				panic(err)
-			}
-		}()
 
 		if err := bridge.moveGluonCacheDir(currentGluonDir, newGluonDir); err != nil {
 			logrus.WithError(err).Error("failed to move GluonCacheDir")
+
 			if err := bridge.vault.SetGluonDir(currentGluonDir); err != nil {
-				panic(err)
+				return fmt.Errorf("failed to revert GluonCacheDir: %w", err)
 			}
 		}
 
 		gluonDataDir, err := bridge.GetGluonDataDir()
 		if err != nil {
-			panic(fmt.Errorf("failed to get Gluon Database directory: %w", err))
+			return fmt.Errorf("failed to get Gluon Database directory: %w", err)
 		}
 
 		imapServer, err := newIMAPServer(
@@ -163,12 +156,23 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 			bridge.logIMAPServer,
 			bridge.imapEventCh,
 			bridge.tasks,
+			bridge.uidValidityGenerator,
 		)
 		if err != nil {
-			panic(fmt.Errorf("failed to create new IMAP server: %w", err))
+			return fmt.Errorf("failed to create new IMAP server: %w", err)
 		}
 
 		bridge.imapServer = imapServer
+
+		for _, user := range bridge.users {
+			if err := bridge.addIMAPUser(ctx, user); err != nil {
+				return fmt.Errorf("failed to add users to new IMAP server: %w", err)
+			}
+		}
+
+		if err := bridge.serveIMAP(); err != nil {
+			return fmt.Errorf("failed to serve IMAP: %w", err)
+		}
 
 		return nil
 	}, bridge.usersLock)
@@ -187,34 +191,6 @@ func (bridge *Bridge) moveGluonCacheDir(oldGluonDir, newGluonDir string) error {
 
 	if err := os.RemoveAll(oldCacheDir); err != nil {
 		logrus.WithError(err).Error("failed to remove old gluon cache dir")
-	}
-	return nil
-}
-
-func (bridge *Bridge) stopEventLoops() error {
-	if err := bridge.closeIMAP(context.Background()); err != nil {
-		return fmt.Errorf("failed to close IMAP: %w", err)
-	}
-
-	if err := bridge.closeSMTP(); err != nil {
-		return fmt.Errorf("failed to close SMTP: %w", err)
-	}
-	return nil
-}
-
-func (bridge *Bridge) startEventLoops(ctx context.Context) error {
-	for _, user := range bridge.users {
-		if err := bridge.addIMAPUser(ctx, user); err != nil {
-			return fmt.Errorf("failed to add users to new IMAP server: %w", err)
-		}
-	}
-
-	if err := bridge.serveIMAP(); err != nil {
-		panic(fmt.Errorf("failed to serve IMAP: %w", err))
-	}
-
-	if err := bridge.serveSMTP(); err != nil {
-		panic(fmt.Errorf("failed to serve SMTP: %w", err))
 	}
 	return nil
 }
@@ -332,6 +308,9 @@ func (bridge *Bridge) SetColorScheme(colorScheme string) error {
 	return bridge.vault.SetColorScheme(colorScheme)
 }
 
+// FactoryReset deletes all users, wipes the vault, and deletes all files.
+// Note: it does not clear the keychain. The only entry in the keychain is the vault password,
+// which we need at next startup to decrypt the vault.
 func (bridge *Bridge) FactoryReset(ctx context.Context) {
 	// Delete all the users.
 	safe.Lock(func() {
@@ -348,21 +327,9 @@ func (bridge *Bridge) FactoryReset(ctx context.Context) {
 		logrus.WithError(err).Error("Failed to reset vault")
 	}
 
-	// Then delete all files.
-	if err := bridge.locator.Clear(); err != nil {
+	// Lastly, delete all files except the vault.
+	if err := bridge.locator.Clear(bridge.vault.Path()); err != nil {
 		logrus.WithError(err).Error("Failed to clear data paths")
-	}
-
-	// Lastly clear the keychain.
-	vaultDir, err := bridge.locator.ProvideSettingsPath()
-	if err != nil {
-		logrus.WithError(err).Error("Failed to get vault dir")
-	} else if helper, err := vault.GetHelper(vaultDir); err != nil {
-		logrus.WithError(err).Error("Failed to get keychain helper")
-	} else if keychain, err := keychain.NewKeychain(helper, constants.KeyChainName); err != nil {
-		logrus.WithError(err).Error("Failed to get keychain")
-	} else if err := keychain.Clear(); err != nil {
-		logrus.WithError(err).Error("Failed to clear keychain")
 	}
 }
 

@@ -48,8 +48,8 @@ typedef std::unique_ptr<grpc::ClientContext> UPClientContext;
 class GRPCClient : public QObject {
 Q_OBJECT
 public: // static member functions
-    static void removeServiceConfigFile(); ///< Delete the service config file.
-    static GRPCConfig waitAndRetrieveServiceConfig(qint64 timeoutMs, class ProcessMonitor *serverProcess); ///< Wait and retrieve the service configuration.
+    static void removeServiceConfigFile(QString const &configDir); ///< Delete the service config file.
+    static GRPCConfig waitAndRetrieveServiceConfig(QString const &configDir, qint64 timeoutMs, class ProcessMonitor *serverProcess); ///< Wait and retrieve the service configuration.
 
 public: // member functions.
     GRPCClient() = default; ///< Default constructor.
@@ -59,7 +59,8 @@ public: // member functions.
     GRPCClient &operator=(GRPCClient const &) = delete; ///< Disabled assignment operator.
     GRPCClient &operator=(GRPCClient &&) = delete; ///< Disabled move assignment operator.
     void setLog(Log *log); ///< Set the log for the client.
-    void connectToServer(GRPCConfig const &config, class ProcessMonitor *serverProcess); ///< Establish connection to the gRPC server.
+    void connectToServer(QString const &configDir, GRPCConfig const &config, class ProcessMonitor *serverProcess); ///< Establish connection to the gRPC server.
+    bool isConnected() const; ///< Check whether the gRPC client is connected to the server.
 
     grpc::Status checkTokens(QString const &clientConfigPath, QString &outReturnedClientToken); ///< Performs a token check.
     grpc::Status addLogEntry(Log::Level level, QString const &package, QString const &message); ///< Performs the "AddLogEntry" gRPC call.
@@ -180,6 +181,11 @@ signals:
     void userDisconnected(QString const &username);
     void userChanged(QString const &userID);
     void userBadEvent(QString const &userID, QString const& errorMessage);
+    void usedBytesChanged(QString const &userID, qint64 usedBytes);
+    void imapLoginFailed(QString const& username);
+    void syncStarted(QString const &userID);
+    void syncFinished(QString const &userID);
+    void syncProgress(QString const &userID, double progress, qint64 elapsedMs, qint64 remainingMs);
 
 public: // keychain related calls
     grpc::Status availableKeychains(QStringList &outKeychains);

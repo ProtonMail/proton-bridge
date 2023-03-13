@@ -52,7 +52,11 @@ UsersTab::UsersTab(QWidget *parent)
     connect(ui_.tableUserList, &QTableView::doubleClicked, this, &UsersTab::onEditUserButton);
     connect(ui_.buttonRemoveUser, &QPushButton::clicked, this, &UsersTab::onRemoveUserButton);
     connect(ui_.buttonUserBadEvent, &QPushButton::clicked, this, &UsersTab::onSendUserBadEvent);
+    connect(ui_.buttonImapLoginFailed, &QPushButton::clicked, this, &UsersTab::onSendIMAPLoginFailedEvent);
+    connect(ui_.buttonUsedBytesChanged, &QPushButton::clicked, this, &UsersTab::onSendUsedBytesChangedEvent);
     connect(ui_.checkUsernamePasswordError, &QCheckBox::toggled, this, &UsersTab::updateGUIState);
+    connect(ui_.checkSync, &QCheckBox::toggled, this, &UsersTab::onCheckSyncToggled);
+    connect(ui_.sliderSync, &QSlider::valueChanged, this, &UsersTab::onSliderSyncValueChanged);
 
     users_.append(randomUser());
 
@@ -158,13 +162,73 @@ void UsersTab::onSendUserBadEvent() {
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
+void UsersTab::onSendUsedBytesChangedEvent() {
+    SPUser const user = selectedUser();
+    int const index = this->selectedIndex();
+
+    if (!user) {
+        app().log().error(QString("%1 failed. Unkown user.").arg(__FUNCTION__));
+        return;
+    }
+
+    if (UserState::Connected != user->state()) {
+        app().log().error(QString("%1 failed. User is not connected").arg(__FUNCTION__));
+    }
+
+    qint64 const usedBytes = qint64(ui_.spinUsedBytes->value());
+    user->setUsedBytes(usedBytes);
+    users_.touch(index);
+
+    GRPCService &grpc = app().grpc();
+    if (grpc.isStreaming()) {
+        QString const userID = user->id();
+        grpc.sendEvent(newUsedBytesChangedEvent(userID, usedBytes));
+    }
+
+    this->updateGUIState();
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void UsersTab::onSendIMAPLoginFailedEvent() {
+    GRPCService &grpc = app().grpc();
+    if (grpc.isStreaming()) {
+        grpc.sendEvent(newIMAPLoginFailedEvent(ui_.editIMAPLoginFailedUsername->text()));
+    }
+
+    this->updateGUIState();
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
 void UsersTab::updateGUIState() {
     SPUser const user = selectedUser();
     bool const hasSelectedUser = user.get();
+    UserState const state = user ? user->state() : UserState::SignedOut;
+
     ui_.buttonEditUser->setEnabled(hasSelectedUser);
     ui_.buttonRemoveUser->setEnabled(hasSelectedUser);
-    ui_.groupBoxBadEvent->setEnabled(hasSelectedUser && (UserState::SignedOut != user->state()));
+    ui_.groupBoxBadEvent->setEnabled(hasSelectedUser && (UserState::SignedOut != state));
+    ui_.groupBoxUsedSpace->setEnabled(hasSelectedUser && (UserState::Connected == state));
     ui_.editUsernamePasswordError->setEnabled(ui_.checkUsernamePasswordError->isChecked());
+    ui_.spinUsedBytes->setValue(user ? user->usedBytes() : 0.0);
+    ui_.groupboxSync->setEnabled(user.get());
+
+    if (user)
+        ui_.editIMAPLoginFailedUsername->setText(user->primaryEmailOrUsername());
+
+    QSignalBlocker b(ui_.checkSync);
+    bool const syncing = user && user->isSyncing();
+    ui_.checkSync->setChecked(syncing);
+    b = QSignalBlocker(ui_.sliderSync);
+    ui_.sliderSync->setEnabled(syncing);
+    qint32 const progressPercent = syncing ? qint32(user->syncProgress() * 100.0f) : 0;
+    ui_.sliderSync->setValue(progressPercent);
+    ui_.labelSync->setText(syncing ? QString("%1%").arg(progressPercent) : "" );
 }
 
 
@@ -366,5 +430,46 @@ void UsersTab::processBadEventUserFeedback(QString const &userID, bool doResync)
         grpc.sendEvent(newUserChangedEvent(userID));
     }
 
+    this->updateGUIState();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] checked Is the sync checkbox checked?
+//****************************************************************************************************************************************************
+void UsersTab::onCheckSyncToggled(bool checked) {
+    SPUser const user = this->selectedUser();
+    if ((!user) || (user->isSyncing() == checked)) {
+        return;
+    }
+
+    user->setIsSyncing(checked);
+    user->setSyncProgress(0.0);
+    GRPCService &grpc = app().grpc();
+
+    // we do not apply delay for these event.
+    if (checked) {
+        grpc.sendEvent(newSyncStartedEvent(user->id()));
+        grpc.sendEvent(newSyncProgressEvent(user->id(), 0.0, 1, 1));
+    } else {
+        grpc.sendEvent(newSyncFinishedEvent(user->id()));
+    }
+
+    this->updateGUIState();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] value The value for the slider.
+//****************************************************************************************************************************************************
+void UsersTab::onSliderSyncValueChanged(int value) {
+    SPUser const user = this->selectedUser();
+    if ((!user) || (!user->isSyncing()) || user->syncProgress() == value) {
+        return;
+    }
+
+    double const progress = value / 100.0;
+    user->setSyncProgress(progress);
+    app().grpc().sendEvent(newSyncProgressEvent(user->id(), progress, 1, 1));  // we do not simulate elapsed & remaining.
     this->updateGUIState();
 }

@@ -11,7 +11,7 @@ ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 .PHONY: build build-gui build-nogui build-launcher versioner hasher
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=3.0.20+git
+BRIDGE_APP_VERSION?=3.1.0+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 APP_FULL_NAME:=Proton Mail Bridge
 APP_VENDOR:=Proton AG
@@ -100,9 +100,9 @@ endif
 
 ifeq "${GOOS}" "windows"
 	go-build-finalize= \
-		powershell Copy-Item ${ROOT_DIR}/${RESOURCE_FILE} ${4}  && \
-		$(call go-build,$(1),$(2),$(3)) && \
-		powershell Remove-Item ${4} -Force
+		$(if $(4),powershell Copy-Item ${ROOT_DIR}/${RESOURCE_FILE} ${4}  &&,) \
+		$(call go-build,$(1),$(2),$(3)) \
+		$(if $(4), && powershell Remove-Item ${4} -Force,)
 endif
 
 ${EXE_NAME}: gofiles  ${RESOURCE_FILE}
@@ -116,7 +116,7 @@ versioner:
 	go build ${BUILD_FLAGS} -o versioner utils/versioner/main.go
 
 vault-editor:
-	go build -tags debug -o vault-editor utils/vault-editor/main.go
+	$(call go-build-finalize,"-tags=debug","vault-editor","./utils/vault-editor/main.go")
 
 hasher:
 	go build -o hasher utils/hasher/main.go
@@ -228,13 +228,13 @@ change-copyright-year:
 	./utils/missing_license.sh change-year
 
 test: gofiles
-	go test -v -timeout=5m -p=1 -count=1 -coverprofile=/tmp/coverage.out -run=${TESTRUN} ./internal/... ./pkg/...
+	go test -v -timeout=10m -p=1 -count=1 -coverprofile=/tmp/coverage.out -run=${TESTRUN} ./internal/... ./pkg/...
 
 test-race: gofiles
 	go test -v -timeout=30m -p=1 -count=1 -race -failfast -run=${TESTRUN} ./internal/... ./pkg/...
 
 test-integration: gofiles
-	go test -v -timeout=10m -p=1 -count=1 github.com/ProtonMail/proton-bridge/v3/tests
+	go test -v -timeout=20m -p=1 -count=1 github.com/ProtonMail/proton-bridge/v3/tests
 
 test-integration-debug: gofiles
 	dlv test github.com/ProtonMail/proton-bridge/v3/tests -- -test.v -test.timeout=10m -test.parallel=1 -test.count=1

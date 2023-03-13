@@ -15,11 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-package grpc
+package service
 
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 )
 
 // Config is a structure containing the service configuration data that are exchanged by the gRPC server and client.
@@ -53,8 +54,8 @@ func (s *Config) _save(path string) error {
 	return json.NewEncoder(f).Encode(s)
 }
 
-// load loads a gRPC service configuration from file.
-func (s *Config) load(path string) error {
+// Load loads a gRPC service configuration from file.
+func (s *Config) Load(path string) error {
 	f, err := os.Open(path) //nolint:errcheck,gosec
 	if err != nil {
 		return err
@@ -63,4 +64,16 @@ func (s *Config) load(path string) error {
 	defer func() { _ = f.Close() }()
 
 	return json.NewDecoder(f).Decode(s)
+}
+
+// SaveGRPCServerConfigFile save GRPC configuration file.
+func SaveGRPCServerConfigFile(locations Locator, config *Config, filename string) (string, error) {
+	settingsPath, err := locations.ProvideSettingsPath()
+	if err != nil {
+		return "", err
+	}
+
+	configPath := filepath.Join(settingsPath, filename)
+
+	return configPath, config.save(configPath)
 }

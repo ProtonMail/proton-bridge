@@ -226,6 +226,27 @@ func (f *frontendCLI) exportTLSCerts(c *ishell.Context) {
 	}
 }
 
+func (f *frontendCLI) importTLSCerts(c *ishell.Context) {
+	certPath := f.readStringInAttempts("Enter the path to the cert.pem file", c.ReadLine, f.isFile)
+	if certPath == "" {
+		f.printAndLogError(errors.New("failed to get cert path"))
+		return
+	}
+
+	keyPath := f.readStringInAttempts("Enter the path to the key.pem file", c.ReadLine, f.isFile)
+	if keyPath == "" {
+		f.printAndLogError(errors.New("failed to get key path"))
+		return
+	}
+
+	if err := f.bridge.SetBridgeTLSCertPath(certPath, keyPath); err != nil {
+		f.printAndLogError(err)
+		return
+	}
+
+	f.Println("TLS certificate imported. Restart Bridge to use it.")
+}
+
 func (f *frontendCLI) isPortFree(port string) bool {
 	port = strings.ReplaceAll(port, ":", "")
 	if port == "" {
@@ -251,4 +272,13 @@ func (f *frontendCLI) isCacheLocationUsable(location string) bool {
 	}
 
 	return stat.IsDir()
+}
+
+func (f *frontendCLI) isFile(location string) bool {
+	stat, err := os.Stat(location)
+	if err != nil {
+		return false
+	}
+
+	return !stat.IsDir()
 }

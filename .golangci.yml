@@ -23,7 +23,6 @@ issues:
     - path: _test\.go
       linters:
         - dupl
-        - funlen
         - gochecknoglobals
         - gochecknoinits
         - gosec
@@ -32,7 +31,6 @@ issues:
     - path: test
       linters:
         - dupl
-        - funlen
         - gochecknoglobals
         - gochecknoinits
         - gosec
@@ -64,7 +62,6 @@ linters:
     - depguard          # Go linter that checks if package imports are in a list of acceptable packages [fast: true, auto-fix: false]
     - dogsled           # Checks assignments with too many blank identifiers (e.g. x, _, _, _, := f()) [fast: true, auto-fix: false]
     - dupl              # Tool for code clone detection [fast: true, auto-fix: false]
-    - funlen            # Tool for detection of long functions [fast: true, auto-fix: false]
     - gochecknoglobals  # Checks that no globals are present in Go code [fast: true, auto-fix: false]
     - gochecknoinits    # Checks that no init functions are present in Go code [fast: true, auto-fix: false]
     - goconst           # Finds repeated strings that could be replaced by a constant [fast: true, auto-fix: false]

@@ -92,7 +92,7 @@ git submodule update --init --recursive $vcpkgRoot
 . $cmakeExe -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE="$buildConfig" `
                                        -DBRIDGE_APP_FULL_NAME="$bridgeFullName" `
                                        -DBRIDGE_VENDOR="$bridgeVendor" `
-                                       -DBRIDGE_REVISION=$REVISION_HASH `
+                                       -DBRIDGE_REVISION="$REVISION_HASH" `
                                        -DBRIDGE_APP_VERSION="$bridgeVersion" `
                                        -DBRIDGE_BUILD_TIME="$bridgeBuidTime" `
                                        -DBRIDGE_DSN_SENTRY="$bridgeDsnSentry" `

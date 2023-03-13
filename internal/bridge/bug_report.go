@@ -37,7 +37,7 @@ const (
 	MaxCompressedFilesCount = 6
 )
 
-func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, description, username, email, client string, attachLogs bool) error { //nolint:funlen
+func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, description, username, email, client string, attachLogs bool) error {
 	var account string
 
 	if info, err := bridge.QueryUserInfo(username); err == nil {

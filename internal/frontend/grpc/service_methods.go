@@ -32,6 +32,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/frontend/theme"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/ports"
@@ -51,8 +52,8 @@ func (s *Service) CheckTokens(ctx context.Context, clientConfigPath *wrapperspb.
 	path := clientConfigPath.Value
 	logEntry := s.log.WithField("path", path)
 
-	var clientConfig Config
-	if err := clientConfig.load(path); err != nil {
+	var clientConfig service.Config
+	if err := clientConfig.Load(path); err != nil {
 		logEntry.WithError(err).Error("Could not read gRPC client config file")
 
 		return nil, err

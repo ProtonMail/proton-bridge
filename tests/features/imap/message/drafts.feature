@@ -15,7 +15,7 @@ Feature: IMAP Draft messages
     Then IMAP client "1" eventually sees the following messages in "Drafts":
       | body          |
       | This is a dra |
-    And IMAP client "1" sees 1 messages in "Drafts"
+    And IMAP client "1" eventually sees 1 messages in "Drafts"
 
   Scenario: Draft edited locally
     When IMAP client "1" marks message 1 as deleted
@@ -33,7 +33,7 @@ Feature: IMAP Draft messages
     And IMAP client "1" eventually sees the following messages in "Drafts":
       | to                  | subject     | body                        |
       | someone@example.com | Basic Draft | This is a draft, but longer |
-    And IMAP client "1" sees 1 messages in "Drafts"
+    And IMAP client "1" eventually sees 1 messages in "Drafts"
 
   Scenario: Draft edited remotely
     When the following fields were changed in draft 1 for address "[user:user]@[domain]" of account "[user:user]":
@@ -42,12 +42,12 @@ Feature: IMAP Draft messages
     Then IMAP client "1" eventually sees the following messages in "Drafts":
       | to                  | subject     | body                             |
       | someone@example.com | Basic Draft | This is a draft body, but longer |
-    And IMAP client "1" sees 1 messages in "Drafts"
+    And IMAP client "1" eventually sees 1 messages in "Drafts"
 
   Scenario: Draft moved to trash remotely
     When draft 1 for address "[user:user]@[domain]" of account "[user:user] was moved to trash
     Then IMAP client "1" eventually sees the following messages in "Trash":
       | body          |
       | This is a dra |
-    And IMAP client "1" sees 0 messages in "Drafts"
+    And IMAP client "1" eventually sees 0 messages in "Drafts"
 

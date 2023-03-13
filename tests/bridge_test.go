@@ -68,10 +68,10 @@ func (s *scenario) theUserChangesTheSMTPPortTo(port int) error {
 func (s *scenario) theUserSetsTheAddressModeOfUserTo(user, mode string) error {
 	switch mode {
 	case "split":
-		return s.t.bridge.SetAddressMode(context.Background(), s.t.getUserID(user), vault.SplitMode)
+		return s.t.bridge.SetAddressMode(context.Background(), s.t.getUserByName(user).getUserID(), vault.SplitMode)
 
 	case "combined":
-		return s.t.bridge.SetAddressMode(context.Background(), s.t.getUserID(user), vault.CombinedMode)
+		return s.t.bridge.SetAddressMode(context.Background(), s.t.getUserByName(user).getUserID(), vault.CombinedMode)
 
 	default:
 		return fmt.Errorf("unknown address mode %q", mode)
@@ -156,7 +156,7 @@ func (s *scenario) bridgeSendsADeauthEventForUser(username string) error {
 		return errors.New("expected deauth event, got none")
 	}
 
-	if wantUserID := s.t.getUserID(username); event.UserID != wantUserID {
+	if wantUserID := s.t.getUserByName(username).getUserID(); event.UserID != wantUserID {
 		return fmt.Errorf("expected deauth event for user %s, got %s", wantUserID, event.UserID)
 	}
 
@@ -169,7 +169,7 @@ func (s *scenario) bridgeSendsAnAddressCreatedEventForUser(username string) erro
 		return errors.New("expected address created event, got none")
 	}
 
-	if wantUserID := s.t.getUserID(username); event.UserID != wantUserID {
+	if wantUserID := s.t.getUserByName(username).getUserID(); event.UserID != wantUserID {
 		return fmt.Errorf("expected address created event for user %s, got %s", wantUserID, event.UserID)
 	}
 
@@ -182,7 +182,7 @@ func (s *scenario) bridgeSendsAnAddressDeletedEventForUser(username string) erro
 		return errors.New("expected address deleted event, got none")
 	}
 
-	if wantUserID := s.t.getUserID(username); event.UserID != wantUserID {
+	if wantUserID := s.t.getUserByName(username).getUserID(); event.UserID != wantUserID {
 		return fmt.Errorf("expected address deleted event for user %s, got %s", wantUserID, event.UserID)
 	}
 
@@ -195,7 +195,7 @@ func (s *scenario) bridgeSendsSyncStartedAndFinishedEventsForUser(username strin
 		return errors.New("expected sync started event, got none")
 	}
 
-	if wantUserID := s.t.getUserID(username); startEvent.UserID != wantUserID {
+	if wantUserID := s.t.getUserByName(username).getUserID(); startEvent.UserID != wantUserID {
 		return fmt.Errorf("expected sync started event for user %s, got %s", wantUserID, startEvent.UserID)
 	}
 
@@ -204,7 +204,7 @@ func (s *scenario) bridgeSendsSyncStartedAndFinishedEventsForUser(username strin
 		return errors.New("expected sync finished event, got none")
 	}
 
-	if wantUserID := s.t.getUserID(username); finishEvent.UserID != wantUserID {
+	if wantUserID := s.t.getUserByName(username).getUserID(); finishEvent.UserID != wantUserID {
 		return fmt.Errorf("expected sync finished event for user %s, got %s", wantUserID, finishEvent.UserID)
 	}
 

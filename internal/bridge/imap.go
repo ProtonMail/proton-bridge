@@ -28,10 +28,13 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon"
 	imapEvents "github.com/ProtonMail/gluon/events"
+	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/gluon/store"
+	"github.com/ProtonMail/gluon/store/fallback_v0"
 	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
@@ -44,26 +47,42 @@ const (
 )
 
 func (bridge *Bridge) serveIMAP() error {
-	if bridge.imapServer == nil {
-		return fmt.Errorf("no imap server instance running")
-	}
+	port, err := func() (int, error) {
+		if bridge.imapServer == nil {
+			return 0, fmt.Errorf("no IMAP server instance running")
+		}
 
-	logrus.Info("Starting IMAP server")
+		logrus.Info("Starting IMAP server")
 
-	imapListener, err := newListener(bridge.vault.GetIMAPPort(), bridge.vault.GetIMAPSSL(), bridge.tlsConfig)
+		imapListener, err := newListener(bridge.vault.GetIMAPPort(), bridge.vault.GetIMAPSSL(), bridge.tlsConfig)
+		if err != nil {
+			return 0, fmt.Errorf("failed to create IMAP listener: %w", err)
+		}
+
+		bridge.imapListener = imapListener
+
+		if err := bridge.imapServer.Serve(context.Background(), bridge.imapListener); err != nil {
+			return 0, fmt.Errorf("failed to serve IMAP: %w", err)
+		}
+
+		if err := bridge.vault.SetIMAPPort(getPort(imapListener.Addr())); err != nil {
+			return 0, fmt.Errorf("failed to store IMAP port in vault: %w", err)
+		}
+
+		return getPort(imapListener.Addr()), nil
+	}()
+
 	if err != nil {
-		return fmt.Errorf("failed to create IMAP listener: %w", err)
+		bridge.publish(events.IMAPServerError{
+			Error: err,
+		})
+
+		return err
 	}
 
-	bridge.imapListener = imapListener
-
-	if err := bridge.imapServer.Serve(context.Background(), bridge.imapListener); err != nil {
-		return fmt.Errorf("failed to serve IMAP: %w", err)
-	}
-
-	if err := bridge.vault.SetIMAPPort(getPort(imapListener.Addr())); err != nil {
-		return fmt.Errorf("failed to store IMAP port in vault: %w", err)
-	}
+	bridge.publish(events.IMAPServerReady{
+		Port: port,
+	})
 
 	return nil
 }
@@ -75,6 +94,8 @@ func (bridge *Bridge) restartIMAP() error {
 		if err := bridge.imapListener.Close(); err != nil {
 			return fmt.Errorf("failed to close IMAP listener: %w", err)
 		}
+
+		bridge.publish(events.IMAPServerStopped{})
 	}
 
 	return bridge.serveIMAP()
@@ -87,6 +108,7 @@ func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 		if err := bridge.imapServer.Close(ctx); err != nil {
 			return fmt.Errorf("failed to close IMAP server: %w", err)
 		}
+
 		bridge.imapServer = nil
 	}
 
@@ -96,12 +118,12 @@ func (bridge *Bridge) closeIMAP(ctx context.Context) error {
 		}
 	}
 
+	bridge.publish(events.IMAPServerStopped{})
+
 	return nil
 }
 
 // addIMAPUser connects the given user to gluon.
-//
-//nolint:funlen
 func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 	if bridge.imapServer == nil {
 		return fmt.Errorf("no imap server instance running")
@@ -242,6 +264,13 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 		if event.IMAPID.Name != "" && event.IMAPID.Version != "" {
 			bridge.identifier.SetClient(event.IMAPID.Name, event.IMAPID.Version)
 		}
+
+	case imapEvents.LoginFailed:
+		logrus.WithFields(logrus.Fields{
+			"sessionID": event.SessionID,
+			"username":  event.Username,
+		}).Info("Received IMAP login failure notification")
+		bridge.publish(events.IMAPLoginFailed{Username: event.Username})
 	}
 }
 
@@ -261,7 +290,6 @@ func ApplyGluonConfigPathSuffix(basePath string) string {
 	return filepath.Join(basePath, "backend", "db")
 }
 
-// nolint:funlen
 func newIMAPServer(
 	gluonCacheDir, gluonConfigDir string,
 	version *semver.Version,
@@ -270,6 +298,7 @@ func newIMAPServer(
 	logClient, logServer bool,
 	eventCh chan<- imapEvents.Event,
 	tasks *async.Group,
+	uidValidityGenerator imap.UIDValidityGenerator,
 ) (*gluon.Server, error) {
 	gluonCacheDir = ApplyGluonCachePathSuffix(gluonCacheDir)
 	gluonConfigDir = ApplyGluonConfigPathSuffix(gluonConfigDir)
@@ -313,6 +342,7 @@ func newIMAPServer(
 		gluon.WithLogger(imapClientLog, imapServerLog),
 		getGluonVersionInfo(version),
 		gluon.WithReporter(reporter),
+		gluon.WithUIDValidityGenerator(uidValidityGenerator),
 	)
 	if err != nil {
 		return nil, err
@@ -348,7 +378,7 @@ func (*storeBuilder) New(path, userID string, passphrase []byte) (store.Store, e
 	return store.NewOnDiskStore(
 		filepath.Join(path, userID),
 		passphrase,
-		store.WithCompressor(new(store.GZipCompressor)),
+		store.WithFallback(fallback_v0.NewOnDiskStoreV0WithCompressor(&fallback_v0.GZipCompressor{})),
 	)
 }
 

@@ -84,7 +84,8 @@ void Overseer::releaseWorker() {
     if (thread_) {
         if (!thread_->isFinished()) {
             thread_->quit();
-            thread_->wait();
+            if (!thread_->wait(maxTerminationWaitTimeMs))
+                thread_->terminate();
         }
         thread_->deleteLater();
         thread_ = nullptr;

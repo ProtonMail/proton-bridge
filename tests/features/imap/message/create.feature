@@ -12,10 +12,10 @@ Feature: IMAP create messages
       | from               | to                   | subject | body |
       | john.doe@email.com | [user:user]@[domain] | foo     | bar  |
     Then it succeeds
-    And IMAP client "1" sees the following messages in "INBOX":
+    And IMAP client "1" eventually sees the following messages in "INBOX":
       | from               | to                   | subject | body |
       | john.doe@email.com | [user:user]@[domain] | foo     | bar  |
-    And IMAP client "1" sees the following messages in "All Mail":
+    And IMAP client "1" eventually sees the following messages in "All Mail":
       | from               | to                   | subject | body |
       | john.doe@email.com | [user:user]@[domain] | foo     | bar  |
 
@@ -37,10 +37,10 @@ Feature: IMAP create messages
       | from                 | to                 | subject | body |
       | [user:user]@[domain] | john.doe@email.com | foo     | bar  |
     Then it succeeds
-    And IMAP client "1" sees the following messages in "Sent":
+    And IMAP client "1" eventually sees the following messages in "Sent":
       | from                 | to                 | subject | body |
       | [user:user]@[domain] | john.doe@email.com | foo     | bar  |
-    And IMAP client "1" sees the following messages in "All Mail":
+    And IMAP client "1" eventually sees the following messages in "All Mail":
       | from                 | to                 | subject | body |
       | [user:user]@[domain] | john.doe@email.com | foo     | bar  |
 
@@ -49,10 +49,10 @@ Feature: IMAP create messages
       | from                   | to                 | subject | body |
       | [alias:alias]@[domain] | john.doe@email.com | foo     | bar  |
     Then it succeeds
-    And IMAP client "1" sees the following messages in "Sent":
+    And IMAP client "1" eventually sees the following messages in "Sent":
       | from                   | to                 | subject | body |
       | [alias:alias]@[domain] | john.doe@email.com | foo     | bar  |
-    And IMAP client "1" sees the following messages in "All Mail":
+    And IMAP client "1" eventually sees the following messages in "All Mail":
       | from                   | to                 | subject | body |
       | [alias:alias]@[domain] | john.doe@email.com | foo     | bar  |
 
@@ -61,10 +61,10 @@ Feature: IMAP create messages
       | from               | to                 | subject | body |
       | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
     Then it succeeds
-    And IMAP client "1" sees the following messages in "INBOX":
+    And IMAP client "1" eventually sees the following messages in "INBOX":
       | from               | to                 | subject | body |
       | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
-    And IMAP client "1" sees the following messages in "All Mail":
+    And IMAP client "1" eventually sees the following messages in "All Mail":
       | from               | to                 | subject | body |
       | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
 
@@ -73,10 +73,10 @@ Feature: IMAP create messages
       | from               | to                 | subject | body |
       | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
     Then it succeeds
-    And IMAP client "1" sees the following messages in "Sent":
+    And IMAP client "1" eventually sees the following messages in "Sent":
       | from               | to                 | subject | body |
       | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
-    And IMAP client "1" sees the following messages in "All Mail":
+    And IMAP client "1" eventually sees the following messages in "All Mail":
       | from               | to                 | subject | body |
       | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
 
@@ -85,7 +85,7 @@ Feature: IMAP create messages
       | from               | to                 | subject | body |
       | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
     And it succeeds
-    And IMAP client "1" sees the following messages in "Sent":
+    And IMAP client "1" eventually sees the following messages in "Sent":
       | from               | to                 | subject | body |
       | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
     And it succeeds
@@ -93,7 +93,7 @@ Feature: IMAP create messages
       | from               | to                 | subject | body |
       | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
     And it succeeds
-    And IMAP client "1" sees the following messages in "Sent":
+    And IMAP client "1" eventually sees the following messages in "Sent":
       | from               | to                 | subject | body |
       | john.doe@email.com | john.doe2@[domain] | foo     | bar  |
       | john.doe@email.com | john.doe2@[domain] | foo     | bar  |

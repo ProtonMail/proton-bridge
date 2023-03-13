@@ -17,11 +17,12 @@
 
 
 #include "QMLBackend.h"
-#include "EventStreamWorker.h"
 #include "BuildConfig.h"
+#include "EventStreamWorker.h"
 #include "LogUtils.h"
-#include <bridgepp/GRPC/GRPCClient.h>
+#include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
+#include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Worker/Overseer.h>
 #include <bridgepp/BridgeUtils.h>
 
@@ -58,7 +59,7 @@ void QMLBackend::init(GRPCConfig const &serviceConfig) {
     app().grpc().setLog(&log);
     this->connectGrpcEvents();
 
-    app().grpc().connectToServer(serviceConfig, app().bridgeMonitor());
+    app().grpc().connectToServer(bridgepp::userConfigDir(), serviceConfig, app().bridgeMonitor());
     app().log().info("Connected to backend via gRPC service.");
 
     QString bridgeVer;
@@ -179,21 +180,21 @@ void QMLBackend::setShowSplashScreen(bool show) {
 
 
 //****************************************************************************************************************************************************
-/// \return The value for the 'showSplashScreen' property.
-//****************************************************************************************************************************************************
-bool QMLBackend::showSplashScreen() const {
-    HANDLE_EXCEPTION_RETURN_BOOL(
-        return showSplashScreen_;
-    )
-}
-
-
-//****************************************************************************************************************************************************
 /// \return The value for the 'GOOS' property.
 //****************************************************************************************************************************************************
 QString QMLBackend::goos() const {
     HANDLE_EXCEPTION_RETURN_QSTRING(
         return goos_;
+    )
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The value for the 'showSplashScreen' property.
+//****************************************************************************************************************************************************
+bool QMLBackend::showSplashScreen() const {
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        return showSplashScreen_;
     )
 }
 
@@ -464,6 +465,7 @@ bool QMLBackend::isDoHEnabled() const {
         return isEnabled;
     )
 }
+
 
 //****************************************************************************************************************************************************
 /// \return The value for the 'isAutomaticUpdateOn' property.
@@ -911,6 +913,24 @@ void QMLBackend::onUserBadEvent(QString const &userID, QString const& ) {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] username The username (or primary email address)
+//****************************************************************************************************************************************************
+void QMLBackend::onIMAPLoginFailed(QString const &username) {
+    HANDLE_EXCEPTION(
+        SPUser const user = users_->getUserWithUsernameOrEmail(username);
+        if ((!user) || (user->state() != UserState::SignedOut)) { // We want to pop-up only if a signed-out user has been detected
+            return;
+        }
+        if (user->isInIMAPLoginFailureCooldown())
+            return;
+        user->startImapLoginFailureCooldown(60 * 60 * 1000); // 1 hour cooldown during which we will not display this notification to this user again.
+        emit selectUser(user->id());
+        emit imapLoginWhileSignedOut(username);
+    )
+}
+
+
+//****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
 void QMLBackend::retrieveUserList() {
@@ -1018,6 +1038,8 @@ void QMLBackend::connectGrpcEvents() {
     // user events
     connect(client, &GRPCClient::userDisconnected, this, &QMLBackend::userDisconnected);
     connect(client, &GRPCClient::userBadEvent, this, &QMLBackend::onUserBadEvent);
+    connect(client, &GRPCClient::imapLoginFailed, this, &QMLBackend::onIMAPLoginFailed);
+
     users_->connectGRPCEvents();
 }
 

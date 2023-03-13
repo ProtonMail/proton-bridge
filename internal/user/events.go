@@ -18,6 +18,7 @@
 package user
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -65,6 +66,10 @@ func (user *User) handleAPIEvent(ctx context.Context, event proton.Event) error 
 		if err := user.handleMessageEvents(ctx, event.Messages); err != nil {
 			return err
 		}
+	}
+
+	if event.UsedSpace != nil {
+		user.handleUsedSpaceChange(*event.UsedSpace)
 	}
 
 	return nil
@@ -194,6 +199,12 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event proton.Add
 
 		user.apiAddrs[event.Address.ID] = event.Address
 
+		// If the address is disabled.
+		if event.Address.Status != proton.AddressStatusEnabled {
+			return nil
+		}
+
+		// If the address is enabled, we need to hook it up to the update channels.
 		switch user.vault.AddressMode() {
 		case vault.CombinedMode:
 			primAddr, err := getAddrIdx(user.apiAddrs, 0)
@@ -220,6 +231,10 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event proton.Add
 
 	// Perform the sync in an RLock.
 	return safe.RLockRet(func() error {
+		if event.Address.Status != proton.AddressStatusEnabled {
+			return nil
+		}
+
 		if user.vault.AddressMode() == vault.SplitMode {
 			if err := syncLabels(ctx, user.apiLabels, user.updateCh[event.Address.ID]); err != nil {
 				return fmt.Errorf("failed to sync labels to new address: %w", err)
@@ -237,18 +252,58 @@ func (user *User) handleUpdateAddressEvent(_ context.Context, event proton.Addre
 			"email":     logging.Sensitive(event.Address.Email),
 		}).Info("Handling address updated event")
 
-		if _, ok := user.apiAddrs[event.Address.ID]; !ok {
+		oldAddr, ok := user.apiAddrs[event.Address.ID]
+		if !ok {
 			user.log.Debugf("Address %q does not exist", event.Address.ID)
 			return nil
 		}
 
 		user.apiAddrs[event.Address.ID] = event.Address
 
-		user.eventCh.Enqueue(events.UserAddressUpdated{
-			UserID:    user.apiUser.ID,
-			AddressID: event.Address.ID,
-			Email:     event.Address.Email,
-		})
+		switch {
+		// If the address was newly enabled:
+		case oldAddr.Status != proton.AddressStatusEnabled && event.Address.Status == proton.AddressStatusEnabled:
+			switch user.vault.AddressMode() {
+			case vault.CombinedMode:
+				primAddr, err := getAddrIdx(user.apiAddrs, 0)
+				if err != nil {
+					return fmt.Errorf("failed to get primary address: %w", err)
+				}
+
+				user.updateCh[event.Address.ID] = user.updateCh[primAddr.ID]
+
+			case vault.SplitMode:
+				user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0)
+			}
+
+			user.eventCh.Enqueue(events.UserAddressEnabled{
+				UserID:    user.apiUser.ID,
+				AddressID: event.Address.ID,
+				Email:     event.Address.Email,
+			})
+
+		// If the address was newly disabled:
+		case oldAddr.Status == proton.AddressStatusEnabled && event.Address.Status != proton.AddressStatusEnabled:
+			if user.vault.AddressMode() == vault.SplitMode {
+				user.updateCh[event.ID].CloseAndDiscardQueued()
+			}
+
+			delete(user.updateCh, event.ID)
+
+			user.eventCh.Enqueue(events.UserAddressDisabled{
+				UserID:    user.apiUser.ID,
+				AddressID: event.Address.ID,
+				Email:     event.Address.Email,
+			})
+
+		// Otherwise it's just an update:
+		default:
+			user.eventCh.Enqueue(events.UserAddressUpdated{
+				UserID:    user.apiUser.ID,
+				AddressID: event.Address.ID,
+				Email:     event.Address.Email,
+			})
+		}
 
 		return nil
 	}, user.apiAddrsLock, user.updateChLock)
@@ -264,12 +319,20 @@ func (user *User) handleDeleteAddressEvent(_ context.Context, event proton.Addre
 			return nil
 		}
 
-		if user.vault.AddressMode() == vault.SplitMode {
-			user.updateCh[event.ID].CloseAndDiscardQueued()
-			delete(user.updateCh, event.ID)
+		delete(user.apiAddrs, event.ID)
+
+		// If the address was disabled to begin with, we don't need to do anything.
+		if addr.Status != proton.AddressStatusEnabled {
+			return nil
 		}
 
-		delete(user.apiAddrs, event.ID)
+		// Otherwise, in split mode, drop the update queue.
+		if user.vault.AddressMode() == vault.SplitMode {
+			user.updateCh[event.ID].CloseAndDiscardQueued()
+		}
+
+		// And in either mode, remove the address from the update channel map.
+		delete(user.updateCh, event.ID)
 
 		user.eventCh.Enqueue(events.UserAddressDeleted{
 			UserID:    user.apiUser.ID,
@@ -356,25 +419,51 @@ func (user *User) handleUpdateLabelEvent(ctx context.Context, event proton.Label
 			"name":    logging.Sensitive(event.Label.Name),
 		}).Info("Handling label updated event")
 
-		// Only update the label if it exists; we don't want to create it as a client may have just deleted it.
-		if _, ok := user.apiLabels[event.Label.ID]; ok {
-			user.apiLabels[event.Label.ID] = event.Label
-		}
+		stack := []proton.Label{event.Label}
 
-		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
-			update := imap.NewMailboxUpdated(
-				imap.MailboxID(event.ID),
-				getMailboxName(event.Label),
-			)
-			updateCh.Enqueue(update)
-			updates = append(updates, update)
-		}
+		for len(stack) > 0 {
+			label := stack[0]
+			stack = stack[1:]
 
-		user.eventCh.Enqueue(events.UserLabelUpdated{
-			UserID:  user.apiUser.ID,
-			LabelID: event.Label.ID,
-			Name:    event.Label.Name,
-		})
+			// Only update the label if it exists; we don't want to create it as a client may have just deleted it.
+			if _, ok := user.apiLabels[label.ID]; ok {
+				user.apiLabels[label.ID] = event.Label
+			}
+
+			// API doesn't notify us that the path has changed. We need to fetch it again.
+			apiLabel, err := user.client.GetLabel(ctx, label.ID, label.Type)
+			if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
+				user.log.WithError(apiErr).Warn("Failed to get label: label does not exist")
+				continue
+			} else if err != nil {
+				return nil, fmt.Errorf("failed to get label %q: %w", label.ID, err)
+			}
+
+			// Update the label in the map.
+			user.apiLabels[apiLabel.ID] = apiLabel
+
+			// Notify the IMAP clients.
+			for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
+				update := imap.NewMailboxUpdated(
+					imap.MailboxID(apiLabel.ID),
+					getMailboxName(apiLabel),
+				)
+				updateCh.Enqueue(update)
+				updates = append(updates, update)
+			}
+
+			user.eventCh.Enqueue(events.UserLabelUpdated{
+				UserID:  user.apiUser.ID,
+				LabelID: apiLabel.ID,
+				Name:    apiLabel.Name,
+			})
+
+			children := xslices.Filter(maps.Values(user.apiLabels), func(other proton.Label) bool {
+				return other.ParentID == label.ID
+			})
+
+			stack = append(stack, children...)
+		}
 
 		return updates, nil
 	}, user.apiLabelsLock, user.updateChLock)
@@ -404,7 +493,7 @@ func (user *User) handleDeleteLabelEvent(ctx context.Context, event proton.Label
 }
 
 // handleMessageEvents handles the given message events.
-func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proton.MessageEvent) error { //nolint:funlen
+func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proton.MessageEvent) error {
 	for _, event := range messageEvents {
 		ctx = logging.WithLogrusField(ctx, "messageID", event.ID)
 
@@ -494,7 +583,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, message proton.M
 		"subject":   logging.Sensitive(message.Subject),
 	}).Info("Handling message created event")
 
-	full, err := user.client.GetFullMessage(ctx, message.ID)
+	full, err := user.client.GetFullMessage(ctx, message.ID, newProtonAPIScheduler(), proton.NewDefaultAttachmentAllocator())
 	if err != nil {
 		// If the message is not found, it means that it has been deleted before we could fetch it.
 		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
@@ -509,7 +598,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, message proton.M
 		var update imap.Update
 
 		if err := withAddrKR(user.apiUser, user.apiAddrs[message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
-			res := buildRFC822(user.apiLabels, full, addrKR)
+			res := buildRFC822(user.apiLabels, full, addrKR, new(bytes.Buffer))
 
 			if res.err != nil {
 				user.log.WithError(err).Error("Failed to build RFC822 message")
@@ -553,7 +642,7 @@ func (user *User) handleUpdateMessageEvent(ctx context.Context, message proton.M
 				Seen:     message.Seen(),
 				Flagged:  message.Starred(),
 				Draft:    message.IsDraft(),
-				Answered: message.IsReplied == true || message.IsRepliedAll == true, //nolint: gosimple
+				Answered: message.IsRepliedAll == true || message.IsReplied == true, //nolint: gosimple
 			},
 		)
 
@@ -586,7 +675,7 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 			"subject":   logging.Sensitive(event.Message.Subject),
 		}).Info("Handling draft updated event")
 
-		full, err := user.client.GetFullMessage(ctx, event.Message.ID)
+		full, err := user.client.GetFullMessage(ctx, event.Message.ID, newProtonAPIScheduler(), proton.NewDefaultAttachmentAllocator())
 		if err != nil {
 			// If the message is not found, it means that it has been deleted before we could fetch it.
 			if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
@@ -600,7 +689,7 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 		var update imap.Update
 
 		if err := withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
-			res := buildRFC822(user.apiLabels, full, addrKR)
+			res := buildRFC822(user.apiLabels, full, addrKR, new(bytes.Buffer))
 
 			if res.err != nil {
 				logrus.WithError(err).Error("Failed to build RFC822 message")
@@ -635,6 +724,20 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 
 		return []imap.Update{update}, nil
 	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
+}
+
+func (user *User) handleUsedSpaceChange(usedSpace int) {
+	safe.Lock(func() {
+		if user.apiUser.UsedSpace == usedSpace {
+			return
+		}
+
+		user.apiUser.UsedSpace = usedSpace
+		user.eventCh.Enqueue(events.UsedSpaceChanged{
+			UserID:    user.apiUser.ID,
+			UsedSpace: usedSpace,
+		})
+	}, user.apiUserLock)
 }
 
 func getMailboxName(label proton.Label) []string {

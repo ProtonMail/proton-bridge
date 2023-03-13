@@ -35,6 +35,30 @@ func (event UserAddressCreated) String() string {
 	return fmt.Sprintf("UserAddressCreated: UserID: %s, AddressID: %s, Email: %s", event.UserID, event.AddressID, logging.Sensitive(event.Email))
 }
 
+type UserAddressEnabled struct {
+	eventBase
+
+	UserID    string
+	AddressID string
+	Email     string
+}
+
+func (event UserAddressEnabled) String() string {
+	return fmt.Sprintf("UserAddressEnabled: UserID: %s, AddressID: %s, Email: %s", event.UserID, event.AddressID, logging.Sensitive(event.Email))
+}
+
+type UserAddressDisabled struct {
+	eventBase
+
+	UserID    string
+	AddressID string
+	Email     string
+}
+
+func (event UserAddressDisabled) String() string {
+	return fmt.Sprintf("UserAddressDisabled: UserID: %s, AddressID: %s, Email: %s", event.UserID, event.AddressID, logging.Sensitive(event.Email))
+}
+
 type UserAddressUpdated struct {
 	eventBase
 

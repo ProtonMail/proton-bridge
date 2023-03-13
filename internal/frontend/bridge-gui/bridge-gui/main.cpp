@@ -16,20 +16,18 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#include "Pch.h"
 #include "BridgeApp.h"
+#include "BuildConfig.h"
 #include "CommandLine.h"
+#include "LogUtils.h"
 #include "QMLBackend.h"
 #include "SentryUtils.h"
-#include "BuildConfig.h"
-#include "LogUtils.h"
+#include "Settings.h"
 #include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/FocusGRPC/FocusGRPCClient.h>
 #include <bridgepp/Log/Log.h>
 #include <bridgepp/ProcessMonitor.h>
-#include <sentry.h>
-#include <SentryUtils.h>
 
 
 #ifdef Q_OS_MACOS
@@ -99,38 +97,6 @@ void initQtApplication() {
 }
 
 
-//****************************************************************************************************************************************************
-/// \return A reference to the log.
-//****************************************************************************************************************************************************
-Log &initLog() {
-    Log &log = app().log();
-    log.registerAsQtMessageHandler();
-    log.setEchoInConsole(true);
-
-    // remove old gui log files
-    QDir const logsDir(userLogsDir());
-    for (QFileInfo const fileInfo: logsDir.entryInfoList({ "gui_v*.log" }, QDir::Filter::Files)) { // entryInfolist apparently only support wildcards, not regex.
-        QFile(fileInfo.absoluteFilePath()).remove();
-    }
-
-    // create new GUI log file
-    QString error;
-    if (!log.startWritingToFile(logsDir.absoluteFilePath(QString("gui_v%1_%2.log").arg(PROJECT_VER).arg(QDateTime::currentSecsSinceEpoch())), &error)) {
-        log.error(error);
-    }
-
-    log.info("bridge-gui starting");
-    QString const qtCompileTimeVersion = QT_VERSION_STR;
-    QString const qtRuntimeVersion = qVersion();
-    QString msg = QString("Using Qt %1").arg(qtRuntimeVersion);
-    if (qtRuntimeVersion != qtCompileTimeVersion) {
-        msg += QString(" (compiled against %1)").arg(qtCompileTimeVersion);
-    }
-    log.info(msg);
-
-    return log;
-}
-
 
 //****************************************************************************************************************************************************
 /// \param[in] engine The QML component.
@@ -150,8 +116,9 @@ QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine) {
 
     rootComponent->loadUrl(QUrl(qrcQmlDir + "/Bridge.qml"));
     if (rootComponent->status() != QQmlComponent::Status::Ready) {
-        app().log().error(rootComponent->errorString());
-        throw Exception("Could not load QML component");
+        QString const &err =rootComponent->errorString();
+            app().log().error(err);
+        throw Exception("Could not load QML component", err);
     }
     return rootComponent;
 }
@@ -218,7 +185,7 @@ QUrl getApiUrl() {
 /// \return true if an instance of bridge is already running.
 //****************************************************************************************************************************************************
 bool isBridgeRunning() {
-    QLockFile lockFile(QDir(userCacheDir()).absoluteFilePath(bridgeLock));
+    QLockFile lockFile(QDir(bridgepp::userCacheDir()).absoluteFilePath(bridgeLock));
     return (!lockFile.tryLock()) && (lockFile.error() == QLockFile::LockFailedError);
 }
 
@@ -229,8 +196,21 @@ bool isBridgeRunning() {
 void focusOtherInstance() {
     try {
         FocusGRPCClient client;
+        GRPCConfig sc;
+        QString const path = FocusGRPCClient::grpcFocusServerConfigPath(bridgepp::userConfigDir());
+        QFile file(path);
+        if (file.exists()) {
+            if (!sc.load(path)) {
+                throw Exception("The gRPC focus service configuration file is invalid.");
+            }
+        }
+        else {
+            throw Exception("Server did not provide gRPC Focus service configuration.");
+        }
+
+
         QString error;
-        if (!client.connectToServer(5000, &error)) {
+        if (!client.connectToServer(5000, sc.port, &error)) {
             throw Exception(QString("Could not connect to bridge focus service for a raise call: %1").arg(error));
         }
         if (!client.raise().ok()) {
@@ -247,6 +227,7 @@ void focusOtherInstance() {
 
 //****************************************************************************************************************************************************
 /// \param [in] args list of arguments to pass to bridge.
+/// \return bridge executable path
 //****************************************************************************************************************************************************
 const QString launchBridge(QStringList const &args) {
     UPOverseer &overseer = app().bridgeOverseer();
@@ -276,12 +257,8 @@ void closeBridgeApp() {
     app().grpc().quit(); // this will cause the grpc service and the bridge app to close.
 
     UPOverseer &overseer = app().bridgeOverseer();
-    if (!overseer) { // The app was run in 'attach' mode and attached to an existing instance of Bridge. We're not monitoring it.
-        return;
-    }
-
-    while (!overseer->isFinished()) {
-        QThread::msleep(20);
+    if (overseer) {  // A null overseer means the app was run in 'attach' mode. We're not monitoring it.
+        overseer->wait(Overseer::maxTerminationWaitTimeMs);
     }
 }
 
@@ -292,24 +269,23 @@ void closeBridgeApp() {
 /// \return The exit code for the application.
 //****************************************************************************************************************************************************
 int main(int argc, char *argv[]) {
-    // Init sentry.
-    sentry_options_t *sentryOptions = newSentryOptions(PROJECT_DSN_SENTRY, sentryCacheDir().toStdString().c_str());
-
-    if (sentry_init(sentryOptions) != 0) {
-        std::cerr << "Failed to initialize sentry" << std::endl;
-    }
-    setSentryReportScope();
-    auto sentryClose = qScopeGuard([] { sentry_close(); });
-
     // The application instance is needed to display system message boxes. As we may have to do it in the exception handler,
     // application instance is create outside the try/catch clause.
     if (QSysInfo::productType() != "windows") {
-        QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL);
+        QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL); // must be called before instantiating the BridgeApp
     }
 
     BridgeApp guiApp(argc, argv);
 
     try {
+        QString const& configDir = bridgepp::userConfigDir();
+
+        // Init sentry.
+        initSentry();
+
+        auto sentryClose = qScopeGuard([] { sentry_close(); });
+
+
         initQtApplication();
 
         Log &log = initLog();
@@ -339,14 +315,16 @@ int main(int argc, char *argv[]) {
             }
 
             // before launching bridge, we remove any trailing service config file, because we need to make sure we get a newly generated one.
-            GRPCClient::removeServiceConfigFile();
+            FocusGRPCClient::removeServiceConfigFile(configDir);
+            GRPCClient::removeServiceConfigFile(configDir);
             bridgeexec = launchBridge(cliOptions.bridgeArgs);
         }
 
-        log.info(QString("Retrieving gRPC service configuration from '%1'").arg(QDir::toNativeSeparators(grpcServerConfigPath())));
-        app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(cliOptions.attach ? 0 : grpcServiceConfigWaitDelayMs, app().bridgeMonitor()));
+        log.info(QString("Retrieving gRPC service configuration from '%1'").arg(QDir::toNativeSeparators(grpcServerConfigPath(configDir))));
+        app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(configDir, cliOptions.attach ? 0 : grpcServiceConfigWaitDelayMs,
+            app().bridgeMonitor()));
         if (!cliOptions.attach) {
-            GRPCClient::removeServiceConfigFile();
+            GRPCClient::removeServiceConfigFile(configDir);
         }
 
         // gRPC communication is established. From now on, log events will be sent to bridge via gRPC. bridge will write these to file,
@@ -359,7 +337,7 @@ int main(int argc, char *argv[]) {
         // The following allows to render QML content in software with a 'Rendering Hardware Interface' (OpenGL, Vulkan, Metal, Direct3D...)
         // Note that it is different from the Qt::AA_UseSoftwareOpenGL attribute we use on some platforms that instruct Qt that we would like
         // to use a software-only implementation of OpenGL.
-        QQuickWindow::setSceneGraphBackend(cliOptions.useSoftwareRenderer ? "software" : "rhi");
+        QQuickWindow::setSceneGraphBackend((app().settings().useSoftwareRenderer() || cliOptions.useSoftwareRenderer) ? "software" : "rhi");
         log.info(QString("Qt Quick renderer: %1").arg(QQuickWindow::sceneGraphBackend()));
 
 
@@ -412,7 +390,7 @@ int main(int argc, char *argv[]) {
 
         QObject::disconnect(connection);
         app().grpc().stopEventStreamReader();
-        if (!app().backend().waitForEventStreamReaderToFinish(5000)) {
+        if (!app().backend().waitForEventStreamReaderToFinish(Overseer::maxTerminationWaitTimeMs)) {
             log.warn("Event stream reader took too long to finish.");
         }
 

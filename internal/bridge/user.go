@@ -434,6 +434,7 @@ func (bridge *Bridge) loadUser(ctx context.Context, user *vault.User) error {
 				logrus.WithError(err).Warn("Failed to clear user secrets")
 			}
 		}
+
 		return fmt.Errorf("failed to create API client: %w", err)
 	}
 
@@ -516,8 +517,8 @@ func (bridge *Bridge) addUserWithVault(
 		bridge.reporter,
 		apiUser,
 		bridge.crashHandler,
-		bridge.vault.SyncWorkers(),
 		bridge.vault.GetShowAllMail(),
+		bridge.vault.GetMaxSyncMemory(),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)

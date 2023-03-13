@@ -20,10 +20,8 @@
 #include <bridgepp/BridgeUtils.h>
 #include <bridgepp/Exception/Exception.h>
 
-#include <QByteArray>
-#include <QCryptographicHash>
-#include <QString>
-#include <QSysInfo>
+
+using namespace bridgepp;
 
 
 static constexpr const char *LoggerName = "bridge-gui";
@@ -46,25 +44,54 @@ QString sentryAttachmentFilePath() {
 }
 
 
+//****************************************************************************************************************************************************
+/// \brief Get a hash of the computer's host name
+//****************************************************************************************************************************************************
 QByteArray getProtectedHostname() {
     QByteArray hostname = QCryptographicHash::hash(QSysInfo::machineHostName().toUtf8(), QCryptographicHash::Sha256);
     return hostname.toHex();
 }
 
+//****************************************************************************************************************************************************
+/// \return The OS String used by sentry
+//****************************************************************************************************************************************************
 QString getApiOS() {
-#if defined(Q_OS_DARWIN)
-    return "macos";
-#elif defined(Q_OS_WINDOWS)
-    return "windows";
-#else
-    return "linux";
-#endif
+    switch (os()) {
+    case OS::MacOS:
+        return "macos";
+    case OS::Windows:
+        return "windows";
+    case OS::Linux:
+    default:
+        return "linux";
+    }
 }
 
+//****************************************************************************************************************************************************
+/// \return The application version number.
+//****************************************************************************************************************************************************
 QString appVersion(const QString& version) {
-    return QString("%1-bridge@%2").arg(getApiOS()).arg(version);
+    return QString("%1-bridge@%2").arg(getApiOS(), version);
 }
 
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void initSentry() {
+    sentry_options_t *sentryOptions = newSentryOptions(PROJECT_DSN_SENTRY, sentryCacheDir().toStdString().c_str());
+    if (!QString(PROJECT_CRASHPAD_HANDLER_PATH).isEmpty())
+        sentry_options_set_handler_path(sentryOptions, PROJECT_CRASHPAD_HANDLER_PATH);
+
+    if (sentry_init(sentryOptions) != 0) {
+        QTextStream(stderr) << "Failed to initialize sentry\n";
+    }
+    setSentryReportScope();
+}
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
 void setSentryReportScope() {
     sentry_set_tag("OS", bridgepp::goos().toUtf8());
     sentry_set_tag("Client", PROJECT_FULL_NAME);
@@ -76,6 +103,10 @@ void setSentryReportScope() {
     sentry_set_user(user);
 }
 
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
 sentry_options_t* newSentryOptions(const char *sentryDNS, const char *cacheDir) {
     sentry_options_t *sentryOptions = sentry_options_new();
     sentry_options_set_dsn(sentryOptions, sentryDNS);
@@ -92,12 +123,18 @@ sentry_options_t* newSentryOptions(const char *sentryDNS, const char *cacheDir) 
 }
 
 
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
 sentry_uuid_t reportSentryEvent(sentry_level_t level, const char *message) {
     auto event = sentry_value_new_message_event(level, LoggerName, message);
     return sentry_capture_event(event);
 }
 
 
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
 sentry_uuid_t reportSentryException(sentry_level_t level, const char *message, const char *exceptionType, const char *exception) {
     auto event = sentry_value_new_message_event(level, LoggerName, message);
     sentry_event_add_exception(event, sentry_value_new_exception(exceptionType, exception));

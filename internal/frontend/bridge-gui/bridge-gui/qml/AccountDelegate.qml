@@ -29,14 +29,19 @@ Item {
 
     property var _spacing: 12 * ProtonStyle.px
 
-    property color usedSpaceColor : {
+    property color progressColor : {
         if (!root.enabled) return root.colorScheme.text_weak
         if (root.type == AccountDelegate.SmallView) return root.colorScheme.text_weak
-        if (root.usedFraction < .50) return root.colorScheme.signal_success
-        if (root.usedFraction < .75) return root.colorScheme.signal_warning
+        if (root.user && root.user.isSyncing) return root.colorScheme.text_weak
+        if (root.progressRatio < .50) return root.colorScheme.signal_success
+        if (root.progressRatio < .75) return root.colorScheme.signal_warning
         return root.colorScheme.signal_danger
     }
-    property real usedFraction: root.user ? reasonableFraction(root.user.usedBytes, root.user.totalBytes) : 0
+    property real progressRatio: {
+        if (!root.user)
+            return 0
+        return root.user.isSyncing ? root.user.syncProgress : reasonableFraction(root.user.usedBytes, root.user.totalBytes)
+    }
     property string totalSpace: root.spaceWithUnits(root.user ? root.reasonableBytes(root.user.totalBytes) : 0)
     property string usedSpace: root.spaceWithUnits(root.user ? root.reasonableBytes(root.user.usedBytes) : 0)
 
@@ -171,18 +176,21 @@ Item {
                         case EUserState.Locked:
                             return qsTr("Connecting") + dotsTimer.dots
                         case EUserState.Connected:
-                            return root.usedSpace
+                            if (root.user.isSyncing)
+                                return qsTr("Synchronizing (%1%)").arg(Math.floor(root.user.syncProgress * 100)) + dotsTimer.dots
+                            else
+                                return root.usedSpace
                         }
                     }
 
-                    Timer { // dots animation while connecting. 1 sec cycle, roughly similar to the webmail loading page.
+                    Timer { // dots animation while connecting & syncing.
                         id:dotsTimer
                         property string dots: ""
-                        interval: 250;
+                        interval: 500;
                         repeat: true;
-                        running: (root.user != null) && (root.user.state === EUserState.Locked)
+                        running: (root.user != null) && ((root.user.state === EUserState.Locked) || (root.user.isSyncing))
                         onTriggered: {
-                            dots = dots + "."
+                            dots += "."
                             if (dots.length > 3)
                                 dots = ""
                         }
@@ -191,7 +199,7 @@ Item {
                         }
                     }
 
-                    color: root.usedSpaceColor
+                    color: root.progressColor
                     type: {
                         switch (root.type) {
                             case AccountDelegate.SmallView: return Label.Caption
@@ -202,7 +210,7 @@ Item {
 
                 Label {
                     colorScheme: root.colorScheme
-                    text: root.user && root.user.state == EUserState.Connected ? " / " + root.totalSpace : ""
+                    text: root.user && root.user.state == EUserState.Connected && !root.user.isSyncing ? " / " + root.totalSpace : ""
                     color: root.colorScheme.text_weak
                     type: {
                         switch (root.type) {
@@ -213,26 +221,27 @@ Item {
                 }
             }
 
+            Item { implicitHeight: root.type == AccountDelegate.LargeView ? 3 * ProtonStyle.px : 0 }
 
             Rectangle {
-                id: storage_bar
+                id: progress_bar
                 visible: root.user ? root.type == AccountDelegate.LargeView : false
                 width: 140 * ProtonStyle.px
                 height: 4 * ProtonStyle.px
-                radius: ProtonStyle.storage_bar_radius
+                radius: ProtonStyle.progress_bar_radius
                 color: root.colorScheme.border_weak
 
                 Rectangle {
-                    id: storage_bar_filled
-                    radius: ProtonStyle.storage_bar_radius
-                    color: root.usedSpaceColor
-                    visible: root.user ? parent.visible && (root.user.state == EUserState.Connected) : false
+                    id: progress_bar_filled
+                    radius: ProtonStyle.progress_bar_radius
+                    color: root.progressColor
+                    visible: root.user ? parent.visible && (root.user.state == EUserState.Connected): false
                     anchors {
                         top    : parent.top
                         bottom : parent.bottom
                         left   : parent.left
                     }
-                    width: Math.min(1,Math.max(0.02,root.usedFraction)) * parent.width
+                    width: Math.min(1,Math.max(0.02,root.progressRatio)) * parent.width
                 }
             }
         }

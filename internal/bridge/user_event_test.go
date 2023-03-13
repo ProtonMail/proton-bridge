@@ -20,18 +20,23 @@ package bridge_test
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
+	"net/mail"
 	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
+	"github.com/bradenaw/juniper/stream"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
@@ -192,22 +197,18 @@ func TestBridge_User_BadMessage_NoBadEvent(t *testing.T) {
 
 			var messageIDs []string
 
+			// Create 10 more messages for the user, generating events.
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				messageIDs = createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
+			})
+
 			// If bridge attempts to sync the new messages, it should get a BadRequest error.
 			s.AddStatusHook(func(req *http.Request) (int, bool) {
-				if len(messageIDs) < 3 {
-					return 0, false
-				}
-
 				if strings.Contains(req.URL.Path, "/mail/v4/messages/"+messageIDs[2]) {
 					return http.StatusUnprocessableEntity, true
 				}
 
 				return 0, false
-			})
-
-			// Create 10 more messages for the user, generating events.
-			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
-				messageIDs = createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
 			})
 
 			// Remove messages
@@ -370,6 +371,396 @@ func TestBridge_User_Network_NoBadEvents(t *testing.T) {
 			setResponseAndWait(0)
 			time.Sleep(10 * time.Second) // needs up to 20 seconds to retry
 			userContinueEventProcess(ctx, t, s, bridge)
+		})
+	})
+}
+
+func TestBridge_User_DropConn_NoBadEvent(t *testing.T) {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+
+	dropListener := proton.NewListener(l, proton.NewDropConn)
+	defer func() { _ = dropListener.Close() }()
+
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		_, addrID, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		// Create 10 messages for the user.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+
+			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).AnyTimes()
+
+			// Create 10 more messages for the user, generating events.
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
+			})
+
+			var count int
+
+			// The first 10 times bridge attempts to sync any of the messages, drop the connection.
+			s.AddStatusHook(func(req *http.Request) (int, bool) {
+				if strings.Contains(req.URL.Path, "/mail/v4/messages") {
+					if count++; count < 10 {
+						dropListener.DropAll()
+					}
+				}
+
+				return 0, false
+			})
+
+			info, err := bridge.QueryUserInfo("user")
+			require.NoError(t, err)
+
+			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+			require.NoError(t, err)
+			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+			defer func() { _ = client.Logout() }()
+
+			// The IMAP client will eventually see 20 messages.
+			require.Eventually(t, func() bool {
+				status, err := client.Status("INBOX", []imap.StatusItem{imap.StatusMessages})
+				return err == nil && status.Messages == 20
+			}, 10*time.Second, 100*time.Millisecond)
+		})
+	}, server.WithListener(dropListener))
+}
+
+func TestBridge_User_UpdateDraftAndCreateOtherMessage(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a bridge user.
+		_, _, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		// Initially sync the user.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+		})
+
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			user, err := c.GetUser(ctx)
+			require.NoError(t, err)
+
+			addrs, err := c.GetAddresses(ctx)
+			require.NoError(t, err)
+
+			salts, err := c.GetSalts(ctx)
+			require.NoError(t, err)
+
+			keyPass, err := salts.SaltForKey(password, user.Keys.Primary().ID)
+			require.NoError(t, err)
+
+			_, addrKRs, err := proton.Unlock(user, addrs, keyPass)
+			require.NoError(t, err)
+
+			// Create a draft (generating a "create draft message" event).
+			draft, err := c.CreateDraft(ctx, addrKRs[addrs[0].ID], proton.CreateDraftReq{
+				Message: proton.DraftTemplate{
+					Subject:  "subject",
+					Sender:   &mail.Address{Name: "sender", Address: addrs[0].Email},
+					Body:     "body",
+					MIMEType: rfc822.TextPlain,
+				},
+			})
+			require.NoError(t, err)
+
+			// Process those events
+			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+				userContinueEventProcess(ctx, t, s, bridge)
+			})
+
+			// Update the draft (generating an "update draft message" event).
+			require.NoError(t, getErr(c.UpdateDraft(ctx, draft.ID, addrKRs[addrs[0].ID], proton.UpdateDraftReq{
+				Message: proton.DraftTemplate{
+					Subject:  "subject 2",
+					Sender:   &mail.Address{Name: "sender", Address: addrs[0].Email},
+					Body:     "body 2",
+					MIMEType: rfc822.TextPlain,
+				},
+			})))
+
+			// Import a message (generating a "create message" event).
+			str, err := c.ImportMessages(ctx, addrKRs[addrs[0].ID], 1, 1, proton.ImportReq{
+				Metadata: proton.ImportMetadata{
+					AddressID: addrs[0].ID,
+					Flags:     proton.MessageFlagReceived,
+				},
+				Message: []byte("From: someone@example.com\r\nTo: blabla@example.com\r\n\r\nhello"),
+			})
+			require.NoError(t, err)
+
+			res, err := stream.Collect(ctx, str)
+			require.NoError(t, err)
+
+			// Process those events.
+			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+				userContinueEventProcess(ctx, t, s, bridge)
+			})
+
+			// Update the imported message (generating an "update message" event).
+			require.NoError(t, c.MarkMessagesUnread(ctx, res[0].MessageID))
+
+			// Process those events.
+			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+				userContinueEventProcess(ctx, t, s, bridge)
+			})
+		})
+	})
+}
+
+func TestBridge_User_SendDraftRemoveDraftFlag(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a bridge user.
+		_, _, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		// Initially sync the user.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+		})
+
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			user, err := c.GetUser(ctx)
+			require.NoError(t, err)
+
+			addrs, err := c.GetAddresses(ctx)
+			require.NoError(t, err)
+
+			salts, err := c.GetSalts(ctx)
+			require.NoError(t, err)
+
+			keyPass, err := salts.SaltForKey(password, user.Keys.Primary().ID)
+			require.NoError(t, err)
+
+			_, addrKRs, err := proton.Unlock(user, addrs, keyPass)
+			require.NoError(t, err)
+
+			// Create a draft (generating a "create draft message" event).
+			draft, err := c.CreateDraft(ctx, addrKRs[addrs[0].ID], proton.CreateDraftReq{
+				Message: proton.DraftTemplate{
+					Subject:  "subject",
+					ToList:   []*mail.Address{{Address: addrs[0].Email}},
+					Sender:   &mail.Address{Name: "sender", Address: addrs[0].Email},
+					Body:     "body",
+					MIMEType: rfc822.TextPlain,
+				},
+			})
+			require.NoError(t, err)
+
+			// Process those events
+			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+				userContinueEventProcess(ctx, t, s, bridge)
+
+				info, err := bridge.QueryUserInfo("user")
+				require.NoError(t, err)
+
+				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+				require.NoError(t, err)
+				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+				defer func() { _ = client.Logout() }()
+
+				messages, err := clientFetch(client, "Drafts")
+				require.NoError(t, err)
+				require.Len(t, messages, 1)
+				require.Contains(t, messages[0].Flags, imap.DraftFlag)
+			})
+
+			// Send the draft (generating an "update message" event).
+			{
+				pubKeys, recType, err := c.GetPublicKeys(ctx, addrs[0].Email)
+				require.NoError(t, err)
+				require.Equal(t, recType, proton.RecipientTypeInternal)
+
+				var req proton.SendDraftReq
+
+				require.NoError(t, req.AddTextPackage(addrKRs[addrs[0].ID], "body", rfc822.TextPlain, map[string]proton.SendPreferences{
+					addrs[0].Email: {
+						Encrypt:          true,
+						PubKey:           must(crypto.NewKeyRing(must(crypto.NewKeyFromArmored(pubKeys[0].PublicKey)))),
+						SignatureType:    proton.DetachedSignature,
+						EncryptionScheme: proton.InternalScheme,
+						MIMEType:         rfc822.TextPlain,
+					},
+				}, nil))
+
+				require.NoError(t, getErr(c.SendDraft(ctx, draft.ID, req)))
+			}
+
+			// Process those events; the draft will move to the sent folder and lose the draft flag.
+			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+				userContinueEventProcess(ctx, t, s, bridge)
+
+				info, err := bridge.QueryUserInfo("user")
+				require.NoError(t, err)
+
+				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+				require.NoError(t, err)
+				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+				defer func() { _ = client.Logout() }()
+
+				messages, err := clientFetch(client, "Sent")
+				require.NoError(t, err)
+				require.Len(t, messages, 1)
+				require.NotContains(t, messages[0].Flags, imap.DraftFlag)
+			})
+		})
+	})
+}
+
+func TestBridge_User_DisableEnableAddress(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		userID, _, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		// Create an additional address for the user.
+		aliasID, err := s.CreateAddress(userID, "alias@"+s.GetDomain(), password)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			require.NoError(t, getErr(bridge.LoginFull(ctx, "user", password, nil, nil)))
+
+			// Initially we should list the address.
+			info, err := bridge.QueryUserInfo("user")
+			require.NoError(t, err)
+			require.Contains(t, info.Addresses, "alias@"+s.GetDomain())
+		})
+
+		// Disable the address.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			require.NoError(t, c.DisableAddress(ctx, aliasID))
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Eventually we shouldn't list the address.
+			require.Eventually(t, func() bool {
+				info, err := bridge.QueryUserInfo("user")
+				require.NoError(t, err)
+
+				return xslices.Index(info.Addresses, "alias@"+s.GetDomain()) < 0
+			}, 5*time.Second, 100*time.Millisecond)
+		})
+
+		// Enable the address.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			require.NoError(t, c.EnableAddress(ctx, aliasID))
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Eventually we should list the address.
+			require.Eventually(t, func() bool {
+				info, err := bridge.QueryUserInfo("user")
+				require.NoError(t, err)
+
+				return xslices.Index(info.Addresses, "alias@"+s.GetDomain()) >= 0
+			}, 5*time.Second, 100*time.Millisecond)
+		})
+	})
+}
+
+func TestBridge_User_CreateDisabledAddress(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		userID, _, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		// Create an additional address for the user.
+		aliasID, err := s.CreateAddress(userID, "alias@"+s.GetDomain(), password)
+		require.NoError(t, err)
+
+		// Immediately disable the address.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			require.NoError(t, c.DisableAddress(ctx, aliasID))
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			require.NoError(t, getErr(bridge.LoginFull(ctx, "user", password, nil, nil)))
+
+			// Initially we shouldn't list the address.
+			info, err := bridge.QueryUserInfo("user")
+			require.NoError(t, err)
+			require.NotContains(t, info.Addresses, "alias@"+s.GetDomain())
+		})
+	})
+}
+
+func TestBridge_User_HandleParentLabelRename(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			require.NoError(t, getErr(bridge.LoginFull(ctx, username, password, nil, nil)))
+
+			info, err := bridge.QueryUserInfo(username)
+			require.NoError(t, err)
+
+			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+			require.NoError(t, err)
+			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+			defer func() { _ = client.Logout() }()
+
+			withClient(ctx, t, s, username, password, func(ctx context.Context, c *proton.Client) {
+				parentName := uuid.NewString()
+				childName := uuid.NewString()
+
+				// Create a folder.
+				parentLabel, err := c.CreateLabel(ctx, proton.CreateLabelReq{
+					Name:  parentName,
+					Type:  proton.LabelTypeFolder,
+					Color: "#f66",
+				})
+				require.NoError(t, err)
+
+				// Wait for the parent folder to be created.
+				require.Eventually(t, func() bool {
+					return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+						return mailbox.Name == fmt.Sprintf("Folders/%v", parentName)
+					}) >= 0
+				}, 100*user.EventPeriod, user.EventPeriod)
+
+				// Create a subfolder.
+				childLabel, err := c.CreateLabel(ctx, proton.CreateLabelReq{
+					Name:     childName,
+					Type:     proton.LabelTypeFolder,
+					Color:    "#f66",
+					ParentID: parentLabel.ID,
+				})
+				require.NoError(t, err)
+				require.Equal(t, parentLabel.ID, childLabel.ParentID)
+
+				// Wait for the parent folder to be created.
+				require.Eventually(t, func() bool {
+					return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+						return mailbox.Name == fmt.Sprintf("Folders/%v/%v", parentName, childName)
+					}) >= 0
+				}, 100*user.EventPeriod, user.EventPeriod)
+
+				newParentName := uuid.NewString()
+
+				// Rename the parent folder.
+				require.NoError(t, getErr(c.UpdateLabel(ctx, parentLabel.ID, proton.UpdateLabelReq{
+					Color: "#f66",
+					Name:  newParentName,
+				})))
+
+				// Wait for the parent folder to be renamed.
+				require.Eventually(t, func() bool {
+					return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+						return mailbox.Name == fmt.Sprintf("Folders/%v", newParentName)
+					}) >= 0
+				}, 100*user.EventPeriod, user.EventPeriod)
+
+				// Wait for the child folder to be renamed.
+				require.Eventually(t, func() bool {
+					return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+						return mailbox.Name == fmt.Sprintf("Folders/%v/%v", newParentName, childName)
+					}) >= 0
+				}, 100*user.EventPeriod, user.EventPeriod)
+			})
 		})
 	})
 }

@@ -32,7 +32,6 @@ func newAPIOptions(
 	version *semver.Version,
 	cookieJar http.CookieJar,
 	transport http.RoundTripper,
-	poolSize int,
 ) []proton.Option {
-	return defaultAPIOptions(apiURL, version, cookieJar, transport, poolSize)
+	return defaultAPIOptions(apiURL, version, cookieJar, transport)
 }

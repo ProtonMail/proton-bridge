@@ -88,13 +88,12 @@ type User struct {
 	pollAPIEventsCh chan chan struct{}
 	goPollAPIEvents func(wait bool)
 
-	syncWorkers int
 	showAllMail uint32
+
+	maxSyncMemory uint64
 }
 
 // New returns a new user.
-//
-// nolint:funlen
 func New(
 	ctx context.Context,
 	encVault *vault.User,
@@ -102,9 +101,9 @@ func New(
 	reporter reporter.Reporter,
 	apiUser proton.User,
 	crashHandler async.PanicHandler,
-	syncWorkers int,
 	showAllMail bool,
-) (*User, error) { //nolint:funlen
+	maxSyncMemory uint64,
+) (*User, error) {
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
 
 	// Get the user's API addresses.
@@ -146,8 +145,9 @@ func New(
 		tasks:           async.NewGroup(context.Background(), crashHandler),
 		pollAPIEventsCh: make(chan chan struct{}),
 
-		syncWorkers: syncWorkers,
 		showAllMail: b32(showAllMail),
+
+		maxSyncMemory: maxSyncMemory,
 	}
 
 	// Initialize the user's update channels for its current address mode.
@@ -193,7 +193,15 @@ func New(
 		// Sync the user.
 		user.syncAbort.Do(ctx, func(ctx context.Context) {
 			if user.vault.SyncStatus().IsComplete() {
-				user.log.Info("Sync already complete, skipping")
+				user.log.Info("Sync already complete, only system label will be updated")
+
+				if err := user.syncSystemLabels(ctx); err != nil {
+					user.log.WithError(err).Error("Failed to update system labels")
+					return
+				}
+
+				user.log.Info("System label update complete, starting API event stream")
+
 				return
 			}
 
@@ -257,11 +265,13 @@ func (user *User) Match(query string) bool {
 	}, user.apiUserLock, user.apiAddrsLock)
 }
 
-// Emails returns all the user's email addresses.
+// Emails returns all the user's active email addresses.
 // It returns them in sorted order; the user's primary address is first.
 func (user *User) Emails() []string {
 	return safe.RLockRet(func() []string {
-		addresses := maps.Values(user.apiAddrs)
+		addresses := xslices.Filter(maps.Values(user.apiAddrs), func(addr proton.Address) bool {
+			return addr.Status == proton.AddressStatusEnabled
+		})
 
 		slices.SortFunc(addresses, func(a, b proton.Address) bool {
 			return a.Order < b.Order
@@ -432,8 +442,6 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 }
 
 // SendMail sends an email from the given address to the given recipients.
-//
-// nolint:funlen
 func (user *User) SendMail(authID string, from string, to []string, r io.Reader) error {
 	if user.vault.SyncStatus().IsComplete() {
 		defer user.goPollAPIEvents(true)
@@ -636,13 +644,11 @@ func (user *User) startEvents(ctx context.Context) {
 }
 
 // doEventPoll is called whenever API events should be polled.
-//
-//nolint:funlen
 func (user *User) doEventPoll(ctx context.Context) error {
 	user.eventLock.Lock()
 	defer user.eventLock.Unlock()
 
-	event, err := user.client.GetEvent(ctx, user.vault.EventID())
+	event, _, err := user.client.GetEvent(ctx, user.vault.EventID())
 	if err != nil {
 		return fmt.Errorf("failed to get event (caused by %T): %w", internal.ErrCause(err), err)
 	}

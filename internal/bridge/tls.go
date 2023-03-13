@@ -18,5 +18,9 @@
 package bridge
 
 func (bridge *Bridge) GetBridgeTLSCert() ([]byte, []byte) {
-	return bridge.vault.GetBridgeTLSCert(), bridge.vault.GetBridgeTLSKey()
+	return bridge.vault.GetBridgeTLSCert()
+}
+
+func (bridge *Bridge) SetBridgeTLSCertPath(certPath, keyPath string) error {
+	return bridge.vault.SetBridgeTLSCertPath(certPath, keyPath)
 }

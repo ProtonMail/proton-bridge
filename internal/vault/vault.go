@@ -191,6 +191,10 @@ func (vault *Vault) Reset(gluonDir string) error {
 	})
 }
 
+func (vault *Vault) Path() string {
+	return vault.path
+}
+
 func (vault *Vault) Close() error {
 	vault.refLock.Lock()
 	defer vault.refLock.Unlock()

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-package grpc
+package service
 
 import (
 	"path/filepath"
@@ -46,11 +46,11 @@ func TestConfig(t *testing.T) {
 	require.NoError(t, conf1.save(tempFilePath))
 
 	conf2 := Config{}
-	require.NoError(t, conf2.load(tempFilePath))
+	require.NoError(t, conf2.Load(tempFilePath))
 	require.Equal(t, conf1, conf2)
 
 	// failure to load
-	require.Error(t, conf2.load(tempFilePath+"_"))
+	require.Error(t, conf2.Load(tempFilePath+"_"))
 
 	// failure to save
 	require.Error(t, conf2.save(filepath.Join(tempDir, "non/existing/folder", tempFileName)))
