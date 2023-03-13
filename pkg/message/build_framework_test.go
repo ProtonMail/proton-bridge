@@ -39,28 +39,48 @@ func newTestMessage(
 	messageID, addressID, mimeType, body string, //nolint:unparam
 	date time.Time,
 ) proton.Message {
+	return newTestMessageWithHeaders(t, kr, messageID, addressID, mimeType, body, date, nil)
+}
+
+func newRawTestMessage(messageID, addressID, mimeType, body string, date time.Time) proton.Message { // nolint:unparam
+	return newRawTestMessageWithHeaders(messageID, addressID, mimeType, body, date, nil)
+}
+
+func newTestMessageWithHeaders(
+	t *testing.T,
+	kr *crypto.KeyRing,
+	messageID, addressID, mimeType, body string, //nolint:unparam
+	date time.Time,
+	headers map[string][]string,
+) proton.Message {
 	enc, err := kr.Encrypt(crypto.NewPlainMessageFromString(body), kr)
 	require.NoError(t, err)
 
 	arm, err := enc.GetArmored()
 	require.NoError(t, err)
 
-	return newRawTestMessage(messageID, addressID, mimeType, arm, date)
+	return newRawTestMessageWithHeaders(messageID, addressID, mimeType, arm, date, headers)
 }
 
-func newRawTestMessage(messageID, addressID, mimeType, body string, date time.Time) proton.Message {
+func newRawTestMessageWithHeaders(messageID, addressID, mimeType, body string, date time.Time, headers map[string][]string) proton.Message {
+	msgHeaders := proton.Headers{
+		"Content-Type": {mimeType},
+		"Date":         {date.In(time.UTC).Format(time.RFC1123Z)},
+	}
+
+	for k, v := range headers {
+		msgHeaders[k] = v
+	}
+
 	return proton.Message{
 		MessageMetadata: proton.MessageMetadata{
 			ID:        messageID,
 			AddressID: addressID,
 			Time:      date.Unix(),
 		},
-		ParsedHeaders: proton.Headers{
-			"Content-Type": {mimeType},
-			"Date":         {date.In(time.UTC).Format(time.RFC1123Z)},
-		},
-		MIMEType: rfc822.MIMEType(mimeType),
-		Body:     body,
+		ParsedHeaders: msgHeaders,
+		MIMEType:      rfc822.MIMEType(mimeType),
+		Body:          body,
 	}
 }
 
