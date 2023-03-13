@@ -36,6 +36,7 @@ import (
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/textproto"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -543,7 +544,17 @@ func getAttachmentPartHeader(att proton.Attachment) message.Header {
 	hdr := toMessageHeader(att.Headers)
 
 	// All attachments have a content type.
-	hdr.SetContentType(string(att.MIMEType), map[string]string{"name": mime.QEncoding.Encode("utf-8", att.Name)})
+	mimeType, params, err := mime.ParseMediaType(string(att.MIMEType))
+	if err != nil {
+		logrus.WithError(err).Errorf("Failed to parse mime type: '%v'", att.MIMEType)
+		hdr.Set("Content-Type", string(att.MIMEType))
+	} else {
+		// Merge the overridden name into the params
+		encodedName := mime.QEncoding.Encode("utf-8", att.Name)
+		params["name"] = encodedName
+		params["filename"] = encodedName
+		hdr.SetContentType(mimeType, params)
+	}
 
 	// All attachments have a content disposition.
 	hdr.SetContentDisposition(string(att.Disposition), map[string]string{"filename": mime.QEncoding.Encode("utf-8", att.Name)})
