@@ -117,6 +117,10 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 				return fmt.Errorf("failed to get first key: %w", err)
 			}
 
+			// Ensure that there is always a text/html or text/plain body part. This is required by the API. If none
+			// exists and empty text part will be added.
+			parser.AttachEmptyTextPartIfNoneExists()
+
 			// If we have to attach the public key, do it now.
 			if settings.AttachPublicKey {
 				key, err := addrKR.GetKey(0)

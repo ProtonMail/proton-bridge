@@ -351,7 +351,7 @@ func withClient(ctx context.Context, t *testing.T, s *server.Server, username st
 	fn(ctx, c)
 }
 
-func clientFetch(client *client.Client, mailbox string) ([]*imap.Message, error) {
+func clientFetch(client *client.Client, mailbox string, extraItems ...imap.FetchItem) ([]*imap.Message, error) {
 	status, err := client.Select(mailbox, false)
 	if err != nil {
 		return nil, err
@@ -363,10 +363,13 @@ func clientFetch(client *client.Client, mailbox string) ([]*imap.Message, error)
 
 	resCh := make(chan *imap.Message)
 
+	fetchItems := []imap.FetchItem{imap.FetchFlags, imap.FetchEnvelope, imap.FetchUid, imap.FetchBodyStructure, "BODY.PEEK[]"}
+	fetchItems = append(fetchItems, extraItems...)
+
 	go func() {
 		if err := client.Fetch(
 			&imap.SeqSet{Set: []imap.Seq{{Start: 1, Stop: status.Messages}}},
-			[]imap.FetchItem{imap.FetchFlags, imap.FetchEnvelope, imap.FetchUid, "BODY.PEEK[]"},
+			fetchItems,
 			resCh,
 		); err != nil {
 			panic(err)

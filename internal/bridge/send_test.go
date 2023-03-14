@@ -330,3 +330,182 @@ func TestBridge_SendInvite(t *testing.T) {
 		})
 	})
 }
+
+func TestBridge_SendAddTextBodyPartIfNotExists(t *testing.T) {
+	const messageMultipartWithoutText = `Content-Type: multipart/mixed;
+  boundary="Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84"
+Subject: A new message
+Date: Mon, 13 Mar 2023 16:06:16 +0100
+
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84
+Content-Disposition: inline;
+  filename=Cat_August_2010-4.jpeg
+Content-Type: image/jpeg;
+  name="Cat_August_2010-4.jpeg"
+Content-Transfer-Encoding: base64
+
+SGVsbG8gd29ybGQ=
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84--
+	`
+
+	const messageMultipartWithText = `Content-Type: multipart/mixed;
+  boundary="Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84"
+Subject: A new message Part2 
+Date: Mon, 13 Mar 2023 16:06:16 +0100
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84
+Content-Disposition: inline;
+  filename=Cat_August_2010-4.jpeg
+Content-Type: image/jpeg;
+  name="Cat_August_2010-4.jpeg"
+Content-Transfer-Encoding: base64
+
+SGVsbG8gd29ybGQ=
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84
+Content-Type: text/html;charset=utf8
+Content-Transfer-Encoding: quoted-printable
+
+Hello world
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84--
+`
+
+	const messageWithTextOnly = `Content-Type: text/plain;charset=utf8
+Content-Transfer-Encoding: quoted-printable
+Subject: A new message Part3
+Date: Mon, 13 Mar 2023 16:06:16 +0100
+
+Hello world
+
+`
+
+	const messageMultipartWithoutTextWithTextAttachment = `Content-Type: multipart/mixed;
+  boundary="Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84"
+Subject: A new message Part4
+Date: Mon, 13 Mar 2023 16:06:16 +0100
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84
+Content-Type: text/plain; charset=UTF-8; name="text.txt"
+Content-Disposition: attachment; filename="text.txt"
+Content-Transfer-Encoding: base64
+
+SGVsbG8gd29ybGQK
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84--
+`
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		_, _, err := s.CreateUser("recipient", password)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			senderUserID, err := bridge.LoginFull(ctx, username, password, nil, nil)
+			require.NoError(t, err)
+
+			recipientUserID, err := bridge.LoginFull(ctx, "recipient", password, nil, nil)
+			require.NoError(t, err)
+
+			senderInfo, err := bridge.GetUserInfo(senderUserID)
+			require.NoError(t, err)
+
+			recipientInfo, err := bridge.GetUserInfo(recipientUserID)
+			require.NoError(t, err)
+
+			messages := []string{
+				messageMultipartWithoutText,
+				messageMultipartWithText,
+				messageWithTextOnly,
+				messageMultipartWithoutTextWithTextAttachment,
+			}
+
+			for _, m := range messages {
+				// Dial the server.
+				client, err := smtp.Dial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetSMTPPort())))
+				require.NoError(t, err)
+				defer client.Close() //nolint:errcheck
+
+				// Upgrade to TLS.
+				require.NoError(t, client.StartTLS(&tls.Config{InsecureSkipVerify: true}))
+
+				// Authorize with SASL LOGIN.
+				require.NoError(t, client.Auth(sasl.NewLoginClient(
+					senderInfo.Addresses[0],
+					string(senderInfo.BridgePass)),
+				))
+
+				// Send the message.
+				require.NoError(t, client.SendMail(
+					senderInfo.Addresses[0],
+					[]string{recipientInfo.Addresses[0]},
+					strings.NewReader(m),
+				))
+			}
+
+			// Connect the sender IMAP client.
+			senderIMAPClient, err := client.Dial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetIMAPPort())))
+			require.NoError(t, err)
+			require.NoError(t, senderIMAPClient.Login(senderInfo.Addresses[0], string(senderInfo.BridgePass)))
+			defer senderIMAPClient.Logout() //nolint:errcheck
+
+			// Connect the recipient IMAP client.
+			recipientIMAPClient, err := client.Dial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetIMAPPort())))
+			require.NoError(t, err)
+			require.NoError(t, recipientIMAPClient.Login(recipientInfo.Addresses[0], string(recipientInfo.BridgePass)))
+			defer recipientIMAPClient.Logout() //nolint:errcheck
+
+			require.Eventually(t, func() bool {
+				messages, err := clientFetch(senderIMAPClient, `Sent`, imap.FetchBodyStructure)
+				require.NoError(t, err)
+				require.Equal(t, 4, len(messages))
+
+				// messages may not be in order
+				for _, message := range messages {
+					switch {
+					case message.Envelope.Subject == "A new message":
+						// The message that was sent should now include an empty text/plain body part since there was none
+						// in the original message.
+						require.Equal(t, 2, len(message.BodyStructure.Parts))
+
+						require.Equal(t, "text", message.BodyStructure.Parts[0].MIMEType)
+						require.Equal(t, "plain", message.BodyStructure.Parts[0].MIMESubType)
+						require.Equal(t, uint32(0), message.BodyStructure.Parts[0].Size)
+						require.Equal(t, "image", message.BodyStructure.Parts[1].MIMEType)
+						require.Equal(t, "jpeg", message.BodyStructure.Parts[1].MIMESubType)
+
+					case message.Envelope.Subject == "A new message Part2":
+						// This message already has a text body, should be unchanged
+						require.Equal(t, 2, len(message.BodyStructure.Parts))
+
+						require.Equal(t, "image", message.BodyStructure.Parts[1].MIMEType)
+						require.Equal(t, "jpeg", message.BodyStructure.Parts[1].MIMESubType)
+						require.Equal(t, "text", message.BodyStructure.Parts[0].MIMEType)
+						require.Equal(t, "html", message.BodyStructure.Parts[0].MIMESubType)
+
+					case message.Envelope.Subject == "A new message Part3":
+						// This message already has a text body, should be unchanged
+						require.Equal(t, 0, len(message.BodyStructure.Parts))
+
+						require.Equal(t, "text", message.BodyStructure.MIMEType)
+						require.Equal(t, "plain", message.BodyStructure.MIMESubType)
+
+					case message.Envelope.Subject == "A new message Part4":
+						// The message that was sent should now include an empty text/plain body part since even though
+						// there was only a text/plain attachment in the original message.
+						require.Equal(t, 2, len(message.BodyStructure.Parts))
+
+						require.Equal(t, "text", message.BodyStructure.Parts[0].MIMEType)
+						require.Equal(t, "plain", message.BodyStructure.Parts[0].MIMESubType)
+						require.Equal(t, uint32(0), message.BodyStructure.Parts[0].Size)
+						require.Equal(t, "text", message.BodyStructure.Parts[1].MIMEType)
+						require.Equal(t, "plain", message.BodyStructure.Parts[1].MIMESubType)
+						require.Equal(t, "attachment", message.BodyStructure.Parts[1].Disposition)
+					}
+				}
+
+				return true
+			}, 10*time.Second, 100*time.Millisecond)
+		})
+	})
+}
