@@ -5,6 +5,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## [Bridge 3.1.0] Quebec
 
 ### Changed
+* Update GPA to include detailed error messages.
+* GODT-2479: Ensure messages always have a text body part.
+* GODT-2482: More attachment to relevant exceptions.
 * GODT-2224: Refactor bridge sync to use less memory.
 * GODT-2448: Supported Answered flag.
 * GODT-2382: Added bridge-gui settings file with 'UseSoftwareRenderer' value.
