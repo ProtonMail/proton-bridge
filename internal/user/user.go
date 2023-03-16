@@ -678,11 +678,6 @@ func (user *User) doEventPoll(ctx context.Context) error {
 
 		// Catch all for uncategorized net errors that may slip through.
 		if netErr := new(net.OpError); errors.As(err, &netErr) {
-			user.eventCh.Enqueue(events.UncategorizedEventError{
-				UserID: user.ID(),
-				Error:  err,
-			})
-
 			return fmt.Errorf("failed to handle event due to network issues (uncategorized): %w", err)
 		}
 
@@ -698,11 +693,6 @@ func (user *User) doEventPoll(ctx context.Context) error {
 
 		// If the error is an unexpected EOF, return error to retry later.
 		if errors.Is(err, io.ErrUnexpectedEOF) {
-			user.eventCh.Enqueue(events.UncategorizedEventError{
-				UserID: user.ID(),
-				Error:  err,
-			})
-
 			return fmt.Errorf("failed to handle event due to EOF: %w", err)
 		}
 
