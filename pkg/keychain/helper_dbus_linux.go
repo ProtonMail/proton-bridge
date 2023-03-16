@@ -20,6 +20,8 @@ package keychain
 import (
 	"strings"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/godbus/dbus"
 	"github.com/keybase/go-keychain/secretservice"
@@ -30,9 +32,12 @@ const (
 	labelAtt    = "label"
 	usernameAtt = "username"
 
-	defaulDomain = "protonmail/bridge/users/"
-	defaultLabel = "Docker Credentials"
+	defaultLabel = "Proton Mail Bridge Credentials"
 )
+
+func getDomain() string {
+	return hostURL(constants.KeyChainName)
+}
 
 func getSession() (*secretservice.SecretService, *secretservice.Session, error) {
 	service, err := secretservice.NewService()
@@ -73,8 +78,9 @@ func getItems(service *secretservice.SecretService, attributes map[string]string
 	if err != nil {
 		return nil, err
 	}
-
-	return items, err
+	return xslices.Filter(items, func(t dbus.ObjectPath) bool {
+		return strings.HasPrefix(string(t), "/org/freedesktop/secrets")
+	}), err
 }
 
 func unlock(service *secretservice.SecretService) error {
@@ -105,11 +111,9 @@ func (s *SecretServiceDBusHelper) Add(creds *credentials.Credentials) error {
 	}
 
 	attributes := map[string]string{
-		usernameAtt:  creds.Username,
-		serverAtt:    creds.ServerURL,
-		labelAtt:     defaultLabel,
-		"xdg:schema": "io.docker.Credentials",
-		"docker_cli": "1",
+		usernameAtt: creds.Username,
+		serverAtt:   creds.ServerURL,
+		labelAtt:    defaultLabel,
 	}
 
 	return handleTimeout(func() error {
@@ -203,13 +207,15 @@ func (s *SecretServiceDBusHelper) List() (map[string]string, error) {
 		return nil, err
 	}
 
+	defaultDomain := getDomain()
+
 	for _, it := range items {
 		attributes, err := service.GetAttributes(it)
 		if err != nil {
 			return nil, err
 		}
 
-		if !strings.HasPrefix(attributes[serverAtt], defaulDomain) {
+		if !strings.HasPrefix(attributes[serverAtt], defaultDomain) {
 			continue
 		}
 
