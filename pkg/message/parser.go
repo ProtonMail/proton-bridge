@@ -73,6 +73,15 @@ type Attachment struct {
 
 // Parse parses an RFC822 message.
 func Parse(r io.Reader) (m Message, err error) {
+	return parseIOReaderImpl(r, false)
+}
+
+// ParseAndAllowInvalidAddressLists parses an RFC822 message and allows email address lists to be invalid.
+func ParseAndAllowInvalidAddressLists(r io.Reader) (m Message, err error) {
+	return parseIOReaderImpl(r, true)
+}
+
+func parseIOReaderImpl(r io.Reader, allowInvalidAddressLists bool) (m Message, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic while parsing message: %v", r)
@@ -84,21 +93,21 @@ func Parse(r io.Reader) (m Message, err error) {
 		return Message{}, errors.Wrap(err, "failed to create new parser")
 	}
 
-	return parse(p)
+	return parse(p, allowInvalidAddressLists)
 }
 
 // ParseWithParser parses an RFC822 message using an existing parser.
-func ParseWithParser(p *parser.Parser) (m Message, err error) {
+func ParseWithParser(p *parser.Parser, allowInvalidAddressLists bool) (m Message, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("panic while parsing message: %v", r)
 		}
 	}()
 
-	return parse(p)
+	return parse(p, allowInvalidAddressLists)
 }
 
-func parse(p *parser.Parser) (Message, error) {
+func parse(p *parser.Parser, allowInvalidAddressLists bool) (Message, error) {
 	if err := convertEncodedTransferEncoding(p); err != nil {
 		return Message{}, errors.Wrap(err, "failed to convert encoded transfer encoding")
 	}
@@ -107,7 +116,7 @@ func parse(p *parser.Parser) (Message, error) {
 		return Message{}, errors.Wrap(err, "failed to convert foreign encodings")
 	}
 
-	m, err := parseMessageHeader(p.Root().Header)
+	m, err := parseMessageHeader(p.Root().Header, allowInvalidAddressLists)
 	if err != nil {
 		return Message{}, errors.Wrap(err, "failed to parse message header")
 	}
@@ -433,7 +442,7 @@ func getPlainBody(part *parser.Part) []byte {
 	}
 }
 
-func parseMessageHeader(h message.Header) (Message, error) {
+func parseMessageHeader(h message.Header, allowInvalidAddressLists bool) (Message, error) {
 	var m Message
 
 	for fields := h.Fields(); fields.Next(); {
@@ -451,7 +460,11 @@ func parseMessageHeader(h message.Header) (Message, error) {
 		case "from":
 			sender, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return Message{}, errors.Wrap(err, "failed to parse from")
+				if !allowInvalidAddressLists {
+					return Message{}, errors.Wrap(err, "failed to parse from")
+				}
+
+				logrus.WithError(err).Warn("failed to parse from")
 			}
 
 			if len(sender) > 0 {
@@ -461,7 +474,11 @@ func parseMessageHeader(h message.Header) (Message, error) {
 		case "to":
 			toList, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return Message{}, errors.Wrap(err, "failed to parse to")
+				if !allowInvalidAddressLists {
+					return Message{}, errors.Wrap(err, "failed to parse to")
+				}
+
+				logrus.WithError(err).Warn("failed to parse to")
 			}
 
 			m.ToList = toList
@@ -469,7 +486,11 @@ func parseMessageHeader(h message.Header) (Message, error) {
 		case "reply-to":
 			replyTos, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return Message{}, errors.Wrap(err, "failed to parse reply-to")
+				if !allowInvalidAddressLists {
+					return Message{}, errors.Wrap(err, "failed to parse reply-to")
+				}
+
+				logrus.WithError(err).Warn("failed to parse reply-to")
 			}
 
 			m.ReplyTos = replyTos
@@ -477,7 +498,11 @@ func parseMessageHeader(h message.Header) (Message, error) {
 		case "cc":
 			ccList, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return Message{}, errors.Wrap(err, "failed to parse cc")
+				if !allowInvalidAddressLists {
+					return Message{}, errors.Wrap(err, "failed to parse cc")
+				}
+
+				logrus.WithError(err).Warn("failed to parse cc")
 			}
 
 			m.CCList = ccList
@@ -485,7 +510,11 @@ func parseMessageHeader(h message.Header) (Message, error) {
 		case "bcc":
 			bccList, err := rfc5322.ParseAddressList(fields.Value())
 			if err != nil {
-				return Message{}, errors.Wrap(err, "failed to parse bcc")
+				if !allowInvalidAddressLists {
+					return Message{}, errors.Wrap(err, "failed to parse bcc")
+				}
+
+				logrus.WithError(err).Warn("failed to parse bcc")
 			}
 
 			m.BCCList = bccList

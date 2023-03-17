@@ -626,7 +626,7 @@ func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addr
 		return proton.Message{}, fmt.Errorf("failed to create parser: %w", err)
 	}
 
-	message, err := message.ParseWithParser(parser)
+	message, err := message.ParseWithParser(parser, true)
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to parse message: %w", err)
 	}

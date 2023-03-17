@@ -137,7 +137,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 			}
 
 			// Parse the message we want to send (after we have attached the public key).
-			message, err := message.ParseWithParser(parser)
+			message, err := message.ParseWithParser(parser, false)
 			if err != nil {
 				return fmt.Errorf("failed to parse message: %w", err)
 			}
