@@ -639,11 +639,11 @@ func TestParseIcsAttachment(t *testing.T) {
 
 func TestParseAllowInvalidAddress(t *testing.T) {
 	const literal = `To: foo
-	From: bar
-	BCC: fff
-	CC: FFF
-	Reply-To: AAA
-	Subject: Test
+From: bar
+BCC: fff
+CC: FFF
+Reply-To: AAA
+Subject: Test
 `
 
 	// This will fail as the addresses are not valid.

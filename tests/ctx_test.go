@@ -366,6 +366,28 @@ func (t *testCtx) getLastCall(method, pathExp string) (server.Call, error) {
 	return server.Call{}, fmt.Errorf("no call with method %q and path %q was made", method, pathExp)
 }
 
+func (t *testCtx) getLastCallExcludingHTTPOverride(method, pathExp string) (server.Call, error) {
+	t.callsLock.RLock()
+	defer t.callsLock.RUnlock()
+
+	root, err := url.Parse(t.api.GetHostURL())
+	if err != nil {
+		return server.Call{}, err
+	}
+
+	if matches := xslices.Filter(xslices.Join(t.calls...), func(call server.Call) bool {
+		if len(call.RequestHeader.Get("X-HTTP-Method-Override")) != 0 || len(call.RequestHeader.Get("X-Http-Method")) != 0 {
+			return false
+		}
+
+		return call.Method == method && regexp.MustCompile("^"+pathExp+"$").MatchString(strings.TrimPrefix(call.URL.Path, root.Path))
+	}); len(matches) > 0 {
+		return matches[len(matches)-1], nil
+	}
+
+	return server.Call{}, fmt.Errorf("no call with method %q and path %q was made", method, pathExp)
+}
+
 func (t *testCtx) pushError(err error) {
 	t.errorsLock.Lock()
 	defer t.errorsLock.Unlock()
