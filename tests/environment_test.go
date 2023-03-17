@@ -88,7 +88,8 @@ func (s *scenario) theHeaderInTheRequestToHasSetTo(method, path, key, value stri
 }
 
 func (s *scenario) theBodyInTheRequestToIs(method, path string, value *godog.DocString) error {
-	call, err := s.t.getLastCall(method, path)
+	// We have to exclude HTTP-Overrides to avoid race condition with the creating and sending of the draft message.
+	call, err := s.t.getLastCallExcludingHTTPOverride(method, path)
 	if err != nil {
 		return err
 	}
