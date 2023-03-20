@@ -288,8 +288,11 @@ func (s *Service) watchEvents() {
 		case events.UserAddressCreated:
 			_ = s.SendEvent(NewMailAddressChangeEvent(event.Email))
 
-		case events.UserAddressUpdated:
+		case events.UserAddressEnabled:
 			_ = s.SendEvent(NewMailAddressChangeEvent(event.Email))
+
+		case events.UserAddressDisabled:
+			_ = s.SendEvent(NewMailAddressChangeLogoutEvent(event.Email))
 
 		case events.UserAddressDeleted:
 			_ = s.SendEvent(NewMailAddressChangeLogoutEvent(event.Email))

@@ -352,14 +352,6 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:gocyc
 
 			f.Printf("An address for %s was enabled. You may need to reconfigure your email client.\n", user.Username)
 
-		case events.UserAddressUpdated:
-			user, err := f.bridge.GetUserInfo(event.UserID)
-			if err != nil {
-				return
-			}
-
-			f.Printf("Address changed for %s. You may need to reconfigure your email client.\n", user.Username)
-
 		case events.UserAddressDisabled:
 			user, err := f.bridge.GetUserInfo(event.UserID)
 			if err != nil {

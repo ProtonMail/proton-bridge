@@ -71,7 +71,7 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 }
 
 func (bridge *Bridge) handleUserAddressCreated(ctx context.Context, user *user.User, event events.UserAddressCreated) error {
-	if user.GetAddressMode() != vault.SplitMode {
+	if user.GetAddressMode() == vault.CombinedMode {
 		return nil
 	}
 
@@ -92,7 +92,7 @@ func (bridge *Bridge) handleUserAddressCreated(ctx context.Context, user *user.U
 }
 
 func (bridge *Bridge) handleUserAddressEnabled(ctx context.Context, user *user.User, event events.UserAddressEnabled) error {
-	if user.GetAddressMode() != vault.SplitMode {
+	if user.GetAddressMode() == vault.CombinedMode {
 		return nil
 	}
 
@@ -109,7 +109,7 @@ func (bridge *Bridge) handleUserAddressEnabled(ctx context.Context, user *user.U
 }
 
 func (bridge *Bridge) handleUserAddressDisabled(ctx context.Context, user *user.User, event events.UserAddressDisabled) error {
-	if user.GetAddressMode() != vault.SplitMode {
+	if user.GetAddressMode() == vault.CombinedMode {
 		return nil
 	}
 
@@ -130,7 +130,7 @@ func (bridge *Bridge) handleUserAddressDisabled(ctx context.Context, user *user.
 }
 
 func (bridge *Bridge) handleUserAddressDeleted(ctx context.Context, user *user.User, event events.UserAddressDeleted) error {
-	if user.GetAddressMode() != vault.SplitMode {
+	if user.GetAddressMode() == vault.CombinedMode {
 		return nil
 	}
 
