@@ -38,51 +38,49 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMigratePrefsToVault(t *testing.T) {
+func TestMigratePrefsToVaultWithKeys(t *testing.T) {
 	// Create a new vault.
 	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"))
 	require.NoError(t, err)
 	require.False(t, corrupt)
 
 	// load the old prefs file.
-	b, err := os.ReadFile(filepath.Join("testdata", "prefs.json"))
-	require.NoError(t, err)
+	configDir := filepath.Join("testdata", "with_keys")
 
 	// Migrate the old prefs file to the new vault.
-	require.NoError(t, migratePrefsToVault(vault, b))
+	require.NoError(t, migrateOldSettingsWithDir(configDir, vault))
 
-	// Check that the IMAP and SMTP prefs are migrated.
-	require.Equal(t, 2143, vault.GetIMAPPort())
-	require.Equal(t, 2025, vault.GetSMTPPort())
-	require.True(t, vault.GetSMTPSSL())
+	// Check Json Settings
+	validateJSONPrefs(t, vault)
 
-	// Check that the update channel is migrated.
-	require.True(t, vault.GetAutoUpdate())
-	require.Equal(t, updater.EarlyChannel, vault.GetUpdateChannel())
-	require.Equal(t, 0.4849529004202015, vault.GetUpdateRollout())
+	cert, key := vault.GetBridgeTLSCert()
+	// Check the keys were found and collected.
+	require.Equal(t, "-----BEGIN CERTIFICATE-----", string(cert))
+	require.Equal(t, "-----BEGIN RSA PRIVATE KEY-----", string(key))
+}
 
-	// Check that the app settings have been migrated.
-	require.False(t, vault.GetFirstStart())
-	require.Equal(t, "blablabla", vault.GetColorScheme())
-	require.Equal(t, "2.3.0+git", vault.GetLastVersion().String())
-	require.True(t, vault.GetAutostart())
-
-	// Check that the other app settings have been migrated.
-	require.False(t, vault.GetProxyAllowed())
-	require.False(t, vault.GetShowAllMail())
-
-	// Check that the cookies have been migrated.
-	jar, err := cookiejar.New(nil)
+func TestMigratePrefsToVaultWithoutKeys(t *testing.T) {
+	// Create a new vault.
+	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"))
 	require.NoError(t, err)
+	require.False(t, corrupt)
 
-	cookies, err := cookies.NewCookieJar(jar, vault)
-	require.NoError(t, err)
+	// load the old prefs file.
+	configDir := filepath.Join("testdata", "without_keys")
 
-	url, err := url.Parse("https://api.protonmail.ch")
-	require.NoError(t, err)
+	// Migrate the old prefs file to the new vault.
+	require.NoError(t, migrateOldSettingsWithDir(configDir, vault))
 
-	// There should be a cookie for the API.
-	require.NotEmpty(t, cookies.Cookies(url))
+	// Migrate the old prefs file to the new vault.
+	require.NoError(t, migrateOldSettingsWithDir(configDir, vault))
+
+	// Check Json Settings
+	validateJSONPrefs(t, vault)
+
+	// Check the keys were found and collected.
+	cert, key := vault.GetBridgeTLSCert()
+	require.NotEqual(t, []byte("-----BEGIN CERTIFICATE-----"), cert)
+	require.NotEqual(t, []byte("-----BEGIN RSA PRIVATE KEY-----"), key)
 }
 
 func TestKeychainMigration(t *testing.T) {
@@ -99,7 +97,7 @@ func TestKeychainMigration(t *testing.T) {
 		oldCacheDir := filepath.Join(tmpDir, "protonmail", "bridge")
 		require.NoError(t, os.MkdirAll(oldCacheDir, 0o700))
 
-		oldPrefs, err := os.ReadFile(filepath.Join("testdata", "prefs.json"))
+		oldPrefs, err := os.ReadFile(filepath.Join("testdata", "without_keys", "protonmail", "bridge", "prefs.json"))
 		require.NoError(t, err)
 
 		require.NoError(t, os.WriteFile(
@@ -193,4 +191,39 @@ func TestUserMigration(t *testing.T) {
 		)
 		require.Equal(t, vault.CombinedMode, u.AddressMode())
 	}))
+}
+
+func validateJSONPrefs(t *testing.T, vault *vault.Vault) {
+	// Check that the IMAP and SMTP prefs are migrated.
+	require.Equal(t, 2143, vault.GetIMAPPort())
+	require.Equal(t, 2025, vault.GetSMTPPort())
+	require.True(t, vault.GetSMTPSSL())
+
+	// Check that the update channel is migrated.
+	require.True(t, vault.GetAutoUpdate())
+	require.Equal(t, updater.EarlyChannel, vault.GetUpdateChannel())
+	require.Equal(t, 0.4849529004202015, vault.GetUpdateRollout())
+
+	// Check that the app settings have been migrated.
+	require.False(t, vault.GetFirstStart())
+	require.Equal(t, "blablabla", vault.GetColorScheme())
+	require.Equal(t, "2.3.0+git", vault.GetLastVersion().String())
+	require.True(t, vault.GetAutostart())
+
+	// Check that the other app settings have been migrated.
+	require.False(t, vault.GetProxyAllowed())
+	require.False(t, vault.GetShowAllMail())
+
+	// Check that the cookies have been migrated.
+	jar, err := cookiejar.New(nil)
+	require.NoError(t, err)
+
+	cookies, err := cookies.NewCookieJar(jar, vault)
+	require.NoError(t, err)
+
+	url, err := url.Parse("https://api.protonmail.ch")
+	require.NoError(t, err)
+
+	// There should be a cookie for the API.
+	require.NotEmpty(t, cookies.Cookies(url))
 }
