@@ -25,6 +25,14 @@ func (vault *Vault) GetBridgeTLSKey() []byte {
 	return vault.get().Certs.Bridge.Key
 }
 
+// SetBridgeTLSCertKey sets the path to PEM-encoded certificates for the bridge.
+func (vault *Vault) SetBridgeTLSCertKey(cert, key []byte) error {
+	return vault.mod(func(data *Data) {
+		data.Certs.Bridge.Cert = cert
+		data.Certs.Bridge.Key = key
+	})
+}
+
 func (vault *Vault) GetCertsInstalled() bool {
 	return vault.get().Certs.Installed
 }
