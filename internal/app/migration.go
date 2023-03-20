@@ -87,6 +87,11 @@ func migrateOldSettings(v *vault.Vault) error {
 		return fmt.Errorf("failed to get user config dir: %w", err)
 	}
 
+	return migrateOldSettingsWithDir(configDir, v)
+}
+
+// nolint:gosec
+func migrateOldSettingsWithDir(configDir string, v *vault.Vault) error {
 	b, err := os.ReadFile(filepath.Join(configDir, "protonmail", "bridge", "prefs.json"))
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil
@@ -94,7 +99,27 @@ func migrateOldSettings(v *vault.Vault) error {
 		return fmt.Errorf("failed to read old prefs file: %w", err)
 	}
 
-	return migratePrefsToVault(v, b)
+	if err := migratePrefsToVault(v, b); err != nil {
+		return fmt.Errorf("failed to migrate prefs to vault: %w", err)
+	}
+
+	logrus.Info("Migrating TLS certificate")
+
+	certPEM, err := os.ReadFile(filepath.Join(configDir, "protonmail", "bridge", "cert.pem"))
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	} else if err != nil {
+		return fmt.Errorf("failed to read old cert file: %w", err)
+	}
+
+	keyPEM, err := os.ReadFile(filepath.Join(configDir, "protonmail", "bridge", "key.pem"))
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	} else if err != nil {
+		return fmt.Errorf("failed to read old key file: %w", err)
+	}
+
+	return v.SetBridgeTLSCertKey(certPEM, keyPEM)
 }
 
 func migrateOldAccounts(locations *locations.Locations, v *vault.Vault) error {
