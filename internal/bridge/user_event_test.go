@@ -374,6 +374,47 @@ func TestBridge_User_Network_NoBadEvents(t *testing.T) {
 	})
 }
 
+func TestBridge503DuringEventDoesNotCauseBadEvent(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		userID, addrID, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
+		require.NoError(t, err)
+
+		// Create 10 messages for the user.
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			createNumMessages(ctx, t, c, addrID, labelID, 10)
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+
+			var messageIDs []string
+
+			// Create 10 more messages for the user, generating events.
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				messageIDs = createNumMessages(ctx, t, c, addrID, labelID, 10)
+			})
+
+			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).MinTimes(1)
+
+			s.AddStatusHook(func(req *http.Request) (int, bool) {
+				if xslices.Index(xslices.Map(messageIDs[0:5], func(messageID string) string {
+					return "/mail/v4/messages/" + messageID
+				}), req.URL.Path) < 0 {
+					return 0, false
+				}
+
+				return http.StatusServiceUnavailable, true
+			})
+
+			userContinueEventProcess(ctx, t, s, bridge)
+		})
+	})
+}
+
 // userLoginAndSync logs in user and waits until user is fully synced.
 func userLoginAndSync(
 	ctx context.Context,
