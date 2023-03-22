@@ -81,6 +81,7 @@ func newVault(locations *locations.Locations, panicHandler async.PanicHandler) (
 	)
 
 	if key, err := loadVaultKey(vaultDir); err != nil {
+		logrus.WithError(err).Error("Could not load/create vault key")
 		insecure = true
 
 		// We store the insecure vault in a separate directory
