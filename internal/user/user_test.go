@@ -119,7 +119,7 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 	saltedKeyPass, err := salts.SaltForKey([]byte(password), apiUser.Keys.Primary().ID)
 	require.NoError(tb, err)
 
-	v, corrupt, err := vault.New(tb.TempDir(), tb.TempDir(), []byte("my secret key"))
+	v, corrupt, err := vault.New(tb.TempDir(), tb.TempDir(), []byte("my secret key"), nil)
 	require.NoError(tb, err)
 	require.False(tb, corrupt)
 

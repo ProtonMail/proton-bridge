@@ -29,6 +29,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/bradenaw/juniper/parallel"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
@@ -44,10 +45,12 @@ type Vault struct {
 
 	ref     map[string]int
 	refLock sync.Mutex
+
+	panicHandler async.PanicHandler
 }
 
 // New constructs a new encrypted data vault at the given filepath using the given encryption key.
-func New(vaultDir, gluonCacheDir string, key []byte) (*Vault, bool, error) {
+func New(vaultDir, gluonCacheDir string, key []byte, panicHandler async.PanicHandler) (*Vault, bool, error) {
 	if err := os.MkdirAll(vaultDir, 0o700); err != nil {
 		return nil, false, err
 	}
@@ -69,7 +72,15 @@ func New(vaultDir, gluonCacheDir string, key []byte) (*Vault, bool, error) {
 		return nil, false, err
 	}
 
+	vault.panicHandler = panicHandler
+
 	return vault, corrupt, nil
+}
+
+func (vault *Vault) handlePanic() {
+	if vault.panicHandler != nil {
+		vault.panicHandler.HandlePanic()
+	}
 }
 
 // GetUserIDs returns the user IDs and usernames of all users in the vault.
@@ -115,6 +126,8 @@ func (vault *Vault) ForUser(parallelism int, fn func(*User) error) error {
 	userIDs := vault.GetUserIDs()
 
 	return parallel.DoContext(context.Background(), parallelism, len(userIDs), func(_ context.Context, idx int) error {
+		defer vault.handlePanic()
+
 		user, err := vault.NewUser(userIDs[idx])
 		if err != nil {
 			return err

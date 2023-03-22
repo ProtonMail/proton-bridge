@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
@@ -93,6 +94,6 @@ func sortSlice[Item any](items []Item, less func(Item, Item) bool) []Item {
 	return sorted
 }
 
-func newProtonAPIScheduler() proton.Scheduler {
-	return proton.NewParallelScheduler(runtime.NumCPU() / 2)
+func newProtonAPIScheduler(panicHandler async.PanicHandler) proton.Scheduler {
+	return proton.NewParallelScheduler(runtime.NumCPU()/2, panicHandler)
 }

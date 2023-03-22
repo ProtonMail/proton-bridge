@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/stretchr/testify/require"
 )
@@ -30,19 +31,19 @@ func TestVault_Corrupt(t *testing.T) {
 	vaultDir, gluonDir := t.TempDir(), t.TempDir()
 
 	{
-		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"))
+		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), queue.NoopPanicHandler{})
 		require.NoError(t, err)
 		require.False(t, corrupt)
 	}
 
 	{
-		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"))
+		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), queue.NoopPanicHandler{})
 		require.NoError(t, err)
 		require.False(t, corrupt)
 	}
 
 	{
-		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("bad key"))
+		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("bad key"), queue.NoopPanicHandler{})
 		require.NoError(t, err)
 		require.True(t, corrupt)
 	}
@@ -52,13 +53,13 @@ func TestVault_Corrupt_JunkData(t *testing.T) {
 	vaultDir, gluonDir := t.TempDir(), t.TempDir()
 
 	{
-		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"))
+		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), queue.NoopPanicHandler{})
 		require.NoError(t, err)
 		require.False(t, corrupt)
 	}
 
 	{
-		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"))
+		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), queue.NoopPanicHandler{})
 		require.NoError(t, err)
 		require.False(t, corrupt)
 	}
@@ -71,7 +72,7 @@ func TestVault_Corrupt_JunkData(t *testing.T) {
 		_, err = f.Write([]byte("junk data"))
 		require.NoError(t, err)
 
-		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"))
+		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), queue.NoopPanicHandler{})
 		require.NoError(t, err)
 		require.True(t, corrupt)
 	}
@@ -99,7 +100,7 @@ func TestVault_Reset(t *testing.T) {
 func newVault(t *testing.T) *vault.Vault {
 	t.Helper()
 
-	s, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"))
+	s, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"), queue.NoopPanicHandler{})
 	require.NoError(t, err)
 	require.False(t, corrupt)
 

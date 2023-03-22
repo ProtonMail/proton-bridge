@@ -91,6 +91,8 @@ type User struct {
 	showAllMail uint32
 
 	maxSyncMemory uint64
+
+	panicHandler async.PanicHandler
 }
 
 // New returns a new user.
@@ -127,7 +129,7 @@ func New(
 		reporter: reporter,
 		sendHash: newSendRecorder(sendEntryExpiry),
 
-		eventCh:   queue.NewQueuedChannel[events.Event](0, 0),
+		eventCh:   queue.NewQueuedChannel[events.Event](0, 0, crashHandler),
 		eventLock: safe.NewRWMutex(),
 
 		apiUser:     apiUser,
@@ -148,6 +150,8 @@ func New(
 		showAllMail: b32(showAllMail),
 
 		maxSyncMemory: maxSyncMemory,
+
+		panicHandler: crashHandler,
 	}
 
 	// Initialize the user's update channels for its current address mode.
@@ -179,7 +183,10 @@ func New(
 	user.goPollAPIEvents = func(wait bool) {
 		doneCh := make(chan struct{})
 
-		go func() { user.pollAPIEventsCh <- doneCh }()
+		go func() {
+			defer user.handlePanic()
+			user.pollAPIEventsCh <- doneCh
+		}()
 
 		if wait {
 			<-doneCh
@@ -228,6 +235,12 @@ func New(
 	})
 
 	return user, nil
+}
+
+func (user *User) handlePanic() {
+	if user.panicHandler != nil {
+		user.panicHandler.HandlePanic()
+	}
 }
 
 func (user *User) TriggerSync() {
@@ -596,7 +609,7 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 
 	switch mode {
 	case vault.CombinedMode:
-		primaryUpdateCh := queue.NewQueuedChannel[imap.Update](0, 0)
+		primaryUpdateCh := queue.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
 
 		for addrID := range user.apiAddrs {
 			user.updateCh[addrID] = primaryUpdateCh
@@ -604,7 +617,7 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 
 	case vault.SplitMode:
 		for addrID := range user.apiAddrs {
-			user.updateCh[addrID] = queue.NewQueuedChannel[imap.Update](0, 0)
+			user.updateCh[addrID] = queue.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
 		}
 	}
 }
@@ -614,7 +627,7 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 // When we receive an API event, we attempt to handle it.
 // If successful, we update the event ID in the vault.
 func (user *User) startEvents(ctx context.Context) {
-	ticker := proton.NewTicker(EventPeriod, EventJitter)
+	ticker := proton.NewTicker(EventPeriod, EventJitter, user.panicHandler)
 	defer ticker.Stop()
 
 	for {

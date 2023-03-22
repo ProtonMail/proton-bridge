@@ -516,7 +516,7 @@ func (bridge *Bridge) addUserWithVault(
 		client,
 		bridge.reporter,
 		apiUser,
-		bridge.crashHandler,
+		bridge.panicHandler,
 		bridge.vault.GetShowAllMail(),
 		bridge.vault.GetMaxSyncMemory(),
 	)

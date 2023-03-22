@@ -290,7 +290,7 @@ func (conn *imapConnector) CreateMessage(
 		conn.log.WithField("messageID", messageID).Warn("Message already sent")
 
 		// Query the server-side message.
-		full, err := conn.client.GetFullMessage(ctx, messageID, newProtonAPIScheduler(), proton.NewDefaultAttachmentAllocator())
+		full, err := conn.client.GetFullMessage(ctx, messageID, newProtonAPIScheduler(conn.panicHandler), proton.NewDefaultAttachmentAllocator())
 		if err != nil {
 			return imap.Message{}, nil, fmt.Errorf("failed to fetch message: %w", err)
 		}
@@ -354,7 +354,7 @@ func (conn *imapConnector) CreateMessage(
 }
 
 func (conn *imapConnector) GetMessageLiteral(ctx context.Context, id imap.MessageID) ([]byte, error) {
-	msg, err := conn.client.GetFullMessage(ctx, string(id), newProtonAPIScheduler(), proton.NewDefaultAttachmentAllocator())
+	msg, err := conn.client.GetFullMessage(ctx, string(id), newProtonAPIScheduler(conn.panicHandler), proton.NewDefaultAttachmentAllocator())
 	if err != nil {
 		return nil, err
 	}
@@ -572,7 +572,7 @@ func (conn *imapConnector) importMessage(
 
 			var err error
 
-			if full, err = conn.client.GetFullMessage(ctx, messageID, newProtonAPIScheduler(), proton.NewDefaultAttachmentAllocator()); err != nil {
+			if full, err = conn.client.GetFullMessage(ctx, messageID, newProtonAPIScheduler(conn.panicHandler), proton.NewDefaultAttachmentAllocator()); err != nil {
 				return fmt.Errorf("failed to fetch message: %w", err)
 			}
 

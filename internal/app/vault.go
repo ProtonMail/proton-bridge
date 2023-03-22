@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
@@ -29,12 +30,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func WithVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool) error) error {
+func WithVault(locations *locations.Locations, panicHandler async.PanicHandler, fn func(*vault.Vault, bool, bool) error) error {
 	logrus.Debug("Creating vault")
 	defer logrus.Debug("Vault stopped")
 
 	// Create the encVault.
-	encVault, insecure, corrupt, err := newVault(locations)
+	encVault, insecure, corrupt, err := newVault(locations, panicHandler)
 	if err != nil {
 		return fmt.Errorf("could not create vault: %w", err)
 	}
@@ -66,7 +67,7 @@ func WithVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool)
 	return fn(encVault, insecure, corrupt)
 }
 
-func newVault(locations *locations.Locations) (*vault.Vault, bool, bool, error) {
+func newVault(locations *locations.Locations, panicHandler async.PanicHandler) (*vault.Vault, bool, bool, error) {
 	vaultDir, err := locations.ProvideSettingsPath()
 	if err != nil {
 		return nil, false, false, fmt.Errorf("could not get vault dir: %w", err)
@@ -93,7 +94,7 @@ func newVault(locations *locations.Locations) (*vault.Vault, bool, bool, error) 
 		return nil, false, false, fmt.Errorf("could not provide gluon path: %w", err)
 	}
 
-	vault, corrupt, err := vault.New(vaultDir, gluonCacheDir, vaultKey)
+	vault, corrupt, err := vault.New(vaultDir, gluonCacheDir, vaultKey, panicHandler)
 	if err != nil {
 		return nil, false, false, fmt.Errorf("could not create vault: %w", err)
 	}

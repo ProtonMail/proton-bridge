@@ -31,6 +31,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon/imap"
+	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/go-proton-api/server/backend"
@@ -699,7 +700,7 @@ func withBridgeNoMocks(
 	require.NoError(t, err)
 
 	// Create the vault.
-	vault, _, err := vault.New(vaultDir, t.TempDir(), vaultKey)
+	vault, _, err := vault.New(vaultDir, t.TempDir(), vaultKey, queue.NoopPanicHandler{})
 	require.NoError(t, err)
 
 	// Create a new cookie jar.

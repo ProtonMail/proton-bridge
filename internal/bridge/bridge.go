@@ -93,8 +93,8 @@ type Bridge struct {
 	// locator is the bridge's locator.
 	locator Locator
 
-	// crashHandler
-	crashHandler async.PanicHandler
+	// panicHandler
+	panicHandler async.PanicHandler
 
 	// reporter
 	reporter reporter.Reporter
@@ -143,7 +143,7 @@ func New(
 	tlsReporter TLSReporter, // the TLS reporter to report TLS errors
 	roundTripper http.RoundTripper, // the round tripper to use for API requests
 	proxyCtl ProxyController, // the DoH controller
-	crashHandler async.PanicHandler,
+	panicHandler async.PanicHandler,
 	reporter reporter.Reporter,
 	uidValidityGenerator imap.UIDValidityGenerator,
 
@@ -151,10 +151,10 @@ func New(
 	logSMTP bool, // whether to log SMTP activity
 ) (*Bridge, <-chan events.Event, error) {
 	// api is the user's API manager.
-	api := proton.New(newAPIOptions(apiURL, curVersion, cookieJar, roundTripper)...)
+	api := proton.New(newAPIOptions(apiURL, curVersion, cookieJar, roundTripper, panicHandler)...)
 
 	// tasks holds all the bridge's background tasks.
-	tasks := async.NewGroup(context.Background(), crashHandler)
+	tasks := async.NewGroup(context.Background(), panicHandler)
 
 	// imapEventCh forwards IMAP events from gluon instances to the bridge for processing.
 	imapEventCh := make(chan imapEvents.Event)
@@ -169,7 +169,7 @@ func New(
 		autostarter,
 		updater,
 		curVersion,
-		crashHandler,
+		panicHandler,
 		reporter,
 
 		api,
@@ -202,7 +202,7 @@ func newBridge(
 	autostarter Autostarter,
 	updater Updater,
 	curVersion *semver.Version,
-	crashHandler async.PanicHandler,
+	panicHandler async.PanicHandler,
 	reporter reporter.Reporter,
 
 	api *proton.Manager,
@@ -248,12 +248,13 @@ func newBridge(
 		imapEventCh,
 		tasks,
 		uidValidityGenerator,
+		panicHandler,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create IMAP server: %w", err)
 	}
 
-	focusService, err := focus.NewService(locator, curVersion)
+	focusService, err := focus.NewService(locator, curVersion, panicHandler)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create focus service: %w", err)
 	}
@@ -279,7 +280,7 @@ func newBridge(
 		newVersion:     curVersion,
 		newVersionLock: safe.NewRWMutex(),
 
-		crashHandler: crashHandler,
+		panicHandler: panicHandler,
 		reporter:     reporter,
 
 		focusService: focusService,
@@ -495,7 +496,7 @@ func (bridge *Bridge) addWatcher(ofType ...events.Event) *watcher.Watcher[events
 	bridge.watchersLock.Lock()
 	defer bridge.watchersLock.Unlock()
 
-	watcher := watcher.New(ofType...)
+	watcher := watcher.New(bridge.panicHandler, ofType...)
 
 	bridge.watchers = append(bridge.watchers, watcher)
 

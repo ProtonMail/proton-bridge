@@ -28,6 +28,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
@@ -428,7 +429,7 @@ func createMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID,
 	keyPass, err := salt.SaltForKey(password, user.Keys.Primary().ID)
 	require.NoError(t, err)
 
-	_, addrKRs, err := proton.Unlock(user, addr, keyPass)
+	_, addrKRs, err := proton.Unlock(user, addr, keyPass, queue.NoopPanicHandler{})
 	require.NoError(t, err)
 
 	_, ok := addrKRs[addrID]

@@ -21,6 +21,7 @@ package cli
 import (
 	"errors"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
@@ -39,15 +40,18 @@ type frontendCLI struct {
 	restarter *restarter.Restarter
 
 	badUserID string
+
+	panicHandler async.PanicHandler
 }
 
 // New returns a new CLI frontend configured with the given options.
-func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan events.Event) *frontendCLI { //nolint:revive
+func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan events.Event, panicHandler async.PanicHandler) *frontendCLI { //nolint:revive
 	fe := &frontendCLI{
-		Shell:     ishell.New(),
-		bridge:    bridge,
-		restarter: restarter,
-		badUserID: "",
+		Shell:        ishell.New(),
+		bridge:       bridge,
+		restarter:    restarter,
+		badUserID:    "",
+		panicHandler: panicHandler,
 	}
 
 	// Clear commands.
@@ -285,6 +289,8 @@ func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan e
 }
 
 func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:gocyclo
+	defer f.handlePanic()
+
 	// GODT-1949: Better error events.
 	for _, err := range f.bridge.GetErrors() {
 		switch {
@@ -443,6 +449,12 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:gocyc
 			}
 		}
 	*/
+}
+
+func (f *frontendCLI) handlePanic() {
+	if f.panicHandler != nil {
+		f.panicHandler.HandlePanic()
+	}
 }
 
 // Loop starts the frontend loop with an interactive shell.

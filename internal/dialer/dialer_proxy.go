@@ -24,6 +24,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -40,17 +41,20 @@ type ProxyTLSDialer struct {
 	allowProxy       bool
 	proxyProvider    *proxyProvider
 	proxyUseDuration time.Duration
+
+	panicHandler async.PanicHandler
 }
 
 // NewProxyTLSDialer constructs a dialer which provides a proxy-managing layer on top of an underlying dialer.
-func NewProxyTLSDialer(dialer TLSDialer, hostURL string) *ProxyTLSDialer {
+func NewProxyTLSDialer(dialer TLSDialer, hostURL string, panicHandler async.PanicHandler) *ProxyTLSDialer {
 	return &ProxyTLSDialer{
 		dialer:           dialer,
 		locker:           sync.RWMutex{},
 		directAddress:    formatAsAddress(hostURL),
 		proxyAddress:     formatAsAddress(hostURL),
-		proxyProvider:    newProxyProvider(dialer, hostURL, DoHProviders),
+		proxyProvider:    newProxyProvider(dialer, hostURL, DoHProviders, panicHandler),
 		proxyUseDuration: proxyUseDuration,
+		panicHandler:     panicHandler,
 	}
 }
 
@@ -73,6 +77,12 @@ func formatAsAddress(rawURL string) string {
 		port = "80"
 	}
 	return net.JoinHostPort(host, port)
+}
+
+func (d *ProxyTLSDialer) handlePanic() {
+	if d.panicHandler != nil {
+		d.panicHandler.HandlePanic()
+	}
 }
 
 // DialTLSContext dials the given network/address. If it fails, it retries using a proxy.
@@ -129,6 +139,8 @@ func (d *ProxyTLSDialer) switchToReachableServer() error {
 	// This means we want to disable it again in 24 hours.
 	if d.proxyAddress == d.directAddress {
 		go func() {
+			defer d.handlePanic()
+
 			<-time.After(d.proxyUseDuration)
 
 			d.locker.Lock()

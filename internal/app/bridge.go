@@ -78,7 +78,7 @@ func withBridge(
 	)
 
 	// Create a proxy dialer which switches to a proxy if the request fails.
-	proxyDialer := dialer.NewProxyTLSDialer(pinningDialer, constants.APIHost)
+	proxyDialer := dialer.NewProxyTLSDialer(pinningDialer, constants.APIHost, crashHandler)
 
 	// Create the autostarter.
 	autostarter := newAutostarter(exe)

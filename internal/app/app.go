@@ -185,14 +185,14 @@ func run(c *cli.Context) error {
 		exe = os.Args[0]
 	}
 
-	migrationErr := migrateOldVersions()
+	// Restart the app if requested.
+	return withRestarter(exe, func(restarter *restarter.Restarter) error {
+		// Handle crashes with various actions.
+		return withCrashHandler(restarter, reporter, func(crashHandler *crash.Handler, quitCh <-chan struct{}) error {
+			migrationErr := migrateOldVersions()
 
-	// Run with profiling if requested.
-	return withProfiler(c, func() error {
-		// Restart the app if requested.
-		return withRestarter(exe, func(restarter *restarter.Restarter) error {
-			// Handle crashes with various actions.
-			return withCrashHandler(restarter, reporter, func(crashHandler *crash.Handler, quitCh <-chan struct{}) error {
+			// Run with profiling if requested.
+			return withProfiler(c, func() error {
 				// Load the locations where we store our files.
 				return WithLocations(func(locations *locations.Locations) error {
 					// Migrate the keychain helper.
@@ -215,7 +215,7 @@ func run(c *cli.Context) error {
 
 						return withSingleInstance(settings, locations.GetLockFile(), version, func() error {
 							// Unlock the encrypted vault.
-							return WithVault(locations, func(v *vault.Vault, insecure, corrupt bool) error {
+							return WithVault(locations, crashHandler, func(v *vault.Vault, insecure, corrupt bool) error {
 								// Report insecure vault.
 								if insecure {
 									_ = reporter.ReportMessageWithContext("Vault is insecure", map[string]interface{}{})

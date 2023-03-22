@@ -98,6 +98,8 @@ func saveConfigTemporarily(mc *mobileconfig.Config) (fname string, err error) {
 
 	// Make sure the temporary file is deleted.
 	go func() {
+		defer recover() //nolint:errcheck
+
 		<-time.After(10 * time.Minute)
 		_ = os.RemoveAll(dir)
 	}()

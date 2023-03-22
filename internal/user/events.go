@@ -225,7 +225,7 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event proton.Add
 			user.updateCh[event.Address.ID] = user.updateCh[primAddr.ID]
 
 		case vault.SplitMode:
-			user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0)
+			user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
 		}
 
 		user.eventCh.Enqueue(events.UserAddressCreated{
@@ -284,7 +284,7 @@ func (user *User) handleUpdateAddressEvent(_ context.Context, event proton.Addre
 				user.updateCh[event.Address.ID] = user.updateCh[primAddr.ID]
 
 			case vault.SplitMode:
-				user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0)
+				user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
 			}
 
 			user.eventCh.Enqueue(events.UserAddressEnabled{
@@ -594,7 +594,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, message proton.M
 		"subject":   logging.Sensitive(message.Subject),
 	}).Info("Handling message created event")
 
-	full, err := user.client.GetFullMessage(ctx, message.ID, newProtonAPIScheduler(), proton.NewDefaultAttachmentAllocator())
+	full, err := user.client.GetFullMessage(ctx, message.ID, newProtonAPIScheduler(user.panicHandler), proton.NewDefaultAttachmentAllocator())
 	if err != nil {
 		// If the message is not found, it means that it has been deleted before we could fetch it.
 		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
@@ -686,7 +686,7 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 			"subject":   logging.Sensitive(event.Message.Subject),
 		}).Info("Handling draft updated event")
 
-		full, err := user.client.GetFullMessage(ctx, event.Message.ID, newProtonAPIScheduler(), proton.NewDefaultAttachmentAllocator())
+		full, err := user.client.GetFullMessage(ctx, event.Message.ID, newProtonAPIScheduler(user.panicHandler), proton.NewDefaultAttachmentAllocator())
 		if err != nil {
 			// If the message is not found, it means that it has been deleted before we could fetch it.
 			if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {

@@ -48,6 +48,8 @@ import (
 
 // sendMail sends an email from the given address to the given recipients.
 func (user *User) sendMail(authID string, from string, to []string, r io.Reader) error {
+	defer user.handlePanic()
+
 	return safe.RLockRet(func() error {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
@@ -143,7 +145,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 			}
 
 			// Send the message using the correct key.
-			sent, err := sendWithKey(
+			sent, err := user.sendWithKey(
 				ctx,
 				user.client,
 				user.reporter,
@@ -167,7 +169,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 }
 
 // sendWithKey sends the message with the given address key.
-func sendWithKey(
+func (user *User) sendWithKey(
 	ctx context.Context,
 	client *proton.Client,
 	sentry reporter.Reporter,
@@ -226,12 +228,12 @@ func sendWithKey(
 		return proton.Message{}, fmt.Errorf("failed to create attachments: %w", err)
 	}
 
-	attKeys, err := createAttachments(ctx, client, addrKR, draft.ID, message.Attachments)
+	attKeys, err := user.createAttachments(ctx, client, addrKR, draft.ID, message.Attachments)
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to create attachments: %w", err)
 	}
 
-	recipients, err := getRecipients(ctx, client, userKR, settings, draft)
+	recipients, err := user.getRecipients(ctx, client, userKR, settings, draft)
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to get recipients: %w", err)
 	}
@@ -377,7 +379,7 @@ func createDraft(
 	})
 }
 
-func createAttachments(
+func (user *User) createAttachments(
 	ctx context.Context,
 	client *proton.Client,
 	addrKR *crypto.KeyRing,
@@ -390,6 +392,8 @@ func createAttachments(
 	}
 
 	keys, err := parallel.MapContext(ctx, runtime.NumCPU(), attachments, func(ctx context.Context, att message.Attachment) (attKey, error) {
+		defer user.handlePanic()
+
 		logrus.WithFields(logrus.Fields{
 			"name":        logging.Sensitive(att.Name),
 			"contentID":   att.ContentID,
@@ -455,7 +459,7 @@ func createAttachments(
 	return attKeys, nil
 }
 
-func getRecipients(
+func (user *User) getRecipients(
 	ctx context.Context,
 	client *proton.Client,
 	userKR *crypto.KeyRing,
@@ -467,6 +471,8 @@ func getRecipients(
 	})
 
 	prefs, err := parallel.MapContext(ctx, runtime.NumCPU(), addresses, func(ctx context.Context, recipient string) (proton.SendPreferences, error) {
+		defer user.handlePanic()
+
 		pubKeys, recType, err := client.GetPublicKeys(ctx, recipient)
 		if err != nil {
 			return proton.SendPreferences{}, fmt.Errorf("failed to get public key for %v: %w", recipient, err)

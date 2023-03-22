@@ -30,7 +30,7 @@ func TestFocus_Raise(t *testing.T) {
 	tmpDir := t.TempDir()
 	locations := locations.New(newTestLocationsProvider(tmpDir), "config-name")
 	// Start the focus service.
-	service, err := NewService(locations, semver.MustParse("1.2.3"))
+	service, err := NewService(locations, semver.MustParse("1.2.3"), nil)
 	require.NoError(t, err)
 
 	settingsFolder, err := locations.ProvideSettingsPath()
@@ -52,7 +52,7 @@ func TestFocus_Version(t *testing.T) {
 	tmpDir := t.TempDir()
 	locations := locations.New(newTestLocationsProvider(tmpDir), "config-name")
 	// Start the focus service.
-	_, err := NewService(locations, semver.MustParse("1.2.3"))
+	_, err := NewService(locations, semver.MustParse("1.2.3"), nil)
 	require.NoError(t, err)
 
 	settingsFolder, err := locations.ProvideSettingsPath()

@@ -299,6 +299,7 @@ func newIMAPServer(
 	eventCh chan<- imapEvents.Event,
 	tasks *async.Group,
 	uidValidityGenerator imap.UIDValidityGenerator,
+	panicHandler async.PanicHandler,
 ) (*gluon.Server, error) {
 	gluonCacheDir = ApplyGluonCachePathSuffix(gluonCacheDir)
 	gluonConfigDir = ApplyGluonConfigPathSuffix(gluonConfigDir)
@@ -343,6 +344,7 @@ func newIMAPServer(
 		getGluonVersionInfo(version),
 		gluon.WithReporter(reporter),
 		gluon.WithUIDValidityGenerator(uidValidityGenerator),
+		gluon.WithPanicHandler(panicHandler),
 	)
 	if err != nil {
 		return nil, err

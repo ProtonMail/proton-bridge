@@ -108,7 +108,7 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 	}
 
 	// Create the vault.
-	vault, corrupt, err := vault.New(vaultDir, gluonCacheDir, t.storeKey)
+	vault, corrupt, err := vault.New(vaultDir, gluonCacheDir, t.storeKey, queue.NoopPanicHandler{})
 	if err != nil {
 		return nil, fmt.Errorf("could not create vault: %w", err)
 	} else if corrupt {
@@ -301,7 +301,7 @@ func (t *testCtx) initFrontendClient() error {
 		return fmt.Errorf("could not start event stream: %w", err)
 	}
 
-	eventCh := queue.NewQueuedChannel[*frontend.StreamEvent](0, 0)
+	eventCh := queue.NewQueuedChannel[*frontend.StreamEvent](0, 0, queue.NoopPanicHandler{})
 
 	go func() {
 		defer eventCh.CloseAndDiscardQueued()

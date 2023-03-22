@@ -24,6 +24,7 @@ import (
 	"net"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/focus/proto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/sirupsen/logrus"
@@ -43,15 +44,18 @@ type Service struct {
 	server  *grpc.Server
 	raiseCh chan struct{}
 	version *semver.Version
+
+	panicHandler async.PanicHandler
 }
 
 // NewService creates a new focus service.
 // It listens on the local host and port 1042 (by default).
-func NewService(locator service.Locator, version *semver.Version) (*Service, error) {
+func NewService(locator service.Locator, version *semver.Version, panicHandler async.PanicHandler) (*Service, error) {
 	serv := &Service{
-		server:  grpc.NewServer(),
-		raiseCh: make(chan struct{}, 1),
-		version: version,
+		server:       grpc.NewServer(),
+		raiseCh:      make(chan struct{}, 1),
+		version:      version,
+		panicHandler: panicHandler,
 	}
 
 	proto.RegisterFocusServer(serv.server, serv)
@@ -73,6 +77,8 @@ func NewService(locator service.Locator, version *semver.Version) (*Service, err
 		}
 
 		go func() {
+			defer serv.handlePanic()
+
 			if err := serv.server.Serve(listener); err != nil {
 				fmt.Printf("failed to serve: %v", err)
 			}
@@ -80,6 +86,12 @@ func NewService(locator service.Locator, version *semver.Version) (*Service, err
 	}
 
 	return serv, nil
+}
+
+func (service *Service) handlePanic() {
+	if service.panicHandler != nil {
+		service.panicHandler.HandlePanic()
+	}
 }
 
 // Raise implements the gRPC FocusService interface; it raises the application.
@@ -103,6 +115,8 @@ func (service *Service) GetRaiseCh() <-chan struct{} {
 // Close closes the service.
 func (service *Service) Close() {
 	go func() {
+		defer service.handlePanic()
+
 		// we do this in a goroutine, as on Windows, the gRPC shutdown may take minutes if something tries to
 		// interact with it in an invalid way (e.g. HTTP GET request from a Qt QNetworkManager instance).
 		service.server.Stop()

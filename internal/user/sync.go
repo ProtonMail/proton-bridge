@@ -153,7 +153,7 @@ func (user *User) sync(ctx context.Context) error {
 				}
 
 				// Sync the messages.
-				if err := syncMessages(
+				if err := user.syncMessages(
 					ctx,
 					user.ID(),
 					messageIDs,
@@ -242,7 +242,7 @@ func toMB(v uint64) float64 {
 }
 
 // nolint:gocyclo
-func syncMessages(
+func (user *User) syncMessages(
 	ctx context.Context,
 	userID string,
 	messageIDs []string,
@@ -370,7 +370,7 @@ func syncMessages(
 	errorCh := make(chan error, maxParallelDownloads*4)
 
 	// Go routine in charge of downloading message metadata
-	logging.GoAnnotated(ctx, func(ctx context.Context) {
+	logging.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) {
 		defer close(downloadCh)
 		const MetadataDataPageSize = 150
 
@@ -433,14 +433,14 @@ func syncMessages(
 	}, logging.Labels{"sync-stage": "meta-data"})
 
 	// Goroutine in charge of downloading and building messages in maxBatchSize batches.
-	logging.GoAnnotated(ctx, func(ctx context.Context) {
+	logging.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) {
 		defer close(buildCh)
 		defer close(errorCh)
 		defer func() {
 			logrus.Debugf("sync downloader exit")
 		}()
 
-		attachmentDownloader := newAttachmentDownloader(ctx, client, maxParallelDownloads)
+		attachmentDownloader := user.newAttachmentDownloader(ctx, client, maxParallelDownloads)
 		defer attachmentDownloader.close()
 
 		for request := range downloadCh {
@@ -456,6 +456,8 @@ func syncMessages(
 			}
 
 			result, err := parallel.MapContext(ctx, maxParallelDownloads, request.ids, func(ctx context.Context, id string) (proton.FullMessage, error) {
+				defer user.handlePanic()
+
 				var result proton.FullMessage
 
 				msg, err := client.GetMessage(ctx, id)
@@ -490,7 +492,7 @@ func syncMessages(
 	}, logging.Labels{"sync-stage": "download"})
 
 	// Goroutine which builds messages after they have been downloaded
-	logging.GoAnnotated(ctx, func(ctx context.Context) {
+	logging.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) {
 		defer close(flushCh)
 		defer func() {
 			logrus.Debugf("sync builder exit")
@@ -509,6 +511,8 @@ func syncMessages(
 				logrus.Debugf("Build request: %v of %v count=%v", index, len(chunks), len(chunk))
 
 				result, err := parallel.MapContext(ctx, maxMessagesInParallel, chunk, func(ctx context.Context, msg proton.FullMessage) (*buildRes, error) {
+					defer user.handlePanic()
+
 					return buildRFC822(apiLabels, msg, addrKRs[msg.AddressID], new(bytes.Buffer)), nil
 				})
 				if err != nil {
@@ -526,7 +530,7 @@ func syncMessages(
 	}, logging.Labels{"sync-stage": "builder"})
 
 	// Goroutine which converts the messages into updates and builds a waitable structure for progress tracking.
-	logging.GoAnnotated(ctx, func(ctx context.Context) {
+	logging.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) {
 		defer close(flushUpdateCh)
 		defer func() {
 			logrus.Debugf("sync flush exit")
@@ -771,12 +775,12 @@ func attachmentWorker(ctx context.Context, client *proton.Client, work <-chan at
 	}
 }
 
-func newAttachmentDownloader(ctx context.Context, client *proton.Client, workerCount int) *attachmentDownloader {
+func (user *User) newAttachmentDownloader(ctx context.Context, client *proton.Client, workerCount int) *attachmentDownloader {
 	workerCh := make(chan attachmentJob, (workerCount+2)*workerCount)
 	ctx, cancel := context.WithCancel(ctx)
 	for i := 0; i < workerCount; i++ {
 		workerCh = make(chan attachmentJob)
-		logging.GoAnnotated(ctx, func(ctx context.Context) { attachmentWorker(ctx, client, workerCh) }, logging.Labels{
+		logging.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) { attachmentWorker(ctx, client, workerCh) }, logging.Labels{
 			"sync": fmt.Sprintf("att-downloader %v", i),
 		})
 	}

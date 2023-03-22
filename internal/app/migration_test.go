@@ -25,6 +25,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/cookies"
@@ -40,7 +41,7 @@ import (
 
 func TestMigratePrefsToVaultWithKeys(t *testing.T) {
 	// Create a new vault.
-	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"))
+	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"), queue.NoopPanicHandler{})
 	require.NoError(t, err)
 	require.False(t, corrupt)
 
@@ -61,7 +62,7 @@ func TestMigratePrefsToVaultWithKeys(t *testing.T) {
 
 func TestMigratePrefsToVaultWithoutKeys(t *testing.T) {
 	// Create a new vault.
-	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"))
+	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"), queue.NoopPanicHandler{})
 	require.NoError(t, err)
 	require.False(t, corrupt)
 
@@ -173,7 +174,7 @@ func TestUserMigration(t *testing.T) {
 	token, err := crypto.RandomToken(32)
 	require.NoError(t, err)
 
-	v, corrupt, err := vault.New(settingsFolder, settingsFolder, token)
+	v, corrupt, err := vault.New(settingsFolder, settingsFolder, token, queue.NoopPanicHandler{})
 	require.NoError(t, err)
 	require.False(t, corrupt)
 

@@ -191,6 +191,12 @@ func NewService(
 	return s, nil
 }
 
+func (s *Service) handlePanic() {
+	if s.panicHandler != nil {
+		s.panicHandler.HandlePanic()
+	}
+}
+
 func (s *Service) initAutostart() {
 	s.firstTimeAutostart.Do(func() {
 		shouldAutostartBeOn := s.bridge.GetAutostart()
@@ -207,11 +213,14 @@ func (s *Service) Loop() error {
 	if s.parentPID < 0 {
 		s.log.Info("Not monitoring parent PID")
 	} else {
-		go s.monitorParentPID()
+		go func() {
+			defer s.handlePanic()
+			s.monitorParentPID()
+		}()
 	}
 
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 		s.watchEvents()
 	}()
 
@@ -221,6 +230,8 @@ func (s *Service) Loop() error {
 	defer close(doneCh)
 
 	go func() {
+		defer s.handlePanic()
+
 		select {
 		case <-s.quitCh:
 			s.log.Info("Stopping gRPC server")
@@ -564,6 +575,8 @@ func (s *Service) monitorParentPID() {
 				s.log.Info("Parent process does not exist anymore. Initiating shutdown")
 				// quit will write to the parentPIDDoneCh, so we launch a goroutine.
 				go func() {
+					defer s.handlePanic()
+
 					if err := s.quit(); err != nil {
 						logrus.WithError(err).Error("Error on quit")
 					}

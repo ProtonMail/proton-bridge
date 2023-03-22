@@ -23,6 +23,7 @@ import (
 	"net/http"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/go-proton-api"
 )
 
@@ -32,6 +33,7 @@ func newAPIOptions(
 	version *semver.Version,
 	cookieJar http.CookieJar,
 	transport http.RoundTripper,
+	panicHandler queue.PanicHandler,
 ) []proton.Option {
-	return defaultAPIOptions(apiURL, version, cookieJar, transport)
+	return defaultAPIOptions(apiURL, version, cookieJar, transport, panicHandler)
 }
