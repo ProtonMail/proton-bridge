@@ -44,7 +44,7 @@ Settings::Settings()
 /// \return The value for the 'Use software renderer' setting.
 //****************************************************************************************************************************************************
 bool Settings::useSoftwareRenderer() const {
-    return settings_.value(keyUseSoftwareRenderer, false).toBool();
+    return settings_.value(keyUseSoftwareRenderer, onWindows()).toBool();
 }
 
 
