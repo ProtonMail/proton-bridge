@@ -2,6 +2,22 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.0.21] Perth Narrows
+
+### Added
+* GODT-2509: Migrate TLS cert from v1/v2 location during upgrade to v3.
+
+### Changed
+* GODT-2516: log error when the vault key cannot be created/loaded from the keychain.
+
+### Fixed
+* GODT-2501: Remove additional .desktop file.
+* GODT-2513: Crash in scanner.
+* GODT-2481: Fix DBUS Secert Service.
+* GODT-2512: Catch unhandled API errors.
+* GODT-2469: Fix sentry revision hash for cmake on windows.
+
+
 ## [Bridge 3.0.20] Perth Narrows
 
 ### Added
