@@ -1,3 +1,16 @@
+## v3.0.21
+- 2023-03-23
+
+### New
+- Extended the migration from the previous major Bridge version with certificates
+- Improved error detection
+
+### Fixed
+- Fixed the misplaced .desktop file on Linux
+- Fixed DBUS secret service integration (e.g., KWallet, KeePass)
+- Made Bridge more resilient against Proton server outages
+
+
 ## v3.0.20
 - 2023-03-09
 
