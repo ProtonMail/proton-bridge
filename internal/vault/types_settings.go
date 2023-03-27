@@ -19,6 +19,7 @@ package vault
 
 import (
 	"math/rand"
+	"runtime"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 )
@@ -44,11 +45,29 @@ type Settings struct {
 	FirstStart  bool
 
 	MaxSyncMemory uint64
+
+	// **WARNING**: These entry can't be removed until they vault has proper migration support.
+	SyncWorkers int
+	SyncAttPool int
 }
 
 const DefaultMaxSyncMemory = 2 * 1024 * uint64(1024*1024)
 
+func GetDefaultSyncWorkerCount() int {
+	const minSyncWorkers = 16
+
+	syncWorkers := runtime.NumCPU() * 4
+
+	if syncWorkers < minSyncWorkers {
+		syncWorkers = minSyncWorkers
+	}
+
+	return syncWorkers
+}
+
 func newDefaultSettings(gluonDir string) Settings {
+	syncWorkers := GetDefaultSyncWorkerCount()
+
 	return Settings{
 		GluonDir: gluonDir,
 
@@ -70,5 +89,7 @@ func newDefaultSettings(gluonDir string) Settings {
 		FirstStart:  true,
 
 		MaxSyncMemory: DefaultMaxSyncMemory,
+		SyncWorkers:   syncWorkers,
+		SyncAttPool:   syncWorkers,
 	}
 }
