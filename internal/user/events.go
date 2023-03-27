@@ -170,6 +170,16 @@ func (user *User) handleAddressEvents(ctx context.Context, addressEvents []proto
 
 		case proton.EventUpdate, proton.EventUpdateFlags:
 			if err := user.handleUpdateAddressEvent(ctx, event); err != nil {
+				if errors.Is(err, ErrAddressDoesNotExist) {
+					logrus.Debugf("Address %v does not exist, will try create instead", event.Address.ID)
+					if createErr := user.handleCreateAddressEvent(ctx, event); createErr != nil {
+						user.reportError("Failed to apply address update event (with create)", createErr)
+						return fmt.Errorf("failed to handle update address event (with create): %w", createErr)
+					}
+
+					return nil
+				}
+
 				user.reportError("Failed to apply address update event", err)
 				return fmt.Errorf("failed to handle update address event: %w", err)
 			}
@@ -245,6 +255,8 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event proton.Add
 	}, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
+var ErrAddressDoesNotExist = errors.New("address does not exist")
+
 func (user *User) handleUpdateAddressEvent(_ context.Context, event proton.AddressEvent) error { //nolint:unparam
 	return safe.LockRet(func() error {
 		user.log.WithFields(logrus.Fields{
@@ -254,8 +266,7 @@ func (user *User) handleUpdateAddressEvent(_ context.Context, event proton.Addre
 
 		oldAddr, ok := user.apiAddrs[event.Address.ID]
 		if !ok {
-			user.log.Debugf("Address %q does not exist", event.Address.ID)
-			return nil
+			return ErrAddressDoesNotExist
 		}
 
 		user.apiAddrs[event.Address.ID] = event.Address

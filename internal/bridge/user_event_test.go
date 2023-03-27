@@ -329,6 +329,24 @@ func TestBridge_User_AddressEvents_NoBadEvent(t *testing.T) {
 	})
 }
 
+func TestBridge_User_AddressEventUpdatedForAddressThatDoesNotExist_NoBadEvent(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		userID, _, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			_, err := s.CreateAddressAsUpdate(userID, "another@pm.me", password)
+			require.NoError(t, err)
+			userContinueEventProcess(ctx, t, s, bridge)
+		})
+	})
+}
+
 func TestBridge_User_Network_NoBadEvents(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		retVal := int32(0)
