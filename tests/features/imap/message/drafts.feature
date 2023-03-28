@@ -45,7 +45,7 @@ Feature: IMAP Draft messages
     And IMAP client "1" eventually sees 1 messages in "Drafts"
 
   Scenario: Draft moved to trash remotely
-    When draft 1 for address "[user:user]@[domain]" of account "[user:user] was moved to trash
+    When draft 1 for address "[user:user]@[domain]" of account "[user:user]" was moved to trash
     Then IMAP client "1" eventually sees the following messages in "Trash":
       | body          |
       | This is a dra |
