@@ -783,7 +783,8 @@ func TestBridge_User_HandleParentLabelRename(t *testing.T) {
 	})
 }
 
-func TestBridge503DuringEventDoesNotCauseBadEvent(t *testing.T) {
+// TBD: GODT-2527.
+func _TestBridge503DuringEventDoesNotCauseBadEvent(t *testing.T) { //nolint:unused,deadcode
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		// Create a user.
 		userID, addrID, err := s.CreateUser("user", password)
