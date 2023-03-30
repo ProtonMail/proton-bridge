@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/v3/internal/async"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/bradenaw/juniper/xerrors"
 	"github.com/sirupsen/logrus"
 )
@@ -73,26 +73,20 @@ type Group struct {
 	panicHandler async.PanicHandler
 }
 
-func (wg *Group) SetPanicHandler(panicHandler async.PanicHandler) {
-	wg.panicHandler = panicHandler
-}
-
-func (wg *Group) handlePanic() {
-	if wg.panicHandler != nil {
-		wg.panicHandler.HandlePanic()
-	}
+func MakeGroup(panicHandler async.PanicHandler) Group {
+	return Group{panicHandler: panicHandler}
 }
 
 func (wg *Group) GoTry(fn func(bool)) {
 	if wg.mu.TryLock() {
 		go func() {
-			defer wg.handlePanic()
+			defer async.HandlePanic(wg.panicHandler)
 			defer wg.mu.Unlock()
 			fn(true)
 		}()
 	} else {
 		go func() {
-			defer wg.handlePanic()
+			defer async.HandlePanic(wg.panicHandler)
 			fn(false)
 		}()
 	}

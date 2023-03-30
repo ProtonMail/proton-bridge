@@ -253,7 +253,7 @@ coverage: test
 mocks:
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/bridge TLSReporter,ProxyController,Autostarter > tmp
 	mv tmp internal/bridge/mocks/mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/async PanicHandler > internal/bridge/mocks/async_mocks.go
+	mockgen --package mocks github.com/ProtonMail/gluon/async PanicHandler > internal/bridge/mocks/async_mocks.go
 	mockgen --package mocks github.com/ProtonMail/gluon/reporter Reporter > internal/bridge/mocks/gluon_mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/updater Downloader,Installer > internal/updater/mocks/mocks.go
 

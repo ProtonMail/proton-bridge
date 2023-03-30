@@ -23,8 +23,8 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
-	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )

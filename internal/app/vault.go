@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/ProtonMail/proton-bridge/v3/internal/async"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"

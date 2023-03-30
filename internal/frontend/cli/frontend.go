@@ -21,7 +21,7 @@ package cli
 import (
 	"errors"
 
-	"github.com/ProtonMail/proton-bridge/v3/internal/async"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
@@ -289,7 +289,7 @@ func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan e
 }
 
 func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:gocyclo
-	defer f.handlePanic()
+	defer async.HandlePanic(f.panicHandler)
 
 	// GODT-1949: Better error events.
 	for _, err := range f.bridge.GetErrors() {
@@ -449,12 +449,6 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:gocyc
 			}
 		}
 	*/
-}
-
-func (f *frontendCLI) handlePanic() {
-	if f.panicHandler != nil {
-		f.panicHandler.HandlePanic()
-	}
 }
 
 // Loop starts the frontend loop with an interactive shell.

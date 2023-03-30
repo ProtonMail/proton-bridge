@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v3/internal/async"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/go-resty/resty/v2"
 	"github.com/miekg/dns"
 	"github.com/pkg/errors"
@@ -92,12 +92,6 @@ func newProxyProvider(dialer TLSDialer, hostURL string, providers []string, pani
 	return
 }
 
-func (p *proxyProvider) handlePanic() {
-	if p.panicHandler != nil {
-		p.panicHandler.HandlePanic()
-	}
-}
-
 // findReachableServer returns a working API server (either proxy or standard API).
 func (p *proxyProvider) findReachableServer() (proxy string, err error) {
 	logrus.Debug("Trying to find a reachable server")
@@ -119,13 +113,13 @@ func (p *proxyProvider) findReachableServer() (proxy string, err error) {
 	wg.Add(2)
 
 	go func() {
-		defer p.handlePanic()
+		defer async.HandlePanic(p.panicHandler)
 		defer wg.Done()
 		apiReachable = p.canReach(p.hostURL)
 	}()
 
 	go func() {
-		defer p.handlePanic()
+		defer async.HandlePanic(p.panicHandler)
 		defer wg.Done()
 		err = p.refreshProxyCache()
 	}()
@@ -162,7 +156,7 @@ func (p *proxyProvider) refreshProxyCache() error {
 	resultChan := make(chan []string)
 
 	go func() {
-		defer p.handlePanic()
+		defer async.HandlePanic(p.panicHandler)
 
 		for _, provider := range p.providers {
 			if proxies, err := p.dohLookup(ctx, p.query, provider); err == nil {
@@ -217,7 +211,7 @@ func (p *proxyProvider) defaultDoHLookup(ctx context.Context, query, dohProvider
 	dataChan, errChan := make(chan []string), make(chan error)
 
 	go func() {
-		defer p.handlePanic()
+		defer async.HandlePanic(p.panicHandler)
 		// Build new DNS request in RFC1035 format.
 		dnsRequest := new(dns.Msg).SetQuestion(dns.Fqdn(query), dns.TypeTXT)
 

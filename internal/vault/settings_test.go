@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/stretchr/testify/require"
@@ -64,7 +64,7 @@ func TestVault_Settings_SMTP(t *testing.T) {
 
 func TestVault_Settings_GluonDir(t *testing.T) {
 	// create a new test vault.
-	s, corrupt, err := vault.New(t.TempDir(), "/path/to/gluon", []byte("my secret key"), queue.NoopPanicHandler{})
+	s, corrupt, err := vault.New(t.TempDir(), "/path/to/gluon", []byte("my secret key"), async.NoopPanicHandler{})
 	require.NoError(t, err)
 	require.False(t, corrupt)
 

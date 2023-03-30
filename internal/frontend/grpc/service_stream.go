@@ -49,7 +49,7 @@ func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunE
 	// if events occurred before streaming started, they've been queued. Now that the stream channel is available
 	// we can flush the queued
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 
 		s.eventQueueMutex.Lock()
 		defer s.eventQueueMutex.Unlock()

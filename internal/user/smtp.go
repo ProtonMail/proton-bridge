@@ -29,6 +29,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/gluon/rfc5322"
 	"github.com/ProtonMail/gluon/rfc822"
@@ -48,7 +49,7 @@ import (
 
 // sendMail sends an email from the given address to the given recipients.
 func (user *User) sendMail(authID string, from string, to []string, r io.Reader) error {
-	defer user.handlePanic()
+	defer async.HandlePanic(user.panicHandler)
 
 	return safe.RLockRet(func() error {
 		ctx, cancel := context.WithCancel(context.Background())
@@ -392,7 +393,7 @@ func (user *User) createAttachments(
 	}
 
 	keys, err := parallel.MapContext(ctx, runtime.NumCPU(), attachments, func(ctx context.Context, att message.Attachment) (attKey, error) {
-		defer user.handlePanic()
+		defer async.HandlePanic(user.panicHandler)
 
 		logrus.WithFields(logrus.Fields{
 			"name":        logging.Sensitive(att.Name),
@@ -471,7 +472,7 @@ func (user *User) getRecipients(
 	})
 
 	prefs, err := parallel.MapContext(ctx, runtime.NumCPU(), addresses, func(ctx context.Context, recipient string) (proton.SendPreferences, error) {
-		defer user.handlePanic()
+		defer async.HandlePanic(user.panicHandler)
 
 		pubKeys, recType, err := client.GetPublicKeys(ctx, recipient)
 		if err != nil {

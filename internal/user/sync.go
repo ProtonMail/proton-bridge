@@ -25,9 +25,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/logging"
-	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -184,7 +184,7 @@ func (user *User) sync(ctx context.Context) error {
 }
 
 // nolint:exhaustive
-func syncLabels(ctx context.Context, apiLabels map[string]proton.Label, updateCh ...*queue.QueuedChannel[imap.Update]) error {
+func syncLabels(ctx context.Context, apiLabels map[string]proton.Label, updateCh ...*async.QueuedChannel[imap.Update]) error {
 	var updates []imap.Update
 
 	// Create placeholder Folders/Labels mailboxes with the \Noselect attribute.
@@ -251,8 +251,8 @@ func (user *User) syncMessages(
 	vault *vault.User,
 	apiLabels map[string]proton.Label,
 	addrKRs map[string]*crypto.KeyRing,
-	updateCh map[string]*queue.QueuedChannel[imap.Update],
-	eventCh *queue.QueuedChannel[events.Event],
+	updateCh map[string]*async.QueuedChannel[imap.Update],
+	eventCh *async.QueuedChannel[events.Event],
 	maxSyncMemory uint64,
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
@@ -456,7 +456,7 @@ func (user *User) syncMessages(
 			}
 
 			result, err := parallel.MapContext(ctx, maxParallelDownloads, request.ids, func(ctx context.Context, id string) (proton.FullMessage, error) {
-				defer user.handlePanic()
+				defer async.HandlePanic(user.panicHandler)
 
 				var result proton.FullMessage
 
@@ -511,7 +511,7 @@ func (user *User) syncMessages(
 				logrus.Debugf("Build request: %v of %v count=%v", index, len(chunks), len(chunk))
 
 				result, err := parallel.MapContext(ctx, maxMessagesInParallel, chunk, func(ctx context.Context, msg proton.FullMessage) (*buildRes, error) {
-					defer user.handlePanic()
+					defer async.HandlePanic(user.panicHandler)
 
 					return buildRFC822(apiLabels, msg, addrKRs[msg.AddressID], new(bytes.Buffer)), nil
 				})
@@ -538,7 +538,7 @@ func (user *User) syncMessages(
 
 		type updateTargetInfo struct {
 			queueIndex int
-			ch         *queue.QueuedChannel[imap.Update]
+			ch         *async.QueuedChannel[imap.Update]
 		}
 
 		pendingUpdates := make([][]*imap.MessageCreated, len(updateCh))

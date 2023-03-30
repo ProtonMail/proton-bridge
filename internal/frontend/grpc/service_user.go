@@ -70,7 +70,7 @@ func (s *Service) SetUserSplitMode(ctx context.Context, splitMode *UserSplitMode
 	}
 
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 		defer func() { _ = s.SendEvent(NewUserToggleSplitModeFinishedEvent(splitMode.UserID)) }()
 
 		var targetMode vault.AddressMode
@@ -121,7 +121,7 @@ func (s *Service) LogoutUser(ctx context.Context, userID *wrapperspb.StringValue
 	}
 
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 
 		if err := s.bridge.LogoutUser(context.Background(), userID.Value); err != nil {
 			s.log.WithError(err).Error("Failed to log user out")
@@ -135,7 +135,7 @@ func (s *Service) RemoveUser(ctx context.Context, userID *wrapperspb.StringValue
 	s.log.WithField("UserID", userID.Value).Debug("RemoveUser")
 
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 
 		// remove preferences
 		if err := s.bridge.DeleteUser(context.Background(), userID.Value); err != nil {

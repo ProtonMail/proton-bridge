@@ -20,13 +20,13 @@ package user
 import (
 	"time"
 
-	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 )
 
 type syncReporter struct {
 	userID  string
-	eventCh *queue.QueuedChannel[events.Event]
+	eventCh *async.QueuedChannel[events.Event]
 
 	start time.Time
 	total int
@@ -36,7 +36,7 @@ type syncReporter struct {
 	freq time.Duration
 }
 
-func newSyncReporter(userID string, eventCh *queue.QueuedChannel[events.Event], total int, freq time.Duration) *syncReporter {
+func newSyncReporter(userID string, eventCh *async.QueuedChannel[events.Event], total int, freq time.Duration) *syncReporter {
 	return &syncReporter{
 		userID:  userID,
 		eventCh: eventCh,

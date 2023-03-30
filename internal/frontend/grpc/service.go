@@ -33,6 +33,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
@@ -192,9 +193,7 @@ func NewService(
 }
 
 func (s *Service) handlePanic() {
-	if s.panicHandler != nil {
-		s.panicHandler.HandlePanic()
-	}
+	async.HandlePanic(s.panicHandler)
 }
 
 func (s *Service) initAutostart() {

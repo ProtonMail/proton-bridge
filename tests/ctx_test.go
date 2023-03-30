@@ -29,7 +29,7 @@ import (
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
@@ -141,7 +141,7 @@ type testCtx struct {
 	// client holds the gRPC frontend client under test.
 	client        frontend.BridgeClient
 	clientConn    *grpc.ClientConn
-	clientEventCh *queue.QueuedChannel[*frontend.StreamEvent]
+	clientEventCh *async.QueuedChannel[*frontend.StreamEvent]
 
 	// These maps hold test objects created during the test.
 	userByID       map[string]*testUser

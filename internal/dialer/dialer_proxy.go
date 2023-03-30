@@ -24,7 +24,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v3/internal/async"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -77,12 +77,6 @@ func formatAsAddress(rawURL string) string {
 		port = "80"
 	}
 	return net.JoinHostPort(host, port)
-}
-
-func (d *ProxyTLSDialer) handlePanic() {
-	if d.panicHandler != nil {
-		d.panicHandler.HandlePanic()
-	}
 }
 
 // DialTLSContext dials the given network/address. If it fails, it retries using a proxy.
@@ -139,7 +133,7 @@ func (d *ProxyTLSDialer) switchToReachableServer() error {
 	// This means we want to disable it again in 24 hours.
 	if d.proxyAddress == d.directAddress {
 		go func() {
-			defer d.handlePanic()
+			defer async.HandlePanic(d.panicHandler)
 
 			<-time.After(d.proxyUseDuration)
 

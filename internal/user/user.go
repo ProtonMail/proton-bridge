@@ -29,13 +29,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/gluon/imap"
-	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal"
-	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
@@ -65,7 +64,7 @@ type User struct {
 	reporter reporter.Reporter
 	sendHash *sendRecorder
 
-	eventCh   *queue.QueuedChannel[events.Event]
+	eventCh   *async.QueuedChannel[events.Event]
 	eventLock safe.RWMutex
 
 	apiUser     proton.User
@@ -77,7 +76,7 @@ type User struct {
 	apiLabels     map[string]proton.Label
 	apiLabelsLock safe.RWMutex
 
-	updateCh     map[string]*queue.QueuedChannel[imap.Update]
+	updateCh     map[string]*async.QueuedChannel[imap.Update]
 	updateChLock safe.RWMutex
 
 	tasks     *async.Group
@@ -129,7 +128,7 @@ func New(
 		reporter: reporter,
 		sendHash: newSendRecorder(sendEntryExpiry),
 
-		eventCh:   queue.NewQueuedChannel[events.Event](0, 0, crashHandler),
+		eventCh:   async.NewQueuedChannel[events.Event](0, 0, crashHandler),
 		eventLock: safe.NewRWMutex(),
 
 		apiUser:     apiUser,
@@ -141,7 +140,7 @@ func New(
 		apiLabels:     groupBy(apiLabels, func(label proton.Label) string { return label.ID }),
 		apiLabelsLock: safe.NewRWMutex(),
 
-		updateCh:     make(map[string]*queue.QueuedChannel[imap.Update]),
+		updateCh:     make(map[string]*async.QueuedChannel[imap.Update]),
 		updateChLock: safe.NewRWMutex(),
 
 		tasks:           async.NewGroup(context.Background(), crashHandler),
@@ -184,7 +183,7 @@ func New(
 		doneCh := make(chan struct{})
 
 		go func() {
-			defer user.handlePanic()
+			defer async.HandlePanic(user.panicHandler)
 			user.pollAPIEventsCh <- doneCh
 		}()
 
@@ -235,12 +234,6 @@ func New(
 	})
 
 	return user, nil
-}
-
-func (user *User) handlePanic() {
-	if user.panicHandler != nil {
-		user.panicHandler.HandlePanic()
-	}
 }
 
 func (user *User) TriggerSync() {
@@ -605,11 +598,11 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 		updateCh.CloseAndDiscardQueued()
 	}
 
-	user.updateCh = make(map[string]*queue.QueuedChannel[imap.Update])
+	user.updateCh = make(map[string]*async.QueuedChannel[imap.Update])
 
 	switch mode {
 	case vault.CombinedMode:
-		primaryUpdateCh := queue.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
+		primaryUpdateCh := async.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
 
 		for addrID := range user.apiAddrs {
 			user.updateCh[addrID] = primaryUpdateCh
@@ -617,7 +610,7 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 
 	case vault.SplitMode:
 		for addrID := range user.apiAddrs {
-			user.updateCh[addrID] = queue.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
+			user.updateCh[addrID] = async.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
 		}
 	}
 }

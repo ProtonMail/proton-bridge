@@ -24,7 +24,7 @@ import (
 	"net"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/proton-bridge/v3/internal/async"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/focus/proto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/sirupsen/logrus"
@@ -77,7 +77,7 @@ func NewService(locator service.Locator, version *semver.Version, panicHandler a
 		}
 
 		go func() {
-			defer serv.handlePanic()
+			defer async.HandlePanic(serv.panicHandler)
 
 			if err := serv.server.Serve(listener); err != nil {
 				fmt.Printf("failed to serve: %v", err)
@@ -86,12 +86,6 @@ func NewService(locator service.Locator, version *semver.Version, panicHandler a
 	}
 
 	return serv, nil
-}
-
-func (service *Service) handlePanic() {
-	if service.panicHandler != nil {
-		service.panicHandler.HandlePanic()
-	}
 }
 
 // Raise implements the gRPC FocusService interface; it raises the application.
@@ -115,7 +109,7 @@ func (service *Service) GetRaiseCh() <-chan struct{} {
 // Close closes the service.
 func (service *Service) Close() {
 	go func() {
-		defer service.handlePanic()
+		defer async.HandlePanic(service.panicHandler)
 
 		// we do this in a goroutine, as on Windows, the gRPC shutdown may take minutes if something tries to
 		// interact with it in an invalid way (e.g. HTTP GET request from a Qt QNetworkManager instance).

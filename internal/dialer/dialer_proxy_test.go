@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/stretchr/testify/require"
 )
 
@@ -142,8 +142,8 @@ func TestProxyDialer_UseProxy(t *testing.T) {
 	trustedProxy := getTrustedServer()
 	defer closeServer(trustedProxy)
 
-	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, queue.NoopPanicHandler{})
-	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", queue.NoopPanicHandler{})
+	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, async.NoopPanicHandler{})
+	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", async.NoopPanicHandler{})
 	d.proxyProvider = provider
 	provider.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{trustedProxy.URL}, nil }
 
@@ -160,8 +160,8 @@ func TestProxyDialer_UseProxy_MultipleTimes(t *testing.T) {
 	proxy3 := getTrustedServer()
 	defer closeServer(proxy3)
 
-	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, queue.NoopPanicHandler{})
-	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", queue.NoopPanicHandler{})
+	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, async.NoopPanicHandler{})
+	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", async.NoopPanicHandler{})
 	d.proxyProvider = provider
 	provider.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{proxy1.URL}, nil }
 
@@ -190,8 +190,8 @@ func TestProxyDialer_UseProxy_RevertAfterTime(t *testing.T) {
 	trustedProxy := getTrustedServer()
 	defer closeServer(trustedProxy)
 
-	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, queue.NoopPanicHandler{})
-	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", queue.NoopPanicHandler{})
+	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, async.NoopPanicHandler{})
+	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", async.NoopPanicHandler{})
 	d.proxyProvider = provider
 	d.proxyUseDuration = time.Second
 
@@ -213,8 +213,8 @@ func TestProxyDialer_UseProxy_RevertAfterTime(t *testing.T) {
 func TestProxyDialer_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachable(t *testing.T) {
 	trustedProxy := getTrustedServer()
 
-	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, queue.NoopPanicHandler{})
-	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", queue.NoopPanicHandler{})
+	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, async.NoopPanicHandler{})
+	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", async.NoopPanicHandler{})
 	d.proxyProvider = provider
 	provider.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{trustedProxy.URL}, nil }
 
@@ -243,8 +243,8 @@ func TestProxyDialer_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBloc
 	proxy2 := getTrustedServer()
 	defer closeServer(proxy2)
 
-	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, queue.NoopPanicHandler{})
-	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", queue.NoopPanicHandler{})
+	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, async.NoopPanicHandler{})
+	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", async.NoopPanicHandler{})
 	d.proxyProvider = provider
 	provider.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{proxy1.URL, proxy2.URL}, nil }
 

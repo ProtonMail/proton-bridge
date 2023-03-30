@@ -23,7 +23,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/bradenaw/juniper/stream"
@@ -114,7 +114,7 @@ func (t *testCtx) withAddrKR(
 		return err
 	}
 
-	_, addrKRs, err := proton.Unlock(user, addr, keyPass, queue.NoopPanicHandler{})
+	_, addrKRs, err := proton.Unlock(user, addr, keyPass, async.NoopPanicHandler{})
 	if err != nil {
 		return err
 	}

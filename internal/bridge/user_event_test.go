@@ -28,7 +28,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
@@ -475,7 +475,7 @@ func TestBridge_User_UpdateDraftAndCreateOtherMessage(t *testing.T) {
 			keyPass, err := salts.SaltForKey(password, user.Keys.Primary().ID)
 			require.NoError(t, err)
 
-			_, addrKRs, err := proton.Unlock(user, addrs, keyPass, queue.NoopPanicHandler{})
+			_, addrKRs, err := proton.Unlock(user, addrs, keyPass, async.NoopPanicHandler{})
 			require.NoError(t, err)
 
 			// Create a draft (generating a "create draft message" event).
@@ -557,7 +557,7 @@ func TestBridge_User_SendDraftRemoveDraftFlag(t *testing.T) {
 			keyPass, err := salts.SaltForKey(password, user.Keys.Primary().ID)
 			require.NoError(t, err)
 
-			_, addrKRs, err := proton.Unlock(user, addrs, keyPass, queue.NoopPanicHandler{})
+			_, addrKRs, err := proton.Unlock(user, addrs, keyPass, async.NoopPanicHandler{})
 			require.NoError(t, err)
 
 			// Create a draft (generating a "create draft message" event).

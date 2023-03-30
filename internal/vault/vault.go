@@ -29,7 +29,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/ProtonMail/proton-bridge/v3/internal/async"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/bradenaw/juniper/parallel"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
@@ -77,12 +77,6 @@ func New(vaultDir, gluonCacheDir string, key []byte, panicHandler async.PanicHan
 	return vault, corrupt, nil
 }
 
-func (vault *Vault) handlePanic() {
-	if vault.panicHandler != nil {
-		vault.panicHandler.HandlePanic()
-	}
-}
-
 // GetUserIDs returns the user IDs and usernames of all users in the vault.
 func (vault *Vault) GetUserIDs() []string {
 	return xslices.Map(vault.get().Users, func(user UserData) string {
@@ -126,7 +120,7 @@ func (vault *Vault) ForUser(parallelism int, fn func(*User) error) error {
 	userIDs := vault.GetUserIDs()
 
 	return parallel.DoContext(context.Background(), parallelism, len(userIDs), func(_ context.Context, idx int) error {
-		defer vault.handlePanic()
+		defer async.HandlePanic(vault.panicHandler)
 
 		user, err := vault.NewUser(userIDs[idx])
 		if err != nil {

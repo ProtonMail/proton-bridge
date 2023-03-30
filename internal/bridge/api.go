@@ -21,7 +21,7 @@ import (
 	"net/http"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/sirupsen/logrus"
@@ -33,7 +33,7 @@ func defaultAPIOptions(
 	version *semver.Version,
 	cookieJar http.CookieJar,
 	transport http.RoundTripper,
-	panicHandler queue.PanicHandler,
+	panicHandler async.PanicHandler,
 ) []proton.Option {
 	return []proton.Option{
 		proton.WithHostURL(apiURL),

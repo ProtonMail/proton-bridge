@@ -25,8 +25,8 @@ import (
 	"net/http"
 
 	"github.com/ProtonMail/gluon"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/imap"
-	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -225,7 +225,7 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event proton.Add
 			user.updateCh[event.Address.ID] = user.updateCh[primAddr.ID]
 
 		case vault.SplitMode:
-			user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
+			user.updateCh[event.Address.ID] = async.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
 		}
 
 		user.eventCh.Enqueue(events.UserAddressCreated{
@@ -284,7 +284,7 @@ func (user *User) handleUpdateAddressEvent(_ context.Context, event proton.Addre
 				user.updateCh[event.Address.ID] = user.updateCh[primAddr.ID]
 
 			case vault.SplitMode:
-				user.updateCh[event.Address.ID] = queue.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
+				user.updateCh[event.Address.ID] = async.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
 			}
 
 			user.eventCh.Enqueue(events.UserAddressEnabled{
