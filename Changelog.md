@@ -1,10 +1,16 @@
-# Proton Mail Bridge and Import-Export app Changelog
+# Proton Mail Bridge Changelog
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## [Bridge 3.1.0] Quebec
 
 ### Changed
+* GODT-2523: Use software QML rendering backend by default on Windows.
+* GODT-2500: Reorganise async methods.
+* GODT-2500: Add panic handlers everywhere.
+* GODT-2511: Add bridge-gui switches to permanently select the QML rendering backend.
+* GODT-2509: Migrate TLS cert from v1/v2 location during upgrade to v3.
+* GODT-2487: Add windows test job and worker.
 * Update GPA to include detailed error messages.
 * GODT-2479: Ensure messages always have a text body part.
 * GODT-2482: More attachment to relevant exceptions.
@@ -33,6 +39,18 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2289: UIDValidity as Timestamp.
 
 ### Fixed
+* GODT-2505: Show notification only for cases when user needs to do actions.
+* GODT-2516: Log error when the vault key cannot be created/loaded from the keychain.
+* GODT-2526: Fix high memory usage with fetch/search.
+* GODT-2514: Apply Retry-After to 503.
+* GODT-2524: Preserve old vault values.
+* GODT-2508: Handle Address Updated for none-existing address.
+* GODT-2504: Fix missing attachments in imported message.
+* GODT-2513: Scanner Crash in Gluon.
+* GODT-2512: Catch unhandled API errors.
+* GODT-2507: Memory consumption bug.
+* GODT-2497: Do not report EOF and network errors.
+* GODT-2481: Fix DBUS Secert Service.
 * GODT-2455: Upper limit for number of merged events.
 * GODT-2480: Do not override X-Original-Date with invalid Date.
 * GODT-2473: Fix handling of complex mime types.
