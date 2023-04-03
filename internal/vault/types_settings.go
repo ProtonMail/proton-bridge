@@ -44,9 +44,14 @@ type Settings struct {
 	LastVersion string
 	FirstStart  bool
 
+	MaxSyncMemory uint64
+
+	// **WARNING**: These entry can't be removed until they vault has proper migration support.
 	SyncWorkers int
 	SyncAttPool int
 }
+
+const DefaultMaxSyncMemory = 2 * 1024 * uint64(1024*1024)
 
 func GetDefaultSyncWorkerCount() int {
 	const minSyncWorkers = 16
@@ -83,7 +88,8 @@ func newDefaultSettings(gluonDir string) Settings {
 		LastVersion: "0.0.0",
 		FirstStart:  true,
 
-		SyncWorkers: syncWorkers,
-		SyncAttPool: syncWorkers,
+		MaxSyncMemory: DefaultMaxSyncMemory,
+		SyncWorkers:   syncWorkers,
+		SyncAttPool:   syncWorkers,
 	}
 }

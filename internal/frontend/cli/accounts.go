@@ -115,7 +115,7 @@ func (f *frontendCLI) showAccountAddressInfo(user bridge.UserInfo, address strin
 	f.Println("")
 }
 
-func (f *frontendCLI) loginAccount(c *ishell.Context) { //nolint:funlen
+func (f *frontendCLI) loginAccount(c *ishell.Context) {
 	f.ShowPrompt(false)
 	defer f.ShowPrompt(true)
 

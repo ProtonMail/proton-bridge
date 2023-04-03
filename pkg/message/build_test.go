@@ -793,7 +793,8 @@ func TestBuildAttachmentWithLongFilename(t *testing.T) {
 		expectHeader(`Content-Type`, contains(veryLongName)).
 		expectContentDispositionParam(`filename`, is(veryLongName)).
 		expectHeader(`Content-Disposition`, contains(veryLongName)).
-		expectSection(hasMaxLineLength(215))
+		// GODT-2477 - Implement line splitting according to RFC-2184.
+		expectSection(hasMaxLineLength(426))
 }
 
 func TestBuildMessageDate(t *testing.T) {
@@ -833,6 +834,41 @@ func TestBuildMessageWithInvalidDate(t *testing.T) {
 	section(t, resFix).
 		expectDate(is(`Fri, 13 Aug 1982 00:00:00 +0000`)).
 		expectHeader(`X-Original-Date`, is(`Wed, 31 Dec 1969 23:59:59 +0000`))
+}
+
+func TestBuildMessageWithExistingOriginalDate(t *testing.T) {
+	m := gomock.NewController(t)
+	defer m.Finish()
+
+	kr := utils.MakeKeyRing(t)
+
+	// Create a new message with existing original date
+	msg := newTestMessageWithHeaders(t, kr,
+		"messageID",
+		"addressID",
+		"text/html",
+		"<html><body>body</body></html>",
+		time.Unix(-1, 0),
+		map[string][]string{
+			"X-Original-Date": {"Sun, 15 Jan 2023 04:23:03 +0100 (W. Europe Standard Time)"},
+			"Date":            {"15-Jan-2023 04:23:13 +0100"},
+		})
+
+	// Build the message as usual; the date will be before 1970.
+	res, err := BuildRFC822(kr, msg, nil, JobOptions{})
+	require.NoError(t, err)
+
+	section(t, res).
+		expectDate(is(`15-Jan-2023 04:23:13 +0100`)).
+		expectHeader(`X-Original-Date`, is("Sun, 15 Jan 2023 04:23:03 +0100 (W. Europe Standard Time)"))
+
+	// Build the message with date sanitization enabled; the date will be RFC822's birthdate.
+	resFix, err := BuildRFC822(kr, msg, nil, JobOptions{SanitizeDate: true})
+	require.NoError(t, err)
+
+	section(t, resFix).
+		expectDate(is(`Fri, 13 Aug 1982 00:00:00 +0000`)).
+		expectHeader(`X-Original-Date`, is("Sun, 15 Jan 2023 04:23:03 +0100 (W. Europe Standard Time)"))
 }
 
 func TestBuildMessageInternalID(t *testing.T) {
@@ -1230,4 +1266,39 @@ func readFile(t *testing.T, path string) string {
 	require.NoError(t, err)
 
 	return string(b)
+}
+
+func TestBuildComplexMIMEType(t *testing.T) {
+	m := gomock.NewController(t)
+	defer m.Finish()
+
+	kr := utils.MakeKeyRing(t)
+	msg := newTestMessage(t, kr, "messageID", "addressID", "text/html", "<html><body>body</body></html>", time.Now())
+	att0 := addTestAttachment(t, kr, &msg, "attachID0", "attach0.png", "image/png", "attachment", "attach0")
+	att1 := addTestAttachment(t, kr, &msg, "attachID1", "Cat_August_2010-4.jpeg", "image/jpeg; name=Cat_August_2010-4.jpeg; x-unix-mode=0644", "attachment", "attach1")
+
+	res, err := BuildRFC822(kr, msg, [][]byte{
+		att0,
+		att1,
+	}, JobOptions{})
+	require.NoError(t, err)
+
+	section(t, res, 1).
+		expectBody(is(`<html><body>body</body></html>`)).
+		expectContentType(is(`text/html`)).
+		expectTransferEncoding(is(`quoted-printable`))
+
+	section(t, res, 2).
+		expectBody(is(`attach0`)).
+		expectContentType(is(`image/png`)).
+		expectTransferEncoding(is(`base64`)).
+		expectContentTypeParam(`name`, is(`attach0.png`)).
+		expectContentDispositionParam(`filename`, is(`attach0.png`))
+
+	section(t, res, 3).
+		expectBody(is(`attach1`)).
+		expectContentType(is(`image/jpeg`)).
+		expectTransferEncoding(is(`base64`)).
+		expectContentTypeParam(`name`, is(`Cat_August_2010-4.jpeg`)).
+		expectContentDispositionParam(`filename`, is(`Cat_August_2010-4.jpeg`))
 }

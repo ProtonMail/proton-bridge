@@ -20,7 +20,10 @@
 #define BRIDGE_GUI_LOG_UTILS_H
 
 
-QByteArray tailOfLatestBridgeLog(); ///< Return the last bytes of the last bridge log.
+#include <bridgepp/Log/Log.h>
+
+
+bridgepp::Log &initLog(); ///< Initialize the application log.
 
 
 #endif //BRIDGE_GUI_LOG_UTILS_H

@@ -32,19 +32,7 @@ func (bridge *Bridge) CheckForUpdates() {
 }
 
 func (bridge *Bridge) InstallUpdate(version updater.VersionInfo) {
-	log := logrus.WithFields(logrus.Fields{
-		"version": version.Version,
-		"current": bridge.curVersion,
-		"channel": bridge.vault.GetUpdateChannel(),
-	})
-
-	select {
-	case bridge.installCh <- installJob{version: version, silent: false}:
-		log.Info("The update will be installed manually")
-
-	default:
-		log.Info("An update is already being installed")
-	}
+	bridge.installCh <- installJob{version: version, silent: false}
 }
 
 func (bridge *Bridge) handleUpdate(version updater.VersionInfo) {
@@ -89,17 +77,7 @@ func (bridge *Bridge) handleUpdate(version updater.VersionInfo) {
 
 	default:
 		safe.RLock(func() {
-			if version.Version.GreaterThan(bridge.newVersion) {
-				log.Info("An update is available")
-
-				select {
-				case bridge.installCh <- installJob{version: version, silent: true}:
-					log.Info("The update will be installed silently")
-
-				default:
-					log.Info("An update is already being installed")
-				}
-			}
+			bridge.installCh <- installJob{version: version, silent: true}
 		}, bridge.newVersionLock)
 	}
 }
@@ -116,6 +94,12 @@ func (bridge *Bridge) installUpdate(ctx context.Context, job installJob) {
 			"current": bridge.curVersion,
 			"channel": bridge.vault.GetUpdateChannel(),
 		})
+
+		if !job.version.Version.GreaterThan(bridge.newVersion) {
+			return
+		}
+
+		log.WithField("silent", job.silent).Info("An update is available")
 
 		bridge.publish(events.UpdateAvailable{
 			Version:    job.version,
@@ -142,6 +126,7 @@ func (bridge *Bridge) installUpdate(ctx context.Context, job installJob) {
 				Silent:  job.silent,
 				Error:   err,
 			})
+
 		default:
 			log.Info("The update was installed successfully")
 

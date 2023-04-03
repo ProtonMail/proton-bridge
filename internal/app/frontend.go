@@ -46,7 +46,7 @@ func runFrontend(
 
 	switch {
 	case c.Bool(flagCLI):
-		return bridgeCLI.New(bridge, restarter, eventCh).Loop()
+		return bridgeCLI.New(bridge, restarter, eventCh, crashHandler).Loop()
 
 	case c.Bool(flagNonInteractive):
 		select {}

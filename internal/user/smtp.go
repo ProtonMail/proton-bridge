@@ -29,10 +29,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/reporter"
+	"github.com/ProtonMail/gluon/rfc5322"
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
-	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
@@ -47,9 +48,9 @@ import (
 )
 
 // sendMail sends an email from the given address to the given recipients.
-//
-// nolint:funlen
 func (user *User) sendMail(authID string, from string, to []string, r io.Reader) error {
+	defer async.HandlePanic(user.panicHandler)
+
 	return safe.RLockRet(func() error {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
@@ -119,6 +120,10 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 				return fmt.Errorf("failed to get first key: %w", err)
 			}
 
+			// Ensure that there is always a text/html or text/plain body part. This is required by the API. If none
+			// exists and empty text part will be added.
+			parser.AttachEmptyTextPartIfNoneExists()
+
 			// If we have to attach the public key, do it now.
 			if settings.AttachPublicKey {
 				key, err := addrKR.GetKey(0)
@@ -141,7 +146,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 			}
 
 			// Send the message using the correct key.
-			sent, err := sendWithKey(
+			sent, err := user.sendWithKey(
 				ctx,
 				user.client,
 				user.reporter,
@@ -165,7 +170,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 }
 
 // sendWithKey sends the message with the given address key.
-func sendWithKey( //nolint:funlen
+func (user *User) sendWithKey(
 	ctx context.Context,
 	client *proton.Client,
 	sentry reporter.Reporter,
@@ -224,12 +229,12 @@ func sendWithKey( //nolint:funlen
 		return proton.Message{}, fmt.Errorf("failed to create attachments: %w", err)
 	}
 
-	attKeys, err := createAttachments(ctx, client, addrKR, draft.ID, message.Attachments)
+	attKeys, err := user.createAttachments(ctx, client, addrKR, draft.ID, message.Attachments)
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to create attachments: %w", err)
 	}
 
-	recipients, err := getRecipients(ctx, client, userKR, settings, draft)
+	recipients, err := user.getRecipients(ctx, client, userKR, settings, draft)
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to get recipients: %w", err)
 	}
@@ -247,7 +252,7 @@ func sendWithKey( //nolint:funlen
 	return res, nil
 }
 
-func getParentID( //nolint:funlen
+func getParentID(
 	ctx context.Context,
 	client *proton.Client,
 	authAddrID string,
@@ -375,8 +380,7 @@ func createDraft(
 	})
 }
 
-// nolint:funlen
-func createAttachments(
+func (user *User) createAttachments(
 	ctx context.Context,
 	client *proton.Client,
 	addrKR *crypto.KeyRing,
@@ -389,6 +393,8 @@ func createAttachments(
 	}
 
 	keys, err := parallel.MapContext(ctx, runtime.NumCPU(), attachments, func(ctx context.Context, att message.Attachment) (attKey, error) {
+		defer async.HandlePanic(user.panicHandler)
+
 		logrus.WithFields(logrus.Fields{
 			"name":        logging.Sensitive(att.Name),
 			"contentID":   att.ContentID,
@@ -454,7 +460,7 @@ func createAttachments(
 	return attKeys, nil
 }
 
-func getRecipients(
+func (user *User) getRecipients(
 	ctx context.Context,
 	client *proton.Client,
 	userKR *crypto.KeyRing,
@@ -466,14 +472,16 @@ func getRecipients(
 	})
 
 	prefs, err := parallel.MapContext(ctx, runtime.NumCPU(), addresses, func(ctx context.Context, recipient string) (proton.SendPreferences, error) {
+		defer async.HandlePanic(user.panicHandler)
+
 		pubKeys, recType, err := client.GetPublicKeys(ctx, recipient)
 		if err != nil {
-			return proton.SendPreferences{}, fmt.Errorf("failed to get public keys: %w (%v)", err, recipient)
+			return proton.SendPreferences{}, fmt.Errorf("failed to get public key for %v: %w", recipient, err)
 		}
 
 		contactSettings, err := getContactSettings(ctx, client, userKR, recipient)
 		if err != nil {
-			return proton.SendPreferences{}, fmt.Errorf("failed to get contact settings: %w", err)
+			return proton.SendPreferences{}, fmt.Errorf("failed to get contact settings for %v: %w", recipient, err)
 		}
 
 		return buildSendPrefs(contactSettings, settings, pubKeys, draft.MIMEType, recType == proton.RecipientTypeInternal)

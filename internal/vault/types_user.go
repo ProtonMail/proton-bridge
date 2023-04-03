@@ -28,7 +28,6 @@ type UserData struct {
 
 	GluonKey    []byte
 	GluonIDs    map[string]string
-	UIDValidity map[string]imap.UID
 	BridgePass  []byte // raw token represented as byte slice (needs to be encoded)
 	AddressMode AddressMode
 
@@ -38,6 +37,9 @@ type UserData struct {
 
 	SyncStatus SyncStatus
 	EventID    string
+
+	// **WARNING**: This value can't be removed until we have vault migration support.
+	UIDValidity map[string]imap.UID
 }
 
 type AddressMode int

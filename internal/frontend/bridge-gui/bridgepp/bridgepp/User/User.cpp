@@ -34,7 +34,8 @@ SPUser User::newUser(QObject *parent) {
 /// \param[in] parent The parent object.
 //****************************************************************************************************************************************************
 User::User(QObject *parent)
-    : QObject(parent) {
+    : QObject(parent)
+    , imapFailureCooldownEndTime_(QDateTime::currentDateTime()) {
 
 }
 
@@ -294,6 +295,48 @@ void User::setTotalBytes(float totalBytes) {
 
 
 //****************************************************************************************************************************************************
+/// \return true iff a sync is in progress.
+//****************************************************************************************************************************************************
+bool User::isSyncing() const {
+    return isSyncing_;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] syncing The new value for the sync state.
+//****************************************************************************************************************************************************
+void User::setIsSyncing(bool syncing) {
+    if (isSyncing_ == syncing) {
+        return;
+    }
+
+    isSyncing_ = syncing;
+    emit isSyncingChanged(syncing);
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The sync progress ratio
+//****************************************************************************************************************************************************
+float User::syncProgress() const {
+    return syncProgress_;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] progress The progress ratio.
+//****************************************************************************************************************************************************
+void User::setSyncProgress(float progress) {
+    if (qAbs(syncProgress_ - progress) < 0.00001) {
+        return;
+    }
+
+    syncProgress_ = progress;
+    emit syncProgressChanged(progress);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] state The user state.
 /// \return A string describing the state.
 //****************************************************************************************************************************************************
@@ -308,6 +351,26 @@ QString User::stateToString(UserState state) {
     default:
         return "Unknown";
     }
+}
+
+
+//****************************************************************************************************************************************************
+/// We display a notification and pop the application window if an IMAP client tries to connect to a signed out account, but we do not want to
+/// do it repeatedly, as it's an intrusive action. This function let's you define a period of time during which the notification should not be
+/// displayed.
+///
+/// \param durationMSecs The duration of the period in milliseconds.
+//****************************************************************************************************************************************************
+void User::startImapLoginFailureCooldown(qint64 durationMSecs) {
+    imapFailureCooldownEndTime_ = QDateTime::currentDateTime().addMSecs(durationMSecs);
+}
+
+
+//****************************************************************************************************************************************************
+/// \return true if we currently are in a cooldown period for the notification
+//****************************************************************************************************************************************************
+bool User::isInIMAPLoginFailureCooldown() const {
+    return QDateTime::currentDateTime() < imapFailureCooldownEndTime_;
 }
 
 

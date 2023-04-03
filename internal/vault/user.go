@@ -20,7 +20,6 @@ package vault
 import (
 	"fmt"
 
-	"github.com/ProtonMail/gluon/imap"
 	"github.com/bradenaw/juniper/xslices"
 	"golang.org/x/exp/slices"
 )
@@ -79,24 +78,6 @@ func (user *User) RemoveGluonID(addrID, gluonID string) error {
 	}
 
 	return err
-}
-
-func (user *User) GetUIDValidity(addrID string) imap.UID {
-	if validity, ok := user.vault.getUser(user.userID).UIDValidity[addrID]; ok {
-		return validity
-	}
-
-	if err := user.SetUIDValidity(addrID, 1000); err != nil {
-		panic(err)
-	}
-
-	return user.GetUIDValidity(addrID)
-}
-
-func (user *User) SetUIDValidity(addrID string, validity imap.UID) error {
-	return user.vault.modUser(user.userID, func(data *UserData) {
-		data.UIDValidity[addrID] = validity
-	})
 }
 
 // AddressMode returns the user's address mode.
@@ -208,10 +189,6 @@ func (user *User) ClearSyncStatus() error {
 		data.SyncStatus = SyncStatus{}
 
 		data.EventID = ""
-
-		for addrID := range data.UIDValidity {
-			data.UIDValidity[addrID]++
-		}
 	})
 }
 

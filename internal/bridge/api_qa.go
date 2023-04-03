@@ -24,6 +24,7 @@ import (
 	"os"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
 )
 
@@ -33,9 +34,9 @@ func newAPIOptions(
 	version *semver.Version,
 	cookieJar http.CookieJar,
 	transport http.RoundTripper,
-	poolSize int,
+	panicHandler async.PanicHandler,
 ) []proton.Option {
-	opt := defaultAPIOptions(apiURL, version, cookieJar, transport, poolSize)
+	opt := defaultAPIOptions(apiURL, version, cookieJar, transport, panicHandler)
 
 	if host := os.Getenv("BRIDGE_API_HOST"); host != "" {
 		opt = append(opt, proton.WithHostURL(host))

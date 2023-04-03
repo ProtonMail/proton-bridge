@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/stretchr/testify/require"
 	"github.com/vmihailenco/msgpack/v5"
@@ -52,7 +53,7 @@ func TestMigrate(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "vault.enc"), b, 0o600))
 
 	// Migrate the vault.
-	s, corrupt, err := New(dir, "default-gluon-dir", []byte("my secret key"))
+	s, corrupt, err := New(dir, "default-gluon-dir", []byte("my secret key"), async.NoopPanicHandler{})
 	require.NoError(t, err)
 	require.False(t, corrupt)
 

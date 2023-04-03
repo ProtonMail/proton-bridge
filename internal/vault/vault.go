@@ -29,6 +29,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/bradenaw/juniper/parallel"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
@@ -44,10 +45,12 @@ type Vault struct {
 
 	ref     map[string]int
 	refLock sync.Mutex
+
+	panicHandler async.PanicHandler
 }
 
 // New constructs a new encrypted data vault at the given filepath using the given encryption key.
-func New(vaultDir, gluonCacheDir string, key []byte) (*Vault, bool, error) {
+func New(vaultDir, gluonCacheDir string, key []byte, panicHandler async.PanicHandler) (*Vault, bool, error) {
 	if err := os.MkdirAll(vaultDir, 0o700); err != nil {
 		return nil, false, err
 	}
@@ -68,6 +71,8 @@ func New(vaultDir, gluonCacheDir string, key []byte) (*Vault, bool, error) {
 	if err != nil {
 		return nil, false, err
 	}
+
+	vault.panicHandler = panicHandler
 
 	return vault, corrupt, nil
 }
@@ -115,6 +120,8 @@ func (vault *Vault) ForUser(parallelism int, fn func(*User) error) error {
 	userIDs := vault.GetUserIDs()
 
 	return parallel.DoContext(context.Background(), parallelism, len(userIDs), func(_ context.Context, idx int) error {
+		defer async.HandlePanic(vault.panicHandler)
+
 		user, err := vault.NewUser(userIDs[idx])
 		if err != nil {
 			return err
@@ -189,6 +196,10 @@ func (vault *Vault) Reset(gluonDir string) error {
 	return vault.mod(func(data *Data) {
 		*data = newDefaultData(gluonDir)
 	})
+}
+
+func (vault *Vault) Path() string {
+	return vault.path
 }
 
 func (vault *Vault) Close() error {

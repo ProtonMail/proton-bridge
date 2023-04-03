@@ -25,6 +25,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/cookies"
@@ -40,7 +41,7 @@ import (
 
 func TestMigratePrefsToVaultWithKeys(t *testing.T) {
 	// Create a new vault.
-	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"))
+	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"), async.NoopPanicHandler{})
 	require.NoError(t, err)
 	require.False(t, corrupt)
 
@@ -53,14 +54,15 @@ func TestMigratePrefsToVaultWithKeys(t *testing.T) {
 	// Check Json Settings
 	validateJSONPrefs(t, vault)
 
+	cert, key := vault.GetBridgeTLSCert()
 	// Check the keys were found and collected.
-	require.Equal(t, "-----BEGIN CERTIFICATE-----", string(vault.GetBridgeTLSCert()))
-	require.Equal(t, "-----BEGIN RSA PRIVATE KEY-----", string(vault.GetBridgeTLSKey()))
+	require.Equal(t, "-----BEGIN CERTIFICATE-----", string(cert))
+	require.Equal(t, "-----BEGIN RSA PRIVATE KEY-----", string(key))
 }
 
 func TestMigratePrefsToVaultWithoutKeys(t *testing.T) {
 	// Create a new vault.
-	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"))
+	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"), async.NoopPanicHandler{})
 	require.NoError(t, err)
 	require.False(t, corrupt)
 
@@ -70,12 +72,16 @@ func TestMigratePrefsToVaultWithoutKeys(t *testing.T) {
 	// Migrate the old prefs file to the new vault.
 	require.NoError(t, migrateOldSettingsWithDir(configDir, vault))
 
+	// Migrate the old prefs file to the new vault.
+	require.NoError(t, migrateOldSettingsWithDir(configDir, vault))
+
 	// Check Json Settings
 	validateJSONPrefs(t, vault)
 
 	// Check the keys were found and collected.
-	require.NotEqual(t, []byte("-----BEGIN CERTIFICATE-----"), vault.GetBridgeTLSCert())
-	require.NotEqual(t, []byte("-----BEGIN RSA PRIVATE KEY-----"), vault.GetBridgeTLSKey())
+	cert, key := vault.GetBridgeTLSCert()
+	require.NotEqual(t, []byte("-----BEGIN CERTIFICATE-----"), cert)
+	require.NotEqual(t, []byte("-----BEGIN RSA PRIVATE KEY-----"), key)
 }
 
 func TestKeychainMigration(t *testing.T) {
@@ -168,7 +174,7 @@ func TestUserMigration(t *testing.T) {
 	token, err := crypto.RandomToken(32)
 	require.NoError(t, err)
 
-	v, corrupt, err := vault.New(settingsFolder, settingsFolder, token)
+	v, corrupt, err := vault.New(settingsFolder, settingsFolder, token, async.NoopPanicHandler{})
 	require.NoError(t, err)
 	require.False(t, corrupt)
 
@@ -206,8 +212,6 @@ func validateJSONPrefs(t *testing.T, vault *vault.Vault) {
 	require.True(t, vault.GetAutostart())
 
 	// Check that the other app settings have been migrated.
-	require.Equal(t, 16, vault.SyncWorkers())
-	require.Equal(t, 16, vault.SyncAttPool())
 	require.False(t, vault.GetProxyAllowed())
 	require.False(t, vault.GetShowAllMail())
 

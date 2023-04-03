@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/bradenaw/juniper/xerrors"
 	"github.com/sirupsen/logrus"
 )
@@ -68,17 +69,26 @@ func catch(handlers ...func() error) {
 }
 
 type Group struct {
-	mu sync.Mutex
+	mu           sync.Mutex
+	panicHandler async.PanicHandler
+}
+
+func MakeGroup(panicHandler async.PanicHandler) Group {
+	return Group{panicHandler: panicHandler}
 }
 
 func (wg *Group) GoTry(fn func(bool)) {
 	if wg.mu.TryLock() {
 		go func() {
+			defer async.HandlePanic(wg.panicHandler)
 			defer wg.mu.Unlock()
 			fn(true)
 		}()
 	} else {
-		go fn(false)
+		go func() {
+			defer async.HandlePanic(wg.panicHandler)
+			fn(false)
+		}()
 	}
 }
 

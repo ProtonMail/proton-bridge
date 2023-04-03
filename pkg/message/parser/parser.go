@@ -20,6 +20,7 @@ package parser
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/emersion/go-message"
 	"github.com/sirupsen/logrus"
@@ -78,6 +79,39 @@ func (p *Parser) AttachPublicKey(key, keyName string) {
 	p.Root().AddChild(&Part{
 		Header: h,
 		Body:   []byte(key),
+	})
+}
+
+func (p *Parser) AttachEmptyTextPartIfNoneExists() {
+	root := p.Root()
+	if root.isMultipartMixed() {
+		for _, v := range root.children {
+			// Must be an attachment of sorts, skip.
+			if v.Header.Has("Content-Disposition") {
+				continue
+			}
+			contentType, _, err := v.Header.ContentType()
+			if err == nil && strings.HasPrefix(contentType, "text/") {
+				// Message already has text part
+				return
+			}
+		}
+	} else {
+		contentType, _, err := root.Header.ContentType()
+		if err == nil && strings.HasPrefix(contentType, "text/") {
+			// Message already has text part
+			return
+		}
+	}
+
+	h := message.Header{}
+
+	h.Set("Content-Type", "text/plain;charset=utf8")
+	h.Set("Content-Transfer-Encoding", "quoted-printable")
+
+	p.Root().AddChild(&Part{
+		Header: h,
+		Body:   nil,
 	})
 }
 

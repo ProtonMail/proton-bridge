@@ -26,7 +26,3 @@ type Restarter interface {
 	AddFlags(flags ...string)
 	Override(exe string)
 }
-
-type Locator interface {
-	ProvideSettingsPath() (string, error)
-}

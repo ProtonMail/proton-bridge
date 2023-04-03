@@ -49,7 +49,7 @@ func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunE
 	// if events occurred before streaming started, they've been queued. Now that the stream channel is available
 	// we can flush the queued
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 
 		s.eventQueueMutex.Lock()
 		defer s.eventQueueMutex.Unlock()
@@ -110,7 +110,7 @@ func (s *Service) SendEvent(event *StreamEvent) error {
 }
 
 // StartEventTest sends all the known event via gRPC.
-func (s *Service) StartEventTest() error { //nolint:funlen
+func (s *Service) StartEventTest() error {
 	const dummyAddress = "dummy@proton.me"
 	events := []*StreamEvent{
 		// app
@@ -174,6 +174,7 @@ func (s *Service) StartEventTest() error { //nolint:funlen
 		NewUserToggleSplitModeFinishedEvent("userID"),
 		NewUserDisconnectedEvent("username"),
 		NewUserChangedEvent("userID"),
+		NewUsedBytesChangedEvent("userID", 1000),
 	}
 
 	for _, event := range events {

@@ -23,6 +23,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	r "github.com/stretchr/testify/require"
 )
@@ -31,7 +32,7 @@ func TestProxyProvider_FindProxy(t *testing.T) {
 	proxy := getTrustedServer()
 	defer closeServer(proxy)
 
-	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"})
+	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"}, async.NoopPanicHandler{})
 	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{proxy.URL}, nil }
 
 	url, err := p.findReachableServer()
@@ -47,7 +48,7 @@ func TestProxyProvider_FindProxy_ChooseReachableProxy(t *testing.T) {
 	unreachableProxy := getTrustedServer()
 	closeServer(unreachableProxy)
 
-	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"})
+	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"}, async.NoopPanicHandler{})
 	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) {
 		return []string{reachableProxy.URL, unreachableProxy.URL}, nil
 	}
@@ -68,7 +69,7 @@ func TestProxyProvider_FindProxy_ChooseTrustedProxy(t *testing.T) {
 	checker := NewTLSPinChecker(TrustedAPIPins)
 	dialer := NewPinningTLSDialer(NewBasicTLSDialer(""), reporter, checker)
 
-	p := newProxyProvider(dialer, "", []string{"not used"})
+	p := newProxyProvider(dialer, "", []string{"not used"}, async.NoopPanicHandler{})
 	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) {
 		return []string{untrustedProxy.URL, trustedProxy.URL}, nil
 	}
@@ -85,7 +86,7 @@ func TestProxyProvider_FindProxy_FailIfNoneReachable(t *testing.T) {
 	unreachableProxy2 := getTrustedServer()
 	closeServer(unreachableProxy2)
 
-	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"})
+	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"}, async.NoopPanicHandler{})
 	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) {
 		return []string{unreachableProxy1.URL, unreachableProxy2.URL}, nil
 	}
@@ -105,7 +106,7 @@ func TestProxyProvider_FindProxy_FailIfNoneTrusted(t *testing.T) {
 	checker := NewTLSPinChecker(TrustedAPIPins)
 	dialer := NewPinningTLSDialer(NewBasicTLSDialer(""), reporter, checker)
 
-	p := newProxyProvider(dialer, "", []string{"not used"})
+	p := newProxyProvider(dialer, "", []string{"not used"}, async.NoopPanicHandler{})
 	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) {
 		return []string{untrustedProxy1.URL, untrustedProxy2.URL}, nil
 	}
@@ -115,7 +116,7 @@ func TestProxyProvider_FindProxy_FailIfNoneTrusted(t *testing.T) {
 }
 
 func TestProxyProvider_FindProxy_RefreshCacheTimeout(t *testing.T) {
-	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"})
+	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"}, async.NoopPanicHandler{})
 	p.cacheRefreshTimeout = 1 * time.Second
 	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { time.Sleep(2 * time.Second); return nil, nil }
 
@@ -132,7 +133,7 @@ func TestProxyProvider_FindProxy_CanReachTimeout(t *testing.T) {
 	}))
 	defer closeServer(slowProxy)
 
-	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"})
+	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"}, async.NoopPanicHandler{})
 	p.canReachTimeout = 1 * time.Second
 	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{slowProxy.URL}, nil }
 
@@ -144,7 +145,7 @@ func TestProxyProvider_FindProxy_CanReachTimeout(t *testing.T) {
 }
 
 func TestProxyProvider_DoHLookup_Quad9(t *testing.T) {
-	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{Quad9Provider, GoogleProvider})
+	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{Quad9Provider, GoogleProvider}, async.NoopPanicHandler{})
 
 	records, err := p.dohLookup(context.Background(), proxyQuery, Quad9Provider)
 	r.NoError(t, err)
@@ -155,7 +156,7 @@ func TestProxyProvider_DoHLookup_Quad9(t *testing.T) {
 // port filter. Basic functionality should be covered by other tests. Keeping
 // code here to be able to run it locally if needed.
 func DISABLEDTestProxyProviderDoHLookupQuad9Port(t *testing.T) {
-	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{Quad9Provider, GoogleProvider})
+	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{Quad9Provider, GoogleProvider}, async.NoopPanicHandler{})
 
 	records, err := p.dohLookup(context.Background(), proxyQuery, Quad9PortProvider)
 	r.NoError(t, err)
@@ -163,7 +164,7 @@ func DISABLEDTestProxyProviderDoHLookupQuad9Port(t *testing.T) {
 }
 
 func TestProxyProvider_DoHLookup_Google(t *testing.T) {
-	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{Quad9Provider, GoogleProvider})
+	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{Quad9Provider, GoogleProvider}, async.NoopPanicHandler{})
 
 	records, err := p.dohLookup(context.Background(), proxyQuery, GoogleProvider)
 	r.NoError(t, err)
@@ -173,7 +174,7 @@ func TestProxyProvider_DoHLookup_Google(t *testing.T) {
 func TestProxyProvider_DoHLookup_FindProxy(t *testing.T) {
 	skipIfProxyIsSet(t)
 
-	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{Quad9Provider, GoogleProvider})
+	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{Quad9Provider, GoogleProvider}, async.NoopPanicHandler{})
 
 	url, err := p.findReachableServer()
 	r.NoError(t, err)
@@ -183,7 +184,7 @@ func TestProxyProvider_DoHLookup_FindProxy(t *testing.T) {
 func TestProxyProvider_DoHLookup_FindProxyFirstProviderUnreachable(t *testing.T) {
 	skipIfProxyIsSet(t)
 
-	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"https://unreachable", Quad9Provider, GoogleProvider})
+	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"https://unreachable", Quad9Provider, GoogleProvider}, async.NoopPanicHandler{})
 
 	url, err := p.findReachableServer()
 	r.NoError(t, err)

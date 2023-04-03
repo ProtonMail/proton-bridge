@@ -85,7 +85,6 @@ message(STATUS "Using Qt ${Qt6_VERSION}")
 #*****************************************************************************************************************************************************
 find_package(sentry CONFIG REQUIRED)
 
-
 #*****************************************************************************************************************************************************
 # Source files and output
 #*****************************************************************************************************************************************************
@@ -110,23 +109,22 @@ add_executable(bridge-gui
     Resources.qrc
     AppController.cpp AppController.h
     BridgeApp.cpp BridgeApp.h
+    BuildConfig.h
     CommandLine.cpp CommandLine.h
     EventStreamWorker.cpp EventStreamWorker.h
     LogUtils.cpp LogUtils.h
     main.cpp
     Pch.h
-    BuildConfig.h
     QMLBackend.cpp QMLBackend.h
     UserList.cpp UserList.h
     SentryUtils.cpp SentryUtils.h
+    Settings.cpp Settings.h
     ${DOCK_ICON_SRC_FILE} MacOS/DockIcon.h
     )
-
 
 if (APPLE)
     target_sources(bridge-gui PRIVATE MacOS/SecondInstance.mm MacOS/SecondInstance.h)
 endif(APPLE)
-
 
 if (WIN32) # on Windows, we add a (non-Qt) resource file that contains the application icon and version information.
     string(TIMESTAMP BRIDGE_BUILD_YEAR "%Y")

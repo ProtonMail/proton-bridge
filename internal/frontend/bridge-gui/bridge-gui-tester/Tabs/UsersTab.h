@@ -62,6 +62,10 @@ private slots:
     void onRemoveUserButton(); ///< Remove the currently selected user.
     void onSelectionChanged(QItemSelection, QItemSelection); ///< Slot for the change of the selection.
     void onSendUserBadEvent(); ///< Slot for the 'Send Bad Event Error' button.
+    void onSendUsedBytesChangedEvent(); ///< Slot for the 'Send Used Bytes Changed Event' button.
+    void onSendIMAPLoginFailedEvent(); ///< Slot for the 'Send IMAP Login failure Event' button.
+    void onCheckSyncToggled(bool checked); ///< Slot for the 'Synchronizing' check box.
+    void onSliderSyncValueChanged(int value); ///< Slot for the sync 'Progress' slider.
     void updateGUIState(); ///< Update the GUI state.
 
 private: // member functions.

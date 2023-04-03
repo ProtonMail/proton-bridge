@@ -18,26 +18,24 @@
 package app
 
 import (
-	"encoding/base64"
 	"fmt"
 	"path"
 
-	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/exp/slices"
 )
 
-func WithVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool) error) error {
+func WithVault(locations *locations.Locations, panicHandler async.PanicHandler, fn func(*vault.Vault, bool, bool) error) error {
 	logrus.Debug("Creating vault")
 	defer logrus.Debug("Vault stopped")
 
 	// Create the encVault.
-	encVault, insecure, corrupt, err := newVault(locations)
+	encVault, insecure, corrupt, err := newVault(locations, panicHandler)
 	if err != nil {
 		return fmt.Errorf("could not create vault: %w", err)
 	}
@@ -51,7 +49,9 @@ func WithVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool)
 	if installed := encVault.GetCertsInstalled(); !installed {
 		logrus.Debug("Installing certificates")
 
-		if err := certs.NewInstaller().InstallCert(encVault.GetBridgeTLSCert()); err != nil {
+		certPEM, _ := encVault.GetBridgeTLSCert()
+
+		if err := certs.NewInstaller().InstallCert(certPEM); err != nil {
 			return fmt.Errorf("failed to install certs: %w", err)
 		}
 
@@ -67,7 +67,7 @@ func WithVault(locations *locations.Locations, fn func(*vault.Vault, bool, bool)
 	return fn(encVault, insecure, corrupt)
 }
 
-func newVault(locations *locations.Locations) (*vault.Vault, bool, bool, error) {
+func newVault(locations *locations.Locations, panicHandler async.PanicHandler) (*vault.Vault, bool, bool, error) {
 	vaultDir, err := locations.ProvideSettingsPath()
 	if err != nil {
 		return nil, false, false, fmt.Errorf("could not get vault dir: %w", err)
@@ -80,7 +80,7 @@ func newVault(locations *locations.Locations) (*vault.Vault, bool, bool, error) 
 		insecure bool
 	)
 
-	if key, err := getVaultKey(vaultDir); err != nil {
+	if key, err := loadVaultKey(vaultDir); err != nil {
 		logrus.WithError(err).Error("Could not load/create vault key")
 		insecure = true
 
@@ -95,7 +95,7 @@ func newVault(locations *locations.Locations) (*vault.Vault, bool, bool, error) 
 		return nil, false, false, fmt.Errorf("could not provide gluon path: %w", err)
 	}
 
-	vault, corrupt, err := vault.New(vaultDir, gluonCacheDir, vaultKey)
+	vault, corrupt, err := vault.New(vaultDir, gluonCacheDir, vaultKey, panicHandler)
 	if err != nil {
 		return nil, false, false, fmt.Errorf("could not create vault: %w", err)
 	}
@@ -103,42 +103,25 @@ func newVault(locations *locations.Locations) (*vault.Vault, bool, bool, error) 
 	return vault, insecure, corrupt, nil
 }
 
-func getVaultKey(vaultDir string) ([]byte, error) {
+func loadVaultKey(vaultDir string) ([]byte, error) {
 	helper, err := vault.GetHelper(vaultDir)
 	if err != nil {
 		return nil, fmt.Errorf("could not get keychain helper: %w", err)
 	}
 
-	keychain, err := keychain.NewKeychain(helper, constants.KeyChainName)
+	kc, err := keychain.NewKeychain(helper, constants.KeyChainName)
 	if err != nil {
 		return nil, fmt.Errorf("could not create keychain: %w", err)
 	}
 
-	secrets, err := keychain.List()
+	has, err := vault.HasVaultKey(kc)
 	if err != nil {
-		return nil, fmt.Errorf("could not list keychain: %w", err)
+		return nil, fmt.Errorf("could not check for vault key: %w", err)
 	}
 
-	if !slices.Contains(secrets, vaultSecretName) {
-		tok, err := crypto.RandomToken(32)
-		if err != nil {
-			return nil, fmt.Errorf("could not generate random token: %w", err)
-		}
-
-		if err := keychain.Put(vaultSecretName, base64.StdEncoding.EncodeToString(tok)); err != nil {
-			return nil, fmt.Errorf("could not put keychain item: %w", err)
-		}
+	if has {
+		return vault.GetVaultKey(kc)
 	}
 
-	_, keyEnc, err := keychain.Get(vaultSecretName)
-	if err != nil {
-		return nil, fmt.Errorf("could not get keychain item: %w", err)
-	}
-
-	keyDec, err := base64.StdEncoding.DecodeString(keyEnc)
-	if err != nil {
-		return nil, fmt.Errorf("could not decode keychain item: %w", err)
-	}
-
-	return keyDec, nil
+	return vault.NewVaultKey(kc)
 }

@@ -46,6 +46,9 @@ public slots:
     void startWorker(bool autorelease) const; ///< Run the worker.
     void releaseWorker(); ///< Delete the worker and its thread.
 
+public: // static data members
+    static qint64 const maxTerminationWaitTimeMs { 10000 }; ///< The maximum wait time for the termination of a thread
+
 public: // data members.
     QThread *thread_ { nullptr }; ///< The thread.
     Worker *worker_ { nullptr }; ///< The worker.

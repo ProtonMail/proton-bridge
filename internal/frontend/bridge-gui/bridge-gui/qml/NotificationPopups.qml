@@ -138,4 +138,9 @@ Item {
         colorScheme: root.colorScheme
         notification: root.notifications.genericError
     }
+
+    NotificationDialog {
+        colorScheme: root.colorScheme
+        notification: root.notifications.genericQuestion
+    }
 }

@@ -29,13 +29,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/gluon/imap"
-	"github.com/ProtonMail/gluon/queue"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal"
-	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
@@ -65,7 +64,7 @@ type User struct {
 	reporter reporter.Reporter
 	sendHash *sendRecorder
 
-	eventCh   *queue.QueuedChannel[events.Event]
+	eventCh   *async.QueuedChannel[events.Event]
 	eventLock safe.RWMutex
 
 	apiUser     proton.User
@@ -77,7 +76,7 @@ type User struct {
 	apiLabels     map[string]proton.Label
 	apiLabelsLock safe.RWMutex
 
-	updateCh     map[string]*queue.QueuedChannel[imap.Update]
+	updateCh     map[string]*async.QueuedChannel[imap.Update]
 	updateChLock safe.RWMutex
 
 	tasks     *async.Group
@@ -88,13 +87,14 @@ type User struct {
 	pollAPIEventsCh chan chan struct{}
 	goPollAPIEvents func(wait bool)
 
-	syncWorkers int
 	showAllMail uint32
+
+	maxSyncMemory uint64
+
+	panicHandler async.PanicHandler
 }
 
 // New returns a new user.
-//
-// nolint:funlen
 func New(
 	ctx context.Context,
 	encVault *vault.User,
@@ -102,9 +102,9 @@ func New(
 	reporter reporter.Reporter,
 	apiUser proton.User,
 	crashHandler async.PanicHandler,
-	syncWorkers int,
 	showAllMail bool,
-) (*User, error) { //nolint:funlen
+	maxSyncMemory uint64,
+) (*User, error) {
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
 
 	// Get the user's API addresses.
@@ -128,7 +128,7 @@ func New(
 		reporter: reporter,
 		sendHash: newSendRecorder(sendEntryExpiry),
 
-		eventCh:   queue.NewQueuedChannel[events.Event](0, 0),
+		eventCh:   async.NewQueuedChannel[events.Event](0, 0, crashHandler),
 		eventLock: safe.NewRWMutex(),
 
 		apiUser:     apiUser,
@@ -140,14 +140,17 @@ func New(
 		apiLabels:     groupBy(apiLabels, func(label proton.Label) string { return label.ID }),
 		apiLabelsLock: safe.NewRWMutex(),
 
-		updateCh:     make(map[string]*queue.QueuedChannel[imap.Update]),
+		updateCh:     make(map[string]*async.QueuedChannel[imap.Update]),
 		updateChLock: safe.NewRWMutex(),
 
 		tasks:           async.NewGroup(context.Background(), crashHandler),
 		pollAPIEventsCh: make(chan chan struct{}),
 
-		syncWorkers: syncWorkers,
 		showAllMail: b32(showAllMail),
+
+		maxSyncMemory: maxSyncMemory,
+
+		panicHandler: crashHandler,
 	}
 
 	// Initialize the user's update channels for its current address mode.
@@ -179,7 +182,10 @@ func New(
 	user.goPollAPIEvents = func(wait bool) {
 		doneCh := make(chan struct{})
 
-		go func() { user.pollAPIEventsCh <- doneCh }()
+		go func() {
+			defer async.HandlePanic(user.panicHandler)
+			user.pollAPIEventsCh <- doneCh
+		}()
 
 		if wait {
 			<-doneCh
@@ -193,7 +199,15 @@ func New(
 		// Sync the user.
 		user.syncAbort.Do(ctx, func(ctx context.Context) {
 			if user.vault.SyncStatus().IsComplete() {
-				user.log.Info("Sync already complete, skipping")
+				user.log.Info("Sync already complete, only system label will be updated")
+
+				if err := user.syncSystemLabels(ctx); err != nil {
+					user.log.WithError(err).Error("Failed to update system labels")
+					return
+				}
+
+				user.log.Info("System label update complete, starting API event stream")
+
 				return
 			}
 
@@ -257,11 +271,13 @@ func (user *User) Match(query string) bool {
 	}, user.apiUserLock, user.apiAddrsLock)
 }
 
-// Emails returns all the user's email addresses.
+// Emails returns all the user's active email addresses.
 // It returns them in sorted order; the user's primary address is first.
 func (user *User) Emails() []string {
 	return safe.RLockRet(func() []string {
-		addresses := maps.Values(user.apiAddrs)
+		addresses := xslices.Filter(maps.Values(user.apiAddrs), func(addr proton.Address) bool {
+			return addr.Status == proton.AddressStatusEnabled
+		})
 
 		slices.SortFunc(addresses, func(a, b proton.Address) bool {
 			return a.Order < b.Order
@@ -432,8 +448,6 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 }
 
 // SendMail sends an email from the given address to the given recipients.
-//
-// nolint:funlen
 func (user *User) SendMail(authID string, from string, to []string, r io.Reader) error {
 	if user.vault.SyncStatus().IsComplete() {
 		defer user.goPollAPIEvents(true)
@@ -584,11 +598,11 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 		updateCh.CloseAndDiscardQueued()
 	}
 
-	user.updateCh = make(map[string]*queue.QueuedChannel[imap.Update])
+	user.updateCh = make(map[string]*async.QueuedChannel[imap.Update])
 
 	switch mode {
 	case vault.CombinedMode:
-		primaryUpdateCh := queue.NewQueuedChannel[imap.Update](0, 0)
+		primaryUpdateCh := async.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
 
 		for addrID := range user.apiAddrs {
 			user.updateCh[addrID] = primaryUpdateCh
@@ -596,7 +610,7 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 
 	case vault.SplitMode:
 		for addrID := range user.apiAddrs {
-			user.updateCh[addrID] = queue.NewQueuedChannel[imap.Update](0, 0)
+			user.updateCh[addrID] = async.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
 		}
 	}
 }
@@ -606,7 +620,7 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 // When we receive an API event, we attempt to handle it.
 // If successful, we update the event ID in the vault.
 func (user *User) startEvents(ctx context.Context) {
-	ticker := proton.NewTicker(EventPeriod, EventJitter)
+	ticker := proton.NewTicker(EventPeriod, EventJitter, user.panicHandler)
 	defer ticker.Stop()
 
 	for {
@@ -636,13 +650,11 @@ func (user *User) startEvents(ctx context.Context) {
 }
 
 // doEventPoll is called whenever API events should be polled.
-//
-//nolint:funlen
 func (user *User) doEventPoll(ctx context.Context) error {
 	user.eventLock.Lock()
 	defer user.eventLock.Unlock()
 
-	event, err := user.client.GetEvent(ctx, user.vault.EventID())
+	event, more, err := user.client.GetEvent(ctx, user.vault.EventID())
 	if err != nil {
 		return fmt.Errorf("failed to get event (caused by %T): %w", internal.ErrCause(err), err)
 	}
@@ -672,11 +684,6 @@ func (user *User) doEventPoll(ctx context.Context) error {
 
 		// Catch all for uncategorized net errors that may slip through.
 		if netErr := new(net.OpError); errors.As(err, &netErr) {
-			user.eventCh.Enqueue(events.UncategorizedEventError{
-				UserID: user.ID(),
-				Error:  err,
-			})
-
 			return fmt.Errorf("failed to handle event due to network issues (uncategorized): %w", err)
 		}
 
@@ -692,11 +699,6 @@ func (user *User) doEventPoll(ctx context.Context) error {
 
 		// If the error is an unexpected EOF, return error to retry later.
 		if errors.Is(err, io.ErrUnexpectedEOF) {
-			user.eventCh.Enqueue(events.UncategorizedEventError{
-				UserID: user.ID(),
-				Error:  err,
-			})
-
 			return fmt.Errorf("failed to handle event due to EOF: %w", err)
 		}
 
@@ -732,6 +734,10 @@ func (user *User) doEventPoll(ctx context.Context) error {
 	}
 
 	user.log.WithField("eventID", event.EventID).Debug("Updated event ID in vault")
+
+	if more {
+		user.goPollAPIEvents(false)
+	}
 
 	return nil
 }

@@ -177,6 +177,31 @@ func NewUserBadEvent(userID string, errorMessage string) *StreamEvent {
 	return userEvent(&UserEvent{Event: &UserEvent_UserBadEvent{UserBadEvent: &UserBadEvent{UserID: userID, ErrorMessage: errorMessage}}})
 }
 
+func NewUsedBytesChangedEvent(userID string, usedBytes int) *StreamEvent {
+	return userEvent(&UserEvent{Event: &UserEvent_UsedBytesChangedEvent{UsedBytesChangedEvent: &UsedBytesChangedEvent{UserID: userID, UsedBytes: int64(usedBytes)}}})
+}
+
+func newIMAPLoginFailedEvent(username string) *StreamEvent {
+	return userEvent(&UserEvent{Event: &UserEvent_ImapLoginFailedEvent{ImapLoginFailedEvent: &ImapLoginFailedEvent{Username: username}}})
+}
+
+func NewSyncStartedEvent(userID string) *StreamEvent {
+	return userEvent(&UserEvent{Event: &UserEvent_SyncStartedEvent{SyncStartedEvent: &SyncStartedEvent{UserID: userID}}})
+}
+
+func NewSyncFinishedEvent(userID string) *StreamEvent {
+	return userEvent(&UserEvent{Event: &UserEvent_SyncFinishedEvent{SyncFinishedEvent: &SyncFinishedEvent{UserID: userID}}})
+}
+
+func NewSyncProgressEvent(userID string, progress float64, elapsedMs, remainingMs int64) *StreamEvent {
+	return userEvent(&UserEvent{Event: &UserEvent_SyncProgressEvent{SyncProgressEvent: &SyncProgressEvent{
+		UserID:      userID,
+		Progress:    progress,
+		ElapsedMs:   elapsedMs,
+		RemainingMs: remainingMs,
+	}}})
+}
+
 func NewGenericErrorEvent(errorCode ErrorCode) *StreamEvent {
 	return genericErrorEvent(&GenericErrorEvent{Code: errorCode})
 }

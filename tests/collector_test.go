@@ -23,20 +23,20 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 )
 
 type eventCollector struct {
-	events map[reflect.Type]*queue.QueuedChannel[events.Event]
-	fwdCh  []*queue.QueuedChannel[events.Event]
+	events map[reflect.Type]*async.QueuedChannel[events.Event]
+	fwdCh  []*async.QueuedChannel[events.Event]
 	lock   sync.Mutex
 	wg     sync.WaitGroup
 }
 
 func newEventCollector() *eventCollector {
 	return &eventCollector{
-		events: make(map[reflect.Type]*queue.QueuedChannel[events.Event]),
+		events: make(map[reflect.Type]*async.QueuedChannel[events.Event]),
 	}
 }
 
@@ -44,7 +44,7 @@ func (c *eventCollector) collectFrom(eventCh <-chan events.Event) <-chan events.
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	fwdCh := queue.NewQueuedChannel[events.Event](0, 0)
+	fwdCh := async.NewQueuedChannel[events.Event](0, 0, async.NoopPanicHandler{})
 
 	c.fwdCh = append(c.fwdCh, fwdCh)
 
@@ -87,7 +87,7 @@ func (c *eventCollector) push(event events.Event) {
 	defer c.lock.Unlock()
 
 	if _, ok := c.events[reflect.TypeOf(event)]; !ok {
-		c.events[reflect.TypeOf(event)] = queue.NewQueuedChannel[events.Event](0, 0)
+		c.events[reflect.TypeOf(event)] = async.NewQueuedChannel[events.Event](0, 0, async.NoopPanicHandler{})
 	}
 
 	c.events[reflect.TypeOf(event)].Enqueue(event)
@@ -102,7 +102,7 @@ func (c *eventCollector) getEventCh(ofType events.Event) <-chan events.Event {
 	defer c.lock.Unlock()
 
 	if _, ok := c.events[reflect.TypeOf(ofType)]; !ok {
-		c.events[reflect.TypeOf(ofType)] = queue.NewQueuedChannel[events.Event](0, 0)
+		c.events[reflect.TypeOf(ofType)] = async.NewQueuedChannel[events.Event](0, 0, async.NoopPanicHandler{})
 	}
 
 	return c.events[reflect.TypeOf(ofType)].GetChannel()

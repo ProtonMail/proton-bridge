@@ -32,6 +32,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/frontend/theme"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/ports"
@@ -51,8 +52,8 @@ func (s *Service) CheckTokens(ctx context.Context, clientConfigPath *wrapperspb.
 	path := clientConfigPath.Value
 	logEntry := s.log.WithField("path", path)
 
-	var clientConfig Config
-	if err := clientConfig.load(path); err != nil {
+	var clientConfig service.Config
+	if err := clientConfig.Load(path); err != nil {
 		logEntry.WithError(err).Error("Could not read gRPC client config file")
 
 		return nil, err
@@ -113,6 +114,8 @@ func (s *Service) Quit(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empt
 func (s *Service) quit() error {
 	// Windows is notably slow at Quitting. We do it in a goroutine to speed things up a bit.
 	go func() {
+		defer s.handlePanic()
+
 		if s.parentPID >= 0 {
 			s.parentPIDDoneCh <- struct{}{}
 		}
@@ -220,7 +223,8 @@ func (s *Service) TriggerReset(ctx context.Context, _ *emptypb.Empty) (*emptypb.
 	s.log.Debug("TriggerReset")
 
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
+
 		s.triggerReset()
 	}()
 	return &emptypb.Empty{}, nil
@@ -315,6 +319,8 @@ func (s *Service) ReportBug(ctx context.Context, report *ReportBugRequest) (*emp
 	}).Debug("ReportBug")
 
 	go func() {
+		defer s.handlePanic()
+
 		defer func() { _ = s.SendEvent(NewReportBugFinishedEvent()) }()
 
 		if err := s.bridge.ReportBug(
@@ -342,7 +348,7 @@ func (s *Service) ExportTLSCertificates(_ context.Context, folderPath *wrappersp
 	s.log.WithField("folderPath", folderPath).Info("ExportTLSCertificates")
 
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 
 		cert, key := s.bridge.GetBridgeTLSCert()
 
@@ -378,7 +384,7 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 	s.log.WithField("username", login.Username).Debug("Login")
 
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 
 		password, err := base64Decode(login.Password)
 		if err != nil {
@@ -434,7 +440,7 @@ func (s *Service) Login2FA(ctx context.Context, login *LoginRequest) (*emptypb.E
 	s.log.WithField("username", login.Username).Debug("Login2FA")
 
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 
 		if s.auth.UID == "" || s.authClient == nil {
 			s.log.Errorf("Login 2FA: authethication incomplete %s %p", s.auth.UID, s.authClient)
@@ -479,7 +485,7 @@ func (s *Service) Login2Passwords(ctx context.Context, login *LoginRequest) (*em
 	s.log.WithField("username", login.Username).Debug("Login2Passwords")
 
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 
 		password, err := base64Decode(login.Password)
 		if err != nil {
@@ -501,7 +507,7 @@ func (s *Service) LoginAbort(ctx context.Context, loginAbort *LoginAbortRequest)
 	s.log.WithField("username", loginAbort.Username).Debug("LoginAbort")
 
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 
 		s.loginAbort()
 	}()
@@ -513,7 +519,7 @@ func (s *Service) CheckUpdate(context.Context, *emptypb.Empty) (*emptypb.Empty, 
 	s.log.Debug("CheckUpdate")
 
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 
 		updateCh, done := s.bridge.GetEvents(
 			events.UpdateAvailable{},
@@ -545,7 +551,7 @@ func (s *Service) InstallUpdate(ctx context.Context, _ *emptypb.Empty) (*emptypb
 	s.log.Debug("InstallUpdate")
 
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 
 		safe.RLock(func() {
 			s.bridge.InstallUpdate(s.target)
@@ -586,6 +592,8 @@ func (s *Service) SetDiskCachePath(ctx context.Context, newPath *wrapperspb.Stri
 	s.log.WithField("path", newPath.Value).Debug("setDiskCachePath")
 
 	go func() {
+		defer s.handlePanic()
+
 		defer func() {
 			_ = s.SendEvent(NewDiskCachePathChangeFinishedEvent())
 		}()
@@ -651,7 +659,7 @@ func (s *Service) SetMailServerSettings(_ context.Context, settings *ImapSmtpSet
 		Debug("SetConnectionMode")
 
 	go func() {
-		defer s.panicHandler.HandlePanic()
+		defer s.handlePanic()
 
 		defer func() { _ = s.SendEvent(NewChangeMailServerSettingsFinishedEvent()) }()
 

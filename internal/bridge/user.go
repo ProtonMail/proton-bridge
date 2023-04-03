@@ -23,10 +23,10 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
-	"github.com/ProtonMail/proton-bridge/v3/internal/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
@@ -434,6 +434,7 @@ func (bridge *Bridge) loadUser(ctx context.Context, user *vault.User) error {
 				logrus.WithError(err).Warn("Failed to clear user secrets")
 			}
 		}
+
 		return fmt.Errorf("failed to create API client: %w", err)
 	}
 
@@ -515,9 +516,9 @@ func (bridge *Bridge) addUserWithVault(
 		client,
 		bridge.reporter,
 		apiUser,
-		bridge.crashHandler,
-		bridge.vault.SyncWorkers(),
+		bridge.panicHandler,
 		bridge.vault.GetShowAllMail(),
+		bridge.vault.GetMaxSyncMemory(),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)

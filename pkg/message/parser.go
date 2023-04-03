@@ -26,9 +26,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/ProtonMail/gluon/rfc5322"
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
-	"github.com/ProtonMail/go-rfc5322"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
 	pmmime "github.com/ProtonMail/proton-bridge/v3/pkg/mime"
 	"github.com/emersion/go-message"
@@ -433,7 +433,7 @@ func getPlainBody(part *parser.Part) []byte {
 	}
 }
 
-func parseMessageHeader(h message.Header) (Message, error) { //nolint:funlen
+func parseMessageHeader(h message.Header) (Message, error) {
 	var m Message
 
 	for fields := h.Fields(); fields.Next(); {

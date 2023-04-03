@@ -18,19 +18,25 @@
 package focus
 
 import (
+	"os"
 	"testing"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
 	"github.com/stretchr/testify/require"
 )
 
 func TestFocus_Raise(t *testing.T) {
+	tmpDir := t.TempDir()
+	locations := locations.New(newTestLocationsProvider(tmpDir), "config-name")
 	// Start the focus service.
-	service, err := NewService(semver.MustParse("1.2.3"))
+	service, err := NewService(locations, semver.MustParse("1.2.3"), nil)
 	require.NoError(t, err)
 
+	settingsFolder, err := locations.ProvideSettingsPath()
+	require.NoError(t, err)
 	// Try to dial it, it should succeed.
-	require.True(t, TryRaise())
+	require.True(t, TryRaise(settingsFolder))
 
 	// The service should report a raise call.
 	<-service.GetRaiseCh()
@@ -39,16 +45,60 @@ func TestFocus_Raise(t *testing.T) {
 	service.Close()
 
 	// Try to dial it, it should fail.
-	require.False(t, TryRaise())
+	require.False(t, TryRaise(settingsFolder))
 }
 
 func TestFocus_Version(t *testing.T) {
+	tmpDir := t.TempDir()
+	locations := locations.New(newTestLocationsProvider(tmpDir), "config-name")
 	// Start the focus service.
-	_, err := NewService(semver.MustParse("1.2.3"))
+	_, err := NewService(locations, semver.MustParse("1.2.3"), nil)
+	require.NoError(t, err)
+
+	settingsFolder, err := locations.ProvideSettingsPath()
 	require.NoError(t, err)
 
 	// Try to dial it, it should succeed.
-	version, ok := TryVersion()
+	version, ok := TryVersion(settingsFolder)
 	require.True(t, ok)
 	require.Equal(t, "1.2.3", version.String())
+}
+
+type TestLocationsProvider struct {
+	config, data, cache string
+}
+
+func newTestLocationsProvider(dir string) *TestLocationsProvider {
+	config, err := os.MkdirTemp(dir, "config")
+	if err != nil {
+		panic(err)
+	}
+
+	data, err := os.MkdirTemp(dir, "data")
+	if err != nil {
+		panic(err)
+	}
+
+	cache, err := os.MkdirTemp(dir, "cache")
+	if err != nil {
+		panic(err)
+	}
+
+	return &TestLocationsProvider{
+		config: config,
+		data:   data,
+		cache:  cache,
+	}
+}
+
+func (provider *TestLocationsProvider) UserConfig() string {
+	return provider.config
+}
+
+func (provider *TestLocationsProvider) UserData() string {
+	return provider.data
+}
+
+func (provider *TestLocationsProvider) UserCache() string {
+	return provider.cache
 }

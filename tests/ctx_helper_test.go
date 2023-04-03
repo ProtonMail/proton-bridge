@@ -20,8 +20,10 @@ package tests
 import (
 	"context"
 	"fmt"
+	"os"
 	"runtime"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/bradenaw/juniper/stream"
@@ -33,6 +35,7 @@ func (t *testCtx) withProton(fn func(*proton.Manager) error) error {
 		proton.WithHostURL(t.api.GetHostURL()),
 		proton.WithTransport(proton.InsecureTransport()),
 		proton.WithAppVersion(t.api.GetAppVersion()),
+		proton.WithDebug(os.Getenv("FEATURE_API_DEBUG") != ""),
 	)
 	defer m.Close()
 
@@ -41,7 +44,7 @@ func (t *testCtx) withProton(fn func(*proton.Manager) error) error {
 
 // withClient executes the given function with a client that is logged in as the given (known) user.
 func (t *testCtx) withClient(ctx context.Context, username string, fn func(context.Context, *proton.Client) error) error {
-	return t.withClientPass(ctx, username, t.getUserPass(t.getUserID(username)), fn)
+	return t.withClientPass(ctx, username, t.getUserByName(username).getUserPass(), fn)
 }
 
 // withClient executes the given function with a client that is logged in with the given username and password.
@@ -106,12 +109,12 @@ func (t *testCtx) withAddrKR(
 		return err
 	}
 
-	keyPass, err := salt.SaltForKey([]byte(t.getUserPass(t.getUserID(username))), user.Keys.Primary().ID)
+	keyPass, err := salt.SaltForKey([]byte(t.getUserByName(username).getUserPass()), user.Keys.Primary().ID)
 	if err != nil {
 		return err
 	}
 
-	_, addrKRs, err := proton.Unlock(user, addr, keyPass)
+	_, addrKRs, err := proton.Unlock(user, addr, keyPass, async.NoopPanicHandler{})
 	if err != nil {
 		return err
 	}
@@ -122,14 +125,19 @@ func (t *testCtx) withAddrKR(
 func (t *testCtx) createMessages(ctx context.Context, username, addrID string, req []proton.ImportReq) error {
 	return t.withClient(ctx, username, func(ctx context.Context, c *proton.Client) error {
 		return t.withAddrKR(ctx, c, username, addrID, func(ctx context.Context, addrKR *crypto.KeyRing) error {
-			if _, err := stream.Collect(ctx, c.ImportMessages(
+			str, err := c.ImportMessages(
 				ctx,
 				addrKR,
 				runtime.NumCPU(),
 				runtime.NumCPU(),
 				req...,
-			)); err != nil {
-				return err
+			)
+			if err != nil {
+				return fmt.Errorf("failed to prepare messages for import: %w", err)
+			}
+
+			if _, err := stream.Collect(ctx, str); err != nil {
+				return fmt.Errorf("failed to import messages: %w", err)
 			}
 
 			return nil

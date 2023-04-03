@@ -21,6 +21,7 @@ import (
 	"net/http"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/sirupsen/logrus"
@@ -32,14 +33,14 @@ func defaultAPIOptions(
 	version *semver.Version,
 	cookieJar http.CookieJar,
 	transport http.RoundTripper,
-	poolSize int,
+	panicHandler async.PanicHandler,
 ) []proton.Option {
 	return []proton.Option{
 		proton.WithHostURL(apiURL),
 		proton.WithAppVersion(constants.AppVersion(version.Original())),
 		proton.WithCookieJar(cookieJar),
 		proton.WithTransport(transport),
-		proton.WithAttPoolSize(poolSize),
 		proton.WithLogger(logrus.StandardLogger()),
+		proton.WithPanicHandler(panicHandler),
 	}
 }

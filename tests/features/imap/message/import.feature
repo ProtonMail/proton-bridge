@@ -104,7 +104,7 @@ Feature: IMAP import messages
     And IMAP client "1" eventually sees the following messages in "Sent":
       | from            | to                 | subject | body  |
       | foo@example.com | bridgetest@pm.test | Hello   | Hello |
-    And IMAP client "1" sees 0 messages in "Inbox"
+    And IMAP client "1" eventually sees 0 messages in "Inbox"
 
   Scenario: Import non-received message to Inbox
     When IMAP client "1" appends the following message to "Inbox":
@@ -119,7 +119,7 @@ Feature: IMAP import messages
     And IMAP client "1" eventually sees the following messages in "INBOX":
       | from            | to                 | subject | body  |
       | foo@example.com | bridgetest@pm.test | Hello   | Hello |
-    And IMAP client "1" sees 0 messages in "Sent"
+    And IMAP client "1" eventually sees 0 messages in "Sent"
 
   Scenario: Import non-received message to Sent
     When IMAP client "1" appends the following message to "Sent":
@@ -134,7 +134,7 @@ Feature: IMAP import messages
     And IMAP client "1" eventually sees the following messages in "Sent":
       | from            | to                 | subject | body  |
       | foo@example.com | bridgetest@pm.test | Hello   | Hello |
-    And IMAP client "1" sees 0 messages in "Inbox"
+    And IMAP client "1" eventually sees 0 messages in "Inbox"
 
   Scenario Outline: Import message without sender to <mailbox>
     When IMAP client "1" appends the following message to "<mailbox>":

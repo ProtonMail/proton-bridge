@@ -24,6 +24,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/go-resty/resty/v2"
 	"github.com/miekg/dns"
 	"github.com/pkg/errors"
@@ -67,11 +68,13 @@ type proxyProvider struct {
 	canReachTimeout     time.Duration
 
 	lastLookup time.Time // The time at which we last attempted to find a proxy.
+
+	panicHandler async.PanicHandler
 }
 
 // newProxyProvider creates a new proxyProvider that queries the given DoH providers
 // to retrieve DNS records for the given query string.
-func newProxyProvider(dialer TLSDialer, hostURL string, providers []string) (p *proxyProvider) {
+func newProxyProvider(dialer TLSDialer, hostURL string, providers []string, panicHandler async.PanicHandler) (p *proxyProvider) {
 	p = &proxyProvider{
 		dialer:              dialer,
 		hostURL:             hostURL,
@@ -80,6 +83,7 @@ func newProxyProvider(dialer TLSDialer, hostURL string, providers []string) (p *
 		cacheRefreshTimeout: proxyCacheRefreshTimeout,
 		dohTimeout:          proxyDoHTimeout,
 		canReachTimeout:     proxyCanReachTimeout,
+		panicHandler:        panicHandler,
 	}
 
 	// Use the default DNS lookup method; this can be overridden if necessary.
@@ -109,11 +113,13 @@ func (p *proxyProvider) findReachableServer() (proxy string, err error) {
 	wg.Add(2)
 
 	go func() {
+		defer async.HandlePanic(p.panicHandler)
 		defer wg.Done()
 		apiReachable = p.canReach(p.hostURL)
 	}()
 
 	go func() {
+		defer async.HandlePanic(p.panicHandler)
 		defer wg.Done()
 		err = p.refreshProxyCache()
 	}()
@@ -150,6 +156,8 @@ func (p *proxyProvider) refreshProxyCache() error {
 	resultChan := make(chan []string)
 
 	go func() {
+		defer async.HandlePanic(p.panicHandler)
+
 		for _, provider := range p.providers {
 			if proxies, err := p.dohLookup(ctx, p.query, provider); err == nil {
 				resultChan <- proxies
@@ -203,6 +211,7 @@ func (p *proxyProvider) defaultDoHLookup(ctx context.Context, query, dohProvider
 	dataChan, errChan := make(chan []string), make(chan error)
 
 	go func() {
+		defer async.HandlePanic(p.panicHandler)
 		// Build new DNS request in RFC1035 format.
 		dnsRequest := new(dns.Msg).SetQuestion(dns.Fqdn(query), dns.TypeTXT)
 

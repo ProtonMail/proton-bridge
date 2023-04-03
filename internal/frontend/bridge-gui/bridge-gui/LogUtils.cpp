@@ -17,46 +17,42 @@
 
 
 #include "LogUtils.h"
+#include "BuildConfig.h"
+#include <bridgepp/Log/LogUtils.h>
 #include <bridgepp/BridgeUtils.h>
 
 
 using namespace bridgepp;
 
 
-namespace {
-    qsizetype const logFileTailMaxLength = 25 * 1024; ///< The maximum length of the portion of log returned by tailOfLatestBridgeLog()
-}
+//****************************************************************************************************************************************************
+/// \return A reference to the log.
+//****************************************************************************************************************************************************
+Log &initLog() {
+    Log &log = app().log();
+    log.registerAsQtMessageHandler();
+    log.setEchoInConsole(true);
 
-//****************************************************************************************************************************************************
-/// \brief Return the path of the latest bridge log.
-/// \return The path of the latest bridge log file.
-/// \return An empty string if no bridge log file was found.
-//****************************************************************************************************************************************************
-QString latestBridgeLogPath() {
+    // remove old gui log files
     QDir const logsDir(userLogsDir());
-    if (logsDir.isEmpty()) {
-        return QString();
-    }
-    QFileInfoList files = logsDir.entryInfoList({ "v*.log" }, QDir::Files); // could do sorting, but only by last modification time. we want to sort by creation time.
-    std::sort(files.begin(), files.end(), [](QFileInfo const &lhs, QFileInfo const &rhs) -> bool {
-        return lhs.birthTime() < rhs.birthTime();
-    });
-    return files.back().absoluteFilePath();
-}
-
-
-//****************************************************************************************************************************************************
-/// Return the maxSize last bytes of the latest bridge log.
-//****************************************************************************************************************************************************
-QByteArray tailOfLatestBridgeLog() {
-    QString path = latestBridgeLogPath();
-    if (path.isEmpty()) {
-        return QByteArray();
+    for (QFileInfo const fileInfo: logsDir.entryInfoList({ "gui_v*.log" }, QDir::Filter::Files)) { // entryInfolist apparently only support wildcards, not regex.
+        QFile(fileInfo.absoluteFilePath()).remove();
     }
 
-    QFile file(path);
-    return file.open(QIODevice::Text | QIODevice::ReadOnly) ? file.readAll().right(logFileTailMaxLength) : QByteArray();
+    // create new GUI log file
+    QString error;
+    if (!log.startWritingToFile(logsDir.absoluteFilePath(QString("gui_v%1_%2.log").arg(PROJECT_VER).arg(QDateTime::currentSecsSinceEpoch())), &error)) {
+        log.error(error);
+    }
+
+    log.info("bridge-gui starting");
+    QString const qtCompileTimeVersion = QT_VERSION_STR;
+    QString const qtRuntimeVersion = qVersion();
+    QString msg = QString("Using Qt %1").arg(qtRuntimeVersion);
+    if (qtRuntimeVersion != qtCompileTimeVersion) {
+        msg += QString(" (compiled against %1)").arg(qtCompileTimeVersion);
+    }
+    log.info(msg);
+
+    return log;
 }
-
-
-

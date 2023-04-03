@@ -109,6 +109,8 @@ func createSignedFiles(t *testing.T, root string, paths ...string) *crypto.KeyRi
 
 	signFile(t, sumFile.Name(), kr)
 
+	require.NoError(t, sumFile.Close())
+
 	return kr
 }
 

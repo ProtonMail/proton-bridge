@@ -362,7 +362,7 @@ QtObject {
     property real banner_radius        : 12 * root.px // px
     property real dialog_radius        : 12 * root.px // px
     property real card_radius          : 12 * root.px // px
-    property real storage_bar_radius   : 3  * root.px // px
+    property real progress_bar_radius  : 3  * root.px // px
     property real tooltip_radius       : 8  * root.px // px
 
     property int heading_font_size: 28

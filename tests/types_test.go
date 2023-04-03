@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -49,6 +50,9 @@ type Message struct {
 
 	Unread  bool `bdd:"unread"`
 	Deleted bool `bdd:"deleted"`
+
+	InReplyTo  string `bdd:"in-reply-to"`
+	References string `bdd:"references"`
 }
 
 func (msg Message) Build() []byte {
@@ -72,6 +76,14 @@ func (msg Message) Build() []byte {
 
 	if msg.Subject != "" {
 		b = append(b, "Subject: "+msg.Subject+"\r\n"...)
+	}
+
+	if msg.InReplyTo != "" {
+		b = append(b, "In-Reply-To: "+msg.InReplyTo+"\r\n"...)
+	}
+
+	if msg.References != "" {
+		b = append(b, "References: "+msg.References+"\r\n"...)
 	}
 
 	if msg.Date != "" {
@@ -125,6 +137,9 @@ func newMessageFromIMAP(msg *imap.Message) Message {
 		Unread:      !slices.Contains(msg.Flags, imap.SeenFlag),
 		Deleted:     slices.Contains(msg.Flags, imap.DeletedFlag),
 		Date:        msg.Envelope.Date.Format(time.RFC822Z),
+		InReplyTo:   msg.Envelope.InReplyTo,
+		// Go-imap only supports in-reply-to so we have to mimic other client by using it as references.
+		References: msg.Envelope.InReplyTo,
 	}
 
 	if len(msg.Envelope.From) > 0 {
@@ -195,7 +210,13 @@ func matchMailboxes(have, want []Mailbox) error {
 func eventually(condition func() error) error {
 	ch := make(chan error, 1)
 
-	timer := time.NewTimer(30 * time.Second)
+	var timerDuration = 30 * time.Second
+	// Extend to 5min for live API.
+	if hostURL := os.Getenv("FEATURE_TEST_HOST_URL"); hostURL != "" {
+		timerDuration = 600 * time.Second
+	}
+
+	timer := time.NewTimer(timerDuration)
 	defer timer.Stop()
 
 	ticker := time.NewTicker(100 * time.Millisecond)

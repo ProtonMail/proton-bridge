@@ -142,7 +142,7 @@ func checksum(path string) (hash string) {
 
 // srcDir including app folder.
 // dstDir including app folder.
-func copyRecursively(srcDir, dstDir string) error { //nolint:funlen
+func copyRecursively(srcDir, dstDir string) error {
 	return filepath.Walk(srcDir, func(srcPath string, srcInfo os.FileInfo, err error) error {
 		if err != nil {
 			return err

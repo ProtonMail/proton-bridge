@@ -29,6 +29,8 @@ Item {
     property var notifications
 
     signal showSetupGuide(var user, string address)
+    signal closeWindow()
+    signal quitBridge()
 
     RowLayout {
         anchors.fill: parent
@@ -107,13 +109,62 @@ Item {
 
                         Layout.topMargin: 16
                         Layout.bottomMargin: 9
-                        Layout.rightMargin: 16
+                        Layout.rightMargin: 4
 
                         horizontalPadding: 0
 
                         icon.source: "/qml/icons/ic-cog-wheel.svg"
 
                         onClicked: rightContent.showGeneralSettings()
+                    }
+
+                    Button {
+                        id: dotMenuButton
+                        Layout.bottomMargin: 9
+                        Layout.maximumHeight: 36
+                        Layout.maximumWidth: 36
+                        Layout.minimumHeight: 36
+                        Layout.minimumWidth: 36
+                        Layout.preferredHeight: 36
+                        Layout.preferredWidth: 36
+                        Layout.rightMargin: 16
+                        Layout.topMargin: 16
+                        colorScheme: leftBar.colorScheme
+                        horizontalPadding: 0
+                        icon.source: "/qml/icons/ic-three-dots-vertical.svg"
+
+                        onClicked: {
+                            dotMenu.open()
+                        }
+
+                        Menu {
+                            id: dotMenu
+                            colorScheme: root.colorScheme
+                            modal: true
+                            y: dotMenuButton.Layout.preferredHeight + dotMenuButton.Layout.bottomMargin
+
+                            MenuItem {
+                                colorScheme: root.colorScheme
+                                text: qsTr("Close window")
+                                onClicked: {
+                                    root.closeWindow()
+                                }
+                            }
+                            MenuItem {
+                                colorScheme: root.colorScheme
+                                text: qsTr("Quit Bridge")
+                                onClicked: {
+                                    root.quitBridge()
+                                }
+                            }
+
+                            onClosed: {
+                                parent.checked = false
+                            }
+                            onOpened: {
+                                parent.checked = true
+                            }
+                        }
                     }
                 }
 

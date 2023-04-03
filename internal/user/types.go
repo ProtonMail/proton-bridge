@@ -20,8 +20,10 @@ package user
 import (
 	"fmt"
 	"reflect"
+	"runtime"
 	"strings"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -90,4 +92,8 @@ func sortSlice[Item any](items []Item, less func(Item, Item) bool) []Item {
 	slices.SortFunc(sorted, less)
 
 	return sorted
+}
+
+func newProtonAPIScheduler(panicHandler async.PanicHandler) proton.Scheduler {
+	return proton.NewParallelScheduler(runtime.NumCPU()/2, panicHandler)
 }

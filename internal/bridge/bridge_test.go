@@ -21,6 +21,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -29,6 +30,8 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/gluon/async"
+	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/go-proton-api/server/backend"
@@ -121,8 +124,11 @@ func TestBridge_Focus(t *testing.T) {
 			raiseCh, done := bridge.GetEvents(events.Raise{})
 			defer done()
 
+			settingsFolder, err := locator.ProvideSettingsPath()
+			require.NoError(t, err)
+
 			// Simulate a focus event.
-			focus.TryRaise()
+			focus.TryRaise(settingsFolder)
 
 			// Wait for the event.
 			require.IsType(t, events.Raise{}, <-raiseCh)
@@ -496,6 +502,21 @@ func TestBridge_InitGluonDirectory(t *testing.T) {
 	})
 }
 
+func TestBridge_LoginFailed(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			failCh, done := chToType[events.Event, events.IMAPLoginFailed](bridge.GetEvents(events.IMAPLoginFailed{}))
+			defer done()
+
+			imapClient, err := client.Dial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetIMAPPort())))
+			require.NoError(t, err)
+
+			require.Error(t, imapClient.Login("badUser", "badPass"))
+			require.Equal(t, "badUser", (<-failCh).Username)
+		})
+	})
+}
+
 func TestBridge_ChangeCacheDirectory(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		userID, addrID, err := s.CreateUser("imap", password)
@@ -657,6 +678,9 @@ func withMocks(t *testing.T, tests func(*bridge.Mocks)) {
 	tests(mocks)
 }
 
+// Needs to be global to survive bridge shutdown/startup in unit tests as they happen to fast.
+var testUIDValidityGenerator = imap.DefaultEpochUIDValidityGenerator()
+
 // withBridge creates a new bridge which points to the given API URL and uses the given keychain, and closes it when done.
 func withBridgeNoMocks(
 	ctx context.Context,
@@ -676,7 +700,7 @@ func withBridgeNoMocks(
 	require.NoError(t, err)
 
 	// Create the vault.
-	vault, _, err := vault.New(vaultDir, t.TempDir(), vaultKey)
+	vault, _, err := vault.New(vaultDir, t.TempDir(), vaultKey, async.NoopPanicHandler{})
 	require.NoError(t, err)
 
 	// Create a new cookie jar.
@@ -702,6 +726,7 @@ func withBridgeNoMocks(
 		mocks.ProxyCtl,
 		mocks.CrashHandler,
 		mocks.Reporter,
+		testUIDValidityGenerator,
 
 		// The logging stuff.
 		os.Getenv("BRIDGE_LOG_IMAP_CLIENT") == "1",
@@ -713,6 +738,10 @@ func withBridgeNoMocks(
 
 	// Wait for bridge to finish loading users.
 	waitForEvent(t, eventCh, events.AllUsersLoaded{})
+	// Wait for bridge to start the IMAP server.
+	waitForEvent(t, eventCh, events.IMAPServerReady{})
+	// Wait for bridge to start the SMTP server.
+	waitForEvent(t, eventCh, events.SMTPServerReady{})
 
 	// Set random IMAP and SMTP ports for the tests.
 	require.NoError(t, bridge.SetIMAPPort(0))
@@ -742,7 +771,7 @@ func withBridge(
 	})
 }
 
-func waitForEvent[T any](t *testing.T, eventCh <-chan events.Event, wantEvent T) {
+func waitForEvent[T any](t *testing.T, eventCh <-chan events.Event, _ T) {
 	t.Helper()
 
 	for event := range eventCh {

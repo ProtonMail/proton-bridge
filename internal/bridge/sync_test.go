@@ -28,6 +28,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
@@ -351,7 +352,7 @@ func withClient(ctx context.Context, t *testing.T, s *server.Server, username st
 	fn(ctx, c)
 }
 
-func clientFetch(client *client.Client, mailbox string) ([]*imap.Message, error) {
+func clientFetch(client *client.Client, mailbox string, extraItems ...imap.FetchItem) ([]*imap.Message, error) {
 	status, err := client.Select(mailbox, false)
 	if err != nil {
 		return nil, err
@@ -363,10 +364,13 @@ func clientFetch(client *client.Client, mailbox string) ([]*imap.Message, error)
 
 	resCh := make(chan *imap.Message)
 
+	fetchItems := []imap.FetchItem{imap.FetchFlags, imap.FetchEnvelope, imap.FetchUid, imap.FetchBodyStructure, "BODY.PEEK[]"}
+	fetchItems = append(fetchItems, extraItems...)
+
 	go func() {
 		if err := client.Fetch(
 			&imap.SeqSet{Set: []imap.Seq{{Start: 1, Stop: status.Messages}}},
-			[]imap.FetchItem{imap.FetchFlags, imap.FetchEnvelope, imap.FetchUid, "BODY.PEEK[]"},
+			fetchItems,
 			resCh,
 		); err != nil {
 			panic(err)
@@ -425,13 +429,13 @@ func createMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID,
 	keyPass, err := salt.SaltForKey(password, user.Keys.Primary().ID)
 	require.NoError(t, err)
 
-	_, addrKRs, err := proton.Unlock(user, addr, keyPass)
+	_, addrKRs, err := proton.Unlock(user, addr, keyPass, async.NoopPanicHandler{})
 	require.NoError(t, err)
 
 	_, ok := addrKRs[addrID]
 	require.True(t, ok)
 
-	res, err := stream.Collect(ctx, c.ImportMessages(
+	str, err := c.ImportMessages(
 		ctx,
 		addrKRs[addrID],
 		runtime.NumCPU(),
@@ -446,7 +450,10 @@ func createMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID,
 				Message: message,
 			}
 		})...,
-	))
+	)
+	require.NoError(t, err)
+
+	res, err := stream.Collect(ctx, str)
 	require.NoError(t, err)
 
 	return xslices.Map(res, func(res proton.ImportRes) string {

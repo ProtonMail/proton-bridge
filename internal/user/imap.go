@@ -264,8 +264,6 @@ func (conn *imapConnector) DeleteMailbox(ctx context.Context, labelID imap.Mailb
 }
 
 // CreateMessage creates a new message on the remote.
-//
-// nolint:funlen
 func (conn *imapConnector) CreateMessage(
 	ctx context.Context,
 	mailboxID imap.MailboxID,
@@ -292,7 +290,7 @@ func (conn *imapConnector) CreateMessage(
 		conn.log.WithField("messageID", messageID).Warn("Message already sent")
 
 		// Query the server-side message.
-		full, err := conn.client.GetFullMessage(ctx, messageID)
+		full, err := conn.client.GetFullMessage(ctx, messageID, newProtonAPIScheduler(conn.panicHandler), proton.NewDefaultAttachmentAllocator())
 		if err != nil {
 			return imap.Message{}, nil, fmt.Errorf("failed to fetch message: %w", err)
 		}
@@ -356,7 +354,7 @@ func (conn *imapConnector) CreateMessage(
 }
 
 func (conn *imapConnector) GetMessageLiteral(ctx context.Context, id imap.MessageID) ([]byte, error) {
-	msg, err := conn.client.GetFullMessage(ctx, string(id))
+	msg, err := conn.client.GetFullMessage(ctx, string(id), newProtonAPIScheduler(conn.panicHandler), proton.NewDefaultAttachmentAllocator())
 	if err != nil {
 		return nil, err
 	}
@@ -382,7 +380,7 @@ func (conn *imapConnector) GetMessageLiteral(ctx context.Context, id imap.Messag
 func (conn *imapConnector) AddMessagesToMailbox(ctx context.Context, messageIDs []imap.MessageID, mailboxID imap.MailboxID) error {
 	defer conn.goPollAPIEvents(false)
 
-	if mailboxID == proton.AllMailLabel {
+	if isAllMailOrScheduled(mailboxID) {
 		return connector.ErrOperationNotAllowed
 	}
 
@@ -393,7 +391,7 @@ func (conn *imapConnector) AddMessagesToMailbox(ctx context.Context, messageIDs 
 func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messageIDs []imap.MessageID, mailboxID imap.MailboxID) error {
 	defer conn.goPollAPIEvents(false)
 
-	if mailboxID == proton.AllMailLabel {
+	if isAllMailOrScheduled(mailboxID) {
 		return connector.ErrOperationNotAllowed
 	}
 
@@ -442,8 +440,8 @@ func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.M
 
 	if (labelFromID == proton.InboxLabel && labelToID == proton.SentLabel) ||
 		(labelFromID == proton.SentLabel && labelToID == proton.InboxLabel) ||
-		labelFromID == proton.AllMailLabel ||
-		labelToID == proton.AllMailLabel {
+		isAllMailOrScheduled(labelFromID) ||
+		isAllMailOrScheduled(labelToID) {
 		return false, connector.ErrOperationNotAllowed
 	}
 
@@ -507,19 +505,20 @@ func (conn *imapConnector) GetUpdates() <-chan imap.Update {
 	}, conn.updateChLock)
 }
 
-// GetUIDValidity returns the default UID validity for this user.
-func (conn *imapConnector) GetUIDValidity() imap.UID {
-	return conn.vault.GetUIDValidity(conn.addrID)
-}
+// GetMailboxVisibility returns the visibility of a mailbox over IMAP.
+func (conn *imapConnector) GetMailboxVisibility(_ context.Context, mailboxID imap.MailboxID) imap.MailboxVisibility {
+	switch mailboxID {
+	case proton.AllMailLabel:
+		if atomic.LoadUint32(&conn.showAllMail) != 0 {
+			return imap.Visible
+		}
+		return imap.Hidden
 
-// SetUIDValidity sets the default UID validity for this user.
-func (conn *imapConnector) SetUIDValidity(validity imap.UID) error {
-	return conn.vault.SetUIDValidity(conn.addrID, validity)
-}
-
-// IsMailboxVisible returns whether this mailbox should be visible over IMAP.
-func (conn *imapConnector) IsMailboxVisible(_ context.Context, mailboxID imap.MailboxID) bool {
-	return atomic.LoadUint32(&conn.showAllMail) != 0 || mailboxID != proton.AllMailLabel
+	case proton.AllScheduledLabel:
+		return imap.HiddenIfEmpty
+	default:
+		return imap.Visible
+	}
 }
 
 // Close the connector will no longer be used and all resources should be closed/released.
@@ -550,7 +549,7 @@ func (conn *imapConnector) importMessage(
 
 				messageID = msg.ID
 			} else {
-				res, err := stream.Collect(ctx, conn.client.ImportMessages(ctx, addrKR, 1, 1, []proton.ImportReq{{
+				str, err := conn.client.ImportMessages(ctx, addrKR, 1, 1, []proton.ImportReq{{
 					Metadata: proton.ImportMetadata{
 						AddressID: conn.addrID,
 						LabelIDs:  labelIDs,
@@ -558,7 +557,12 @@ func (conn *imapConnector) importMessage(
 						Flags:     flags,
 					},
 					Message: literal,
-				}}...))
+				}}...)
+				if err != nil {
+					return fmt.Errorf("failed to prepare message for import: %w", err)
+				}
+
+				res, err := stream.Collect(ctx, str)
 				if err != nil {
 					return fmt.Errorf("failed to import message: %w", err)
 				}
@@ -568,7 +572,7 @@ func (conn *imapConnector) importMessage(
 
 			var err error
 
-			if full, err = conn.client.GetFullMessage(ctx, messageID); err != nil {
+			if full, err = conn.client.GetFullMessage(ctx, messageID, newProtonAPIScheduler(conn.panicHandler), proton.NewDefaultAttachmentAllocator()); err != nil {
 				return fmt.Errorf("failed to fetch message: %w", err)
 			}
 
@@ -615,7 +619,7 @@ func toIMAPMessage(message proton.MessageMetadata) imap.Message {
 	}
 }
 
-func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addrKR *crypto.KeyRing, sender proton.Address) (proton.Message, error) { //nolint:funlen
+func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addrKR *crypto.KeyRing, sender proton.Address) (proton.Message, error) {
 	// Create a new message parser from the reader.
 	parser, err := parser.New(bytes.NewReader(literal))
 	if err != nil {
@@ -686,4 +690,8 @@ func toIMAPMailbox(label proton.Label, flags, permFlags, attrs imap.FlagSet) ima
 		PermanentFlags: permFlags,
 		Attributes:     attrs,
 	}
+}
+
+func isAllMailOrScheduled(mailboxID imap.MailboxID) bool {
+	return (mailboxID == proton.AllMailLabel) || (mailboxID == proton.AllScheduledLabel)
 }

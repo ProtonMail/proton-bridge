@@ -455,6 +455,11 @@ message UserEvent {
     UserDisconnectedEvent userDisconnected = 2;
     UserChangedEvent userChanged = 3;
     UserBadEvent userBadEvent = 4;
+    UsedBytesChangedEvent  usedBytesChangedEvent = 5;
+    ImapLoginFailedEvent imapLoginFailedEvent = 6;
+    SyncStartedEvent syncStartedEvent = 7;
+    SyncFinishedEvent syncFinishedEvent = 8;
+    SyncProgressEvent syncProgressEvent = 9;
   }
 }
 
@@ -473,6 +478,30 @@ message UserChangedEvent {
 message UserBadEvent {
   string userID = 1;
   string errorMessage = 2;
+}
+
+message UsedBytesChangedEvent {
+  string userID = 1;
+  int64 usedBytes = 2;
+}
+
+message ImapLoginFailedEvent {
+  string username = 1;
+}
+
+message SyncStartedEvent {
+  string userID = 1;
+}
+
+message SyncFinishedEvent {
+  string userID = 1;
+}
+
+message SyncProgressEvent {
+  string userID = 1;
+  double progress = 2;
+  int64 elapsedMs = 3;
+  int64 remainingMs = 4;
 }
 
 //**********************************************************

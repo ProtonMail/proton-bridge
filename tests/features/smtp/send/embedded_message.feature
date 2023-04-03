@@ -7,6 +7,7 @@ Feature: SMTP sending embedded message
     And the user logs in with username "[user:to]" and password "password"
     And user "[user:user]" connects and authenticates SMTP client "1"
 
+  @long-black
   Scenario: Send it
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
       """

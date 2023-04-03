@@ -18,6 +18,7 @@
 
 #include "Pch.h"
 #include "CommandLine.h"
+#include "Settings.h"
 
 
 using namespace bridgepp;
@@ -28,7 +29,10 @@ namespace {
 
 QString const launcherFlag = "--launcher"; ///< launcher flag parameter used for bridge.
 QString const noWindowFlag = "--no-window"; ///< The no-window command-line flag.
-QString const softwareRendererFlag = "--software-renderer"; ///< The 'software-renderer' command-line flag.
+QString const softwareRendererFlag = "--software-renderer"; ///< The 'software-renderer' command-line flag. enable software rendering for a single execution
+QString const setSoftwareRendererFlag = "--set-software-renderer"; ///< The 'set-software-renderer' command-line flag. Software rendering will be used for all subsequent executions of the application.
+QString const setHardwareRendererFlag = "--set-hardware-renderer"; ///< The 'set-hardware-renderer' command-line flag. Hardware rendering will be used for all subsequent executions of the application.
+
 
 //****************************************************************************************************************************************************
 /// \brief parse a command-line string argument as expected by go's CLI package.
@@ -100,6 +104,14 @@ CommandLineOptions parseCommandLine(int argc, char *argv[]) {
         if (arg == softwareRendererFlag) {
             options.bridgeGuiArgs.append(arg);
             options.useSoftwareRenderer = true;
+        }
+        if (arg == setSoftwareRendererFlag) {
+            app().settings().setUseSoftwareRenderer(true);
+            continue; // setting is permanent. no need to keep/pass it to bridge for restart.
+        }
+        if (arg == setHardwareRendererFlag) {
+            app().settings().setUseSoftwareRenderer(false);
+            continue; // setting is permanent. no need to keep/pass it to bridge for restart.
         }
         if (arg == noWindowFlag) {
             options.noWindow = true;

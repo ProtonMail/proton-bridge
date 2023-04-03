@@ -21,9 +21,11 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"path/filepath"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v3/internal/focus/proto"
+	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -32,10 +34,10 @@ import (
 
 // TryRaise tries to raise the application by dialing the focus service.
 // It returns true if the service is running and the application was told to raise.
-func TryRaise() bool {
+func TryRaise(settingsPath string) bool {
 	var raised bool
 
-	if err := withClientConn(context.Background(), func(ctx context.Context, client proto.FocusClient) error {
+	if err := withClientConn(context.Background(), settingsPath, func(ctx context.Context, client proto.FocusClient) error {
 		if _, err := client.Raise(ctx, &emptypb.Empty{}); err != nil {
 			return fmt.Errorf("failed to call client.Raise: %w", err)
 		}
@@ -53,10 +55,10 @@ func TryRaise() bool {
 
 // TryVersion tries to determine the version of the running application instance.
 // It returns the version and true if the version could be determined.
-func TryVersion() (*semver.Version, bool) {
+func TryVersion(settingsPath string) (*semver.Version, bool) {
 	var version *semver.Version
 
-	if err := withClientConn(context.Background(), func(ctx context.Context, client proto.FocusClient) error {
+	if err := withClientConn(context.Background(), settingsPath, func(ctx context.Context, client proto.FocusClient) error {
 		raw, err := client.Version(ctx, &emptypb.Empty{})
 		if err != nil {
 			return fmt.Errorf("failed to call client.Version: %w", err)
@@ -78,10 +80,15 @@ func TryVersion() (*semver.Version, bool) {
 	return version, true
 }
 
-func withClientConn(ctx context.Context, fn func(context.Context, proto.FocusClient) error) error {
+func withClientConn(ctx context.Context, settingsPath string, fn func(context.Context, proto.FocusClient) error) error {
+	var config = service.Config{}
+	err := config.Load(filepath.Join(settingsPath, serverConfigFileName))
+	if err != nil {
+		return err
+	}
 	cc, err := grpc.DialContext(
 		ctx,
-		net.JoinHostPort(Host, fmt.Sprint(Port)),
+		net.JoinHostPort(Host, fmt.Sprint(config.Port)),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {

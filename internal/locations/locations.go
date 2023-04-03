@@ -217,14 +217,13 @@ func (l *Locations) getUpdatesPath() string {
 }
 
 // Clear removes everything except the lock and update files.
-func (l *Locations) Clear() error {
+func (l *Locations) Clear(except ...string) error {
 	return files.Remove(
 		l.userConfig,
 		l.userData,
 		l.userCache,
 	).Except(
-		l.GetGuiLockFile(),
-		l.getUpdatesPath(),
+		append(except, l.GetGuiLockFile(), l.getUpdatesPath())...,
 	).Do()
 }
 

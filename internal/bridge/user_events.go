@@ -37,9 +37,14 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 			return fmt.Errorf("failed to handle user address created event: %w", err)
 		}
 
-	case events.UserAddressUpdated:
-		if err := bridge.handleUserAddressUpdated(ctx, user, event); err != nil {
-			return fmt.Errorf("failed to handle user address updated event: %w", err)
+	case events.UserAddressEnabled:
+		if err := bridge.handleUserAddressEnabled(ctx, user, event); err != nil {
+			return fmt.Errorf("failed to handle user address enabled event: %w", err)
+		}
+
+	case events.UserAddressDisabled:
+		if err := bridge.handleUserAddressDisabled(ctx, user, event); err != nil {
+			return fmt.Errorf("failed to handle user address disabled event: %w", err)
 		}
 
 	case events.UserAddressDeleted:
@@ -66,55 +71,84 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 }
 
 func (bridge *Bridge) handleUserAddressCreated(ctx context.Context, user *user.User, event events.UserAddressCreated) error {
-	if user.GetAddressMode() == vault.SplitMode {
-		if bridge.imapServer == nil {
-			return fmt.Errorf("no imap server instance running")
-		}
+	if user.GetAddressMode() == vault.CombinedMode {
+		return nil
+	}
 
-		gluonID, err := bridge.imapServer.AddUser(ctx, user.NewIMAPConnector(event.AddressID), user.GluonKey())
-		if err != nil {
-			return fmt.Errorf("failed to add user to IMAP server: %w", err)
-		}
+	if bridge.imapServer == nil {
+		return fmt.Errorf("no imap server instance running")
+	}
 
-		if err := user.SetGluonID(event.AddressID, gluonID); err != nil {
-			return fmt.Errorf("failed to set gluon ID: %w", err)
-		}
+	gluonID, err := bridge.imapServer.AddUser(ctx, user.NewIMAPConnector(event.AddressID), user.GluonKey())
+	if err != nil {
+		return fmt.Errorf("failed to add user to IMAP server: %w", err)
+	}
+
+	if err := user.SetGluonID(event.AddressID, gluonID); err != nil {
+		return fmt.Errorf("failed to set gluon ID: %w", err)
 	}
 
 	return nil
 }
 
-// GODT-1948: Handle addresses that have been disabled!
-func (bridge *Bridge) handleUserAddressUpdated(_ context.Context, user *user.User, _ events.UserAddressUpdated) error {
-	switch user.GetAddressMode() {
-	case vault.CombinedMode:
-		return fmt.Errorf("not implemented")
+func (bridge *Bridge) handleUserAddressEnabled(ctx context.Context, user *user.User, event events.UserAddressEnabled) error {
+	if user.GetAddressMode() == vault.CombinedMode {
+		return nil
+	}
 
-	case vault.SplitMode:
-		return fmt.Errorf("not implemented")
+	gluonID, err := bridge.imapServer.AddUser(ctx, user.NewIMAPConnector(event.AddressID), user.GluonKey())
+	if err != nil {
+		return fmt.Errorf("failed to add user to IMAP server: %w", err)
+	}
+
+	if err := user.SetGluonID(event.AddressID, gluonID); err != nil {
+		return fmt.Errorf("failed to set gluon ID: %w", err)
+	}
+
+	return nil
+}
+
+func (bridge *Bridge) handleUserAddressDisabled(ctx context.Context, user *user.User, event events.UserAddressDisabled) error {
+	if user.GetAddressMode() == vault.CombinedMode {
+		return nil
+	}
+
+	gluonID, ok := user.GetGluonID(event.AddressID)
+	if !ok {
+		return fmt.Errorf("gluon ID not found for address %s", event.AddressID)
+	}
+
+	if err := bridge.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
+		return fmt.Errorf("failed to remove user from IMAP server: %w", err)
+	}
+
+	if err := user.RemoveGluonID(event.AddressID, gluonID); err != nil {
+		return fmt.Errorf("failed to remove gluon ID for address: %w", err)
 	}
 
 	return nil
 }
 
 func (bridge *Bridge) handleUserAddressDeleted(ctx context.Context, user *user.User, event events.UserAddressDeleted) error {
-	if user.GetAddressMode() == vault.SplitMode {
-		if bridge.imapServer == nil {
-			return fmt.Errorf("no imap server instance running")
-		}
+	if user.GetAddressMode() == vault.CombinedMode {
+		return nil
+	}
 
-		gluonID, ok := user.GetGluonID(event.AddressID)
-		if !ok {
-			return fmt.Errorf("gluon ID not found for address %s", event.AddressID)
-		}
+	if bridge.imapServer == nil {
+		return fmt.Errorf("no imap server instance running")
+	}
 
-		if err := bridge.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
-			return fmt.Errorf("failed to remove user from IMAP server: %w", err)
-		}
+	gluonID, ok := user.GetGluonID(event.AddressID)
+	if !ok {
+		return fmt.Errorf("gluon ID not found for address %s", event.AddressID)
+	}
 
-		if err := user.RemoveGluonID(event.AddressID, gluonID); err != nil {
-			return fmt.Errorf("failed to remove gluon ID for address: %w", err)
-		}
+	if err := bridge.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
+		return fmt.Errorf("failed to remove user from IMAP server: %w", err)
+	}
+
+	if err := user.RemoveGluonID(event.AddressID, gluonID); err != nil {
+		return fmt.Errorf("failed to remove gluon ID for address: %w", err)
 	}
 
 	return nil

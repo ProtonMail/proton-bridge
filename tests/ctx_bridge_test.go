@@ -29,12 +29,14 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/ProtonMail/gluon/queue"
+	"github.com/ProtonMail/gluon/async"
+	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/cookies"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	frontend "github.com/ProtonMail/proton-bridge/v3/internal/frontend/grpc"
+	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/sirupsen/logrus"
@@ -106,7 +108,7 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 	}
 
 	// Create the vault.
-	vault, corrupt, err := vault.New(vaultDir, gluonCacheDir, t.storeKey)
+	vault, corrupt, err := vault.New(vaultDir, gluonCacheDir, t.storeKey, async.NoopPanicHandler{})
 	if err != nil {
 		return nil, fmt.Errorf("could not create vault: %w", err)
 	} else if corrupt {
@@ -160,6 +162,7 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 		t.mocks.ProxyCtl,
 		t.mocks.CrashHandler,
 		t.reporter,
+		imap.DefaultEpochUIDValidityGenerator(),
 
 		// Logging stuff
 		logIMAP,
@@ -197,7 +200,7 @@ func (t *testCtx) initFrontendService(eventCh <-chan events.Event) error {
 	t.mocks.Autostarter.EXPECT().IsEnabled().AnyTimes()
 
 	service, err := frontend.NewService(
-		new(mockCrashHandler),
+		&async.NoopPanicHandler{},
 		new(mockRestarter),
 		t.locator,
 		t.bridge,
@@ -260,7 +263,7 @@ func (t *testCtx) initFrontendClient() error {
 		return fmt.Errorf("could not read grpcServerConfig.json: %w", err)
 	}
 
-	var cfg frontend.Config
+	var cfg service.Config
 
 	if err := json.Unmarshal(b, &cfg); err != nil {
 		return fmt.Errorf("could not unmarshal grpcServerConfig.json: %w", err)
@@ -298,7 +301,7 @@ func (t *testCtx) initFrontendClient() error {
 		return fmt.Errorf("could not start event stream: %w", err)
 	}
 
-	eventCh := queue.NewQueuedChannel[*frontend.StreamEvent](0, 0)
+	eventCh := async.NewQueuedChannel[*frontend.StreamEvent](0, 0, async.NoopPanicHandler{})
 
 	go func() {
 		defer eventCh.CloseAndDiscardQueued()
@@ -339,10 +342,6 @@ func (t *testCtx) closeFrontendClient() error {
 
 	return nil
 }
-
-type mockCrashHandler struct{}
-
-func (m *mockCrashHandler) HandlePanic() {}
 
 type mockRestarter struct{}
 

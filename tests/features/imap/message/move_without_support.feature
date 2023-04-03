@@ -34,8 +34,8 @@ Feature: IMAP move messages by append and delete (without MOVE support, e.g., Ou
     And IMAP client "source" selects "<srcMailbox>"
     And IMAP client "target" selects "<dstMailbox>"
     When IMAP clients "source" and "target" move message with subject "subj2" of "[user:user]" to "<dstMailbox>" by <order>
-    And IMAP client "source" sees 1 messages in "<srcMailbox>"
-    And IMAP client "source" sees the following messages in "<srcMailbox>":
+    And IMAP client "source" eventually sees 1 messages in "<srcMailbox>"
+    And IMAP client "source" eventually sees the following messages in "<srcMailbox>":
       | from           | to             | subject |
       | sndr1@[domain] | rcvr1@[domain] | subj1   |
     And IMAP client "target" eventually sees 1 messages in "<dstMailbox>"
