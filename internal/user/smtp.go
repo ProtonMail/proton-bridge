@@ -300,7 +300,9 @@ func getParentID(
 	}
 
 	// If no parent was found, try to find it in the last external reference.
-	// There can be multiple messages with the same external ID; in this case, we don't pick any parent.
+	// There can be multiple messages with the same external ID; in this case, we first look if
+	// there is a single one sent by this account (with the `MessageFlagSent` flag set), if yes,
+	// then pick that, otherwise don't pick any parent.
 	if parentID == "" && len(external) > 0 {
 		var addrID string
 
@@ -316,8 +318,25 @@ func getParentID(
 			return "", fmt.Errorf("failed to get message metadata: %w", err)
 		}
 
-		if len(metadata) == 1 {
+		switch len(metadata) {
+		case 1:
+			// found exactly one parent
 			parentID = metadata[0].ID
+		case 0:
+			// found no parents
+		default:
+			// found multiple parents, search through metadata to try to find a singular parent that
+			// was sent by this account.
+			found_sent_by_us := false
+			for _, metadata := range metadata {
+				if metadata.Flags.Has(proton.MessageFlagSent) {
+					if found_sent_by_us == true {
+						parentID = ""
+					}
+					parentID = metadata.ID
+					found_sent_by_us = true
+				}
+			}
 		}
 	}
 
