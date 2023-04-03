@@ -42,6 +42,7 @@ public: // member functions
     QString qwhat() const noexcept; ///< Return the description of the exception as a QString
     const char *what() const noexcept override; ///< Return the description of the exception as C style string
     QString details() const noexcept; ///< Return the details for the exception
+    QString function() const noexcept; ///< Return the function that threw the exception.
     QByteArray attachment() const noexcept; ///< Return the attachment for the exception.
     QString detailedWhat() const; ///< Return the detailed description of the message (i.e. including the function name and the details).
 
