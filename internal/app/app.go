@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/cookies"
@@ -379,7 +380,7 @@ func withCrashHandler(restarter *restarter.Restarter, reporter *sentry.Reporter,
 	defer logrus.Debug("Crash handler stopped")
 
 	crashHandler := crash.NewHandler(crash.ShowErrorNotification(constants.FullAppName))
-	defer crashHandler.HandlePanic()
+	defer async.HandlePanic(crashHandler)
 
 	// On crash, send crash report to Sentry.
 	crashHandler.AddRecoveryAction(reporter.ReportException)

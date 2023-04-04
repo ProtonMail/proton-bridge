@@ -20,6 +20,7 @@ package grpc
 import (
 	"context"
 
+	"github.com/ProtonMail/gluon/async"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -49,7 +50,7 @@ func (s *Service) RunEventStream(request *EventStreamRequest, server Bridge_RunE
 	// if events occurred before streaming started, they've been queued. Now that the stream channel is available
 	// we can flush the queued
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		s.eventQueueMutex.Lock()
 		defer s.eventQueueMutex.Unlock()

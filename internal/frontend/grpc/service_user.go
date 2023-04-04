@@ -20,6 +20,7 @@ package grpc
 import (
 	"context"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -70,7 +71,7 @@ func (s *Service) SetUserSplitMode(ctx context.Context, splitMode *UserSplitMode
 	}
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 		defer func() { _ = s.SendEvent(NewUserToggleSplitModeFinishedEvent(splitMode.UserID)) }()
 
 		var targetMode vault.AddressMode
@@ -121,7 +122,7 @@ func (s *Service) LogoutUser(ctx context.Context, userID *wrapperspb.StringValue
 	}
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		if err := s.bridge.LogoutUser(context.Background(), userID.Value); err != nil {
 			s.log.WithError(err).Error("Failed to log user out")
@@ -135,7 +136,7 @@ func (s *Service) RemoveUser(ctx context.Context, userID *wrapperspb.StringValue
 	s.log.WithField("UserID", userID.Value).Debug("RemoveUser")
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		// remove preferences
 		if err := s.bridge.DeleteUser(context.Background(), userID.Value); err != nil {

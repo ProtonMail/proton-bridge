@@ -370,7 +370,7 @@ func (user *User) syncMessages(
 	errorCh := make(chan error, maxParallelDownloads*4)
 
 	// Go routine in charge of downloading message metadata
-	logging.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) {
+	async.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) {
 		defer close(downloadCh)
 		const MetadataDataPageSize = 150
 
@@ -433,7 +433,7 @@ func (user *User) syncMessages(
 	}, logging.Labels{"sync-stage": "meta-data"})
 
 	// Goroutine in charge of downloading and building messages in maxBatchSize batches.
-	logging.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) {
+	async.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) {
 		defer close(buildCh)
 		defer close(errorCh)
 		defer func() {
@@ -492,7 +492,7 @@ func (user *User) syncMessages(
 	}, logging.Labels{"sync-stage": "download"})
 
 	// Goroutine which builds messages after they have been downloaded
-	logging.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) {
+	async.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) {
 		defer close(flushCh)
 		defer func() {
 			logrus.Debugf("sync builder exit")
@@ -530,7 +530,7 @@ func (user *User) syncMessages(
 	}, logging.Labels{"sync-stage": "builder"})
 
 	// Goroutine which converts the messages into updates and builds a waitable structure for progress tracking.
-	logging.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) {
+	async.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) {
 		defer close(flushUpdateCh)
 		defer func() {
 			logrus.Debugf("sync flush exit")
@@ -780,7 +780,7 @@ func (user *User) newAttachmentDownloader(ctx context.Context, client *proton.Cl
 	ctx, cancel := context.WithCancel(ctx)
 	for i := 0; i < workerCount; i++ {
 		workerCh = make(chan attachmentJob)
-		logging.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) { attachmentWorker(ctx, client, workerCh) }, logging.Labels{
+		async.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) { attachmentWorker(ctx, client, workerCh) }, logging.Labels{
 			"sync": fmt.Sprintf("att-downloader %v", i),
 		})
 	}

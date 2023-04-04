@@ -17,10 +17,6 @@
 
 package grpc
 
-type CrashHandler interface {
-	HandlePanic()
-}
-
 type Restarter interface {
 	Set(restart, crash bool)
 	AddFlags(flags ...string)

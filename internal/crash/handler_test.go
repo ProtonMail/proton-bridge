@@ -21,38 +21,41 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHandler(t *testing.T) {
-	var s string
+	assert.NotPanics(t, func() {
+		var s string
 
-	h := NewHandler(
-		func(r interface{}) error {
-			s += fmt.Sprintf("1: %v\n", r)
-			return nil
-		},
-		func(r interface{}) error {
-			s += fmt.Sprintf("2: %v\n", r)
-			return nil
-		},
-	)
+		h := NewHandler(
+			func(r interface{}) error {
+				s += fmt.Sprintf("1: %v\n", r)
+				return nil
+			},
+			func(r interface{}) error {
+				s += fmt.Sprintf("2: %v\n", r)
+				return nil
+			},
+		)
 
-	h.
-		AddRecoveryAction(func(r interface{}) error {
-			s += fmt.Sprintf("3: %v\n", r)
-			return nil
-		}).
-		AddRecoveryAction(func(r interface{}) error {
-			s += fmt.Sprintf("4: %v\n", r)
-			return nil
-		})
+		h.
+			AddRecoveryAction(func(r interface{}) error {
+				s += fmt.Sprintf("3: %v\n", r)
+				return nil
+			}).
+			AddRecoveryAction(func(r interface{}) error {
+				s += fmt.Sprintf("4: %v\n", r)
+				return nil
+			})
 
-	defer func() {
-		assert.Equal(t, "1: thing\n2: thing\n3: thing\n4: thing\n", s)
-	}()
+		defer func() {
+			assert.Equal(t, "1: thing\n2: thing\n3: thing\n4: thing\n", s)
+		}()
 
-	defer h.HandlePanic()
+		defer async.HandlePanic(h)
 
-	panic("thing")
+		panic("thing")
+	})
 }

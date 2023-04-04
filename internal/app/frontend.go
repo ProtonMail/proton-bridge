@@ -46,10 +46,11 @@ func runFrontend(
 
 	switch {
 	case c.Bool(flagCLI):
-		return bridgeCLI.New(bridge, restarter, eventCh, crashHandler).Loop()
+		return bridgeCLI.New(bridge, restarter, eventCh, crashHandler, quitCh).Loop()
 
 	case c.Bool(flagNonInteractive):
-		select {}
+		<-quitCh
+		return nil
 
 	case c.Bool(flagGRPC):
 		service, err := grpc.NewService(crashHandler, restarter, locations, bridge, eventCh, quitCh, !c.Bool(flagNoWindow), parentPID)

@@ -26,6 +26,7 @@ import (
 	"runtime"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
@@ -114,7 +115,7 @@ func (s *Service) Quit(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empt
 func (s *Service) quit() error {
 	// Windows is notably slow at Quitting. We do it in a goroutine to speed things up a bit.
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		if s.parentPID >= 0 {
 			s.parentPIDDoneCh <- struct{}{}
@@ -223,7 +224,7 @@ func (s *Service) TriggerReset(ctx context.Context, _ *emptypb.Empty) (*emptypb.
 	s.log.Debug("TriggerReset")
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		s.triggerReset()
 	}()
@@ -319,7 +320,7 @@ func (s *Service) ReportBug(ctx context.Context, report *ReportBugRequest) (*emp
 	}).Debug("ReportBug")
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		defer func() { _ = s.SendEvent(NewReportBugFinishedEvent()) }()
 
@@ -348,7 +349,7 @@ func (s *Service) ExportTLSCertificates(_ context.Context, folderPath *wrappersp
 	s.log.WithField("folderPath", folderPath).Info("ExportTLSCertificates")
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		cert, key := s.bridge.GetBridgeTLSCert()
 
@@ -384,7 +385,7 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 	s.log.WithField("username", login.Username).Debug("Login")
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		password, err := base64Decode(login.Password)
 		if err != nil {
@@ -440,7 +441,7 @@ func (s *Service) Login2FA(ctx context.Context, login *LoginRequest) (*emptypb.E
 	s.log.WithField("username", login.Username).Debug("Login2FA")
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		if s.auth.UID == "" || s.authClient == nil {
 			s.log.Errorf("Login 2FA: authethication incomplete %s %p", s.auth.UID, s.authClient)
@@ -485,7 +486,7 @@ func (s *Service) Login2Passwords(ctx context.Context, login *LoginRequest) (*em
 	s.log.WithField("username", login.Username).Debug("Login2Passwords")
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		password, err := base64Decode(login.Password)
 		if err != nil {
@@ -507,7 +508,7 @@ func (s *Service) LoginAbort(ctx context.Context, loginAbort *LoginAbortRequest)
 	s.log.WithField("username", loginAbort.Username).Debug("LoginAbort")
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		s.loginAbort()
 	}()
@@ -519,7 +520,7 @@ func (s *Service) CheckUpdate(context.Context, *emptypb.Empty) (*emptypb.Empty, 
 	s.log.Debug("CheckUpdate")
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		updateCh, done := s.bridge.GetEvents(
 			events.UpdateAvailable{},
@@ -551,7 +552,7 @@ func (s *Service) InstallUpdate(ctx context.Context, _ *emptypb.Empty) (*emptypb
 	s.log.Debug("InstallUpdate")
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		safe.RLock(func() {
 			s.bridge.InstallUpdate(s.target)
@@ -592,7 +593,7 @@ func (s *Service) SetDiskCachePath(ctx context.Context, newPath *wrapperspb.Stri
 	s.log.WithField("path", newPath.Value).Debug("setDiskCachePath")
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		defer func() {
 			_ = s.SendEvent(NewDiskCachePathChangeFinishedEvent())
@@ -659,7 +660,7 @@ func (s *Service) SetMailServerSettings(_ context.Context, settings *ImapSmtpSet
 		Debug("SetConnectionMode")
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		defer func() { _ = s.SendEvent(NewChangeMailServerSettingsFinishedEvent()) }()
 

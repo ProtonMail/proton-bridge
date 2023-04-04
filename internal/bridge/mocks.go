@@ -45,7 +45,7 @@ func NewMocks(tb testing.TB, version, minAuto *semver.Version) *Mocks {
 	mocks.TLSReporter.EXPECT().GetTLSIssueCh().Return(mocks.TLSIssueCh).AnyTimes()
 
 	// This is called at he end of any go-routine:
-	mocks.CrashHandler.EXPECT().HandlePanic().AnyTimes()
+	mocks.CrashHandler.EXPECT().HandlePanic(gomock.Any()).AnyTimes()
 
 	return mocks
 }

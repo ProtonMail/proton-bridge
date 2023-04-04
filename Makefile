@@ -325,7 +325,11 @@ run-nogui: build-nogui clean-vendor gofiles
 	PROTONMAIL_ENV=dev ./${LAUNCHER_EXE} ${RUN_FLAGS} -c
 
 run-debug:
-	dlv debug ./cmd/Desktop-Bridge/main.go -- -l=debug
+	dlv debug \
+		--build-flags "-ldflags '-X github.com/ProtonMail/proton-bridge/v3/internal/constants.Version=3.1.0+git'" \
+		./cmd/Desktop-Bridge/main.go \
+		-- \
+		-n -l=trace
 
 ifeq "${TARGET_OS}" "windows"
 	EXE_SUFFIX=.exe

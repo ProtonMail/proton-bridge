@@ -70,7 +70,7 @@ type Service struct { // nolint:structcheck
 	eventQueue         []*StreamEvent
 	eventQueueMutex    sync.Mutex
 
-	panicHandler CrashHandler
+	panicHandler async.PanicHandler
 	restarter    Restarter
 	bridge       *bridge.Bridge
 	eventCh      <-chan events.Event
@@ -97,7 +97,7 @@ type Service struct { // nolint:structcheck
 
 // NewService returns a new instance of the service.
 func NewService(
-	panicHandler CrashHandler,
+	panicHandler async.PanicHandler,
 	restarter Restarter,
 	locations service.Locator,
 	bridge *bridge.Bridge,
@@ -192,10 +192,6 @@ func NewService(
 	return s, nil
 }
 
-func (s *Service) handlePanic() {
-	async.HandlePanic(s.panicHandler)
-}
-
 func (s *Service) initAutostart() {
 	s.firstTimeAutostart.Do(func() {
 		shouldAutostartBeOn := s.bridge.GetAutostart()
@@ -213,13 +209,13 @@ func (s *Service) Loop() error {
 		s.log.Info("Not monitoring parent PID")
 	} else {
 		go func() {
-			defer s.handlePanic()
+			defer async.HandlePanic(s.panicHandler)
 			s.monitorParentPID()
 		}()
 	}
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 		s.watchEvents()
 	}()
 
@@ -229,7 +225,7 @@ func (s *Service) Loop() error {
 	defer close(doneCh)
 
 	go func() {
-		defer s.handlePanic()
+		defer async.HandlePanic(s.panicHandler)
 
 		select {
 		case <-s.quitCh:
@@ -577,7 +573,7 @@ func (s *Service) monitorParentPID() {
 				s.log.Info("Parent process does not exist anymore. Initiating shutdown")
 				// quit will write to the parentPIDDoneCh, so we launch a goroutine.
 				go func() {
-					defer s.handlePanic()
+					defer async.HandlePanic(s.panicHandler)
 
 					if err := s.quit(); err != nil {
 						logrus.WithError(err).Error("Error on quit")

@@ -45,7 +45,13 @@ type frontendCLI struct {
 }
 
 // New returns a new CLI frontend configured with the given options.
-func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan events.Event, panicHandler async.PanicHandler) *frontendCLI { //nolint:revive
+func New(
+	bridge *bridge.Bridge,
+	restarter *restarter.Restarter,
+	eventCh <-chan events.Event,
+	panicHandler async.PanicHandler,
+	quitCh <-chan struct{},
+) *frontendCLI { //nolint:revive
 	fe := &frontendCLI{
 		Shell:        ishell.New(),
 		bridge:       bridge,
@@ -284,6 +290,11 @@ func New(bridge *bridge.Bridge, restarter *restarter.Restarter, eventCh <-chan e
 	fe.AddCmd(badEventCmd)
 
 	go fe.watchEvents(eventCh)
+
+	go func() {
+		<-quitCh
+		fe.Close()
+	}()
 
 	return fe
 }

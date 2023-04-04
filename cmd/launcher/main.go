@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/crash"
@@ -62,7 +63,7 @@ func main() { //nolint:funlen
 	reporter := sentry.NewReporter(appName, useragent.New())
 
 	crashHandler := crash.NewHandler(reporter.ReportException)
-	defer crashHandler.HandlePanic()
+	defer async.HandlePanic(crashHandler)
 
 	locationsProvider, err := locations.NewDefaultProvider(filepath.Join(constants.VendorName, constants.ConfigName))
 	if err != nil {

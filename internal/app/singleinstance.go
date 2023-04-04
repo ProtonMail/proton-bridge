@@ -40,7 +40,7 @@ func checkSingleInstance(settingPath, lockFilePath string, curVersion *semver.Ve
 		return lock, nil
 	}
 
-	logrus.Debug("Failed to create lock file; another instance is running")
+	logrus.Warn("Failed to create lock file; another instance is running")
 
 	// We couldn't create the lock file, so another instance is probably running.
 	// Check if it's an older version of the app.
