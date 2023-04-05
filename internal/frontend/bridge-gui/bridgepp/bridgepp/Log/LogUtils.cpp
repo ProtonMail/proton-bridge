@@ -17,8 +17,8 @@
 
 
 #include "LogUtils.h"
-#include <bridgepp/BridgeUtils.h>
-#include <bridgepp/Exception/Exception.h>
+#include "../BridgeUtils.h"
+#include "../Exception/Exception.h"
 
 
 namespace bridgepp {
