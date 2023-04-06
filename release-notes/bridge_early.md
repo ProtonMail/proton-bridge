@@ -1,3 +1,29 @@
+## v3.1.0
+- 2023-04-05
+
+### New
+- Significantly reduced memory consumption both during synchronization and communication with email clients
+- Added synchronization indicator to the graphical user interface (GUI)
+- Added "Close window" and "Quit Bridge" buttons to the main window
+- Added command line switches to control GUI rendering
+- Switched to software rendering on Windows to support old graphics cards
+- Added support for Proton's Scheduled send feature
+- Avoided making email clients to ask for Bridge credentials when they started faster than Bridge at startup
+- Added a notification when a user is signed out from Bridge in the background
+- Improved desynchronization avoidence by setting UIDValidity from the current time
+- Started updating emails in the email clients frequently when Bridge is started after not being online for longer period of time
+- Improved error detection and handling
+
+### Fixed
+- Fixed transparent window with old graphics cards or virtual machines on Windows
+- Reduced notifications that does not require user actions
+- Improved exception / crash handling
+- Improved handling complex MIME types
+- Reduced the source of errors that can lead to gRPC related error messages
+- Fixed sub-folder rename issues
+- Fixed various bugs related to secure vault handling, network communication errors, Proton server communication, operating system integration.
+
+
 ## v3.0.21
 - 2023-03-23
 
