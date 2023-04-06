@@ -21,7 +21,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
@@ -306,4 +308,38 @@ func (s *scenario) theUserHidesAllMail() error {
 
 func (s *scenario) theUserShowsAllMail() error {
 	return s.t.bridge.SetShowAllMail(true)
+}
+
+func (s *scenario) networkPortIsBusy(port int) {
+	if listener, err := net.Listen("tcp", "127.0.0.1:"+strconv.Itoa(port)); err == nil { // we ignore errors. Most likely port is already busy.
+		s.t.dummyListeners = append(s.t.dummyListeners, listener)
+	}
+}
+
+func (s *scenario) networkPortRangeIsBusy(startPort, endPort int) {
+	if startPort > endPort {
+		startPort, endPort = endPort, startPort
+	}
+
+	for port := startPort; port <= endPort; port++ {
+		s.networkPortIsBusy(port)
+	}
+}
+
+func (s *scenario) bridgeIMAPPortIs(expectedPort int) error {
+	actualPort := s.t.bridge.GetIMAPPort()
+	if actualPort != expectedPort {
+		return fmt.Errorf("expected IMAP port to be %v but got %v", expectedPort, actualPort)
+	}
+
+	return nil
+}
+
+func (s *scenario) bridgeSMTPPortIs(expectedPort int) error {
+	actualPort := s.t.bridge.GetSMTPPort()
+	if actualPort != expectedPort {
+		return fmt.Errorf("expected SMTP port to be %v but got %v", expectedPort, actualPort)
+	}
+
+	return nil
 }

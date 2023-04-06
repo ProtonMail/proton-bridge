@@ -20,6 +20,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/smtp"
 	"net/url"
 	"regexp"
@@ -160,6 +161,9 @@ type testCtx struct {
 	// errors holds test-related errors encountered while running test steps.
 	errors     [][]error
 	errorsLock sync.RWMutex
+
+	// This slice contains the dummy listeners that are intended to block network ports.
+	dummyListeners []net.Listener
 }
 
 type imapClient struct {
@@ -434,6 +438,12 @@ func (t *testCtx) close(ctx context.Context) {
 	if t.bridge != nil {
 		if err := t.closeBridge(ctx); err != nil {
 			logrus.WithError(err).Error("Failed to close bridge")
+		}
+	}
+
+	for _, listener := range t.dummyListeners {
+		if err := listener.Close(); err != nil {
+			logrus.WithError(err).Errorf("Failed to close dummy listener %v", listener.Addr())
 		}
 	}
 

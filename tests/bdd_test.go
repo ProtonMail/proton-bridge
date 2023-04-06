@@ -107,7 +107,10 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the header in the "([^"]*)" request to "([^"]*)" has "([^"]*)" set to "([^"]*)"$`, s.theHeaderInTheRequestToHasSetTo)
 			ctx.Step(`^the body in the "([^"]*)" request to "([^"]*)" is:$`, s.theBodyInTheRequestToIs)
 			ctx.Step(`^the API requires bridge version at least "([^"]*)"$`, s.theAPIRequiresBridgeVersion)
-
+			ctx.Step(`^the network port (\d+) is busy$`, s.networkPortIsBusy)
+			ctx.Step(`^the network port range (\d+)-(\d+) is busy$`, s.networkPortRangeIsBusy)
+			ctx.Step(`^bridge IMAP port is (\d+)`, s.bridgeIMAPPortIs)
+			ctx.Step(`^bridge SMTP port is (\d+)`, s.bridgeSMTPPortIs)
 			// ==== SETUP ====
 			ctx.Step(`^there exists an account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPassword)
 			ctx.Step(`^there exists a disabled account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPasswordWithDisablePrimary)

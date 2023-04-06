@@ -22,6 +22,7 @@ import (
 	"runtime"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/ports"
 )
 
 type Settings struct {
@@ -70,12 +71,14 @@ func GetDefaultSyncWorkerCount() int {
 
 func newDefaultSettings(gluonDir string) Settings {
 	syncWorkers := GetDefaultSyncWorkerCount()
+	imapPort := ports.FindFreePortFrom(1143)
+	smtpPort := ports.FindFreePortFrom(1025, imapPort)
 
 	return Settings{
 		GluonDir: gluonDir,
 
-		IMAPPort: 1143,
-		SMTPPort: 1025,
+		IMAPPort: imapPort,
+		SMTPPort: smtpPort,
 		IMAPSSL:  false,
 		SMTPSSL:  false,
 

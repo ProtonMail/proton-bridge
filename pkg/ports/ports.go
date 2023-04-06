@@ -22,6 +22,7 @@ import (
 	"net"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -43,19 +44,19 @@ func IsPortFree(port int) bool {
 
 func isOccupied(port string) bool {
 	// Try to create server at port.
-	dummyserver, err := net.Listen("tcp", port)
+	dummyServer, err := net.Listen("tcp", port)
 	if err != nil {
 		return true
 	}
-	_ = dummyserver.Close()
+	_ = dummyServer.Close()
 	return false
 }
 
-// FindFreePortFrom finds first empty port, starting with `startPort`.
-func FindFreePortFrom(startPort int) int {
+// FindFreePortFrom finds first empty port, starting with `startPort`, and excluding ports listed in exclude.
+func FindFreePortFrom(startPort int, exclude ...int) int {
 	loopedOnce := false
 	freePort := startPort
-	for !IsPortFree(freePort) {
+	for slices.Contains(exclude, freePort) || !IsPortFree(freePort) {
 		freePort++
 		if freePort >= maxPortNumber {
 			freePort = 1
