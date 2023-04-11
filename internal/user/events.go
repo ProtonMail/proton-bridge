@@ -635,6 +635,10 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, message proton.M
 			return nil, err
 		}
 
+		if update == nil {
+			return nil, nil
+		}
+
 		return []imap.Update{update}, nil
 	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
