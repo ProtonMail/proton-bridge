@@ -1,3 +1,9 @@
+## v3.1.1
+- 2023-04-11
+
+### Fixed
+- Improved exception / crash handling
+
 ## v3.1.0
 - 2023-04-05
 
