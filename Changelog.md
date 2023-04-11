@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.1.1] Quebec
+
+### Fixed
+* GODT-2500: Fix handler passing.
+
+
 ## [Bridge 3.1.0] Quebec
 
 ### Changed
