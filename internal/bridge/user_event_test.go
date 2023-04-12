@@ -451,6 +451,65 @@ func TestBridge_User_DropConn_NoBadEvent(t *testing.T) {
 	}, server.WithListener(dropListener))
 }
 
+func TestBridge_User_UpdateDraft(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a bridge user.
+		_, _, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		// Initially sync the user.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+		})
+
+		withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+			user, err := c.GetUser(ctx)
+			require.NoError(t, err)
+
+			addrs, err := c.GetAddresses(ctx)
+			require.NoError(t, err)
+
+			salts, err := c.GetSalts(ctx)
+			require.NoError(t, err)
+
+			keyPass, err := salts.SaltForKey(password, user.Keys.Primary().ID)
+			require.NoError(t, err)
+
+			_, addrKRs, err := proton.Unlock(user, addrs, keyPass, async.NoopPanicHandler{})
+			require.NoError(t, err)
+
+			// Create a draft (generating a "create draft message" event).
+			draft, err := c.CreateDraft(ctx, addrKRs[addrs[0].ID], proton.CreateDraftReq{
+				Message: proton.DraftTemplate{
+					Subject:  "subject",
+					Sender:   &mail.Address{Name: "sender", Address: addrs[0].Email},
+					Body:     "body",
+					MIMEType: rfc822.TextPlain,
+				},
+			})
+			require.NoError(t, err)
+			require.Empty(t, draft.ReplyTos)
+
+			// Process those events
+			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+				userContinueEventProcess(ctx, t, s, bridge)
+			})
+
+			// Update the draft (generating an "update draft message" event).
+			draft2, err := c.UpdateDraft(ctx, draft.ID, addrKRs[addrs[0].ID], proton.UpdateDraftReq{
+				Message: proton.DraftTemplate{
+					Subject:  "subject 2",
+					Sender:   &mail.Address{Name: "sender", Address: addrs[0].Email},
+					Body:     "body 2",
+					MIMEType: rfc822.TextPlain,
+				},
+			})
+			require.NoError(t, err)
+			require.Empty(t, draft2.ReplyTos)
+		})
+	})
+}
+
 func TestBridge_User_UpdateDraftAndCreateOtherMessage(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		// Create a bridge user.

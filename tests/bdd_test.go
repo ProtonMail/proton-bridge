@@ -209,6 +209,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^IMAP client "([^"]*)" appends "([^"]*)" to "([^"]*)"$`, s.imapClientAppendsToMailbox)
 			ctx.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message with subject "([^"]*)" of "([^"]*)" to "([^"]*)" by ([^"]*) ([^"]*) ([^"]*)`, s.imapClientsMoveMessageWithSubjectUserFromToByOrderedOperations)
 			ctx.Step(`^IMAP client "([^"]*)" sees header "([^"]*)" in message with subject "([^"]*)" in "([^"]*)"$`, s.imapClientSeesHeaderInMessageWithSubject)
+			ctx.Step(`^IMAP client "([^"]*)" does not see header "([^"]*)" in message with subject "([^"]*)" in "([^"]*)"$`, s.imapClientDoesNotSeeHeaderInMessageWithSubject)
 
 			// ==== SMTP ====
 			ctx.Step(`^user "([^"]*)" connects SMTP client "([^"]*)"$`, s.userConnectsSMTPClient)

@@ -297,7 +297,6 @@ func (s *scenario) imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox
 	if err != nil {
 		return err
 	}
-
 	return matchMessages(haveMessages, wantMessages)
 }
 
@@ -573,6 +572,14 @@ func (s *scenario) imapClientSeesHeaderInMessageWithSubject(clientID, headerStri
 	}
 
 	return fmt.Errorf("could not find message with given subject '%v'", subject)
+}
+
+func (s *scenario) imapClientDoesNotSeeHeaderInMessageWithSubject(clientID, headerString, subject, mailbox string) error {
+	err := s.imapClientSeesHeaderInMessageWithSubject(clientID, headerString, subject, mailbox)
+	if err == nil {
+		return fmt.Errorf("message header contains '%v'", headerString)
+	}
+	return nil
 }
 
 func clientList(client *client.Client) []*imap.MailboxInfo {
