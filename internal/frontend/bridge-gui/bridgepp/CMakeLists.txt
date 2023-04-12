@@ -160,3 +160,41 @@ target_link_libraries(bridgepp
     )
 
 target_precompile_headers(bridgepp PRIVATE Pch.h)
+
+#*****************************************************************************************************************************************************
+# GoogleTest
+#*****************************************************************************************************************************************************
+
+if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
+    cmake_policy(SET CMP0135 NEW) # avoid warning DOWNLOAD_EXTRACT_TIMESTAMP
+endif()
+
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/b796f7d44681514f58a683a3a71ff17c94edb0c1.zip
+)
+
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+
+#*****************************************************************************************************************************************************
+# Tests
+#*****************************************************************************************************************************************************
+add_executable(bridgepp-test
+    Test/Exception/TestBridgeUtils.cpp
+    Test/Exception/TestException.cpp
+    )
+add_dependencies(bridgepp-test bridgepp)
+target_precompile_headers(bridgepp-test PRIVATE Pch.h)
+target_link_libraries(bridgepp-test
+    GTest::gtest_main
+    bridgepp
+    )
+
+include(GoogleTest)
+gtest_discover_tests(bridgepp-test)
