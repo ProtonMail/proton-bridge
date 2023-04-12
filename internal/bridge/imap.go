@@ -47,7 +47,10 @@ func (bridge *Bridge) serveIMAP() error {
 			return 0, fmt.Errorf("no IMAP server instance running")
 		}
 
-		logrus.Info("Starting IMAP server")
+		logrus.WithFields(logrus.Fields{
+			"port": bridge.vault.GetIMAPPort(),
+			"ssl":  bridge.vault.GetIMAPSSL(),
+		}).Info("Starting IMAP server")
 
 		imapListener, err := newListener(bridge.vault.GetIMAPPort(), bridge.vault.GetIMAPSSL(), bridge.tlsConfig)
 		if err != nil {

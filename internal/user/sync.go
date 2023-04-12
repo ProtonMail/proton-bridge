@@ -262,7 +262,7 @@ func (user *User) syncMessages(
 	syncStartTime := time.Now()
 	defer func() { logrus.WithField("duration", time.Since(syncStartTime)).Info("Message sync completed") }()
 
-	logrus.WithFields(logrus.Fields{
+	user.log.WithFields(logrus.Fields{
 		"messages": len(messageIDs),
 		"numCPU":   runtime.NumCPU(),
 	}).Info("Starting message sync")

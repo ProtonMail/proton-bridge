@@ -244,6 +244,14 @@ func run(c *cli.Context) error {
 									}
 								}
 
+								logrus.WithFields(logrus.Fields{
+									"lastVersion": v.GetLastVersion().String(),
+									"showAllMail": v.GetShowAllMail(),
+									"updateCh":    v.GetUpdateChannel(),
+									"rollout":     v.GetUpdateRollout(),
+									"DoH":         v.GetProxyAllowed(),
+								}).Info("Vault loaded")
+
 								// Load the cookies from the vault.
 								return withCookieJar(v, func(cookieJar http.CookieJar) error {
 									// Create a new bridge instance.

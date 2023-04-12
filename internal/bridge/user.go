@@ -399,7 +399,7 @@ func (bridge *Bridge) loadUsers(ctx context.Context) error {
 			return nil
 		}
 
-		log.Info("Loading connected user")
+		log.WithField("mode", user.AddressMode()).Info("Loading connected user")
 
 		bridge.publish(events.UserLoading{
 			UserID: user.UserID(),
