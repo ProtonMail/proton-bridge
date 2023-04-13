@@ -153,6 +153,8 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^bridge sends an update not available event$`, s.bridgeSendsAnUpdateNotAvailableEvent)
 			ctx.Step(`^bridge sends a forced update event$`, s.bridgeSendsAForcedUpdateEvent)
 			ctx.Step(`^bridge reports a message with "([^"]*)"$`, s.bridgeReportsMessage)
+			ctx.Step(`^bridge telemetry feature is enabled$`, s.bridgeTelemetryFeatureEnabled)
+			ctx.Step(`^bridge telemetry feature is disabled$`, s.bridgeTelemetryFeatureDisabled)
 
 			// ==== FRONTEND ====
 			ctx.Step(`^frontend sees that bridge is version "([^"]*)"$`, s.frontendSeesThatBridgeIsVersion)
@@ -166,6 +168,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^user "([^"]*)" is listed but not connected$`, s.userIsListedButNotConnected)
 			ctx.Step(`^user "([^"]*)" is not listed$`, s.userIsNotListed)
 			ctx.Step(`^user "([^"]*)" finishes syncing$`, s.userFinishesSyncing)
+			ctx.Step(`^user "([^"]*)" has telemetry set to (\d+)$`, s.userHasTelemetrySetTo)
 
 			// ==== IMAP ====
 			ctx.Step(`^user "([^"]*)" connects IMAP client "([^"]*)"$`, s.userConnectsIMAPClient)

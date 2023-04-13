@@ -414,6 +414,18 @@ func (s *scenario) userFinishesSyncing(username string) error {
 	return s.bridgeSendsSyncStartedAndFinishedEventsForUser(username)
 }
 
+func (s *scenario) userHasTelemetrySetTo(username string, telemetry int) error {
+	return s.t.withClientPass(context.Background(), username, s.t.getUserByName(username).userPass, func(ctx context.Context, c *proton.Client) error {
+		var req proton.SetTelemetryReq
+		req.Telemetry = proton.SettingsBool(telemetry)
+		_, err := c.SetUserSettingsTelemetry(ctx, req)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
 func (s *scenario) addAdditionalAddressToAccount(username, address string, disabled bool) error {
 	userID := s.t.getUserByName(username).getUserID()
 

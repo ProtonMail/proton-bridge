@@ -477,6 +477,18 @@ func (bridge *Bridge) Close(ctx context.Context) {
 	bridge.watchers = nil
 }
 
+func (bridge *Bridge) ComputeTelemetry() bool {
+	var telemetry = true
+
+	safe.RLock(func() {
+		for _, user := range bridge.users {
+			telemetry = telemetry && user.IsTelemetryEnabled(context.Background())
+		}
+	}, bridge.usersLock)
+
+	return telemetry
+}
+
 func (bridge *Bridge) publish(event events.Event) {
 	bridge.watchersLock.RLock()
 	defer bridge.watchersLock.RUnlock()

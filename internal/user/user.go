@@ -591,6 +591,16 @@ func (user *User) Close() {
 	}
 }
 
+// IsTelemetryEnabled check if the telemetry is enabled or disabled for this user.
+func (user *User) IsTelemetryEnabled(ctx context.Context) bool {
+	settings, err := user.client.GetUserSettings(ctx)
+	if err != nil {
+		user.log.WithError(err).Warn("Failed to retrieve API user Settings")
+		return false
+	}
+	return settings.Telemetry == proton.SettingEnabled
+}
+
 // initUpdateCh initializes the user's update channels in the given address mode.
 // It is assumed that user.apiAddrs and user.updateCh are already locked.
 func (user *User) initUpdateCh(mode vault.AddressMode) {

@@ -284,6 +284,22 @@ func (s *scenario) bridgeReportsMessage(message string) error {
 	return nil
 }
 
+func (s *scenario) bridgeTelemetryFeatureEnabled() error {
+	return s.checkTelemetry(true)
+}
+
+func (s *scenario) bridgeTelemetryFeatureDisabled() error {
+	return s.checkTelemetry(false)
+}
+
+func (s *scenario) checkTelemetry(expect bool) error {
+	res := s.t.bridge.ComputeTelemetry()
+	if res != expect {
+		return fmt.Errorf("expected telemetry feature %v but got %v ", expect, res)
+	}
+	return nil
+}
+
 func (s *scenario) theUserHidesAllMail() error {
 	return s.t.bridge.SetShowAllMail(false)
 }
