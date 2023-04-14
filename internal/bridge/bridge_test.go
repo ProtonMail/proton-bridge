@@ -171,6 +171,41 @@ func TestBridge_UserAgent(t *testing.T) {
 	})
 }
 
+func TestBridge_UserAgent_Persistence(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			currentUserAgent := b.GetCurrentUserAgent()
+			require.Contains(t, currentUserAgent, vault.DefaultUserAgent)
+
+			imapClient, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			require.NoError(t, err)
+			defer func() { _ = imapClient.Logout() }()
+
+			idClient := imapid.NewClient(imapClient)
+
+			// Set IMAP ID before Login to have the value capture in the Login API Call.
+			_, err = idClient.ID(imapid.ID{
+				imapid.FieldName:    "MyFancyClient",
+				imapid.FieldVersion: "0.1.2",
+			})
+
+			require.NoError(t, err)
+
+			// Login the user.
+			_, err = b.LoginFull(context.Background(), username, password, nil, nil)
+			require.NoError(t, err)
+
+			// Assert that the user agent then contains the platform.
+			require.Contains(t, b.GetCurrentUserAgent(), "MyFancyClient/0.1.2")
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			currentUserAgent := bridge.GetCurrentUserAgent()
+			require.Contains(t, currentUserAgent, "MyFancyClient/0.1.2")
+		})
+	})
+}
+
 func TestBridge_UserAgentFromIMAPID(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		var (

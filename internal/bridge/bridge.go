@@ -237,6 +237,8 @@ func newBridge(
 		return nil, fmt.Errorf("failed to save last version indicator: %w", err)
 	}
 
+	identifier.SetClientString(vault.GetLastUserAgent())
+
 	imapServer, err := newIMAPServer(
 		gluonCacheDir,
 		gluonDataDir,

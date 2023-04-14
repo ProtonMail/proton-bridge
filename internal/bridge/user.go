@@ -550,7 +550,7 @@ func (bridge *Bridge) addUserWithVault(
 	// As such, if we find this ID in the context, we should use it to update our user agent.
 	client.AddPreRequestHook(func(_ *resty.Client, r *resty.Request) error {
 		if imapID, ok := imap.GetIMAPIDFromContext(r.Context()); ok {
-			bridge.identifier.SetClient(imapID.Name, imapID.Version)
+			bridge.setUserAgent(imapID.Name, imapID.Version)
 		}
 
 		return nil

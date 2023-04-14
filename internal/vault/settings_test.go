@@ -216,3 +216,11 @@ func TestVault_Settings_MaxSyncMemory(t *testing.T) {
 	// Check the default first start value.
 	require.Equal(t, vault.DefaultMaxSyncMemory, s.GetMaxSyncMemory())
 }
+
+func TestVault_Settings_LastUserAgent(t *testing.T) {
+	// create a new test vault.
+	s := newVault(t)
+
+	// Check the default first start value.
+	require.Equal(t, vault.DefaultUserAgent, s.GetLastUserAgent())
+}

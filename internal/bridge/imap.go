@@ -41,11 +41,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	defaultClientName    = "UnknownClient"
-	defaultClientVersion = "0.0.1"
-)
-
 func (bridge *Bridge) serveIMAP() error {
 	port, err := func() (int, error) {
 		if bridge.imapServer == nil {
@@ -249,11 +244,6 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 			}).Info("Received mailbox message count")
 		}
 
-	case imapEvents.SessionAdded:
-		if !bridge.identifier.HasClient() {
-			bridge.identifier.SetClient(defaultClientName, defaultClientVersion)
-		}
-
 	case imapEvents.IMAPID:
 		logrus.WithFields(logrus.Fields{
 			"sessionID": event.SessionID,
@@ -262,7 +252,7 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 		}).Info("Received IMAP ID")
 
 		if event.IMAPID.Name != "" && event.IMAPID.Version != "" {
-			bridge.identifier.SetClient(event.IMAPID.Name, event.IMAPID.Version)
+			bridge.setUserAgent(event.IMAPID.Name, event.IMAPID.Version)
 		}
 
 	case imapEvents.LoginFailed:

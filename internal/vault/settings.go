@@ -225,3 +225,22 @@ func (vault *Vault) SetMaxSyncMemory(maxMemory uint64) error {
 		data.Settings.MaxSyncMemory = maxMemory
 	})
 }
+
+// GetLastUserAgent returns the last user agent recorded by bridge.
+func (vault *Vault) GetLastUserAgent() string {
+	v := vault.get().Settings.LastUserAgent
+
+	// Handle case where there may be no value.
+	if len(v) == 0 {
+		v = DefaultUserAgent
+	}
+
+	return v
+}
+
+// SetLastUserAgent store the last user agent recorded by bridge.
+func (vault *Vault) SetLastUserAgent(userAgent string) error {
+	return vault.mod(func(data *Data) {
+		data.Settings.LastUserAgent = userAgent
+	})
+}
