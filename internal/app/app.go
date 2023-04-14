@@ -248,6 +248,7 @@ func run(c *cli.Context) error {
 									"lastVersion": v.GetLastVersion().String(),
 									"showAllMail": v.GetShowAllMail(),
 									"updateCh":    v.GetUpdateChannel(),
+									"autoUpdate":  v.GetAutoUpdate(),
 									"rollout":     v.GetUpdateRollout(),
 									"DoH":         v.GetProxyAllowed(),
 								}).Info("Vault loaded")

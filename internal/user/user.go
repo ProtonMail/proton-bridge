@@ -119,6 +119,12 @@ func New(
 		return nil, fmt.Errorf("failed to get labels: %w", err)
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"userID":    apiUser.ID,
+		"numAddr":   len(apiAddrs),
+		"numLabels": len(apiLabels),
+	}).Info("Creating user object")
+
 	// Create the user object.
 	user := &User{
 		log: logrus.WithField("userID", apiUser.ID),
