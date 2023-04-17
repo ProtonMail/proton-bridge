@@ -186,9 +186,9 @@ enable_testing()
 # Tests
 #*****************************************************************************************************************************************************
 add_executable(bridgepp-test
-    Test/Exception/TestBridgeUtils.cpp
-    Test/Exception/TestException.cpp
-    )
+    Test/TestBridgeUtils.cpp
+    Test/TestException.cpp
+    Test/TestWorker.cpp Test/TestWorker.h)
 add_dependencies(bridgepp-test bridgepp)
 target_precompile_headers(bridgepp-test PRIVATE Pch.h)
 target_link_libraries(bridgepp-test
