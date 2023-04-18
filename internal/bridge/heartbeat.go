@@ -19,21 +19,61 @@ package bridge
 
 import (
 	"context"
+	"encoding/json"
+	"time"
 
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/sirupsen/logrus"
 )
 
-func (bridge *Bridge) ComputeTelemetry() bool {
-	var telemetry = true
+func (bridge *Bridge) IsTelemetryAvailable() bool {
+	var flag = true
 
 	safe.RLock(func() {
 		for _, user := range bridge.users {
-			telemetry = telemetry && user.IsTelemetryEnabled(context.Background())
+			flag = flag && user.IsTelemetryEnabled(context.Background())
 		}
 	}, bridge.usersLock)
 
-	return telemetry
+	return flag
+}
+
+func (bridge *Bridge) SendHeartbeat(heartbeat *telemetry.HeartbeatData) bool {
+	data, err := json.Marshal(heartbeat)
+	if err != nil {
+		if err := bridge.reporter.ReportMessageWithContext("Cannot parse heartbeat data.", reporter.Context{
+			"error": err,
+		}); err != nil {
+			logrus.WithError(err).Error("Failed to parse heartbeat data.")
+		}
+		return false
+	}
+
+	var sent = false
+
+	safe.RLock(func() {
+		if len(bridge.users) > 0 {
+			for _, user := range bridge.users {
+				if err := user.SendTelemetry(context.Background(), data); err == nil {
+					sent = true
+					break
+				}
+			}
+		}
+	}, bridge.usersLock)
+
+	return sent
+}
+
+func (bridge *Bridge) GetLastHeartbeatSent() time.Time {
+	return bridge.vault.GetLastHeartbeatSent()
+}
+
+func (bridge *Bridge) SetLastHeartbeatSent(timestamp time.Time) error {
+	return bridge.vault.SetLastHeartbeatSent(timestamp)
 }
 
 func (bridge *Bridge) initHeartbeat() {
@@ -64,4 +104,6 @@ func (bridge *Bridge) initHeartbeat() {
 		bridge.heartbeat.SetKeyChainPref(val)
 	}
 	bridge.heartbeat.SetPrevVersion(bridge.GetLastVersion().String())
+
+	bridge.heartbeat.StartSending()
 }

@@ -20,6 +20,7 @@ package vault
 import (
 	"math/rand"
 	"runtime"
+	"time"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/ports"
@@ -49,6 +50,8 @@ type Settings struct {
 	MaxSyncMemory uint64
 
 	LastUserAgent string
+
+	LastHeartbeatSent time.Time
 
 	// **WARNING**: These entry can't be removed until they vault has proper migration support.
 	SyncWorkers int
@@ -100,6 +103,7 @@ func newDefaultSettings(gluonDir string) Settings {
 		SyncWorkers:   syncWorkers,
 		SyncAttPool:   syncWorkers,
 
-		LastUserAgent: DefaultUserAgent,
+		LastUserAgent:     DefaultUserAgent,
+		LastHeartbeatSent: time.Time{},
 	}
 }

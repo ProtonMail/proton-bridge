@@ -17,6 +17,12 @@
 
 package telemetry
 
+import (
+	"time"
+
+	"github.com/sirupsen/logrus"
+)
+
 const (
 	dimensionON       = "on"
 	dimensionOFF      = "off"
@@ -25,6 +31,13 @@ const (
 	dimensionSSL      = "ssl"
 	dimensionStartTLS = "starttls"
 )
+
+type HeartbeatManager interface {
+	IsTelemetryAvailable() bool
+	SendHeartbeat(heartbeat *HeartbeatData) bool
+	GetLastHeartbeatSent() time.Time
+	SetLastHeartbeatSent(time.Time) error
+}
 
 type HeartbeatValues struct {
 	Rollout   int `json:"rollout"`
@@ -55,10 +68,12 @@ type HeartbeatData struct {
 }
 
 type Heartbeat struct {
-	Metrics HeartbeatData
+	log     *logrus.Entry
+	manager HeartbeatManager
+	metrics HeartbeatData
 
-	DefaultIMAPPort int
-	DefaultSMTPPort int
-	DefaultCache    string
-	DefaultKeychain string
+	defaultIMAPPort int
+	defaultSMTPPort int
+	defaultCache    string
+	defaultKeychain string
 }

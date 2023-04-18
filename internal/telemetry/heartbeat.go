@@ -18,127 +18,148 @@
 package telemetry
 
 import (
+	"time"
+
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
+	"github.com/sirupsen/logrus"
 )
 
-func NewHeartbeat(imapPort, smtpPort int, cacheDir, keychain string) Heartbeat {
+func NewHeartbeat(manager HeartbeatManager, imapPort, smtpPort int, cacheDir, keychain string) Heartbeat {
 	heartbeat := Heartbeat{
-		Metrics: HeartbeatData{
+		log:     logrus.WithField("pkg", "telemetry"),
+		manager: manager,
+		metrics: HeartbeatData{
 			MeasurementGroup: "bridge.amy.usage",
 			Event:            "bridge_heartbeat",
 		},
-		DefaultIMAPPort: imapPort,
-		DefaultSMTPPort: smtpPort,
-		DefaultCache:    cacheDir,
-		DefaultKeychain: keychain,
+		defaultIMAPPort: imapPort,
+		defaultSMTPPort: smtpPort,
+		defaultCache:    cacheDir,
+		defaultKeychain: keychain,
 	}
 	return heartbeat
 }
 
 func (heartbeat *Heartbeat) SetRollout(val float64) {
-	heartbeat.Metrics.Values.Rollout = int(val * 100)
+	heartbeat.metrics.Values.Rollout = int(val * 100)
 }
 
 func (heartbeat *Heartbeat) SetNbAccount(val int) {
-	heartbeat.Metrics.Values.NbAccount = val
+	heartbeat.metrics.Values.NbAccount = val
 }
 
 func (heartbeat *Heartbeat) SetAutoUpdate(val bool) {
 	if val {
-		heartbeat.Metrics.Dimensions.AutoUpdate = dimensionON
+		heartbeat.metrics.Dimensions.AutoUpdate = dimensionON
 	} else {
-		heartbeat.Metrics.Dimensions.AutoUpdate = dimensionOFF
+		heartbeat.metrics.Dimensions.AutoUpdate = dimensionOFF
 	}
 }
 
 func (heartbeat *Heartbeat) SetAutoStart(val bool) {
 	if val {
-		heartbeat.Metrics.Dimensions.AutoStart = dimensionON
+		heartbeat.metrics.Dimensions.AutoStart = dimensionON
 	} else {
-		heartbeat.Metrics.Dimensions.AutoStart = dimensionOFF
+		heartbeat.metrics.Dimensions.AutoStart = dimensionOFF
 	}
 }
 
 func (heartbeat *Heartbeat) SetBeta(val updater.Channel) {
 	if val == updater.EarlyChannel {
-		heartbeat.Metrics.Dimensions.Beta = dimensionON
+		heartbeat.metrics.Dimensions.Beta = dimensionON
 	} else {
-		heartbeat.Metrics.Dimensions.Beta = dimensionOFF
+		heartbeat.metrics.Dimensions.Beta = dimensionOFF
 	}
 }
 
 func (heartbeat *Heartbeat) SetDoh(val bool) {
 	if val {
-		heartbeat.Metrics.Dimensions.Doh = dimensionON
+		heartbeat.metrics.Dimensions.Doh = dimensionON
 	} else {
-		heartbeat.Metrics.Dimensions.Doh = dimensionOFF
+		heartbeat.metrics.Dimensions.Doh = dimensionOFF
 	}
 }
 
 func (heartbeat *Heartbeat) SetSplitMode(val bool) {
 	if val {
-		heartbeat.Metrics.Dimensions.SplitMode = dimensionON
+		heartbeat.metrics.Dimensions.SplitMode = dimensionON
 	} else {
-		heartbeat.Metrics.Dimensions.SplitMode = dimensionOFF
+		heartbeat.metrics.Dimensions.SplitMode = dimensionOFF
 	}
 }
 
 func (heartbeat *Heartbeat) SetShowAllMail(val bool) {
 	if val {
-		heartbeat.Metrics.Dimensions.ShowAllMail = dimensionON
+		heartbeat.metrics.Dimensions.ShowAllMail = dimensionON
 	} else {
-		heartbeat.Metrics.Dimensions.ShowAllMail = dimensionOFF
+		heartbeat.metrics.Dimensions.ShowAllMail = dimensionOFF
 	}
 }
 
 func (heartbeat *Heartbeat) SetIMAPConnectionMode(val bool) {
 	if val {
-		heartbeat.Metrics.Dimensions.IMAPConnectionMode = dimensionSSL
+		heartbeat.metrics.Dimensions.IMAPConnectionMode = dimensionSSL
 	} else {
-		heartbeat.Metrics.Dimensions.IMAPConnectionMode = dimensionStartTLS
+		heartbeat.metrics.Dimensions.IMAPConnectionMode = dimensionStartTLS
 	}
 }
 
 func (heartbeat *Heartbeat) SetSMTPConnectionMode(val bool) {
 	if val {
-		heartbeat.Metrics.Dimensions.SMTPConnectionMode = dimensionSSL
+		heartbeat.metrics.Dimensions.SMTPConnectionMode = dimensionSSL
 	} else {
-		heartbeat.Metrics.Dimensions.SMTPConnectionMode = dimensionStartTLS
+		heartbeat.metrics.Dimensions.SMTPConnectionMode = dimensionStartTLS
 	}
 }
 
 func (heartbeat *Heartbeat) SetIMAPPort(val int) {
-	if val == heartbeat.DefaultIMAPPort {
-		heartbeat.Metrics.Dimensions.IMAPPort = dimensionDefault
+	if val == heartbeat.defaultIMAPPort {
+		heartbeat.metrics.Dimensions.IMAPPort = dimensionDefault
 	} else {
-		heartbeat.Metrics.Dimensions.IMAPPort = dimensionCustom
+		heartbeat.metrics.Dimensions.IMAPPort = dimensionCustom
 	}
 }
 
 func (heartbeat *Heartbeat) SetSMTPPort(val int) {
-	if val == heartbeat.DefaultSMTPPort {
-		heartbeat.Metrics.Dimensions.SMTPPort = dimensionDefault
+	if val == heartbeat.defaultSMTPPort {
+		heartbeat.metrics.Dimensions.SMTPPort = dimensionDefault
 	} else {
-		heartbeat.Metrics.Dimensions.SMTPPort = dimensionCustom
+		heartbeat.metrics.Dimensions.SMTPPort = dimensionCustom
 	}
 }
 
 func (heartbeat *Heartbeat) SetCacheLocation(val string) {
-	if val != heartbeat.DefaultCache {
-		heartbeat.Metrics.Dimensions.CacheLocation = dimensionDefault
+	if val != heartbeat.defaultCache {
+		heartbeat.metrics.Dimensions.CacheLocation = dimensionDefault
 	} else {
-		heartbeat.Metrics.Dimensions.CacheLocation = dimensionCustom
+		heartbeat.metrics.Dimensions.CacheLocation = dimensionCustom
 	}
 }
 
 func (heartbeat *Heartbeat) SetKeyChainPref(val string) {
-	if val != heartbeat.DefaultKeychain {
-		heartbeat.Metrics.Dimensions.KeychainPref = dimensionDefault
+	if val != heartbeat.defaultKeychain {
+		heartbeat.metrics.Dimensions.KeychainPref = dimensionDefault
 	} else {
-		heartbeat.Metrics.Dimensions.KeychainPref = dimensionCustom
+		heartbeat.metrics.Dimensions.KeychainPref = dimensionCustom
 	}
 }
 
 func (heartbeat *Heartbeat) SetPrevVersion(val string) {
-	heartbeat.Metrics.Dimensions.PrevVersion = val
+	heartbeat.metrics.Dimensions.PrevVersion = val
+}
+
+func (heartbeat *Heartbeat) StartSending() {
+	if heartbeat.manager.IsTelemetryAvailable() {
+		lastSent := heartbeat.manager.GetLastHeartbeatSent()
+		now := time.Now()
+		if now.Year() >= lastSent.Year() && now.YearDay() > lastSent.YearDay() {
+			if !heartbeat.manager.SendHeartbeat(&heartbeat.metrics) {
+				heartbeat.log.WithFields(logrus.Fields{
+					"metrics": heartbeat.metrics,
+				}).Error("Failed to send heartbeat")
+			} else if err := heartbeat.manager.SetLastHeartbeatSent(now); err != nil {
+				heartbeat.log.WithError(err).Warn("Cannot save last heartbeat sent to the vault.")
+			}
+		}
+	}
 }

@@ -20,6 +20,7 @@ package vault
 import (
 	"math"
 	"math/rand"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
@@ -254,5 +255,17 @@ func (vault *Vault) GetLastUserAgent() string {
 func (vault *Vault) SetLastUserAgent(userAgent string) error {
 	return vault.mod(func(data *Data) {
 		data.Settings.LastUserAgent = userAgent
+	})
+}
+
+// GetLastHeartbeatSent returns the last time heartbeat was sent.
+func (vault *Vault) GetLastHeartbeatSent() time.Time {
+	return vault.get().Settings.LastHeartbeatSent
+}
+
+// SetLastHeartbeatSent store the last time heartbeat was sent.
+func (vault *Vault) SetLastHeartbeatSent(timestamp time.Time) error {
+	return vault.mod(func(data *Data) {
+		data.Settings.LastHeartbeatSent = timestamp
 	})
 }

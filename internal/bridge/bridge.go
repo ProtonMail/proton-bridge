@@ -283,8 +283,6 @@ func newBridge(
 		updater:   updater,
 		installCh: make(chan installJob),
 
-		heartbeat: telemetry.NewHeartbeat(1143, 1025, gluonCacheDir, keychain.DefaultHelper),
-
 		curVersion:     curVersion,
 		newVersion:     curVersion,
 		newVersionLock: safe.NewRWMutex(),
@@ -309,6 +307,7 @@ func newBridge(
 	}
 
 	bridge.smtpServer = newSMTPServer(bridge, tlsConfig, logSMTP)
+	bridge.heartbeat = telemetry.NewHeartbeat(bridge, 1143, 1025, gluonCacheDir, keychain.DefaultHelper)
 
 	return bridge, nil
 }

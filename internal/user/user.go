@@ -607,6 +607,31 @@ func (user *User) IsTelemetryEnabled(ctx context.Context) bool {
 	return settings.Telemetry == proton.SettingEnabled
 }
 
+// SendTelemetry send telemetry request.
+func (user *User) SendTelemetry(ctx context.Context, data []byte) error {
+	var req proton.SendStatsReq
+	if err := json.Unmarshal(data, &req); err != nil {
+		user.log.WithError(err).Warn("Failed to send telemetry.")
+		if err := user.reporter.ReportMessageWithContext("Failed to send telemetry.", reporter.Context{
+			"error": err,
+		}); err != nil {
+			logrus.WithError(err).Error("Failed to report telemetry sending error")
+		}
+		return err
+	}
+	err := user.client.SendDataEvent(ctx, req)
+	if err != nil {
+		user.log.WithError(err).Warn("Failed to send telemetry.")
+		if err := user.reporter.ReportMessageWithContext("Failed to send telemetry.", reporter.Context{
+			"error": err,
+		}); err != nil {
+			logrus.WithError(err).Error("Failed to report telemetry sending error")
+		}
+		return err
+	}
+	return nil
+}
+
 // initUpdateCh initializes the user's update channels in the given address mode.
 // It is assumed that user.apiAddrs and user.updateCh are already locked.
 func (user *User) initUpdateCh(mode vault.AddressMode) {
