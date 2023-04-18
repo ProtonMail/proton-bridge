@@ -40,7 +40,6 @@ type HeartbeatManager interface {
 }
 
 type HeartbeatValues struct {
-	Rollout   int `json:"rollout"`
 	NbAccount int `json:"nb_account"`
 }
 
@@ -58,6 +57,7 @@ type HeartbeatDimensions struct {
 	CacheLocation      string `json:"cache_location"`
 	KeychainPref       string `json:"keychain_pref"`
 	PrevVersion        string `json:"prev_version"`
+	Rollout            int    `json:"rollout"`
 }
 
 type HeartbeatData struct {

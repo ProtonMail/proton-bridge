@@ -256,6 +256,7 @@ mocks:
 	mockgen --package mocks github.com/ProtonMail/gluon/async PanicHandler > internal/bridge/mocks/async_mocks.go
 	mockgen --package mocks github.com/ProtonMail/gluon/reporter Reporter > internal/bridge/mocks/gluon_mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/updater Downloader,Installer > internal/updater/mocks/mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/telemetry HeartbeatManager > internal/telemetry/mocks/mocks.go
 
 lint: gofiles lint-golang lint-license lint-dependencies lint-changelog
 

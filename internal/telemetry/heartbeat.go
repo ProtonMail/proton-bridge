@@ -29,7 +29,7 @@ func NewHeartbeat(manager HeartbeatManager, imapPort, smtpPort int, cacheDir, ke
 		log:     logrus.WithField("pkg", "telemetry"),
 		manager: manager,
 		metrics: HeartbeatData{
-			MeasurementGroup: "bridge.amy.usage",
+			MeasurementGroup: "bridge.any.usage",
 			Event:            "bridge_heartbeat",
 		},
 		defaultIMAPPort: imapPort,
@@ -41,7 +41,7 @@ func NewHeartbeat(manager HeartbeatManager, imapPort, smtpPort int, cacheDir, ke
 }
 
 func (heartbeat *Heartbeat) SetRollout(val float64) {
-	heartbeat.metrics.Values.Rollout = int(val * 100)
+	heartbeat.metrics.Dimensions.Rollout = int(val * 100)
 }
 
 func (heartbeat *Heartbeat) SetNbAccount(val int) {
@@ -129,7 +129,7 @@ func (heartbeat *Heartbeat) SetSMTPPort(val int) {
 }
 
 func (heartbeat *Heartbeat) SetCacheLocation(val string) {
-	if val != heartbeat.defaultCache {
+	if val == heartbeat.defaultCache {
 		heartbeat.metrics.Dimensions.CacheLocation = dimensionDefault
 	} else {
 		heartbeat.metrics.Dimensions.CacheLocation = dimensionCustom
@@ -137,7 +137,7 @@ func (heartbeat *Heartbeat) SetCacheLocation(val string) {
 }
 
 func (heartbeat *Heartbeat) SetKeyChainPref(val string) {
-	if val != heartbeat.defaultKeychain {
+	if val == heartbeat.defaultKeychain {
 		heartbeat.metrics.Dimensions.KeychainPref = dimensionDefault
 	} else {
 		heartbeat.metrics.Dimensions.KeychainPref = dimensionCustom
@@ -152,7 +152,7 @@ func (heartbeat *Heartbeat) StartSending() {
 	if heartbeat.manager.IsTelemetryAvailable() {
 		lastSent := heartbeat.manager.GetLastHeartbeatSent()
 		now := time.Now()
-		if now.Year() >= lastSent.Year() && now.YearDay() > lastSent.YearDay() {
+		if now.Year() > lastSent.Year() || (now.Year() == lastSent.Year() && now.YearDay() > lastSent.YearDay()) {
 			if !heartbeat.manager.SendHeartbeat(&heartbeat.metrics) {
 				heartbeat.log.WithFields(logrus.Fields{
 					"metrics": heartbeat.metrics,
