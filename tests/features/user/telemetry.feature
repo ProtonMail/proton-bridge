@@ -7,6 +7,12 @@ Feature: Bridge send usage metrics
 
   Scenario: Telemetry availability - No user
     Then bridge telemetry feature is enabled
+    When the user disables telemetry in bridge settings
+    Then bridge telemetry feature is disabled
+    When the user enables telemetry in bridge settings
+    Then bridge telemetry feature is enabled
+
+
 
   Scenario: Telemetry availability - Multi user
     When the user logs in with username "[user:user1]" and password "password"
@@ -16,3 +22,9 @@ Feature: Bridge send usage metrics
     And user "[user:user2]" finishes syncing
     When user "[user:user2]" has telemetry set to 0
     Then bridge telemetry feature is disabled
+    When user "[user:user2]" has telemetry set to 1
+    Then bridge telemetry feature is enabled
+    When the user disables telemetry in bridge settings
+    Then bridge telemetry feature is disabled
+    When the user enables telemetry in bridge settings
+    Then bridge telemetry feature is enabled

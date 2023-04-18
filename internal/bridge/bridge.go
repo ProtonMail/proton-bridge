@@ -483,6 +483,10 @@ func (bridge *Bridge) ComputeTelemetry() bool {
 	var telemetry = true
 
 	safe.RLock(func() {
+		if bridge.GetTelemetryDisabled() {
+			telemetry = false
+			return
+		}
 		for _, user := range bridge.users {
 			telemetry = telemetry && user.IsTelemetryEnabled(context.Background())
 		}

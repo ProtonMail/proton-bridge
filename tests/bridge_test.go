@@ -310,6 +310,14 @@ func (s *scenario) theUserShowsAllMail() error {
 	return s.t.bridge.SetShowAllMail(true)
 }
 
+func (s *scenario) theUserDisablesTelemetryInBridgeSettings() error {
+	return s.t.bridge.SetTelemetryDisabled(true)
+}
+
+func (s *scenario) theUserEnablesTelemetryInBridgeSettings() error {
+	return s.t.bridge.SetTelemetryDisabled(false)
+}
+
 func (s *scenario) networkPortIsBusy(port int) {
 	if listener, err := net.Listen("tcp", "127.0.0.1:"+strconv.Itoa(port)); err == nil { // we ignore errors. Most likely port is already busy.
 		s.t.dummyListeners = append(s.t.dummyListeners, listener)

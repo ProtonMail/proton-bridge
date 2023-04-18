@@ -170,6 +170,19 @@ SettingsView {
     }
 
     SettingsItem {
+        id: telemetry
+        Layout.fillWidth: true
+        checked: !Backend.isTelemetryDisabled
+        colorScheme: root.colorScheme
+        description: qsTr("Help us improve Proton services by sending anonymous usage statistics.")
+        text: qsTr("Collect usage diagnostics")
+        type: SettingsItem.Toggle
+        visible: root._isAdvancedShown
+
+        onClicked: Backend.toggleIsTelemetryDisabled(telemetry.checked)
+    }
+    
+    SettingsItem {
         id: ports
         visible: root._isAdvancedShown
         colorScheme: root.colorScheme

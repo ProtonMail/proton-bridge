@@ -24,7 +24,6 @@
 #include <bridgepp/Log/LogUtils.h>
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Worker/Overseer.h>
-#include <bridgepp/BridgeUtils.h>
 
 
 #define HANDLE_EXCEPTION(x) try { x } \
@@ -336,6 +335,18 @@ bool QMLBackend::isAllMailVisible() const {
 
 
 //****************************************************************************************************************************************************
+/// \return The value for the 'isAllMailVisible' property.
+//****************************************************************************************************************************************************
+bool QMLBackend::isTelemetryDisabled() const {
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        bool v;
+        app().grpc().isTelemetryDisabled(v);
+        return v;
+    )
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The value for the 'colorSchemeName' property.
 //****************************************************************************************************************************************************
 QString QMLBackend::colorSchemeName() const {
@@ -567,6 +578,18 @@ void QMLBackend::changeIsAllMailVisible(bool isVisible) {
         emit isAllMailVisibleChanged(this->isAllMailVisible());
     )
 }
+
+
+//****************************************************************************************************************************************************
+/// \param[in] isDisabled The new state of the 'Is telemetry disabled property'.
+//****************************************************************************************************************************************************
+void QMLBackend::toggleIsTelemetryDisabled(bool isDisabled) {
+    HANDLE_EXCEPTION(
+        app().grpc().setIsTelemetryDisabled(isDisabled);
+        emit isTelemetryDisabledChanged(isDisabled);
+    )
+}
+
 
 
 //****************************************************************************************************************************************************

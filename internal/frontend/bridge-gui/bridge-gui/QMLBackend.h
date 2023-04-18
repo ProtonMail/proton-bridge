@@ -67,6 +67,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(bool isAutostartOn READ isAutostartOn NOTIFY isAutostartOnChanged)
     Q_PROPERTY(bool isBetaEnabled READ isBetaEnabled NOTIFY isBetaEnabledChanged)
     Q_PROPERTY(bool isAllMailVisible READ isAllMailVisible NOTIFY isAllMailVisibleChanged)
+    Q_PROPERTY(bool isTelemetryDisabled READ isTelemetryDisabled NOTIFY isTelemetryDisabledChanged)
     Q_PROPERTY(QString colorSchemeName READ colorSchemeName NOTIFY colorSchemeNameChanged)
     Q_PROPERTY(QUrl diskCachePath READ diskCachePath NOTIFY diskCachePathChanged)
     Q_PROPERTY(bool useSSLForIMAP READ useSSLForIMAP WRITE setUseSSLForIMAP NOTIFY useSSLForIMAPChanged)
@@ -99,6 +100,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     bool isAutostartOn() const; ///< Getter for the 'isAutostartOn' property.
     bool isBetaEnabled() const; ///< Getter for the 'isBetaEnabled' property.
     bool isAllMailVisible() const; ///< Getter for the 'isAllMailVisible' property.
+    bool isTelemetryDisabled() const; ///< Getter for the 'isTelemetryDisabled' property.
     QString colorSchemeName() const; ///< Getter for the 'colorSchemeName' property.
     QUrl diskCachePath() const; ///< Getter for the 'diskCachePath' property.
     void setUseSSLForIMAP(bool value); ///< Setter for the 'useSSLForIMAP' property.
@@ -129,6 +131,7 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void isAutomaticUpdateOnChanged(bool value); ///<Signal for the change of the 'isAutomaticUpdateOn' property.
     void isBetaEnabledChanged(bool value); ///<Signal for the change of the 'isBetaEnabled' property.
     void isAllMailVisibleChanged(bool value); ///<Signal for the change of the 'isAllMailVisible' property.
+    void isTelemetryDisabledChanged(bool isDisabled); ///<Signal for the change of the 'isTelemetryDisabled' property.
     void colorSchemeNameChanged(QString const &scheme); ///<Signal for the change of the 'colorSchemeName' property.
     void isDoHEnabledChanged(bool value); ///<Signal for the change of the 'isDoHEnabled' property.
     void logsPathChanged(QUrl const &path); ///<Signal for the change of the 'logsPath' property.
@@ -151,6 +154,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void toggleAutostart(bool active); ///< Slot for the autostart toggle.
     void toggleBeta(bool active); ///< Slot for the beta toggle.
     void changeIsAllMailVisible(bool isVisible); ///< Slot for the changing of 'All Mail' visibility.
+    void toggleIsTelemetryDisabled(bool isDisabled); ///< Slot for toggling telemetry on/off.
     void changeColorScheme(QString const &scheme); ///< Slot for the change of the theme.
     void setDiskCachePath(QUrl const &path) const; ///< Slot for the change of the disk cache path.
     void login(QString const &username, QString const &password) const; ///< Slot for the login button (initial login).

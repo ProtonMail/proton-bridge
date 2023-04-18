@@ -184,6 +184,18 @@ func (vault *Vault) SetAutoUpdate(autoUpdate bool) error {
 	})
 }
 
+// GetTelemetryDisabled checks whether telemetry is disabled.
+func (vault *Vault) GetTelemetryDisabled() bool {
+	return vault.get().Settings.TelemetryDisabled
+}
+
+// SetTelemetryDisabled sets whether telemetry is disabled.
+func (vault *Vault) SetTelemetryDisabled(telemetryDisabled bool) error {
+	return vault.mod(func(data *Data) {
+		data.Settings.TelemetryDisabled = telemetryDisabled
+	})
+}
+
 // GetLastVersion returns the last version of the bridge that was run.
 func (vault *Vault) GetLastVersion() *semver.Version {
 	return semver.MustParse(vault.get().Settings.LastVersion)

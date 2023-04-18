@@ -289,6 +289,23 @@ func New(
 	})
 	fe.AddCmd(badEventCmd)
 
+	// Telemetry commands
+	telemetryCmd := &ishell.Cmd{
+		Name: "telemetry",
+		Help: "choose whether usage diagnostics are collected or not",
+	}
+	telemetryCmd.AddCmd(&ishell.Cmd{
+		Name: "enable",
+		Help: "Usage diagnostics collection will be enabled",
+		Func: fe.enableTelemetry,
+	})
+	telemetryCmd.AddCmd(&ishell.Cmd{
+		Name: "disable",
+		Help: "Usage diagnostics collection will be disabled",
+		Func: fe.disableTelemetry,
+	})
+	fe.AddCmd(telemetryCmd)
+
 	go fe.watchEvents(eventCh)
 
 	go func() {

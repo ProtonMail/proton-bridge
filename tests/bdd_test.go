@@ -144,6 +144,8 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the user reports a bug$`, s.theUserReportsABug)
 			ctx.Step(`^the user hides All Mail$`, s.theUserHidesAllMail)
 			ctx.Step(`^the user shows All Mail$`, s.theUserShowsAllMail)
+			ctx.Step(`^the user disables telemetry in bridge settings$`, s.theUserDisablesTelemetryInBridgeSettings)
+			ctx.Step(`^the user enables telemetry in bridge settings$`, s.theUserEnablesTelemetryInBridgeSettings)
 			ctx.Step(`^bridge sends a connection up event$`, s.bridgeSendsAConnectionUpEvent)
 			ctx.Step(`^bridge sends a connection down event$`, s.bridgeSendsAConnectionDownEvent)
 			ctx.Step(`^bridge sends a deauth event for user "([^"]*)"$`, s.bridgeSendsADeauthEventForUser)

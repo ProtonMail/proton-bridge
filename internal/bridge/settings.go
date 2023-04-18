@@ -271,6 +271,14 @@ func (bridge *Bridge) SetAutoUpdate(autoUpdate bool) error {
 	return nil
 }
 
+func (bridge *Bridge) GetTelemetryDisabled() bool {
+	return bridge.vault.GetTelemetryDisabled()
+}
+
+func (bridge *Bridge) SetTelemetryDisabled(isDisabled bool) error {
+	return bridge.vault.SetTelemetryDisabled(isDisabled)
+}
+
 func (bridge *Bridge) GetUpdateChannel() updater.Channel {
 	return bridge.vault.GetUpdateChannel()
 }

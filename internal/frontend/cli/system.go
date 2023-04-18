@@ -195,6 +195,38 @@ func (f *frontendCLI) showAllMail(c *ishell.Context) {
 	}
 }
 
+func (f *frontendCLI) enableTelemetry(_ *ishell.Context) {
+	if !f.bridge.GetTelemetryDisabled() {
+		f.Println("Usage diagnostics collection is enabled.")
+		return
+	}
+
+	f.Println("Usage diagnostics collection is disabled right now.")
+
+	if f.yesNoQuestion("Do you want to enable usage diagnostics collection") {
+		if err := f.bridge.SetTelemetryDisabled(false); err != nil {
+			f.printAndLogError(err)
+			return
+		}
+	}
+}
+
+func (f *frontendCLI) disableTelemetry(_ *ishell.Context) {
+	if f.bridge.GetTelemetryDisabled() {
+		f.Println("Usage diagnostics collection is disabled.")
+		return
+	}
+
+	f.Println("Usage diagnostics collection is enabled right now.")
+
+	if f.yesNoQuestion("Do you want to disable usage diagnostics collection") {
+		if err := f.bridge.SetTelemetryDisabled(true); err != nil {
+			f.printAndLogError(err)
+			return
+		}
+	}
+}
+
 func (f *frontendCLI) setGluonLocation(c *ishell.Context) {
 	if gluonDir := f.bridge.GetGluonCacheDir(); gluonDir != "" {
 		f.Println("The current message cache location is:", gluonDir)

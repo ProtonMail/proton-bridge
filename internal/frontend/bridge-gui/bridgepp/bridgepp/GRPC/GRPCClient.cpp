@@ -19,7 +19,6 @@
 #include "GRPCClient.h"
 #include "GRPCUtils.h"
 #include "GRPCErrors.h"
-#include "../BridgeUtils.h"
 #include "../Exception/Exception.h"
 #include "../ProcessMonitor.h"
 #include "../Log/LogUtils.h"
@@ -292,6 +291,24 @@ grpc::Status GRPCClient::setIsBetaEnabled(bool enabled) {
 //****************************************************************************************************************************************************
 grpc::Status GRPCClient::isAllMailVisible(bool &outIsVisible) {
     return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::IsAllMailVisible, outIsVisible), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[out] outIsDisabled The value for the property
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::isTelemetryDisabled(bool &outIsDisabled) {
+    return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::IsTelemetryDisabled, outIsDisabled), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[out] isDisabled The new value for the property
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::setIsTelemetryDisabled(bool isDisabled) {
+    return this->logGRPCCallStatus(this->setBool(&Bridge::Stub::SetIsTelemetryDisabled, isDisabled), __FUNCTION__);
 }
 
 

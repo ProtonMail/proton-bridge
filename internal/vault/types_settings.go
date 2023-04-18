@@ -36,11 +36,12 @@ type Settings struct {
 	UpdateChannel updater.Channel
 	UpdateRollout float64
 
-	ColorScheme  string
-	ProxyAllowed bool
-	ShowAllMail  bool
-	Autostart    bool
-	AutoUpdate   bool
+	ColorScheme       string
+	ProxyAllowed      bool
+	ShowAllMail       bool
+	Autostart         bool
+	AutoUpdate        bool
+	TelemetryDisabled bool
 
 	LastVersion string
 	FirstStart  bool
@@ -85,11 +86,12 @@ func newDefaultSettings(gluonDir string) Settings {
 		UpdateChannel: updater.DefaultUpdateChannel,
 		UpdateRollout: rand.Float64(), //nolint:gosec
 
-		ColorScheme:  "",
-		ProxyAllowed: false,
-		ShowAllMail:  true,
-		Autostart:    true,
-		AutoUpdate:   true,
+		ColorScheme:       "",
+		ProxyAllowed:      false,
+		ShowAllMail:       true,
+		Autostart:         true,
+		AutoUpdate:        true,
+		TelemetryDisabled: false,
 
 		LastVersion: "0.0.0",
 		FirstStart:  true,
