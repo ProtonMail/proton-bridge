@@ -41,8 +41,10 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/focus"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/emersion/go-smtp"
 	"github.com/go-resty/resty/v2"
@@ -77,6 +79,9 @@ type Bridge struct {
 	// updater is the bridge's updater.
 	updater   Updater
 	installCh chan installJob
+
+	// heartbeat is the telemetry heartbeat for metrics.
+	heartbeat telemetry.Heartbeat
 
 	// curVersion is the current version of the bridge,
 	// newVersion is the version that was installed by the updater.
@@ -278,6 +283,8 @@ func newBridge(
 		updater:   updater,
 		installCh: make(chan installJob),
 
+		heartbeat: telemetry.NewHeartbeat(1143, 1025, gluonCacheDir, keychain.DefaultHelper),
+
 		curVersion:     curVersion,
 		newVersion:     curVersion,
 		newVersionLock: safe.NewRWMutex(),
@@ -423,6 +430,8 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 		})
 	})
 
+	// init telemetry
+	bridge.initHeartbeat()
 	return nil
 }
 
@@ -477,22 +486,6 @@ func (bridge *Bridge) Close(ctx context.Context) {
 	}
 
 	bridge.watchers = nil
-}
-
-func (bridge *Bridge) ComputeTelemetry() bool {
-	if bridge.GetTelemetryDisabled() {
-		return false
-	}
-
-	var telemetry = true
-
-	safe.RLock(func() {
-		for _, user := range bridge.users {
-			telemetry = telemetry && user.IsTelemetryEnabled(context.Background())
-		}
-	}, bridge.usersLock)
-
-	return telemetry
 }
 
 func (bridge *Bridge) publish(event events.Event) {

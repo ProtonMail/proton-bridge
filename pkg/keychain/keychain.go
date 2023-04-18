@@ -42,8 +42,8 @@ var (
 	// Helpers holds all discovered keychain helpers. It is populated in init().
 	Helpers map[string]helperConstructor //nolint:gochecknoglobals
 
-	// defaultHelper is the default helper to use if the user hasn't yet set a preference.
-	defaultHelper string //nolint:gochecknoglobals
+	// DefaultHelper is the default helper to use if the user hasn't yet set a preference.
+	DefaultHelper string //nolint:gochecknoglobals
 )
 
 // NewKeychain creates a new native keychain.
@@ -55,7 +55,7 @@ func NewKeychain(preferred, keychainName string) (*Keychain, error) {
 
 	// If the preferred keychain is unsupported, fallback to the default one.
 	if _, ok := Helpers[preferred]; !ok {
-		preferred = defaultHelper
+		preferred = DefaultHelper
 	}
 
 	// Load the user's preferred keychain helper.

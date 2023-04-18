@@ -295,6 +295,15 @@ func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode va
 			AddressMode: mode,
 		})
 
+		var splitMode = false
+		for _, user := range bridge.users {
+			if user.GetAddressMode() == vault.SplitMode {
+				splitMode = true
+				break
+			}
+		}
+		bridge.heartbeat.SetSplitMode(splitMode)
+
 		return nil
 	}, bridge.usersLock)
 }
@@ -559,6 +568,7 @@ func (bridge *Bridge) addUserWithVault(
 	// Finally, save the user in the bridge.
 	safe.Lock(func() {
 		bridge.users[apiUser.ID] = user
+		bridge.heartbeat.SetNbAccount(len(bridge.users))
 	}, bridge.usersLock)
 
 	return nil
@@ -613,6 +623,8 @@ func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, 
 	if err := user.Logout(ctx, withAPI); err != nil {
 		logrus.WithError(err).Error("Failed to logout user")
 	}
+
+	bridge.heartbeat.SetNbAccount(len(bridge.users))
 
 	user.Close()
 }

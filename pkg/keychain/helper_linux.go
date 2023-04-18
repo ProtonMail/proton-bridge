@@ -48,14 +48,14 @@ func init() { //nolint:gochecknoinits
 		Helpers[Pass] = newPassHelper
 	}
 
-	defaultHelper = SecretServiceDBus
+	DefaultHelper = SecretServiceDBus
 
 	// If Pass is available, use it by default.
 	// Otherwise, if SecretService is available, use it by default.
 	if _, ok := Helpers[Pass]; ok {
-		defaultHelper = Pass
+		DefaultHelper = Pass
 	} else if _, ok := Helpers[SecretService]; ok {
-		defaultHelper = SecretService
+		DefaultHelper = SecretService
 	}
 }
 
