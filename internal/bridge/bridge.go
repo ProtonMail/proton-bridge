@@ -480,13 +480,13 @@ func (bridge *Bridge) Close(ctx context.Context) {
 }
 
 func (bridge *Bridge) ComputeTelemetry() bool {
+	if bridge.GetTelemetryDisabled() {
+		return false
+	}
+
 	var telemetry = true
 
 	safe.RLock(func() {
-		if bridge.GetTelemetryDisabled() {
-			telemetry = false
-			return
-		}
 		for _, user := range bridge.users {
 			telemetry = telemetry && user.IsTelemetryEnabled(context.Background())
 		}
