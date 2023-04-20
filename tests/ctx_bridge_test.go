@@ -174,6 +174,8 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 	}
 
 	t.bridge = bridge
+	t.heartbeat.setBridge(bridge)
+	bridge.StartHeartbeat(t.heartbeat)
 
 	return t.events.collectFrom(eventCh), nil
 }

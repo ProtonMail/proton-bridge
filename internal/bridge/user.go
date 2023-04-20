@@ -571,6 +571,9 @@ func (bridge *Bridge) addUserWithVault(
 		bridge.heartbeat.SetNbAccount(len(bridge.users))
 	}, bridge.usersLock)
 
+	// As we need at least one user to send heartbeat, try to send it.
+	bridge.heartbeat.TrySending()
+
 	return nil
 }
 

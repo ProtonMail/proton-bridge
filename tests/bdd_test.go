@@ -231,6 +231,12 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^SMTP client "([^"]*)" sends RSET$`, s.smtpClientSendsReset)
 			ctx.Step(`^SMTP client "([^"]*)" sends the following message from "([^"]*)" to "([^"]*)":$`, s.smtpClientSendsTheFollowingMessageFromTo)
 			ctx.Step(`^SMTP client "([^"]*)" logs out$`, s.smtpClientLogsOut)
+
+			// ==== TELEMETRY ====
+			ctx.Step(`^bridge eventually sends the following heartbeat:$`, s.bridgeEventuallySendsTheFollowingHeartbeat)
+			ctx.Step(`^bridge needs to send heartbeat$`, s.bridgeNeedsToSendHeartbeat)
+			ctx.Step(`^bridge do not need to send heartbeat$`, s.bridgeDoNotNeedToSendHeartbeat)
+			ctx.Step(`^heartbeat is not whitelisted$`, s.heartbeatIsNotwhitelisted)
 		},
 		Options: &godog.Options{
 			Format:   "pretty",

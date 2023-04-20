@@ -26,6 +26,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/sirupsen/logrus"
 )
 
@@ -76,7 +77,9 @@ func (bridge *Bridge) SetLastHeartbeatSent(timestamp time.Time) error {
 	return bridge.vault.SetLastHeartbeatSent(timestamp)
 }
 
-func (bridge *Bridge) initHeartbeat() {
+func (bridge *Bridge) StartHeartbeat(manager telemetry.HeartbeatManager) {
+	bridge.heartbeat = telemetry.NewHeartbeat(manager, 1143, 1025, bridge.GetGluonCacheDir(), keychain.DefaultHelper)
+
 	safe.RLock(func() {
 		var splitMode = false
 		for _, user := range bridge.users {
@@ -102,8 +105,10 @@ func (bridge *Bridge) initHeartbeat() {
 	bridge.heartbeat.SetCacheLocation(bridge.GetGluonCacheDir())
 	if val, err := bridge.GetKeychainApp(); err != nil {
 		bridge.heartbeat.SetKeyChainPref(val)
+	} else {
+		bridge.heartbeat.SetKeyChainPref(keychain.DefaultHelper)
 	}
 	bridge.heartbeat.SetPrevVersion(bridge.GetLastVersion().String())
 
-	bridge.heartbeat.StartSending()
+	bridge.heartbeat.TrySending()
 }

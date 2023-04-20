@@ -44,7 +44,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
-	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/emersion/go-smtp"
 	"github.com/go-resty/resty/v2"
@@ -307,7 +306,6 @@ func newBridge(
 	}
 
 	bridge.smtpServer = newSMTPServer(bridge, tlsConfig, logSMTP)
-	bridge.heartbeat = telemetry.NewHeartbeat(bridge, 1143, 1025, gluonCacheDir, keychain.DefaultHelper)
 
 	return bridge, nil
 }
@@ -429,8 +427,6 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 		})
 	})
 
-	// init telemetry
-	bridge.initHeartbeat()
 	return nil
 }
 

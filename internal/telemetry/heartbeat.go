@@ -148,7 +148,7 @@ func (heartbeat *Heartbeat) SetPrevVersion(val string) {
 	heartbeat.metrics.Dimensions.PrevVersion = val
 }
 
-func (heartbeat *Heartbeat) StartSending() {
+func (heartbeat *Heartbeat) TrySending() {
 	if heartbeat.manager.IsTelemetryAvailable() {
 		lastSent := heartbeat.manager.GetLastHeartbeatSent()
 		now := time.Now()

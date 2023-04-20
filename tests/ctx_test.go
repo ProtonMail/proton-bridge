@@ -122,15 +122,16 @@ func newTestAddr(addrID, email string) *testAddr {
 
 type testCtx struct {
 	// These are the objects supporting the test.
-	dir      string
-	api      API
-	netCtl   *proton.NetCtl
-	locator  *locations.Locations
-	storeKey []byte
-	version  *semver.Version
-	mocks    *bridge.Mocks
-	events   *eventCollector
-	reporter *reportRecorder
+	dir       string
+	api       API
+	netCtl    *proton.NetCtl
+	locator   *locations.Locations
+	storeKey  []byte
+	version   *semver.Version
+	mocks     *bridge.Mocks
+	events    *eventCollector
+	reporter  *reportRecorder
+	heartbeat *heartbeatRecorder
 
 	// bridge holds the bridge app under test.
 	bridge *bridge.Bridge
@@ -180,15 +181,16 @@ func newTestCtx(tb testing.TB) *testCtx {
 	dir := tb.TempDir()
 
 	t := &testCtx{
-		dir:      dir,
-		api:      newTestAPI(),
-		netCtl:   proton.NewNetCtl(),
-		locator:  locations.New(bridge.NewTestLocationsProvider(dir), "config-name"),
-		storeKey: []byte("super-secret-store-key"),
-		version:  defaultVersion,
-		mocks:    bridge.NewMocks(tb, defaultVersion, defaultVersion),
-		events:   newEventCollector(),
-		reporter: newReportRecorder(tb),
+		dir:       dir,
+		api:       newTestAPI(),
+		netCtl:    proton.NewNetCtl(),
+		locator:   locations.New(bridge.NewTestLocationsProvider(dir), "config-name"),
+		storeKey:  []byte("super-secret-store-key"),
+		version:   defaultVersion,
+		mocks:     bridge.NewMocks(tb, defaultVersion, defaultVersion),
+		events:    newEventCollector(),
+		reporter:  newReportRecorder(tb),
+		heartbeat: newHeartbeatRecorder(tb),
 
 		userByID:       make(map[string]*testUser),
 		userUUIDByName: make(map[string]string),

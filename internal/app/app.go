@@ -268,6 +268,8 @@ func run(c *cli.Context) error {
 											logrus.Warn("The vault is corrupt and has been wiped")
 											b.PushError(bridge.ErrVaultCorrupt)
 										}
+										// Start telemetry heartbeat process
+										b.StartHeartbeat(b)
 
 										// Run the frontend.
 										return runFrontend(c, crashHandler, restarter, locations, b, eventCh, quitCh, c.Int(flagParentPID))

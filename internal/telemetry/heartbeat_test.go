@@ -57,7 +57,7 @@ func TestHeartbeat_default_heartbeat(t *testing.T) {
 		mock.EXPECT().SendHeartbeat(&data).Return(true)
 		mock.EXPECT().SetLastHeartbeatSent(gomock.Any()).Return(nil)
 
-		hb.StartSending()
+		hb.TrySending()
 	})
 }
 
@@ -66,7 +66,7 @@ func TestHeartbeat_already_sent_heartbeat(t *testing.T) {
 		mock.EXPECT().IsTelemetryAvailable().Return(true)
 		mock.EXPECT().GetLastHeartbeatSent().Return(time.Now().Truncate(24 * time.Hour))
 
-		hb.StartSending()
+		hb.TrySending()
 	})
 }
 
