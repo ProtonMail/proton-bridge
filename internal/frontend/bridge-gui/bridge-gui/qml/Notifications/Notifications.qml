@@ -988,7 +988,7 @@ QtObject {
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Dialogs | Notifications.Group.Configuration
 
-        property var supportLink: "https://proton.me/support/mail"
+        property var supportLink: "https://proton.me/support/bridge"
 
 
         Connections {
