@@ -13,7 +13,6 @@ Feature: Bridge send usage metrics
     Then bridge telemetry feature is enabled
 
 
-
   Scenario: Telemetry availability - Multi user
     When the user logs in with username "[user:user1]" and password "password"
     And user "[user:user1]" finishes syncing

@@ -823,6 +823,9 @@ func withBridgeNoMocks(
 	require.NoError(t, err)
 	require.Empty(t, bridge.GetErrors())
 
+	// Start the Heartbeat process.
+	bridge.StartHeartbeat(mocks.Heartbeat)
+
 	// Wait for bridge to finish loading users.
 	waitForEvent(t, eventCh, events.AllUsersLoaded{})
 	// Wait for bridge to start the IMAP server.

@@ -32,6 +32,9 @@ import (
 
 func (bridge *Bridge) IsTelemetryAvailable() bool {
 	var flag = true
+	if bridge.GetTelemetryDisabled() {
+		return false
+	}
 
 	safe.RLock(func() {
 		for _, user := range bridge.users {
