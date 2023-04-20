@@ -40,7 +40,7 @@ func (f *frontendCLI) printLogDir(c *ishell.Context) {
 }
 
 func (f *frontendCLI) printManual(c *ishell.Context) {
-	f.Println("More instructions about the Bridge can be found at\n\n  https://protonmail.com/bridge")
+	f.Println("More instructions about the Bridge can be found at\n\n  https://proton.me/mail/bridge")
 }
 
 func (f *frontendCLI) printCredits(c *ishell.Context) {
