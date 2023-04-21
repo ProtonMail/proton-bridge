@@ -57,7 +57,7 @@ type HeartbeatDimensions struct {
 	CacheLocation      string `json:"cache_location"`
 	KeychainPref       string `json:"keychain_pref"`
 	PrevVersion        string `json:"prev_version"`
-	Rollout            int    `json:"rollout"`
+	Rollout            string `json:"rollout"`
 }
 
 type HeartbeatData struct {

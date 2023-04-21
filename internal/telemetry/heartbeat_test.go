@@ -48,7 +48,7 @@ func TestHeartbeat_default_heartbeat(t *testing.T) {
 				CacheLocation:      "default",
 				KeychainPref:       "default",
 				PrevVersion:        "1.2.3",
-				Rollout:            10,
+				Rollout:            "10",
 			},
 		}
 

@@ -31,7 +31,7 @@ Feature: Send Telemetry Heartbeat
           "cache_location": "default",
           "keychain_pref": "default",
           "prev_version": "0.0.0",
-          "rollout": 42
+          "rollout": "42"
         }
       }
       """
@@ -75,7 +75,7 @@ Feature: Send Telemetry Heartbeat
           "cache_location": "custom",
           "keychain_pref": "custom",
           "prev_version": "0.0.0",
-          "rollout": 42
+          "rollout": "42"
         }
       }
       """
@@ -113,7 +113,7 @@ Feature: Send Telemetry Heartbeat
           "cache_location": "default",
           "keychain_pref": "default",
           "prev_version": "0.0.0",
-          "rollout": 42
+          "rollout": "42"
         }
       }
       """
@@ -127,4 +127,3 @@ Feature: Send Telemetry Heartbeat
     When the user logs in with username "[user:user1]" and password "password"
     And user "[user:user1]" finishes syncing
     Then bridge needs to send heartbeat
-

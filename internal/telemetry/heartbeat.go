@@ -18,6 +18,7 @@
 package telemetry
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
@@ -41,7 +42,7 @@ func NewHeartbeat(manager HeartbeatManager, imapPort, smtpPort int, cacheDir, ke
 }
 
 func (heartbeat *Heartbeat) SetRollout(val float64) {
-	heartbeat.metrics.Dimensions.Rollout = int(val * 100)
+	heartbeat.metrics.Dimensions.Rollout = strconv.Itoa(int(val * 100))
 }
 
 func (heartbeat *Heartbeat) SetNbAccount(val int) {

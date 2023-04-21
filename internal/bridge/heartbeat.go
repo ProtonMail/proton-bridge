@@ -59,12 +59,10 @@ func (bridge *Bridge) SendHeartbeat(heartbeat *telemetry.HeartbeatData) bool {
 	var sent = false
 
 	safe.RLock(func() {
-		if len(bridge.users) > 0 {
-			for _, user := range bridge.users {
-				if err := user.SendTelemetry(context.Background(), data); err == nil {
-					sent = true
-					break
-				}
+		for _, user := range bridge.users {
+			if err := user.SendTelemetry(context.Background(), data); err == nil {
+				sent = true
+				break
 			}
 		}
 	}, bridge.usersLock)
