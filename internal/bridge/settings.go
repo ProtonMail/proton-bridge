@@ -300,7 +300,14 @@ func (bridge *Bridge) GetTelemetryDisabled() bool {
 }
 
 func (bridge *Bridge) SetTelemetryDisabled(isDisabled bool) error {
-	return bridge.vault.SetTelemetryDisabled(isDisabled)
+	if err := bridge.vault.SetTelemetryDisabled(isDisabled); err != nil {
+		return err
+	}
+	// If telemetry is re-enabled locally, try to send the heartbeat.
+	if !isDisabled {
+		bridge.heartbeat.TrySending()
+	}
+	return nil
 }
 
 func (bridge *Bridge) GetUpdateChannel() updater.Channel {

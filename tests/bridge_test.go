@@ -80,6 +80,10 @@ func (s *scenario) theUserSetsTheAddressModeOfUserTo(user, mode string) error {
 	}
 }
 
+func (s *scenario) theUserChangesTheDefaultKeychainApplication() error {
+	return s.t.bridge.SetKeychainApp("CustomKeychainApp")
+}
+
 func (s *scenario) theUserChangesTheGluonPath() error {
 	gluonDir, err := os.MkdirTemp(s.t.dir, "gluon")
 	if err != nil {
@@ -118,7 +122,6 @@ func (s *scenario) theUserHasDisabledAutomaticUpdates() error {
 
 		started = true
 	}
-
 	if err := s.t.bridge.SetAutoUpdate(false); err != nil {
 		return err
 	}
@@ -128,8 +131,24 @@ func (s *scenario) theUserHasDisabledAutomaticUpdates() error {
 			return err
 		}
 	}
-
 	return nil
+}
+
+func (s *scenario) theUserHasDisabledAutomaticStart() error {
+	return s.t.bridge.SetAutostart(false)
+}
+
+func (s *scenario) theUserHasEnabledAlternativeRouting() error {
+	s.t.expectProxyCtlAllowProxy()
+	return s.t.bridge.SetProxyAllowed(true)
+}
+
+func (s *scenario) theUserSetIMAPModeToSSL() error {
+	return s.t.bridge.SetIMAPSSL(true)
+}
+
+func (s *scenario) theUserSetSMTPModeToSSL() error {
+	return s.t.bridge.SetSMTPSSL(true)
 }
 
 func (s *scenario) theUserReportsABug() error {

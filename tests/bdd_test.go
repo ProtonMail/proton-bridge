@@ -135,9 +135,14 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^bridge stops$`, s.bridgeStops)
 			ctx.Step(`^bridge is version "([^"]*)" and the latest available version is "([^"]*)" reachable from "([^"]*)"$`, s.bridgeVersionIsAndTheLatestAvailableVersionIsReachableFrom)
 			ctx.Step(`^the user has disabled automatic updates$`, s.theUserHasDisabledAutomaticUpdates)
+			ctx.Step(`^the user has disabled automatic start`, s.theUserHasDisabledAutomaticStart)
+			ctx.Step(`^the user has enabled alternative routing`, s.theUserHasEnabledAlternativeRouting)
+			ctx.Step(`^the user set IMAP mode to SSL`, s.theUserSetIMAPModeToSSL)
+			ctx.Step(`^the user set SMTP mode to SSL`, s.theUserSetSMTPModeToSSL)
 			ctx.Step(`^the user changes the IMAP port to (\d+)$`, s.theUserChangesTheIMAPPortTo)
 			ctx.Step(`^the user changes the SMTP port to (\d+)$`, s.theUserChangesTheSMTPPortTo)
 			ctx.Step(`^the user sets the address mode of user "([^"]*)" to "([^"]*)"$`, s.theUserSetsTheAddressModeOfUserTo)
+			ctx.Step(`^the user changes the default keychain application`, s.theUserChangesTheDefaultKeychainApplication)
 			ctx.Step(`^the user changes the gluon path$`, s.theUserChangesTheGluonPath)
 			ctx.Step(`^the user deletes the gluon files$`, s.theUserDeletesTheGluonFiles)
 			ctx.Step(`^the user deletes the gluon cache$`, s.theUserDeletesTheGluonCache)
@@ -234,9 +239,9 @@ func TestFeatures(testingT *testing.T) {
 
 			// ==== TELEMETRY ====
 			ctx.Step(`^bridge eventually sends the following heartbeat:$`, s.bridgeEventuallySendsTheFollowingHeartbeat)
-			ctx.Step(`^bridge needs to send heartbeat$`, s.bridgeNeedsToSendHeartbeat)
-			ctx.Step(`^bridge do not need to send heartbeat$`, s.bridgeDoNotNeedToSendHeartbeat)
-			ctx.Step(`^heartbeat is not whitelisted$`, s.heartbeatIsNotwhitelisted)
+			ctx.Step(`^bridge needs to send heartbeat`, s.bridgeNeedsToSendHeartbeat)
+			ctx.Step(`^bridge do not need to send heartbeat`, s.bridgeDoNotNeedToSendHeartbeat)
+			ctx.Step(`^heartbeat is not whitelisted`, s.heartbeatIsNotwhitelisted)
 		},
 		Options: &godog.Options{
 			Format:   "pretty",

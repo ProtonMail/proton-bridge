@@ -83,18 +83,6 @@ func (bridge *Bridge) SetLastHeartbeatSent(timestamp time.Time) error {
 func (bridge *Bridge) StartHeartbeat(manager telemetry.HeartbeatManager) {
 	bridge.heartbeat = telemetry.NewHeartbeat(manager, 1143, 1025, bridge.GetGluonCacheDir(), keychain.DefaultHelper)
 
-	safe.RLock(func() {
-		var splitMode = false
-		for _, user := range bridge.users {
-			if user.GetAddressMode() == vault.SplitMode {
-				splitMode = true
-				break
-			}
-		}
-		bridge.heartbeat.SetNbAccount(len(bridge.users))
-		bridge.heartbeat.SetSplitMode(splitMode)
-	}, bridge.usersLock)
-
 	bridge.heartbeat.SetRollout(bridge.GetUpdateRollout())
 	bridge.heartbeat.SetAutoStart(bridge.GetAutostart())
 	bridge.heartbeat.SetAutoUpdate(bridge.GetAutoUpdate())
@@ -113,5 +101,21 @@ func (bridge *Bridge) StartHeartbeat(manager telemetry.HeartbeatManager) {
 	}
 	bridge.heartbeat.SetPrevVersion(bridge.GetLastVersion().String())
 
-	bridge.heartbeat.TrySending()
+	safe.RLock(func() {
+		var splitMode = false
+		for _, user := range bridge.users {
+			if user.GetAddressMode() == vault.SplitMode {
+				splitMode = true
+				break
+			}
+		}
+		var nbAccount = len(bridge.users)
+		bridge.heartbeat.SetNbAccount(nbAccount)
+		bridge.heartbeat.SetSplitMode(splitMode)
+
+		// Do not try to send if there is no user yet.
+		if nbAccount > 0 {
+			bridge.heartbeat.TrySending()
+		}
+	}, bridge.usersLock)
 }
