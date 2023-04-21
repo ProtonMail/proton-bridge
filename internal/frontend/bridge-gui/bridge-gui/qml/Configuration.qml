@@ -61,8 +61,6 @@ Rectangle {
             type: Label.Body_semibold
         }
 
-        Item{}
-
         ConfigurationItem{ colorScheme: root.colorScheme; label: qsTr("Hostname") ; value: root.hostname }
         ConfigurationItem{ colorScheme: root.colorScheme; label: qsTr("Port")     ; value: root.port     }
         ConfigurationItem{ colorScheme: root.colorScheme; label: qsTr("Username") ; value: root.username }
