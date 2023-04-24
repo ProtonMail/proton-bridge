@@ -130,6 +130,9 @@ type Bridge struct {
 	// goUpdate triggers a check/install of updates.
 	goUpdate func()
 
+	// goHeartbeat triggers a check/sending if heartbeat is needed.
+	goHeartbeat func()
+
 	uidValidityGenerator imap.UIDValidityGenerator
 }
 

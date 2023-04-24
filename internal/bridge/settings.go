@@ -305,7 +305,7 @@ func (bridge *Bridge) SetTelemetryDisabled(isDisabled bool) error {
 	}
 	// If telemetry is re-enabled locally, try to send the heartbeat.
 	if !isDisabled {
-		bridge.heartbeat.TrySending()
+		defer bridge.goHeartbeat()
 	}
 	return nil
 }

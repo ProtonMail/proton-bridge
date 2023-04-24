@@ -30,6 +30,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const HeartbeatCheckInterval = time.Hour
+
 func (bridge *Bridge) IsTelemetryAvailable() bool {
 	var flag = true
 	if bridge.GetTelemetryDisabled() {
@@ -81,6 +83,13 @@ func (bridge *Bridge) SetLastHeartbeatSent(timestamp time.Time) error {
 func (bridge *Bridge) StartHeartbeat(manager telemetry.HeartbeatManager) {
 	bridge.heartbeat = telemetry.NewHeartbeat(manager, 1143, 1025, bridge.GetGluonCacheDir(), keychain.DefaultHelper)
 
+	// Check for heartbeat when triggered.
+	bridge.goHeartbeat = bridge.tasks.PeriodicOrTrigger(HeartbeatCheckInterval, 0, func(ctx context.Context) {
+		logrus.Debug("Checking for heartbeat")
+
+		bridge.heartbeat.TrySending()
+	})
+
 	bridge.heartbeat.SetRollout(bridge.GetUpdateRollout())
 	bridge.heartbeat.SetAutoStart(bridge.GetAutostart())
 	bridge.heartbeat.SetAutoUpdate(bridge.GetAutoUpdate())
@@ -113,7 +122,7 @@ func (bridge *Bridge) StartHeartbeat(manager telemetry.HeartbeatManager) {
 
 		// Do not try to send if there is no user yet.
 		if nbAccount > 0 {
-			bridge.heartbeat.TrySending()
+			defer bridge.goHeartbeat()
 		}
 	}, bridge.usersLock)
 }

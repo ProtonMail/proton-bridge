@@ -601,7 +601,7 @@ func (user *User) Close() {
 func (user *User) IsTelemetryEnabled(ctx context.Context) bool {
 	settings, err := user.client.GetUserSettings(ctx)
 	if err != nil {
-		user.log.WithError(err).Warn("Failed to retrieve API user Settings")
+		user.log.WithError(err).Error("Failed to retrieve API user Settings")
 		return false
 	}
 	return settings.Telemetry == proton.SettingEnabled
@@ -611,22 +611,17 @@ func (user *User) IsTelemetryEnabled(ctx context.Context) bool {
 func (user *User) SendTelemetry(ctx context.Context, data []byte) error {
 	var req proton.SendStatsReq
 	if err := json.Unmarshal(data, &req); err != nil {
-		user.log.WithError(err).Warn("Failed to send telemetry.")
-		if err := user.reporter.ReportMessageWithContext("Failed to send telemetry.", reporter.Context{
+		user.log.WithError(err).Error("Failed to build telemetry request.")
+		if err := user.reporter.ReportMessageWithContext("Failed to build telemetry request.", reporter.Context{
 			"error": err,
 		}); err != nil {
-			logrus.WithError(err).Error("Failed to report telemetry sending error")
+			logrus.WithError(err).Error("Failed to report telemetry request build error")
 		}
 		return err
 	}
 	err := user.client.SendDataEvent(ctx, req)
 	if err != nil {
-		user.log.WithError(err).Warn("Failed to send telemetry.")
-		if err := user.reporter.ReportMessageWithContext("Failed to send telemetry.", reporter.Context{
-			"error": err,
-		}); err != nil {
-			logrus.WithError(err).Error("Failed to report telemetry sending error")
-		}
+		user.log.WithError(err).Error("Failed to send telemetry.")
 		return err
 	}
 	return nil

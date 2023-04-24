@@ -162,7 +162,7 @@ func (heartbeat *Heartbeat) TrySending() {
 			}
 			heartbeat.log.WithFields(logrus.Fields{
 				"metrics": heartbeat.metrics,
-			}).Debug("Heartbeat sent")
+			}).Info("Heartbeat sent")
 
 			if err := heartbeat.manager.SetLastHeartbeatSent(now); err != nil {
 				heartbeat.log.WithError(err).Warn("Cannot save last heartbeat sent to the vault.")
