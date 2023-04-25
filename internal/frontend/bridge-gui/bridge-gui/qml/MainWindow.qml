@@ -95,9 +95,11 @@ ApplicationWindow {
             root.showAndRise()
         }
 
-        function onSelectUser(userID) {
+        function onSelectUser(userID, forceShowWindow) {
             contentWrapper.selectUser(userID)
-            root.showAndRise()
+            if (forceShowWindow) {
+                root.showAndRise()
+            }
         }
     }
 

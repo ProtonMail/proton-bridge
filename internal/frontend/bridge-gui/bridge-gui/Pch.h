@@ -25,6 +25,7 @@
 #include <QtQml>
 #include <QtWidgets>
 #include <QtQuickControls2>
+#include <QtSvg>
 #include <AppController.h>
 
 

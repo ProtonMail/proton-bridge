@@ -34,9 +34,7 @@ SPUser User::newUser(QObject *parent) {
 /// \param[in] parent The parent object.
 //****************************************************************************************************************************************************
 User::User(QObject *parent)
-    : QObject(parent)
-    , imapFailureCooldownEndTime_(QDateTime::currentDateTime()) {
-
+    : QObject(parent) {
 }
 
 
@@ -355,22 +353,18 @@ QString User::stateToString(UserState state) {
 
 
 //****************************************************************************************************************************************************
-/// We display a notification and pop the application window if an IMAP client tries to connect to a signed out account, but we do not want to
-/// do it repeatedly, as it's an intrusive action. This function let's you define a period of time during which the notification should not be
-/// displayed.
-///
-/// \param durationMSecs The duration of the period in milliseconds.
+/// \param[in] durationMSecs The duration of the period in milliseconds.
 //****************************************************************************************************************************************************
-void User::startImapLoginFailureCooldown(qint64 durationMSecs) {
-    imapFailureCooldownEndTime_ = QDateTime::currentDateTime().addMSecs(durationMSecs);
+void User::startNotificationCooldownPeriod(User::ENotification notification, qint64 durationMSecs) {
+    notificationCooldownList_[notification] = QDateTime::currentDateTime().addMSecs(durationMSecs);
 }
 
 
 //****************************************************************************************************************************************************
-/// \return true if we currently are in a cooldown period for the notification
+/// \return true iff the notification is currently in a cooldown period.
 //****************************************************************************************************************************************************
-bool User::isInIMAPLoginFailureCooldown() const {
-    return QDateTime::currentDateTime() < imapFailureCooldownEndTime_;
+bool User::isNotificationInCooldown(User::ENotification notification) const {
+    return notificationCooldownList_.contains(notification) && (QDateTime::currentDateTime() < notificationCooldownList_[notification]);
 }
 
 
