@@ -2,6 +2,13 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+
+## [Bridge 3.1.2] Quebec
+
+### Changed
+* GODT-2582 Dedup recovered messages folder.
+
+
 ## [Bridge 3.1.1] Quebec
 
 ### Fixed
