@@ -400,32 +400,8 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 	}
 
 	if mailboxID == proton.TrashLabel || mailboxID == proton.DraftsLabel {
-		var metadata []proton.MessageMetadata
-
-		// There's currently no limit on how many IDs we can filter on,
-		// but to be nice to API, let's chunk it by 150.
-		for _, messageIDs := range xslices.Chunk(messageIDs, 150) {
-			m, err := conn.client.GetMessageMetadata(ctx, proton.MessageFilter{
-				ID: mapTo[imap.MessageID, string](messageIDs),
-			})
-			if err != nil {
-				return err
-			}
-
-			// If a message is not preset in any other label other than AllMail, AllDrafts and AllSent, it can be
-			// permanently deleted.
-			m = xslices.Filter(m, func(m proton.MessageMetadata) bool {
-				labelsThatMatter := xslices.Filter(m.LabelIDs, func(id string) bool {
-					return id != proton.AllDraftsLabel && id != proton.AllMailLabel && id != proton.AllSentLabel
-				})
-				return len(labelsThatMatter) == 0
-			})
-
-			metadata = append(metadata, m...)
-		}
-
-		if err := conn.client.DeleteMessage(ctx, xslices.Map(metadata, func(m proton.MessageMetadata) string {
-			return m.ID
+		if err := conn.client.DeleteMessage(ctx, xslices.Map(messageIDs, func(m imap.MessageID) string {
+			return string(m)
 		})...); err != nil {
 			return err
 		}
