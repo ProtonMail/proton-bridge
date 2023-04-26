@@ -153,6 +153,20 @@ func TestVault_Settings_ShowAllMail(t *testing.T) {
 	require.Equal(t, false, s.GetShowAllMail())
 }
 
+func TestVault_Settings_TelemetryDisabled(t *testing.T) {
+	// create a new test vault.
+	s := newVault(t)
+
+	// Check the default show all mail setting.
+	require.Equal(t, false, s.GetTelemetryDisabled())
+
+	// Modify the show all mail setting.
+	require.NoError(t, s.SetTelemetryDisabled(true))
+
+	// Check the new show all mail setting.
+	require.Equal(t, true, s.GetTelemetryDisabled())
+}
+
 func TestVault_Settings_Autostart(t *testing.T) {
 	// create a new test vault.
 	s := newVault(t)
@@ -215,4 +229,12 @@ func TestVault_Settings_MaxSyncMemory(t *testing.T) {
 
 	// Check the default first start value.
 	require.Equal(t, vault.DefaultMaxSyncMemory, s.GetMaxSyncMemory())
+}
+
+func TestVault_Settings_LastUserAgent(t *testing.T) {
+	// create a new test vault.
+	s := newVault(t)
+
+	// Check the default first start value.
+	require.Equal(t, vault.DefaultUserAgent, s.GetLastUserAgent())
 }

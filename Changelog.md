@@ -2,12 +2,30 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.2.0] Rialto
+
+### Changed
+* GODT-2502: Improve logs.
+* GODT-2551: Store and Recover Last User Agent from Vault.
+* GODT-2550: Verify IMAP ID is set properly.
+* GODT-2554: Compute telemetry availability from API UserSettings.
+* Add missing double quotes in test.
+* GODT-2239: Unit tests for BridgeUtils.cpp in bridgepp.
+* Replace go-rfc5322 with gluon's rfc5322 parser.
+* GODT-2483: Install cert without external tool on macOS.
+
+### Fixed
+* GODT-2550: Announce IMAP ID Capability.
+* GODT-2574: Fix label/unlabel of large amounts of messages.
+* GODT-2573: Handle invalid header fields in message.
+* GODT-2573: Crash on null update.
+* GODT-2407: Replace invalid email addresses with emtpy for new Drafts.
+
 
 ## [Bridge 3.1.2] Quebec
 
 ### Changed
 * GODT-2582 Dedup recovered messages folder.
-
 
 ## [Bridge 3.1.1] Quebec
 

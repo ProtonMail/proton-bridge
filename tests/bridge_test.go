@@ -21,7 +21,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
@@ -78,6 +80,10 @@ func (s *scenario) theUserSetsTheAddressModeOfUserTo(user, mode string) error {
 	}
 }
 
+func (s *scenario) theUserChangesTheDefaultKeychainApplication() error {
+	return s.t.bridge.SetKeychainApp("CustomKeychainApp")
+}
+
 func (s *scenario) theUserChangesTheGluonPath() error {
 	gluonDir, err := os.MkdirTemp(s.t.dir, "gluon")
 	if err != nil {
@@ -116,7 +122,6 @@ func (s *scenario) theUserHasDisabledAutomaticUpdates() error {
 
 		started = true
 	}
-
 	if err := s.t.bridge.SetAutoUpdate(false); err != nil {
 		return err
 	}
@@ -126,8 +131,24 @@ func (s *scenario) theUserHasDisabledAutomaticUpdates() error {
 			return err
 		}
 	}
-
 	return nil
+}
+
+func (s *scenario) theUserHasDisabledAutomaticStart() error {
+	return s.t.bridge.SetAutostart(false)
+}
+
+func (s *scenario) theUserHasEnabledAlternativeRouting() error {
+	s.t.expectProxyCtlAllowProxy()
+	return s.t.bridge.SetProxyAllowed(true)
+}
+
+func (s *scenario) theUserSetIMAPModeToSSL() error {
+	return s.t.bridge.SetIMAPSSL(true)
+}
+
+func (s *scenario) theUserSetSMTPModeToSSL() error {
+	return s.t.bridge.SetSMTPSSL(true)
 }
 
 func (s *scenario) theUserReportsABug() error {
@@ -284,10 +305,68 @@ func (s *scenario) bridgeReportsMessage(message string) error {
 	return nil
 }
 
+func (s *scenario) bridgeTelemetryFeatureEnabled() error {
+	return s.checkTelemetry(true)
+}
+
+func (s *scenario) bridgeTelemetryFeatureDisabled() error {
+	return s.checkTelemetry(false)
+}
+
+func (s *scenario) checkTelemetry(expect bool) error {
+	res := s.t.bridge.IsTelemetryAvailable()
+	if res != expect {
+		return fmt.Errorf("expected telemetry feature %v but got %v ", expect, res)
+	}
+	return nil
+}
+
 func (s *scenario) theUserHidesAllMail() error {
 	return s.t.bridge.SetShowAllMail(false)
 }
 
 func (s *scenario) theUserShowsAllMail() error {
 	return s.t.bridge.SetShowAllMail(true)
+}
+
+func (s *scenario) theUserDisablesTelemetryInBridgeSettings() error {
+	return s.t.bridge.SetTelemetryDisabled(true)
+}
+
+func (s *scenario) theUserEnablesTelemetryInBridgeSettings() error {
+	return s.t.bridge.SetTelemetryDisabled(false)
+}
+
+func (s *scenario) networkPortIsBusy(port int) {
+	if listener, err := net.Listen("tcp", "127.0.0.1:"+strconv.Itoa(port)); err == nil { // we ignore errors. Most likely port is already busy.
+		s.t.dummyListeners = append(s.t.dummyListeners, listener)
+	}
+}
+
+func (s *scenario) networkPortRangeIsBusy(startPort, endPort int) {
+	if startPort > endPort {
+		startPort, endPort = endPort, startPort
+	}
+
+	for port := startPort; port <= endPort; port++ {
+		s.networkPortIsBusy(port)
+	}
+}
+
+func (s *scenario) bridgeIMAPPortIs(expectedPort int) error {
+	actualPort := s.t.bridge.GetIMAPPort()
+	if actualPort != expectedPort {
+		return fmt.Errorf("expected IMAP port to be %v but got %v", expectedPort, actualPort)
+	}
+
+	return nil
+}
+
+func (s *scenario) bridgeSMTPPortIs(expectedPort int) error {
+	actualPort := s.t.bridge.GetSMTPPort()
+	if actualPort != expectedPort {
+		return fmt.Errorf("expected SMTP port to be %v but got %v", expectedPort, actualPort)
+	}
+
+	return nil
 }

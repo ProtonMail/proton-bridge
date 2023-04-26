@@ -51,6 +51,8 @@ public: // member functions.
     grpc::Status IsBetaEnabled(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::BoolValue *response) override;
     grpc::Status SetIsAllMailVisible(::grpc::ServerContext *context, ::google::protobuf::BoolValue const *request, ::google::protobuf::Empty *response) override;
     grpc::Status IsAllMailVisible(::grpc::ServerContext *context, ::google::protobuf::Empty const *request, ::google::protobuf::BoolValue *response) override;
+    grpc::Status SetIsTelemetryDisabled(::grpc::ServerContext *, ::google::protobuf::BoolValue const *request, ::google::protobuf::Empty *response) override;
+    grpc::Status IsTelemetryDisabled(::grpc::ServerContext *, ::google::protobuf::Empty const *request, ::google::protobuf::BoolValue *response) override;
     grpc::Status TriggerReset(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::Empty *) override;
     grpc::Status Version(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::StringValue *response) override;
     grpc::Status LogsPath(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::StringValue *response) override;

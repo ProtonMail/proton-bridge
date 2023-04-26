@@ -114,6 +114,7 @@ add_executable(bridge-gui
     EventStreamWorker.cpp EventStreamWorker.h
     LogUtils.cpp LogUtils.h
     main.cpp
+    TrayIcon.cpp TrayIcon.h
     Pch.h
     QMLBackend.cpp QMLBackend.h
     UserList.cpp UserList.h

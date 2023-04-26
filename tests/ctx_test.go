@@ -20,6 +20,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/smtp"
 	"net/url"
 	"regexp"
@@ -121,15 +122,16 @@ func newTestAddr(addrID, email string) *testAddr {
 
 type testCtx struct {
 	// These are the objects supporting the test.
-	dir      string
-	api      API
-	netCtl   *proton.NetCtl
-	locator  *locations.Locations
-	storeKey []byte
-	version  *semver.Version
-	mocks    *bridge.Mocks
-	events   *eventCollector
-	reporter *reportRecorder
+	dir       string
+	api       API
+	netCtl    *proton.NetCtl
+	locator   *locations.Locations
+	storeKey  []byte
+	version   *semver.Version
+	mocks     *bridge.Mocks
+	events    *eventCollector
+	reporter  *reportRecorder
+	heartbeat *heartbeatRecorder
 
 	// bridge holds the bridge app under test.
 	bridge *bridge.Bridge
@@ -160,6 +162,9 @@ type testCtx struct {
 	// errors holds test-related errors encountered while running test steps.
 	errors     [][]error
 	errorsLock sync.RWMutex
+
+	// This slice contains the dummy listeners that are intended to block network ports.
+	dummyListeners []net.Listener
 }
 
 type imapClient struct {
@@ -176,15 +181,16 @@ func newTestCtx(tb testing.TB) *testCtx {
 	dir := tb.TempDir()
 
 	t := &testCtx{
-		dir:      dir,
-		api:      newTestAPI(),
-		netCtl:   proton.NewNetCtl(),
-		locator:  locations.New(bridge.NewTestLocationsProvider(dir), "config-name"),
-		storeKey: []byte("super-secret-store-key"),
-		version:  defaultVersion,
-		mocks:    bridge.NewMocks(tb, defaultVersion, defaultVersion),
-		events:   newEventCollector(),
-		reporter: newReportRecorder(tb),
+		dir:       dir,
+		api:       newTestAPI(),
+		netCtl:    proton.NewNetCtl(),
+		locator:   locations.New(bridge.NewTestLocationsProvider(dir), "config-name"),
+		storeKey:  []byte("super-secret-store-key"),
+		version:   defaultVersion,
+		mocks:     bridge.NewMocks(tb, defaultVersion, defaultVersion),
+		events:    newEventCollector(),
+		reporter:  newReportRecorder(tb),
+		heartbeat: newHeartbeatRecorder(tb),
 
 		userByID:       make(map[string]*testUser),
 		userUUIDByName: make(map[string]string),
@@ -434,6 +440,12 @@ func (t *testCtx) close(ctx context.Context) {
 	if t.bridge != nil {
 		if err := t.closeBridge(ctx); err != nil {
 			logrus.WithError(err).Error("Failed to close bridge")
+		}
+	}
+
+	for _, listener := range t.dummyListeners {
+		if err := listener.Close(); err != nil {
+			logrus.WithError(err).Errorf("Failed to close dummy listener %v", listener.Addr())
 		}
 	}
 

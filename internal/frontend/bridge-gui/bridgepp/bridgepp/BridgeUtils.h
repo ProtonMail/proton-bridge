@@ -20,7 +20,7 @@
 #define BRIDGE_PP_TESTER_BRIDGE_UTILS_H
 
 
-#include <bridgepp/User/User.h>
+#include "User/User.h"
 
 
 namespace bridgepp {

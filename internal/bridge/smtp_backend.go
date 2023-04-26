@@ -23,6 +23,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/emersion/go-smtp"
+	"github.com/sirupsen/logrus"
 )
 
 type smtpBackend struct {
@@ -85,7 +86,7 @@ func (s *smtpSession) Rcpt(to string) error {
 }
 
 func (s *smtpSession) Data(r io.Reader) error {
-	return safe.RLockRet(func() error {
+	err := safe.RLockRet(func() error {
 		user, ok := s.users[s.userID]
 		if !ok {
 			return ErrNoSuchUser
@@ -93,4 +94,10 @@ func (s *smtpSession) Data(r io.Reader) error {
 
 		return user.SendMail(s.authID, s.from, s.to, r)
 	}, s.usersLock)
+
+	if err != nil {
+		logrus.WithField("pkg", "smtp").WithError(err).Error("Send mail failed.")
+	}
+
+	return err
 }

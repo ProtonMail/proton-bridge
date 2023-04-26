@@ -41,6 +41,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/focus"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
@@ -77,6 +78,9 @@ type Bridge struct {
 	// updater is the bridge's updater.
 	updater   Updater
 	installCh chan installJob
+
+	// heartbeat is the telemetry heartbeat for metrics.
+	heartbeat telemetry.Heartbeat
 
 	// curVersion is the current version of the bridge,
 	// newVersion is the version that was installed by the updater.
@@ -125,6 +129,9 @@ type Bridge struct {
 
 	// goUpdate triggers a check/install of updates.
 	goUpdate func()
+
+	// goHeartbeat triggers a check/sending if heartbeat is needed.
+	goHeartbeat func()
 
 	uidValidityGenerator imap.UIDValidityGenerator
 }
@@ -236,6 +243,8 @@ func newBridge(
 	if err := vault.SetLastVersion(curVersion); err != nil {
 		return nil, fmt.Errorf("failed to save last version indicator: %w", err)
 	}
+
+	identifier.SetClientString(vault.GetLastUserAgent())
 
 	imapServer, err := newIMAPServer(
 		gluonCacheDir,

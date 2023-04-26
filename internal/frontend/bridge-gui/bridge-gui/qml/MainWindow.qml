@@ -24,28 +24,19 @@ import QtQuick.Controls
 import Proton
 import Notifications
 
-import "tests"
-
 ApplicationWindow {
     id: root
-
-    width: 960
-    height: 576
-
+    colorScheme: ProtonStyle.currentStyle
     visible: true
 
-    minimumHeight: contentLayout.implicitHeight
-    minimumWidth: contentLayout.implicitWidth
 
-    colorScheme: ProtonStyle.currentStyle
+    property int _defaultWidth: 1080
+    property int _defaultHeight: 780
+    width: _defaultWidth
+    height: _defaultHeight
+    minimumWidth: _defaultWidth
 
     property var notifications
-
-    // This is needed because on MacOS if first window shown is not transparent -
-    // all other windows of application will not have transparent background (black
-    // instead of transparency). In our case that mean that if MainWindow will be
-    // shown before StatusWindow - StatusWindow will not have transparent corners.
-    color: "transparent"
 
     // show Setup Guide on every new user
     Connections {
@@ -86,16 +77,27 @@ ApplicationWindow {
             root.showAndRise()
         }
 
-        function onSelectUser(userID) {
-            root.selectUser(userID)
-        }
-
         function onLoginFinished(index, wasSignedOut) {
             var user = Backend.users.get(index)
             if (user && !wasSignedOut) {
                 root.showSetup(user, user.addresses[0])
             }
             console.debug("Login finished", index)
+        }
+
+        function onShowHelp() {
+            root.showHelp()
+            root.showAndRise()
+        }
+
+        function onShowSettings() {
+            root.showSettings()
+            root.showAndRise()
+        }
+
+        function onSelectUser(userID) {
+            contentWrapper.selectUser(userID)
+            root.showAndRise()
         }
     }
 

@@ -33,7 +33,10 @@ import (
 
 func (bridge *Bridge) serveSMTP() error {
 	port, err := func() (int, error) {
-		logrus.Info("Starting SMTP server")
+		logrus.WithFields(logrus.Fields{
+			"port": bridge.vault.GetSMTPPort(),
+			"ssl":  bridge.vault.GetSMTPSSL(),
+		}).Info("Starting SMTP server")
 
 		smtpListener, err := newListener(bridge.vault.GetSMTPPort(), bridge.vault.GetSMTPSSL(), bridge.tlsConfig)
 		if err != nil {

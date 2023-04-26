@@ -441,7 +441,7 @@ func getMessageHeader(msg proton.Message, opts JobOptions) message.Header {
 		hdr.Set("From", msg.Sender.String())
 	}
 
-	if len(msg.ReplyTos) > 0 {
+	if len(msg.ReplyTos) > 0 && !msg.IsDraft() {
 		if !(len(msg.ReplyTos) == 1 && addressEmpty(msg.ReplyTos[0])) {
 			hdr.Set("Reply-To", toAddressList(msg.ReplyTos))
 		}

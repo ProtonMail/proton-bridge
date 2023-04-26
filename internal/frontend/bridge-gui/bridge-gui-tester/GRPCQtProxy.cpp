@@ -39,6 +39,7 @@ void GRPCQtProxy::connectSignals() {
     connect(this, &GRPCQtProxy::setIsAutostartOnReceived, &settingsTab, &SettingsTab::setIsAutostartOn);
     connect(this, &GRPCQtProxy::setIsBetaEnabledReceived, &settingsTab, &SettingsTab::setIsBetaEnabled);
     connect(this, &GRPCQtProxy::setIsAllMailVisibleReceived, &settingsTab, &SettingsTab::setIsAllMailVisible);
+    connect(this, &GRPCQtProxy::setIsTelemetryDisabledReceived, &settingsTab, &SettingsTab::setIsTelemetryDisabled);
     connect(this, &GRPCQtProxy::setColorSchemeNameReceived, &settingsTab, &SettingsTab::setColorSchemeName);
     connect(this, &GRPCQtProxy::reportBugReceived, &settingsTab, &SettingsTab::setBugReport);
     connect(this, &GRPCQtProxy::exportTLSCertificatesReceived, &settingsTab, &SettingsTab::exportTLSCertificates);
@@ -88,6 +89,13 @@ void GRPCQtProxy::setIsAllMailVisible(bool visible) {
     emit setIsAllMailVisibleReceived(visible);
 }
 
+
+//****************************************************************************************************************************************************
+/// \param[in] isDisabled Is telemetry disabled?
+//****************************************************************************************************************************************************
+void GRPCQtProxy::setIsTelemetryDisabled(bool isDisabled) {
+    emit setIsTelemetryDisabledReceived(isDisabled);
+}
 
 //****************************************************************************************************************************************************
 /// \param[in] name The color scheme.
