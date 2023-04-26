@@ -13,7 +13,7 @@
 - Improved desynchronization avoidence by setting UIDValidity from the current time
 - Started updating emails in the email clients frequently when Bridge is started after not being online for longer period of time
 - Improved error detection and handling
-- Optimized Recovered Messages folder size by not adding a message to it if that message has been added to it before (deduplication)
+- Optimized Recovered Messages folder size by not adding a message to the folder if that message has been added to it before (deduplication)
 
 ### Fixed
 - Fixed transparent window with old graphics cards or virtual machines on Windows
