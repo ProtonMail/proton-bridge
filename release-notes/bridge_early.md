@@ -1,3 +1,9 @@
+## v3.1.2
+- 2023-04-27
+
+### New
+- Optimized Recovered Messages folder size by not adding a message to it if that message has been added to it before (deduplication)
+
 ## v3.1.1
 - 2023-04-11
 
