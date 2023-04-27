@@ -33,6 +33,8 @@ QColor const errorColor(220, 50, 81); ///< The error state color.
 QColor const warnColor(255, 153, 0); ///< The warn state color.
 QColor const updateColor(35, 158, 206); ///< The warn state color.
 QColor const greyColor(112, 109, 107); ///< The grey color.
+qint64 const iconRefreshTimerIntervalMs = 1000; ///< The interval for the refresh timer when switching DPI / screen config, in milliseconds.
+qint64 const iconRefreshDurationSecs = 10; ///< The total number of seconds during wich we periodically refresh the icon after a DPI change.
 
 
 //****************************************************************************************************************************************************
@@ -112,6 +114,17 @@ TrayIcon::TrayIcon()
 
     this->show();
     this->setState(State::Normal, QString(), QString());
+
+    // TrayIcon does not expose its screen, so we connect relevant screen events to our DPI change handler.
+    for (QScreen *screen: QGuiApplication::screens()) {
+        connect(screen, &QScreen::logicalDotsPerInchChanged, this, &TrayIcon::handleDPIChange);
+    }
+    connect(qApp, &QApplication::screenAdded, [&](QScreen *screen) { connect(screen, &QScreen::logicalDotsPerInchChanged, this, &TrayIcon::handleDPIChange); });
+    connect(qApp, &QApplication::primaryScreenChanged, [&](QScreen *screen) { connect(screen, &QScreen::logicalDotsPerInchChanged, this, &TrayIcon::handleDPIChange); });
+
+    iconRefreshTimer_.setSingleShot(false);
+    iconRefreshTimer_.setInterval(iconRefreshTimerIntervalMs);
+    connect(&iconRefreshTimer_, &QTimer::timeout, this, &TrayIcon::onIconRefreshTimer);
 }
 
 
@@ -158,6 +171,46 @@ void TrayIcon::onActivated(QSystemTrayIcon::ActivationReason reason) {
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
+void TrayIcon::handleDPIChange() {
+    this->setIcon();
+
+    // Windows forces us to apply a hack. Tray icon does not redraw by itself, so we use the Qt signal that detects screen and DPI changes.
+    // But the moment we get the signal the DPI change is not yet in effect. so redrawing now will have no effect, and we don't really
+    // know when we can safely redraw. So we will redraw the icon every second for some time.
+    iconRefreshDeadline_ = QDateTime::currentDateTime().addSecs(iconRefreshDurationSecs);
+    if (!iconRefreshTimer_.isActive()) {
+        iconRefreshTimer_.start();
+    }
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void TrayIcon::setIcon() {
+    QString const style = onMacOS() ? "mono" : "color";
+    QString const text = stateText(state_);
+
+    QIcon icon = loadIconFromImage(QString(":/qml/icons/systray-%1-%2.png").arg(style, text));
+    icon.setIsMask(true);
+    QSystemTrayIcon::setIcon(icon);
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void TrayIcon::onIconRefreshTimer() {
+    this->setIcon();
+    if (QDateTime::currentDateTime() > iconRefreshDeadline_) {
+        iconRefreshTimer_.stop();
+    }
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
 void TrayIcon::generateDotIcons() {
     QPixmap dotSVG(":/qml/icons/ic-dot.svg");
     struct IconColor {
@@ -184,14 +237,7 @@ void TrayIcon::generateDotIcons() {
 void TrayIcon::setState(TrayIcon::State state, QString const &stateString, QString const &statusIconPath) {
     stateString_ = stateString;
     state_ = state;
-    QString const style = onMacOS() ? "mono" : "color";
-    QString const text = stateText(state);
-
-
-    QIcon icon = loadIconFromImage(QString(":/qml/icons/systray-%1-%2.png").arg(style, text));
-    icon.setIsMask(true);
-    this->setIcon(icon);
-
+    this->setIcon();
     this->generateStatusIcon(statusIconPath, stateColor(state));
 }
 

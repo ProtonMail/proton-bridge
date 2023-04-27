@@ -41,6 +41,7 @@ public: // data members
     TrayIcon& operator=(TrayIcon const&) = delete; ///< Disabled assignment operator.
     TrayIcon& operator=(TrayIcon&&) = delete; ///< Disabled move assignment operator.
     void setState(State state, QString const& stateString, QString const &statusIconPath); ///< Set the state of the icon
+    void showNotificationPopup(QString const& title, QString const &message, QString const& iconPath); ///< Display a pop up notification.
 
 signals:
     void selectUser(QString const& userID); ///< Signal for selecting a user with a given userID
@@ -49,6 +50,9 @@ private slots:
     void onMenuAboutToShow(); ///< Slot called before the context menu is shown.
     void onUserClicked(); ///< Slot triggered when clicking on a user in the context menu.
     static void onActivated(QSystemTrayIcon::ActivationReason reason); ///< Slot for the activation of the system tray icon.
+    void handleDPIChange(); ///< Handles DPI change.
+    void setIcon(); ///< set the tray icon.
+    void onIconRefreshTimer(); ///< Timer for icon refresh.
 
 private: // member functions.
     void generateDotIcons(); ///< generate the colored dot icons used for user status.
@@ -63,6 +67,9 @@ private: // data members
     QIcon greenDot_; ///< The green dot icon.
     QIcon greyDot_; ///< The grey dot icon.
     QIcon orangeDot_; ///< The orange dot icon.
+
+    QTimer iconRefreshTimer_; ///< The timer used to periodically refresh the icon when DPI changes.
+    QDateTime iconRefreshDeadline_; ///< The deadline for refreshing the icon
 };
 
 
