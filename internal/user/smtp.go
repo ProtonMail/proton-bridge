@@ -327,14 +327,10 @@ func getParentID(
 		default:
 			// found multiple parents, search through metadata to try to find a singular parent that
 			// was sent by this account.
-			found_sent_by_us := false
 			for _, metadata := range metadata {
 				if metadata.Flags.Has(proton.MessageFlagSent) {
-					if found_sent_by_us == true {
-						parentID = ""
-					}
 					parentID = metadata.ID
-					found_sent_by_us = true
+					break
 				}
 			}
 		}
