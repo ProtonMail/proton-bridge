@@ -650,15 +650,28 @@ func (user *User) handleUpdateMessageEvent(ctx context.Context, message proton.M
 			"subject":   logging.Sensitive(message.Subject),
 		}).Info("Handling message updated event")
 
+		flags := imap.NewFlagSet()
+
+		if message.Seen() {
+			flags.AddToSelf(imap.FlagSeen)
+		}
+
+		if message.Starred() {
+			flags.AddToSelf(imap.FlagFlagged)
+		}
+
+		if message.IsDraft() {
+			flags.AddToSelf(imap.FlagDraft)
+		}
+
+		if message.IsRepliedAll == true || message.IsReplied == true { //nolint: gosimple
+			flags.AddToSelf(imap.FlagAnswered)
+		}
+
 		update := imap.NewMessageMailboxesUpdated(
 			imap.MessageID(message.ID),
 			mapTo[string, imap.MailboxID](wantLabels(user.apiLabels, message.LabelIDs)),
-			imap.MessageCustomFlags{
-				Seen:     message.Seen(),
-				Flagged:  message.Starred(),
-				Draft:    message.IsDraft(),
-				Answered: message.IsRepliedAll == true || message.IsReplied == true, //nolint: gosimple
-			},
+			flags,
 		)
 
 		user.updateCh[message.AddressID].Enqueue(update)
