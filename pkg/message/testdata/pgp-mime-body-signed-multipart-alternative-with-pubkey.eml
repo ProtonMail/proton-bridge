@@ -1,41 +1,34 @@
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="MHEDFShwcX18dyE3X7RXujo5fjpgdjHNM"
+Content-Type: multipart/signed;
+ boundary=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855;
+ micalg=SHA-256; protocol="application/pgp-signature"
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---MHEDFShwcX18dyE3X7RXujo5fjpgdjHNM
-Content-Type: multipart/mixed; boundary="FBBl2LNv76z8UkvHhSkT9vLwVwxqV8378";
+--e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+Content-Type: multipart/mixed; boundary="------------8730PPHC3FpcshavBTup7Fxz";
  protected-headers="v1"
-Subject: Alternative
 From: "pm.bridge.qa" <pm.bridge.qa@gmail.com>
-To: schizofrenic@pm.me
-Message-ID: <753d0314-0286-2c88-2abb-f8080ac7a4cb@gmail.com>
+To: "InfernalBridgeTester@proton.me" <InfernalbridgeTester@proton.me>
+Message-ID: <5dce90f2-f1e5-eecb-672e-f39def728f44@gmail.com>
+Subject: Alternative
 
---FBBl2LNv76z8UkvHhSkT9vLwVwxqV8378
-Content-Type: multipart/mixed;
- boundary="------------F97C8ED4878E94675762AE43"
-Content-Language: en-US
+--------------8730PPHC3FpcshavBTup7Fxz
+Content-Type: multipart/mixed; boundary="------------CCuN7f3eLVIM0a1fSlNjk0pq"
 
-This is a multi-part message in MIME format.
---------------F97C8ED4878E94675762AE43
+--------------CCuN7f3eLVIM0a1fSlNjk0pq
 Content-Type: multipart/alternative;
- boundary="------------041318B15DD3FA540FED32C6"
+ boundary="------------5kz0EAFr3j63ikmxfQPRt0bq"
 
+--------------5kz0EAFr3j63ikmxfQPRt0bq
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64
 
---------------041318B15DD3FA540FED32C6
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
-
-This Rich formated text
-
-  * /What kind of shoes do ninjas wear? /*Sneakers!*
-  * /How does a penguin build its house?/**_/*Igloos it together.*/_
-
-
-
-
---------------041318B15DD3FA540FED32C6
-Content-Type: text/html; charset=utf-8
+VGhpcyBSaWNoIGZvcm1hdGVkIHRleHQNCg0KICAqIFdoYXQga2luZCBvZiBzaG9lcyBkbyBu
+aW5qYXMgd2Vhcj8gKlNuZWFrZXJzISoNCiAgKiBIb3cgZG9lcyBhIHBlbmd1aW4gYnVpbGQg
+aXRzIGhvdXNlPyAqSWdsb29zIGl0IHRvZ2V0aGVyKg0KDQpUaGlzIFJpY2ggZm9ybWF0ZWQg
+dGV4dA0KDQogICogL1doYXQga2luZCBvZiBzaG9lcyBkbyBuaW5qYXMgd2Vhcj8gLypTbmVh
+a2VycyEqDQogICogL0hvdyBkb2VzIGEgcGVuZ3VpbiBidWlsZCBpdHMgaG91c2U/LyoqXy8q
+SWdsb29zIGl0IHRvZ2V0aGVyLiovXw0KDQoNCg0K
+--------------5kz0EAFr3j63ikmxfQPRt0bq
+Content-Type: text/html; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
 <html>
@@ -45,7 +38,16 @@ Content-Transfer-Encoding: quoted-printable
 -8">
   </head>
   <body>
-    <p>This <font color=3D"#ee24cc">Rich</font> formated text</p>
+    <p>This Rich formated text<br>
+    </p>
+    <ul>
+      <li>What kind of shoes do ninjas wear? <b>Sneakers!</b></li>
+      <li>How does a penguin build its house? <b>Igloos it together</b></=
+li>
+    </ul>
+    <p> </p>
+    <p>This <font color=3D"3D&quot;#ee24cc&quot;">Rich</font> formated
+      text</p>
     <ul>
       <li><i>What kind of shoes do ninjas wear? </i><b>Sneakers!</b></li>=
 
@@ -57,105 +59,85 @@ os
     </p>
     <p><br>
     </p>
+    <p>
+      <meta http-equiv=3D"3D&quot;content-type&quot;"
+        content=3D"3D&quot;text/html;" charset=3D"3DUTF-8&quot;">
+    </p>
   </body>
 </html>
 
---------------041318B15DD3FA540FED32C6--
-
---------------F97C8ED4878E94675762AE43
-Content-Type: application/pdf;
- name="minimal.pdf"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="minimal.pdf"
-
-JVBERi0xLjEKJcKlwrHDqwoKMSAwIG9iagogIDw8IC9UeXBlIC9DYXRhbG9nCiAgICAgL1Bh
-Z2VzIDIgMCBSCiAgPj4KZW5kb2JqCgoyIDAgb2JqCiAgPDwgL1R5cGUgL1BhZ2VzCiAgICAg
-L0tpZHMgWzMgMCBSXQogICAgIC9Db3VudCAxCiAgICAgL01lZGlhQm94IFswIDAgMzAwIDE0
-NF0KICA+PgplbmRvYmoKCjMgMCBvYmoKICA8PCAgL1R5cGUgL1BhZ2UKICAgICAgL1BhcmVu
-dCAyIDAgUgogICAgICAvUmVzb3VyY2VzCiAgICAgICA8PCAvRm9udAogICAgICAgICAgIDw8
-IC9GMQogICAgICAgICAgICAgICA8PCAvVHlwZSAvRm9udAogICAgICAgICAgICAgICAgICAv
-U3VidHlwZSAvVHlwZTEKICAgICAgICAgICAgICAgICAgL0Jhc2VGb250IC9UaW1lcy1Sb21h
-bgogICAgICAgICAgICAgICA+PgogICAgICAgICAgID4+CiAgICAgICA+PgogICAgICAvQ29u
-dGVudHMgNCAwIFIKICA+PgplbmRvYmoKCjQgMCBvYmoKICA8PCAvTGVuZ3RoIDU1ID4+CnN0
-cmVhbQogIEJUCiAgICAvRjEgMTggVGYKICAgIDAgMCBUZAogICAgKEhlbGxvIFdvcmxkKSBU
-agogIEVUCmVuZHN0cmVhbQplbmRvYmoKCnhyZWYKMCA1CjAwMDAwMDAwMDAgNjU1MzUgZiAK
-MDAwMDAwMDAxOCAwMDAwMCBuIAowMDAwMDAwMDc3IDAwMDAwIG4gCjAwMDAwMDAxNzggMDAw
-MDAgbiAKMDAwMDAwMDQ1NyAwMDAwMCBuIAp0cmFpbGVyCiAgPDwgIC9Sb290IDEgMCBSCiAg
-ICAgIC9TaXplIDUKICA+PgpzdGFydHhyZWYKNTY1CiUlRU9GCg==
---------------F97C8ED4878E94675762AE43
-Content-Type: application/pgp-keys;
- name="OpenPGP_0x161C0875822359F7.asc"
+--------------5kz0EAFr3j63ikmxfQPRt0bq--
+--------------CCuN7f3eLVIM0a1fSlNjk0pq
+Content-Type: application/pgp-keys; name="OpenPGP_0x161C0875822359F7.asc"
+Content-Disposition: attachment; filename="OpenPGP_0x161C0875822359F7.asc"
+Content-Description: OpenPGP public key
 Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
- filename="OpenPGP_0x161C0875822359F7.asc"
 
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
-xsBNBFxlUPwBCACx954Ey4SD88f8DSKFw9BaZNXrNwYxNYSgqaqOGHQ0WllF3mstEhTfuxxCZ=
-pDh
-I5IhWCXUNxanzsFkn88mRDwFRVl2sf2aAG4/P/p1381oh2kd0UElMRQaQGzoCadQMaQOL9WYT=
-f4S
-PWSCzjrPyKgjq5FbqjbF/ndu376na9L+tnsEXyL6RrI6aZhjWG73xlqxS65dzTIYzsyM/P97x=
-Snd
-NvlvWtGvLlpFkzxfAEGpVzfOYVYFKoc8rGmUDwrDWYfk5JczRDDogJnY+BNMZf9pjSqk6rTyB=
-OfN
-H5fpU8r7A5Q7l+HVakvMUQ9DzDWJtg2ru1Y8hexnJOF68avO4+a1ABEBAAHNKEJyaWRnZSBLe=
-XUt
-RWh5aiA8cG0uYnJpZGdlLnFhQGdtYWlsLmNvbT7CwJQEEwEIAD4CGwMFCwkIBwIGFQoJCAsCB=
-BYC
-AwECHgECF4AWIQRc5gl5cC8oW/Mo+bEWHAh1giNZ9wUCYC32ygUJB4sMzgAKCRAWHAh1giNZ9=
-/K8
-B/4qs84Ii/zKH+q+C8vwO4jUJkOM73qD0pgB7zBs651zWbpgopyol1YUKNpFaHlx/Qch7RDI7=
-Vcz
-1+60/KZJSJR19/N2EDVbCUdh8ueioUp9X/218YWV2TRJNxTnljd4FAn7smZnXuP1TsLjQ6sKO=
-V0U
-u6JoiG6LZFXqDgxYpA++58Rkl6xaY6R71VkmVQlbEKtubX9AjHydq97Y+Jvn11XzWZaKhv4L7=
-6Pa
-4tMKXvvrKh1oywMmh6mZJo+5ZA/ABTkr45cwlTPYqGTS9+uvOHt+PH/oYwwJB4ls2cIAUldSj=
-TVQ
-IsseYz3LlbcCfKJiiCFxeHOQXA5J6zNLKOT58TsczsBNBFxlUPwBCADh2HsX23yVnJt9fxFz3=
-D07
-kCBNvu4HQfps6h1rgNxGhE32VmpESHebvIB5xjL6xKbIqqRa3x/7KDVBNJvca0gUsqEt5kzYF=
-88F
-yf2NBcejpIbcP7BS/g+C6KOowYj+Et26T6GdwFXExUcl80JvoX8yHQOfvJpdiBRbjyB8UqfCa=
-knm
-3c7dNuXmhflz/w3aBj32q9ZyGqA1NpHCpLyVAlvSNQ/pat/rGUCPZ9duw4KhUUqEmatQPVFPk=
-utT
-ouEZQbMK+i+chOH3AsKCuNDfvCDwirnsSqIJmAgl1lC4de+bsWYCMqN9ei99hOCRUyhZ3g3sr=
-8RB
-owVAdcvjZxeIDKALABEBAAHCwHwEGAEIACYCGwwWIQRc5gl5cC8oW/Mo+bEWHAh1giNZ9wUCY=
-C32
-lAUJB4sMmAAKCRAWHAh1giNZ9+Y2B/9rTKZaKviae+ummXNumXcrKvbkAAvfuLpKUn53FlQLm=
-L6H
-jB++lJnPWvVSzdZxdv8FiPP3d632XHKUrkQRQM/9byRDXDommi7Qttx7YCkhd4JLVYqJqpnAQ=
-xI5
-RMkXiZNWyr1lz8JOM1XvDk1M7sJwPMWews8VOIE03E1nt7AsQGnvHtadgEnQaufrYNX3hFA8S=
-osO
-HSnedcys6yrzCSIGCqCD9VHbnMtS4DOv0XJGh2hwc8omzH0KZA517dyKBorJRwadcVauGXDKx=
-Etv
-Im4rl94PR/3An1Mj6HeeVVpLqDQ5Jb9J90BahWeQ53FzRa4EQzYCw0nLnxcsT1ZEEP5u
-=3Dv/1p
+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
+6h8SuYtgnD84965xRiVAgtH4wCPN544N8CE=3D
+=3DNmqc
 -----END PGP PUBLIC KEY BLOCK-----
 
---------------F97C8ED4878E94675762AE43--
+--------------CCuN7f3eLVIM0a1fSlNjk0pq--
 
---FBBl2LNv76z8UkvHhSkT9vLwVwxqV8378--
+--------------8730PPHC3FpcshavBTup7Fxz--
 
---MHEDFShwcX18dyE3X7RXujo5fjpgdjHNM
-Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
+--e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="OpenPGP_signature"
+Content-Disposition: attachment; filename=OpenPGP_signature
+Content-Type: application/pgp-signature; name=OpenPGP_signature.asc
 
 -----BEGIN PGP SIGNATURE-----
+Version: GopenPGP 2.7.1
+Comment: https://gopenpgp.org
 
-wsB5BAABCAAjFiEEXOYJeXAvKFvzKPmxFhwIdYIjWfcFAmBciUoFAwAAAAAACgkQFhwIdYIjWfez
-rgf+NZCibnCUTovpWRVRiiPQtBPGeHUPEwz2xq2zz4AaqrHC2v4mYUIPe6am7INk8fkBLsa8Dj/A
-UN/28Qh7tNb7JsXtHDT4PIoXszukQ8VIRbe09mSkkP6jR4WzNR166d6n3rSxzHpviOyQldjjpOMr
-Zl7LxmgGr4ojsgCf6pvurWwCCOGJqbSusrD6JVv6DsmPmmQeBmnlTK/0oG9pnlNkugpNB1WS2K5d
-RY6+kWkSrxbq95HrgILpHip8Y/+ITWvQocm14PBIAAdW8Hr7iFQLETFJ/KDA+VP19Bt8n4Kitdi8
-DPqMsV0oOhATqBjnD63AePJ0VWg8R1z6GEK5A+WOpg==
-=Bc6p
+wsB5BAABCAAjFiEEXOYJeXAvKFvzKPmxFhwIdYIjWfcFAmRH94EFAwAAAAAACgkQ
+FhwIdYIjWfcFfgf/XHYGr9+DcntW0TLe6dO82xhLuO6HFmQnnChnfNHKA5U6pOeU
+5wJoEFL2O4WEU1hbuf5K0wpgPi8ZF+r966bCUTt+tYT/p7sKV0OXYJjtPYxiL+ju
+RaNZgK3rIDyi2DNjbRXSV1Y7H2S3pMLAwPio7ovNpe3OgfkAgFDdiG+NnXl8CzqN
+suhMwqJbLJRWlEaX7UdbcLimpNtPIU7wtr4YV0NIsqt3EV7AeHnVI9cHJMLvF5tB
+VrnkxXbdO3xEylUB+MNmX5NDIrCg5Iwwq4NMk6qaMK80J9XSxERln56SJVN/+tIu
+TZFgwBWM/n48prGXrEo8TPk5UkrVYhLXl/ndTg==
+=FIoh
 -----END PGP SIGNATURE-----
-
---MHEDFShwcX18dyE3X7RXujo5fjpgdjHNM--
+--e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855--

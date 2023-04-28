@@ -193,6 +193,28 @@ Status GRPCService::IsAllMailVisible(ServerContext *, Empty const *request, Bool
 
 
 //****************************************************************************************************************************************************
+/// \param[in] request The request.
+/// \return The status for the call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCService::SetIsTelemetryDisabled(::grpc::ServerContext *, ::google::protobuf::BoolValue const *request, ::google::protobuf::Empty *) {
+    app().log().debug(__FUNCTION__);
+    qtProxy_.setIsTelemetryDisabledReceived(request->value());
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[out] response The response.
+/// \return The status for the call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCService::IsTelemetryDisabled(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::BoolValue *response) {
+    app().log().debug(__FUNCTION__);
+    response->set_value(app().mainWindow().settingsTab().isTelemetryDisabled());
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The status for the call.
 //****************************************************************************************************************************************************
 Status GRPCService::TriggerReset(ServerContext *, Empty const *, Empty *) {
@@ -820,3 +842,4 @@ void GRPCService::finishLogin() {
 
     qtProxy_.sendDelayedEvent(newLoginFinishedEvent(user->id(), alreadyExist));
 }
+

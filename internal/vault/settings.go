@@ -20,6 +20,7 @@ package vault
 import (
 	"math"
 	"math/rand"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
@@ -184,6 +185,18 @@ func (vault *Vault) SetAutoUpdate(autoUpdate bool) error {
 	})
 }
 
+// GetTelemetryDisabled checks whether telemetry is disabled.
+func (vault *Vault) GetTelemetryDisabled() bool {
+	return vault.get().Settings.TelemetryDisabled
+}
+
+// SetTelemetryDisabled sets whether telemetry is disabled.
+func (vault *Vault) SetTelemetryDisabled(telemetryDisabled bool) error {
+	return vault.mod(func(data *Data) {
+		data.Settings.TelemetryDisabled = telemetryDisabled
+	})
+}
+
 // GetLastVersion returns the last version of the bridge that was run.
 func (vault *Vault) GetLastVersion() *semver.Version {
 	return semver.MustParse(vault.get().Settings.LastVersion)
@@ -223,5 +236,36 @@ func (vault *Vault) GetMaxSyncMemory() uint64 {
 func (vault *Vault) SetMaxSyncMemory(maxMemory uint64) error {
 	return vault.mod(func(data *Data) {
 		data.Settings.MaxSyncMemory = maxMemory
+	})
+}
+
+// GetLastUserAgent returns the last user agent recorded by bridge.
+func (vault *Vault) GetLastUserAgent() string {
+	v := vault.get().Settings.LastUserAgent
+
+	// Handle case where there may be no value.
+	if len(v) == 0 {
+		v = DefaultUserAgent
+	}
+
+	return v
+}
+
+// SetLastUserAgent store the last user agent recorded by bridge.
+func (vault *Vault) SetLastUserAgent(userAgent string) error {
+	return vault.mod(func(data *Data) {
+		data.Settings.LastUserAgent = userAgent
+	})
+}
+
+// GetLastHeartbeatSent returns the last time heartbeat was sent.
+func (vault *Vault) GetLastHeartbeatSent() time.Time {
+	return vault.get().Settings.LastHeartbeatSent
+}
+
+// SetLastHeartbeatSent store the last time heartbeat was sent.
+func (vault *Vault) SetLastHeartbeatSent(timestamp time.Time) error {
+	return vault.mod(func(data *Data) {
+		data.Settings.LastHeartbeatSent = timestamp
 	})
 }

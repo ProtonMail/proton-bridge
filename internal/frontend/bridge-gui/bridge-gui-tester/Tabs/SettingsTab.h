@@ -45,6 +45,7 @@ public: // member functions.
     bool isAutostartOn() const; ///< Get the value for the 'Autostart' check.
     bool isBetaEnabled() const; ///< Get the value for the 'Beta Enabled' check.
     bool isAllMailVisible() const; ///< Get the value for the 'All Mail Visible' check.
+    bool isTelemetryDisabled() const; ///< Get the value for the 'Disable Telemetry' check box.
     QString colorSchemeName() const; ///< Get the value of the 'Use Dark Theme' checkbox.
     qint32 eventDelayMs() const; ///< Get the delay for sending automatically generated events.
     QString logsPath() const; ///< Get the content of the 'Logs Path' edit.
@@ -74,6 +75,7 @@ public slots:
     void setIsAutostartOn(bool on); ///< Set the value for the 'Autostart' check box.
     void setIsBetaEnabled(bool enabled); ///< Set the value for the 'Beta Enabled' check box.
     void setIsAllMailVisible(bool visible); ///< Set the value for the 'All Mail Visible' check box.
+    void setIsTelemetryDisabled(bool isDisabled); ///< Set the value for the 'Disable Telemetry' check box.
     void setColorSchemeName(QString const &name); ///< Set the value for the 'Use Dark Theme' check box.
     void setBugReport(QString const &osType, QString const &osVersion, QString const &emailClient, QString const &address, QString const &description,
         bool includeLogs); ///< Set the content of the bug report box.

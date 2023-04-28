@@ -11,7 +11,7 @@ ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 .PHONY: build build-gui build-nogui build-launcher versioner hasher
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=3.1.2+git
+BRIDGE_APP_VERSION?=3.2.0+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 APP_FULL_NAME:=Proton Mail Bridge
 APP_VENDOR:=Proton AG
@@ -256,6 +256,8 @@ mocks:
 	mockgen --package mocks github.com/ProtonMail/gluon/async PanicHandler > internal/bridge/mocks/async_mocks.go
 	mockgen --package mocks github.com/ProtonMail/gluon/reporter Reporter > internal/bridge/mocks/gluon_mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/updater Downloader,Installer > internal/updater/mocks/mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/telemetry HeartbeatManager > internal/telemetry/mocks/mocks.go
+	cp internal/telemetry/mocks/mocks.go internal/bridge/mocks/telemetry_mocks.go
 
 lint: gofiles lint-golang lint-license lint-dependencies lint-changelog
 

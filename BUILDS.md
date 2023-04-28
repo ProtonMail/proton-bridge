@@ -6,9 +6,12 @@
 * Go 1.18
 * Bash with basic build utils: make, gcc, sed, find, grep, ...
   - For Windows, it is recommended to use MinGW 64bit shell from [MSYS2](https://www.msys2.org/)
-* GCC (linux), msvc (windows) or Xcode (macOS)
-* Windres (windows)
-* libglvnd and libsecret development files (linux)
+* GCC (Linux), msvc (Windows) or Xcode (macOS)
+* Windres (Windows)
+* libglvnd and libsecret development files (Linux)
+* pkg-config (Linux)
+* cmake, ninja-build and Qt 6 are required to build the graphical user interface. On Linux, 
+the Mesa OpenGL development files are also needed.
 
 To enable the sending of crash reports using Sentry please set the
 `DSN_SENTRY` environment variable with the client key of your sentry project before build.

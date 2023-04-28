@@ -20,6 +20,7 @@ package user
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/mail"
 	"sync/atomic"
@@ -350,7 +351,13 @@ func (conn *imapConnector) CreateMessage(
 		wantFlags = wantFlags.Add(proton.MessageFlagReplied)
 	}
 
-	return conn.importMessage(ctx, literal, wantLabelIDs, wantFlags, unread)
+	msg, literal, err := conn.importMessage(ctx, literal, wantLabelIDs, wantFlags, unread)
+	if err != nil && errors.Is(err, proton.ErrImportSizeExceeded) {
+		// Remap error so that Gluon does not put this message in the recovery mailbox.
+		err = fmt.Errorf("%v: %w", err, connector.ErrMessageSizeExceedsLimits)
+	}
+
+	return msg, literal, err
 }
 
 func (conn *imapConnector) GetMessageLiteral(ctx context.Context, id imap.MessageID) ([]byte, error) {
@@ -400,32 +407,8 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 	}
 
 	if mailboxID == proton.TrashLabel || mailboxID == proton.DraftsLabel {
-		var metadata []proton.MessageMetadata
-
-		// There's currently no limit on how many IDs we can filter on,
-		// but to be nice to API, let's chunk it by 150.
-		for _, messageIDs := range xslices.Chunk(messageIDs, 150) {
-			m, err := conn.client.GetMessageMetadata(ctx, proton.MessageFilter{
-				ID: mapTo[imap.MessageID, string](messageIDs),
-			})
-			if err != nil {
-				return err
-			}
-
-			// If a message is not preset in any other label other than AllMail, AllDrafts and AllSent, it can be
-			// permanently deleted.
-			m = xslices.Filter(m, func(m proton.MessageMetadata) bool {
-				labelsThatMatter := xslices.Filter(m.LabelIDs, func(id string) bool {
-					return id != proton.AllDraftsLabel && id != proton.AllMailLabel && id != proton.AllSentLabel
-				})
-				return len(labelsThatMatter) == 0
-			})
-
-			metadata = append(metadata, m...)
-		}
-
-		if err := conn.client.DeleteMessage(ctx, xslices.Map(metadata, func(m proton.MessageMetadata) string {
-			return m.ID
+		if err := conn.client.DeleteMessage(ctx, xslices.Map(messageIDs, func(m imap.MessageID) string {
+			return string(m)
 		})...); err != nil {
 			return err
 		}
@@ -626,7 +609,7 @@ func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addr
 		return proton.Message{}, fmt.Errorf("failed to create parser: %w", err)
 	}
 
-	message, err := message.ParseWithParser(parser)
+	message, err := message.ParseWithParser(parser, true)
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to parse message: %w", err)
 	}

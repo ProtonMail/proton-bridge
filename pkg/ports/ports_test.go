@@ -32,12 +32,12 @@ func TestFreePort(t *testing.T) {
 }
 
 func TestOccupiedPort(t *testing.T) {
-	dummyserver, err := net.Listen("tcp", ":"+strconv.Itoa(testPort))
+	dummyServer, err := net.Listen("tcp", ":"+strconv.Itoa(testPort))
 	require.NoError(t, err)
 
 	require.True(t, !IsPortFree(testPort), "port should be occupied")
 
-	_ = dummyserver.Close()
+	_ = dummyServer.Close()
 }
 
 func TestFindFreePortFromDirectly(t *testing.T) {
@@ -46,11 +46,21 @@ func TestFindFreePortFromDirectly(t *testing.T) {
 }
 
 func TestFindFreePortFromNextOne(t *testing.T) {
-	dummyserver, err := net.Listen("tcp", ":"+strconv.Itoa(testPort))
+	dummyServer, err := net.Listen("tcp", ":"+strconv.Itoa(testPort))
 	require.NoError(t, err)
 
 	foundPort := FindFreePortFrom(testPort)
 	require.Equal(t, testPort+1, foundPort)
 
-	_ = dummyserver.Close()
+	_ = dummyServer.Close()
+}
+
+func TestFindFreePortExcluding(t *testing.T) {
+	dummyServer, err := net.Listen("tcp", ":"+strconv.Itoa(testPort))
+	require.NoError(t, err)
+
+	foundPort := FindFreePortFrom(testPort, testPort+1, testPort+2)
+	require.Equal(t, testPort+3, foundPort)
+
+	_ = dummyServer.Close()
 }

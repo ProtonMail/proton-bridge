@@ -22,6 +22,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/cookiejar"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -35,6 +36,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/crash"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/focus"
+	"github.com/ProtonMail/proton-bridge/v3/internal/frontend/theme"
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
@@ -244,6 +246,15 @@ func run(c *cli.Context) error {
 									}
 								}
 
+								logrus.WithFields(logrus.Fields{
+									"lastVersion": v.GetLastVersion().String(),
+									"showAllMail": v.GetShowAllMail(),
+									"updateCh":    v.GetUpdateChannel(),
+									"autoUpdate":  v.GetAutoUpdate(),
+									"rollout":     v.GetUpdateRollout(),
+									"DoH":         v.GetProxyAllowed(),
+								}).Info("Vault loaded")
+
 								// Load the cookies from the vault.
 								return withCookieJar(v, func(cookieJar http.CookieJar) error {
 									// Create a new bridge instance.
@@ -257,6 +268,9 @@ func run(c *cli.Context) error {
 											logrus.Warn("The vault is corrupt and has been wiped")
 											b.PushError(bridge.ErrVaultCorrupt)
 										}
+
+										// Start telemetry heartbeat process
+										b.StartHeartbeat(b)
 
 										// Run the frontend.
 										return runFrontend(c, crashHandler, restarter, locations, b, eventCh, quitCh, c.Int(flagParentPID))
@@ -417,6 +431,10 @@ func withCookieJar(vault *vault.Vault, fn func(http.CookieJar) error) error {
 		return fmt.Errorf("could not create cookie jar: %w", err)
 	}
 
+	if err := setDeviceCookies(persister); err != nil {
+		return fmt.Errorf("could not set device cookies: %w", err)
+	}
+
 	// Persist the cookies to the vault when we close.
 	defer func() {
 		logrus.Debug("Persisting cookies")
@@ -427,4 +445,22 @@ func withCookieJar(vault *vault.Vault, fn func(http.CookieJar) error) error {
 	}()
 
 	return fn(persister)
+}
+
+func setDeviceCookies(jar *cookies.Jar) error {
+	url, err := url.Parse(constants.APIHost)
+	if err != nil {
+		return err
+	}
+
+	for name, value := range map[string]string{
+		"hhn": sentry.GetProtectedHostname(),
+		"tz":  sentry.GetTimeZone(),
+		"lng": sentry.GetSystemLang(),
+		"clr": string(theme.DefaultTheme()),
+	} {
+		jar.SetCookies(url, []*http.Cookie{{Name: name, Value: value, Secure: true}})
+	}
+
+	return nil
 }

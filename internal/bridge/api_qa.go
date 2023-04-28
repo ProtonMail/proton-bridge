@@ -20,6 +20,7 @@
 package bridge
 
 import (
+	"crypto/tls"
 	"net/http"
 	"os"
 
@@ -36,6 +37,14 @@ func newAPIOptions(
 	transport http.RoundTripper,
 	panicHandler async.PanicHandler,
 ) []proton.Option {
+
+	if allow := os.Getenv("BRIDGE_ALLOW_PROXY"); allow != "" {
+		transport = &http.Transport{
+			Proxy:           http.ProxyFromEnvironment,
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	}
+
 	opt := defaultAPIOptions(apiURL, version, cookieJar, transport, panicHandler)
 
 	if host := os.Getenv("BRIDGE_API_HOST"); host != "" {

@@ -43,10 +43,11 @@ type Message struct {
 	MessageID   string `bdd:"message-id"`
 	Date        string `bdd:"date"`
 
-	From string `bdd:"from"`
-	To   string `bdd:"to"`
-	CC   string `bdd:"cc"`
-	BCC  string `bdd:"bcc"`
+	From    string `bdd:"from"`
+	To      string `bdd:"to"`
+	CC      string `bdd:"cc"`
+	BCC     string `bdd:"bcc"`
+	ReplyTo string `bdd:"reply-to"`
 
 	Unread  bool `bdd:"unread"`
 	Deleted bool `bdd:"deleted"`
@@ -156,6 +157,10 @@ func newMessageFromIMAP(msg *imap.Message) Message {
 
 	if len(msg.Envelope.Bcc) > 0 {
 		message.BCC = msg.Envelope.Bcc[0].Address()
+	}
+
+	if len(msg.Envelope.ReplyTo) > 0 {
+		message.ReplyTo = msg.Envelope.ReplyTo[0].Address()
 	}
 
 	return message

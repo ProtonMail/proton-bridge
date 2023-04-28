@@ -71,6 +71,8 @@ public: // member functions.
     grpc::Status setIsBetaEnabled(bool enabled); ///< Performs the 'setIsBetaEnabled' gRPC call.
     grpc::Status isAllMailVisible(bool &outIsVisible); ///< Performs the "isAllMailVisible" gRPC call.
     grpc::Status setIsAllMailVisible(bool isVisible); ///< Performs the 'setIsAllMailVisible' gRPC call.
+    grpc::Status isTelemetryDisabled(bool &outIsDisabled); ///< Performs the 'setIsTelemetryDisabled' gRPC call.
+    grpc::Status setIsTelemetryDisabled(bool isDisabled); ///< Performs the 'isTelemetryDisabled' gRPC call.
     grpc::Status colorSchemeName(QString &outName); ///< Performs the "colorSchemeName' gRPC call.
     grpc::Status setColorSchemeName(QString const &name); ///< Performs the "setColorSchemeName' gRPC call.
     grpc::Status currentEmailClient(QString &outName); ///< Performs the 'currentEmailClient' gRPC call.

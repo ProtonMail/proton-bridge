@@ -23,6 +23,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/ProtonMail/go-proton-api"
@@ -444,7 +445,7 @@ func TestParseWithAttachedPublicKey(t *testing.T) {
 	p, err := parser.New(f)
 	require.NoError(t, err)
 
-	m, err := ParseWithParser(p)
+	m, err := ParseWithParser(p, false)
 	require.NoError(t, err)
 
 	p.AttachPublicKey("publickey", "publickeyname")
@@ -634,6 +635,32 @@ func TestParseIcsAttachment(t *testing.T) {
 	assert.Equal(t, m.Attachments[0].ContentID, "")
 	assert.Equal(t, m.Attachments[0].Disposition, proton.Disposition("attachment"))
 	assert.Equal(t, string(m.Attachments[0].Data), "This is an ics calendar invite")
+}
+
+func TestParseAllowInvalidAddress(t *testing.T) {
+	const literal = `To: foo
+From: bar
+BCC: fff
+CC: FFF
+Reply-To: AAA
+Subject: Test
+`
+
+	// This will fail as the addresses are not valid.
+	{
+		_, err := Parse(strings.NewReader(literal))
+		require.Error(t, err)
+	}
+
+	// This will work as invalid addresses will be ignored.
+	m, err := ParseAndAllowInvalidAddressLists(strings.NewReader(literal))
+	require.NoError(t, err)
+
+	assert.Empty(t, m.ToList)
+	assert.Empty(t, m.Sender)
+	assert.Empty(t, m.CCList)
+	assert.Empty(t, m.BCCList)
+	assert.Empty(t, m.ReplyTos)
 }
 
 func TestParsePanic(t *testing.T) {

@@ -107,7 +107,10 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the header in the "([^"]*)" request to "([^"]*)" has "([^"]*)" set to "([^"]*)"$`, s.theHeaderInTheRequestToHasSetTo)
 			ctx.Step(`^the body in the "([^"]*)" request to "([^"]*)" is:$`, s.theBodyInTheRequestToIs)
 			ctx.Step(`^the API requires bridge version at least "([^"]*)"$`, s.theAPIRequiresBridgeVersion)
-
+			ctx.Step(`^the network port (\d+) is busy$`, s.networkPortIsBusy)
+			ctx.Step(`^the network port range (\d+)-(\d+) is busy$`, s.networkPortRangeIsBusy)
+			ctx.Step(`^bridge IMAP port is (\d+)`, s.bridgeIMAPPortIs)
+			ctx.Step(`^bridge SMTP port is (\d+)`, s.bridgeSMTPPortIs)
 			// ==== SETUP ====
 			ctx.Step(`^there exists an account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPassword)
 			ctx.Step(`^there exists a disabled account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPasswordWithDisablePrimary)
@@ -121,7 +124,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has the following messages in "([^"]*)":$`, s.theAddressOfAccountHasTheFollowingMessagesInMailbox)
 			ctx.Step(`^the address "([^"]*)" of account "([^"]*)" has (\d+) messages in "([^"]*)"$`, s.theAddressOfAccountHasMessagesInMailbox)
 			ctx.Step(`^the following fields were changed in draft (\d+) for address "([^"]*)" of account "([^"]*)":$`, s.theFollowingFieldsWereChangedInDraftForAddressOfAccount)
-			ctx.Step(`^draft (\d+) for address "([^"]*)" of account "([^"]*) was moved to trash$`, s.drafAtIndexWasMovedToTrashForAddressOfAccount)
+			ctx.Step(`^draft (\d+) for address "([^"]*)" of account "([^"]*)" was moved to trash$`, s.drafAtIndexWasMovedToTrashForAddressOfAccount)
 
 			// === REPORTER ===
 			ctx.Step(`^test skips reporter checks$`, s.skipReporterChecks)
@@ -132,15 +135,22 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^bridge stops$`, s.bridgeStops)
 			ctx.Step(`^bridge is version "([^"]*)" and the latest available version is "([^"]*)" reachable from "([^"]*)"$`, s.bridgeVersionIsAndTheLatestAvailableVersionIsReachableFrom)
 			ctx.Step(`^the user has disabled automatic updates$`, s.theUserHasDisabledAutomaticUpdates)
+			ctx.Step(`^the user has disabled automatic start`, s.theUserHasDisabledAutomaticStart)
+			ctx.Step(`^the user has enabled alternative routing`, s.theUserHasEnabledAlternativeRouting)
+			ctx.Step(`^the user set IMAP mode to SSL`, s.theUserSetIMAPModeToSSL)
+			ctx.Step(`^the user set SMTP mode to SSL`, s.theUserSetSMTPModeToSSL)
 			ctx.Step(`^the user changes the IMAP port to (\d+)$`, s.theUserChangesTheIMAPPortTo)
 			ctx.Step(`^the user changes the SMTP port to (\d+)$`, s.theUserChangesTheSMTPPortTo)
 			ctx.Step(`^the user sets the address mode of user "([^"]*)" to "([^"]*)"$`, s.theUserSetsTheAddressModeOfUserTo)
+			ctx.Step(`^the user changes the default keychain application`, s.theUserChangesTheDefaultKeychainApplication)
 			ctx.Step(`^the user changes the gluon path$`, s.theUserChangesTheGluonPath)
 			ctx.Step(`^the user deletes the gluon files$`, s.theUserDeletesTheGluonFiles)
 			ctx.Step(`^the user deletes the gluon cache$`, s.theUserDeletesTheGluonCache)
 			ctx.Step(`^the user reports a bug$`, s.theUserReportsABug)
 			ctx.Step(`^the user hides All Mail$`, s.theUserHidesAllMail)
 			ctx.Step(`^the user shows All Mail$`, s.theUserShowsAllMail)
+			ctx.Step(`^the user disables telemetry in bridge settings$`, s.theUserDisablesTelemetryInBridgeSettings)
+			ctx.Step(`^the user enables telemetry in bridge settings$`, s.theUserEnablesTelemetryInBridgeSettings)
 			ctx.Step(`^bridge sends a connection up event$`, s.bridgeSendsAConnectionUpEvent)
 			ctx.Step(`^bridge sends a connection down event$`, s.bridgeSendsAConnectionDownEvent)
 			ctx.Step(`^bridge sends a deauth event for user "([^"]*)"$`, s.bridgeSendsADeauthEventForUser)
@@ -153,6 +163,8 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^bridge sends an update not available event$`, s.bridgeSendsAnUpdateNotAvailableEvent)
 			ctx.Step(`^bridge sends a forced update event$`, s.bridgeSendsAForcedUpdateEvent)
 			ctx.Step(`^bridge reports a message with "([^"]*)"$`, s.bridgeReportsMessage)
+			ctx.Step(`^bridge telemetry feature is enabled$`, s.bridgeTelemetryFeatureEnabled)
+			ctx.Step(`^bridge telemetry feature is disabled$`, s.bridgeTelemetryFeatureDisabled)
 
 			// ==== FRONTEND ====
 			ctx.Step(`^frontend sees that bridge is version "([^"]*)"$`, s.frontendSeesThatBridgeIsVersion)
@@ -166,6 +178,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^user "([^"]*)" is listed but not connected$`, s.userIsListedButNotConnected)
 			ctx.Step(`^user "([^"]*)" is not listed$`, s.userIsNotListed)
 			ctx.Step(`^user "([^"]*)" finishes syncing$`, s.userFinishesSyncing)
+			ctx.Step(`^user "([^"]*)" has telemetry set to (\d+)$`, s.userHasTelemetrySetTo)
 
 			// ==== IMAP ====
 			ctx.Step(`^user "([^"]*)" connects IMAP client "([^"]*)"$`, s.userConnectsIMAPClient)
@@ -206,6 +219,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^IMAP client "([^"]*)" appends "([^"]*)" to "([^"]*)"$`, s.imapClientAppendsToMailbox)
 			ctx.Step(`^IMAP clients "([^"]*)" and "([^"]*)" move message with subject "([^"]*)" of "([^"]*)" to "([^"]*)" by ([^"]*) ([^"]*) ([^"]*)`, s.imapClientsMoveMessageWithSubjectUserFromToByOrderedOperations)
 			ctx.Step(`^IMAP client "([^"]*)" sees header "([^"]*)" in message with subject "([^"]*)" in "([^"]*)"$`, s.imapClientSeesHeaderInMessageWithSubject)
+			ctx.Step(`^IMAP client "([^"]*)" does not see header "([^"]*)" in message with subject "([^"]*)" in "([^"]*)"$`, s.imapClientDoesNotSeeHeaderInMessageWithSubject)
 
 			// ==== SMTP ====
 			ctx.Step(`^user "([^"]*)" connects SMTP client "([^"]*)"$`, s.userConnectsSMTPClient)
@@ -222,6 +236,12 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^SMTP client "([^"]*)" sends RSET$`, s.smtpClientSendsReset)
 			ctx.Step(`^SMTP client "([^"]*)" sends the following message from "([^"]*)" to "([^"]*)":$`, s.smtpClientSendsTheFollowingMessageFromTo)
 			ctx.Step(`^SMTP client "([^"]*)" logs out$`, s.smtpClientLogsOut)
+
+			// ==== TELEMETRY ====
+			ctx.Step(`^bridge eventually sends the following heartbeat:$`, s.bridgeEventuallySendsTheFollowingHeartbeat)
+			ctx.Step(`^bridge needs to send heartbeat`, s.bridgeNeedsToSendHeartbeat)
+			ctx.Step(`^bridge do not need to send heartbeat`, s.bridgeDoNotNeedToSendHeartbeat)
+			ctx.Step(`^heartbeat is not whitelisted`, s.heartbeatIsNotwhitelisted)
 		},
 		Options: &godog.Options{
 			Format:   "pretty",

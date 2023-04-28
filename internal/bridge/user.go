@@ -295,6 +295,15 @@ func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode va
 			AddressMode: mode,
 		})
 
+		var splitMode = false
+		for _, user := range bridge.users {
+			if user.GetAddressMode() == vault.SplitMode {
+				splitMode = true
+				break
+			}
+		}
+		bridge.heartbeat.SetSplitMode(splitMode)
+
 		return nil
 	}, bridge.usersLock)
 }
@@ -399,7 +408,7 @@ func (bridge *Bridge) loadUsers(ctx context.Context) error {
 			return nil
 		}
 
-		log.Info("Loading connected user")
+		log.WithField("mode", user.AddressMode()).Info("Loading connected user")
 
 		bridge.publish(events.UserLoading{
 			UserID: user.UserID(),
@@ -550,7 +559,7 @@ func (bridge *Bridge) addUserWithVault(
 	// As such, if we find this ID in the context, we should use it to update our user agent.
 	client.AddPreRequestHook(func(_ *resty.Client, r *resty.Request) error {
 		if imapID, ok := imap.GetIMAPIDFromContext(r.Context()); ok {
-			bridge.identifier.SetClient(imapID.Name, imapID.Version)
+			bridge.setUserAgent(imapID.Name, imapID.Version)
 		}
 
 		return nil
@@ -559,7 +568,11 @@ func (bridge *Bridge) addUserWithVault(
 	// Finally, save the user in the bridge.
 	safe.Lock(func() {
 		bridge.users[apiUser.ID] = user
+		bridge.heartbeat.SetNbAccount(len(bridge.users))
 	}, bridge.usersLock)
+
+	// As we need at least one user to send heartbeat, try to send it.
+	defer bridge.goHeartbeat()
 
 	return nil
 }
@@ -613,6 +626,8 @@ func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, 
 	if err := user.Logout(ctx, withAPI); err != nil {
 		logrus.WithError(err).Error("Failed to logout user")
 	}
+
+	bridge.heartbeat.SetNbAccount(len(bridge.users))
 
 	user.Close()
 }

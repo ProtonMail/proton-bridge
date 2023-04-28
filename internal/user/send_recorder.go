@@ -18,10 +18,7 @@
 package user
 
 import (
-	"bytes"
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"sync"
@@ -219,73 +216,7 @@ func (h *sendRecorder) getWaitCh(hash string) (<-chan struct{}, bool) {
 // - the Content-Disposition header of each (leaf) part,
 // - the (decoded) body of each part.
 func getMessageHash(b []byte) (string, error) {
-	section := rfc822.Parse(b)
-
-	header, err := section.ParseHeader()
-	if err != nil {
-		return "", err
-	}
-
-	h := sha256.New()
-
-	if _, err := h.Write([]byte(header.Get("Subject"))); err != nil {
-		return "", err
-	}
-
-	if _, err := h.Write([]byte(header.Get("From"))); err != nil {
-		return "", err
-	}
-
-	if _, err := h.Write([]byte(header.Get("To"))); err != nil {
-		return "", err
-	}
-
-	if _, err := h.Write([]byte(header.Get("Cc"))); err != nil {
-		return "", err
-	}
-
-	if _, err := h.Write([]byte(header.Get("Reply-To"))); err != nil {
-		return "", err
-	}
-
-	if _, err := h.Write([]byte(header.Get("In-Reply-To"))); err != nil {
-		return "", err
-	}
-
-	if err := section.Walk(func(section *rfc822.Section) error {
-		children, err := section.Children()
-		if err != nil {
-			return err
-		} else if len(children) > 0 {
-			return nil
-		}
-
-		header, err := section.ParseHeader()
-		if err != nil {
-			return err
-		}
-
-		if _, err := h.Write([]byte(header.Get("Content-Type"))); err != nil {
-			return err
-		}
-
-		if _, err := h.Write([]byte(header.Get("Content-Disposition"))); err != nil {
-			return err
-		}
-
-		body := section.Body()
-		body = bytes.ReplaceAll(body, []byte{'\r'}, nil)
-		body = bytes.TrimSpace(body)
-		if _, err := h.Write(body); err != nil {
-			return err
-		}
-
-		return nil
-	}); err != nil {
-		return "", err
-	}
-
-	return base64.StdEncoding.EncodeToString(h.Sum(nil)), nil
+	return rfc822.GetMessageHash(b)
 }
 
 func matchToList(a, b []string) bool {

@@ -17,8 +17,8 @@
 
 
 #include "LogUtils.h"
-#include <bridgepp/BridgeUtils.h>
-#include <bridgepp/Exception/Exception.h>
+#include "../BridgeUtils.h"
+#include "../Exception/Exception.h"
 
 
 namespace bridgepp {
@@ -43,7 +43,12 @@ QString latestBridgeLogPath() {
     if (logsDir.isEmpty()) {
         return QString();
     }
+
     QFileInfoList files = logsDir.entryInfoList({ "v*.log" }, QDir::Files); // could do sorting, but only by last modification time. we want to sort by creation time.
+    if (files.isEmpty()) {
+        return QString();
+    }
+
     std::sort(files.begin(), files.end(), [](QFileInfo const &lhs, QFileInfo const &rhs) -> bool {
         return lhs.birthTime() < rhs.birthTime();
     });

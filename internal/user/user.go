@@ -119,6 +119,12 @@ func New(
 		return nil, fmt.Errorf("failed to get labels: %w", err)
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"userID":    apiUser.ID,
+		"numAddr":   len(apiAddrs),
+		"numLabels": len(apiLabels),
+	}).Info("Creating user object")
+
 	// Create the user object.
 	user := &User{
 		log: logrus.WithField("userID", apiUser.ID),
@@ -589,6 +595,36 @@ func (user *User) Close() {
 	if err := user.vault.Close(); err != nil {
 		user.log.WithError(err).Error("Failed to close vault")
 	}
+}
+
+// IsTelemetryEnabled check if the telemetry is enabled or disabled for this user.
+func (user *User) IsTelemetryEnabled(ctx context.Context) bool {
+	settings, err := user.client.GetUserSettings(ctx)
+	if err != nil {
+		user.log.WithError(err).Error("Failed to retrieve API user Settings")
+		return false
+	}
+	return settings.Telemetry == proton.SettingEnabled
+}
+
+// SendTelemetry send telemetry request.
+func (user *User) SendTelemetry(ctx context.Context, data []byte) error {
+	var req proton.SendStatsReq
+	if err := json.Unmarshal(data, &req); err != nil {
+		user.log.WithError(err).Error("Failed to build telemetry request.")
+		if err := user.reporter.ReportMessageWithContext("Failed to build telemetry request.", reporter.Context{
+			"error": err,
+		}); err != nil {
+			logrus.WithError(err).Error("Failed to report telemetry request build error")
+		}
+		return err
+	}
+	err := user.client.SendDataEvent(ctx, req)
+	if err != nil {
+		user.log.WithError(err).Error("Failed to send telemetry.")
+		return err
+	}
+	return nil
 }
 
 // initUpdateCh initializes the user's update channels in the given address mode.
