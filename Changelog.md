@@ -9,6 +9,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2575: Add dev info to cookies.
 
 ### Changed
+* GODT-2598: Map Message Size Error to Gluon Error.
+* GODT-2569: Support multiple externalID matching if we send one of it when looking for parentID.
+* GODT-2576: Connector can send any flags to Gluon.
 * GODT-2496: Bump gopenPGP to 2.7.1-proton.
 * GODT-2517: Replace status window with native tray icon context menu.
 * GODT-2586: Two-columns layout for account details.
@@ -25,8 +28,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2483: Install cert without external tool on macOS.
 
 ### Fixed
+* GODT-2596: Fix bug when trying to generate Sentry report and there is not log.
+* GODT-1374: Fix tray icon DPI change handling.
 * GODT-2588: Always perma-delete from Drafts/Trash.
-* GODT-2582: Dedup recovered messages folder.
 * GODT-2589: Update BUILDS.md.
 * GODT-2581: Update outdated link to bridge homepage in CLI 'manual' command.
 * GODT-2337: Filter reply-to on draft.
