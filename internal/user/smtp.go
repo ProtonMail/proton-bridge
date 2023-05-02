@@ -438,6 +438,10 @@ func (user *User) createAttachments(
 			}
 		}
 
+		// Exclude name from params since this is already provided using Filename.
+		delete(att.MIMEParams, "name")
+		delete(att.MIMEParams, "filename")
+
 		attachment, err := client.UploadAttachment(ctx, addrKR, proton.CreateAttachmentReq{
 			Filename:    att.Name,
 			MessageID:   draftID,

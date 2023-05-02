@@ -106,6 +106,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the user agent is "([^"]*)"$`, s.theUserAgentIs)
 			ctx.Step(`^the header in the "([^"]*)" request to "([^"]*)" has "([^"]*)" set to "([^"]*)"$`, s.theHeaderInTheRequestToHasSetTo)
 			ctx.Step(`^the body in the "([^"]*)" request to "([^"]*)" is:$`, s.theBodyInTheRequestToIs)
+			ctx.Step(`^the body in the "([^"]*)" response to "([^"]*)" is:$`, s.theBodyInTheResponseToIs)
 			ctx.Step(`^the API requires bridge version at least "([^"]*)"$`, s.theAPIRequiresBridgeVersion)
 			ctx.Step(`^the network port (\d+) is busy$`, s.networkPortIsBusy)
 			ctx.Step(`^the network port range (\d+)-(\d+) is busy$`, s.networkPortRangeIsBusy)

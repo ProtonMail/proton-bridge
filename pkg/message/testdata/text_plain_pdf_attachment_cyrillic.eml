@@ -1,0 +1,25 @@
+Content-Type: multipart/mixed; boundary="------------bYzsV6z0EdKTbltmCDZgIM15"
+To: "Receiver" <receiver@pm.me>
+From: "Sender" <sender@pm.me>
+Subject: Test with cyrillic attachment
+
+--------------bYzsV6z0EdKTbltmCDZgIM15
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+
+Shake that body
+--------------bYzsV6z0EdKTbltmCDZgIM15
+Content-Type: application/pdf;
+ name="=?UTF-8?B?0JDQkdCS0JPQlNCD0JXQltCX0IXQmNCI0JrQm9CJ0JzQndCK0J7Qn9Cg?=
+ =?UTF-8?B?0KHQotCM0KPQpNCl0KfQj9CX0KgucGRm?="
+Content-Disposition: attachment;
+ filename*0*=UTF-8''%D0%90%D0%91%D0%92%D0%93%D0%94%D0%83%D0%95%D0%96%D0%97;
+ filename*1*=%D0%85%D0%98%D0%88%D0%9A%D0%9B%D0%89%D0%9C%D0%9D%D0%8A%D0%9E;
+ filename*2*=%D0%9F%D0%A0%D0%A1%D0%A2%D0%8C%D0%A3%D0%A4%D0%A5%D0%A7%D0%8F;
+ filename*3*=%D0%97%D0%A8%2E%70%64%66
+Content-Transfer-Encoding: base64
+
+0JDQkdCS0JPQlNCD0JXQltCX0IXQmNCI0JrQm9CJ0JzQndCK0J7Qn9Cg0KHQotCM0KPQpNCl0KfQj9CX0Kg=
+
+
+--------------bYzsV6z0EdKTbltmCDZgIM15--
