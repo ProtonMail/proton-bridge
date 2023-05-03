@@ -43,24 +43,23 @@ qint64 const iconRefreshDurationSecs = 10; ///< The total number of seconds duri
 QIcon loadIconFromImage(QString const &path) {
     QPixmap const pixmap(path);
     if (pixmap.isNull()) {
-        throw Exception(QString("Could create icon from image '%1'.").arg(path));
+        throw Exception(QString("Could not create an icon from an image '%1'.").arg(path));
     }
     return QIcon(pixmap);
 }
 
 
 //****************************************************************************************************************************************************
-/// \brief Load a multi-resolution icon from a SVG file. The image is assumed to be square. SVG is rasterized in 256, 128, 64, 32 and 16px.
+/// \brief Generate an icon from a SVG renderer (a.k.a. path).
 ///
-/// Note: QPixmap can load SVG files directly, but our SVG file are defined in small shape size and QPixmap will rasterize them a very low resolution
-/// by default (eg. 16x16), which is insufficient for some uses. As a consequence, we manually generate a multi-resolution icon that render smoothly
-/// at any acceptable resolution for an icon.
-///
-/// \param[in] path The path of the SVG file.
+/// \param[in] renderer The SVG renderer.
+/// \param[in] color The color to use in case the SVG path is to be used as a mask.
 /// \return The icon.
 //****************************************************************************************************************************************************
-QIcon loadIconFromSVG(QString const &path, QColor const &color = QColor()) {
-    QSvgRenderer renderer(path);
+QIcon loadIconFromSVGRenderer(QSvgRenderer &renderer, QColor const &color = QColor()) {
+    if (!renderer.isValid()) {
+        return QIcon();
+    }
     QIcon icon;
     qint32 size = 256;
 
@@ -78,6 +77,26 @@ QIcon loadIconFromSVG(QString const &path, QColor const &color = QColor()) {
         size /= 2;
     }
 
+    return icon;
+}
+
+
+//****************************************************************************************************************************************************
+/// \brief Load a multi-resolution icon from a SVG file. The image is assumed to be square. SVG is rasterized in 256, 128, 64, 32 and 16px.
+///
+/// Note: QPixmap can load SVG files directly, but our SVG file are defined in small shape size and QPixmap will rasterize them a very low resolution
+/// by default (eg. 16x16), which is insufficient for some uses. As a consequence, we manually generate a multi-resolution icon that render smoothly
+/// at any acceptable resolution for an icon.
+///
+/// \param[in] path The path of the SVG file.
+/// \return The icon.
+//****************************************************************************************************************************************************
+QIcon loadIconFromSVG(QString const &path, QColor const &color = QColor()) {
+    QSvgRenderer renderer(path);
+    QIcon const icon = loadIconFromSVGRenderer(renderer, color);
+    if (icon.isNull()) {
+        Exception(QString("Could not create an icon from a vector image '%1'.").arg(path));
+    }
     return icon;
 }
 
@@ -171,7 +190,6 @@ TrayIcon::TrayIcon()
     // some OSes/Desktop managers will automatically show main window when clicked, but not all, so we do it manually.
     connect(this, &TrayIcon::messageClicked, &app().backend(), &QMLBackend::showMainWindow);
     this->show();
-    this->setState(State::Normal, QString(), QString());
 
     // TrayIcon does not expose its screen, so we connect relevant screen events to our DPI change handler.
     for (QScreen *screen: QGuiApplication::screens()) {
@@ -270,18 +288,17 @@ void TrayIcon::onIconRefreshTimer() {
 //
 //****************************************************************************************************************************************************
 void TrayIcon::generateDotIcons() {
-    QPixmap dotSVG(":/qml/icons/ic-dot.svg");
+    QSvgRenderer dotSVG(QString(":/qml/icons/ic-dot.svg"));
+
     struct IconColor {
         QIcon &icon;
         QColor color;
     };
     for (auto pair: QList<IconColor> {{ greenDot_, normalColor }, { greyDot_, greyColor }, { orangeDot_, warnColor }}) {
-        QPixmap p = dotSVG;
-        QPainter painter(&p);
-        painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-        painter.fillRect(p.rect(), pair.color);
-        painter.end();
-        pair.icon = QIcon(p);
+        pair.icon = loadIconFromSVGRenderer(dotSVG, pair.color);
+        if (pair.icon.isNull()) {
+            throw Exception("Could not generate dot icon from vector file.");
+        }
     }
 }
 
@@ -315,12 +332,7 @@ void TrayIcon::showErrorPopupNotification(QString const &title, QString const &m
 //****************************************************************************************************************************************************
 void TrayIcon::generateStatusIcon(QString const &svgPath, QColor const &color) {
     // We use the SVG path as pixmap mask and fill it with the appropriate color
-    QPixmap pixmap(qmlResourcePathToQt(svgPath));
-    QPainter painter(&pixmap);
-    painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-    painter.fillRect(pixmap.rect(), color);
-    painter.end();
-    statusIcon_ = QIcon(pixmap);
+    statusIcon_ = loadIconFromSVG(qmlResourcePathToQt(svgPath), color);
 }
 
 
