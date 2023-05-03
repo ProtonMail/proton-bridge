@@ -67,6 +67,7 @@ private: // data members
     QIcon greenDot_; ///< The green dot icon.
     QIcon greyDot_; ///< The grey dot icon.
     QIcon orangeDot_; ///< The orange dot icon.
+    QIcon const notificationErrorIcon_; ///< The error icon used for notifications.
 
     QTimer iconRefreshTimer_; ///< The timer used to periodically refresh the icon when DPI changes.
     QDateTime iconRefreshDeadline_; ///< The deadline for refreshing the icon

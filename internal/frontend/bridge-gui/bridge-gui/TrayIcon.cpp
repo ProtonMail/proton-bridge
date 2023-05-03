@@ -159,8 +159,9 @@ QString qmlResourcePathToQt(QString const &path) {
 //****************************************************************************************************************************************************
 TrayIcon::TrayIcon()
     : QSystemTrayIcon()
-    , menu_(new QMenu) {
-
+    , menu_(new QMenu)
+    , notificationErrorIcon_(loadIconFromSVG(":/qml/icons/ic-alert.svg"))
+    {
     this->generateDotIcons();
     this->setContextMenu(menu_.get());
 
@@ -304,8 +305,7 @@ void TrayIcon::setState(TrayIcon::State state, QString const &stateString, QStri
 /// \param[in] message The message.
 //****************************************************************************************************************************************************
 void TrayIcon::showErrorPopupNotification(QString const &title, QString const &message) {
-//    this->showMessage(title, message, loadIconFromSVG(":/qml/icons/ic-exclamation-circle-filled.svg", errorColor));
-    this->showMessage(title, message, loadIconFromSVG(":/qml/icons/ic-alert.svg"));
+    this->showMessage(title, message, notificationErrorIcon_);
 }
 
 
