@@ -351,8 +351,8 @@ func (t *testCtx) expectProxyCtlAllowProxy() {
 
 type mockRestarter struct{}
 
-func (m *mockRestarter) Set(restart, crash bool) {}
+func (m *mockRestarter) Set(_, _ bool) {}
 
-func (m *mockRestarter) AddFlags(flags ...string) {}
+func (m *mockRestarter) AddFlags(_ ...string) {}
 
-func (m *mockRestarter) Override(exe string) {}
+func (m *mockRestarter) Override(_ string) {}

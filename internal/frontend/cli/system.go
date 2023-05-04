@@ -31,7 +31,7 @@ import (
 	"github.com/abiosoft/ishell"
 )
 
-func (f *frontendCLI) printLogDir(c *ishell.Context) {
+func (f *frontendCLI) printLogDir(_ *ishell.Context) {
 	if path, err := f.bridge.GetLogsPath(); err != nil {
 		f.Println("Failed to determine location of log files")
 	} else {
@@ -39,17 +39,17 @@ func (f *frontendCLI) printLogDir(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) printManual(c *ishell.Context) {
+func (f *frontendCLI) printManual(_ *ishell.Context) {
 	f.Println("More instructions about the Bridge can be found at\n\n  https://proton.me/mail/bridge")
 }
 
-func (f *frontendCLI) printCredits(c *ishell.Context) {
+func (f *frontendCLI) printCredits(_ *ishell.Context) {
 	for _, pkg := range strings.Split(bridge.Credits, ";") {
 		f.Println(pkg)
 	}
 }
 
-func (f *frontendCLI) changeIMAPSecurity(c *ishell.Context) {
+func (f *frontendCLI) changeIMAPSecurity(_ *ishell.Context) {
 	f.ShowPrompt(false)
 	defer f.ShowPrompt(true)
 
@@ -68,7 +68,7 @@ func (f *frontendCLI) changeIMAPSecurity(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) changeSMTPSecurity(c *ishell.Context) {
+func (f *frontendCLI) changeSMTPSecurity(_ *ishell.Context) {
 	f.ShowPrompt(false)
 	defer f.ShowPrompt(true)
 
@@ -131,7 +131,7 @@ func (f *frontendCLI) changeSMTPPort(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) allowProxy(c *ishell.Context) {
+func (f *frontendCLI) allowProxy(_ *ishell.Context) {
 	if f.bridge.GetProxyAllowed() {
 		f.Println("Bridge is already set to use alternative routing to connect to Proton if it is being blocked.")
 		return
@@ -147,7 +147,7 @@ func (f *frontendCLI) allowProxy(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) disallowProxy(c *ishell.Context) {
+func (f *frontendCLI) disallowProxy(_ *ishell.Context) {
 	if !f.bridge.GetProxyAllowed() {
 		f.Println("Bridge is already set to NOT use alternative routing to connect to Proton if it is being blocked.")
 		return
@@ -163,7 +163,7 @@ func (f *frontendCLI) disallowProxy(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) hideAllMail(c *ishell.Context) {
+func (f *frontendCLI) hideAllMail(_ *ishell.Context) {
 	if !f.bridge.GetShowAllMail() {
 		f.Println("All Mail folder is not listed in your local client.")
 		return
@@ -179,7 +179,7 @@ func (f *frontendCLI) hideAllMail(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) showAllMail(c *ishell.Context) {
+func (f *frontendCLI) showAllMail(_ *ishell.Context) {
 	if f.bridge.GetShowAllMail() {
 		f.Println("All Mail folder is listed in your local client.")
 		return

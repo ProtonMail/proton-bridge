@@ -144,13 +144,13 @@ func (testUpdater *TestUpdater) SetLatestVersion(version, minAuto *semver.Versio
 	}
 }
 
-func (testUpdater *TestUpdater) GetVersionInfo(ctx context.Context, downloader updater.Downloader, channel updater.Channel) (updater.VersionInfo, error) {
+func (testUpdater *TestUpdater) GetVersionInfo(_ context.Context, _ updater.Downloader, _ updater.Channel) (updater.VersionInfo, error) {
 	testUpdater.lock.RLock()
 	defer testUpdater.lock.RUnlock()
 
 	return testUpdater.latest, nil
 }
 
-func (testUpdater *TestUpdater) InstallUpdate(ctx context.Context, downloader updater.Downloader, update updater.VersionInfo) error {
+func (testUpdater *TestUpdater) InstallUpdate(_ context.Context, _ updater.Downloader, _ updater.VersionInfo) error {
 	return nil
 }

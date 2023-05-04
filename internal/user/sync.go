@@ -572,10 +572,10 @@ func (user *User) syncMessages(
 
 					// We could sync a placeholder message here, but for now we skip it entirely.
 					continue
-				} else {
-					if err := vault.RemFailedMessageID(res.messageID); err != nil {
-						logrus.WithError(err).Error("Failed to remove failed message ID")
-					}
+				}
+
+				if err := vault.RemFailedMessageID(res.messageID); err != nil {
+					logrus.WithError(err).Error("Failed to remove failed message ID")
 				}
 
 				targetInfo := addressToIndex[res.addressID]

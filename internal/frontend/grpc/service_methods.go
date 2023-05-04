@@ -47,7 +47,7 @@ import (
 )
 
 // CheckTokens implements the CheckToken gRPC service call.
-func (s *Service) CheckTokens(ctx context.Context, clientConfigPath *wrapperspb.StringValue) (*wrapperspb.StringValue, error) {
+func (s *Service) CheckTokens(_ context.Context, clientConfigPath *wrapperspb.StringValue) (*wrapperspb.StringValue, error) {
 	s.log.Debug("CheckTokens")
 
 	path := clientConfigPath.Value
@@ -65,7 +65,7 @@ func (s *Service) CheckTokens(ctx context.Context, clientConfigPath *wrapperspb.
 	return &wrapperspb.StringValue{Value: clientConfig.Token}, nil
 }
 
-func (s *Service) AddLogEntry(ctx context.Context, request *AddLogEntryRequest) (*emptypb.Empty, error) {
+func (s *Service) AddLogEntry(_ context.Context, request *AddLogEntryRequest) (*emptypb.Empty, error) {
 	entry := s.log
 
 	if len(request.Package) > 0 {
@@ -93,7 +93,7 @@ func (s *Service) AddLogEntry(ctx context.Context, request *AddLogEntryRequest) 
 }
 
 // GuiReady implement the GuiReady gRPC service call.
-func (s *Service) GuiReady(ctx context.Context, _ *emptypb.Empty) (*GuiReadyResponse, error) {
+func (s *Service) GuiReady(_ context.Context, _ *emptypb.Empty) (*GuiReadyResponse, error) {
 	s.log.Debug("GuiReady")
 
 	s.initializationDone.Do(s.initializing.Done)
@@ -107,7 +107,7 @@ func (s *Service) GuiReady(ctx context.Context, _ *emptypb.Empty) (*GuiReadyResp
 }
 
 // Quit implement the Quit gRPC service call.
-func (s *Service) Quit(ctx context.Context, empty *emptypb.Empty) (*emptypb.Empty, error) {
+func (s *Service) Quit(_ context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
 	s.log.Debug("Quit")
 	return &emptypb.Empty{}, s.quit()
 }
@@ -143,13 +143,13 @@ func (s *Service) Restart(ctx context.Context, empty *emptypb.Empty) (*emptypb.E
 	return s.Quit(ctx, empty)
 }
 
-func (s *Service) ShowOnStartup(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
+func (s *Service) ShowOnStartup(_ context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	s.log.Debug("ShowOnStartup")
 
 	return wrapperspb.Bool(s.showOnStartup), nil
 }
 
-func (s *Service) SetIsAutostartOn(ctx context.Context, isOn *wrapperspb.BoolValue) (*emptypb.Empty, error) {
+func (s *Service) SetIsAutostartOn(_ context.Context, isOn *wrapperspb.BoolValue) (*emptypb.Empty, error) {
 	s.log.WithField("show", isOn.Value).Debug("SetIsAutostartOn")
 
 	defer func() { _ = s.SendEvent(NewToggleAutostartFinishedEvent()) }()
@@ -169,13 +169,13 @@ func (s *Service) SetIsAutostartOn(ctx context.Context, isOn *wrapperspb.BoolVal
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) IsAutostartOn(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
+func (s *Service) IsAutostartOn(_ context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	s.log.Debug("IsAutostartOn")
 
 	return wrapperspb.Bool(s.bridge.GetAutostart()), nil
 }
 
-func (s *Service) SetIsBetaEnabled(ctx context.Context, isEnabled *wrapperspb.BoolValue) (*emptypb.Empty, error) {
+func (s *Service) SetIsBetaEnabled(_ context.Context, isEnabled *wrapperspb.BoolValue) (*emptypb.Empty, error) {
 	s.log.WithField("isEnabled", isEnabled.Value).Debug("SetIsBetaEnabled")
 
 	channel := updater.StableChannel
@@ -191,13 +191,13 @@ func (s *Service) SetIsBetaEnabled(ctx context.Context, isEnabled *wrapperspb.Bo
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) IsBetaEnabled(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
+func (s *Service) IsBetaEnabled(_ context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	s.log.Debug("IsBetaEnabled")
 
 	return wrapperspb.Bool(s.bridge.GetUpdateChannel() == updater.EarlyChannel), nil
 }
 
-func (s *Service) SetIsAllMailVisible(ctx context.Context, isVisible *wrapperspb.BoolValue) (*emptypb.Empty, error) {
+func (s *Service) SetIsAllMailVisible(_ context.Context, isVisible *wrapperspb.BoolValue) (*emptypb.Empty, error) {
 	s.log.WithField("isVisible", isVisible.Value).Debug("SetIsAllMailVisible")
 
 	if err := s.bridge.SetShowAllMail(isVisible.Value); err != nil {
@@ -208,7 +208,7 @@ func (s *Service) SetIsAllMailVisible(ctx context.Context, isVisible *wrapperspb
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) IsAllMailVisible(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
+func (s *Service) IsAllMailVisible(_ context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	s.log.Debug("IsAllMailVisible")
 
 	return wrapperspb.Bool(s.bridge.GetShowAllMail()), nil
@@ -231,13 +231,13 @@ func (s *Service) IsTelemetryDisabled(_ context.Context, _ *emptypb.Empty) (*wra
 	return wrapperspb.Bool(s.bridge.GetTelemetryDisabled()), nil
 }
 
-func (s *Service) GoOs(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
+func (s *Service) GoOs(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("GoOs") // TO-DO We can probably get rid of this and use QSysInfo::product name
 
 	return wrapperspb.String(runtime.GOOS), nil
 }
 
-func (s *Service) TriggerReset(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+func (s *Service) TriggerReset(_ context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
 	s.log.Debug("TriggerReset")
 
 	go func() {
@@ -248,13 +248,13 @@ func (s *Service) TriggerReset(ctx context.Context, _ *emptypb.Empty) (*emptypb.
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) Version(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
+func (s *Service) Version(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("Version")
 
 	return wrapperspb.String(s.bridge.GetCurrentVersion().Original()), nil
 }
 
-func (s *Service) LogsPath(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
+func (s *Service) LogsPath(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("LogsPath")
 
 	path, err := s.bridge.GetLogsPath()
@@ -265,7 +265,7 @@ func (s *Service) LogsPath(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.S
 	return wrapperspb.String(path), nil
 }
 
-func (s *Service) LicensePath(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
+func (s *Service) LicensePath(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("LicensePath")
 
 	return wrapperspb.String(s.bridge.GetLicenseFilePath()), nil
@@ -275,7 +275,7 @@ func (s *Service) DependencyLicensesLink(_ context.Context, _ *emptypb.Empty) (*
 	return wrapperspb.String(s.bridge.GetDependencyLicensesLink()), nil
 }
 
-func (s *Service) ReleaseNotesPageLink(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
+func (s *Service) ReleaseNotesPageLink(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.latestLock.RLock()
 	defer s.latestLock.RUnlock()
 
@@ -289,7 +289,7 @@ func (s *Service) LandingPageLink(_ context.Context, _ *emptypb.Empty) (*wrapper
 	return wrapperspb.String(s.latest.LandingPage), nil
 }
 
-func (s *Service) SetColorSchemeName(ctx context.Context, name *wrapperspb.StringValue) (*emptypb.Empty, error) {
+func (s *Service) SetColorSchemeName(_ context.Context, name *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	s.log.WithField("ColorSchemeName", name.Value).Debug("SetColorSchemeName")
 
 	if !theme.IsAvailable(theme.Theme(name.Value)) {
@@ -305,7 +305,7 @@ func (s *Service) SetColorSchemeName(ctx context.Context, name *wrapperspb.Strin
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) ColorSchemeName(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
+func (s *Service) ColorSchemeName(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("ColorSchemeName")
 
 	current := s.bridge.GetColorScheme()
@@ -320,13 +320,13 @@ func (s *Service) ColorSchemeName(ctx context.Context, _ *emptypb.Empty) (*wrapp
 	return wrapperspb.String(current), nil
 }
 
-func (s *Service) CurrentEmailClient(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
+func (s *Service) CurrentEmailClient(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("CurrentEmailClient")
 
 	return wrapperspb.String(s.bridge.GetCurrentUserAgent()), nil
 }
 
-func (s *Service) ReportBug(ctx context.Context, report *ReportBugRequest) (*emptypb.Empty, error) {
+func (s *Service) ReportBug(_ context.Context, report *ReportBugRequest) (*emptypb.Empty, error) {
 	s.log.WithFields(logrus.Fields{
 		"osType":      report.OsType,
 		"osVersion":   report.OsVersion,
@@ -382,7 +382,7 @@ func (s *Service) ExportTLSCertificates(_ context.Context, folderPath *wrappersp
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) ForceLauncher(ctx context.Context, launcher *wrapperspb.StringValue) (*emptypb.Empty, error) {
+func (s *Service) ForceLauncher(_ context.Context, launcher *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	s.log.WithField("launcher", launcher.Value).Debug("ForceLauncher")
 
 	s.restarter.Override(launcher.Value)
@@ -390,7 +390,7 @@ func (s *Service) ForceLauncher(ctx context.Context, launcher *wrapperspb.String
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) SetMainExecutable(ctx context.Context, exe *wrapperspb.StringValue) (*emptypb.Empty, error) {
+func (s *Service) SetMainExecutable(_ context.Context, exe *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	s.log.WithField("executable", exe.Value).Debug("SetMainExecutable")
 
 	s.restarter.AddFlags("--wait", exe.Value)
@@ -398,7 +398,7 @@ func (s *Service) SetMainExecutable(ctx context.Context, exe *wrapperspb.StringV
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empty, error) {
+func (s *Service) Login(_ context.Context, login *LoginRequest) (*emptypb.Empty, error) {
 	s.log.WithField("username", login.Username).Debug("Login")
 
 	go func() {
@@ -454,7 +454,7 @@ func (s *Service) Login(ctx context.Context, login *LoginRequest) (*emptypb.Empt
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) Login2FA(ctx context.Context, login *LoginRequest) (*emptypb.Empty, error) {
+func (s *Service) Login2FA(_ context.Context, login *LoginRequest) (*emptypb.Empty, error) {
 	s.log.WithField("username", login.Username).Debug("Login2FA")
 
 	go func() {
@@ -499,7 +499,7 @@ func (s *Service) Login2FA(ctx context.Context, login *LoginRequest) (*emptypb.E
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) Login2Passwords(ctx context.Context, login *LoginRequest) (*emptypb.Empty, error) {
+func (s *Service) Login2Passwords(_ context.Context, login *LoginRequest) (*emptypb.Empty, error) {
 	s.log.WithField("username", login.Username).Debug("Login2Passwords")
 
 	go func() {
@@ -521,7 +521,7 @@ func (s *Service) Login2Passwords(ctx context.Context, login *LoginRequest) (*em
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) LoginAbort(ctx context.Context, loginAbort *LoginAbortRequest) (*emptypb.Empty, error) {
+func (s *Service) LoginAbort(_ context.Context, loginAbort *LoginAbortRequest) (*emptypb.Empty, error) {
 	s.log.WithField("username", loginAbort.Username).Debug("LoginAbort")
 
 	go func() {
@@ -565,7 +565,7 @@ func (s *Service) CheckUpdate(context.Context, *emptypb.Empty) (*emptypb.Empty, 
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) InstallUpdate(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+func (s *Service) InstallUpdate(_ context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
 	s.log.Debug("InstallUpdate")
 
 	go func() {
@@ -579,7 +579,7 @@ func (s *Service) InstallUpdate(ctx context.Context, _ *emptypb.Empty) (*emptypb
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) SetIsAutomaticUpdateOn(ctx context.Context, isOn *wrapperspb.BoolValue) (*emptypb.Empty, error) {
+func (s *Service) SetIsAutomaticUpdateOn(_ context.Context, isOn *wrapperspb.BoolValue) (*emptypb.Empty, error) {
 	s.log.WithField("isOn", isOn.Value).Debug("SetIsAutomaticUpdateOn")
 
 	if currentlyOn := s.bridge.GetAutoUpdate(); currentlyOn == isOn.Value {
@@ -594,19 +594,19 @@ func (s *Service) SetIsAutomaticUpdateOn(ctx context.Context, isOn *wrapperspb.B
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) IsAutomaticUpdateOn(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
+func (s *Service) IsAutomaticUpdateOn(_ context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	s.log.Debug("IsAutomaticUpdateOn")
 
 	return wrapperspb.Bool(s.bridge.GetAutoUpdate()), nil
 }
 
-func (s *Service) DiskCachePath(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
+func (s *Service) DiskCachePath(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("DiskCachePath")
 
 	return wrapperspb.String(s.bridge.GetGluonCacheDir()), nil
 }
 
-func (s *Service) SetDiskCachePath(ctx context.Context, newPath *wrapperspb.StringValue) (*emptypb.Empty, error) {
+func (s *Service) SetDiskCachePath(_ context.Context, newPath *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	s.log.WithField("path", newPath.Value).Debug("setDiskCachePath")
 
 	go func() {
@@ -637,7 +637,7 @@ func (s *Service) SetDiskCachePath(ctx context.Context, newPath *wrapperspb.Stri
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) SetIsDoHEnabled(ctx context.Context, isEnabled *wrapperspb.BoolValue) (*emptypb.Empty, error) {
+func (s *Service) SetIsDoHEnabled(_ context.Context, isEnabled *wrapperspb.BoolValue) (*emptypb.Empty, error) {
 	s.log.WithField("isEnabled", isEnabled.Value).Debug("SetIsDohEnabled")
 
 	if err := s.bridge.SetProxyAllowed(isEnabled.Value); err != nil {
@@ -648,7 +648,7 @@ func (s *Service) SetIsDoHEnabled(ctx context.Context, isEnabled *wrapperspb.Boo
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) IsDoHEnabled(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
+func (s *Service) IsDoHEnabled(_ context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	s.log.Debug("IsDohEnabled")
 
 	return wrapperspb.Bool(s.bridge.GetProxyAllowed()), nil
@@ -715,19 +715,19 @@ func (s *Service) SetMailServerSettings(_ context.Context, settings *ImapSmtpSet
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) Hostname(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
+func (s *Service) Hostname(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("Hostname")
 
 	return wrapperspb.String(constants.Host), nil
 }
 
-func (s *Service) IsPortFree(ctx context.Context, port *wrapperspb.Int32Value) (*wrapperspb.BoolValue, error) {
+func (s *Service) IsPortFree(_ context.Context, port *wrapperspb.Int32Value) (*wrapperspb.BoolValue, error) {
 	s.log.Debug("IsPortFree")
 
 	return wrapperspb.Bool(ports.IsPortFree(int(port.Value))), nil
 }
 
-func (s *Service) AvailableKeychains(ctx context.Context, _ *emptypb.Empty) (*AvailableKeychainsResponse, error) {
+func (s *Service) AvailableKeychains(_ context.Context, _ *emptypb.Empty) (*AvailableKeychainsResponse, error) {
 	s.log.Debug("AvailableKeychains")
 
 	return &AvailableKeychainsResponse{Keychains: maps.Keys(keychain.Helpers)}, nil
@@ -757,7 +757,7 @@ func (s *Service) SetCurrentKeychain(ctx context.Context, keychain *wrapperspb.S
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) CurrentKeychain(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
+func (s *Service) CurrentKeychain(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("CurrentKeychain")
 
 	helper, err := s.bridge.GetKeychainApp()

@@ -72,7 +72,7 @@ func (s *smtpSession) Logout() error {
 	return nil
 }
 
-func (s *smtpSession) Mail(from string, opts *smtp.MailOptions) error {
+func (s *smtpSession) Mail(from string, _ *smtp.MailOptions) error {
 	s.from = from
 	return nil
 }

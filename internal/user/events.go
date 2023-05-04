@@ -394,7 +394,7 @@ func (user *User) handleLabelEvents(ctx context.Context, labelEvents []proton.La
 	return nil
 }
 
-func (user *User) handleCreateLabelEvent(ctx context.Context, event proton.LabelEvent) ([]imap.Update, error) { //nolint:unparam
+func (user *User) handleCreateLabelEvent(_ context.Context, event proton.LabelEvent) ([]imap.Update, error) { //nolint:unparam
 	return safe.LockRetErr(func() ([]imap.Update, error) {
 		var updates []imap.Update
 
@@ -480,7 +480,7 @@ func (user *User) handleUpdateLabelEvent(ctx context.Context, event proton.Label
 	}, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleDeleteLabelEvent(ctx context.Context, event proton.LabelEvent) ([]imap.Update, error) { //nolint:unparam
+func (user *User) handleDeleteLabelEvent(_ context.Context, event proton.LabelEvent) ([]imap.Update, error) { //nolint:unparam
 	return safe.LockRetErr(func() ([]imap.Update, error) {
 		var updates []imap.Update
 
@@ -643,7 +643,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, message proton.M
 	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleUpdateMessageEvent(ctx context.Context, message proton.MessageMetadata) ([]imap.Update, error) { //nolint:unparam
+func (user *User) handleUpdateMessageEvent(_ context.Context, message proton.MessageMetadata) ([]imap.Update, error) { //nolint:unparam
 	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		user.log.WithFields(logrus.Fields{
 			"messageID": message.ID,
@@ -680,7 +680,7 @@ func (user *User) handleUpdateMessageEvent(ctx context.Context, message proton.M
 	}, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleDeleteMessageEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) { //nolint:unparam
+func (user *User) handleDeleteMessageEvent(_ context.Context, event proton.MessageEvent) ([]imap.Update, error) {
 	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		user.log.WithField("messageID", event.ID).Info("Handling message deleted event")
 
@@ -696,7 +696,7 @@ func (user *User) handleDeleteMessageEvent(ctx context.Context, event proton.Mes
 	}, user.updateChLock)
 }
 
-func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) { //nolint:unparam
+func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) {
 	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		user.log.WithFields(logrus.Fields{
 			"messageID": event.ID,

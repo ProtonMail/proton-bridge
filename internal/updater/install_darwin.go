@@ -62,6 +62,6 @@ func (i *InstallerDarwin) InstallUpdate(_ *semver.Version, r io.Reader) error {
 	return syncFolders(oldBundle, newBundle)
 }
 
-func (i *InstallerDarwin) IsAlreadyInstalled(version *semver.Version) bool {
+func (i *InstallerDarwin) IsAlreadyInstalled(_ *semver.Version) bool {
 	return false
 }

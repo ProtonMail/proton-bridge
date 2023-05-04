@@ -673,7 +673,7 @@ func TestParsePanic(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestParseTextPlainWithPdfttachmentCyrillic(t *testing.T) {
+func TestParseTextPlainWithPdfAttachmentCyrillic(t *testing.T) {
 	f := getFileReader("text_plain_pdf_attachment_cyrillic.eml")
 
 	m, err := Parse(f)
@@ -718,6 +718,6 @@ func getFileReader(filename string) io.Reader {
 
 type panicReader struct{}
 
-func (panicReader) Read(p []byte) (int, error) {
+func (panicReader) Read(_ []byte) (int, error) {
 	panic("lol")
 }

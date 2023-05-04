@@ -709,6 +709,6 @@ func TestBridge_User_Refresh(t *testing.T) {
 }
 
 // getErr returns the error that was passed to it.
-func getErr[T any](val T, err error) error {
+func getErr[T any](_ T, err error) error {
 	return err
 }

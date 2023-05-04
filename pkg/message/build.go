@@ -92,11 +92,7 @@ func buildSimpleRFC822(kr *crypto.KeyRing, msg proton.Message, opts JobOptions, 
 		return err
 	}
 
-	if err := w.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return w.Close()
 }
 
 func buildMultipartRFC822(
@@ -148,11 +144,7 @@ func buildMultipartRFC822(
 		}
 	}
 
-	if err := w.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return w.Close()
 }
 
 func writeTextPart(
@@ -319,11 +311,7 @@ func buildPGPMIMEFallbackRFC822(msg proton.Message, opts JobOptions, buf *bytes.
 		return err
 	}
 
-	if err := w.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return w.Close()
 }
 
 func writeMultipartSignedRFC822(header message.Header, body []byte, sig proton.Signature, buf *bytes.Buffer) error {
@@ -379,11 +367,7 @@ func writeMultipartSignedRFC822(header message.Header, body []byte, sig proton.S
 		return err
 	}
 
-	if err := mw.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return mw.Close()
 }
 
 func writeMultipartEncryptedRFC822(header message.Header, body []byte, buf *bytes.Buffer) error {
