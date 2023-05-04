@@ -133,7 +133,8 @@ func (vault *Vault) ForUser(parallelism int, fn func(*User) error) error {
 }
 
 // AddUser creates a new user in the vault with the given ID, username and password.
-// A bridge password and gluon key are generated using the package's token generator.
+// A gluon key is generated using the package's token generator. If a password is found in the password archive for this user,
+// it is restored, otherwise a new bridge password is generated using the package's token generator.
 func (vault *Vault) AddUser(userID, username, primaryEmail, authUID, authRef string, keyPass []byte) (*User, error) {
 	logrus.WithField("userID", userID).Info("Adding vault user")
 
@@ -145,7 +146,12 @@ func (vault *Vault) AddUser(userID, username, primaryEmail, authUID, authRef str
 		}); idx >= 0 {
 			exists = true
 		} else {
-			data.Users = append(data.Users, newDefaultUser(userID, username, primaryEmail, authUID, authRef, keyPass))
+			bridgePass := data.Settings.PasswordArchive.get(primaryEmail)
+			if len(bridgePass) == 0 {
+				bridgePass = newRandomToken(16)
+			}
+
+			data.Users = append(data.Users, newDefaultUser(userID, username, primaryEmail, authUID, authRef, keyPass, bridgePass))
 		}
 	}); err != nil {
 		return nil, err
@@ -177,7 +183,7 @@ func (vault *Vault) DeleteUser(userID string) error {
 		if idx < 0 {
 			return
 		}
-
+		data.Settings.PasswordArchive.set(data.Users[idx].PrimaryEmail, data.Users[idx].BridgePass)
 		data.Users = append(data.Users[:idx], data.Users[idx+1:]...)
 	})
 }

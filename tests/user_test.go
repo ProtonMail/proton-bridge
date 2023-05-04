@@ -28,6 +28,8 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/godog"
@@ -424,6 +426,37 @@ func (s *scenario) userHasTelemetrySetTo(username string, telemetry int) error {
 		}
 		return nil
 	})
+}
+
+func (s *scenario) bridgePasswordOfUserIsChangedTo(username, bridgePassword string) error {
+	b, err := algo.B64RawDecode([]byte(bridgePassword))
+	if err != nil {
+		return errors.New("the password is not base64 encoded")
+	}
+
+	var setErr error
+	if err := s.t.vault.GetUser(
+		s.t.getUserByName(username).getUserID(),
+		func(user *vault.User) { setErr = user.SetBridgePass(b) },
+	); err != nil {
+		return err
+	}
+
+	return setErr
+}
+
+func (s *scenario) bridgePasswordOfUserIsEqualTo(username, bridgePassword string) error {
+	userInfo, err := s.t.bridge.QueryUserInfo(username)
+	if err != nil {
+		return err
+	}
+
+	readPassword := string(userInfo.BridgePass)
+	if readPassword != bridgePassword {
+		return fmt.Errorf("bridge password mismatch, expected '%v', got '%v'", bridgePassword, readPassword)
+	}
+
+	return nil
 }
 
 func (s *scenario) addAdditionalAddressToAccount(username, address string, disabled bool) error {

@@ -36,6 +36,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	frontend "github.com/ProtonMail/proton-bridge/v3/internal/frontend/grpc"
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
+	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/godog"
 	"github.com/emersion/go-imap/client"
@@ -135,6 +136,7 @@ type testCtx struct {
 
 	// bridge holds the bridge app under test.
 	bridge *bridge.Bridge
+	vault  *vault.Vault
 
 	// service holds the gRPC frontend service under test.
 	service   *frontend.Service

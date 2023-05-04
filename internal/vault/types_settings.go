@@ -53,6 +53,8 @@ type Settings struct {
 
 	LastHeartbeatSent time.Time
 
+	PasswordArchive PasswordArchive
+
 	// **WARNING**: These entry can't be removed until they vault has proper migration support.
 	SyncWorkers int
 	SyncAttPool int
@@ -105,5 +107,7 @@ func newDefaultSettings(gluonDir string) Settings {
 
 		LastUserAgent:     DefaultUserAgent,
 		LastHeartbeatSent: time.Time{},
+
+		PasswordArchive: PasswordArchive{},
 	}
 }

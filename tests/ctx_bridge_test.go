@@ -114,6 +114,7 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 	} else if corrupt {
 		return nil, fmt.Errorf("vault is corrupt")
 	}
+	t.vault = vault
 
 	// Create the underlying cookie jar.
 	jar, err := cookiejar.New(nil)
