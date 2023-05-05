@@ -610,6 +610,10 @@ func (user *User) syncMessages(
 	}, logging.Labels{"sync-stage": "flush"})
 
 	for flushUpdate := range flushUpdateCh {
+		if flushUpdate.err != nil {
+			return flushUpdate.err
+		}
+
 		if err := vault.SetLastMessageID(flushUpdate.messageID); err != nil {
 			return fmt.Errorf("failed to set last synced message ID: %w", err)
 		}
