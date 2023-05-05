@@ -282,7 +282,7 @@ func (user *User) Match(query string) bool {
 func (user *User) Emails() []string {
 	return safe.RLockRet(func() []string {
 		addresses := xslices.Filter(maps.Values(user.apiAddrs), func(addr proton.Address) bool {
-			return addr.Status == proton.AddressStatusEnabled
+			return addr.Status == proton.AddressStatusEnabled && addr.Type != proton.AddressTypeExternal
 		})
 
 		slices.SortFunc(addresses, func(a, b proton.Address) bool {
