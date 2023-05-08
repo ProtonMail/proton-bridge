@@ -104,7 +104,7 @@ QIcon loadIconFromSVG(QString const &path, QColor const &color = QColor()) {
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-QIcon loadIcon(QString const& path) {
+QIcon loadIcon(QString const &path) {
     if (path.endsWith(".svg", Qt::CaseInsensitive)) {
         return loadIconFromSVG(path);
     }
@@ -179,8 +179,7 @@ QString qmlResourcePathToQt(QString const &path) {
 TrayIcon::TrayIcon()
     : QSystemTrayIcon()
     , menu_(new QMenu)
-    , notificationErrorIcon_(loadIconFromSVG(":/qml/icons/ic-alert.svg"))
-    {
+    , notificationErrorIcon_(loadIconFromSVG(":/qml/icons/ic-alert.svg")) {
     this->generateDotIcons();
     this->setContextMenu(menu_.get());
 
@@ -348,8 +347,10 @@ void TrayIcon::refreshContextMenu() {
     menu_->clear();
     menu_->addAction(statusIcon_, stateString_, &app().backend(), &QMLBackend::showMainWindow);
     menu_->addSeparator();
+    QKeySequence noShortcut;
     UserList const &users = app().backend().users();
     qint32 const userCount = users.count();
+    bool const onMac = onMacOS();
     for (qint32 i = 0; i < userCount; i++) {
         User const &user = *users.get(i);
         UserState const state = user.state();
@@ -357,7 +358,7 @@ void TrayIcon::refreshContextMenu() {
         action->setIcon((UserState::Connected == state) ? greenDot_ : (UserState::Locked == state ? orangeDot_ : greyDot_));
         action->setData(user.id());
         connect(action, &QAction::triggered, this, &TrayIcon::onUserClicked);
-        if (i < 10) {
+        if ((i < 10) && onMac) {
             action->setShortcut(QKeySequence(QString("Ctrl+%1").arg((i + 1) % 10)));
         }
         menu_->addAction(action);
@@ -365,11 +366,12 @@ void TrayIcon::refreshContextMenu() {
     if (userCount) {
         menu_->addSeparator();
     }
-    menu_->addAction(tr("&Open Bridge"), QKeySequence("Ctrl+O"), &app().backend(), &QMLBackend::showMainWindow);
-    menu_->addAction(tr("&Help"), QKeySequence("Ctrl+F1"), &app().backend(), &QMLBackend::showHelp);
-    menu_->addAction(tr("&Settings"), QKeySequence("Ctrl+,"), &app().backend(), &QMLBackend::showSettings);
+
+    menu_->addAction(tr("&Open Bridge"), onMac ? QKeySequence("Ctrl+O") : noShortcut, &app().backend(), &QMLBackend::showMainWindow);
+    menu_->addAction(tr("&Help"), onMac ? QKeySequence("Ctrl+F1") : noShortcut, &app().backend(), &QMLBackend::showHelp);
+    menu_->addAction(tr("&Settings"), onMac ? QKeySequence("Ctrl+,") : noShortcut, &app().backend(), &QMLBackend::showSettings);
     menu_->addSeparator();
-    menu_->addAction(tr("&Quit Bridge"), QKeySequence("Ctrl+Q"), &app().backend(), &QMLBackend::quit);
+    menu_->addAction(tr("&Quit Bridge"), onMac ? QKeySequence("Ctrl+Q") : noShortcut, &app().backend(), &QMLBackend::quit);
 }
 
 
