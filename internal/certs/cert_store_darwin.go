@@ -50,7 +50,7 @@ int installTrustedCert(char const *bytes, unsigned long long length) {
 		(id)kSecTrustSettingsResult: [NSNumber numberWithInt:kSecTrustSettingsResultTrustRoot],
 		(id)kSecTrustSettingsPolicy: (__bridge id) policy,
 	};
-	status = SecTrustSettingsSetTrustSettings(cert, kSecTrustSettingsDomainAdmin, (__bridge CFTypeRef)(trustSettings));
+	status = SecTrustSettingsSetTrustSettings(cert, kSecTrustSettingsDomainUser, (__bridge CFTypeRef)(trustSettings));
 	CFRelease(policy);
 	CFRelease(cert);
 
@@ -72,7 +72,7 @@ int removeTrustedCert(char const *bytes, unsigned long long length) {
 		(id)kSecTrustSettingsResult: [NSNumber numberWithInt:kSecTrustSettingsResultUnspecified],
 		(id)kSecTrustSettingsPolicy: (__bridge id) policy,
 	};
-	OSStatus status = SecTrustSettingsSetTrustSettings(cert, kSecTrustSettingsDomainAdmin, (__bridge CFTypeRef)(trustSettings));
+	OSStatus status = SecTrustSettingsSetTrustSettings(cert, kSecTrustSettingsDomainUser, (__bridge CFTypeRef)(trustSettings));
 	CFRelease(policy);
 	if (errSecSuccess != status) {
 		CFRelease(cert);
