@@ -297,7 +297,7 @@ func (f *frontendCLI) configureAppleMail(c *ishell.Context) {
 		return
 	}
 
-	if err := f.bridge.ConfigureAppleMail(user.UserID, user.Addresses[0]); err != nil {
+	if err := f.bridge.ConfigureAppleMail(context.Background(), user.UserID, user.Addresses[0]); err != nil {
 		f.printAndLogError(err)
 		return
 	}

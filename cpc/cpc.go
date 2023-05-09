@@ -20,6 +20,7 @@ package cpc
 import (
 	"context"
 	"errors"
+	"fmt"
 )
 
 var ErrRequestHasNoReply = errors.New("request has no reply channel")
@@ -94,6 +95,10 @@ func (c *CPC) Receive(ctx context.Context, f func(context.Context, *Request)) {
 	}
 }
 
+func (c *CPC) ReceiveCh() <-chan *Request {
+	return c.request
+}
+
 func (c *CPC) Close() {
 	close(c.request)
 }
@@ -106,6 +111,22 @@ func (c *CPC) SendNoReply(ctx context.Context, value any) error {
 // SendWithReply sends a request which expects a reply.
 func (c *CPC) SendWithReply(ctx context.Context, value any) (any, error) {
 	return c.executeReplyImpl(ctx, NewRequest(value))
+}
+
+func SendWithReplyType[T any](ctx context.Context, c *CPC, value any) (T, error) {
+	val, err := c.executeReplyImpl(ctx, NewRequest(value))
+	if err != nil {
+		var t T
+		return t, err
+	}
+
+	switch vt := val.(type) {
+	case T:
+		return vt, nil
+	default:
+		var t T
+		return t, fmt.Errorf("reply type does not match")
+	}
 }
 
 func (c *CPC) executeNoReplyImpl(ctx context.Context, request *Request) error {

@@ -147,12 +147,12 @@ func (s *Service) RemoveUser(_ context.Context, userID *wrapperspb.StringValue) 
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) ConfigureUserAppleMail(_ context.Context, request *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
+func (s *Service) ConfigureUserAppleMail(ctx context.Context, request *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
 	s.log.WithField("UserID", request.UserID).WithField("Address", request.Address).Debug("ConfigureUserAppleMail")
 
 	sslWasEnabled := s.bridge.GetSMTPSSL()
 
-	if err := s.bridge.ConfigureAppleMail(request.UserID, request.Address); err != nil {
+	if err := s.bridge.ConfigureAppleMail(ctx, request.UserID, request.Address); err != nil {
 		s.log.WithField("userID", request.UserID).Error("Cannot configure AppleMail for user")
 		return nil, status.Error(codes.Internal, "Apple Mail config failed")
 	}

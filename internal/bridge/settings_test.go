@@ -57,7 +57,7 @@ func TestBridge_Settings_IMAPPort(t *testing.T) {
 			curPort := bridge.GetIMAPPort()
 
 			// Set the port to 1144.
-			require.NoError(t, bridge.SetIMAPPort(1144))
+			require.NoError(t, bridge.SetIMAPPort(ctx, 1144))
 
 			// Get the new setting.
 			require.Equal(t, 1144, bridge.GetIMAPPort())
@@ -75,7 +75,7 @@ func TestBridge_Settings_IMAPSSL(t *testing.T) {
 			require.False(t, bridge.GetIMAPSSL())
 
 			// Enable IMAP SSL.
-			require.NoError(t, bridge.SetIMAPSSL(true))
+			require.NoError(t, bridge.SetIMAPSSL(ctx, true))
 
 			// Get the new setting.
 			require.True(t, bridge.GetIMAPSSL())
@@ -89,7 +89,7 @@ func TestBridge_Settings_SMTPPort(t *testing.T) {
 			curPort := bridge.GetSMTPPort()
 
 			// Set the port to 1024.
-			require.NoError(t, bridge.SetSMTPPort(1024))
+			require.NoError(t, bridge.SetSMTPPort(ctx, 1024))
 
 			// Get the new setting.
 			require.Equal(t, 1024, bridge.GetSMTPPort())
@@ -107,7 +107,7 @@ func TestBridge_Settings_SMTPSSL(t *testing.T) {
 			require.False(t, bridge.GetSMTPSSL())
 
 			// Enable SMTP SSL.
-			require.NoError(t, bridge.SetSMTPSSL(true))
+			require.NoError(t, bridge.SetSMTPSSL(ctx, true))
 
 			// Get the new setting.
 			require.True(t, bridge.GetSMTPSSL())

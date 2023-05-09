@@ -668,7 +668,7 @@ func (s *Service) MailServerSettings(_ context.Context, _ *emptypb.Empty) (*Imap
 	}, nil
 }
 
-func (s *Service) SetMailServerSettings(_ context.Context, settings *ImapSmtpSettings) (*emptypb.Empty, error) {
+func (s *Service) SetMailServerSettings(ctx context.Context, settings *ImapSmtpSettings) (*emptypb.Empty, error) {
 	s.log.
 		WithField("ImapPort", settings.ImapPort).
 		WithField("SmtpPort", settings.SmtpPort).
@@ -682,28 +682,28 @@ func (s *Service) SetMailServerSettings(_ context.Context, settings *ImapSmtpSet
 		defer func() { _ = s.SendEvent(NewChangeMailServerSettingsFinishedEvent()) }()
 
 		if s.bridge.GetIMAPSSL() != settings.UseSSLForImap {
-			if err := s.bridge.SetIMAPSSL(settings.UseSSLForImap); err != nil {
+			if err := s.bridge.SetIMAPSSL(ctx, settings.UseSSLForImap); err != nil {
 				s.log.WithError(err).Error("Failed to set IMAP SSL")
 				_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_CONNECTION_MODE_CHANGE_ERROR))
 			}
 		}
 
 		if s.bridge.GetSMTPSSL() != settings.UseSSLForSmtp {
-			if err := s.bridge.SetSMTPSSL(settings.UseSSLForSmtp); err != nil {
+			if err := s.bridge.SetSMTPSSL(ctx, settings.UseSSLForSmtp); err != nil {
 				s.log.WithError(err).Error("Failed to set SMTP SSL")
 				_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_CONNECTION_MODE_CHANGE_ERROR))
 			}
 		}
 
 		if s.bridge.GetIMAPPort() != int(settings.ImapPort) {
-			if err := s.bridge.SetIMAPPort(int(settings.ImapPort)); err != nil {
+			if err := s.bridge.SetIMAPPort(ctx, int(settings.ImapPort)); err != nil {
 				s.log.WithError(err).Error("Failed to set IMAP port")
 				_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_IMAP_PORT_CHANGE_ERROR))
 			}
 		}
 
 		if s.bridge.GetSMTPPort() != int(settings.SmtpPort) {
-			if err := s.bridge.SetSMTPPort(int(settings.SmtpPort)); err != nil {
+			if err := s.bridge.SetSMTPPort(ctx, int(settings.SmtpPort)); err != nil {
 				s.log.WithError(err).Error("Failed to set SMTP port")
 				_ = s.SendEvent(NewMailServerSettingsErrorEvent(MailServerSettingsErrorType_SMTP_PORT_CHANGE_ERROR))
 			}

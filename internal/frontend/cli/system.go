@@ -61,7 +61,7 @@ func (f *frontendCLI) changeIMAPSecurity(_ *ishell.Context) {
 	msg := fmt.Sprintf("Are you sure you want to change IMAP setting to %q", newSecurity)
 
 	if f.yesNoQuestion(msg) {
-		if err := f.bridge.SetIMAPSSL(!f.bridge.GetIMAPSSL()); err != nil {
+		if err := f.bridge.SetIMAPSSL(context.Background(), !f.bridge.GetIMAPSSL()); err != nil {
 			f.printAndLogError(err)
 			return
 		}
@@ -80,7 +80,7 @@ func (f *frontendCLI) changeSMTPSecurity(_ *ishell.Context) {
 	msg := fmt.Sprintf("Are you sure you want to change SMTP setting to %q", newSecurity)
 
 	if f.yesNoQuestion(msg) {
-		if err := f.bridge.SetSMTPSSL(!f.bridge.GetSMTPSSL()); err != nil {
+		if err := f.bridge.SetSMTPSSL(context.Background(), !f.bridge.GetSMTPSSL()); err != nil {
 			f.printAndLogError(err)
 			return
 		}
@@ -103,7 +103,7 @@ func (f *frontendCLI) changeIMAPPort(c *ishell.Context) {
 		return
 	}
 
-	if err := f.bridge.SetIMAPPort(newIMAPPortInt); err != nil {
+	if err := f.bridge.SetIMAPPort(context.Background(), newIMAPPortInt); err != nil {
 		f.printAndLogError(err)
 		return
 	}
@@ -125,7 +125,7 @@ func (f *frontendCLI) changeSMTPPort(c *ishell.Context) {
 		return
 	}
 
-	if err := f.bridge.SetSMTPPort(newSMTPPortInt); err != nil {
+	if err := f.bridge.SetSMTPPort(context.Background(), newSMTPPortInt); err != nil {
 		f.printAndLogError(err)
 		return
 	}

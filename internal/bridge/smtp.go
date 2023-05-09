@@ -20,93 +20,16 @@ package bridge
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
-
-	"github.com/ProtonMail/proton-bridge/v3/internal/events"
-	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 )
 
-func (bridge *Bridge) serveSMTP() error {
-	port, err := func() (int, error) {
-		logrus.WithFields(logrus.Fields{
-			"port": bridge.vault.GetSMTPPort(),
-			"ssl":  bridge.vault.GetSMTPSSL(),
-		}).Info("Starting SMTP server")
-
-		smtpListener, err := newListener(bridge.vault.GetSMTPPort(), bridge.vault.GetSMTPSSL(), bridge.tlsConfig)
-		if err != nil {
-			return 0, fmt.Errorf("failed to create SMTP listener: %w", err)
-		}
-
-		bridge.smtpListener = smtpListener
-
-		bridge.tasks.Once(func(context.Context) {
-			if err := bridge.smtpServer.Serve(smtpListener); err != nil {
-				logrus.WithError(err).Info("SMTP server stopped")
-			}
-		})
-
-		if err := bridge.vault.SetSMTPPort(getPort(smtpListener.Addr())); err != nil {
-			return 0, fmt.Errorf("failed to store SMTP port in vault: %w", err)
-		}
-
-		return getPort(smtpListener.Addr()), nil
-	}()
-
-	if err != nil {
-		bridge.publish(events.SMTPServerError{
-			Error: err,
-		})
-
-		return err
-	}
-
-	bridge.publish(events.SMTPServerReady{
-		Port: port,
-	})
-
-	return nil
-}
-
-func (bridge *Bridge) restartSMTP() error {
-	logrus.Info("Restarting SMTP server")
-
-	if err := bridge.closeSMTP(); err != nil {
-		return fmt.Errorf("failed to close SMTP: %w", err)
-	}
-
-	bridge.publish(events.SMTPServerStopped{})
-
-	bridge.smtpServer = newSMTPServer(bridge, bridge.tlsConfig, bridge.logSMTP)
-
-	return bridge.serveSMTP()
-}
-
-// We close the listener ourselves even though it's also closed by smtpServer.Close().
-// This is because smtpServer.Serve() is called in a separate goroutine and might be executed
-// after we've already closed the server. However, go-smtp has a bug; it blocks on the listener
-// even after the server has been closed. So we close the listener ourselves to unblock it.
-func (bridge *Bridge) closeSMTP() error {
-	logrus.Info("Closing SMTP server")
-
-	if bridge.smtpListener != nil {
-		if err := bridge.smtpListener.Close(); err != nil {
-			return fmt.Errorf("failed to close SMTP listener: %w", err)
-		}
-	}
-
-	if err := bridge.smtpServer.Close(); err != nil {
-		logrus.WithError(err).Debug("Failed to close SMTP server (expected -- we close the listener ourselves)")
-	}
-
-	bridge.publish(events.SMTPServerStopped{})
-
-	return nil
+func (bridge *Bridge) restartSMTP(ctx context.Context) error {
+	return bridge.serverManager.RestartSMTP(ctx)
 }
 
 func newSMTPServer(bridge *Bridge, tlsConfig *tls.Config, logSMTP bool) *smtp.Server {

@@ -60,11 +60,11 @@ func (s *scenario) theAPIRequiresBridgeVersion(version string) error {
 }
 
 func (s *scenario) theUserChangesTheIMAPPortTo(port int) error {
-	return s.t.bridge.SetIMAPPort(port)
+	return s.t.bridge.SetIMAPPort(context.Background(), port)
 }
 
 func (s *scenario) theUserChangesTheSMTPPortTo(port int) error {
-	return s.t.bridge.SetSMTPPort(port)
+	return s.t.bridge.SetSMTPPort(context.Background(), port)
 }
 
 func (s *scenario) theUserSetsTheAddressModeOfUserTo(user, mode string) error {
@@ -144,11 +144,11 @@ func (s *scenario) theUserHasEnabledAlternativeRouting() error {
 }
 
 func (s *scenario) theUserSetIMAPModeToSSL() error {
-	return s.t.bridge.SetIMAPSSL(true)
+	return s.t.bridge.SetIMAPSSL(context.Background(), true)
 }
 
 func (s *scenario) theUserSetSMTPModeToSSL() error {
-	return s.t.bridge.SetSMTPSSL(true)
+	return s.t.bridge.SetSMTPSSL(context.Background(), true)
 }
 
 func (s *scenario) theUserReportsABug() error {

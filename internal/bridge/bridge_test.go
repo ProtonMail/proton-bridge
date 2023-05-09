@@ -834,8 +834,8 @@ func withBridgeNoMocks(
 	waitForEvent(t, eventCh, events.SMTPServerReady{})
 
 	// Set random IMAP and SMTP ports for the tests.
-	require.NoError(t, bridge.SetIMAPPort(0))
-	require.NoError(t, bridge.SetSMTPPort(0))
+	require.NoError(t, bridge.SetIMAPPort(ctx, 0))
+	require.NoError(t, bridge.SetSMTPPort(ctx, 0))
 
 	// Close the bridge when done.
 	defer bridge.Close(ctx)
