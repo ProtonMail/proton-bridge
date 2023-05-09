@@ -113,7 +113,7 @@ func Init(logsPath, level string) error {
 // Debug or Trace.
 func setLevel(level string) error {
 	if level == "" {
-		return nil
+		level = "debug"
 	}
 
 	logLevel, err := logrus.ParseLevel(level)
