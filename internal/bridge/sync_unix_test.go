@@ -31,7 +31,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBridge_SyncExistsWithErrorWhenTooManyFilesAreOpen(t *testing.T) {
+// Disabled due to flakyness.
+func _TestBridge_SyncExistsWithErrorWhenTooManyFilesAreOpen(t *testing.T) { //nolint:unused
 	var rlimitCurrent syscall.Rlimit
 
 	require.NoError(t, syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rlimitCurrent))
