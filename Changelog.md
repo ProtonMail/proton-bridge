@@ -2,6 +2,12 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+## [Bridge 3.1.3] Quebec
+
+### Changed
+* GODT-2616: Silence UID of order report.
+* GODT-2614: Handle failed update during sync.
+
 
 ## [Bridge 3.1.2] Quebec
 
