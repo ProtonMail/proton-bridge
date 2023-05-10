@@ -1019,6 +1019,16 @@ void QMLBackend::onIMAPLoginFailed(QString const &username) {
                 tr("Your email client can't connect to Proton Bridge. Make sure you are using the local Bridge password shown in Bridge."));
             break;
 
+        case UserState::Locked:
+            if (user->isNotificationInCooldown(User::ENotification::IMAPLoginWhileLocked)) {
+                return;
+            }
+            user->startNotificationCooldownPeriod(User::ENotification::IMAPLoginWhileLocked, cooldownDurationMs);
+            emit selectUser(user->id(), false);
+            trayIcon_->showErrorPopupNotification(tr("Connection in progress"),
+                tr("Your Proton account in Bridge is being connected. Please wait or restart Bridge."));
+            break;
+
         default:
             break;
         }

@@ -66,6 +66,7 @@ public: // data types
     enum class ENotification {
         IMAPLoginWhileSignedOut, ///< An IMAP client tried to login while the user is signed out.
         IMAPPasswordFailure, ///< An IMAP client provided an invalid password for the user.
+        IMAPLoginWhileLocked, ///< An IMAP client tried to connect while the user is locked.
     };
 
 public: // static member function
