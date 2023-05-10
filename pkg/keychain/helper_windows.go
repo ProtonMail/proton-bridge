@@ -31,7 +31,7 @@ func init() { //nolint:gochecknoinits
 	Helpers[WindowsCredentials] = newWinCredHelper
 
 	// Use WindowsCredentials by default.
-	defaultHelper = WindowsCredentials
+	DefaultHelper = WindowsCredentials
 }
 
 func newWinCredHelper(string) (credentials.Helper, error) {

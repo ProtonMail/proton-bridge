@@ -22,6 +22,7 @@
 
 #include "MacOS/DockIcon.h"
 #include "BuildConfig.h"
+#include "TrayIcon.h"
 #include "UserList.h"
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/GRPC/GRPCUtils.h>
@@ -43,6 +44,7 @@ public: // member functions.
     QMLBackend &operator=(QMLBackend &&) = delete; ///< Disabled move assignment operator.
     void init(GRPCConfig const &serviceConfig); ///< Initialize the backend.
     bool waitForEventStreamReaderToFinish(qint32 timeoutMs); ///< Wait for the event stream reader to finish.
+    UserList const& users() const; ///< Return the list of users
 
     // invokable methods can be called from QML. They generally return a value, which slots cannot do.
     Q_INVOKABLE static QString buildYear(); ///< Return the application build year.
@@ -67,6 +69,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(bool isAutostartOn READ isAutostartOn NOTIFY isAutostartOnChanged)
     Q_PROPERTY(bool isBetaEnabled READ isBetaEnabled NOTIFY isBetaEnabledChanged)
     Q_PROPERTY(bool isAllMailVisible READ isAllMailVisible NOTIFY isAllMailVisibleChanged)
+    Q_PROPERTY(bool isTelemetryDisabled READ isTelemetryDisabled NOTIFY isTelemetryDisabledChanged)
     Q_PROPERTY(QString colorSchemeName READ colorSchemeName NOTIFY colorSchemeNameChanged)
     Q_PROPERTY(QUrl diskCachePath READ diskCachePath NOTIFY diskCachePathChanged)
     Q_PROPERTY(bool useSSLForIMAP READ useSSLForIMAP WRITE setUseSSLForIMAP NOTIFY useSSLForIMAPChanged)
@@ -99,6 +102,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     bool isAutostartOn() const; ///< Getter for the 'isAutostartOn' property.
     bool isBetaEnabled() const; ///< Getter for the 'isBetaEnabled' property.
     bool isAllMailVisible() const; ///< Getter for the 'isAllMailVisible' property.
+    bool isTelemetryDisabled() const; ///< Getter for the 'isTelemetryDisabled' property.
     QString colorSchemeName() const; ///< Getter for the 'colorSchemeName' property.
     QUrl diskCachePath() const; ///< Getter for the 'diskCachePath' property.
     void setUseSSLForIMAP(bool value); ///< Setter for the 'useSSLForIMAP' property.
@@ -129,6 +133,7 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void isAutomaticUpdateOnChanged(bool value); ///<Signal for the change of the 'isAutomaticUpdateOn' property.
     void isBetaEnabledChanged(bool value); ///<Signal for the change of the 'isBetaEnabled' property.
     void isAllMailVisibleChanged(bool value); ///<Signal for the change of the 'isAllMailVisible' property.
+    void isTelemetryDisabledChanged(bool isDisabled); ///<Signal for the change of the 'isTelemetryDisabled' property.
     void colorSchemeNameChanged(QString const &scheme); ///<Signal for the change of the 'colorSchemeName' property.
     void isDoHEnabledChanged(bool value); ///<Signal for the change of the 'isDoHEnabled' property.
     void logsPathChanged(QUrl const &path); ///<Signal for the change of the 'logsPath' property.
@@ -151,6 +156,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void toggleAutostart(bool active); ///< Slot for the autostart toggle.
     void toggleBeta(bool active); ///< Slot for the beta toggle.
     void changeIsAllMailVisible(bool isVisible); ///< Slot for the changing of 'All Mail' visibility.
+    void toggleIsTelemetryDisabled(bool isDisabled); ///< Slot for toggling telemetry on/off.
     void changeColorScheme(QString const &scheme); ///< Slot for the change of the theme.
     void setDiskCachePath(QUrl const &path) const; ///< Slot for the change of the disk cache path.
     void login(QString const &username, QString const &password) const; ///< Slot for the login button (initial login).
@@ -174,6 +180,10 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void onVersionChanged(); ///< Slot for the version change signal.
     void setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) const; ///< Forwards a connection mode change request from QML to gRPC
     void sendBadEventUserFeedback(QString const &userID, bool doResync); ///< Slot the providing user feedback for a bad event.
+    void setNormalTrayIcon(); ///< Set the tray icon to normal.
+    void setErrorTrayIcon(QString const& stateString, QString const &statusIcon); ///< Set the tray icon to 'error' state.
+    void setWarnTrayIcon(QString const& stateString, QString const &statusIcon); ///< Set the tray icon to 'warn' state.
+    void setUpdateTrayIcon(QString const& stateString, QString const &statusIcon); ///< Set the tray icon to 'update' state.
 
 public slots: // slot for signals received from gRPC that need transformation instead of simple forwarding
     void onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Slot for the ConnectionModeChanged gRPC event.
@@ -233,8 +243,10 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void bugReportSendError(); ///< Signal for the 'bugReportSendError' gRPC stream event.
     void showMainWindow(); ///< Signal for the 'showMainWindow' gRPC stream event.
     void hideMainWindow(); ///< Signal for the 'hideMainWindow' gRPC stream event.
+    void showHelp(); ///< Signal for the 'showHelp' event (from the context menu).
+    void showSettings(); ///< Signal for the 'showHelp' event (from the context menu).
+    void selectUser(QString const& userID); ///< Signal emitted in order to selected a user with a given ID in the list.
     void genericError(QString const &title, QString const &description); ///< Signal for the 'genericError' gRPC stream event.
-    void selectUser(QString const); ///< Signal that request the given user account to be displayed.
     void imapLoginWhileSignedOut(QString const& username); ///< Signal for the notification of IMAP login attempt on a signed out account.
 
     // This signal is emitted when an exception is intercepted is calls triggered by QML. QML engine would intercept the exception otherwise.
@@ -257,7 +269,7 @@ private: // data members
     bool useSSLForIMAP_ { false }; ///< The cached value for useSSLForIMAP.
     bool useSSLForSMTP_ { false }; ///< The cached value for useSSLForSMTP.
     QList<QString> badEventDisplayQueue_; ///< THe queue for displaying 'bad event feedback request dialog'.
-
+    std::unique_ptr<TrayIcon> trayIcon_;
     friend class AppController;
 };
 

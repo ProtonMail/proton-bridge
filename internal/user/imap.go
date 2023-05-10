@@ -20,6 +20,7 @@ package user
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/mail"
 	"sync/atomic"
@@ -350,7 +351,13 @@ func (conn *imapConnector) CreateMessage(
 		wantFlags = wantFlags.Add(proton.MessageFlagReplied)
 	}
 
-	return conn.importMessage(ctx, literal, wantLabelIDs, wantFlags, unread)
+	msg, literal, err := conn.importMessage(ctx, literal, wantLabelIDs, wantFlags, unread)
+	if err != nil && errors.Is(err, proton.ErrImportSizeExceeded) {
+		// Remap error so that Gluon does not put this message in the recovery mailbox.
+		err = fmt.Errorf("%v: %w", err, connector.ErrMessageSizeExceedsLimits)
+	}
+
+	return msg, literal, err
 }
 
 func (conn *imapConnector) GetMessageLiteral(ctx context.Context, id imap.MessageID) ([]byte, error) {
@@ -626,7 +633,7 @@ func (conn *imapConnector) createDraft(ctx context.Context, literal []byte, addr
 		return proton.Message{}, fmt.Errorf("failed to create parser: %w", err)
 	}
 
-	message, err := message.ParseWithParser(parser)
+	message, err := message.ParseWithParser(parser, true)
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to parse message: %w", err)
 	}

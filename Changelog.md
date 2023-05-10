@@ -2,6 +2,45 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+
+## [Bridge 3.2.0] Rialto
+
+### Added
+* GODT-2552, GODT-2553, GODT-2555, GODT-2556: Add telemetry.
+* GODT-2575: Add dev info to cookies.
+
+### Changed
+* GODT-2598: Map Message Size Error to Gluon Error.
+* GODT-2569: Support multiple externalID matching if we send one of it when looking for parentID.
+* GODT-2576: Connector can send any flags to Gluon.
+* GODT-2496: Bump gopenPGP to 2.7.1-proton.
+* GODT-2517: Replace status window with native tray icon context menu.
+* GODT-2586: Two-columns layout for account details.
+* GODT-2580: Updated link to support website in GUI.
+* GODT-2239: Bridgepp worker/overseer unit tests.
+* GODT-2538: Implement smart picking of default IMAP/SMTP ports.
+* GODT-2502: Improve logs.
+* GODT-2551: Store and Recover Last User Agent from Vault.
+* GODT-2550: Verify IMAP ID is set properly.
+* GODT-2554: Compute telemetry availability from API UserSettings.
+* Add missing double quotes in test.
+* GODT-2239: Unit tests for BridgeUtils.cpp in bridgepp.
+* Replace go-rfc5322 with gluon's rfc5322 parser.
+* GODT-2483: Install cert without external tool on macOS.
+
+### Fixed
+* GODT-2596: Fix bug when trying to generate Sentry report and there is not log.
+* GODT-1374: Fix tray icon DPI change handling.
+* GODT-2588: Always perma-delete from Drafts/Trash.
+* GODT-2589: Update BUILDS.md.
+* GODT-2581: Update outdated link to bridge homepage in CLI 'manual' command.
+* GODT-2337: Filter reply-to on draft.
+* GODT-2550: Announce IMAP ID Capability.
+* GODT-2574: Fix label/unlabel of large amounts of messages.
+* GODT-2573: Handle invalid header fields in message.
+* GODT-2573: Crash on null update.
+* GODT-2407: Replace invalid email addresses with emtpy for new Drafts.
+
 ## [Bridge 3.1.3] Quebec
 
 ### Changed
@@ -13,7 +52,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 * GODT-2582 Dedup recovered messages folder.
-
 
 ## [Bridge 3.1.1] Quebec
 

@@ -20,8 +20,10 @@ package vault
 import (
 	"math/rand"
 	"runtime"
+	"time"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/ports"
 )
 
 type Settings struct {
@@ -35,16 +37,21 @@ type Settings struct {
 	UpdateChannel updater.Channel
 	UpdateRollout float64
 
-	ColorScheme  string
-	ProxyAllowed bool
-	ShowAllMail  bool
-	Autostart    bool
-	AutoUpdate   bool
+	ColorScheme       string
+	ProxyAllowed      bool
+	ShowAllMail       bool
+	Autostart         bool
+	AutoUpdate        bool
+	TelemetryDisabled bool
 
 	LastVersion string
 	FirstStart  bool
 
 	MaxSyncMemory uint64
+
+	LastUserAgent string
+
+	LastHeartbeatSent time.Time
 
 	// **WARNING**: These entry can't be removed until they vault has proper migration support.
 	SyncWorkers int
@@ -52,6 +59,7 @@ type Settings struct {
 }
 
 const DefaultMaxSyncMemory = 2 * 1024 * uint64(1024*1024)
+const DefaultUserAgent = "UnknownClient/0.0.1"
 
 func GetDefaultSyncWorkerCount() int {
 	const minSyncWorkers = 16
@@ -67,23 +75,26 @@ func GetDefaultSyncWorkerCount() int {
 
 func newDefaultSettings(gluonDir string) Settings {
 	syncWorkers := GetDefaultSyncWorkerCount()
+	imapPort := ports.FindFreePortFrom(1143)
+	smtpPort := ports.FindFreePortFrom(1025, imapPort)
 
 	return Settings{
 		GluonDir: gluonDir,
 
-		IMAPPort: 1143,
-		SMTPPort: 1025,
+		IMAPPort: imapPort,
+		SMTPPort: smtpPort,
 		IMAPSSL:  false,
 		SMTPSSL:  false,
 
 		UpdateChannel: updater.DefaultUpdateChannel,
 		UpdateRollout: rand.Float64(), //nolint:gosec
 
-		ColorScheme:  "",
-		ProxyAllowed: false,
-		ShowAllMail:  true,
-		Autostart:    true,
-		AutoUpdate:   true,
+		ColorScheme:       "",
+		ProxyAllowed:      false,
+		ShowAllMail:       true,
+		Autostart:         true,
+		AutoUpdate:        true,
+		TelemetryDisabled: false,
 
 		LastVersion: "0.0.0",
 		FirstStart:  true,
@@ -91,5 +102,8 @@ func newDefaultSettings(gluonDir string) Settings {
 		MaxSyncMemory: DefaultMaxSyncMemory,
 		SyncWorkers:   syncWorkers,
 		SyncAttPool:   syncWorkers,
+
+		LastUserAgent:     DefaultUserAgent,
+		LastHeartbeatSent: time.Time{},
 	}
 }

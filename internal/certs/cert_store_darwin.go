@@ -17,69 +17,141 @@
 
 package certs
 
-import (
-	"os"
+/*
+#cgo CFLAGS: -x objective-c
+#cgo LDFLAGS: -framework Foundation -framework Security
+#import <Foundation/Foundation.h>
+#import <Security/Security.h>
 
-	"golang.org/x/sys/execabs"
+
+int installTrustedCert(char const *bytes, unsigned long long length) {
+	if (length == 0) {
+		return errSecInvalidData;
+	}
+
+	NSData *der = [NSData dataWithBytes:bytes length:length];
+
+	// Step 1. Import the certificate in the keychain.
+	SecCertificateRef cert = SecCertificateCreateWithData(NULL, (CFDataRef) der);
+	NSDictionary* addQuery = @{
+		(id)kSecValueRef: (__bridge id) cert,
+		(id)kSecClass: (id)kSecClassCertificate,
+	};
+
+	OSStatus status = SecItemAdd((__bridge CFDictionaryRef) addQuery, NULL);
+	if ((errSecSuccess != status) && (errSecDuplicateItem != status)) {
+		CFRelease(cert);
+		return status;
+	}
+
+	// Step 2. Set the trust for the certificate.
+	SecPolicyRef policy = SecPolicyCreateSSL(true, NULL); // we limit our trust to SSL
+	NSDictionary *trustSettings = @{
+		(id)kSecTrustSettingsResult: [NSNumber numberWithInt:kSecTrustSettingsResultTrustRoot],
+		(id)kSecTrustSettingsPolicy: (__bridge id) policy,
+	};
+	status = SecTrustSettingsSetTrustSettings(cert, kSecTrustSettingsDomainAdmin, (__bridge CFTypeRef)(trustSettings));
+	CFRelease(policy);
+	CFRelease(cert);
+
+	return status;
+}
+
+
+int removeTrustedCert(char const *bytes, unsigned long long length) {
+	if (0 == length) {
+		return errSecInvalidData;
+	}
+
+	NSData *der = [NSData dataWithBytes: bytes length: length];
+	SecCertificateRef cert = SecCertificateCreateWithData(NULL, (CFDataRef) der);
+
+	// Step 1. Unset the trust for the certificate.
+	SecPolicyRef policy = SecPolicyCreateSSL(true, NULL);
+	NSDictionary * trustSettings = @{
+		(id)kSecTrustSettingsResult: [NSNumber numberWithInt:kSecTrustSettingsResultUnspecified],
+		(id)kSecTrustSettingsPolicy: (__bridge id) policy,
+	};
+	OSStatus status = SecTrustSettingsSetTrustSettings(cert, kSecTrustSettingsDomainAdmin, (__bridge CFTypeRef)(trustSettings));
+	CFRelease(policy);
+	if (errSecSuccess != status) {
+		CFRelease(cert);
+		return status;
+	}
+
+	// Step 2. Remove the certificate from the keychain.
+	NSDictionary *query = @{ (id)kSecClass: (id)kSecClassCertificate,
+							 (id)kSecMatchItemList: @[(__bridge id)cert],
+							 (id)kSecMatchLimit: (id)kSecMatchLimitOne,
+						   };
+	status = SecItemDelete((__bridge CFDictionaryRef) query);
+
+	CFRelease(cert);
+	return status;
+}
+*/
+import "C"
+
+import (
+	"encoding/pem"
+	"errors"
+	"fmt"
+	"unsafe"
 )
 
+// some of the error codes returned by Apple's Security framework.
+const (
+	errSecSuccess            = 0
+	errAuthorizationCanceled = -60006
+)
+
+// certPEMToDER converts a certificate in PEM format to DER format, which is the format required by Apple's Security framework.
+func certPEMToDER(certPEM []byte) ([]byte, error) {
+
+	block, left := pem.Decode(certPEM)
+	if block == nil {
+		return []byte{}, errors.New("invalid PEM certificate")
+	}
+
+	if len(left) > 0 {
+		return []byte{}, errors.New("trailing data found at the end of a PEM certificate")
+	}
+
+	return block.Bytes, nil
+}
+
 func installCert(certPEM []byte) error {
-	name, err := writeToTempFile(certPEM)
+	certDER, err := certPEMToDER(certPEM)
 	if err != nil {
 		return err
 	}
 
-	return addTrustedCert(name)
+	p := C.CBytes(certDER)
+	defer C.free(unsafe.Pointer(p))
+
+	errCode := C.installTrustedCert((*C.char)(p), (C.ulonglong)(len(certDER)))
+	switch errCode {
+	case errSecSuccess:
+		return nil
+	case errAuthorizationCanceled:
+		return fmt.Errorf("the user cancelled the authorization dialog")
+	default:
+		return fmt.Errorf("could not install certification into keychain (error %v)", errCode)
+	}
 }
 
 func uninstallCert(certPEM []byte) error {
-	name, err := writeToTempFile(certPEM)
+	certDER, err := certPEMToDER(certPEM)
 	if err != nil {
 		return err
 	}
 
-	return removeTrustedCert(name)
-}
+	p := C.CBytes(certDER)
+	defer C.free(unsafe.Pointer(p))
 
-func addTrustedCert(certPath string) error {
-	return execabs.Command( //nolint:gosec
-		"/usr/bin/security",
-		"execute-with-privileges",
-		"/usr/bin/security",
-		"add-trusted-cert",
-		"-d",
-		"-r", "trustRoot",
-		"-p", "ssl",
-		"-k", "/Library/Keychains/System.keychain",
-		certPath,
-	).Run()
-}
-
-func removeTrustedCert(certPath string) error {
-	return execabs.Command( //nolint:gosec
-		"/usr/bin/security",
-		"execute-with-privileges",
-		"/usr/bin/security",
-		"remove-trusted-cert",
-		"-d",
-		certPath,
-	).Run()
-}
-
-// writeToTempFile writes the given data to a temporary file and returns the path.
-func writeToTempFile(data []byte) (string, error) {
-	f, err := os.CreateTemp("", "tls")
-	if err != nil {
-		return "", err
+	if errCode := C.removeTrustedCert((*C.char)(p), (C.ulonglong)(len(certDER))); errCode != 0 {
+		return fmt.Errorf("could not install certificate from keychain (error %v)", errCode)
 	}
 
-	if _, err := f.Write(data); err != nil {
-		return "", err
-	}
-
-	if err := f.Close(); err != nil {
-		return "", err
-	}
-
-	return f.Name(), nil
+	return nil
 }

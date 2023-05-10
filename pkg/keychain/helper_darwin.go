@@ -38,7 +38,7 @@ func init() { //nolint:gochecknoinits
 	Helpers[MacOSKeychain] = newMacOSHelper
 
 	// Use MacOSKeychain by default.
-	defaultHelper = MacOSKeychain
+	DefaultHelper = MacOSKeychain
 }
 
 func parseError(original error) error {

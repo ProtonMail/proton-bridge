@@ -174,6 +174,9 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 	}
 
 	t.bridge = bridge
+	t.heartbeat.setBridge(bridge)
+
+	bridge.StartHeartbeat(t.heartbeat)
 
 	return t.events.collectFrom(eventCh), nil
 }
@@ -341,6 +344,9 @@ func (t *testCtx) closeFrontendClient() error {
 	t.clientEventCh = nil
 
 	return nil
+}
+func (t *testCtx) expectProxyCtlAllowProxy() {
+	t.mocks.ProxyCtl.EXPECT().AllowProxy()
 }
 
 type mockRestarter struct{}

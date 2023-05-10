@@ -38,6 +38,8 @@ type Identifier interface {
 	HasClient() bool
 	SetClient(name, version string)
 	SetPlatform(platform string)
+	SetClientString(client string)
+	GetClientString() string
 }
 
 type ProxyController interface {

@@ -214,6 +214,23 @@ func (s *Service) IsAllMailVisible(ctx context.Context, _ *emptypb.Empty) (*wrap
 	return wrapperspb.Bool(s.bridge.GetShowAllMail()), nil
 }
 
+func (s *Service) SetIsTelemetryDisabled(_ context.Context, isDisabled *wrapperspb.BoolValue) (*emptypb.Empty, error) {
+	s.log.WithField("isEnabled", isDisabled.Value).Debug("SetIsTelemetryDisabled")
+
+	if err := s.bridge.SetTelemetryDisabled(isDisabled.Value); err != nil {
+		s.log.WithError(err).Error("Failed to set telemetry status")
+		return nil, status.Errorf(codes.Internal, "failed to set telemetry status: %v", err)
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s *Service) IsTelemetryDisabled(_ context.Context, _ *emptypb.Empty) (*wrapperspb.BoolValue, error) {
+	s.log.Debug("IsTelemetryDisabled")
+
+	return wrapperspb.Bool(s.bridge.GetTelemetryDisabled()), nil
+}
+
 func (s *Service) GoOs(ctx context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
 	s.log.Debug("GoOs") // TO-DO We can probably get rid of this and use QSysInfo::product name
 

@@ -24,7 +24,6 @@
 #include <bridgepp/Log/LogUtils.h>
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Worker/Overseer.h>
-#include <bridgepp/BridgeUtils.h>
 
 
 #define HANDLE_EXCEPTION(x) try { x } \
@@ -50,6 +49,9 @@ QMLBackend::QMLBackend()
 /// \param[in] serviceConfig
 //****************************************************************************************************************************************************
 void QMLBackend::init(GRPCConfig const &serviceConfig) {
+    trayIcon_.reset(new TrayIcon());
+    this->setNormalTrayIcon();
+
     connect(this, &QMLBackend::fatalError, &app(), &AppController::onFatalError);
 
     users_ = new UserList(this);
@@ -97,6 +99,14 @@ void QMLBackend::init(GRPCConfig const &serviceConfig) {
 //****************************************************************************************************************************************************
 bool QMLBackend::waitForEventStreamReaderToFinish(qint32 timeoutMs) {
     return eventStreamOverseer_->wait(timeoutMs);
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The list of users
+//****************************************************************************************************************************************************
+UserList const &QMLBackend::users() const {
+    return *users_;
 }
 
 
@@ -336,6 +346,18 @@ bool QMLBackend::isAllMailVisible() const {
 
 
 //****************************************************************************************************************************************************
+/// \return The value for the 'isAllMailVisible' property.
+//****************************************************************************************************************************************************
+bool QMLBackend::isTelemetryDisabled() const {
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        bool v;
+        app().grpc().isTelemetryDisabled(v);
+        return v;
+    )
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The value for the 'colorSchemeName' property.
 //****************************************************************************************************************************************************
 QString QMLBackend::colorSchemeName() const {
@@ -565,6 +587,17 @@ void QMLBackend::changeIsAllMailVisible(bool isVisible) {
     HANDLE_EXCEPTION(
         app().grpc().setIsAllMailVisible(isVisible);
         emit isAllMailVisibleChanged(this->isAllMailVisible());
+    )
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] isDisabled The new state of the 'Is telemetry disabled property'.
+//****************************************************************************************************************************************************
+void QMLBackend::toggleIsTelemetryDisabled(bool isDisabled) {
+    HANDLE_EXCEPTION(
+        app().grpc().setIsTelemetryDisabled(isDisabled);
+        emit isTelemetryDisabledChanged(isDisabled);
     )
 }
 
@@ -839,6 +872,49 @@ void QMLBackend::sendBadEventUserFeedback(QString const &userID, bool doResync) 
 
 
 //****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void QMLBackend::setNormalTrayIcon() {
+    if (trayIcon_) {
+        trayIcon_->setState(TrayIcon::State::Normal, tr("Connected"), ":/qml/icons/ic-connected.svg");
+    }
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] stateString A string describing the state.
+/// \param[in] statusIcon The path of the status icon.
+//****************************************************************************************************************************************************
+void QMLBackend::setErrorTrayIcon(QString const &stateString, QString const &statusIcon) {
+    if (trayIcon_) {
+        trayIcon_->setState(TrayIcon::State::Error, stateString, statusIcon);
+    }
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] stateString A string describing the state.
+/// \param[in] statusIcon The path of the status icon.
+//****************************************************************************************************************************************************
+void QMLBackend::setWarnTrayIcon(QString const &stateString, QString const &statusIcon) {
+    if (trayIcon_) {
+        trayIcon_->setState(TrayIcon::State::Warn, stateString, statusIcon);
+    }
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] stateString A string describing the state.
+/// \param[in] statusIcon The path of the status icon.
+//****************************************************************************************************************************************************
+void QMLBackend::setUpdateTrayIcon(QString const &stateString, QString const &statusIcon) {
+    if (trayIcon_) {
+        trayIcon_->setState(TrayIcon::State::Update, stateString, statusIcon);
+    }
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] imapPort The IMAP port.
 /// \param[in] smtpPort The SMTP port.
 /// \param[in] useSSLForIMAP The value for the 'Use SSL for IMAP' property
@@ -892,7 +968,7 @@ void QMLBackend::onLoginAlreadyLoggedIn(QString const &userID) {
 //****************************************************************************************************************************************************
 /// \param[in] userID The userID.
 //****************************************************************************************************************************************************
-void QMLBackend::onUserBadEvent(QString const &userID, QString const& ) {
+void QMLBackend::onUserBadEvent(QString const &userID, QString const &) {
     HANDLE_EXCEPTION(
         if (badEventDisplayQueue_.contains(userID)) {
             app().log().error("Received 'bad event' for a user that is already in the queue.");
@@ -921,8 +997,9 @@ void QMLBackend::onIMAPLoginFailed(QString const &username) {
         if ((!user) || (user->state() != UserState::SignedOut)) { // We want to pop-up only if a signed-out user has been detected
             return;
         }
-        if (user->isInIMAPLoginFailureCooldown())
+        if (user->isInIMAPLoginFailureCooldown()) {
             return;
+        }
         user->startImapLoginFailureCooldown(60 * 60 * 1000); // 1 hour cooldown during which we will not display this notification to this user again.
         emit selectUser(user->id());
         emit imapLoginWhileSignedOut(username);

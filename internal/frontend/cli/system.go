@@ -40,7 +40,7 @@ func (f *frontendCLI) printLogDir(c *ishell.Context) {
 }
 
 func (f *frontendCLI) printManual(c *ishell.Context) {
-	f.Println("More instructions about the Bridge can be found at\n\n  https://protonmail.com/bridge")
+	f.Println("More instructions about the Bridge can be found at\n\n  https://proton.me/mail/bridge")
 }
 
 func (f *frontendCLI) printCredits(c *ishell.Context) {
@@ -189,6 +189,38 @@ func (f *frontendCLI) showAllMail(c *ishell.Context) {
 
 	if f.yesNoQuestion("Do you want to show All Mail folder") {
 		if err := f.bridge.SetShowAllMail(true); err != nil {
+			f.printAndLogError(err)
+			return
+		}
+	}
+}
+
+func (f *frontendCLI) enableTelemetry(_ *ishell.Context) {
+	if !f.bridge.GetTelemetryDisabled() {
+		f.Println("Usage diagnostics collection is enabled.")
+		return
+	}
+
+	f.Println("Usage diagnostics collection is disabled right now.")
+
+	if f.yesNoQuestion("Do you want to enable usage diagnostics collection") {
+		if err := f.bridge.SetTelemetryDisabled(false); err != nil {
+			f.printAndLogError(err)
+			return
+		}
+	}
+}
+
+func (f *frontendCLI) disableTelemetry(_ *ishell.Context) {
+	if f.bridge.GetTelemetryDisabled() {
+		f.Println("Usage diagnostics collection is disabled.")
+		return
+	}
+
+	f.Println("Usage diagnostics collection is enabled right now.")
+
+	if f.yesNoQuestion("Do you want to disable usage diagnostics collection") {
+		if err := f.bridge.SetTelemetryDisabled(true); err != nil {
 			f.printAndLogError(err)
 			return
 		}

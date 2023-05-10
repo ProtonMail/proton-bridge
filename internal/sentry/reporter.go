@@ -18,7 +18,6 @@
 package sentry
 
 import (
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"log"
@@ -29,6 +28,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/restarter"
 	"github.com/getsentry/sentry-go"
 	"github.com/sirupsen/logrus"
@@ -50,7 +50,7 @@ func init() { //nolint:gochecknoinits
 		Release:        constants.AppVersion(appVersion),
 		BeforeSend:     EnhanceSentryEvent,
 		Transport:      sentrySyncTransport,
-		ServerName:     getProtectedHostname(),
+		ServerName:     GetProtectedHostname(),
 		Environment:    constants.BuildEnv,
 		MaxBreadcrumbs: 50,
 	}
@@ -61,7 +61,7 @@ func init() { //nolint:gochecknoinits
 
 	sentry.ConfigureScope(func(scope *sentry.Scope) {
 		scope.SetFingerprint([]string{"{{ default }}"})
-		scope.SetUser(sentry.User{ID: getProtectedHostname()})
+		scope.SetUser(sentry.User{ID: GetProtectedHostname()})
 	})
 
 	sentry.Logger = log.New(
@@ -81,12 +81,17 @@ type Identifier interface {
 	GetUserAgent() string
 }
 
-func getProtectedHostname() string {
+func GetProtectedHostname() string {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return "Unknown"
 	}
-	return fmt.Sprintf("%x", sha256.Sum256([]byte(hostname)))
+	return algo.HashBase64SHA256(hostname)
+}
+
+func GetTimeZone() string {
+	zone, offset := time.Now().Zone()
+	return fmt.Sprintf("%s%+d", zone, offset/3600)
 }
 
 // NewReporter creates new sentry reporter with appName and appVersion to report.

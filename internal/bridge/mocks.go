@@ -24,6 +24,7 @@ type Mocks struct {
 
 	CrashHandler *mocks.MockPanicHandler
 	Reporter     *mocks.MockReporter
+	Heartbeat    *mocks.MockHeartbeatManager
 }
 
 func NewMocks(tb testing.TB, version, minAuto *semver.Version) *Mocks {
@@ -39,13 +40,17 @@ func NewMocks(tb testing.TB, version, minAuto *semver.Version) *Mocks {
 
 		CrashHandler: mocks.NewMockPanicHandler(ctl),
 		Reporter:     mocks.NewMockReporter(ctl),
+		Heartbeat:    mocks.NewMockHeartbeatManager(ctl),
 	}
 
 	// When getting the TLS issue channel, we want to return the test channel.
 	mocks.TLSReporter.EXPECT().GetTLSIssueCh().Return(mocks.TLSIssueCh).AnyTimes()
 
-	// This is called at he end of any go-routine:
+	// This is called at the end of any go-routine:
 	mocks.CrashHandler.EXPECT().HandlePanic(gomock.Any()).AnyTimes()
+
+	// this is called at start of heartbeat process.
+	mocks.Heartbeat.EXPECT().IsTelemetryAvailable().AnyTimes()
 
 	return mocks
 }

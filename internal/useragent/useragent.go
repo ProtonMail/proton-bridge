@@ -44,6 +44,20 @@ func (ua *UserAgent) SetClient(name, version string) {
 	ua.client = fmt.Sprintf("%v/%v", name, regexp.MustCompile(`(.*) \((.*)\)`).ReplaceAllString(version, "$1-$2"))
 }
 
+func (ua *UserAgent) SetClientString(client string) {
+	ua.lock.Lock()
+	defer ua.lock.Unlock()
+
+	ua.client = client
+}
+
+func (ua *UserAgent) GetClientString() string {
+	ua.lock.RLock()
+	defer ua.lock.RUnlock()
+
+	return ua.client
+}
+
 func (ua *UserAgent) HasClient() bool {
 	ua.lock.RLock()
 	defer ua.lock.RUnlock()

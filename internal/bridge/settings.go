@@ -46,6 +46,8 @@ func (bridge *Bridge) SetKeychainApp(helper string) error {
 		return err
 	}
 
+	bridge.heartbeat.SetKeyChainPref(helper)
+
 	return vault.SetHelper(vaultDir, helper)
 }
 
@@ -61,6 +63,8 @@ func (bridge *Bridge) SetIMAPPort(newPort int) error {
 	if err := bridge.vault.SetIMAPPort(newPort); err != nil {
 		return err
 	}
+
+	bridge.heartbeat.SetIMAPPort(newPort)
 
 	return bridge.restartIMAP()
 }
@@ -78,6 +82,8 @@ func (bridge *Bridge) SetIMAPSSL(newSSL bool) error {
 		return err
 	}
 
+	bridge.heartbeat.SetIMAPConnectionMode(newSSL)
+
 	return bridge.restartIMAP()
 }
 
@@ -94,6 +100,8 @@ func (bridge *Bridge) SetSMTPPort(newPort int) error {
 		return err
 	}
 
+	bridge.heartbeat.SetSMTPPort(newPort)
+
 	return bridge.restartSMTP()
 }
 
@@ -109,6 +117,8 @@ func (bridge *Bridge) SetSMTPSSL(newSSL bool) error {
 	if err := bridge.vault.SetSMTPSSL(newSSL); err != nil {
 		return err
 	}
+
+	bridge.heartbeat.SetSMTPConnectionMode(newSSL)
 
 	return bridge.restartSMTP()
 }
@@ -140,6 +150,8 @@ func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error
 				return fmt.Errorf("failed to revert GluonCacheDir: %w", err)
 			}
 		}
+
+		bridge.heartbeat.SetCacheLocation(newGluonDir)
 
 		gluonDataDir, err := bridge.GetGluonDataDir()
 		if err != nil {
@@ -207,6 +219,8 @@ func (bridge *Bridge) SetProxyAllowed(allowed bool) error {
 		bridge.proxyCtl.DisallowProxy()
 	}
 
+	bridge.heartbeat.SetDoh(allowed)
+
 	return bridge.vault.SetProxyAllowed(allowed)
 }
 
@@ -219,6 +233,8 @@ func (bridge *Bridge) SetShowAllMail(show bool) error {
 		for _, user := range bridge.users {
 			user.SetShowAllMail(show)
 		}
+
+		bridge.heartbeat.SetShowAllMail(show)
 
 		return bridge.vault.SetShowAllMail(show)
 	}, bridge.usersLock)
@@ -233,6 +249,8 @@ func (bridge *Bridge) SetAutostart(autostart bool) error {
 		if err := bridge.vault.SetAutostart(autostart); err != nil {
 			return err
 		}
+
+		bridge.heartbeat.SetAutoStart(autostart)
 	}
 
 	var err error
@@ -253,6 +271,10 @@ func (bridge *Bridge) SetAutostart(autostart bool) error {
 	return err
 }
 
+func (bridge *Bridge) GetUpdateRollout() float64 {
+	return bridge.vault.GetUpdateRollout()
+}
+
 func (bridge *Bridge) GetAutoUpdate() bool {
 	return bridge.vault.GetAutoUpdate()
 }
@@ -266,8 +288,25 @@ func (bridge *Bridge) SetAutoUpdate(autoUpdate bool) error {
 		return err
 	}
 
+	bridge.heartbeat.SetAutoUpdate(autoUpdate)
+
 	bridge.goUpdate()
 
+	return nil
+}
+
+func (bridge *Bridge) GetTelemetryDisabled() bool {
+	return bridge.vault.GetTelemetryDisabled()
+}
+
+func (bridge *Bridge) SetTelemetryDisabled(isDisabled bool) error {
+	if err := bridge.vault.SetTelemetryDisabled(isDisabled); err != nil {
+		return err
+	}
+	// If telemetry is re-enabled locally, try to send the heartbeat.
+	if !isDisabled {
+		defer bridge.goHeartbeat()
+	}
 	return nil
 }
 
@@ -283,6 +322,8 @@ func (bridge *Bridge) SetUpdateChannel(channel updater.Channel) error {
 	if err := bridge.vault.SetUpdateChannel(channel); err != nil {
 		return err
 	}
+
+	bridge.heartbeat.SetBeta(channel)
 
 	bridge.goUpdate()
 

@@ -17,10 +17,26 @@
 
 package bridge
 
+import "github.com/sirupsen/logrus"
+
 func (bridge *Bridge) GetCurrentUserAgent() string {
 	return bridge.identifier.GetUserAgent()
 }
 
 func (bridge *Bridge) SetCurrentPlatform(platform string) {
 	bridge.identifier.SetPlatform(platform)
+}
+
+func (bridge *Bridge) setUserAgent(name, version string) {
+	currentUserAgent := bridge.identifier.GetClientString()
+
+	bridge.identifier.SetClient(name, version)
+
+	newUserAgent := bridge.identifier.GetClientString()
+
+	if currentUserAgent != newUserAgent {
+		if err := bridge.vault.SetLastUserAgent(newUserAgent); err != nil {
+			logrus.WithError(err).Error("Failed to write new user agent to vault")
+		}
+	}
 }

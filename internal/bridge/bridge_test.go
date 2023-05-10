@@ -49,6 +49,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/tests"
 	"github.com/bradenaw/juniper/xslices"
+	imapid "github.com/emersion/go-imap-id"
 	"github.com/emersion/go-imap/client"
 	"github.com/stretchr/testify/require"
 )
@@ -166,6 +167,92 @@ func TestBridge_UserAgent(t *testing.T) {
 
 			// Assert that the user agent was sent to the API.
 			require.Contains(t, calls[len(calls)-1].RequestHeader.Get("User-Agent"), bridge.GetCurrentUserAgent())
+		})
+	})
+}
+
+func TestBridge_UserAgent_Persistence(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			currentUserAgent := b.GetCurrentUserAgent()
+			require.Contains(t, currentUserAgent, vault.DefaultUserAgent)
+
+			imapClient, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			require.NoError(t, err)
+			defer func() { _ = imapClient.Logout() }()
+
+			idClient := imapid.NewClient(imapClient)
+
+			// Set IMAP ID before Login to have the value capture in the Login API Call.
+			_, err = idClient.ID(imapid.ID{
+				imapid.FieldName:    "MyFancyClient",
+				imapid.FieldVersion: "0.1.2",
+			})
+
+			require.NoError(t, err)
+
+			// Login the user.
+			_, err = b.LoginFull(context.Background(), username, password, nil, nil)
+			require.NoError(t, err)
+
+			// Assert that the user agent then contains the platform.
+			require.Contains(t, b.GetCurrentUserAgent(), "MyFancyClient/0.1.2")
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			currentUserAgent := bridge.GetCurrentUserAgent()
+			require.Contains(t, currentUserAgent, "MyFancyClient/0.1.2")
+		})
+	})
+}
+
+func TestBridge_UserAgentFromIMAPID(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		var (
+			calls []server.Call
+			lock  sync.Mutex
+		)
+
+		s.AddCallWatcher(func(call server.Call) {
+			lock.Lock()
+			defer lock.Unlock()
+
+			calls = append(calls, call)
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			imapClient, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			require.NoError(t, err)
+			defer func() { _ = imapClient.Logout() }()
+
+			idClient := imapid.NewClient(imapClient)
+
+			// Set IMAP ID before Login to have the value capture in the Login API Call.
+			_, err = idClient.ID(imapid.ID{
+				imapid.FieldName:    "MyFancyClient",
+				imapid.FieldVersion: "0.1.2",
+			})
+
+			require.NoError(t, err)
+
+			// Login the user.
+			userID, err := b.LoginFull(context.Background(), username, password, nil, nil)
+			require.NoError(t, err)
+
+			info, err := b.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.True(t, info.State == bridge.Connected)
+
+			require.NoError(t, imapClient.Login(info.Addresses[0], string(info.BridgePass)))
+
+			lock.Lock()
+			defer lock.Unlock()
+
+			userAgent := calls[len(calls)-1].RequestHeader.Get("User-Agent")
+
+			// Assert that the user agent was sent to the API.
+			require.Contains(t, userAgent, b.GetCurrentUserAgent())
+			require.Contains(t, userAgent, "MyFancyClient/0.1.2")
 		})
 	})
 }
@@ -735,6 +822,9 @@ func withBridgeNoMocks(
 	)
 	require.NoError(t, err)
 	require.Empty(t, bridge.GetErrors())
+
+	// Start the Heartbeat process.
+	bridge.StartHeartbeat(mocks.Heartbeat)
 
 	// Wait for bridge to finish loading users.
 	waitForEvent(t, eventCh, events.AllUsersLoaded{})

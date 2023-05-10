@@ -15,14 +15,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QtQml.Models
+//go:build !windows
+// +build !windows
 
-ListModel {
-    // overriding get method to ignore any role and return directly object itself
-    function get(row) {
-        if (row < 0 || row >= count) {
-            return undefined
-        }
-        return data(index(row, 0), Qt.DisplayRole)
-    }
+package sentry
+
+import "os"
+
+func GetSystemLang() string {
+	lang := os.Getenv("LC_ALL")
+	if lang == "" {
+		lang = os.Getenv("LANG")
+	}
+
+	return lang
 }
