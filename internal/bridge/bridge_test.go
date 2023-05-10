@@ -173,7 +173,19 @@ func TestBridge_UserAgent(t *testing.T) {
 
 func TestBridge_UserAgent_Persistence(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		otherPassword := []byte("bar")
+		otherUser := "foo"
+		_, _, err := s.CreateUser(otherUser, otherPassword)
+		require.NoError(t, err)
+
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			imapWaiter := waitForIMAPServerReady(b)
+			defer imapWaiter.Done()
+
+			require.NoError(t, getErr(b.LoginFull(ctx, otherUser, otherPassword, nil, nil)))
+
+			imapWaiter.Wait()
+
 			currentUserAgent := b.GetCurrentUserAgent()
 			require.Contains(t, currentUserAgent, vault.DefaultUserAgent)
 
@@ -220,7 +232,19 @@ func TestBridge_UserAgentFromIMAPID(t *testing.T) {
 			calls = append(calls, call)
 		})
 
+		otherPassword := []byte("bar")
+		otherUser := "foo"
+		_, _, err := s.CreateUser(otherUser, otherPassword)
+		require.NoError(t, err)
+
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			imapWaiter := waitForIMAPServerReady(b)
+			defer imapWaiter.Done()
+
+			require.NoError(t, getErr(b.LoginFull(ctx, otherUser, otherPassword, nil, nil)))
+
+			imapWaiter.Wait()
+
 			imapClient, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
 			defer func() { _ = imapClient.Logout() }()
@@ -592,8 +616,16 @@ func TestBridge_InitGluonDirectory(t *testing.T) {
 func TestBridge_LoginFailed(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			imapWaiter := waitForIMAPServerReady(bridge)
+			defer imapWaiter.Done()
+
 			failCh, done := chToType[events.Event, events.IMAPLoginFailed](bridge.GetEvents(events.IMAPLoginFailed{}))
 			defer done()
+
+			_, err := bridge.LoginFull(ctx, username, password, nil, nil)
+			require.NoError(t, err)
+
+			imapWaiter.Wait()
 
 			imapClient, err := client.Dial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetIMAPPort())))
 			require.NoError(t, err)
@@ -621,6 +653,9 @@ func TestBridge_ChangeCacheDirectory(t *testing.T) {
 			currentCacheDir := b.GetGluonCacheDir()
 			configDir, err := b.GetGluonDataDir()
 			require.NoError(t, err)
+
+			imapWaiter := waitForIMAPServerReady(b)
+			defer imapWaiter.Done()
 
 			// Login the user.
 			syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
@@ -654,6 +689,8 @@ func TestBridge_ChangeCacheDirectory(t *testing.T) {
 			info, err := b.GetUserInfo(userID)
 			require.NoError(t, err)
 			require.True(t, info.State == bridge.Connected)
+
+			imapWaiter.Wait()
 
 			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
@@ -778,6 +815,7 @@ func withBridgeNoMocks(
 	locator bridge.Locator,
 	vaultKey []byte,
 	tests func(*bridge.Bridge),
+	waitOnServers bool,
 ) {
 	// Bridge will disable the proxy by default at startup.
 	mocks.ProxyCtl.EXPECT().DisallowProxy()
@@ -828,14 +866,17 @@ func withBridgeNoMocks(
 
 	// Wait for bridge to finish loading users.
 	waitForEvent(t, eventCh, events.AllUsersLoaded{})
-	// Wait for bridge to start the IMAP server.
-	waitForEvent(t, eventCh, events.IMAPServerReady{})
-	// Wait for bridge to start the SMTP server.
-	waitForEvent(t, eventCh, events.SMTPServerReady{})
 
 	// Set random IMAP and SMTP ports for the tests.
 	require.NoError(t, bridge.SetIMAPPort(ctx, 0))
 	require.NoError(t, bridge.SetSMTPPort(ctx, 0))
+
+	if waitOnServers {
+		// Wait for bridge to start the IMAP server.
+		waitForEvent(t, eventCh, events.IMAPServerReady{})
+		// Wait for bridge to start the SMTP server.
+		waitForEvent(t, eventCh, events.SMTPServerReady{})
+	}
 
 	// Close the bridge when done.
 	defer bridge.Close(ctx)
@@ -857,7 +898,24 @@ func withBridge(
 	withMocks(t, func(mocks *bridge.Mocks) {
 		withBridgeNoMocks(ctx, t, mocks, apiURL, netCtl, locator, vaultKey, func(bridge *bridge.Bridge) {
 			tests(bridge, mocks)
-		})
+		}, false)
+	})
+}
+
+// withBridgeWaitForServers is the same as withBridge, but it will wait until IMAP & SMTP servers are ready.
+func withBridgeWaitForServers(
+	ctx context.Context,
+	t *testing.T,
+	apiURL string,
+	netCtl *proton.NetCtl,
+	locator bridge.Locator,
+	vaultKey []byte,
+	tests func(*bridge.Bridge, *bridge.Mocks),
+) {
+	withMocks(t, func(mocks *bridge.Mocks) {
+		withBridgeNoMocks(ctx, t, mocks, apiURL, netCtl, locator, vaultKey, func(bridge *bridge.Bridge) {
+			tests(bridge, mocks)
+		}, true)
 	})
 }
 
@@ -909,4 +967,41 @@ func chToType[In, Out any](inCh <-chan In, done func()) (<-chan Out, func()) {
 	}()
 
 	return outCh, done
+}
+
+type eventWaiter struct {
+	evtCh  <-chan events.Event
+	cancel func()
+}
+
+func (e *eventWaiter) Done() {
+	e.cancel()
+}
+
+func (e *eventWaiter) Wait() {
+	<-e.evtCh
+}
+
+func waitForSMTPServerReady(b *bridge.Bridge) *eventWaiter {
+	evtCh, cancel := b.GetEvents(events.SMTPServerReady{})
+	return &eventWaiter{
+		evtCh:  evtCh,
+		cancel: cancel,
+	}
+}
+
+func waitForIMAPServerReady(b *bridge.Bridge) *eventWaiter {
+	evtCh, cancel := b.GetEvents(events.IMAPServerReady{})
+	return &eventWaiter{
+		evtCh:  evtCh,
+		cancel: cancel,
+	}
+}
+
+func waitForIMAPServerStopped(b *bridge.Bridge) *eventWaiter {
+	evtCh, cancel := b.GetEvents(events.IMAPServerStopped{})
+	return &eventWaiter{
+		evtCh:  evtCh,
+		cancel: cancel,
+	}
 }

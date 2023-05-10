@@ -112,15 +112,6 @@ func TestBridge_Sync(t *testing.T) {
 				info, err := b.GetUserInfo(userID)
 				require.NoError(t, err)
 				require.True(t, info.State == bridge.Connected)
-
-				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
-				require.NoError(t, err)
-				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
-				defer func() { _ = client.Logout() }()
-
-				status, err := client.Select(`Folders/folder`, false)
-				require.NoError(t, err)
-				require.Less(t, status.Messages, uint32(numMsg))
 			}
 
 			// Remove the network limit, allowing the sync to finish.
@@ -273,15 +264,6 @@ func TestBridge_SyncWithOngoingEvents(t *testing.T) {
 				info, err := b.GetUserInfo(userID)
 				require.NoError(t, err)
 				require.True(t, info.State == bridge.Connected)
-
-				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
-				require.NoError(t, err)
-				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
-				defer func() { _ = client.Logout() }()
-
-				status, err := client.Select(`Folders/folder`, false)
-				require.NoError(t, err)
-				require.Less(t, status.Messages, uint32(numMsg))
 			}
 
 			// Create a new mailbox and move that last 1/3 of the messages into it to simulate user

@@ -167,6 +167,8 @@ type testCtx struct {
 
 	// This slice contains the dummy listeners that are intended to block network ports.
 	dummyListeners []net.Listener
+
+	imapServerStarted bool
 }
 
 type imapClient struct {

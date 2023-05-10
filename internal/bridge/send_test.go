@@ -46,11 +46,16 @@ func TestBridge_Send(t *testing.T) {
 		require.NoError(t, err)
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			smtpWaiter := waitForSMTPServerReady(bridge)
+			defer smtpWaiter.Done()
+
 			senderUserID, err := bridge.LoginFull(ctx, username, password, nil, nil)
 			require.NoError(t, err)
 
 			recipientUserID, err := bridge.LoginFull(ctx, "recipient", password, nil, nil)
 			require.NoError(t, err)
+
+			smtpWaiter.Wait()
 
 			senderInfo, err := bridge.GetUserInfo(senderUserID)
 			require.NoError(t, err)
@@ -135,7 +140,7 @@ func TestBridge_SendDraftFlags(t *testing.T) {
 		})
 
 		// Start the bridge.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+		withBridgeWaitForServers(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			// Get the sender user info.
 			userInfo, err := bridge.QueryUserInfo(username)
 			require.NoError(t, err)
@@ -245,7 +250,7 @@ func TestBridge_SendInvite(t *testing.T) {
 		})
 
 		// Start the bridge.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+		withBridgeWaitForServers(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			// Get the sender user info.
 			userInfo, err := bridge.QueryUserInfo(username)
 			require.NoError(t, err)
@@ -401,6 +406,9 @@ SGVsbG8gd29ybGQK
 		require.NoError(t, err)
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			smtpWaiter := waitForSMTPServerReady(bridge)
+			defer smtpWaiter.Done()
+
 			senderUserID, err := bridge.LoginFull(ctx, username, password, nil, nil)
 			require.NoError(t, err)
 
@@ -419,6 +427,8 @@ SGVsbG8gd29ybGQK
 				messageWithTextOnly,
 				messageMultipartWithoutTextWithTextAttachment,
 			}
+
+			smtpWaiter.Wait()
 
 			for _, m := range messages {
 				// Dial the server.

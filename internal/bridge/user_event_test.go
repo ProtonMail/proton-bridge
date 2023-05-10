@@ -141,6 +141,9 @@ func test_badMessage_badEvent(userFeedback func(t *testing.T, ctx context.Contex
 			})
 
 			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+				smtpWaiter := waitForSMTPServerReady(bridge)
+				defer smtpWaiter.Done()
+
 				userLoginAndSync(ctx, t, bridge, "user", password)
 
 				var messageIDs []string
@@ -176,6 +179,8 @@ func test_badMessage_badEvent(userFeedback func(t *testing.T, ctx context.Contex
 
 				userFeedback(t, ctx, bridge, badUserID)
 
+				smtpWaiter.Wait()
+
 				userContinueEventProcess(ctx, t, s, bridge)
 			})
 		})
@@ -194,6 +199,9 @@ func TestBridge_User_BadMessage_NoBadEvent(t *testing.T) {
 		})
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			smtpWaiter := waitForSMTPServerReady(bridge)
+			defer smtpWaiter.Done()
+
 			userLoginAndSync(ctx, t, bridge, "user", password)
 
 			var messageIDs []string
@@ -217,6 +225,7 @@ func TestBridge_User_BadMessage_NoBadEvent(t *testing.T) {
 				require.NoError(t, c.DeleteMessage(ctx, messageIDs...))
 			})
 
+			smtpWaiter.Wait()
 			userContinueEventProcess(ctx, t, s, bridge)
 		})
 	})
@@ -412,6 +421,17 @@ func TestBridge_User_DropConn_NoBadEvent(t *testing.T) {
 		})
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			var count int32
+			// The first 10 times bridge attempts to sync any of the messages, drop the connection.
+			s.AddStatusHook(func(req *http.Request) (int, bool) {
+				if strings.Contains(req.URL.Path, "/mail/v4/messages") {
+					if atomic.AddInt32(&count, 1) < 10 {
+						dropListener.DropAll()
+					}
+				}
+
+				return 0, false
+			})
 			userLoginAndSync(ctx, t, bridge, "user", password)
 
 			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).AnyTimes()
@@ -419,19 +439,6 @@ func TestBridge_User_DropConn_NoBadEvent(t *testing.T) {
 			// Create 10 more messages for the user, generating events.
 			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
 				createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 10)
-			})
-
-			var count int
-
-			// The first 10 times bridge attempts to sync any of the messages, drop the connection.
-			s.AddStatusHook(func(req *http.Request) (int, bool) {
-				if strings.Contains(req.URL.Path, "/mail/v4/messages") {
-					if count++; count < 10 {
-						dropListener.DropAll()
-					}
-				}
-
-				return 0, false
 			})
 
 			info, err := bridge.QueryUserInfo("user")
@@ -771,10 +778,15 @@ func TestBridge_User_CreateDisabledAddress(t *testing.T) {
 func TestBridge_User_HandleParentLabelRename(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			imapWaiter := waitForIMAPServerReady(bridge)
+			defer imapWaiter.Done()
+
 			require.NoError(t, getErr(bridge.LoginFull(ctx, username, password, nil, nil)))
 
 			info, err := bridge.QueryUserInfo(username)
 			require.NoError(t, err)
+
+			imapWaiter.Wait()
 
 			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 			require.NoError(t, err)
