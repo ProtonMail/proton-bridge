@@ -1,3 +1,10 @@
+## v3.1.3
+- 2023-05-10
+
+### Fixed
+- Added a missing error handler that can make the initial synchronization to stuck
+
+
 ## v3.1.2
 - 2023-04-27
 
