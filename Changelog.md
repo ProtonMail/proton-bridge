@@ -29,6 +29,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2483: Install cert without external tool on macOS.
 
 ### Fixed
+* GODT-2615: Remove keyboard shortcut for tray icon context menu on Windows and Linux.
 * GODT-2596: Fix bug when trying to generate Sentry report and there is not log.
 * GODT-1374: Fix tray icon DPI change handling.
 * GODT-2589: Update BUILDS.md.
