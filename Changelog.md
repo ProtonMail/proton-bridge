@@ -31,7 +31,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Fixed
 * GODT-2596: Fix bug when trying to generate Sentry report and there is not log.
 * GODT-1374: Fix tray icon DPI change handling.
-* GODT-2588: Always perma-delete from Drafts/Trash.
 * GODT-2589: Update BUILDS.md.
 * GODT-2581: Update outdated link to bridge homepage in CLI 'manual' command.
 * GODT-2337: Filter reply-to on draft.
