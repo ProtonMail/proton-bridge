@@ -79,7 +79,8 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 		logrus.WithFields(logrus.Fields{
 			"sessionID": event.SessionID,
 			"username":  event.Username,
-		}).Info("Received IMAP login failure notification")
+			"pkg":       "imap",
+		}).Error("Incorrect login credentials.")
 		bridge.publish(events.IMAPLoginFailed{Username: event.Username})
 	}
 }

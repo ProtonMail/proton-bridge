@@ -58,6 +58,11 @@ func (s *smtpSession) AuthPlain(username, password string) error {
 			return nil
 		}
 
+		logrus.WithFields(logrus.Fields{
+			"username": username,
+			"pkg":      "smtp",
+		}).Error("Incorrect login credentials.")
+
 		return fmt.Errorf("invalid username or password")
 	}, s.usersLock)
 }
