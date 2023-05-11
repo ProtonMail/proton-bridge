@@ -20,6 +20,8 @@ package main
 import (
 	"os"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v3/internal/versioner"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/sum"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -51,12 +53,30 @@ func createApp() *cli.App {
 			Usage:    "The file to save the sum in",
 			Required: true,
 		},
+		&cli.BoolFlag{
+			Name:    "verify",
+			Aliases: []string{"v"},
+			Usage:   "Verify the update folder is properly hashed and signed.",
+		},
 	}
 
 	return app
 }
 
 func computeSum(c *cli.Context) error {
+	if c.Bool("verify") {
+		kr, err := updater.GetDefaultKeyring()
+		if err != nil {
+			logrus.WithError(err).Fatal("Failed to load key before verify")
+		}
+
+		if err := versioner.VerifyUpdateFolder(kr, c.String("root")); err != nil {
+			logrus.WithError(err).Fatal("Failed to verify")
+		}
+
+		logrus.WithField("path", c.String("root")).Info("Signature OK")
+	}
+
 	b, err := sum.RecursiveSum(c.String("root"), c.String("output"))
 	if err != nil {
 		return err

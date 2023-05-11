@@ -74,12 +74,16 @@ func (v *Version) SemVer() *semver.Version {
 
 // VerifyFiles verifies all files in the version directory.
 func (v *Version) VerifyFiles(kr *crypto.KeyRing) error {
-	fileBytes, err := os.ReadFile(filepath.Join(v.path, sumFile)) //nolint:gosec
+	return VerifyUpdateFolder(kr, v.path)
+}
+
+func VerifyUpdateFolder(kr *crypto.KeyRing, path string) error {
+	fileBytes, err := os.ReadFile(filepath.Join(path, sumFile)) //nolint:gosec
 	if err != nil {
 		return err
 	}
 
-	sigBytes, err := os.ReadFile(filepath.Join(v.path, sumFile+".sig")) //nolint:gosec
+	sigBytes, err := os.ReadFile(filepath.Join(path, sumFile+".sig")) //nolint:gosec
 	if err != nil {
 		return err
 	}
@@ -92,7 +96,7 @@ func (v *Version) VerifyFiles(kr *crypto.KeyRing) error {
 		return err
 	}
 
-	sum, err := sum.RecursiveSum(v.path, sumFile)
+	sum, err := sum.RecursiveSum(path, sumFile)
 	if err != nil {
 		return err
 	}
