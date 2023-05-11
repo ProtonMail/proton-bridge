@@ -65,7 +65,7 @@ require (
 	github.com/bytedance/sonic v1.8.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/chzyer/test v1.0.0 // indirect
-	github.com/cloudflare/circl v1.3.2 // indirect
+	github.com/cloudflare/circl v1.3.3 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/cronokirby/saferith v0.33.0 // indirect
 	github.com/cucumber/gherkin-go/v19 v19.0.3 // indirect
