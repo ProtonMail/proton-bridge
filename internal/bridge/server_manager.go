@@ -26,10 +26,10 @@ import (
 	"github.com/ProtonMail/gluon"
 	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/gluon/logging"
-	"github.com/ProtonMail/proton-bridge/v3/cpc"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 )
@@ -77,31 +77,31 @@ func (sm *ServerManager) Init(bridge *Bridge) error {
 
 func (sm *ServerManager) CloseServers(ctx context.Context) error {
 	defer sm.requests.Close()
-	_, err := sm.requests.SendWithReply(ctx, &smRequestClose{})
+	_, err := sm.requests.Send(ctx, &smRequestClose{})
 
 	return err
 }
 
 func (sm *ServerManager) RestartIMAP(ctx context.Context) error {
-	_, err := sm.requests.SendWithReply(ctx, &smRequestRestartIMAP{})
+	_, err := sm.requests.Send(ctx, &smRequestRestartIMAP{})
 
 	return err
 }
 
 func (sm *ServerManager) RestartSMTP(ctx context.Context) error {
-	_, err := sm.requests.SendWithReply(ctx, &smRequestRestartSMTP{})
+	_, err := sm.requests.Send(ctx, &smRequestRestartSMTP{})
 
 	return err
 }
 
 func (sm *ServerManager) AddIMAPUser(ctx context.Context, user *user.User) error {
-	_, err := sm.requests.SendWithReply(ctx, &smRequestAddIMAPUser{user: user})
+	_, err := sm.requests.Send(ctx, &smRequestAddIMAPUser{user: user})
 
 	return err
 }
 
 func (sm *ServerManager) RemoveIMAPUser(ctx context.Context, user *user.User, withData bool) error {
-	_, err := sm.requests.SendWithReply(ctx, &smRequestRemoveIMAPUser{
+	_, err := sm.requests.Send(ctx, &smRequestRemoveIMAPUser{
 		user:     user,
 		withData: withData,
 	})
@@ -110,7 +110,7 @@ func (sm *ServerManager) RemoveIMAPUser(ctx context.Context, user *user.User, wi
 }
 
 func (sm *ServerManager) SetGluonDir(ctx context.Context, gluonDir string) error {
-	_, err := sm.requests.SendWithReply(ctx, &smRequestSetGluonDir{
+	_, err := sm.requests.Send(ctx, &smRequestSetGluonDir{
 		dir: gluonDir,
 	})
 
@@ -118,7 +118,7 @@ func (sm *ServerManager) SetGluonDir(ctx context.Context, gluonDir string) error
 }
 
 func (sm *ServerManager) AddGluonUser(ctx context.Context, conn connector.Connector, passphrase []byte) (string, error) {
-	reply, err := cpc.SendWithReplyType[string](ctx, sm.requests, &smRequestAddGluonUser{
+	reply, err := cpc.SendTyped[string](ctx, sm.requests, &smRequestAddGluonUser{
 		conn:       conn,
 		passphrase: passphrase,
 	})
@@ -127,7 +127,7 @@ func (sm *ServerManager) AddGluonUser(ctx context.Context, conn connector.Connec
 }
 
 func (sm *ServerManager) RemoveGluonUser(ctx context.Context, gluonID string) error {
-	_, err := sm.requests.SendWithReply(ctx, &smRequestRemoveGluonUser{
+	_, err := sm.requests.Send(ctx, &smRequestRemoveGluonUser{
 		userID: gluonID,
 	})
 
@@ -165,23 +165,23 @@ func (sm *ServerManager) run(ctx context.Context, bridge *Bridge) {
 				return
 			}
 
-			switch r := request.Value.(type) {
+			switch r := request.Value().(type) {
 			case *smRequestClose:
 				sm.handleClose(ctx, bridge)
-				request.SendReply(ctx, nil, nil)
+				request.Reply(ctx, nil, nil)
 				return
 
 			case *smRequestRestartSMTP:
 				err := sm.restartSMTP(bridge)
-				request.SendReply(ctx, nil, err)
+				request.Reply(ctx, nil, err)
 
 			case *smRequestRestartIMAP:
 				err := sm.restartIMAP(ctx, bridge)
-				request.SendReply(ctx, nil, err)
+				request.Reply(ctx, nil, err)
 
 			case *smRequestAddIMAPUser:
 				err := sm.handleAddIMAPUser(ctx, r.user)
-				request.SendReply(ctx, nil, err)
+				request.Reply(ctx, nil, err)
 				if err == nil {
 					sm.loadedUserCount++
 					sm.handleLoadedUserCountChange(ctx, bridge)
@@ -189,7 +189,7 @@ func (sm *ServerManager) run(ctx context.Context, bridge *Bridge) {
 
 			case *smRequestRemoveIMAPUser:
 				err := sm.handleRemoveIMAPUser(ctx, r.user, r.withData)
-				request.SendReply(ctx, nil, err)
+				request.Reply(ctx, nil, err)
 				if err == nil {
 					sm.loadedUserCount--
 					sm.handleLoadedUserCountChange(ctx, bridge)
@@ -197,15 +197,15 @@ func (sm *ServerManager) run(ctx context.Context, bridge *Bridge) {
 
 			case *smRequestSetGluonDir:
 				err := sm.handleSetGluonDir(ctx, bridge, r.dir)
-				request.SendReply(ctx, nil, err)
+				request.Reply(ctx, nil, err)
 
 			case *smRequestAddGluonUser:
 				id, err := sm.handleAddGluonUser(ctx, r.conn, r.passphrase)
-				request.SendReply(ctx, id, err)
+				request.Reply(ctx, id, err)
 
 			case *smRequestRemoveGluonUser:
 				err := sm.handleRemoveGluonUser(ctx, r.userID)
-				request.SendReply(ctx, nil, err)
+				request.Reply(ctx, nil, err)
 			}
 		}
 	}

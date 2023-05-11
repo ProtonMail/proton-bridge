@@ -42,22 +42,24 @@ func TestCPC_Receive(t *testing.T) {
 		wg.Add(1)
 
 		cpc.Receive(context.Background(), func(ctx context.Context, request *Request) {
-			switch request.Value.(type) {
+			switch request.Value().(type) {
 			case sendIntRequest:
-				request.SendReply(ctx, replyValue, nil)
+				request.Reply(ctx, replyValue, nil)
 			case quitRequest:
-				cpc.Close()
+				request.Reply(ctx, nil, nil)
 			default:
 				panic("unknown request")
 			}
 		})
 	}()
 
-	r, err := cpc.SendWithReply(context.Background(), sendIntRequest{})
+	r, err := cpc.Send(context.Background(), sendIntRequest{})
 	require.NoError(t, err)
 	require.Equal(t, r, replyValue)
 
-	require.NoError(t, cpc.SendNoReply(context.Background(), quitRequest{}))
+	_, err = cpc.Send(context.Background(), quitRequest{})
+	require.NoError(t, err)
 
+	cpc.Close()
 	wg.Wait()
 }
