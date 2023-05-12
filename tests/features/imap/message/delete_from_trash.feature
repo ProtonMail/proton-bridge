@@ -6,7 +6,7 @@ Feature: IMAP remove messages from Trash
       | mbox  | folder |
       | label | label  |
 
-  Scenario Outline: Message in Trash and some other label is permanently deleted
+  Scenario Outline: Message in Trash and some other label is not permanently deleted
     Given the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Trash":
       | from              | to                   | subject | body  |
       | john.doe@mail.com | [user:user]@[domain] | foo     | hello |
@@ -26,8 +26,8 @@ Feature: IMAP remove messages from Trash
     When IMAP client "1" expunges
     Then it succeeds
     And IMAP client "1" eventually sees 1 messages in "Trash"
-    And IMAP client "1" eventually sees 1 messages in "All Mail"
-    And IMAP client "1" eventually sees 0 messages in "Labels/label"
+    And IMAP client "1" eventually sees 2 messages in "All Mail"
+    And IMAP client "1" eventually sees 1 messages in "Labels/label"
 
   Scenario Outline: Message in Trash only is permanently deleted
     Given the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Trash":
