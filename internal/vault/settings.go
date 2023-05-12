@@ -33,72 +33,72 @@ const (
 
 // GetIMAPPort sets the port that the IMAP server should listen on.
 func (vault *Vault) GetIMAPPort() int {
-	return vault.get().Settings.IMAPPort
+	return vault.getSafe().Settings.IMAPPort
 }
 
 // SetIMAPPort sets the port that the IMAP server should listen on.
 func (vault *Vault) SetIMAPPort(port int) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.IMAPPort = port
 	})
 }
 
 // GetSMTPPort sets the port that the SMTP server should listen on.
 func (vault *Vault) GetSMTPPort() int {
-	return vault.get().Settings.SMTPPort
+	return vault.getSafe().Settings.SMTPPort
 }
 
 // SetSMTPPort sets the port that the SMTP server should listen on.
 func (vault *Vault) SetSMTPPort(port int) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.SMTPPort = port
 	})
 }
 
 // GetIMAPSSL sets whether the IMAP server should use SSL.
 func (vault *Vault) GetIMAPSSL() bool {
-	return vault.get().Settings.IMAPSSL
+	return vault.getSafe().Settings.IMAPSSL
 }
 
 // SetIMAPSSL sets whether the IMAP server should use SSL.
 func (vault *Vault) SetIMAPSSL(ssl bool) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.IMAPSSL = ssl
 	})
 }
 
 // GetSMTPSSL sets whether the SMTP server should use SSL.
 func (vault *Vault) GetSMTPSSL() bool {
-	return vault.get().Settings.SMTPSSL
+	return vault.getSafe().Settings.SMTPSSL
 }
 
 // SetSMTPSSL sets whether the SMTP server should use SSL.
 func (vault *Vault) SetSMTPSSL(ssl bool) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.SMTPSSL = ssl
 	})
 }
 
 // GetGluonCacheDir sets the directory where the gluon should store its data.
 func (vault *Vault) GetGluonCacheDir() string {
-	return vault.get().Settings.GluonDir
+	return vault.getSafe().Settings.GluonDir
 }
 
 // SetGluonDir sets the directory where the gluon should store its data.
 func (vault *Vault) SetGluonDir(dir string) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.GluonDir = dir
 	})
 }
 
 // GetUpdateChannel sets the update channel.
 func (vault *Vault) GetUpdateChannel() updater.Channel {
-	return vault.get().Settings.UpdateChannel
+	return vault.getSafe().Settings.UpdateChannel
 }
 
 // SetUpdateChannel sets the update channel.
 func (vault *Vault) SetUpdateChannel(channel updater.Channel) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.UpdateChannel = channel
 	})
 }
@@ -106,7 +106,7 @@ func (vault *Vault) SetUpdateChannel(channel updater.Channel) error {
 // GetUpdateRollout sets the update rollout.
 func (vault *Vault) GetUpdateRollout() float64 {
 	// The rollout value 0.6046602879796196 is forbidden. The RNG was not seeded when it was picked (GODT-2319).
-	rollout := vault.get().Settings.UpdateRollout
+	rollout := vault.getSafe().Settings.UpdateRollout
 	if math.Abs(rollout-ForbiddenRollout) >= 0.00000001 {
 		return rollout
 	}
@@ -120,110 +120,110 @@ func (vault *Vault) GetUpdateRollout() float64 {
 
 // SetUpdateRollout sets the update rollout.
 func (vault *Vault) SetUpdateRollout(rollout float64) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.UpdateRollout = rollout
 	})
 }
 
 // GetColorScheme sets the color scheme to be used by the bridge GUI.
 func (vault *Vault) GetColorScheme() string {
-	return vault.get().Settings.ColorScheme
+	return vault.getSafe().Settings.ColorScheme
 }
 
 // SetColorScheme sets the color scheme to be used by the bridge GUI.
 func (vault *Vault) SetColorScheme(colorScheme string) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.ColorScheme = colorScheme
 	})
 }
 
 // GetProxyAllowed sets whether the bridge is allowed to use alternative routing.
 func (vault *Vault) GetProxyAllowed() bool {
-	return vault.get().Settings.ProxyAllowed
+	return vault.getSafe().Settings.ProxyAllowed
 }
 
 // SetProxyAllowed sets whether the bridge is allowed to use alternative routing.
 func (vault *Vault) SetProxyAllowed(allowed bool) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.ProxyAllowed = allowed
 	})
 }
 
 // GetShowAllMail sets whether the bridge should show the All Mail folder.
 func (vault *Vault) GetShowAllMail() bool {
-	return vault.get().Settings.ShowAllMail
+	return vault.getSafe().Settings.ShowAllMail
 }
 
 // SetShowAllMail sets whether the bridge should show the All Mail folder.
 func (vault *Vault) SetShowAllMail(showAllMail bool) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.ShowAllMail = showAllMail
 	})
 }
 
 // GetAutostart sets whether the bridge should autostart.
 func (vault *Vault) GetAutostart() bool {
-	return vault.get().Settings.Autostart
+	return vault.getSafe().Settings.Autostart
 }
 
 // SetAutostart sets whether the bridge should autostart.
 func (vault *Vault) SetAutostart(autostart bool) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.Autostart = autostart
 	})
 }
 
 // GetAutoUpdate sets whether the bridge should automatically update.
 func (vault *Vault) GetAutoUpdate() bool {
-	return vault.get().Settings.AutoUpdate
+	return vault.getSafe().Settings.AutoUpdate
 }
 
 // SetAutoUpdate sets whether the bridge should automatically update.
 func (vault *Vault) SetAutoUpdate(autoUpdate bool) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.AutoUpdate = autoUpdate
 	})
 }
 
 // GetTelemetryDisabled checks whether telemetry is disabled.
 func (vault *Vault) GetTelemetryDisabled() bool {
-	return vault.get().Settings.TelemetryDisabled
+	return vault.getSafe().Settings.TelemetryDisabled
 }
 
 // SetTelemetryDisabled sets whether telemetry is disabled.
 func (vault *Vault) SetTelemetryDisabled(telemetryDisabled bool) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.TelemetryDisabled = telemetryDisabled
 	})
 }
 
 // GetLastVersion returns the last version of the bridge that was run.
 func (vault *Vault) GetLastVersion() *semver.Version {
-	return semver.MustParse(vault.get().Settings.LastVersion)
+	return semver.MustParse(vault.getSafe().Settings.LastVersion)
 }
 
 // SetLastVersion sets the last version of the bridge that was run.
 func (vault *Vault) SetLastVersion(version *semver.Version) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.LastVersion = version.String()
 	})
 }
 
 // GetFirstStart returns whether this is the first time the bridge has been started.
 func (vault *Vault) GetFirstStart() bool {
-	return vault.get().Settings.FirstStart
+	return vault.getSafe().Settings.FirstStart
 }
 
 // SetFirstStart sets whether this is the first time the bridge has been started.
 func (vault *Vault) SetFirstStart(firstStart bool) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.FirstStart = firstStart
 	})
 }
 
 // GetMaxSyncMemory returns the maximum amount of memory the sync process should use.
 func (vault *Vault) GetMaxSyncMemory() uint64 {
-	v := vault.get().Settings.MaxSyncMemory
+	v := vault.getSafe().Settings.MaxSyncMemory
 	// can be zero if never written to vault before.
 	if v == 0 {
 		return DefaultMaxSyncMemory
@@ -234,14 +234,14 @@ func (vault *Vault) GetMaxSyncMemory() uint64 {
 
 // SetMaxSyncMemory sets the maximum amount of memory the sync process should use.
 func (vault *Vault) SetMaxSyncMemory(maxMemory uint64) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.MaxSyncMemory = maxMemory
 	})
 }
 
 // GetLastUserAgent returns the last user agent recorded by bridge.
 func (vault *Vault) GetLastUserAgent() string {
-	v := vault.get().Settings.LastUserAgent
+	v := vault.getSafe().Settings.LastUserAgent
 
 	// Handle case where there may be no value.
 	if len(v) == 0 {
@@ -253,19 +253,19 @@ func (vault *Vault) GetLastUserAgent() string {
 
 // SetLastUserAgent store the last user agent recorded by bridge.
 func (vault *Vault) SetLastUserAgent(userAgent string) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.LastUserAgent = userAgent
 	})
 }
 
 // GetLastHeartbeatSent returns the last time heartbeat was sent.
 func (vault *Vault) GetLastHeartbeatSent() time.Time {
-	return vault.get().Settings.LastHeartbeatSent
+	return vault.getSafe().Settings.LastHeartbeatSent
 }
 
 // SetLastHeartbeatSent store the last time heartbeat was sent.
 func (vault *Vault) SetLastHeartbeatSent(timestamp time.Time) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Settings.LastHeartbeatSent = timestamp
 	})
 }

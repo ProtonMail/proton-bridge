@@ -24,7 +24,7 @@ import (
 )
 
 func (vault *Vault) ImportJSON(dec []byte) {
-	vault.mod(func(data *Data) {
+	vault.modSafe(func(data *Data) {
 		if err := json.Unmarshal(dec, data); err != nil {
 			panic(err)
 		}
@@ -32,7 +32,7 @@ func (vault *Vault) ImportJSON(dec []byte) {
 }
 
 func (vault *Vault) ExportJSON() []byte {
-	enc, err := json.MarshalIndent(vault.get(), "", "  ")
+	enc, err := json.MarshalIndent(vault.getSafe(), "", "  ")
 	if err != nil {
 		panic(err)
 	}
