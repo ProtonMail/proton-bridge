@@ -110,3 +110,23 @@ func TestReadHeaderBodyInvalidHeader(t *testing.T) {
 	assert.Equal(t, 0, header.Len())
 	assert.Equal(t, []byte(data), body)
 }
+
+func FuzzReadHeaderBody(f *testing.F) {
+	header := `Content-Type: application/msword; name="=E5=B8=B6=E6=9C=89=E5=A4=96=E5=9C=8B=E5=AD=97=E7=AC=A6=E7=9A=84=E9=99=84=E4=
+	=BB=B6.DOC"
+	Content-Transfer-Encoding: base64
+	Content-Disposition: attachment; filename="=E5=B8=B6=E6=9C=89=E5=A4=96=E5=9C=8B=E5=AD=97=E7=AC=A6=E7=9A=84=E9=99=84=E4=
+	=BB=B6.DOC"
+	Content-ID: <>
+	`
+	data0 := "key: value\r\n\r\nbody\n"
+	data1 := "key: value\r\n\r\nbody\n"
+
+	f.Add([]byte(header))
+	f.Add([]byte(data0))
+	f.Add([]byte(data1))
+
+	f.Fuzz(func(t *testing.T, b []byte) {
+		_, _, _ = readHeaderBody(b)
+	})
+}

@@ -65,3 +65,23 @@ func TestUnmarshallImportExport(t *testing.T) {
 	r.NoError(t, haveCredentials.Unmarshal(encoded))
 	r.Equal(t, wantCredentials, haveCredentials)
 }
+
+func FuzzUnmarshal(f *testing.F) {
+	items := []string{
+		wantCredentials.Name,
+		wantCredentials.Emails,
+		wantCredentials.APIToken,
+		string(wantCredentials.MailboxPassword),
+		"k11",
+		fmt.Sprint(wantCredentials.Timestamp),
+	}
+	str := strings.Join(items, sep)
+	f.Add([]byte(str))
+
+	f.Fuzz(func(t *testing.T, secret []byte) {
+		encodedSecret := base64.StdEncoding.EncodeToString(secret)
+
+		creds := &Credentials{}
+		_ = creds.Unmarshal(encodedSecret)
+	})
+}

@@ -18,6 +18,7 @@
 package parser
 
 import (
+	"bytes"
 	"io"
 	"os"
 	"path/filepath"
@@ -49,4 +50,19 @@ func getFileAsString(filename string) string {
 	}
 
 	return string(b)
+}
+
+func FuzzNewParser(f *testing.F) {
+	inSeed1, err1 := os.ReadFile(filepath.Join("testdata", "text_html_octet_attachment.eml"))
+	inSeed2, err2 := os.ReadFile(filepath.Join("testdata", "complex_structure.eml"))
+
+	require.NoError(f, err1)
+	require.NoError(f, err2)
+
+	f.Add(inSeed1)
+	f.Add(inSeed2)
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		_, _ = New(bytes.NewReader(data))
+	})
 }
