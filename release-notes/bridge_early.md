@@ -7,6 +7,7 @@
 - Switched to two columns layout on the account details page to make the informaion easier to access
 - Improved logs to support troubleshooting
 - Added optional usage sharing to support user experience improvements
+  Additional information about data sharing can be found on our [support page](https://proton.me/support/share-usage-statistics).
 - Implemented smart picking of default IMAP and SMTP ports
 - Added various security and performance improvements
 
