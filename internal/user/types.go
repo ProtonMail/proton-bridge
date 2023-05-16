@@ -83,6 +83,18 @@ func getAddrIdx(apiAddrs map[string]proton.Address, idx int) (proton.Address, er
 	return sorted[idx], nil
 }
 
+func getPrimaryAddr(apiAddrs map[string]proton.Address) (proton.Address, error) {
+	sorted := sortSlice(maps.Values(apiAddrs), func(a, b proton.Address) bool {
+		return a.Order < b.Order
+	})
+
+	if len(sorted) == 0 {
+		return proton.Address{}, fmt.Errorf("no addresses available")
+	}
+
+	return sorted[0], nil
+}
+
 // sortSlice returns the given slice sorted by the given comparator.
 func sortSlice[Item any](items []Item, less func(Item, Item) bool) []Item {
 	sorted := make([]Item, len(items))
