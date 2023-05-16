@@ -46,10 +46,18 @@ func newSendRecorder(expiry time.Duration) *sendRecorder {
 }
 
 type sendEntry struct {
-	msgID  string
-	toList []string
-	exp    time.Time
-	waitCh chan struct{}
+	msgID        string
+	toList       []string
+	exp          time.Time
+	waitCh       chan struct{}
+	waitChClosed bool
+}
+
+func (s *sendEntry) closeWaitChannel() {
+	if !s.waitChClosed {
+		close(s.waitCh)
+		s.waitChClosed = true
+	}
 }
 
 // tryInsertWait tries to insert the given message into the send recorder.
@@ -142,6 +150,7 @@ func (h *sendRecorder) hasEntry(hash string) bool {
 	return false
 }
 
+// addMessageID should be called after a message has been successfully sent.
 func (h *sendRecorder) addMessageID(hash, msgID string) {
 	h.entriesLock.Lock()
 	defer h.entriesLock.Unlock()
@@ -153,7 +162,7 @@ func (h *sendRecorder) addMessageID(hash, msgID string) {
 		logrus.Warn("Cannot add message ID to send hash entry, it may have expired")
 	}
 
-	close(entry.waitCh)
+	entry.closeWaitChannel()
 }
 
 func (h *sendRecorder) removeOnFail(hash string) {
@@ -165,7 +174,7 @@ func (h *sendRecorder) removeOnFail(hash string) {
 		return
 	}
 
-	close(entry.waitCh)
+	entry.closeWaitChannel()
 
 	delete(h.entries, hash)
 }

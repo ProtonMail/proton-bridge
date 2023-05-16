@@ -194,6 +194,31 @@ func TestSendHasher_HasEntry_SendSuccess(t *testing.T) {
 	require.Equal(t, "abc", messageID)
 }
 
+func TestSendHasher_DualAddDoesNotCauseCrash(t *testing.T) {
+	// There may be a rare case where one 2 smtp connections attempt to send the same message, but if the first message
+	// is stuck long enough for it to expire, the second connection will remove it from the list and cause it to be
+	// inserted as a new entry. The two clients end up sending the message twice and calling the `addMessageID` x2,
+	// resulting in a crash.
+	h := newSendRecorder(sendEntryExpiry)
+
+	// Insert a message into the hasher.
+	hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
+	require.NoError(t, err)
+	require.True(t, ok)
+	require.NotEmpty(t, hash)
+
+	// Simulate successfully sending the message. We call this method twice as it possible for multiple SMTP connections
+	// to attempt to send the same message.
+	h.addMessageID(hash, "abc")
+	h.addMessageID(hash, "abc")
+
+	// The message was already sent; we should find it in the hasher.
+	messageID, ok, err := testHasEntry(h, literal1, time.Now().Add(time.Second))
+	require.NoError(t, err)
+	require.True(t, ok)
+	require.Equal(t, "abc", messageID)
+}
+
 func TestSendHasher_HasEntry_SendFail(t *testing.T) {
 	h := newSendRecorder(sendEntryExpiry)
 
@@ -264,7 +289,6 @@ Content-Disposition: attachment; filename="attname.txt"
 attachment
 --longrandomstring--
 `
-
 const literal2 = `From: Sender <sender@pm.me>
 To: Receiver <receiver@pm.me>
 Content-Type: multipart/mixed; boundary=longrandomstring
