@@ -41,8 +41,6 @@ github.com/ProtonMail/go-message v0.0.0-20210611055058-fabeff2ec753 h1:I8IsYA297
 github.com/ProtonMail/go-message v0.0.0-20210611055058-fabeff2ec753/go.mod h1:NBAn21zgCJ/52WLDyed18YvYFm5tEoeDauubFqLokM4=
 github.com/ProtonMail/go-mime v0.0.0-20230322103455-7d82a3887f2f h1:tCbYj7/299ekTTXpdwKYF8eBlsYsDVoggDAuAjoK66k=
 github.com/ProtonMail/go-mime v0.0.0-20230322103455-7d82a3887f2f/go.mod h1:gcr0kNtGBqin9zDW9GOHcVntrwnjrK+qdJ06mWYBybw=
-github.com/ProtonMail/go-proton-api v0.4.1-0.20230505091503-167f3d239b0c h1:uqo3mKt4ffhqPFLVV7VxjuN12DAFQmqEju/Wy5dk6Rk=
-github.com/ProtonMail/go-proton-api v0.4.1-0.20230505091503-167f3d239b0c/go.mod h1:UkrG9gN2o9mzdx/an0XRc6a4s5Haef1A7Eyd2iXlw28=
 github.com/ProtonMail/go-proton-api v0.4.1-0.20230516070548-faf4f87bf9e7 h1:7aY4azqc8PzYtg4+xG7b9wBEnckrl7rVMlMoFMWRkdA=
 github.com/ProtonMail/go-proton-api v0.4.1-0.20230516070548-faf4f87bf9e7/go.mod h1:UkrG9gN2o9mzdx/an0XRc6a4s5Haef1A7Eyd2iXlw28=
 github.com/ProtonMail/go-srp v0.0.5 h1:xhUioxZgDbCnpo9JehyFhwwsn9JLWkUGfB0oiKXgiGg=
@@ -110,8 +108,8 @@ github.com/cucumber/godog v0.12.5/go.mod h1:u6SD7IXC49dLpPN35kal0oYEjsXZWee4pW6T
 github.com/cucumber/messages-go/v16 v16.0.0/go.mod h1:EJcyR5Mm5ZuDsKJnT2N9KRnBK30BGjtYotDKpwQ0v6g=
 github.com/cucumber/messages-go/v16 v16.0.1 h1:fvkpwsLgnIm0qugftrw2YwNlio+ABe2Iu94Ap8GMYIY=
 github.com/cucumber/messages-go/v16 v16.0.1/go.mod h1:EJcyR5Mm5ZuDsKJnT2N9KRnBK30BGjtYotDKpwQ0v6g=
-github.com/cuthix/go-keychain v0.0.0-20220405075754-31e7cee908fe h1:KRj3wdvA9yE92prNmOjS7x5DOqoyjxqdE30qnrmTasc=
-github.com/cuthix/go-keychain v0.0.0-20220405075754-31e7cee908fe/go.mod h1:ZoZU1fnBy3mOLWr3Pg+Y2+nTKtu6ypDte2kZg9HvSwY=
+github.com/cuthix/go-keychain v0.0.0-20230517073537-fc1740a83768 h1:Jrcoxtrk4qpuzKIYPlEkjIK0M+bABs0oW2QzrOuwlzk=
+github.com/cuthix/go-keychain v0.0.0-20230517073537-fc1740a83768/go.mod h1:ZoZU1fnBy3mOLWr3Pg+Y2+nTKtu6ypDte2kZg9HvSwY=
 github.com/danieljoos/wincred v1.1.0/go.mod h1:XYlo+eRTsVA9aHGp7NGjFkPla4m+DCL7hqDjlFjiygg=
 github.com/danieljoos/wincred v1.1.2 h1:QLdCxFs1/Yl4zduvBdcHB8goaYk9RARS2SgLLRuAyr0=
 github.com/danieljoos/wincred v1.1.2/go.mod h1:GijpziifJoIBfYh+S7BbkdUTU4LfM+QnGqR5Vl2tAx0=
