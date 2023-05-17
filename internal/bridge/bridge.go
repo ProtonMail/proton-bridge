@@ -413,7 +413,7 @@ func (bridge *Bridge) Close(ctx context.Context) {
 	}
 
 	// Close all users.
-	safe.RLock(func() {
+	safe.Lock(func() {
 		for _, user := range bridge.users {
 			user.Close()
 		}

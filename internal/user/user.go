@@ -586,6 +586,8 @@ func (user *User) Close() {
 		for _, updateCh := range xslices.Unique(maps.Values(user.updateCh)) {
 			updateCh.CloseAndDiscardQueued()
 		}
+
+		user.updateCh = make(map[string]*async.QueuedChannel[imap.Update])
 	}, user.updateChLock)
 
 	// Close the user's notify channel.
