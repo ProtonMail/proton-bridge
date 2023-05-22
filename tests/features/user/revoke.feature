@@ -1,8 +1,10 @@
 Feature: A logged in user is logged out when its auth is revoked.
   Background:
     Given there exists an account with username "[user:user]" and password "password"
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
+    Then it succeeds
 
   Scenario: The auth is revoked while bridge is running
     When the auth of user "[user:user]" is revoked

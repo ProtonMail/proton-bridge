@@ -7,10 +7,12 @@ Feature: IMAP create mailbox
       | f2   | folder |
       | l1   | label  |
       | l2   | label  |
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And user "[user:user]" finishes syncing
     And user "[user:user]" connects and authenticates IMAP client "1"
+    Then it succeeds
 
   Scenario: Create folder
     When IMAP client "1" creates "Folders/mbox"

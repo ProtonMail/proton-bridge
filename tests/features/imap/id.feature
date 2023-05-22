@@ -1,8 +1,10 @@
 Feature: The IMAP ID is propagated to bridge
   Background:
     Given there exists an account with username "[user:user]" and password "password"
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
+    Then it succeeds
 
   Scenario: Initial user agent before an IMAP client announces its ID
     When user "[user:user]" connects IMAP client "1"

@@ -80,7 +80,7 @@ func TestBridge_Sync(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, info.State == bridge.Connected)
 
-			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			client, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
 			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 			defer func() { _ = client.Logout() }()
@@ -127,7 +127,7 @@ func TestBridge_Sync(t *testing.T) {
 				require.NoError(t, err)
 				require.True(t, info.State == bridge.Connected)
 
-				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+				client, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 				require.NoError(t, err)
 				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 				defer func() { _ = client.Logout() }()
@@ -178,7 +178,7 @@ func _TestBridge_Sync_BadMessage(t *testing.T) { //nolint:unused,deadcode
 			require.NoError(t, err)
 			require.True(t, info.State == bridge.Connected)
 
-			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			client, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
 			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 			defer func() { _ = client.Logout() }()
@@ -293,7 +293,7 @@ func TestBridge_SyncWithOngoingEvents(t *testing.T) {
 				require.NoError(t, err)
 				require.True(t, info.State == bridge.Connected)
 
-				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+				client, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 				require.NoError(t, err)
 				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 				defer func() { _ = client.Logout() }()

@@ -1,8 +1,10 @@
 Feature: A user can be deleted
   Background:
     Given there exists an account with username "[user:user]" and password "password"
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
+    Then it succeeds
 
   Scenario: Delete a connected user
     When user "[user:user]" is deleted

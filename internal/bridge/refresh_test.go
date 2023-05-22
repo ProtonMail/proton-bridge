@@ -28,7 +28,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/bradenaw/juniper/iterator"
-	"github.com/emersion/go-imap/client"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
@@ -66,7 +65,7 @@ func TestBridge_Refresh(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, info.State == bridge.Connected)
 
-			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			client, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
 			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 			defer func() { _ = client.Logout() }()
@@ -99,7 +98,7 @@ func TestBridge_Refresh(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, info.State == bridge.Connected)
 
-			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			client, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
 			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 			defer func() { _ = client.Logout() }()

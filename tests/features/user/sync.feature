@@ -14,7 +14,9 @@ Feature: Bridge can fully sync an account
       | from       | to         | subject | unread |
       | a@[domain] | a@[domain] | one     | true   |
       | b@[domain] | b@[domain] | two     | false  |
-    And bridge starts
+    Then it succeeds
+    When bridge starts
+    Then it succeeds
 
   Scenario: The account is synced when the user logs in and persists across bridge restarts
     When the user logs in with username "[user:user]" and password "password"

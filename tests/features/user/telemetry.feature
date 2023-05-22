@@ -2,7 +2,9 @@ Feature: Bridge send usage metrics
   Background:
     Given there exists an account with username "[user:user1]" and password "password"
     And there exists an account with username "[user:user2]" and password "password"
-    And bridge starts
+    Then it succeeds
+    When bridge starts
+    Then it succeeds
 
 
   Scenario: Telemetry availability - No user

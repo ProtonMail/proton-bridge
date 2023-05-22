@@ -7,10 +7,12 @@ Feature: IMAP Fetch
     And the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Inbox":
       | from              | to                   | subject | date                          |
       | john.doe@mail.com | [user:user]@[domain] | foo     |  13 Jul 69 00:00 +0000        |
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And user "[user:user]" finishes syncing
     And user "[user:user]" connects and authenticates IMAP client "1"
+    Then it succeeds
 
   Scenario: Fetch very old message
     Given IMAP client "1" eventually sees the following messages in "INBOX":

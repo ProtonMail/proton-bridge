@@ -1,8 +1,10 @@
 Feature: A logged out user can login again
   Background:
     Given there exists an account with username "[user:user]" and password "password"
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
+    Then it succeeds
 
   Scenario: Login to disconnected account
     When user "[user:user]" logs out

@@ -5,6 +5,7 @@ Feature: IMAP remove messages from Trash
       | name  | type   |
       | mbox  | folder |
       | label | label  |
+    Then it succeeds
 
   Scenario Outline: Message in Trash and some other label is not permanently deleted
     Given the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Trash":

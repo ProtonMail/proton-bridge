@@ -3,9 +3,11 @@ Feature: SMTP sending of plain messages
     Given there exists an account with username "[user:user]" and password "password"
     And there exists an account with username "[user:to]" and password "password"
     And there exists an account with username "[user:cc]" and password "password"
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And user "[user:user]" connects and authenticates SMTP client "1"
+    Then it succeeds
 
   Scenario: Only from and to headers to internal account
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":

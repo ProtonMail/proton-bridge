@@ -19,6 +19,7 @@ package tests
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/emersion/go-imap/client"
@@ -29,14 +30,14 @@ func (t *testCtx) newIMAPClient(userID, clientID string) error {
 }
 
 func (t *testCtx) newIMAPClientOnPort(userID, clientID string, imapPort int) error {
-	client, err := client.Dial(fmt.Sprintf("%v:%d", constants.Host, imapPort))
+	cli, err := eventuallyDial(fmt.Sprintf("%v:%d", constants.Host, imapPort))
 	if err != nil {
 		return err
 	}
 
 	t.imapClients[clientID] = &imapClient{
 		userID: userID,
-		client: client,
+		client: cli,
 	}
 
 	return nil
@@ -44,4 +45,17 @@ func (t *testCtx) newIMAPClientOnPort(userID, clientID string, imapPort int) err
 
 func (t *testCtx) getIMAPClient(clientID string) (string, *client.Client) {
 	return t.imapClients[clientID].userID, t.imapClients[clientID].client
+}
+
+func eventuallyDial(addr string) (cli *client.Client, err error) {
+	var sleep = 1 * time.Second
+	for i := 0; i < 5; i++ {
+		cli, err := client.Dial(addr)
+		if err == nil {
+			return cli, nil
+		}
+		time.Sleep(sleep)
+		sleep *= 2
+	}
+	return nil, fmt.Errorf("after 5 attempts, last error: %s", err)
 }

@@ -27,14 +27,13 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
-	"github.com/emersion/go-imap/client"
 	"github.com/stretchr/testify/require"
 )
 
 func TestServerManager_NoLoadedUsersNoServers(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			_, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+			_, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 			require.Error(t, err)
 		})
 	})
@@ -113,7 +112,7 @@ func TestServerManager_ServersDoNotStopWhenThereIsStillOneActiveUser(t *testing.
 
 			waitForEvent(t, evtCh, events.UserDeauth{})
 
-			imapClient, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+			imapClient, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 			require.NoError(t, err)
 			require.NoError(t, imapClient.Logout())
 		})
@@ -138,7 +137,7 @@ func TestServerManager_ServersStartIfAtLeastOneUserIsLoggedIn(t *testing.T) {
 		require.NoError(t, s.RevokeUser(userIDOther))
 
 		withBridgeWaitForServers(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			imapClient, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+			imapClient, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 			require.NoError(t, err)
 			require.NoError(t, imapClient.Logout())
 		})
@@ -151,21 +150,30 @@ func TestServerManager_NetworkLossStopsServers(t *testing.T) {
 			imapWaiter := waitForIMAPServerReady(bridge)
 			defer imapWaiter.Done()
 
+			smtpWaiter := waitForSMTPServerReady(bridge)
+			defer smtpWaiter.Done()
+
 			imapWaiterStop := waitForIMAPServerStopped(bridge)
 			defer imapWaiterStop.Done()
+
+			smtpWaiterStop := waitForSMTPServerStopped(bridge)
+			defer smtpWaiterStop.Done()
 
 			_, err := bridge.LoginFull(ctx, username, password, nil, nil)
 			require.NoError(t, err)
 
 			imapWaiter.Wait()
+			smtpWaiter.Wait()
 
 			netCtl.Disable()
 
 			imapWaiterStop.Wait()
+			smtpWaiterStop.Wait()
 
 			netCtl.Enable()
 
 			imapWaiter.Wait()
+			smtpWaiter.Wait()
 		})
 	})
 }

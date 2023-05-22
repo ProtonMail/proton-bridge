@@ -3,11 +3,13 @@ Feature: SMTP send reply
   Background:
     Given there exists an account with username "[user:user1]" and password "password"
     And there exists an account with username "[user:user2]" and password "password"
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user1]" and password "password"
     And user "[user:user1]" finishes syncing
     And user "[user:user1]" connects and authenticates SMTP client "1"
     And user "[user:user1]" connects and authenticates IMAP client "1"
+    Then it succeeds
 
   @long-black
   Scenario: Reply with In-Reply-To but no References

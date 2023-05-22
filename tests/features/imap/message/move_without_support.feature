@@ -4,11 +4,13 @@ Feature: IMAP move messages by append and delete (without MOVE support, e.g., Ou
     And the account "[user:user]" has the following custom mailboxes:
       | name | type   |
       | mbox | folder |
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And user "[user:user]" finishes syncing
     And user "[user:user]" connects and authenticates IMAP client "source"
     And user "[user:user]" connects and authenticates IMAP client "target"
+    Then it succeeds
 
   Scenario Outline: Move message from <srcMailbox> to <dstMailbox> by <order>
     When IMAP client "source" appends the following message to "<srcMailbox>":

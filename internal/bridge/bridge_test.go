@@ -50,7 +50,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/tests"
 	"github.com/bradenaw/juniper/xslices"
 	imapid "github.com/emersion/go-imap-id"
-	"github.com/emersion/go-imap/client"
 	"github.com/stretchr/testify/require"
 )
 
@@ -182,14 +181,18 @@ func TestBridge_UserAgent_Persistence(t *testing.T) {
 			imapWaiter := waitForIMAPServerReady(b)
 			defer imapWaiter.Done()
 
+			smtpWaiter := waitForSMTPServerReady(b)
+			defer smtpWaiter.Done()
+
 			require.NoError(t, getErr(b.LoginFull(ctx, otherUser, otherPassword, nil, nil)))
 
 			imapWaiter.Wait()
+			smtpWaiter.Wait()
 
 			currentUserAgent := b.GetCurrentUserAgent()
 			require.Contains(t, currentUserAgent, vault.DefaultUserAgent)
 
-			imapClient, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			imapClient, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
 			defer func() { _ = imapClient.Logout() }()
 
@@ -241,11 +244,15 @@ func TestBridge_UserAgentFromIMAPID(t *testing.T) {
 			imapWaiter := waitForIMAPServerReady(b)
 			defer imapWaiter.Done()
 
+			smtpWaiter := waitForSMTPServerReady(b)
+			defer smtpWaiter.Done()
+
 			require.NoError(t, getErr(b.LoginFull(ctx, otherUser, otherPassword, nil, nil)))
 
 			imapWaiter.Wait()
+			smtpWaiter.Wait()
 
-			imapClient, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			imapClient, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
 			defer func() { _ = imapClient.Logout() }()
 
@@ -619,6 +626,9 @@ func TestBridge_LoginFailed(t *testing.T) {
 			imapWaiter := waitForIMAPServerReady(bridge)
 			defer imapWaiter.Done()
 
+			smtpWaiter := waitForSMTPServerReady(bridge)
+			defer smtpWaiter.Done()
+
 			failCh, done := chToType[events.Event, events.IMAPLoginFailed](bridge.GetEvents(events.IMAPLoginFailed{}))
 			defer done()
 
@@ -626,8 +636,9 @@ func TestBridge_LoginFailed(t *testing.T) {
 			require.NoError(t, err)
 
 			imapWaiter.Wait()
+			smtpWaiter.Wait()
 
-			imapClient, err := client.Dial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetIMAPPort())))
+			imapClient, err := eventuallyDial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetIMAPPort())))
 			require.NoError(t, err)
 
 			require.Error(t, imapClient.Login("badUser", "badPass"))
@@ -656,6 +667,9 @@ func TestBridge_ChangeCacheDirectory(t *testing.T) {
 
 			imapWaiter := waitForIMAPServerReady(b)
 			defer imapWaiter.Done()
+
+			smtpWaiter := waitForSMTPServerReady(b)
+			defer smtpWaiter.Done()
 
 			// Login the user.
 			syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
@@ -691,8 +705,9 @@ func TestBridge_ChangeCacheDirectory(t *testing.T) {
 			require.True(t, info.State == bridge.Connected)
 
 			imapWaiter.Wait()
+			smtpWaiter.Wait()
 
-			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			client, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
 			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 			defer func() { _ = client.Logout() }()
@@ -732,7 +747,7 @@ func TestBridge_ChangeAddressOrder(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, info.State == bridge.Connected)
 
-			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			client, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
 			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 			defer func() { _ = client.Logout() }()
@@ -753,7 +768,7 @@ func TestBridge_ChangeAddressOrder(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, info.State == bridge.Connected)
 
-			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			client, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
 			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 			defer func() { _ = client.Logout() }()
@@ -984,6 +999,14 @@ func (e *eventWaiter) Wait() {
 
 func waitForSMTPServerReady(b *bridge.Bridge) *eventWaiter {
 	evtCh, cancel := b.GetEvents(events.SMTPServerReady{})
+	return &eventWaiter{
+		evtCh:  evtCh,
+		cancel: cancel,
+	}
+}
+
+func waitForSMTPServerStopped(b *bridge.Bridge) *eventWaiter {
+	evtCh, cancel := b.GetEvents(events.SMTPServerStopped{})
 	return &eventWaiter{
 		evtCh:  evtCh,
 		cancel: cancel,

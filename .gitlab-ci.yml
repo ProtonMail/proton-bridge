@@ -99,7 +99,7 @@ test-linux:
     - .rules-branch-manual-MR-and-devel-always
     - .after-script-code-coverage
   tags:
-    - medium
+    - large
 
 test-linux-race:
   extends:

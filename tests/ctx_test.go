@@ -169,6 +169,7 @@ type testCtx struct {
 	dummyListeners []net.Listener
 
 	imapServerStarted bool
+	smtpServerStarted bool
 }
 
 type imapClient struct {

@@ -8,9 +8,11 @@ Feature: IMAP get mailbox info
       | from          | to            | subject | unread |
       | a@example.com | a@example.com | one     | true   |
       | b@example.com | b@example.com | two     | false  |
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And user "[user:user]" finishes syncing
+    Then it succeeds
 
   Scenario: Mailbox status reports correct name, total and unread
     When user "[user:user]" connects and authenticates IMAP client "1"

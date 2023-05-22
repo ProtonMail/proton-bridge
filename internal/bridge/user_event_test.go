@@ -444,14 +444,14 @@ func TestBridge_User_DropConn_NoBadEvent(t *testing.T) {
 			info, err := bridge.QueryUserInfo("user")
 			require.NoError(t, err)
 
-			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+			cli, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 			require.NoError(t, err)
-			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
-			defer func() { _ = client.Logout() }()
+			require.NoError(t, cli.Login(info.Addresses[0], string(info.BridgePass)))
+			defer func() { _ = cli.Logout() }()
 
 			// The IMAP client will eventually see 20 messages.
 			require.Eventually(t, func() bool {
-				status, err := client.Status("INBOX", []imap.StatusItem{imap.StatusMessages})
+				status, err := cli.Status("INBOX", []imap.StatusItem{imap.StatusMessages})
 				return err == nil && status.Messages == 20
 			}, 10*time.Second, 100*time.Millisecond)
 		})
@@ -645,12 +645,12 @@ func TestBridge_User_SendDraftRemoveDraftFlag(t *testing.T) {
 				info, err := bridge.QueryUserInfo("user")
 				require.NoError(t, err)
 
-				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+				cli, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 				require.NoError(t, err)
-				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
-				defer func() { _ = client.Logout() }()
+				require.NoError(t, cli.Login(info.Addresses[0], string(info.BridgePass)))
+				defer func() { _ = cli.Logout() }()
 
-				messages, err := clientFetch(client, "Drafts")
+				messages, err := clientFetch(cli, "Drafts")
 				require.NoError(t, err)
 				require.Len(t, messages, 1)
 				require.Contains(t, messages[0].Flags, imap.DraftFlag)
@@ -684,12 +684,12 @@ func TestBridge_User_SendDraftRemoveDraftFlag(t *testing.T) {
 				info, err := bridge.QueryUserInfo("user")
 				require.NoError(t, err)
 
-				client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+				cli, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 				require.NoError(t, err)
-				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
-				defer func() { _ = client.Logout() }()
+				require.NoError(t, cli.Login(info.Addresses[0], string(info.BridgePass)))
+				defer func() { _ = cli.Logout() }()
 
-				messages, err := clientFetch(client, "Sent")
+				messages, err := clientFetch(cli, "Sent")
 				require.NoError(t, err)
 				require.Len(t, messages, 1)
 				require.NotContains(t, messages[0].Flags, imap.DraftFlag)
@@ -781,17 +781,21 @@ func TestBridge_User_HandleParentLabelRename(t *testing.T) {
 			imapWaiter := waitForIMAPServerReady(bridge)
 			defer imapWaiter.Done()
 
+			smtpWaiter := waitForSMTPServerReady(bridge)
+			defer smtpWaiter.Done()
+
 			require.NoError(t, getErr(bridge.LoginFull(ctx, username, password, nil, nil)))
 
 			info, err := bridge.QueryUserInfo(username)
 			require.NoError(t, err)
 
 			imapWaiter.Wait()
+			smtpWaiter.Wait()
 
-			client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+			cli, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 			require.NoError(t, err)
-			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
-			defer func() { _ = client.Logout() }()
+			require.NoError(t, cli.Login(info.Addresses[0], string(info.BridgePass)))
+			defer func() { _ = cli.Logout() }()
 
 			withClient(ctx, t, s, username, password, func(ctx context.Context, c *proton.Client) {
 				parentName := uuid.NewString()
@@ -807,7 +811,7 @@ func TestBridge_User_HandleParentLabelRename(t *testing.T) {
 
 				// Wait for the parent folder to be created.
 				require.Eventually(t, func() bool {
-					return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+					return xslices.IndexFunc(clientList(cli), func(mailbox *imap.MailboxInfo) bool {
 						return mailbox.Name == fmt.Sprintf("Folders/%v", parentName)
 					}) >= 0
 				}, 100*user.EventPeriod, user.EventPeriod)
@@ -824,7 +828,7 @@ func TestBridge_User_HandleParentLabelRename(t *testing.T) {
 
 				// Wait for the parent folder to be created.
 				require.Eventually(t, func() bool {
-					return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+					return xslices.IndexFunc(clientList(cli), func(mailbox *imap.MailboxInfo) bool {
 						return mailbox.Name == fmt.Sprintf("Folders/%v/%v", parentName, childName)
 					}) >= 0
 				}, 100*user.EventPeriod, user.EventPeriod)
@@ -839,14 +843,14 @@ func TestBridge_User_HandleParentLabelRename(t *testing.T) {
 
 				// Wait for the parent folder to be renamed.
 				require.Eventually(t, func() bool {
-					return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+					return xslices.IndexFunc(clientList(cli), func(mailbox *imap.MailboxInfo) bool {
 						return mailbox.Name == fmt.Sprintf("Folders/%v", newParentName)
 					}) >= 0
 				}, 100*user.EventPeriod, user.EventPeriod)
 
 				// Wait for the child folder to be renamed.
 				require.Eventually(t, func() bool {
-					return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+					return xslices.IndexFunc(clientList(cli), func(mailbox *imap.MailboxInfo) bool {
 						return mailbox.Name == fmt.Sprintf("Folders/%v/%v", newParentName, childName)
 					}) >= 0
 				}, 100*user.EventPeriod, user.EventPeriod)
@@ -898,10 +902,10 @@ func userContinueEventProcess(
 	info, err := bridge.QueryUserInfo("user")
 	require.NoError(t, err)
 
-	client, err := client.Dial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+	cli, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 	require.NoError(t, err)
-	require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
-	defer func() { _ = client.Logout() }()
+	require.NoError(t, cli.Login(info.Addresses[0], string(info.BridgePass)))
+	defer func() { _ = cli.Logout() }()
 
 	randomLabel := uuid.NewString()
 
@@ -916,8 +920,21 @@ func userContinueEventProcess(
 
 	// Wait for the label to be created.
 	require.Eventually(t, func() bool {
-		return xslices.IndexFunc(clientList(client), func(mailbox *imap.MailboxInfo) bool {
+		return xslices.IndexFunc(clientList(cli), func(mailbox *imap.MailboxInfo) bool {
 			return mailbox.Name == "Labels/"+randomLabel
 		}) >= 0
 	}, 100*user.EventPeriod, user.EventPeriod)
+}
+
+func eventuallyDial(addr string) (cli *client.Client, err error) {
+	var sleep = 1 * time.Second
+	for i := 0; i < 5; i++ {
+		cli, err := client.Dial(addr)
+		if err == nil {
+			return cli, nil
+		}
+		time.Sleep(sleep)
+		sleep *= 2
+	}
+	return nil, fmt.Errorf("after 5 attempts, last error: %s", err)
 }

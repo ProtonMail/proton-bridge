@@ -2,10 +2,12 @@ Feature: SMTP sending embedded message
   Background:
     Given there exists an account with username "[user:user]" and password "password"
     And there exists an account with username "[user:to]" and password "password"
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And the user logs in with username "[user:to]" and password "password"
     And user "[user:user]" connects and authenticates SMTP client "1"
+    Then it succeeds
 
   @long-black
   Scenario: Send it
