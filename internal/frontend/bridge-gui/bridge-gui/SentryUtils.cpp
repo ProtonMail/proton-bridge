@@ -49,7 +49,7 @@ QString sentryAttachmentFilePath() {
 //****************************************************************************************************************************************************
 QByteArray getProtectedHostname() {
     QByteArray hostname = QCryptographicHash::hash(QSysInfo::machineHostName().toUtf8(), QCryptographicHash::Sha256);
-    return hostname.toHex();
+    return hostname.toBase64();
 }
 
 //****************************************************************************************************************************************************
