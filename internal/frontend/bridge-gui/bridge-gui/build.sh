@@ -106,10 +106,10 @@ cmake  \
     -B "${BUILD_DIR}"
 check_exit "CMake failed"
 
-cmake --build "${BUILD_DIR}"
+cmake --build "${BUILD_DIR}" -v
 check_exit "build failed"
 
 if [ "$1" == "install" ]; then
-    cmake --install "${BUILD_DIR}"
+    cmake --install "${BUILD_DIR}" -v
     check_exit "install failed"
 fi

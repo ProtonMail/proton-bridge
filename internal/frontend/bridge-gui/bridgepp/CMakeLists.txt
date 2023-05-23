@@ -185,7 +185,7 @@ enable_testing()
 #*****************************************************************************************************************************************************
 # Tests
 #*****************************************************************************************************************************************************
-add_executable(bridgepp-test
+add_executable(bridgepp-test EXCLUDE_FROM_ALL
     Test/TestBridgeUtils.cpp
     Test/TestException.cpp
     Test/TestWorker.cpp Test/TestWorker.h)
