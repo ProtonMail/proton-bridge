@@ -1,6 +1,6 @@
 module github.com/ProtonMail/proton-bridge/v3
 
-go 1.18
+go 1.20
 
 require (
 	github.com/0xAX/notificator v0.0.0-20220220101646-ee9b8921e557
