@@ -470,7 +470,7 @@ func (s *scenario) imapClientAppendsToMailbox(clientID string, file, mailbox str
 	return nil
 }
 
-func (s *scenario) imapClientsMoveMessageWithSubjectUserFromToByOrderedOperations(sourceIMAPClient, targetIMAPClient, messageSubject, bddUserID, targetMailboxName, op1, op2, op3 string) error {
+func (s *scenario) imapClientsMoveMessageWithSubjectUserFromToByOrderedOperations(sourceIMAPClient, targetIMAPClient, messageSubject, _, targetMailboxName, op1, op2, op3 string) error {
 	// call NOOP to prevent unilateral updates in following FETCH
 	_, sourceClient := s.t.getIMAPClient(sourceIMAPClient)
 	_, targetClient := s.t.getIMAPClient(targetIMAPClient)

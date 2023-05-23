@@ -20,6 +20,7 @@ package cli
 
 import (
 	"errors"
+	"os"
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
@@ -59,6 +60,11 @@ func New(
 		badUserID:    "",
 		panicHandler: panicHandler,
 	}
+
+	// We want to exit at the first Ctrl+C. By default, ishell requires two.
+	fe.Interrupt(func(_ *ishell.Context, _ int, _ string) {
+		os.Exit(1)
+	})
 
 	// Clear commands.
 	clearCmd := &ishell.Cmd{

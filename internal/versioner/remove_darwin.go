@@ -29,7 +29,7 @@ func (v *Versioner) RemoveOldVersions() error {
 }
 
 // RemoveOtherVersions removes all but the specific provided app version.
-func (v *Versioner) RemoveOtherVersions(versionToKeep *semver.Version) error {
+func (v *Versioner) RemoveOtherVersions(_ *semver.Version) error {
 	// darwin does not use the versioner; removal is a noop.
 	return nil
 }

@@ -673,6 +673,40 @@ func TestParsePanic(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestParseTextPlainWithPdfAttachmentCyrillic(t *testing.T) {
+	f := getFileReader("text_plain_pdf_attachment_cyrillic.eml")
+
+	m, err := Parse(f)
+	require.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "Shake that body", string(m.RichBody))
+	assert.Equal(t, "Shake that body", string(m.PlainBody))
+
+	require.Len(t, m.Attachments, 1)
+	require.Equal(t, "application/pdf", m.Attachments[0].MIMEType)
+	assert.Equal(t, "АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЧЏЗШ.pdf", m.Attachments[0].Name)
+}
+
+func TestParseTextPlainWithDocxAttachmentCyrillic(t *testing.T) {
+	f := getFileReader("text_plain_docx_attachment_cyrillic.eml")
+
+	m, err := Parse(f)
+	require.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	assert.Equal(t, "Shake that body", string(m.RichBody))
+	assert.Equal(t, "Shake that body", string(m.PlainBody))
+
+	require.Len(t, m.Attachments, 1)
+	require.Equal(t, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", m.Attachments[0].MIMEType)
+	assert.Equal(t, "АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЧЏЗШ.docx", m.Attachments[0].Name)
+}
+
 func getFileReader(filename string) io.Reader {
 	f, err := os.Open(filepath.Join("testdata", filename))
 	if err != nil {
@@ -684,6 +718,6 @@ func getFileReader(filename string) io.Reader {
 
 type panicReader struct{}
 
-func (panicReader) Read(p []byte) (int, error) {
+func (panicReader) Read(_ []byte) (int, error) {
 	panic("lol")
 }

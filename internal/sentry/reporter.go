@@ -96,6 +96,7 @@ func GetTimeZone() string {
 
 // NewReporter creates new sentry reporter with appName and appVersion to report.
 func NewReporter(appName string, identifier Identifier) *Reporter {
+	logrus.WithField("id", GetProtectedHostname()).Info("New sentry reporter")
 	return &Reporter{
 		appName:    appName,
 		appVersion: constants.Revision,
@@ -203,7 +204,7 @@ func SkipDuringUnwind() {
 }
 
 // EnhanceSentryEvent swaps type with value and removes panic handlers from the stacktrace.
-func EnhanceSentryEvent(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+func EnhanceSentryEvent(event *sentry.Event, _ *sentry.EventHint) *sentry.Event {
 	for idx, exception := range event.Exception {
 		exception.Type, exception.Value = exception.Value, exception.Type
 		if exception.Stacktrace != nil {

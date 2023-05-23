@@ -584,29 +584,7 @@ func (bridge *Bridge) newVaultUser(
 	authUID, authRef string,
 	saltedKeyPass []byte,
 ) (*vault.User, bool, error) {
-	if !bridge.vault.HasUser(apiUser.ID) {
-		user, err := bridge.vault.AddUser(apiUser.ID, apiUser.Name, apiUser.Email, authUID, authRef, saltedKeyPass)
-		if err != nil {
-			return nil, false, fmt.Errorf("failed to add user to vault: %w", err)
-		}
-
-		return user, true, nil
-	}
-
-	user, err := bridge.vault.NewUser(apiUser.ID)
-	if err != nil {
-		return nil, false, err
-	}
-
-	if err := user.SetAuth(authUID, authRef); err != nil {
-		return nil, false, err
-	}
-
-	if err := user.SetKeyPass(saltedKeyPass); err != nil {
-		return nil, false, err
-	}
-
-	return user, false, nil
+	return bridge.vault.GetOrAddUser(apiUser.ID, apiUser.Name, apiUser.Email, authUID, authRef, saltedKeyPass)
 }
 
 // logout logs out the given user, optionally logging them out from the API too.

@@ -217,7 +217,7 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event proton.Add
 		// If the address is enabled, we need to hook it up to the update channels.
 		switch user.vault.AddressMode() {
 		case vault.CombinedMode:
-			primAddr, err := getAddrIdx(user.apiAddrs, 0)
+			primAddr, err := getPrimaryAddr(user.apiAddrs)
 			if err != nil {
 				return fmt.Errorf("failed to get primary address: %w", err)
 			}
@@ -276,7 +276,7 @@ func (user *User) handleUpdateAddressEvent(_ context.Context, event proton.Addre
 		case oldAddr.Status != proton.AddressStatusEnabled && event.Address.Status == proton.AddressStatusEnabled:
 			switch user.vault.AddressMode() {
 			case vault.CombinedMode:
-				primAddr, err := getAddrIdx(user.apiAddrs, 0)
+				primAddr, err := getPrimaryAddr(user.apiAddrs)
 				if err != nil {
 					return fmt.Errorf("failed to get primary address: %w", err)
 				}
@@ -394,7 +394,7 @@ func (user *User) handleLabelEvents(ctx context.Context, labelEvents []proton.La
 	return nil
 }
 
-func (user *User) handleCreateLabelEvent(ctx context.Context, event proton.LabelEvent) ([]imap.Update, error) { //nolint:unparam
+func (user *User) handleCreateLabelEvent(_ context.Context, event proton.LabelEvent) ([]imap.Update, error) { //nolint:unparam
 	return safe.LockRetErr(func() ([]imap.Update, error) {
 		var updates []imap.Update
 
@@ -480,7 +480,7 @@ func (user *User) handleUpdateLabelEvent(ctx context.Context, event proton.Label
 	}, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleDeleteLabelEvent(ctx context.Context, event proton.LabelEvent) ([]imap.Update, error) { //nolint:unparam
+func (user *User) handleDeleteLabelEvent(_ context.Context, event proton.LabelEvent) ([]imap.Update, error) { //nolint:unparam
 	return safe.LockRetErr(func() ([]imap.Update, error) {
 		var updates []imap.Update
 
@@ -628,7 +628,14 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, message proton.M
 			}
 
 			update = imap.NewMessagesCreated(false, res.update)
-			user.updateCh[full.AddressID].Enqueue(update)
+			didPublish, err := safePublishMessageUpdate(user, full.AddressID, update)
+			if err != nil {
+				return err
+			}
+
+			if !didPublish {
+				update = nil
+			}
 
 			return nil
 		}); err != nil {
@@ -643,7 +650,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, message proton.M
 	}, user.apiUserLock, user.apiAddrsLock, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleUpdateMessageEvent(ctx context.Context, message proton.MessageMetadata) ([]imap.Update, error) { //nolint:unparam
+func (user *User) handleUpdateMessageEvent(_ context.Context, message proton.MessageMetadata) ([]imap.Update, error) { //nolint:unparam
 	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		user.log.WithFields(logrus.Fields{
 			"messageID": message.ID,
@@ -674,13 +681,20 @@ func (user *User) handleUpdateMessageEvent(ctx context.Context, message proton.M
 			flags,
 		)
 
-		user.updateCh[message.AddressID].Enqueue(update)
+		didPublish, err := safePublishMessageUpdate(user, message.AddressID, update)
+		if err != nil {
+			return nil, err
+		}
+
+		if !didPublish {
+			return nil, nil
+		}
 
 		return []imap.Update{update}, nil
 	}, user.apiLabelsLock, user.updateChLock)
 }
 
-func (user *User) handleDeleteMessageEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) { //nolint:unparam
+func (user *User) handleDeleteMessageEvent(_ context.Context, event proton.MessageEvent) ([]imap.Update, error) {
 	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		user.log.WithField("messageID", event.ID).Info("Handling message deleted event")
 
@@ -696,7 +710,7 @@ func (user *User) handleDeleteMessageEvent(ctx context.Context, event proton.Mes
 	}, user.updateChLock)
 }
 
-func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) { //nolint:unparam
+func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) {
 	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		user.log.WithFields(logrus.Fields{
 			"messageID": event.ID,
@@ -743,11 +757,22 @@ func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.Messa
 				true, // Is the message doesn't exist, silently create it.
 			)
 
-			user.updateCh[full.AddressID].Enqueue(update)
+			didPublish, err := safePublishMessageUpdate(user, full.AddressID, update)
+			if err != nil {
+				return err
+			}
+
+			if !didPublish {
+				update = nil
+			}
 
 			return nil
 		}); err != nil {
 			return nil, err
+		}
+
+		if update == nil {
+			return nil, nil
 		}
 
 		return []imap.Update{update}, nil
@@ -815,4 +840,38 @@ func (user *User) reportErrorNoContextCancel(title string, err error, reportCont
 			user.log.WithError(err).WithField("title", title).Error("Failed to report message")
 		}
 	}
+}
+
+// safePublishMessageUpdate handles the rare case where the address' update channel may have been deleted in the same
+// event. This rare case can take place if in the same event fetch request there is an update for delete address and
+// create/update message.
+// If the user is in combined mode, we simply push the update to the primary address. If the user is in split mode
+// we do not publish the update as the address no longer exists.
+func safePublishMessageUpdate(user *User, addressID string, update imap.Update) (bool, error) {
+	v, ok := user.updateCh[addressID]
+	if !ok {
+		if user.GetAddressMode() == vault.CombinedMode {
+			primAddr, err := getPrimaryAddr(user.apiAddrs)
+			if err != nil {
+				return false, fmt.Errorf("failed to get primary address: %w", err)
+			}
+			primaryCh, ok := user.updateCh[primAddr.ID]
+			if !ok {
+				return false, fmt.Errorf("primary address channel is not available")
+			}
+
+			primaryCh.Enqueue(update)
+
+			return true, nil
+		}
+
+		logrus.Warnf("Update channel not found for address %v, it may have been already deleted", addressID)
+		_ = user.reporter.ReportMessage("Message Update channel does not exist")
+
+		return false, nil
+	}
+
+	v.Enqueue(update)
+
+	return true, nil
 }

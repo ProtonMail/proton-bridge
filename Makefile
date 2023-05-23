@@ -183,7 +183,7 @@ ${RESOURCE_FILE}: ./dist/info.rc ./dist/${SRC_ICO} .FORCE
 
 ## Dev dependencies
 .PHONY: install-devel-tools install-linter install-go-mod-outdated install-git-hooks
-LINTVER:="v1.50.0"
+LINTVER:="v1.52.2"
 LINTSRC:="https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh"
 
 install-dev-dependencies: install-devel-tools install-linter install-go-mod-outdated
@@ -228,13 +228,13 @@ change-copyright-year:
 	./utils/missing_license.sh change-year
 
 test: gofiles
-	go test -v -timeout=10m -p=1 -count=1 -coverprofile=/tmp/coverage.out -run=${TESTRUN} ./internal/... ./pkg/...
+	go test -v -timeout=20m -p=1 -count=1 -coverprofile=/tmp/coverage.out -run=${TESTRUN} ./internal/... ./pkg/...
 
 test-race: gofiles
-	go test -v -timeout=30m -p=1 -count=1 -race -failfast -run=${TESTRUN} ./internal/... ./pkg/...
+	go test -v -timeout=40m -p=1 -count=1 -race -failfast -run=${TESTRUN} ./internal/... ./pkg/...
 
 test-integration: gofiles
-	go test -v -timeout=20m -p=1 -count=1 github.com/ProtonMail/proton-bridge/v3/tests
+	go test -v -timeout=60m -p=1 -count=1 github.com/ProtonMail/proton-bridge/v3/tests
 
 test-integration-debug: gofiles
 	dlv test github.com/ProtonMail/proton-bridge/v3/tests -- -test.v -test.timeout=10m -test.parallel=1 -test.count=1

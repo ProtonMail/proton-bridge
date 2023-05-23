@@ -994,15 +994,44 @@ void QMLBackend::onUserBadEvent(QString const &userID, QString const &) {
 void QMLBackend::onIMAPLoginFailed(QString const &username) {
     HANDLE_EXCEPTION(
         SPUser const user = users_->getUserWithUsernameOrEmail(username);
-        if ((!user) || (user->state() != UserState::SignedOut)) { // We want to pop-up only if a signed-out user has been detected
+        if (!user) {
             return;
         }
-        if (user->isInIMAPLoginFailureCooldown()) {
-            return;
+
+        qint64 const cooldownDurationMs = 10 * 60 * 1000; // 10 minutes cooldown period for notifications
+        switch (user->state()) {
+        case UserState::SignedOut:
+            if (user->isNotificationInCooldown(User::ENotification::IMAPLoginWhileSignedOut)) {
+                return;
+            }
+            user->startNotificationCooldownPeriod(User::ENotification::IMAPLoginWhileSignedOut, cooldownDurationMs);
+            emit selectUser(user->id(), true);
+            emit imapLoginWhileSignedOut(username);
+            break;
+
+        case UserState::Connected:
+            if (user->isNotificationInCooldown(User::ENotification::IMAPPasswordFailure)) {
+                return;
+            }
+            user->startNotificationCooldownPeriod(User::ENotification::IMAPPasswordFailure, cooldownDurationMs);
+            emit selectUser(user->id(), false);
+            trayIcon_->showErrorPopupNotification(tr("Incorrect password"),
+                tr("Your email client can't connect to Proton Bridge. Make sure you are using the local Bridge password shown in Bridge."));
+            break;
+
+        case UserState::Locked:
+            if (user->isNotificationInCooldown(User::ENotification::IMAPLoginWhileLocked)) {
+                return;
+            }
+            user->startNotificationCooldownPeriod(User::ENotification::IMAPLoginWhileLocked, cooldownDurationMs);
+            emit selectUser(user->id(), false);
+            trayIcon_->showErrorPopupNotification(tr("Connection in progress"),
+                tr("Your Proton account in Bridge is being connected. Please wait or restart Bridge."));
+            break;
+
+        default:
+            break;
         }
-        user->startImapLoginFailureCooldown(60 * 60 * 1000); // 1 hour cooldown during which we will not display this notification to this user again.
-        emit selectUser(user->id());
-        emit imapLoginWhileSignedOut(username);
     )
 }
 
@@ -1134,7 +1163,7 @@ void QMLBackend::displayBadEventDialog(QString const &userID) {
         emit userBadEvent(userID,
             tr("Bridge ran into an internal error and it is not able to proceed with the account %1. Synchronize your local database now or logout"
                " to do it later. Synchronization time depends on the size of your mailbox.").arg(elideLongString(user->primaryEmailOrUsername(), 30)));
-        emit selectUser(userID);
+        emit selectUser(userID, true);
         emit showMainWindow();
     )
 }

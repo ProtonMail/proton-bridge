@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"path/filepath"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
@@ -55,7 +54,7 @@ func (bridge *Bridge) GetIMAPPort() int {
 	return bridge.vault.GetIMAPPort()
 }
 
-func (bridge *Bridge) SetIMAPPort(newPort int) error {
+func (bridge *Bridge) SetIMAPPort(ctx context.Context, newPort int) error {
 	if newPort == bridge.vault.GetIMAPPort() {
 		return nil
 	}
@@ -66,14 +65,14 @@ func (bridge *Bridge) SetIMAPPort(newPort int) error {
 
 	bridge.heartbeat.SetIMAPPort(newPort)
 
-	return bridge.restartIMAP()
+	return bridge.restartIMAP(ctx)
 }
 
 func (bridge *Bridge) GetIMAPSSL() bool {
 	return bridge.vault.GetIMAPSSL()
 }
 
-func (bridge *Bridge) SetIMAPSSL(newSSL bool) error {
+func (bridge *Bridge) SetIMAPSSL(ctx context.Context, newSSL bool) error {
 	if newSSL == bridge.vault.GetIMAPSSL() {
 		return nil
 	}
@@ -84,14 +83,14 @@ func (bridge *Bridge) SetIMAPSSL(newSSL bool) error {
 
 	bridge.heartbeat.SetIMAPConnectionMode(newSSL)
 
-	return bridge.restartIMAP()
+	return bridge.restartIMAP(ctx)
 }
 
 func (bridge *Bridge) GetSMTPPort() int {
 	return bridge.vault.GetSMTPPort()
 }
 
-func (bridge *Bridge) SetSMTPPort(newPort int) error {
+func (bridge *Bridge) SetSMTPPort(ctx context.Context, newPort int) error {
 	if newPort == bridge.vault.GetSMTPPort() {
 		return nil
 	}
@@ -102,14 +101,14 @@ func (bridge *Bridge) SetSMTPPort(newPort int) error {
 
 	bridge.heartbeat.SetSMTPPort(newPort)
 
-	return bridge.restartSMTP()
+	return bridge.restartSMTP(ctx)
 }
 
 func (bridge *Bridge) GetSMTPSSL() bool {
 	return bridge.vault.GetSMTPSSL()
 }
 
-func (bridge *Bridge) SetSMTPSSL(newSSL bool) error {
+func (bridge *Bridge) SetSMTPSSL(ctx context.Context, newSSL bool) error {
 	if newSSL == bridge.vault.GetSMTPSSL() {
 		return nil
 	}
@@ -120,7 +119,7 @@ func (bridge *Bridge) SetSMTPSSL(newSSL bool) error {
 
 	bridge.heartbeat.SetSMTPConnectionMode(newSSL)
 
-	return bridge.restartSMTP()
+	return bridge.restartSMTP(ctx)
 }
 
 func (bridge *Bridge) GetGluonCacheDir() string {
@@ -132,63 +131,7 @@ func (bridge *Bridge) GetGluonDataDir() (string, error) {
 }
 
 func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error {
-	return safe.RLockRet(func() error {
-		currentGluonDir := bridge.GetGluonCacheDir()
-		newGluonDir = filepath.Join(newGluonDir, "gluon")
-		if newGluonDir == currentGluonDir {
-			return fmt.Errorf("new gluon dir is the same as the old one")
-		}
-
-		if err := bridge.closeIMAP(context.Background()); err != nil {
-			return fmt.Errorf("failed to close IMAP: %w", err)
-		}
-
-		if err := bridge.moveGluonCacheDir(currentGluonDir, newGluonDir); err != nil {
-			logrus.WithError(err).Error("failed to move GluonCacheDir")
-
-			if err := bridge.vault.SetGluonDir(currentGluonDir); err != nil {
-				return fmt.Errorf("failed to revert GluonCacheDir: %w", err)
-			}
-		}
-
-		bridge.heartbeat.SetCacheLocation(newGluonDir)
-
-		gluonDataDir, err := bridge.GetGluonDataDir()
-		if err != nil {
-			return fmt.Errorf("failed to get Gluon Database directory: %w", err)
-		}
-
-		imapServer, err := newIMAPServer(
-			bridge.vault.GetGluonCacheDir(),
-			gluonDataDir,
-			bridge.curVersion,
-			bridge.tlsConfig,
-			bridge.reporter,
-			bridge.logIMAPClient,
-			bridge.logIMAPServer,
-			bridge.imapEventCh,
-			bridge.tasks,
-			bridge.uidValidityGenerator,
-			bridge.panicHandler,
-		)
-		if err != nil {
-			return fmt.Errorf("failed to create new IMAP server: %w", err)
-		}
-
-		bridge.imapServer = imapServer
-
-		for _, user := range bridge.users {
-			if err := bridge.addIMAPUser(ctx, user); err != nil {
-				return fmt.Errorf("failed to add users to new IMAP server: %w", err)
-			}
-		}
-
-		if err := bridge.serveIMAP(); err != nil {
-			return fmt.Errorf("failed to serve IMAP: %w", err)
-		}
-
-		return nil
-	}, bridge.usersLock)
+	return bridge.serverManager.SetGluonDir(ctx, newGluonDir)
 }
 
 func (bridge *Bridge) moveGluonCacheDir(oldGluonDir, newGluonDir string) error {

@@ -23,7 +23,7 @@ import (
 	"github.com/abiosoft/ishell"
 )
 
-func (f *frontendCLI) checkUpdates(c *ishell.Context) {
+func (f *frontendCLI) checkUpdates(_ *ishell.Context) {
 	updateCh, done := f.bridge.GetEvents(events.UpdateAvailable{}, events.UpdateNotAvailable{})
 	defer done()
 
@@ -38,7 +38,7 @@ func (f *frontendCLI) checkUpdates(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) enableAutoUpdates(c *ishell.Context) {
+func (f *frontendCLI) enableAutoUpdates(_ *ishell.Context) {
 	if f.bridge.GetAutoUpdate() {
 		f.Println("Bridge is already set to automatically install updates.")
 		return
@@ -54,7 +54,7 @@ func (f *frontendCLI) enableAutoUpdates(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) disableAutoUpdates(c *ishell.Context) {
+func (f *frontendCLI) disableAutoUpdates(_ *ishell.Context) {
 	if !f.bridge.GetAutoUpdate() {
 		f.Println("Bridge is already set to NOT automatically install updates.")
 		return
@@ -70,7 +70,7 @@ func (f *frontendCLI) disableAutoUpdates(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) selectEarlyChannel(c *ishell.Context) {
+func (f *frontendCLI) selectEarlyChannel(_ *ishell.Context) {
 	if f.bridge.GetUpdateChannel() == updater.EarlyChannel {
 		f.Println("Bridge is already on the early-access update channel.")
 		return
@@ -86,7 +86,7 @@ func (f *frontendCLI) selectEarlyChannel(c *ishell.Context) {
 	}
 }
 
-func (f *frontendCLI) selectStableChannel(c *ishell.Context) {
+func (f *frontendCLI) selectStableChannel(_ *ishell.Context) {
 	if f.bridge.GetUpdateChannel() == updater.StableChannel {
 		f.Println("Bridge is already on the stable update channel.")
 		return

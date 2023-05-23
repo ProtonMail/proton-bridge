@@ -122,6 +122,14 @@ func (user *User) SetAuth(authUID, authRef string) error {
 	})
 }
 
+func (user *User) setAuthAndKeyPassUnsafe(authUID, authRef string, keyPass []byte) error {
+	return user.vault.modUserUnsafe(user.userID, func(userData *UserData) {
+		userData.AuthRef = authRef
+		userData.AuthUID = authUID
+		userData.KeyPass = keyPass
+	})
+}
+
 // KeyPass returns the user's (salted) key password.
 func (user *User) KeyPass() []byte {
 	return user.vault.getUser(user.userID).KeyPass

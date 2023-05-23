@@ -1,7 +1,9 @@
 Feature: Send Telemetry Heartbeat
   Background:
     Given there exists an account with username "[user:user1]" and password "password"
-    And bridge starts
+    Then it succeeds
+    When bridge starts
+    Then it succeeds
 
 
   Scenario: Send at first start - one user default settings

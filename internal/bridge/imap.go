@@ -20,7 +20,6 @@ package bridge
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -37,203 +36,21 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
-	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/sirupsen/logrus"
 )
 
-func (bridge *Bridge) serveIMAP() error {
-	port, err := func() (int, error) {
-		if bridge.imapServer == nil {
-			return 0, fmt.Errorf("no IMAP server instance running")
-		}
-
-		logrus.WithFields(logrus.Fields{
-			"port": bridge.vault.GetIMAPPort(),
-			"ssl":  bridge.vault.GetIMAPSSL(),
-		}).Info("Starting IMAP server")
-
-		imapListener, err := newListener(bridge.vault.GetIMAPPort(), bridge.vault.GetIMAPSSL(), bridge.tlsConfig)
-		if err != nil {
-			return 0, fmt.Errorf("failed to create IMAP listener: %w", err)
-		}
-
-		bridge.imapListener = imapListener
-
-		if err := bridge.imapServer.Serve(context.Background(), bridge.imapListener); err != nil {
-			return 0, fmt.Errorf("failed to serve IMAP: %w", err)
-		}
-
-		if err := bridge.vault.SetIMAPPort(getPort(imapListener.Addr())); err != nil {
-			return 0, fmt.Errorf("failed to store IMAP port in vault: %w", err)
-		}
-
-		return getPort(imapListener.Addr()), nil
-	}()
-
-	if err != nil {
-		bridge.publish(events.IMAPServerError{
-			Error: err,
-		})
-
-		return err
-	}
-
-	bridge.publish(events.IMAPServerReady{
-		Port: port,
-	})
-
-	return nil
-}
-
-func (bridge *Bridge) restartIMAP() error {
-	logrus.Info("Restarting IMAP server")
-
-	if bridge.imapListener != nil {
-		if err := bridge.imapListener.Close(); err != nil {
-			return fmt.Errorf("failed to close IMAP listener: %w", err)
-		}
-
-		bridge.publish(events.IMAPServerStopped{})
-	}
-
-	return bridge.serveIMAP()
-}
-
-func (bridge *Bridge) closeIMAP(ctx context.Context) error {
-	logrus.Info("Closing IMAP server")
-
-	if bridge.imapServer != nil {
-		if err := bridge.imapServer.Close(ctx); err != nil {
-			return fmt.Errorf("failed to close IMAP server: %w", err)
-		}
-
-		bridge.imapServer = nil
-	}
-
-	if bridge.imapListener != nil {
-		if err := bridge.imapListener.Close(); err != nil {
-			return fmt.Errorf("failed to close IMAP listener: %w", err)
-		}
-	}
-
-	bridge.publish(events.IMAPServerStopped{})
-
-	return nil
+func (bridge *Bridge) restartIMAP(ctx context.Context) error {
+	return bridge.serverManager.RestartIMAP(ctx)
 }
 
 // addIMAPUser connects the given user to gluon.
 func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
-	if bridge.imapServer == nil {
-		return fmt.Errorf("no imap server instance running")
-	}
-
-	imapConn, err := user.NewIMAPConnectors()
-	if err != nil {
-		return fmt.Errorf("failed to create IMAP connectors: %w", err)
-	}
-
-	for addrID, imapConn := range imapConn {
-		log := logrus.WithFields(logrus.Fields{
-			"userID": user.ID(),
-			"addrID": addrID,
-		})
-
-		if gluonID, ok := user.GetGluonID(addrID); ok {
-			log.WithField("gluonID", gluonID).Info("Loading existing IMAP user")
-
-			// Load the user, checking whether the DB was newly created.
-			isNew, err := bridge.imapServer.LoadUser(ctx, imapConn, gluonID, user.GluonKey())
-			if err != nil {
-				return fmt.Errorf("failed to load IMAP user: %w", err)
-			}
-
-			if isNew {
-				// If the DB was newly created, clear the sync status; gluon's DB was not found.
-				logrus.Warn("IMAP user DB was newly created, clearing sync status")
-
-				// Remove the user from IMAP so we can clear the sync status.
-				if err := bridge.imapServer.RemoveUser(ctx, gluonID, false); err != nil {
-					return fmt.Errorf("failed to remove IMAP user: %w", err)
-				}
-
-				// Clear the sync status -- we need to resync all messages.
-				if err := user.ClearSyncStatus(); err != nil {
-					return fmt.Errorf("failed to clear sync status: %w", err)
-				}
-
-				// Add the user back to the IMAP server.
-				if isNew, err := bridge.imapServer.LoadUser(ctx, imapConn, gluonID, user.GluonKey()); err != nil {
-					return fmt.Errorf("failed to add IMAP user: %w", err)
-				} else if isNew {
-					panic("IMAP user should already have a database")
-				}
-			} else if status := user.GetSyncStatus(); !status.HasLabels {
-				// Otherwise, the DB already exists -- if the labels are not yet synced, we need to re-create the DB.
-				if err := bridge.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
-					return fmt.Errorf("failed to remove old IMAP user: %w", err)
-				}
-
-				if err := user.RemoveGluonID(addrID, gluonID); err != nil {
-					return fmt.Errorf("failed to remove old IMAP user ID: %w", err)
-				}
-
-				gluonID, err := bridge.imapServer.AddUser(ctx, imapConn, user.GluonKey())
-				if err != nil {
-					return fmt.Errorf("failed to add IMAP user: %w", err)
-				}
-
-				if err := user.SetGluonID(addrID, gluonID); err != nil {
-					return fmt.Errorf("failed to set IMAP user ID: %w", err)
-				}
-
-				log.WithField("gluonID", gluonID).Info("Re-created IMAP user")
-			}
-		} else {
-			log.Info("Creating new IMAP user")
-
-			gluonID, err := bridge.imapServer.AddUser(ctx, imapConn, user.GluonKey())
-			if err != nil {
-				return fmt.Errorf("failed to add IMAP user: %w", err)
-			}
-
-			if err := user.SetGluonID(addrID, gluonID); err != nil {
-				return fmt.Errorf("failed to set IMAP user ID: %w", err)
-			}
-
-			log.WithField("gluonID", gluonID).Info("Created new IMAP user")
-		}
-	}
-
-	// Trigger a sync for the user, if needed.
-	user.TriggerSync()
-
-	return nil
+	return bridge.serverManager.AddIMAPUser(ctx, user)
 }
 
 // removeIMAPUser disconnects the given user from gluon, optionally also removing its files.
 func (bridge *Bridge) removeIMAPUser(ctx context.Context, user *user.User, withData bool) error {
-	if bridge.imapServer == nil {
-		return fmt.Errorf("no imap server instance running")
-	}
-
-	logrus.WithFields(logrus.Fields{
-		"userID":   user.ID(),
-		"withData": withData,
-	}).Debug("Removing IMAP user")
-
-	for addrID, gluonID := range user.GetGluonIDs() {
-		if err := bridge.imapServer.RemoveUser(ctx, gluonID, withData); err != nil {
-			return fmt.Errorf("failed to remove IMAP user: %w", err)
-		}
-
-		if withData {
-			if err := user.RemoveGluonID(addrID, gluonID); err != nil {
-				return fmt.Errorf("failed to remove IMAP user ID: %w", err)
-			}
-		}
-	}
-
-	return nil
+	return bridge.serverManager.RemoveIMAPUser(ctx, user, withData)
 }
 
 func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
@@ -262,17 +79,10 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 		logrus.WithFields(logrus.Fields{
 			"sessionID": event.SessionID,
 			"username":  event.Username,
-		}).Info("Received IMAP login failure notification")
+			"pkg":       "imap",
+		}).Error("Incorrect login credentials.")
 		bridge.publish(events.IMAPLoginFailed{Username: event.Username})
 	}
-}
-
-func getGluonDir(encVault *vault.Vault) (string, error) {
-	if err := os.MkdirAll(encVault.GetGluonCacheDir(), 0o700); err != nil {
-		return "", fmt.Errorf("failed to create gluon dir: %w", err)
-	}
-
-	return encVault.GetGluonCacheDir(), nil
 }
 
 func ApplyGluonCachePathSuffix(basePath string) string {

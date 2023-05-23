@@ -89,7 +89,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 		}
 
 		// If we fail to send this message, we should remove the hash from the send recorder.
-		defer user.sendHash.removeOnFail(hash)
+		defer user.sendHash.removeOnFail(hash, to)
 
 		// Create a new message parser from the reader.
 		parser, err := parser.New(bytes.NewReader(b))
@@ -162,7 +162,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 			}
 
 			// If the message was successfully sent, we can update the message ID in the record.
-			user.sendHash.addMessageID(hash, sent.ID)
+			user.sendHash.signalMessageSent(hash, sent.ID, to)
 
 			return nil
 		})
@@ -437,6 +437,10 @@ func (user *User) createAttachments(
 				att.Disposition = proton.AttachmentDisposition
 			}
 		}
+
+		// Exclude name from params since this is already provided using Filename.
+		delete(att.MIMEParams, "name")
+		delete(att.MIMEParams, "filename")
 
 		attachment, err := client.UploadAttachment(ctx, addrKR, proton.CreateAttachmentReq{
 			Filename:    att.Name,

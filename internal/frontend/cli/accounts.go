@@ -297,7 +297,7 @@ func (f *frontendCLI) configureAppleMail(c *ishell.Context) {
 		return
 	}
 
-	if err := f.bridge.ConfigureAppleMail(user.UserID, user.Addresses[0]); err != nil {
+	if err := f.bridge.ConfigureAppleMail(context.Background(), user.UserID, user.Addresses[0]); err != nil {
 		f.printAndLogError(err)
 		return
 	}
@@ -305,11 +305,11 @@ func (f *frontendCLI) configureAppleMail(c *ishell.Context) {
 	f.Printf("Apple Mail configured for %v with address %v\n", user.Username, user.Addresses[0])
 }
 
-func (f *frontendCLI) badEventSynchronize(c *ishell.Context) {
+func (f *frontendCLI) badEventSynchronize(_ *ishell.Context) {
 	f.badEventFeedback(true)
 }
 
-func (f *frontendCLI) badEventLogout(c *ishell.Context) {
+func (f *frontendCLI) badEventLogout(_ *ishell.Context) {
 	f.badEventFeedback(false)
 }
 

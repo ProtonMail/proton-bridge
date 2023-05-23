@@ -29,7 +29,6 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/gluon"
 	"github.com/ProtonMail/gluon/async"
 	imapEvents "github.com/ProtonMail/gluon/events"
 	"github.com/ProtonMail/gluon/imap"
@@ -45,7 +44,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
-	"github.com/emersion/go-smtp"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 )
@@ -67,13 +65,7 @@ type Bridge struct {
 	tlsConfig *tls.Config
 
 	// imapServer is the bridge's IMAP server.
-	imapServer   *gluon.Server
-	imapListener net.Listener
-	imapEventCh  chan imapEvents.Event
-
-	// smtpServer is the bridge's SMTP server.
-	smtpServer   *smtp.Server
-	smtpListener net.Listener
+	imapEventCh chan imapEvents.Event
 
 	// updater is the bridge's updater.
 	updater   Updater
@@ -134,6 +126,8 @@ type Bridge struct {
 	goHeartbeat func()
 
 	uidValidityGenerator imap.UIDValidityGenerator
+
+	serverManager *ServerManager
 }
 
 // New creates a new bridge.
@@ -224,16 +218,6 @@ func newBridge(
 		return nil, fmt.Errorf("failed to load TLS config: %w", err)
 	}
 
-	gluonCacheDir, err := getGluonDir(vault)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get Gluon directory: %w", err)
-	}
-
-	gluonDataDir, err := locator.ProvideGluonDataPath()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get Gluon Database directory: %w", err)
-	}
-
 	firstStart := vault.GetFirstStart()
 	if err := vault.SetFirstStart(false); err != nil {
 		return nil, fmt.Errorf("failed to save first start indicator: %w", err)
@@ -245,23 +229,6 @@ func newBridge(
 	}
 
 	identifier.SetClientString(vault.GetLastUserAgent())
-
-	imapServer, err := newIMAPServer(
-		gluonCacheDir,
-		gluonDataDir,
-		curVersion,
-		tlsConfig,
-		reporter,
-		logIMAPClient,
-		logIMAPServer,
-		imapEventCh,
-		tasks,
-		uidValidityGenerator,
-		panicHandler,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create IMAP server: %w", err)
-	}
 
 	focusService, err := focus.NewService(locator, curVersion, panicHandler)
 	if err != nil {
@@ -279,7 +246,6 @@ func newBridge(
 		identifier: identifier,
 
 		tlsConfig:   tlsConfig,
-		imapServer:  imapServer,
 		imapEventCh: imapEventCh,
 
 		updater:   updater,
@@ -306,9 +272,13 @@ func newBridge(
 		tasks: tasks,
 
 		uidValidityGenerator: uidValidityGenerator,
+
+		serverManager: newServerManager(),
 	}
 
-	bridge.smtpServer = newSMTPServer(bridge, tlsConfig, logSMTP)
+	if err := bridge.serverManager.Init(bridge); err != nil {
+		return nil, err
+	}
 
 	return bridge, nil
 }
@@ -381,10 +351,6 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 		})
 	})
 
-	// We need to load users before we can start the IMAP and SMTP servers.
-	// We must only start the servers once.
-	var once sync.Once
-
 	// Attempt to load users from the vault when triggered.
 	bridge.goLoad = bridge.tasks.Trigger(func(ctx context.Context) {
 		if err := bridge.loadUsers(ctx); err != nil {
@@ -396,17 +362,6 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 		}
 
 		bridge.publish(events.AllUsersLoaded{})
-
-		// Once all users have been loaded, start the bridge's IMAP and SMTP servers.
-		once.Do(func() {
-			if err := bridge.serveIMAP(); err != nil {
-				logrus.WithError(err).Error("Failed to start IMAP server")
-			}
-
-			if err := bridge.serveSMTP(); err != nil {
-				logrus.WithError(err).Error("Failed to start SMTP server")
-			}
-		})
 	})
 	defer bridge.goLoad()
 
@@ -452,18 +407,13 @@ func (bridge *Bridge) GetErrors() []error {
 func (bridge *Bridge) Close(ctx context.Context) {
 	logrus.Info("Closing bridge")
 
-	// Close the IMAP server.
-	if err := bridge.closeIMAP(ctx); err != nil {
-		logrus.WithError(err).Error("Failed to close IMAP server")
-	}
-
-	// Close the SMTP server.
-	if err := bridge.closeSMTP(); err != nil {
-		logrus.WithError(err).Error("Failed to close SMTP server")
+	// Close the servers
+	if err := bridge.serverManager.CloseServers(ctx); err != nil {
+		logrus.WithError(err).Error("Failed to close servers")
 	}
 
 	// Close all users.
-	safe.RLock(func() {
+	safe.Lock(func() {
 		for _, user := range bridge.users {
 			user.Close()
 		}

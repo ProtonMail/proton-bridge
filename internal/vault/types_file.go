@@ -48,11 +48,7 @@ func unmarshalFile[T any](gcm cipher.AEAD, b []byte, data *T) error {
 		}
 	}
 
-	if err := msgpack.Unmarshal(dec, data); err != nil {
-		return err
-	}
-
-	return nil
+	return msgpack.Unmarshal(dec, data)
 }
 
 func marshalFile[T any](gcm cipher.AEAD, t T) ([]byte, error) {

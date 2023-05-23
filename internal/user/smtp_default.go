@@ -19,6 +19,6 @@
 
 package user
 
-func debugDumpToDisk(b []byte) error {
+func debugDumpToDisk(_ []byte) error {
 	return nil
 }

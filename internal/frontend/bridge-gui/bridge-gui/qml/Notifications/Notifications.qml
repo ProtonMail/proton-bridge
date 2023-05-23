@@ -535,11 +535,12 @@ QtObject {
     }
 
     property Notification onlyPaidUsers: Notification {
-        description: qsTr("Bridge is exclusive to our paid plans. Upgrade your account to use Bridge.")
+        description: qsTr("Bridge is exclusive to our mail paid plans. Upgrade your account to use Bridge.")
         brief: qsTr("Upgrade your account")
         icon: "./icons/ic-exclamation-circle-filled.svg"
         type: Notification.NotificationType.Danger
         group: Notifications.Group.Configuration
+        property var pricingLink: "https://proton.me/mail/pricing"
 
         Connections {
             target: Backend
@@ -550,8 +551,9 @@ QtObject {
 
         action: [
             Action {
-                text: qsTr("OK")
+                text: qsTr("Upgrade")
                 onTriggered: {
+                    Qt.openUrlExternally(root.onlyPaidUsers.pricingLink)
                     root.onlyPaidUsers.active = false
                 }
             }

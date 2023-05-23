@@ -26,7 +26,7 @@ import (
 )
 
 // This test implies human interactions to enter password and is disabled by default.
-func _TestTrustedCertsDarwin(t *testing.T) {
+func _TestTrustedCertsDarwin(t *testing.T) { //nolint:unused
 	template, err := NewTLSTemplate()
 	require.NoError(t, err)
 

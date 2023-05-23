@@ -6,10 +6,12 @@ Feature: A user can authenticate an SMTP client
     And the account "[user:user]" has additional address "[alias:alias]@[domain]"
     And the account "[user:user2]" has additional disabled address "[alias:alias2]@[domain]"
     And the account "[user:user3]" has additional address "[alias:alias3]@[domain]"
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And the user logs in with username "[user:user2]" and password "password2"
     And the user logs in with username "[user:user3]" and password "password3"
+    Then it succeeds
 
   Scenario: SMTP client can authenticate successfully
     When user "[user:user]" connects SMTP client "1"

@@ -36,6 +36,9 @@ import (
 func TestBridge_Report(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			imapWaiter := waitForIMAPServerReady(b)
+			defer imapWaiter.Done()
+
 			syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
 			defer done()
 
@@ -50,6 +53,8 @@ func TestBridge_Report(t *testing.T) {
 			info, err := b.GetUserInfo(userID)
 			require.NoError(t, err)
 			require.True(t, info.State == bridge.Connected)
+
+			imapWaiter.Wait()
 
 			// Dial the IMAP port.
 			conn, err := net.Dial("tcp", fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))

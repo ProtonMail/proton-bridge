@@ -114,6 +114,7 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 	} else if corrupt {
 		return nil, fmt.Errorf("vault is corrupt")
 	}
+	t.vault = vault
 
 	// Create the underlying cookie jar.
 	jar, err := cookiejar.New(nil)
@@ -351,8 +352,8 @@ func (t *testCtx) expectProxyCtlAllowProxy() {
 
 type mockRestarter struct{}
 
-func (m *mockRestarter) Set(restart, crash bool) {}
+func (m *mockRestarter) Set(_, _ bool) {}
 
-func (m *mockRestarter) AddFlags(flags ...string) {}
+func (m *mockRestarter) AddFlags(_ ...string) {}
 
-func (m *mockRestarter) Override(exe string) {}
+func (m *mockRestarter) Override(_ string) {}

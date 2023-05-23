@@ -16,7 +16,7 @@
 # along with ProtonMail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
 ---
-image: harbor.protontech.ch/docker.io/library/golang:1.18
+image: gitlab.protontech.ch:4567/go/bridge-internal:test-go1.20
 
 variables:
   GOPRIVATE: gitlab.protontech.ch
@@ -99,7 +99,7 @@ test-linux:
     - .rules-branch-manual-MR-and-devel-always
     - .after-script-code-coverage
   tags:
-    - medium
+    - large
 
 test-linux-race:
   extends:
@@ -126,10 +126,10 @@ test-integration-race:
 
 .windows-base:
   before_script:
-    - export GOROOT=/c/Go1.18
+    - export GOROOT=/c/Go1.20
     - export PATH=$GOROOT/bin:$PATH
     - export GOARCH=amd64
-    - export GOPATH=~/go18
+    - export GOPATH=~/go1.20
     - export GO111MODULE=on
     - export PATH=$GOPATH/bin:$PATH
     - export MSYSTEM=
@@ -172,7 +172,7 @@ test-windows:
 
 
 .linux-build-setup:
-  image: gitlab.protontech.ch:4567/go/bridge-internal:qt6
+  image: gitlab.protontech.ch:4567/go/bridge-internal:build-go1.20-qt6.3.2
   variables:
     VCPKG_DEFAULT_BINARY_CACHE: ${CI_PROJECT_DIR}/.cache
   cache:
@@ -209,7 +209,7 @@ build-linux-qa:
     - export PATH=/usr/local/opt/make/libexec/gnubin:$PATH
     - export PATH=/usr/local/opt/go@1.13/bin:$PATH
     - export PATH=/usr/local/opt/gnu-sed/libexec/gnubin:$PATH
-    - export GOPATH=~/go
+    - export GOPATH=~/go1.20
     - export PATH=$GOPATH/bin:$PATH
     - export CGO_CPPFLAGS='-Wno-error -Wno-nullability-completeness -Wno-expansion-to-defined -Wno-builtin-requires-header'
     - $(git config --global -l | grep -o 'url.*gitlab.protontech.ch.*insteadof' | xargs -L 1 git config --global --unset &> /dev/null) || echo "nothing to remove"
@@ -231,10 +231,10 @@ build-darwin-qa:
 
 .windows-build-setup:
   before_script:
-    - export GOROOT=/c/Go1.18/
+    - export GOROOT=/c/Go1.20/
     - export PATH=$GOROOT/bin:$PATH
     - export GOARCH=amd64
-    - export GOPATH=~/go18
+    - export GOPATH=~/go1.20
     - export GO111MODULE=on
     - export PATH="${GOPATH}/bin:${PATH}"
     - export MSYSTEM=

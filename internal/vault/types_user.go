@@ -73,7 +73,7 @@ func (status SyncStatus) IsComplete() bool {
 	return status.HasLabels && status.HasMessages
 }
 
-func newDefaultUser(userID, username, primaryEmail, authUID, authRef string, keyPass []byte) UserData {
+func newDefaultUser(userID, username, primaryEmail, authUID, authRef string, keyPass, bridgePass []byte) UserData {
 	return UserData{
 		UserID:       userID,
 		Username:     username,
@@ -82,7 +82,7 @@ func newDefaultUser(userID, username, primaryEmail, authUID, authRef string, key
 		GluonKey:    newRandomToken(32),
 		GluonIDs:    make(map[string]string),
 		UIDValidity: make(map[string]imap.UID),
-		BridgePass:  newRandomToken(16),
+		BridgePass:  bridgePass,
 		AddressMode: CombinedMode,
 
 		AuthUID: authUID,

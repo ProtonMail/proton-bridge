@@ -110,3 +110,27 @@ func (s *scenario) theBodyInTheRequestToIs(method, path string, value *godog.Doc
 
 	return nil
 }
+
+func (s *scenario) theBodyInTheResponseToIs(method, path string, value *godog.DocString) error {
+	// We have to exclude HTTP-Overrides to avoid race condition with the creating and sending of the draft message.
+	call, err := s.t.getLastCallExcludingHTTPOverride(method, path)
+	if err != nil {
+		return err
+	}
+
+	var body, want map[string]any
+
+	if err := json.Unmarshal(call.ResponseBody, &body); err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal([]byte(value.Content), &want); err != nil {
+		return err
+	}
+
+	if !IsSub(body, want) {
+		return fmt.Errorf("have body %v, want %v", body, want)
+	}
+
+	return nil
+}

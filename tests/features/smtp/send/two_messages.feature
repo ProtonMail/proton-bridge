@@ -4,10 +4,12 @@ Feature: SMTP sending two messages
     And there exists an account with username "[user:multi]" and password "password"
     And the account "[user:multi]" has additional address "[user:multi-alias]@[domain]"
     And there exists an account with username "[user:to]" and password "password"
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And the user logs in with username "[user:multi]" and password "password"
     And the user sets the address mode of user "[user:multi]" to "split"
+    Then it succeeds
 
   Scenario: Send two messages in one connection
     When user "[user:user]" connects and authenticates SMTP client "1"

@@ -1,9 +1,11 @@
 Feature: A user can login
   Background:
     Given there exists an account with username "[user:user]" and password "password"
-    Given there exists an account with username "[user:MixedCaps]" and password "password"
-    Given there exists a disabled account with username "[user:disabled]" and password "password"
+    And there exists an account with username "[user:MixedCaps]" and password "password"
+    And there exists a disabled account with username "[user:disabled]" and password "password"
+    Then it succeeds
     And bridge starts
+    Then it succeeds
 
   Scenario: Login to account
     When the user logs in with username "[user:user]" and password "password"

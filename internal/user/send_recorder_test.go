@@ -35,7 +35,7 @@ func TestSendHasher_Insert(t *testing.T) {
 	require.NotEmpty(t, hash1)
 
 	// Simulate successfully sending the message.
-	h.addMessageID(hash1, "abc")
+	h.signalMessageSent(hash1, "abc", nil)
 
 	// Inserting a message with the same hash should return false.
 	_, ok, err = testTryInsert(h, literal1, time.Now().Add(time.Second))
@@ -59,7 +59,7 @@ func TestSendHasher_Insert_Expired(t *testing.T) {
 	require.NotEmpty(t, hash1)
 
 	// Simulate successfully sending the message.
-	h.addMessageID(hash1, "abc")
+	h.signalMessageSent(hash1, "abc", nil)
 
 	// Wait for the entry to expire.
 	time.Sleep(time.Second)
@@ -106,7 +106,7 @@ func TestSendHasher_Wait_SendSuccess(t *testing.T) {
 	// Simulate successfully sending the message after half a second.
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		h.addMessageID(hash, "abc")
+		h.signalMessageSent(hash, "abc", nil)
 	}()
 
 	// Inserting a message with the same hash should fail.
@@ -127,7 +127,7 @@ func TestSendHasher_Wait_SendFail(t *testing.T) {
 	// Simulate failing to send the message after half a second.
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		h.removeOnFail(hash)
+		h.removeOnFail(hash, nil)
 	}()
 
 	// Inserting a message with the same hash should succeed because the first message failed to send.
@@ -163,7 +163,7 @@ func TestSendHasher_HasEntry(t *testing.T) {
 	require.NotEmpty(t, hash)
 
 	// Simulate successfully sending the message.
-	h.addMessageID(hash, "abc")
+	h.signalMessageSent(hash, "abc", nil)
 
 	// The message was already sent; we should find it in the hasher.
 	messageID, ok, err := testHasEntry(h, literal1, time.Now().Add(time.Second))
@@ -184,7 +184,7 @@ func TestSendHasher_HasEntry_SendSuccess(t *testing.T) {
 	// Simulate successfully sending the message after half a second.
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		h.addMessageID(hash, "abc")
+		h.signalMessageSent(hash, "abc", nil)
 	}()
 
 	// The message was already sent; we should find it in the hasher.
@@ -192,6 +192,47 @@ func TestSendHasher_HasEntry_SendSuccess(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, ok)
 	require.Equal(t, "abc", messageID)
+}
+
+func TestSendHasher_DualAddDoesNotCauseCrash(t *testing.T) {
+	// There may be a rare case where one 2 smtp connections attempt to send the same message, but if the first message
+	// is stuck long enough for it to expire, the second connection will remove it from the list and cause it to be
+	// inserted as a new entry. The two clients end up sending the message twice and calling the `signalMessageSent` x2,
+	// resulting in a crash.
+	h := newSendRecorder(sendEntryExpiry)
+
+	// Insert a message into the hasher.
+	hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
+	require.NoError(t, err)
+	require.True(t, ok)
+	require.NotEmpty(t, hash)
+
+	// Simulate successfully sending the message. We call this method twice as it possible for multiple SMTP connections
+	// to attempt to send the same message.
+	h.signalMessageSent(hash, "abc", nil)
+	h.signalMessageSent(hash, "abc", nil)
+
+	// The message was already sent; we should find it in the hasher.
+	messageID, ok, err := testHasEntry(h, literal1, time.Now().Add(time.Second))
+	require.NoError(t, err)
+	require.True(t, ok)
+	require.Equal(t, "abc", messageID)
+}
+
+func TestSendHashed_MessageWithSameHasButDifferentRecipientsIsInserted(t *testing.T) {
+	h := newSendRecorder(sendEntryExpiry)
+
+	// Insert a message into the hasher.
+	hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second), "Receiver <receiver@pm.me>")
+	require.NoError(t, err)
+	require.True(t, ok)
+	require.NotEmpty(t, hash)
+
+	hash2, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second), "Receiver <receiver@pm.me>", "Receiver2 <receiver2@pm.me>")
+	require.NoError(t, err)
+	require.True(t, ok)
+	require.NotEmpty(t, hash2)
+	require.Equal(t, hash, hash2)
 }
 
 func TestSendHasher_HasEntry_SendFail(t *testing.T) {
@@ -206,7 +247,7 @@ func TestSendHasher_HasEntry_SendFail(t *testing.T) {
 	// Simulate failing to send the message after half a second.
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		h.removeOnFail(hash)
+		h.removeOnFail(hash, nil)
 	}()
 
 	// The message failed to send; we should not find it in the hasher.
@@ -240,7 +281,7 @@ func TestSendHasher_HasEntry_Expired(t *testing.T) {
 	require.NotEmpty(t, hash)
 
 	// Simulate successfully sending the message.
-	h.addMessageID(hash, "abc")
+	h.signalMessageSent(hash, "abc", nil)
 
 	// Wait for the entry to expire.
 	time.Sleep(time.Second)
@@ -264,7 +305,6 @@ Content-Disposition: attachment; filename="attname.txt"
 attachment
 --longrandomstring--
 `
-
 const literal2 = `From: Sender <sender@pm.me>
 To: Receiver <receiver@pm.me>
 Content-Type: multipart/mixed; boundary=longrandomstring

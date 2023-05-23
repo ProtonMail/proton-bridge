@@ -30,7 +30,12 @@ import (
 // If CertPEMPath is set, it will attempt to read the certificate from the file.
 // Otherwise, or on read/validation failure, it will return the certificate from the vault.
 func (vault *Vault) GetBridgeTLSCert() ([]byte, []byte) {
-	if certPath, keyPath := vault.get().Certs.CustomCertPath, vault.get().Certs.CustomKeyPath; certPath != "" && keyPath != "" {
+	vault.lock.RLock()
+	defer vault.lock.RUnlock()
+
+	certs := vault.getUnsafe().Certs
+
+	if certPath, keyPath := certs.CustomCertPath, certs.CustomKeyPath; certPath != "" && keyPath != "" {
 		if certPEM, keyPEM, err := readPEMCert(certPath, keyPath); err == nil {
 			return certPEM, keyPEM
 		}
@@ -38,7 +43,7 @@ func (vault *Vault) GetBridgeTLSCert() ([]byte, []byte) {
 		logrus.Error("Failed to read certificate from file, using default")
 	}
 
-	return vault.get().Certs.Bridge.Cert, vault.get().Certs.Bridge.Key
+	return certs.Bridge.Cert, certs.Bridge.Key
 }
 
 // SetBridgeTLSCertPath sets the path to PEM-encoded certificates for the bridge.
@@ -47,7 +52,7 @@ func (vault *Vault) SetBridgeTLSCertPath(certPath, keyPath string) error {
 		return fmt.Errorf("invalid certificate: %w", err)
 	}
 
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Certs.CustomCertPath = certPath
 		data.Certs.CustomKeyPath = keyPath
 	})
@@ -55,18 +60,18 @@ func (vault *Vault) SetBridgeTLSCertPath(certPath, keyPath string) error {
 
 // SetBridgeTLSCertKey sets the path to PEM-encoded certificates for the bridge.
 func (vault *Vault) SetBridgeTLSCertKey(cert, key []byte) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Certs.Bridge.Cert = cert
 		data.Certs.Bridge.Key = key
 	})
 }
 
 func (vault *Vault) GetCertsInstalled() bool {
-	return vault.get().Certs.Installed
+	return vault.getSafe().Certs.Installed
 }
 
 func (vault *Vault) SetCertsInstalled(installed bool) error {
-	return vault.mod(func(data *Data) {
+	return vault.modSafe(func(data *Data) {
 		data.Certs.Installed = installed
 	})
 }

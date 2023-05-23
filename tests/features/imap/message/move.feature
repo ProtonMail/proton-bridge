@@ -19,10 +19,12 @@ Feature: IMAP move messages
     And the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Scheduled":
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | sch     | false  |
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And user "[user:user]" finishes syncing
     And user "[user:user]" connects and authenticates IMAP client "1"
+    Then it succeeds
 
   Scenario: Move message from folder to label (keeps in folder)
     When IMAP client "1" moves the message with subject "foo" from "INBOX" to "Labels/label"

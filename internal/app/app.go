@@ -19,14 +19,12 @@ package app
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
-	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon/async"
@@ -160,9 +158,6 @@ func New() *cli.App {
 }
 
 func run(c *cli.Context) error {
-	// Seed the default RNG from the math/rand package.
-	rand.Seed(time.Now().UnixNano())
-
 	// Get the current bridge version.
 	version, err := semver.NewVersion(constants.Version)
 	if err != nil {

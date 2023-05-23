@@ -50,7 +50,7 @@ int installTrustedCert(char const *bytes, unsigned long long length) {
 		(id)kSecTrustSettingsResult: [NSNumber numberWithInt:kSecTrustSettingsResultTrustRoot],
 		(id)kSecTrustSettingsPolicy: (__bridge id) policy,
 	};
-	status = SecTrustSettingsSetTrustSettings(cert, kSecTrustSettingsDomainAdmin, (__bridge CFTypeRef)(trustSettings));
+	status = SecTrustSettingsSetTrustSettings(cert, kSecTrustSettingsDomainUser, (__bridge CFTypeRef)(trustSettings));
 	CFRelease(policy);
 	CFRelease(cert);
 
@@ -72,7 +72,7 @@ int removeTrustedCert(char const *bytes, unsigned long long length) {
 		(id)kSecTrustSettingsResult: [NSNumber numberWithInt:kSecTrustSettingsResultUnspecified],
 		(id)kSecTrustSettingsPolicy: (__bridge id) policy,
 	};
-	OSStatus status = SecTrustSettingsSetTrustSettings(cert, kSecTrustSettingsDomainAdmin, (__bridge CFTypeRef)(trustSettings));
+	OSStatus status = SecTrustSettingsSetTrustSettings(cert, kSecTrustSettingsDomainUser, (__bridge CFTypeRef)(trustSettings));
 	CFRelease(policy);
 	if (errSecSuccess != status) {
 		CFRelease(cert);
@@ -107,7 +107,6 @@ const (
 
 // certPEMToDER converts a certificate in PEM format to DER format, which is the format required by Apple's Security framework.
 func certPEMToDER(certPEM []byte) ([]byte, error) {
-
 	block, left := pem.Decode(certPEM)
 	if block == nil {
 		return []byte{}, errors.New("invalid PEM certificate")
@@ -127,7 +126,7 @@ func installCert(certPEM []byte) error {
 	}
 
 	p := C.CBytes(certDER)
-	defer C.free(unsafe.Pointer(p))
+	defer C.free(unsafe.Pointer(p)) //nolint:unconvert
 
 	errCode := C.installTrustedCert((*C.char)(p), (C.ulonglong)(len(certDER)))
 	switch errCode {
@@ -147,7 +146,7 @@ func uninstallCert(certPEM []byte) error {
 	}
 
 	p := C.CBytes(certDER)
-	defer C.free(unsafe.Pointer(p))
+	defer C.free(unsafe.Pointer(p)) //nolint:unconvert
 
 	if errCode := C.removeTrustedCert((*C.char)(p), (C.ulonglong)(len(certDER))); errCode != 0 {
 		return fmt.Errorf("could not install certificate from keychain (error %v)", errCode)

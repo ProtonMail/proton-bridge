@@ -7,10 +7,11 @@ Feature: Bridge can fully sync an account
       | jane.doe@mail.com | name@[domain]        | bar     | true   |
     And the account "[user:user]" has 20 custom folders
     And the account "[user:user]" has 60 custom labels
+    Then it succeeds
     When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And user "[user:user]" finishes syncing
-    When user "[user:user]" connects and authenticates IMAP client "1"
+    And user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" counts 20 mailboxes under "Folders"
     And  IMAP client "1" counts 60 mailboxes under "Labels"
 

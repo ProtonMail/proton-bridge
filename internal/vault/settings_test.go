@@ -238,3 +238,30 @@ func TestVault_Settings_LastUserAgent(t *testing.T) {
 	// Check the default first start value.
 	require.Equal(t, vault.DefaultUserAgent, s.GetLastUserAgent())
 }
+
+func Test_Settings_PasswordArchive(t *testing.T) {
+	// Create a new test vault.
+	s := newVault(t)
+
+	// The store should have no users.
+	require.Empty(t, s.GetUserIDs())
+
+	// Create a new user.
+	user, err := s.AddUser("userID1", "username1", "username1@pm.me", "authUID1", "authRef1", []byte("keyPass1"))
+	require.NoError(t, err)
+	bridgePass := user.BridgePass()
+
+	// Remove the user.
+	require.NoError(t, user.Close())
+	require.NoError(t, s.DeleteUser("userID1"))
+
+	// Add a different user. Another password is generated.
+	user, err = s.AddUser("userID2", "username2", "username2@pm.me", "authUID2", "authRef2", []byte("keyPass2"))
+	require.NoError(t, err)
+	require.NotEqual(t, user.BridgePass(), bridgePass)
+
+	// Add the first user again. The password is restored.
+	user, err = s.AddUser("userID1", "username1", "username1@pm.me", "authUID1", "authRef1", []byte("keyPass1"))
+	require.NoError(t, err)
+	require.Equal(t, user.BridgePass(), bridgePass)
+}

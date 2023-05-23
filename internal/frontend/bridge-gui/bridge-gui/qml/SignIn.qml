@@ -344,7 +344,12 @@ FocusScope {
                     if (str.length === 0) {
                         return qsTr("Enter the 6-digit code")
                     }
-                    return
+                }
+
+                onTextChanged: {
+                    if (text.length >= 6) {
+                        twoFAButton.onClicked()
+                    }
                 }
 
                 onAccepted: {

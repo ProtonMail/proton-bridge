@@ -305,6 +305,8 @@ int main(int argc, char *argv[]) {
         // When not in attached mode, log entries are forwarded to bridge, which output it on stdout/stderr. bridge-gui's process monitor intercept
         // these outputs and output them on the command-line.
         log.setLevel(cliOptions.logLevel);
+        log.info(QString("New Sentry reporter - id: %1.").arg(getProtectedHostname()));
+
         QString bridgeexec;
         if (!cliOptions.attach) {
             if (isBridgeRunning()) {

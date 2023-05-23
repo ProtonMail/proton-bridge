@@ -180,6 +180,8 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void onVersionChanged(); ///< Slot for the version change signal.
     void setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) const; ///< Forwards a connection mode change request from QML to gRPC
     void sendBadEventUserFeedback(QString const &userID, bool doResync); ///< Slot the providing user feedback for a bad event.
+
+public slots: // slots for functions that need to be processed locally.
     void setNormalTrayIcon(); ///< Set the tray icon to normal.
     void setErrorTrayIcon(QString const& stateString, QString const &statusIcon); ///< Set the tray icon to 'error' state.
     void setWarnTrayIcon(QString const& stateString, QString const &statusIcon); ///< Set the tray icon to 'warn' state.
@@ -245,7 +247,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void hideMainWindow(); ///< Signal for the 'hideMainWindow' gRPC stream event.
     void showHelp(); ///< Signal for the 'showHelp' event (from the context menu).
     void showSettings(); ///< Signal for the 'showHelp' event (from the context menu).
-    void selectUser(QString const& userID); ///< Signal emitted in order to selected a user with a given ID in the list.
+    void selectUser(QString const& userID, bool forceShowWindow); ///< Signal emitted in order to selected a user with a given ID in the list.
     void genericError(QString const &title, QString const &description); ///< Signal for the 'genericError' gRPC stream event.
     void imapLoginWhileSignedOut(QString const& username); ///< Signal for the notification of IMAP login attempt on a signed out account.
 

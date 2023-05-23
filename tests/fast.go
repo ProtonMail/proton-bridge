@@ -28,7 +28,7 @@ var (
 	preCompKeyPEM  []byte
 )
 
-func FastGenerateCert(template *x509.Certificate) ([]byte, []byte, error) {
+func FastGenerateCert(_ *x509.Certificate) ([]byte, []byte, error) {
 	return preCompCertPEM, preCompKeyPEM, nil
 }
 

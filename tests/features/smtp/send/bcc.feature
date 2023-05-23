@@ -1,12 +1,14 @@
 Feature: SMTP with bcc
   Background:
     Given there exists an account with username "[user:user]" and password "password"
-    Given there exists an account with username "[user:to]" and password "password"
-    Given there exists an account with username "[user:bcc]" and password "password"
-    And bridge starts
+    And there exists an account with username "[user:to]" and password "password"
+    And there exists an account with username "[user:bcc]" and password "password"
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And the user logs in with username "[user:bcc]" and password "password"
     And user "[user:user]" connects and authenticates SMTP client "1"
+    Then it succeeds
 
   Scenario: Send message to address in to and bcc
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain], [user:bcc]@[domain]":

@@ -62,6 +62,13 @@ typedef std::shared_ptr<class User> SPUser; ///< Type definition for shared poin
 class User : public QObject {
 
 Q_OBJECT
+public: // data types
+    enum class ENotification {
+        IMAPLoginWhileSignedOut, ///< An IMAP client tried to login while the user is signed out.
+        IMAPPasswordFailure, ///< An IMAP client provided an invalid password for the user.
+        IMAPLoginWhileLocked, ///< An IMAP client tried to connect while the user is locked.
+    };
+
 public: // static member function
     static SPUser newUser(QObject *parent); ///< Create a new user
     static QString stateToString(UserState state); ///< Return a string describing a user state.
@@ -74,8 +81,8 @@ public: // member functions.
     User &operator=(User &&) = delete; ///< Disabled move assignment operator.
     void update(User const &user); ///< Update the user.
     Q_INVOKABLE QString primaryEmailOrUsername() const; ///< Return the user primary email, or, if unknown its username.
-    void startImapLoginFailureCooldown(qint64 durationMSecs); ///< Start the user cooldown period for the IMAP login attempt while signed-out notification.
-    bool isInIMAPLoginFailureCooldown() const; ///< Check if the user in a IMAP login failure notification.
+    void startNotificationCooldownPeriod(ENotification notification, qint64 durationMSecs); ///< Start the user cooldown period for a notification.
+    bool isNotificationInCooldown(ENotification notification) const; ///< Return true iff the notification is in a cooldown period.
 
 public slots:
     // slots for QML generated calls
@@ -147,7 +154,7 @@ private: // member functions.
     User(QObject *parent); ///< Default constructor.
 
 private: // data members.
-    QDateTime imapFailureCooldownEndTime_; ///< The end date/time for the IMAP login failure notification cooldown period.
+    QMap<ENotification, QDateTime> notificationCooldownList_; ///< A list of cooldown period end time for notifications.
     QString id_; ///< The userID.
     QString username_; ///< The username
     QString password_; ///< The IMAP password of the user.

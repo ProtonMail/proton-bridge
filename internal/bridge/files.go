@@ -58,11 +58,7 @@ func moveFile(from, to string) error {
 		return err
 	}
 
-	if err := os.Rename(from, to); err != nil {
-		return err
-	}
-
-	return nil
+	return os.Rename(from, to)
 }
 
 func copyDir(from, to string) error {

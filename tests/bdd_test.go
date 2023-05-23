@@ -106,6 +106,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^the user agent is "([^"]*)"$`, s.theUserAgentIs)
 			ctx.Step(`^the header in the "([^"]*)" request to "([^"]*)" has "([^"]*)" set to "([^"]*)"$`, s.theHeaderInTheRequestToHasSetTo)
 			ctx.Step(`^the body in the "([^"]*)" request to "([^"]*)" is:$`, s.theBodyInTheRequestToIs)
+			ctx.Step(`^the body in the "([^"]*)" response to "([^"]*)" is:$`, s.theBodyInTheResponseToIs)
 			ctx.Step(`^the API requires bridge version at least "([^"]*)"$`, s.theAPIRequiresBridgeVersion)
 			ctx.Step(`^the network port (\d+) is busy$`, s.networkPortIsBusy)
 			ctx.Step(`^the network port range (\d+)-(\d+) is busy$`, s.networkPortRangeIsBusy)
@@ -179,6 +180,8 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^user "([^"]*)" is not listed$`, s.userIsNotListed)
 			ctx.Step(`^user "([^"]*)" finishes syncing$`, s.userFinishesSyncing)
 			ctx.Step(`^user "([^"]*)" has telemetry set to (\d+)$`, s.userHasTelemetrySetTo)
+			ctx.Step(`^the bridge password of user "([^"]*)" is changed to "([^"]*)"`, s.bridgePasswordOfUserIsChangedTo)
+			ctx.Step(`^the bridge password of user "([^"]*)" is equal to "([^"]*)"`, s.bridgePasswordOfUserIsEqualTo)
 
 			// ==== IMAP ====
 			ctx.Step(`^user "([^"]*)" connects IMAP client "([^"]*)"$`, s.userConnectsIMAPClient)

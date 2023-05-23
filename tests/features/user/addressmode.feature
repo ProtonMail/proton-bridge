@@ -14,9 +14,11 @@ Feature: Address mode
       | from       | to         | subject | unread |
       | c@[domain] | c@[domain] | three   | true   |
       | d@[domain] | d@[domain] | four    | false  |
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And user "[user:user]" finishes syncing
+    Then it succeeds
 
   Scenario: The user is in combined mode
     When user "[user:user]" connects and authenticates IMAP client "1" with address "[user:user]@[domain]"

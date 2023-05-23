@@ -7,10 +7,12 @@ Feature: IMAP remove messages from mailbox
       | label | label  |
     And the address "[user:user]@[domain]" of account "[user:user]" has 10 messages in "Folders/mbox"
     And the address "[user:user]@[domain]" of account "[user:user]" has 1 messages in "Scheduled"
-    And bridge starts
+    Then it succeeds
+    When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And user "[user:user]" finishes syncing
     And user "[user:user]" connects and authenticates IMAP client "1"
+    Then it succeeds
 
   Scenario: Mark message as deleted and EXPUNGE
     When IMAP client "1" selects "Folders/mbox"
