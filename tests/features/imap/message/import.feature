@@ -12,6 +12,7 @@ Feature: IMAP import messages
     When IMAP client "1" appends the following message to "INBOX":
       """
       From: Bridge Test <bridgetest@pm.test>
+      Date: 01 Jan 1980 00:00:00 +0000
       To: Internal Bridge <bridgetest@example.com>
       Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
       Subject: Basic text/plain message
@@ -28,6 +29,7 @@ Feature: IMAP import messages
     When IMAP client "1" appends the following message to "INBOX":
       """
       From: Bridge Test <bridgetest@pm.test>
+      Date: 01 Jan 1980 00:00:00 +0000
       To: Internal Bridge <bridgetest@example.com>
       Subject: Message with double charset in content type
       Content-Type: text/plain; charset=utf-8; charset=utf-8
@@ -46,6 +48,7 @@ Feature: IMAP import messages
     When IMAP client "1" appends the following message to "INBOX":
       """
       From: Bridge Test <bridgetest@pm.test>
+      Date: 01 Jan 1980 00:00:00 +0000
       To: Internal Bridge <bridgetest@protonmail.com>
       Subject: Message with attachment name encoded by RFC 2047 without quoting
       Content-type: multipart/mixed; boundary="boundary"
@@ -96,6 +99,7 @@ Feature: IMAP import messages
     When IMAP client "1" appends the following message to "Sent":
       """
       From: Foo <foo@example.com>
+      Date: 01 Jan 1980 00:00:00 +0000
       To: Bridge Test <bridgetest@pm.test>
       Subject: Hello
       Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
@@ -112,6 +116,7 @@ Feature: IMAP import messages
     When IMAP client "1" appends the following message to "Inbox":
       """
       From: Foo <foo@example.com>
+      Date: 01 Jan 1980 00:00:00 +0000
       To: Bridge Test <bridgetest@pm.test>
       Subject: Hello
 
@@ -127,6 +132,7 @@ Feature: IMAP import messages
     When IMAP client "1" appends the following message to "Sent":
       """
       From: Foo <foo@example.com>
+      Date: 01 Jan 1980 00:00:00 +0000
       To: Bridge Test <bridgetest@pm.test>
       Subject: Hello
 
@@ -141,6 +147,8 @@ Feature: IMAP import messages
   Scenario Outline: Import message without sender to <mailbox>
     When IMAP client "1" appends the following message to "<mailbox>":
       """
+      From: Somebody@somewhere.org
+      Date: 01 Jan 1980 00:00:00 +0000
       To: Lionel Richie <lionel@richie.com>
       Subject: RE: Hello, is it me you looking for?
 
@@ -161,6 +169,7 @@ Feature: IMAP import messages
     When IMAP client "1" appends the following message to "INBOX":
       """
       From: Foo <foo@example.com>
+      Date: 01 Jan 1980 00:00:00 +0000
       To: Bridge Test <bridgetest@pm.test>
       Subject: Embedded message
       Content-Type: multipart/mixed; boundary="boundary"

@@ -9,6 +9,8 @@ Feature: IMAP Draft messages
     And IMAP client "1" selects "Drafts"
     When IMAP client "1" appends the following message to "Drafts":
       """
+      From: foo@bar.com
+      Date: 01 Jan 1980 00:00:00 +0000
 
       This is a dra
       """
@@ -25,6 +27,8 @@ Feature: IMAP Draft messages
     And it succeeds
     And IMAP client "1" appends the following message to "Drafts":
       """
+      From: foo@bar.com
+      Date: 01 Jan 1980 00:00:00 +0000
       Subject: Basic Draft
       Content-Type: text/plain
       To: someone@example.com

@@ -17,6 +17,7 @@ Feature: IMAP move messages by append and delete (without MOVE support, e.g., Ou
       """
       Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
       From: sndr1@[domain]
+      Date: 01 Jan 1980 00:00:00 +0000
       To: rcvr1@[domain]
       Subject: subj1
 
@@ -27,6 +28,7 @@ Feature: IMAP move messages by append and delete (without MOVE support, e.g., Ou
       """
       Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
       From: sndr2@[domain]
+      Date: 01 Jan 1980 00:00:00 +0000
       To: rcvr2@[domain]
       Subject: subj2
 

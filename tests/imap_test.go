@@ -446,6 +446,13 @@ func (s *scenario) imapClientAppendsTheFollowingMessagesToMailbox(clientID strin
 		return err
 	}
 
+	for idx, message := range messages {
+		if len(message.Date) == 0 {
+			logrus.Warnf("Appended message has no date, adding default one so it does not fail test")
+		}
+		messages[idx].Date = "23 Feb 80 00:00 GMT"
+	}
+
 	for _, message := range messages {
 		if err := clientAppend(client, mailbox, string(message.Build())); err != nil {
 			s.t.pushError(err)

@@ -13,7 +13,9 @@ Feature: SMTP sending with APPENDing to Sent
     # First do sending.
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
       """
+      From: [user:user]@[domain]
       To: Internal Bridge <[user:to]@[domain]>
+      Date: 01 Jan 1980 00:00:00 +0000
       Subject: Manual send and append
       Message-ID: bridgemessage42
 
@@ -37,7 +39,9 @@ Feature: SMTP sending with APPENDing to Sent
     # Then simulate manual append to Sent mailbox - message should be detected as a duplicate.
     When IMAP client "1" appends the following message to "Sent":
       """
+      From: [user:user]@[domain]
       To: Internal Bridge <[user:to]@[domain]>
+      Date: 01 Jan 1980 00:00:00 +0000
       Subject: Manual send and append
       Message-ID: bridgemessage42
 

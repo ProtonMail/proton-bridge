@@ -151,7 +151,7 @@ func TestBridge_SendDraftFlags(t *testing.T) {
 			defer imapClient.Logout() //nolint:errcheck
 
 			// The message to send.
-			const message = `Subject: Test\r\n\r\nHello world!`
+			message := fmt.Sprintf("From: %v\r\nDate: 01 Jan 1980 00:00:00 +0000\r\nSubject: Test\r\n\r\nHello world!", userInfo.Addresses[0])
 
 			// Save a draft.
 			require.NoError(t, imapClient.Append("Drafts", []string{imap.DraftFlag}, time.Now(), strings.NewReader(message)))
