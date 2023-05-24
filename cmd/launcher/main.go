@@ -18,7 +18,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -239,10 +238,6 @@ func getPathToUpdatedExecutable(
 
 		if err := version.VerifyFiles(kr); err != nil {
 			vlog.WithError(err).Error("Files failed verification and will be removed")
-
-			if err := reporter.ReportMessage(fmt.Sprintf("version %v failed verification: %v", version, err)); err != nil {
-				vlog.WithError(err).Error("Failed to report corrupt update files")
-			}
 
 			if err := version.Remove(); err != nil {
 				vlog.WithError(err).Error("Failed to remove files")

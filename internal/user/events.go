@@ -83,15 +83,6 @@ func (user *User) handleRefreshEvent(ctx context.Context, refresh proton.Refresh
 
 	l.Info("Handling refresh event")
 
-	if err := user.reporter.ReportMessageWithContext("Warning: refresh occurred", map[string]interface{}{
-		"EventLoop": map[string]interface{}{
-			"EventID": eventID,
-			"Refresh": refresh,
-		},
-	}); err != nil {
-		l.WithError(err).Error("Failed to report refresh to sentry")
-	}
-
 	// Abort the event stream
 	defer user.pollAbort.Abort()
 
