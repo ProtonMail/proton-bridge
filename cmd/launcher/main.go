@@ -107,7 +107,7 @@ func main() { //nolint:funlen
 
 	args := os.Args[1:]
 
-	exe, err := getPathToUpdatedExecutable(filepath.Base(launcher), versioner, kr, reporter)
+	exe, err := getPathToUpdatedExecutable(filepath.Base(launcher), versioner, kr)
 	if err != nil {
 		exeToLaunch := guiName
 		if inCLIMode(args) {
@@ -217,7 +217,6 @@ func getPathToUpdatedExecutable(
 	name string,
 	ver *versioner.Versioner,
 	kr *crypto.KeyRing,
-	reporter *sentry.Reporter,
 ) (string, error) {
 	versions, err := ver.ListVersions()
 	if err != nil {
