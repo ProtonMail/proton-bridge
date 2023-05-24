@@ -238,11 +238,13 @@ build-darwin-qa:
     - export GO111MODULE=on
     - export PATH="${GOPATH}/bin:${PATH}"
     - export MSYSTEM=
-    - export QT6DIR=/c/grrrQt/6.3.1/msvc2019_64
+    - export QT6DIR=/c/grrrQt/6.3.2/msvc2019_64
     - export PATH=$PATH:${QT6DIR}/bin
     - export PATH="/c/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin:$PATH"
     - $(git config --global -l | grep -o 'url.*gitlab.protontech.ch.*insteadof' | xargs -L 1 git config --global --unset &> /dev/null) || echo "nothing to remove"
     - git config --global url.https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}.insteadOf https://${CI_SERVER_HOST}
+    - git config --global safe.directory '*'
+    - git status --porcelain
   cache: {}
   tags:
     - windows-bridge
