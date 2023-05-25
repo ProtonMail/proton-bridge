@@ -676,7 +676,6 @@ func TestBridge_UserInfo_Alias(t *testing.T) {
 func TestBridge_User_Refresh(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-
 			// Get a channel of sync started events.
 			syncStartCh, done := chToType[events.Event, events.SyncStarted](bridge.GetEvents(events.SyncStarted{}))
 			defer done()
