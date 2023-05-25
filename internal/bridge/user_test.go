@@ -28,10 +28,8 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
-	mocksPkg "github.com/ProtonMail/proton-bridge/v3/internal/bridge/mocks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -678,10 +676,6 @@ func TestBridge_UserInfo_Alias(t *testing.T) {
 func TestBridge_User_Refresh(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			mocks.Reporter.EXPECT().ReportMessageWithContext(
-				gomock.Eq("Warning: refresh occurred"),
-				mocksPkg.NewRefreshContextMatcher(proton.RefreshAll),
-			).Return(nil)
 
 			// Get a channel of sync started events.
 			syncStartCh, done := chToType[events.Event, events.SyncStarted](bridge.GetEvents(events.SyncStarted{}))
