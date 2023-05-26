@@ -126,6 +126,6 @@ require (
 
 replace (
 	github.com/docker/docker-credential-helpers => github.com/ProtonMail/docker-credential-helpers v1.1.0
-	github.com/emersion/go-message => github.com/ProtonMail/go-message v0.0.0-20210611055058-fabeff2ec753
+	github.com/emersion/go-message => github.com/ProtonMail/go-message v0.13.1-0.20230526094639-b62c999c85b7
 	github.com/keybase/go-keychain => github.com/cuthix/go-keychain v0.0.0-20230517073537-fc1740a83768
 )
