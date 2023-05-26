@@ -108,9 +108,10 @@ SettingsView {
 
         horizontalAlignment: Text.AlignHCenter
 
-        text: qsTr("%1 v%2<br>© 2017-%3 %4<br>%5 %6<br>%7").
+        text: qsTr("%1 v%2 (%3)<br>© 2017-%4 %5<br>%6 %7<br>%8").
         arg(Backend.appname).
         arg(Backend.version).
+        arg(Backend.tag).
         arg(Backend.buildYear()).
         arg(Backend.vendor).
         arg(link(Backend.licensePath, qsTr("License"))).
