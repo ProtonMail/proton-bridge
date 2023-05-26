@@ -1,3 +1,23 @@
+## v3.2.0
+- 2023-05-26
+
+### New
+- Enhanced Proton infrastructure protection
+- Enhanced the integration with the operating system by replacing status windows with native tray icon context menu
+- Switched to two columns layout on the account details page to make the informaion easier to access
+- Improved logs to support troubleshooting
+- Added optional usage sharing to support user experience improvements. Additional information about data sharing can be found on our [support page](https://proton.me/support/share-usage-statistics).
+- Implemented smart picking of default IMAP and SMTP ports
+- Added various security and performance improvements
+
+### Fixed
+- Replaced invalid email addresses with empty field for new drafts so it can be syncronized across Proton clients
+- Improved crash handling
+- Fixed label / unlabel performance when applied on large amount of emails
+- Fixed "reply to" related issues
+- Updated build instructions
+- Announced IMAP ID capability to email clients
+
 ## v3.1.3
 - 2023-05-10
 
