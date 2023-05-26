@@ -65,6 +65,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(QString appname READ appname NOTIFY appnameChanged)
     Q_PROPERTY(QString vendor READ vendor NOTIFY vendorChanged)
     Q_PROPERTY(QString version READ version NOTIFY versionChanged)
+    Q_PROPERTY(QString tag READ tag NOTIFY tagChanged)
     Q_PROPERTY(QString hostname READ hostname NOTIFY hostnameChanged)
     Q_PROPERTY(bool isAutostartOn READ isAutostartOn NOTIFY isAutostartOnChanged)
     Q_PROPERTY(bool isBetaEnabled READ isBetaEnabled NOTIFY isBetaEnabledChanged)
@@ -98,6 +99,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     QString appname() const; ///< Getter for the 'appname' property.
     QString vendor() const; ///< Getter for the 'vendor' property.
     QString version() const; ///< Getter for the 'version' property.
+    QString tag() const; ///< Getter for the 'tag' property.
     QString hostname() const; ///< Getter for the 'hostname' property.
     bool isAutostartOn() const; ///< Getter for the 'isAutostartOn' property.
     bool isBetaEnabled() const; ///< Getter for the 'isBetaEnabled' property.
@@ -144,6 +146,7 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void appnameChanged(QString const &appname); ///<Signal for the change of the 'appname' property.
     void vendorChanged(QString const &vendor); ///<Signal for the change of the 'vendor' property.
     void versionChanged(QString const &version); ///<Signal for the change of the 'version' property.
+    void tagChanged(QString const &tag); ///<Signal for the change of the 'tag' property.
     void currentEmailClientChanged(QString const &email); ///<Signal for the change of the 'currentEmailClient' property.
     void currentKeychainChanged(QString const &keychain); ///<Signal for the change of the 'currentKeychain' property.
     void availableKeychainChanged(QStringList const &keychains); ///<Signal for the change of the 'availableKeychain' property.

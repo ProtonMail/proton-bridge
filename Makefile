@@ -19,7 +19,8 @@ SRC_ICO:=bridge.ico
 SRC_ICNS:=Bridge.icns
 SRC_SVG:=bridge.svg
 EXE_NAME:=proton-bridge
-REVISION:=$(shell git rev-parse --short=10 HEAD)
+REVISION:=$(shell ./utils/get_revision.sh)
+TAG:=$(shell ./utils/get_revision.sh tag)
 BUILD_TIME:=$(shell date +%FT%T%z)
 MACOS_MIN_VERSION_ARM64=11.0
 MACOS_MIN_VERSION_AMD64=10.15
@@ -27,7 +28,7 @@ BUILD_ENV?=dev
 
 BUILD_FLAGS:=-tags='${BUILD_TAGS}'
 BUILD_FLAGS_LAUNCHER:=${BUILD_FLAGS}
-GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/v3/internal/constants., Version=${APP_VERSION} Revision=${REVISION} BuildTime=${BUILD_TIME})
+GO_LDFLAGS:=$(addprefix -X github.com/ProtonMail/proton-bridge/v3/internal/constants., Version=${APP_VERSION} Revision=${REVISION} Tag=${TAG} BuildTime=${BUILD_TIME})
 GO_LDFLAGS+=-X "github.com/ProtonMail/proton-bridge/v3/internal/constants.FullAppName=${APP_FULL_NAME}"
 
 ifneq "${DSN_SENTRY}" ""
@@ -158,6 +159,7 @@ ${EXE_TARGET}: check-build-essentials ${EXE_NAME}
 		BRIDGE_VENDOR="${APP_VENDOR}" \
 		BRIDGE_APP_VERSION=${APP_VERSION} \
 		BRIDGE_REVISION=${REVISION} \
+		BRIDGE_TAG=${TAG} \
 		BRIDGE_DSN_SENTRY=${DSN_SENTRY} \
  		BRIDGE_BUILD_TIME=${BUILD_TIME} \
 		BRIDGE_GUI_BUILD_CONFIG=Release \

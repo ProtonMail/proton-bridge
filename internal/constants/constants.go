@@ -33,8 +33,11 @@ var (
 	// Version of the build.
 	Version = "0.0.0"
 
-	// Revision is current hash of the build.
+	// Revision is build time commit hash.
 	Revision = ""
+
+	// Tag is build time git describe.
+	Tag = ""
 
 	// BuildTime stamp of the build.
 	BuildTime = ""

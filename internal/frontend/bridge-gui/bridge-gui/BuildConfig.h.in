@@ -23,6 +23,7 @@
 #define PROJECT_VENDOR                "@BRIDGE_VENDOR@"
 #define PROJECT_VER                   "@BRIDGE_APP_VERSION@"
 #define PROJECT_REVISION              "@BRIDGE_REVISION@"
+#define PROJECT_TAG                   "@BRIDGE_TAG@"
 #define PROJECT_BUILD_TIME            "@BRIDGE_BUILD_TIME@"
 #define PROJECT_DSN_SENTRY            "@BRIDGE_DSN_SENTRY@"
 #define PROJECT_BUILD_ENV             "@BRIDGE_BUILD_ENV@"

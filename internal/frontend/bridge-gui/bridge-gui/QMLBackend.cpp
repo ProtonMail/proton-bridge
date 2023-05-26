@@ -286,13 +286,22 @@ QString QMLBackend::vendor() const {
 
 
 //****************************************************************************************************************************************************
-/// \return The value for the 'vendor' property.
+/// \return The value for the 'version' property.
 //****************************************************************************************************************************************************
 QString QMLBackend::version() const {
     HANDLE_EXCEPTION_RETURN_QSTRING(
         QString version;
         app().grpc().version(version);
         return version;
+    )
+}
+
+//****************************************************************************************************************************************************
+/// \return The value for the 'tag' property.
+//****************************************************************************************************************************************************
+QString QMLBackend::tag() const {
+    HANDLE_EXCEPTION_RETURN_QSTRING(
+        return QString(PROJECT_TAG);
     )
 }
 

@@ -322,6 +322,7 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 		WithField("appName", constants.FullAppName).
 		WithField("version", constants.Version).
 		WithField("revision", constants.Revision).
+		WithField("tag", constants.Tag).
 		WithField("build", constants.BuildTime).
 		WithField("runtime", runtime.GOOS).
 		WithField("args", os.Args).

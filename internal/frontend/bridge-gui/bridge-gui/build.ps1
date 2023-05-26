@@ -76,6 +76,7 @@ function check_exit() {
 Write-host "Running build for version $bridgeVersion - $buildConfig in $buildDir"
 
 $REVISION_HASH = git rev-parse --short=10 HEAD
+$bridgeTag = ($env:BRIDGE_TAG)
 $bridgeDsnSentry = ($env:BRIDGE_DSN_SENTRY)
 $bridgeBuidTime = ($env:BRIDGE_BUILD_TIME)
 
@@ -93,6 +94,7 @@ git submodule update --init --recursive $vcpkgRoot
                                        -DBRIDGE_APP_FULL_NAME="$bridgeFullName" `
                                        -DBRIDGE_VENDOR="$bridgeVendor" `
                                        -DBRIDGE_REVISION="$REVISION_HASH" `
+                                       -DBRIDGE_TAG="$bridgeTag" `
                                        -DBRIDGE_APP_VERSION="$bridgeVersion" `
                                        -DBRIDGE_BUILD_TIME="$bridgeBuidTime" `
                                        -DBRIDGE_DSN_SENTRY="$bridgeDsnSentry" `
