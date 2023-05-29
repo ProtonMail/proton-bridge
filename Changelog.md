@@ -3,6 +3,62 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Stone Bridge 3.3.0
+
+### Added
+
+### Changed
+* GODT-2648: Make win build work on AWS machine.
+* Disable building of bridgepp-test app in build script.
+* GODT-2631: Bump go to 1.20.
+* GODT-2639: Enhance sentry init log.
+* GODT-2161: Auto-submit 2FA.
+* Bump Gluon for GODT-2595, GODT-2634 and GODT-2619.
+* Test: Fix TestBridge_Report.
+* Extend the timeout for integration test form 20m to 30.
+* Improve CPC code.
+* GODT-2585: Only Start IMAP/SMTP once one user is loaded.
+* GODT-2585: Server Manager.
+* GODT-2585: Add CPC utility.
+* GODT-2621: Display pop up warning when IMAP login fails because user is locked (connecting).
+* Set default log level to Debug.
+* GODT-2520: Update error message for free users.
+* Test: Disable sync open files test.
+* GODT-2346: Treat external address as disabled one.
+* GODT-2610: Re-use previous password when removing and adding back account.
+* GODT-2611: Bridge CLI exits on the first SIGINT / Ctrl+C.
+* GODT-2540: Make icon loading failure behavior consistent.
+* GODT-2540: Pop-up notification error icon is loaded on startup.
+* GODT-2540: Notify user of wrong IMAP password.
+
+### Fixed
+* GODT-2650: Fix crash during header serialization.
+* GODT-2437: Fix lint, test + bump Gluon with silenced report.
+* GODT-2437: Silence harmless report to sentry.
+* GODT-2649: Clean up cache files after failed connector create (Gluon).
+* GODT-2638: Validate messages before import.
+* GODT-2646: Bump GPA and Gluon dependecy after CIRCL upgrade.
+* GODT-2454: Only Send status update if transaction succeeded.
+* Test: fix flaky tests.
+* GODT-2628: Attempt to fix closed channel panic on logout.
+* GODT-2627: Properly handle recording of message with Bcc fields.
+* GODT-2627: Fix crash on closed channel.
+* GODT-2307: Removed deprecated macOS security framework function.
+* GODT-2637: Fix address parser error due to trailing separator.
+* GODT-2635: Ensure Bridge can be compiled with GCC 13.
+* GODT-2626: Handle rare crash due to missing address update ch.
+* GODT-2626: Server Events should not be merged.
+* GODT-2606: Improve Vault concurrency scopes.
+* GODT-2623: Log IMAP/SMTP login failure as error.
+* GODT-2527: Cleanup 503 test since handled by GPA.
+* GODT-2613: Install the TLS certificate in the user keychain.
+* GODT-2618: Crash when address does not have unlocked keyring.
+* GODT-2616: Silence out of Order UID report.
+* Update Gluon for async.Group.Do() fix.
+* Upgraded golangci-lint v1.52.2 and fixed all issues.
+* GODT-2464: Filter attachment name from content-type parameter to not send it twice to the API.
+
+
 ## [Bridge 3.2.0] Rialto
 
 ### Added
