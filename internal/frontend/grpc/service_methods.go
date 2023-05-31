@@ -668,7 +668,7 @@ func (s *Service) MailServerSettings(_ context.Context, _ *emptypb.Empty) (*Imap
 	}, nil
 }
 
-func (s *Service) SetMailServerSettings(ctx context.Context, settings *ImapSmtpSettings) (*emptypb.Empty, error) {
+func (s *Service) SetMailServerSettings(_ context.Context, settings *ImapSmtpSettings) (*emptypb.Empty, error) {
 	s.log.
 		WithField("ImapPort", settings.ImapPort).
 		WithField("SmtpPort", settings.SmtpPort).
@@ -680,6 +680,8 @@ func (s *Service) SetMailServerSettings(ctx context.Context, settings *ImapSmtpS
 		defer async.HandlePanic(s.panicHandler)
 
 		defer func() { _ = s.SendEvent(NewChangeMailServerSettingsFinishedEvent()) }()
+
+		ctx := context.Background() // async operation, we cannot use the context provided by gRPC.
 
 		if s.bridge.GetIMAPSSL() != settings.UseSSLForImap {
 			if err := s.bridge.SetIMAPSSL(ctx, settings.UseSSLForImap); err != nil {
