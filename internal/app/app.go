@@ -325,6 +325,7 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 		WithField("build", constants.BuildTime).
 		WithField("runtime", runtime.GOOS).
 		WithField("args", os.Args).
+		WithField("SentryID", sentry.GetProtectedHostname()).
 		Info("Run app")
 
 	return fn()

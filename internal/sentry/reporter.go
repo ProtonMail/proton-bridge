@@ -96,7 +96,6 @@ func GetTimeZone() string {
 
 // NewReporter creates new sentry reporter with appName and appVersion to report.
 func NewReporter(appName string, identifier Identifier) *Reporter {
-	logrus.WithField("id", GetProtectedHostname()).Info("New sentry reporter")
 	return &Reporter{
 		appName:    appName,
 		appVersion: constants.Revision,
