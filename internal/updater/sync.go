@@ -35,11 +35,13 @@ func syncFolders(localPath, updatePath string) (err error) {
 	}
 
 	if err = removeMissing(localPath, updatePath); err != nil {
+		logrus.WithError(err).Error("Sync folders: failed to remove missing.")
 		restoreFromBackup(backupDir, localPath)
 		return
 	}
 
 	if err = copyRecursively(updatePath, localPath); err != nil {
+		logrus.WithError(err).Error("Sync folders: failed to copy.")
 		restoreFromBackup(backupDir, localPath)
 		return
 	}
@@ -89,8 +91,8 @@ func removeMissing(folderToCleanPath, itemsToKeepPath string) (err error) {
 
 	for _, removeThis := range delList {
 		if err = os.RemoveAll(removeThis); err != nil && !errors.Is(err, fs.ErrNotExist) {
-			logrus.Error("remove error ", err)
-			return
+			logrus.WithField("path", removeThis).WithError(err).Error("Remove error.")
+			return err
 		}
 	}
 
