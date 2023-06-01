@@ -17,6 +17,12 @@ Feature: A user can authenticate an SMTP client
     When user "[user:user]" connects SMTP client "1"
     Then SMTP client "1" can authenticate
 
+  Scenario: User agent with only SMTP client connected
+    Then the user agent is "NoClient/0.0.1 ([GOOS])"
+    When user "[user:user]" connects SMTP client "1"
+    Then SMTP client "1" can authenticate
+    Then the user agent is "UnknownClient/0.0.1 ([GOOS])"
+
   Scenario: SMTP client cannot authenticate with wrong username
     When user "[user:user]" connects SMTP client "1"
     Then SMTP client "1" cannot authenticate with incorrect username

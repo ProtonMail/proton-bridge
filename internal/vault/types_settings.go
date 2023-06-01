@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/ports"
 )
 
@@ -61,7 +62,6 @@ type Settings struct {
 }
 
 const DefaultMaxSyncMemory = 2 * 1024 * uint64(1024*1024)
-const DefaultUserAgent = "UnknownClient/0.0.1"
 
 func GetDefaultSyncWorkerCount() int {
 	const minSyncWorkers = 16
@@ -105,7 +105,7 @@ func newDefaultSettings(gluonDir string) Settings {
 		SyncWorkers:   syncWorkers,
 		SyncAttPool:   syncWorkers,
 
-		LastUserAgent:     DefaultUserAgent,
+		LastUserAgent:     useragent.DefaultUserAgent,
 		LastHeartbeatSent: time.Time{},
 
 		PasswordArchive: PasswordArchive{},

@@ -50,6 +50,8 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/tests"
 	"github.com/bradenaw/juniper/xslices"
 	imapid "github.com/emersion/go-imap-id"
+	"github.com/emersion/go-sasl"
+	"github.com/emersion/go-smtp"
 	"github.com/stretchr/testify/require"
 )
 
@@ -184,13 +186,13 @@ func TestBridge_UserAgent_Persistence(t *testing.T) {
 			smtpWaiter := waitForSMTPServerReady(b)
 			defer smtpWaiter.Done()
 
+			currentUserAgent := b.GetCurrentUserAgent()
+			require.Contains(t, currentUserAgent, useragent.DefaultUserAgent)
+
 			require.NoError(t, getErr(b.LoginFull(ctx, otherUser, otherPassword, nil, nil)))
 
 			imapWaiter.Wait()
 			smtpWaiter.Wait()
-
-			currentUserAgent := b.GetCurrentUserAgent()
-			require.Contains(t, currentUserAgent, vault.DefaultUserAgent)
 
 			imapClient, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
@@ -217,6 +219,89 @@ func TestBridge_UserAgent_Persistence(t *testing.T) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			currentUserAgent := bridge.GetCurrentUserAgent()
 			require.Contains(t, currentUserAgent, "MyFancyClient/0.1.2")
+		})
+	})
+}
+
+func TestBridge_UserAgentFromUnknownClient(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		otherPassword := []byte("bar")
+		otherUser := "foo"
+		_, _, err := s.CreateUser(otherUser, otherPassword)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			imapWaiter := waitForIMAPServerReady(b)
+			defer imapWaiter.Done()
+
+			smtpWaiter := waitForSMTPServerReady(b)
+			defer smtpWaiter.Done()
+
+			currentUserAgent := b.GetCurrentUserAgent()
+			require.Contains(t, currentUserAgent, useragent.DefaultUserAgent)
+
+			userID, err := b.LoginFull(context.Background(), username, password, nil, nil)
+			require.NoError(t, err)
+
+			imapWaiter.Wait()
+			smtpWaiter.Wait()
+
+			imapClient, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
+			require.NoError(t, err)
+			defer func() { _ = imapClient.Logout() }()
+
+			info, err := b.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.True(t, info.State == bridge.Connected)
+
+			require.NoError(t, imapClient.Login(info.Addresses[0], string(info.BridgePass)))
+
+			currentUserAgent = b.GetCurrentUserAgent()
+			require.Contains(t, currentUserAgent, "UnknownClient/0.0.1")
+		})
+	})
+}
+
+func TestBridge_UserAgentFromSMTPClient(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		otherPassword := []byte("bar")
+		otherUser := "foo"
+		_, _, err := s.CreateUser(otherUser, otherPassword)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			imapWaiter := waitForIMAPServerReady(b)
+			defer imapWaiter.Done()
+
+			smtpWaiter := waitForSMTPServerReady(b)
+			defer smtpWaiter.Done()
+
+			currentUserAgent := b.GetCurrentUserAgent()
+			require.Contains(t, currentUserAgent, useragent.DefaultUserAgent)
+
+			userID, err := b.LoginFull(context.Background(), username, password, nil, nil)
+			require.NoError(t, err)
+
+			imapWaiter.Wait()
+			smtpWaiter.Wait()
+
+			client, err := smtp.Dial(net.JoinHostPort(constants.Host, fmt.Sprint(b.GetSMTPPort())))
+			require.NoError(t, err)
+			defer client.Close() //nolint:errcheck
+
+			info, err := b.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.True(t, info.State == bridge.Connected)
+
+			// Upgrade to TLS.
+			require.NoError(t, client.StartTLS(&tls.Config{InsecureSkipVerify: true}))
+			require.NoError(t, client.Auth(sasl.NewLoginClient(
+				info.Addresses[0],
+				string(info.BridgePass)),
+			))
+
+			currentUserAgent = b.GetCurrentUserAgent()
+			require.Contains(t, currentUserAgent, "UnknownClient/0.0.1")
 		})
 	})
 }
