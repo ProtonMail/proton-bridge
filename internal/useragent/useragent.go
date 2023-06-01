@@ -24,6 +24,10 @@ import (
 	"sync"
 )
 
+const DefaultUserAgent = "NoClient/0.0.1"
+const DefaultVersion = "0.0.1"
+const UnknownClient = "UnknownClient"
+
 type UserAgent struct {
 	client, platform string
 
@@ -81,7 +85,7 @@ func (ua *UserAgent) GetUserAgent() string {
 	if ua.client != "" {
 		client = ua.client
 	} else {
-		client = "NoClient/0.0.1"
+		client = DefaultUserAgent
 	}
 
 	return fmt.Sprintf("%v (%v)", client, ua.platform)

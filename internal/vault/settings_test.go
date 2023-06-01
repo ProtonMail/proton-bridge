@@ -24,6 +24,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/stretchr/testify/require"
 )
@@ -236,7 +237,7 @@ func TestVault_Settings_LastUserAgent(t *testing.T) {
 	s := newVault(t)
 
 	// Check the default first start value.
-	require.Equal(t, vault.DefaultUserAgent, s.GetLastUserAgent())
+	require.Equal(t, useragent.DefaultUserAgent, s.GetLastUserAgent())
 }
 
 func Test_Settings_PasswordArchive(t *testing.T) {

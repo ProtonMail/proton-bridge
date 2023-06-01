@@ -24,6 +24,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
+	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/sirupsen/logrus"
 )
 
@@ -245,7 +246,7 @@ func (vault *Vault) GetLastUserAgent() string {
 
 	// Handle case where there may be no value.
 	if len(v) == 0 {
-		v = DefaultUserAgent
+		v = useragent.DefaultUserAgent
 	}
 
 	return v

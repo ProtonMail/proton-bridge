@@ -23,6 +23,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon"
@@ -36,6 +37,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
+	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/sirupsen/logrus"
 )
 
@@ -82,6 +84,11 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 			"pkg":       "imap",
 		}).Error("Incorrect login credentials.")
 		bridge.publish(events.IMAPLoginFailed{Username: event.Username})
+
+	case imapEvents.Login:
+		if strings.Contains(bridge.GetCurrentUserAgent(), useragent.DefaultUserAgent) {
+			bridge.setUserAgent(useragent.UnknownClient, useragent.DefaultVersion)
+		}
 	}
 }
 

@@ -20,8 +20,10 @@ package bridge
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 )
@@ -55,6 +57,9 @@ func (s *smtpSession) AuthPlain(username, password string) error {
 			s.userID = user.ID()
 			s.authID = addrID
 
+			if strings.Contains(s.Bridge.GetCurrentUserAgent(), useragent.DefaultUserAgent) {
+				s.Bridge.setUserAgent(useragent.UnknownClient, useragent.DefaultVersion)
+			}
 			return nil
 		}
 
