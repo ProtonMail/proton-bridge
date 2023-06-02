@@ -515,6 +515,7 @@ func (user *User) syncMessages(
 
 					kr, ok := addrKRs[msg.AddressID]
 					if !ok {
+						logrus.Errorf("Address '%v' on message '%v' does not have an unlocked kerying", msg.AddressID, msg.ID)
 						return &buildRes{
 							messageID: msg.ID,
 							addressID: msg.AddressID,
@@ -522,7 +523,12 @@ func (user *User) syncMessages(
 						}, nil
 					}
 
-					return buildRFC822(apiLabels, msg, kr, new(bytes.Buffer)), nil
+					res := buildRFC822(apiLabels, msg, kr, new(bytes.Buffer))
+					if res.err != nil {
+						logrus.WithError(res.err).WithField("msgID", msg.ID).Error("Failed to build message (syn)")
+					}
+
+					return res, nil
 				})
 				if err != nil {
 					return
