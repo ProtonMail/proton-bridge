@@ -137,7 +137,7 @@ Proton Mail Bridge includes the following 3rd party software:
 * [sync](https://golang.org/x/sync) available under [license](https://cs.opensource.google/go/x/sync/+/master:LICENSE) 
 * [tools](https://golang.org/x/tools) available under [license](https://cs.opensource.google/go/x/tools/+/master:LICENSE) 
 * [genproto](https://google.golang.org/genproto) available under [license](https://pkg.go.dev/google.golang.org/genproto?tab=licenses) 
-gopkg.in/yaml.v3
+* [yaml](https://gopkg.in/yaml.v3) available under [license](https://github.com/go-yaml/yaml/blob/v3.0.1/LICENSE) 
 * [docker-credential-helpers](https://github.com/ProtonMail/docker-credential-helpers) available under [license](https://github.com/ProtonMail/docker-credential-helpers/blob/master/LICENSE) 
 * [go-message](https://github.com/ProtonMail/go-message) available under [license](https://github.com/ProtonMail/go-message/blob/master/LICENSE) 
 * [go-keychain](https://github.com/cuthix/go-keychain) available under [license](https://github.com/cuthix/go-keychain/blob/master/LICENSE) 
