@@ -28,70 +28,79 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func syncFolders(localPath, updatePath string) (err error) {
+func syncFolders(localPath, updatePath string) error {
 	backupDir := filepath.Join(filepath.Dir(updatePath), "backup")
-	if err = createBackup(localPath, backupDir); err != nil {
-		return
+	if err := createBackup(localPath, backupDir); err != nil {
+		logrus.WithField("dir", backupDir).WithError(err).Error("Cannot create backup")
+		return err
 	}
 
-	if err = removeMissing(localPath, updatePath); err != nil {
+	if err := removeMissing(localPath, updatePath); err != nil {
 		logrus.WithError(err).Error("Sync folders: failed to remove missing.")
 		restoreFromBackup(backupDir, localPath)
-		return
+		return err
 	}
 
-	if err = copyRecursively(updatePath, localPath); err != nil {
+	if err := copyRecursively(updatePath, localPath); err != nil {
 		logrus.WithError(err).Error("Sync folders: failed to copy.")
 		restoreFromBackup(backupDir, localPath)
-		return
+		return err
 	}
 
 	return nil
 }
 
-func removeMissing(folderToCleanPath, itemsToKeepPath string) (err error) {
-	logrus.WithField("from", folderToCleanPath).Debug("Remove missing")
+func removeMissing(folderToCleanPath, itemsToKeepPath string) error {
+	logrus.WithField("dir", folderToCleanPath).Debug("Remove missing")
+
 	// Create list of files.
 	existingRelPaths := map[string]bool{}
-	err = filepath.Walk(itemsToKeepPath, func(keepThis string, _ os.FileInfo, walkErr error) error {
+	if err := filepath.Walk(itemsToKeepPath, func(keepThis string, _ os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
+
 		relPath, walkErr := filepath.Rel(itemsToKeepPath, keepThis)
 		if walkErr != nil {
 			return walkErr
 		}
+
 		logrus.WithField("path", relPath).Trace("Keep the path")
 		existingRelPaths[relPath] = true
+
 		return nil
-	})
-	if err != nil {
-		return
+	}); err != nil {
+		return err
 	}
 
 	delList := []string{}
-	err = filepath.Walk(folderToCleanPath, func(removeThis string, _ os.FileInfo, walkErr error) error {
+	if err := filepath.Walk(folderToCleanPath, func(fullPath string, _ os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
-		relPath, walkErr := filepath.Rel(folderToCleanPath, removeThis)
+
+		relPath, walkErr := filepath.Rel(folderToCleanPath, fullPath)
 		if walkErr != nil {
+			logrus.WithField("full", fullPath).WithError(walkErr).Error("Failed to get relative path")
 			return walkErr
 		}
-		logrus.Debug("check path ", relPath)
+
+		l := logrus.WithField("path", relPath)
+		l.Debug("Check")
+
 		if !existingRelPaths[relPath] {
-			logrus.Debug("path not in list, removing ", removeThis)
-			delList = append(delList, removeThis)
+			l.WithField("remove", fullPath).Debug("Path not in list, removing")
+			delList = append(delList, fullPath)
 		}
+
 		return nil
-	})
-	if err != nil {
-		return
+	}); err != nil {
+		return err
 	}
 
 	for _, removeThis := range delList {
-		if err = os.RemoveAll(removeThis); err != nil && !errors.Is(err, fs.ErrNotExist) {
-			logrus.WithField("path", removeThis).WithError(err).Error("Remove error.")
+		if err := os.RemoveAll(removeThis); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			logrus.WithField("path", removeThis).WithError(err).Error("Cannot remove")
 			return err
 		}
 	}
@@ -100,23 +109,30 @@ func removeMissing(folderToCleanPath, itemsToKeepPath string) (err error) {
 }
 
 func restoreFromBackup(backupDir, localPath string) {
-	logrus.WithField("from", backupDir).
-		WithField("to", localPath).
-		Error("recovering")
+	l := logrus.WithField("from", backupDir).
+		WithField("to", localPath)
+	l.Warning("Recovering")
+
 	if err := copyRecursively(backupDir, localPath); err != nil {
-		logrus.WithField("from", backupDir).
-			WithField("to", localPath).
-			Error("Not able to recover.")
+		l.WithError(err).Error("Not able to recover")
 	}
 }
 
-func createBackup(srcFile, dstDir string) (err error) {
-	logrus.WithField("from", srcFile).WithField("to", dstDir).Debug("Create backup")
-	if err = mkdirAllClear(dstDir); err != nil {
-		return
+func createBackup(srcFile, dstDir string) error {
+	l := logrus.WithField("from", srcFile).WithField("to", dstDir)
+
+	l.Debug("Create backup")
+	if err := mkdirAllClear(dstDir); err != nil {
+		l.WithError(err).Error("Cannot create backup folder")
+		return err
 	}
 
-	return copyRecursively(srcFile, dstDir)
+	if err := copyRecursively(srcFile, dstDir); err != nil {
+		l.WithError(err).Error("Cannot copy to backup folder")
+		return err
+	}
+
+	return nil
 }
 
 func mkdirAllClear(path string) error {
@@ -130,12 +146,14 @@ func mkdirAllClear(path string) error {
 func checksum(path string) (hash string) {
 	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
+		logrus.WithError(err).WithField("path", path).Error("Cannot open file for checksum")
 		return
 	}
 	defer file.Close() //nolint:errcheck,gosec
 
 	hasher := sha256.New()
 	if _, err := io.Copy(hasher, file); err != nil {
+		logrus.WithError(err).WithField("path", path).Error("Cannot read file for checksum")
 		return
 	}
 
@@ -153,40 +171,50 @@ func copyRecursively(srcDir, dstDir string) error {
 		srcIsLink := srcInfo.Mode()&os.ModeSymlink == os.ModeSymlink
 		srcIsDir := srcInfo.IsDir()
 
+		l := logrus.WithField("source", srcPath)
+
 		// Non regular source (e.g. named pipes, sockets, devices...).
 		if !srcIsLink && !srcIsDir && !srcInfo.Mode().IsRegular() {
-			logrus.Error("File ", srcPath, " with mode ", srcInfo.Mode())
-			return errors.New("irregular source file. Copy not implemented")
+			err := errors.New("irregular source file: copy not implemented")
+			l.WithField("mode", srcInfo.Mode()).WithError(err).Error("Source with iregular mode")
+			return err
 		}
 
 		// Destination path.
 		srcRelPath, err := filepath.Rel(srcDir, srcPath)
 		if err != nil {
+			l.WithField("dir", srcDir).WithError(err).Error("Failed to get relative source path")
 			return err
 		}
+
 		dstPath := filepath.Join(dstDir, srcRelPath)
-		logrus.Debug("src: ", srcPath, " dst: ", dstPath)
+		l = l.WithField("destination", dstPath)
 
 		// Destination exists.
 		dstInfo, err := os.Lstat(dstPath)
+		l.WithError(err).Debug("Destination check")
+
 		if err == nil {
 			dstIsLink := dstInfo.Mode()&os.ModeSymlink == os.ModeSymlink
 			dstIsDir := dstInfo.IsDir()
 
 			// Non regular destination (e.g. named pipes, sockets, devices...).
 			if !dstIsLink && !dstIsDir && !dstInfo.Mode().IsRegular() {
-				logrus.Error("File ", dstPath, " with mode ", dstInfo.Mode())
-				return errors.New("irregular target file. Copy not implemented")
+				err := errors.New("irregular target file: copy not implemented")
+				l.WithError(err).WithField("mode", dstInfo.Mode()).Error("Destination with irregular mode")
+				return err
 			}
 
 			if dstIsLink {
 				if err = os.Remove(dstPath); err != nil {
+					l.WithError(err).Error("Cannot remove destination link")
 					return err
 				}
 			}
 
 			if !dstIsLink && dstIsDir && !srcIsDir {
 				if err = os.RemoveAll(dstPath); err != nil {
+					l.WithError(err).Error("Cannot remove destination folder")
 					return err
 				}
 			}
@@ -195,63 +223,89 @@ func copyRecursively(srcDir, dstDir string) error {
 
 			if dstInfo.Mode().IsRegular() && !srcInfo.Mode().IsRegular() {
 				if err = os.Remove(dstPath); err != nil {
+					l.WithError(err).Error("Cannot remove destination file")
 					return err
 				}
 			}
 		} else if !errors.Is(err, fs.ErrNotExist) {
+			l.WithError(err).Error("Destination error")
 			return err
 		}
 
 		// Create symbolic link and return.
 		if srcIsLink {
-			logrus.Debug("It is a symlink")
+			l.Debug("Source is a symlink")
 			linkPath, err := os.Readlink(srcPath)
 			if err != nil {
+				l.WithError(err).Error("Failed to read link")
 				return err
 			}
-			logrus.Debug("link to ", linkPath)
+			l.WithField("linkPath", linkPath).Debug("Creating symlink")
 			return os.Symlink(linkPath, dstPath)
 		}
 
 		// Create dir and return.
 		if srcIsDir {
-			logrus.Debug("It is a dir")
-			return os.MkdirAll(dstPath, srcInfo.Mode())
+			l.Debug("Source is a dir")
+			err := os.MkdirAll(dstPath, srcInfo.Mode())
+			if err != nil {
+				l.WithError(err).Error("Failed to create dir")
+			}
+			return err
 		}
 
 		// Regular files only.
 		// If files are same return.
 		if os.SameFile(srcInfo, dstInfo) || checksum(srcPath) == checksum(dstPath) {
-			logrus.Debug("Same files, skip copy")
+			l.Debug("Same files, skip copy")
 			return nil
 		}
 
 		// Create/overwrite regular file.
 		srcReader, err := os.Open(filepath.Clean(srcPath))
 		if err != nil {
+			l.WithError(err).Error("Failed to open source")
 			return err
 		}
 		defer srcReader.Close() //nolint:errcheck,gosec
+
 		return copyToTmpFileRename(srcReader, dstPath, srcInfo.Mode())
 	})
 }
 
 func copyToTmpFileRename(srcReader io.Reader, dstPath string, dstMode os.FileMode) error {
-	logrus.Debug("Tmp and rename ", dstPath)
 	tmpPath := dstPath + ".tmp"
+	l := logrus.WithField("dstPath", dstPath)
+	l.Debug("Create tmp and rename")
+
 	if err := copyToFileTruncate(srcReader, tmpPath, dstMode); err != nil {
+		l.WithError(err).Error("Failed to copy and truncate")
 		return err
 	}
-	return os.Rename(tmpPath, dstPath)
+
+	if err := os.Rename(tmpPath, dstPath); err != nil {
+		l.WithError(err).Error("Failed to rename")
+		return err
+	}
+
+	return nil
 }
 
 func copyToFileTruncate(srcReader io.Reader, dstPath string, dstMode os.FileMode) error {
-	logrus.Debug("Copy and truncate ", dstPath)
+	l := logrus.WithField("dstPath", dstPath)
+	l.Debug("Copy and truncate")
+
 	dstWriter, err := os.OpenFile(filepath.Clean(dstPath), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, dstMode) //nolint:gosec // Cannot guess the safe part of path
 	if err != nil {
+		l.WithError(err).Error("Failed to open destination")
 		return err
 	}
 	defer dstWriter.Close() //nolint:errcheck,gosec
-	_, err = io.Copy(dstWriter, srcReader)
-	return err
+
+	if _, err := io.Copy(dstWriter, srcReader); err != nil {
+		l.WithError(err).Error("Failed to open destination")
+		return err
+	}
+
+	return nil
 }

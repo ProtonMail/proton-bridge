@@ -27,6 +27,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -101,6 +102,7 @@ func (u *Updater) InstallUpdate(ctx context.Context, downloader Downloader, upda
 	}
 
 	if err := u.installer.InstallUpdate(update.Version, bytes.NewReader(b)); err != nil {
+		logrus.WithError(err).Error("Failed to install update")
 		return ErrInstall
 	}
 
