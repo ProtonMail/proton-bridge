@@ -305,7 +305,7 @@ func (b *sendPrefsBuilder) setPGPSettings(
 func (b *sendPrefsBuilder) setInternalPGPSettings(
 	vCardData *contactSettings,
 	apiKeys []proton.PublicKey,
-) (err error) {
+) error {
 	// We're guaranteed to get at least one valid (i.e. not expired, revoked or
 	// marked as verification-only) public key from the server.
 	if len(apiKeys) == 0 {
@@ -327,7 +327,7 @@ func (b *sendPrefsBuilder) setInternalPGPSettings(
 
 	sendingKey, err := pickSendingKey(vCardData, apiKeys)
 	if err != nil {
-		return
+		return err
 	}
 
 	b.withPublicKey(sendingKey)
@@ -349,7 +349,7 @@ func (b *sendPrefsBuilder) setInternalPGPSettings(
 //  3. If there are no pinned keys, then the client should encrypt with the
 //     first valid key served by the API (in principle the server already
 //     validates the keys and the first one provided should be valid).
-func pickSendingKey(vCardData *contactSettings, rawAPIKeys []proton.PublicKey) (kr *crypto.KeyRing, err error) {
+func pickSendingKey(vCardData *contactSettings, rawAPIKeys []proton.PublicKey) (*crypto.KeyRing, error) {
 	contactKeys := make([]*crypto.Key, len(vCardData.Keys))
 	apiKeys := make([]*crypto.Key, len(rawAPIKeys))
 
@@ -357,8 +357,9 @@ func pickSendingKey(vCardData *contactSettings, rawAPIKeys []proton.PublicKey) (
 		var ck *crypto.Key
 
 		// Contact keys are not armored.
+		var err error
 		if ck, err = crypto.NewKey([]byte(key)); err != nil {
-			return
+			return nil, err
 		}
 
 		contactKeys[i] = ck
@@ -368,8 +369,9 @@ func pickSendingKey(vCardData *contactSettings, rawAPIKeys []proton.PublicKey) (
 		var ck *crypto.Key
 
 		// API keys are armored.
+		var err error
 		if ck, err = crypto.NewKeyFromArmored(key.PublicKey); err != nil {
-			return
+			return nil, err
 		}
 
 		apiKeys[i] = ck
@@ -416,7 +418,7 @@ func matchFingerprints(a, b []*crypto.Key) (res []*crypto.Key) {
 func (b *sendPrefsBuilder) setExternalPGPSettingsWithWKDKeys(
 	vCardData *contactSettings,
 	apiKeys []proton.PublicKey,
-) (err error) {
+) error {
 	// We're guaranteed to get at least one valid (i.e. not expired, revoked or
 	// marked as verification-only) public key from the server.
 	if len(apiKeys) == 0 {
@@ -445,7 +447,7 @@ func (b *sendPrefsBuilder) setExternalPGPSettingsWithWKDKeys(
 
 	sendingKey, err := pickSendingKey(vCardData, apiKeys)
 	if err != nil {
-		return
+		return err
 	}
 
 	b.withPublicKey(sendingKey)
@@ -455,7 +457,7 @@ func (b *sendPrefsBuilder) setExternalPGPSettingsWithWKDKeys(
 
 func (b *sendPrefsBuilder) setExternalPGPSettingsWithoutWKDKeys(
 	vCardData *contactSettings,
-) (err error) {
+) error {
 	b.withEncrypt(vCardData.Encrypt)
 
 	if vCardData.SignIsSet {
@@ -487,17 +489,20 @@ func (b *sendPrefsBuilder) setExternalPGPSettingsWithoutWKDKeys(
 	}
 
 	if len(vCardData.Keys) > 0 {
-		var key *crypto.Key
+		var (
+			key *crypto.Key
+			err error
+		)
 
 		// Contact keys are not armored.
 		if key, err = crypto.NewKey([]byte(vCardData.Keys[0])); err != nil {
-			return
+			return err
 		}
 
 		var kr *crypto.KeyRing
 
 		if kr, err = crypto.NewKeyRing(key); err != nil {
-			return
+			return err
 		}
 
 		b.withPublicKey(kr)

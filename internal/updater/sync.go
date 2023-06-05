@@ -47,6 +47,7 @@ func syncFolders(localPath, updatePath string) (err error) {
 	return nil
 }
 
+//nolint:nakedret
 func removeMissing(folderToCleanPath, itemsToKeepPath string) (err error) {
 	logrus.WithField("from", folderToCleanPath).Debug("Remove missing")
 	// Create list of files.

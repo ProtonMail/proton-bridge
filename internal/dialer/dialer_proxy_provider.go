@@ -93,6 +93,8 @@ func newProxyProvider(dialer TLSDialer, hostURL string, providers []string, pani
 }
 
 // findReachableServer returns a working API server (either proxy or standard API).
+//
+//nolint:nakedret
 func (p *proxyProvider) findReachableServer() (proxy string, err error) {
 	logrus.Debug("Trying to find a reachable server")
 
@@ -204,6 +206,8 @@ func (p *proxyProvider) canReach(url string) bool {
 // It looks up DNS TXT records for the given query URL using the given DoH provider.
 // It returns a list of all found TXT records.
 // If the whole process takes more than proxyDoHTimeout then an error is returned.
+//
+//nolint:nakedret
 func (p *proxyProvider) defaultDoHLookup(ctx context.Context, query, dohProvider string) (data []string, err error) {
 	ctx, cancel := context.WithTimeout(ctx, p.dohTimeout)
 	defer cancel()

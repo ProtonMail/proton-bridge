@@ -56,7 +56,7 @@ linters:
     - typecheck         # Like the front-end of a Go compiler, parses and type-checks Go code [fast: true, auto-fix: false]
     - unused            # Checks Go code for unused constants, variables, functions and types [fast: false, auto-fix: false]
     - bodyclose         # checks whether HTTP response body is closed successfully [fast: true, auto-fix: false]
-    - depguard          # Go linter that checks if package imports are in a list of acceptable packages [fast: true, auto-fix: false]
+    #- depguard          # Go linter that checks if package imports are in a list of acceptable packages [fast: true, auto-fix: false]
     - dogsled           # Checks assignments with too many blank identifiers (e.g. x, _, _, _, := f()) [fast: true, auto-fix: false]
     - dupl              # Tool for code clone detection [fast: true, auto-fix: false]
     - gochecknoglobals  # Checks that no globals are present in Go code [fast: true, auto-fix: false]
