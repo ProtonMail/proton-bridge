@@ -463,7 +463,15 @@ func (user *User) SendMail(authID string, from string, to []string, r io.Reader)
 		return ErrInvalidRecipient
 	}
 
-	return user.sendMail(authID, from, to, r)
+	if err := user.sendMail(authID, from, to, r); err != nil {
+		if apiErr := new(proton.APIError); errors.As(err, &apiErr) {
+			logrus.WithError(apiErr).WithField("Details", apiErr.DetailsToString()).Error("failed to send message")
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 // CheckAuth returns whether the given email and password can be used to authenticate over IMAP or SMTP with this user.

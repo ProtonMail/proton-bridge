@@ -37,6 +37,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
 	"github.com/bradenaw/juniper/stream"
 	"github.com/bradenaw/juniper/xslices"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
 )
 
@@ -355,6 +356,12 @@ func (conn *imapConnector) CreateMessage(
 	if err != nil && errors.Is(err, proton.ErrImportSizeExceeded) {
 		// Remap error so that Gluon does not put this message in the recovery mailbox.
 		err = fmt.Errorf("%v: %w", err, connector.ErrMessageSizeExceedsLimits)
+	}
+
+	if apiErr := new(proton.APIError); errors.As(err, &apiErr) {
+		logrus.WithError(apiErr).WithField("Details", apiErr.DetailsToString()).Error("Failed to import message")
+	} else {
+		logrus.WithError(err).Error("Failed to import message")
 	}
 
 	return msg, literal, err
