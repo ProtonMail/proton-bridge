@@ -1,0 +1,4 @@
+# The following fix an issue happening using LLDB with OpenSSL 3.1 on ARM64 architecture. (GODT-2680)
+# WARNING: this file is ignored if you do not enable reading lldb config from cwd in ~/.lldbinit (`settings set target.load-cwd-lldbinit true`)
+settings set platform.plugin.darwin.ignored-exceptions EXC_BAD_INSTRUCTION
+process handle SIGILL -n false -p true -s false
