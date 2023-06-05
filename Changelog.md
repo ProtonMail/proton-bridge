@@ -5,9 +5,11 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Stone Bridge 3.3.0
 
-### Added
-
 ### Changed
+* GODT-2653: Log API error details on Message import and send.
+* GODT-2655: Display internal build time tag in log and GUI.
+* Add error logs when messages fail to build during sync.
+* GODT-2673: Use NoClient as UserAgent without any client connected and...
 * GODT-2648: Make win build work on AWS machine.
 * Disable building of bridgepp-test app in build script.
 * GODT-2631: Bump go to 1.20.
@@ -32,6 +34,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2540: Notify user of wrong IMAP password.
 
 ### Fixed
+* Fix linter errors.
+* GODT-2669: Display sentry ID in bridge init log.
+* GODT-2672: Fix context cancelled when IMAP/SMTP parameters change is in progress.
 * GODT-2650: Fix crash during header serialization.
 * GODT-2437: Fix lint, test + bump Gluon with silenced report.
 * GODT-2437: Silence harmless report to sentry.
