@@ -53,7 +53,7 @@ func (s *Store) List() (userIDs []string, err error) {
 	var allUserIDs []string
 	if allUserIDs, err = s.secrets.List(); err != nil {
 		log.WithError(err).Error("Could not list credentials")
-		return
+		return nil, err
 	}
 
 	credentialList := []*Credentials{}

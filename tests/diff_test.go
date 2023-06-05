@@ -18,10 +18,9 @@
 package tests
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
-
-	"github.com/goccy/go-json"
 )
 
 func Test_IsSub(t *testing.T) {
