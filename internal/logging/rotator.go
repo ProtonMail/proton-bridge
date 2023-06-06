@@ -17,16 +17,36 @@
 
 package logging
 
-import "io"
+import (
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+)
 
 type Rotator struct {
-	getFile FileProvider
-	wc      io.WriteCloser
-	size    int
-	maxSize int
+	getFile   FileProvider
+	wc        io.WriteCloser
+	size      int
+	maxSize   int
+	nextIndex int
 }
 
-type FileProvider func() (io.WriteCloser, error)
+type FileProvider func(index int) (io.WriteCloser, error)
+
+func defaultFileProvider(logsPath string, sessionID SessionID, appName string) FileProvider {
+	return func(index int) (io.WriteCloser, error) {
+		if err := clearLogs(logsPath, MaxLogs, MaxLogs); err != nil {
+			return nil, err
+		}
+
+		return os.Create(filepath.Join(logsPath, //nolint:gosec // G304
+			fmt.Sprintf("%v_%03d_%v_v%v_%v.log", sessionID, index, appName, constants.Version, constants.Tag),
+		))
+	}
+}
 
 func NewRotator(maxSize int, getFile FileProvider) (*Rotator, error) {
 	r := &Rotator{
@@ -39,6 +59,10 @@ func NewRotator(maxSize int, getFile FileProvider) (*Rotator, error) {
 	}
 
 	return r, nil
+}
+
+func NewDefaultRotator(logsPath string, sessionID SessionID, appName string, maxSize int) (*Rotator, error) {
+	return NewRotator(maxSize, defaultFileProvider(logsPath, sessionID, appName))
 }
 
 func (r *Rotator) Write(p []byte) (int, error) {
@@ -63,11 +87,12 @@ func (r *Rotator) rotate() error {
 		_ = r.wc.Close()
 	}
 
-	wc, err := r.getFile()
+	wc, err := r.getFile(r.nextIndex)
 	if err != nil {
 		return err
 	}
 
+	r.nextIndex++
 	r.wc = wc
 	r.size = 0
 

@@ -54,14 +54,14 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, descript
 
 	if attachLogs {
 		logs, err := getMatchingLogs(bridge.locator, func(filename string) bool {
-			return logging.MatchLogName(filename) && !logging.MatchStackTraceName(filename)
+			return logging.MatchBridgeLogName(filename) && !logging.MatchStackTraceName(filename)
 		})
 		if err != nil {
 			return err
 		}
 
 		crashes, err := getMatchingLogs(bridge.locator, func(filename string) bool {
-			return logging.MatchLogName(filename) && logging.MatchStackTraceName(filename)
+			return logging.MatchBridgeLogName(filename) && logging.MatchStackTraceName(filename)
 		})
 		if err != nil {
 			return err

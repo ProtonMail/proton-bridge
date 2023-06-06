@@ -19,6 +19,7 @@
 #include "Pch.h"
 #include "CommandLine.h"
 #include "Settings.h"
+#include <bridgepp/SessionID/SessionID.h>
 
 
 using namespace bridgepp;
@@ -141,6 +142,13 @@ CommandLineOptions parseCommandLine(int argc, char *argv[]) {
     }
 
     options.logLevel = parseLogLevel(argc, argv);
+
+    options.sessionID = parseGoCLIStringArgument(argc, argv, { "session-id" });
+    if (options.sessionID.isEmpty()) {
+        options.sessionID = newSessionID();
+        options.bridgeArgs.append("--session-id");
+        options.bridgeArgs.append(options.sessionID);
+    }
 
     return options;
 }

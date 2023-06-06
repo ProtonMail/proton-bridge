@@ -77,7 +77,7 @@ func (restarter *Restarter) Restart() {
 	//nolint:gosec
 	cmd := execabs.Command(
 		restarter.exe,
-		xslices.Join(removeFlagWithValue(removeFlag(os.Args[1:], "no-window"), "parent-pid"), restarter.flags)...,
+		xslices.Join(removeFlagsWithValue(removeFlag(os.Args[1:], "no-window"), "parent-pid", "session-id"), restarter.flags)...,
 	)
 
 	l := logrus.WithFields(logrus.Fields{
@@ -155,6 +155,16 @@ func removeFlagWithValue(argList []string, flag string) []string {
 	}
 
 	return result
+}
+
+// removeFlagWithValue removes flags that require a value from a list of command line parameters.
+// The flags can be of the following form `-flag value`, `--flag value`, `-flag=value` or `--flags=value`.
+func removeFlagsWithValue(argList []string, flags ...string) []string {
+	for _, flag := range flags {
+		argList = removeFlagWithValue(argList, flag)
+	}
+
+	return argList
 }
 
 func removeFlag(argList []string, flag string) []string {

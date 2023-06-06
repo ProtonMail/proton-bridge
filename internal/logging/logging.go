@@ -19,26 +19,21 @@ package logging
 
 import (
 	"context"
-	"fmt"
-	"io"
 	"os"
-	"path/filepath"
 	"regexp"
-	"strconv"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/sirupsen/logrus"
 )
 
 const (
 	// MaxLogSize defines the maximum log size we should permit: 5 MB
 	//
-	// The Zendesk limit for an attachement is 50MB and this is what will
+	// The Zendesk limit for an attachment is 50MB and this is what will
 	// be allowed via the API. However, if that fails for some reason, the
 	// fallback is sending the report via email, which has a limit of 10mb
 	// total or 7MB per file. Since we can produce up to 6 logs, and we
-	// compress all the files (avarage compression - 80%), we need to have
+	// compress all the files (average compression - 80%), we need to have
 	// a limit of 30MB total before compression, hence 5MB per log file.
 	MaxLogSize = 5 * 1024 * 1024
 
@@ -82,7 +77,7 @@ func (cs *coloredStdOutHook) Fire(entry *logrus.Entry) error {
 	return nil
 }
 
-func Init(logsPath, level string) error {
+func Init(logsPath string, sessionID SessionID, appName, level string) error {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableColors:   true,
 		FullTimestamp:   true,
@@ -91,13 +86,7 @@ func Init(logsPath, level string) error {
 
 	logrus.AddHook(newColoredStdOutHook())
 
-	rotator, err := NewRotator(MaxLogSize, func() (io.WriteCloser, error) {
-		if err := clearLogs(logsPath, MaxLogs, MaxLogs); err != nil {
-			return nil, err
-		}
-
-		return os.Create(filepath.Join(logsPath, getLogName(constants.Version, constants.Revision))) //nolint:gosec // G304
-	})
+	rotator, err := NewDefaultRotator(logsPath, sessionID, appName, MaxLogSize)
 	if err != nil {
 		return err
 	}
@@ -137,34 +126,42 @@ func setLevel(level string) error {
 	return nil
 }
 
-func getLogName(version, revision string) string {
-	return fmt.Sprintf("v%v_%v_%v.log", version, revision, time.Now().Unix())
-}
+func getLogTime(filename string) time.Time {
+	re := regexp.MustCompile(`^(?P<sessionID>\d{8}_\d{9})_.*\.log$`)
 
-func getLogTime(name string) int {
-	re := regexp.MustCompile(`^v.*_.*_(?P<timestamp>\d+).log$`)
-
-	match := re.FindStringSubmatch(name)
+	match := re.FindStringSubmatch(filename)
 
 	if len(match) == 0 {
-		logrus.Warn("Could not parse log name: ", name)
-		return 0
+		logrus.WithField("filename", filename).Warn("Could not parse log filename")
+		return time.Time{}
 	}
 
-	timestamp, err := strconv.Atoi(match[re.SubexpIndex("timestamp")])
-	if err != nil {
-		return 0
+	index := re.SubexpIndex("sessionID")
+	if index < 0 {
+		logrus.WithField("filename", filename).Warn("Could not parse log filename")
+		return time.Time{}
 	}
 
-	return timestamp
+	return SessionID(match[index]).toTime()
 }
 
-func MatchLogName(name string) bool {
-	return regexp.MustCompile(`^v.*\.log$`).MatchString(name)
+// MatchBridgeLogName return true iff filename is a bridge log filename.
+func MatchBridgeLogName(filename string) bool {
+	return matchLogName(filename, "bridge")
 }
 
-func MatchGUILogName(name string) bool {
-	return regexp.MustCompile(`^gui_v.*\.log$`).MatchString(name)
+// MatchGUILogName return true iff filename is a bridge-gui log filename.
+func MatchGUILogName(filename string) bool {
+	return matchLogName(filename, "gui")
+}
+
+// MatchLauncherLogName return true iff filename is a launcher log filename.
+func MatchLauncherLogName(filename string) bool {
+	return matchLogName(filename, "launcher")
+}
+
+func matchLogName(logName, appName string) bool {
+	return regexp.MustCompile(`^\d{8}_\d{9}_\d{3}_` + appName + `.*\.log$`).MatchString(logName)
 }
 
 type logKey string
@@ -179,13 +176,4 @@ func WithLogrusField(ctx context.Context, key string, value interface{}) context
 
 	fields[key] = value
 	return context.WithValue(ctx, logrusFields, fields)
-}
-
-func LogFromContext(ctx context.Context) *logrus.Entry {
-	fields, ok := ctx.Value(logrusFields).(logrus.Fields)
-	if !ok || fields == nil {
-		return logrus.WithField("ctx", "empty")
-	}
-
-	return logrus.WithFields(fields)
 }

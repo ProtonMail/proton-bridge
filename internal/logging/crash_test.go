@@ -15,15 +15,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
+package logging
 
-#ifndef BRIDGE_GUI_LOG_UTILS_H
-#define BRIDGE_GUI_LOG_UTILS_H
+import (
+	"testing"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/stretchr/testify/require"
+)
 
-#include <bridgepp/Log/Log.h>
-
-
-bridgepp::Log &initLog(QString const &sessionID); ///< Initialize the application log.
-
-
-#endif //BRIDGE_GUI_LOG_UTILS_H
+func TestMatchStackTraceName(t *testing.T) {
+	filename := getStackTraceName(NewSessionID(), constants.AppName, constants.Version, constants.Tag)
+	require.True(t, len(filename) > 0)
+	require.True(t, MatchStackTraceName(filename))
+	require.False(t, MatchStackTraceName("Invalid.log"))
+}

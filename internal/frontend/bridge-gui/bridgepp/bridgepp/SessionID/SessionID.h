@@ -16,14 +16,17 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_LOG_UTILS_H
-#define BRIDGE_GUI_LOG_UTILS_H
+#ifndef BRIDGE_PP_SESSION_ID_H
+#define BRIDGE_PP_SESSION_ID_H
 
 
-#include <bridgepp/Log/Log.h>
+namespace bridgepp {
 
 
-bridgepp::Log &initLog(QString const &sessionID); ///< Initialize the application log.
+QString newSessionID(); ///< Create a new sessions
+QDateTime sessionIDToDateTime(QString const &sessionID); ///< Parse the date/time from a sessionID.
 
 
-#endif //BRIDGE_GUI_LOG_UTILS_H
+} // namespace
+
+#endif //BRIDGE_PP_SESSION_ID_H

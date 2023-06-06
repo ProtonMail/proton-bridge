@@ -16,14 +16,21 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_LOG_UTILS_H
-#define BRIDGE_GUI_LOG_UTILS_H
+#include "QtCore/qdatetime.h"
+#include <gtest/gtest.h>
+#include <bridgepp/SessionID/SessionID.h>
 
 
-#include <bridgepp/Log/Log.h>
+using namespace bridgepp;
 
 
-bridgepp::Log &initLog(QString const &sessionID); ///< Initialize the application log.
+TEST(SessionID, SessionID) {
+    QString const sessionID = newSessionID();
+    EXPECT_TRUE(sessionID.size() > 0);
 
+    EXPECT_FALSE(sessionIDToDateTime("invalidSessionID").isValid());
 
-#endif //BRIDGE_GUI_LOG_UTILS_H
+    QDateTime const dateTime = sessionIDToDateTime(sessionID);
+    EXPECT_TRUE(dateTime.isValid());
+    EXPECT_TRUE(qAbs(dateTime.secsTo(QDateTime::currentDateTime())) < 5);
+}

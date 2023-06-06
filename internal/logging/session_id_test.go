@@ -13,17 +13,26 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
+package logging
 
-#ifndef BRIDGE_GUI_LOG_UTILS_H
-#define BRIDGE_GUI_LOG_UTILS_H
+import (
+	"testing"
+	"time"
 
+	"github.com/stretchr/testify/require"
+)
 
-#include <bridgepp/Log/Log.h>
+func TestSessionID(t *testing.T) {
+	now := time.Now()
+	sessionID := NewSessionID()
+	sessionTime := sessionID.toTime()
+	require.False(t, sessionTime.IsZero())
+	require.WithinRange(t, sessionTime, now.Add(-1*time.Millisecond), now.Add(1*time.Millisecond))
 
-
-bridgepp::Log &initLog(QString const &sessionID); ///< Initialize the application log.
-
-
-#endif //BRIDGE_GUI_LOG_UTILS_H
+	fromString := NewSessionIDFromString("")
+	require.True(t, len(fromString) > 0)
+	fromString = NewSessionIDFromString(string(sessionID))
+	require.True(t, len(fromString) > 0)
+	require.Equal(t, sessionID, fromString)
+}

@@ -16,29 +16,38 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 
-#ifndef BRIDGE_GUI_COMMAND_LINE_H
-#define BRIDGE_GUI_COMMAND_LINE_H
+#include "SessionID.h"
+#include "QtCore/qdatetime.h"
 
 
-#include <bridgepp/Log/Log.h>
+namespace {
+
+
+QString const dateTimeFormat = "yyyyMMdd_hhmmsszzz"; ///< The format string for date/time used by the sessionID.
+
+
+}
+
+
+namespace bridgepp {
 
 
 //****************************************************************************************************************************************************
-/// \brief A struct containing the parsed command line options
+/// \return a new session ID based on the current local date/time
 //****************************************************************************************************************************************************
-struct CommandLineOptions {
-    QStringList bridgeArgs; ///< The command-line arguments we will pass to bridge when launching it.
-    QStringList bridgeGuiArgs; ///< The command-line arguments we will pass to bridge when launching it.
-    QString launcher; ///< The path to the launcher.
-    bool attach { false }; ///< Is the application running in attached mode?
-    bridgepp::Log::Level logLevel { bridgepp::Log::defaultLevel }; ///< The log level
-    bool noWindow { false }; ///< Should the application start without displaying the main window?
-    bool useSoftwareRenderer { false }; ///< Should QML be renderer in software (i.e. without rendering hardware interface).
-    QString sessionID; ///< The sessionID.
-};
+QString newSessionID() {
+    return QDateTime::currentDateTime().toString(dateTimeFormat);
+}
 
 
-CommandLineOptions parseCommandLine(int argc, char *argv[]); ///< Parse the command-line arguments
+//****************************************************************************************************************************************************
+/// \param[in] sessionID The sessionID.
+/// \return The date/time corresponding to the sessionID.
+/// \return An invalid date/time if an error occurs.
+//****************************************************************************************************************************************************
+QDateTime sessionIDToDateTime(QString const &sessionID) {
+    return QDateTime::fromString(sessionID, dateTimeFormat);
+}
 
 
-#endif //BRIDGE_GUI_COMMAND_LINE_H
+} // namespace
