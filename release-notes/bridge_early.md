@@ -14,6 +14,7 @@
 - Fixed the case when an email could not be sent if a PDF was attached to the email
 - Added varioius bugfixes and security improvemenets
 - Reduced the Bridge cache size by cleaning up temporary emails that were saved during failed initial synchronizations
+- Further reduced the chance of desyncronization between the email client and Bridge
 
 
 ## v3.2.0
