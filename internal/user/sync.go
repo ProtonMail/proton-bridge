@@ -382,6 +382,7 @@ func (user *User) syncMessages(
 			logrus.Debugf("Metadata Request (%v of %v), previous: %v", i, len(metadataChunks), len(downloadReq.ids))
 			metadata, err := client.GetMessageMetadataPage(ctx, 0, len(metadataChunk), proton.MessageFilter{ID: metadataChunk})
 			if err != nil {
+				logrus.WithError(err).Errorf("Failed to download message metadata for chunk %v", i)
 				downloadReq.err = err
 				select {
 				case downloadCh <- downloadReq:
@@ -462,11 +463,13 @@ func (user *User) syncMessages(
 
 				msg, err := client.GetMessage(ctx, id)
 				if err != nil {
+					logrus.WithError(err).WithField("msgID", msg.ID).Error("Failed to download message")
 					return proton.FullMessage{}, err
 				}
 
 				attachments, err := attachmentDownloader.getAttachments(ctx, msg.Attachments)
 				if err != nil {
+					logrus.WithError(err).WithField("msgID", msg.ID).Error("Failed to download message attachments")
 					return proton.FullMessage{}, err
 				}
 
