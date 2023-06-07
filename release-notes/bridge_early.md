@@ -1,3 +1,21 @@
+## v3.3.0
+- 2023-06-08
+
+### New
+- Reduced the number of occasions when email clients ask for Bridge credentials
+- Added new Bridge notifications to help users to configure and troubleshoot their email clients
+- To avoid the need to reconfigure email clients, Bridge remembers the old account password when an account is re-added (removed and added again)
+- Further improved logging to support troubleshooting
+- 2 factor authentication (2FA) is submitted automatically after entering a code
+- Removed the requirement of having an administrator account on macOS to install Bridge
+
+### Fixed
+- Fixed numerous crashes
+- Fixed the case when an email could not be sent if a PDF was attached to the email
+- Added varioius bugfixes and security improvemenets
+- Reduced the Bridge cache size by cleaning up temporary emails that were saved during failed initial synchronizations
+
+
 ## v3.2.0
 - 2023-05-15
 
