@@ -34,6 +34,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2540: Notify user of wrong IMAP password.
 
 ### Fixed
+* GODT-2683: Reduce message checks when appending into Drafts.
 * Fix linter errors.
 * GODT-2669: Display sentry ID in bridge init log.
 * GODT-2672: Fix context cancelled when IMAP/SMTP parameters change is in progress.
