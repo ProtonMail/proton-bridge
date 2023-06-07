@@ -27,31 +27,29 @@ import (
 )
 
 type Rotator struct {
-	getFile   FileProvider
-	wc        io.WriteCloser
-	size      int
-	maxSize   int
-	nextIndex int
+	getFile     FileProvider
+	prune       Pruner
+	wc          io.WriteCloser
+	size        int64
+	maxFileSize int64
+	nextIndex   int
 }
 
 type FileProvider func(index int) (io.WriteCloser, error)
 
-func defaultFileProvider(logsPath string, sessionID SessionID, appName string) FileProvider {
+func defaultFileProvider(logsPath string, sessionID SessionID, appName AppName) FileProvider {
 	return func(index int) (io.WriteCloser, error) {
-		if err := clearLogs(logsPath, MaxLogs, MaxLogs); err != nil {
-			return nil, err
-		}
-
 		return os.Create(filepath.Join(logsPath, //nolint:gosec // G304
-			fmt.Sprintf("%v_%03d_%v_v%v_%v.log", sessionID, index, appName, constants.Version, constants.Tag),
+			fmt.Sprintf("%v_%v_%03d_v%v_%v.log", sessionID, appName, index, constants.Version, constants.Tag),
 		))
 	}
 }
 
-func NewRotator(maxSize int, getFile FileProvider) (*Rotator, error) {
+func NewRotator(maxFileSize int64, getFile FileProvider, prune Pruner) (*Rotator, error) {
 	r := &Rotator{
-		getFile: getFile,
-		maxSize: maxSize,
+		getFile:     getFile,
+		prune:       prune,
+		maxFileSize: maxFileSize,
 	}
 
 	if err := r.rotate(); err != nil {
@@ -61,12 +59,19 @@ func NewRotator(maxSize int, getFile FileProvider) (*Rotator, error) {
 	return r, nil
 }
 
-func NewDefaultRotator(logsPath string, sessionID SessionID, appName string, maxSize int) (*Rotator, error) {
-	return NewRotator(maxSize, defaultFileProvider(logsPath, sessionID, appName))
+func NewDefaultRotator(logsPath string, sessionID SessionID, appName AppName, maxLogFileSize, pruningSize int64) (*Rotator, error) {
+	var pruner Pruner
+	if pruningSize < 0 {
+		pruner = nullPruner
+	} else {
+		pruner = defaultPruner(logsPath, sessionID, pruningSize)
+	}
+
+	return NewRotator(maxLogFileSize, defaultFileProvider(logsPath, sessionID, appName), pruner)
 }
 
 func (r *Rotator) Write(p []byte) (int, error) {
-	if r.size+len(p) > r.maxSize {
+	if r.size+int64(len(p)) > r.maxFileSize {
 		if err := r.rotate(); err != nil {
 			return 0, err
 		}
@@ -77,14 +82,17 @@ func (r *Rotator) Write(p []byte) (int, error) {
 		return n, err
 	}
 
-	r.size += n
-
+	r.size += int64(n)
 	return n, nil
 }
 
 func (r *Rotator) rotate() error {
 	if r.wc != nil {
 		_ = r.wc.Close()
+	}
+
+	if _, err := r.prune(); err != nil {
+		return err
 	}
 
 	wc, err := r.getFile(r.nextIndex)

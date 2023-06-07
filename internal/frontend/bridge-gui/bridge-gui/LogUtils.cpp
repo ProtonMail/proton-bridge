@@ -40,7 +40,7 @@ Log &initLog(QString const &sessionID) {
 
     // create new GUI log file
     QString error;
-    if (!log.startWritingToFile(logsDir.absoluteFilePath(QString("%1_000_gui_v%2_%3.log").arg(sessionID, PROJECT_VER, PROJECT_TAG)), &error)) {
+    if (!log.startWritingToFile(logsDir.absoluteFilePath(QString("%1_gui_000_v%2_%3.log").arg(sessionID, PROJECT_VER, PROJECT_TAG)), &error)) {
         log.error(error);
     }
 

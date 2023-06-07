@@ -81,7 +81,14 @@ func main() { //nolint:funlen
 	sessionID := logging.NewSessionID()
 	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath, sessionID, launcherName))
 
-	if err := logging.Init(logsPath, sessionID, launcherName, os.Getenv("VERBOSITY")); err != nil {
+	if err := logging.Init(
+		logsPath,
+		sessionID,
+		logging.LauncherShortAppName,
+		logging.DefaultMaxLogFileSize,
+		logging.NoPruning,
+		os.Getenv("VERBOSITY"),
+	); err != nil {
 		l.WithError(err).Fatal("Failed to setup logging")
 	}
 

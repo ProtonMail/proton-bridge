@@ -29,7 +29,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func DumpStackTrace(logsPath string, sessionID SessionID, appName string) crash.RecoveryAction {
+func DumpStackTrace(logsPath string, sessionID SessionID, appName AppName) crash.RecoveryAction {
 	return func(r interface{}) error {
 		file := filepath.Join(logsPath, getStackTraceName(sessionID, appName, constants.Version, constants.Tag))
 
@@ -52,10 +52,10 @@ func DumpStackTrace(logsPath string, sessionID SessionID, appName string) crash.
 	}
 }
 
-func getStackTraceName(sessionID SessionID, appName, version, tag string) string {
-	return fmt.Sprintf("%v_000_%v_v%v_%v_crash.log", sessionID, appName, version, tag)
+func getStackTraceName(sessionID SessionID, appName AppName, version, tag string) string {
+	return fmt.Sprintf("%v_%v_000_v%v_%v_crash.log", sessionID, appName, version, tag)
 }
 
 func MatchStackTraceName(name string) bool {
-	return regexp.MustCompile(`^\d{8}_\d{9}_000_.*_crash\.log$`).MatchString(name)
+	return regexp.MustCompile(`^\d{8}_\d{9}_.*_000_.*_crash\.log$`).MatchString(name)
 }

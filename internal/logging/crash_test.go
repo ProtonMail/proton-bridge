@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMatchStackTraceName(t *testing.T) {
+func TestLogging_MatchStackTraceName(t *testing.T) {
 	filename := getStackTraceName(NewSessionID(), constants.AppName, constants.Version, constants.Tag)
 	require.True(t, len(filename) > 0)
 	require.True(t, MatchStackTraceName(filename))

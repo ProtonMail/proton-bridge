@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSessionID(t *testing.T) {
+func TestLogging_SessionID(t *testing.T) {
 	now := time.Now()
 	sessionID := NewSessionID()
 	sessionTime := sessionID.toTime()

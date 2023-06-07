@@ -19,6 +19,7 @@ package logging
 
 import (
 	"context"
+	"errors"
 	"os"
 	"regexp"
 	"time"
@@ -27,7 +28,7 @@ import (
 )
 
 const (
-	// MaxLogSize defines the maximum log size we should permit: 5 MB
+	// DefaultMaxLogFileSize defines the maximum log size we should permit: 5 MB
 	//
 	// The Zendesk limit for an attachment is 50MB and this is what will
 	// be allowed via the API. However, if that fails for some reason, the
@@ -35,10 +36,15 @@ const (
 	// total or 7MB per file. Since we can produce up to 6 logs, and we
 	// compress all the files (average compression - 80%), we need to have
 	// a limit of 30MB total before compression, hence 5MB per log file.
-	MaxLogSize = 5 * 1024 * 1024
+	DefaultMaxLogFileSize = 5 * 1024 * 1024
+)
 
-	// MaxLogs defines how many log files should be kept.
-	MaxLogs = 10
+type AppName string
+
+const (
+	BridgeShortAppName   AppName = "bri"
+	LauncherShortAppName AppName = "lau"
+	GUIShortAppName      AppName = "gui"
 )
 
 type coloredStdOutHook struct {
@@ -77,7 +83,9 @@ func (cs *coloredStdOutHook) Fire(entry *logrus.Entry) error {
 	return nil
 }
 
-func Init(logsPath string, sessionID SessionID, appName, level string) error {
+// Init Initialize logging. Log files are rotated when their size exceeds rotationSize. if pruningSize >= 0, pruning occurs using
+// the default pruning algorithm.
+func Init(logsPath string, sessionID SessionID, appName AppName, rotationSize, pruningSize int64, level string) error {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableColors:   true,
 		FullTimestamp:   true,
@@ -86,7 +94,7 @@ func Init(logsPath string, sessionID SessionID, appName, level string) error {
 
 	logrus.AddHook(newColoredStdOutHook())
 
-	rotator, err := NewDefaultRotator(logsPath, sessionID, appName, MaxLogSize)
+	rotator, err := NewDefaultRotator(logsPath, sessionID, appName, rotationSize, pruningSize)
 	if err != nil {
 		return err
 	}
@@ -126,42 +134,51 @@ func setLevel(level string) error {
 	return nil
 }
 
-func getLogTime(filename string) time.Time {
+func getLogSessionID(filename string) (SessionID, error) {
 	re := regexp.MustCompile(`^(?P<sessionID>\d{8}_\d{9})_.*\.log$`)
 
 	match := re.FindStringSubmatch(filename)
 
+	errInvalidFileName := errors.New("log file name is invalid")
 	if len(match) == 0 {
 		logrus.WithField("filename", filename).Warn("Could not parse log filename")
-		return time.Time{}
+		return "", errInvalidFileName
 	}
 
 	index := re.SubexpIndex("sessionID")
 	if index < 0 {
 		logrus.WithField("filename", filename).Warn("Could not parse log filename")
-		return time.Time{}
+		return "", errInvalidFileName
 	}
 
-	return SessionID(match[index]).toTime()
+	return SessionID(match[index]), nil
+}
+
+func getLogTime(filename string) time.Time {
+	sessionID, err := getLogSessionID(filename)
+	if err != nil {
+		return time.Time{}
+	}
+	return sessionID.toTime()
 }
 
 // MatchBridgeLogName return true iff filename is a bridge log filename.
 func MatchBridgeLogName(filename string) bool {
-	return matchLogName(filename, "bridge")
+	return matchLogName(filename, BridgeShortAppName)
 }
 
 // MatchGUILogName return true iff filename is a bridge-gui log filename.
 func MatchGUILogName(filename string) bool {
-	return matchLogName(filename, "gui")
+	return matchLogName(filename, GUIShortAppName)
 }
 
 // MatchLauncherLogName return true iff filename is a launcher log filename.
 func MatchLauncherLogName(filename string) bool {
-	return matchLogName(filename, "launcher")
+	return matchLogName(filename, LauncherShortAppName)
 }
 
-func matchLogName(logName, appName string) bool {
-	return regexp.MustCompile(`^\d{8}_\d{9}_\d{3}_` + appName + `.*\.log$`).MatchString(logName)
+func matchLogName(logName string, appName AppName) bool {
+	return regexp.MustCompile(`^\d{8}_\d{9}_\Q` + string(appName) + `\E_\d{3}_.*\.log$`).MatchString(logName)
 }
 
 type logKey string

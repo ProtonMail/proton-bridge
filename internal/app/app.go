@@ -318,7 +318,14 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 
 	// Initialize logging.
 	sessionID := logging.NewSessionIDFromString(c.String(flagSessionID))
-	if err := logging.Init(logsPath, sessionID, appShortName, c.String(flagLogLevel)); err != nil {
+	if err := logging.Init(
+		logsPath,
+		sessionID,
+		logging.BridgeShortAppName,
+		logging.DefaultMaxLogFileSize,
+		logging.DefaultPruningSize,
+		c.String(flagLogLevel),
+	); err != nil {
 		return fmt.Errorf("could not initialize logging: %w", err)
 	}
 
