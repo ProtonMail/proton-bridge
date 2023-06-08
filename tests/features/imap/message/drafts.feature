@@ -59,3 +59,40 @@ Feature: IMAP Draft messages
       | This is a dra |
     And IMAP client "1" eventually sees 0 messages in "Drafts"
 
+  Scenario: Draft saved without "Date" header
+    When IMAP client "1" selects "Drafts"
+    And IMAP client "1" marks message 1 as deleted
+    And IMAP client "1" expunges
+    And it succeeds
+    Then IMAP client "1" appends the following message to "Drafts":
+      """
+      From: foo@bar.com
+      Subject: Draft without Date
+      Content-Type: text/plain
+      To: someone@example.com
+
+      This is a Draft without Date in header
+      """
+    And it succeeds
+    And IMAP client "1" eventually sees the following messages in "Drafts":
+      | to                  | subject            | body                                   |
+      | someone@example.com | Draft without Date | This is a Draft without Date in header |
+
+  Scenario: Draft saved without "From" header
+    When IMAP client "1" selects "Drafts"
+    And IMAP client "1" marks message 1 as deleted
+    And IMAP client "1" expunges
+    And it succeeds
+    Then IMAP client "1" appends the following message to "Drafts":
+      """
+      Date: 01 Jan 1980 00:00:00 +0000
+      Subject: Draft without From
+      Content-Type: text/plain
+      To: someone@example.com
+
+      This is a Draft without From in header
+      """
+    And it succeeds
+    And IMAP client "1" eventually sees the following messages in "Drafts":
+      | to                  | subject            | body                                   |
+      | someone@example.com | Draft without From | This is a Draft without From in header |
