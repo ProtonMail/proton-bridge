@@ -40,12 +40,12 @@ func clearLogs(logDir string, maxLogs int, maxCrashes int) error {
 
 	// Remove old logs.
 	removeOldLogs(logDir, xslices.Filter(names, func(name string) bool {
-		return MatchLogName(name) && !MatchStackTraceName(name)
+		return MatchBridgeLogName(name) && !MatchStackTraceName(name)
 	}), maxLogs)
 
 	// Remove old stack traces.
 	removeOldLogs(logDir, xslices.Filter(names, func(name string) bool {
-		return MatchLogName(name) && MatchStackTraceName(name)
+		return MatchBridgeLogName(name) && MatchStackTraceName(name)
 	}), maxCrashes)
 
 	return nil
@@ -58,7 +58,7 @@ func removeOldLogs(dir string, names []string, max int) {
 
 	// Sort by timestamp, oldest first.
 	slices.SortFunc(names, func(a, b string) bool {
-		return getLogTime(a) < getLogTime(b)
+		return getLogTime(a).Before(getLogTime(b))
 	})
 
 	for _, path := range xslices.Map(names[:len(names)-max], func(name string) string { return filepath.Join(dir, name) }) {

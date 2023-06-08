@@ -30,26 +30,9 @@ stages:
   - test
   - build
 
-.rules-branch-and-MR-always:
-  rules:
-    - if: $CI_COMMIT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: always
-      allow_failure: false
-    - when: never
-
 .rules-branch-and-MR-manual:
   rules:
     - if: $CI_COMMIT_BRANCH ||  $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: manual
-      allow_failure: true
-    - when: never
-
-.rules-branch-manual-MR-always:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: always
-      allow_failure: false
-    - if: $CI_COMMIT_BRANCH
       when: manual
       allow_failure: true
     - when: never
@@ -64,172 +47,8 @@ stages:
       allow_failure: true
     - when: never
 
-.after-script-code-coverage:
-  after_script:
-    - go get github.com/boumenot/gocover-cobertura
-    - go run github.com/boumenot/gocover-cobertura < /tmp/coverage.out > coverage.xml
-    - "go tool cover -func=/tmp/coverage.out | grep total:"
-  coverage: '/total:.*\(statements\).*\d+\.\d+%/'
-  artifacts:
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
-
-# Stage: TEST
-
-lint:
-  stage: test
-  extends:
-    - .rules-branch-and-MR-always
-  script:
-    - make lint
-  tags:
-    - medium
-
-
-.test-base:
-  stage: test
-  script:
-    - make test
-
-test-linux:
-  extends:
-    - .test-base
-    - .rules-branch-manual-MR-and-devel-always
-    - .after-script-code-coverage
-  tags:
-    - large
-
-test-linux-race:
-  extends:
-    - test-linux
-    - .rules-branch-and-MR-manual
-  script:
-    - make test-race
-
-test-integration:
-  extends:
-    - test-linux
-  script:
-    - make test-integration
-  tags:
-    - large
-
-test-integration-race:
-  extends:
-    - test-integration
-    - .rules-branch-and-MR-manual
-  script:
-    - make test-integration-race
-
-
-.windows-base:
-  before_script:
-    - export GOROOT=/c/Go1.20
-    - export PATH=$GOROOT/bin:$PATH
-    - export GOARCH=amd64
-    - export GOPATH=~/go1.20
-    - export GO111MODULE=on
-    - export PATH=$GOPATH/bin:$PATH
-    - export MSYSTEM=
-  tags:
-    - windows-bridge
-
-test-windows:
-  extends:
-    - .rules-branch-manual-MR-always
-    - .windows-base
-  stage: test
-  script:
-    - make test
-
-# Stage: BUILD
-
-.build-base:
-  stage: build
-  needs: ["lint"]
-  rules:
-    # GODT-1833: use `=~ /qa/` after mac and windows runners are fixed
-    - if: $CI_JOB_NAME =~ /build-linux-qa/  && $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: always
-      allow_failure: false
-    - if: $CI_COMMIT_BRANCH || $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: manual
-      allow_failure: true
-    - when: never
-  script:
-    - make build
-    - git diff && git diff-index --quiet HEAD
-    - make vault-editor
-  artifacts:
-    expire_in: 1 day
-    when: always
-    name: "$CI_JOB_NAME-$CI_COMMIT_SHORT_SHA"
-    paths:
-      - bridge_*.tgz
-      - vault-editor
-
-
-.linux-build-setup:
-  image: gitlab.protontech.ch:4567/go/bridge-internal:build-go1.20-qt6.3.2
-  variables:
-    VCPKG_DEFAULT_BINARY_CACHE: ${CI_PROJECT_DIR}/.cache
-  cache:
-    key: linux-vcpkg
-    paths:
-      - .cache
-    when: 'always'
-  before_script:
-    - mkdir -p .cache/bin
-    - export PATH=$(pwd)/.cache/bin:$PATH
-    - export GOPATH="$CI_PROJECT_DIR/.cache"
-    - export PATH=$PATH:$QT6DIR/bin
-    - $(git config --global -l | grep -o 'url.*gitlab.protontech.ch.*insteadof' | xargs -L 1 git config --global --unset &> /dev/null) || echo "nothing to remove"
-    - git config --global url.https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}.insteadOf https://${CI_SERVER_HOST}
-  tags:
-    - large
-
-build-linux:
-  extends:
-    - .build-base
-    - .linux-build-setup
-
-build-linux-qa:
-  extends:
-    - build-linux
-  variables:
-    BUILD_TAGS: "build_qa"
-
-
-.darwin-build-setup:
-  before_script:
-    - export PATH=/usr/local/bin:$PATH
-    - export PATH=/usr/local/opt/git/bin:$PATH
-    - export PATH=/usr/local/opt/make/libexec/gnubin:$PATH
-    - export PATH=/usr/local/opt/go@1.13/bin:$PATH
-    - export PATH=/usr/local/opt/gnu-sed/libexec/gnubin:$PATH
-    - export GOPATH=~/go1.20
-    - export PATH=$GOPATH/bin:$PATH
-    - export CGO_CPPFLAGS='-Wno-error -Wno-nullability-completeness -Wno-expansion-to-defined -Wno-builtin-requires-header'
-    - $(git config --global -l | grep -o 'url.*gitlab.protontech.ch.*insteadof' | xargs -L 1 git config --global --unset &> /dev/null) || echo "nothing to remove"
-    - git config --global url.https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}.insteadOf https://${CI_SERVER_HOST}
-  cache: {}
-  tags:
-    - macOS
-
-build-darwin:
-  extends:
-    - .build-base
-    - .darwin-build-setup
-
-build-darwin-qa:
-  extends:
-    - build-darwin
-  variables:
-    BUILD_TAGS: "build_qa"
-
-.windows-build-setup:
+# ENV
+.env-windows:
   before_script:
     - export GOROOT=/c/Go1.20/
     - export PATH=$GOROOT/bin:$PATH
@@ -249,10 +68,169 @@ build-darwin-qa:
   tags:
     - windows-bridge
 
+.env-darwin:
+  before_script:
+    - export PATH=/usr/local/bin:$PATH
+    - export PATH=/usr/local/opt/git/bin:$PATH
+    - export PATH=/usr/local/opt/make/libexec/gnubin:$PATH
+    - export PATH=/usr/local/opt/gnu-sed/libexec/gnubin:$PATH
+    - export GOROOT=~/local/opt/go@1.20
+    - export PATH="${GOROOT}/bin:$PATH"
+    - export GOPATH=~/go1.20
+    - export PATH="${GOPATH}/bin:$PATH"
+    - export QT6DIR=/opt/Qt/6.3.2/macos
+    - export PATH="${QT6DIR}/bin:$PATH"
+    - uname -a
+  cache: {}
+  tags:
+    - macos-m1-bridge
+
+.env-linux-build:
+  image: gitlab.protontech.ch:4567/go/bridge-internal:build-go1.20-qt6.3.2
+  variables:
+    VCPKG_DEFAULT_BINARY_CACHE: ${CI_PROJECT_DIR}/.cache
+  cache:
+    key: linux-vcpkg
+    paths:
+      - .cache
+    when: 'always'
+  before_script:
+    - mkdir -p .cache/bin
+    - export PATH=$(pwd)/.cache/bin:$PATH
+    - export GOPATH="$CI_PROJECT_DIR/.cache"
+    - export PATH=$PATH:$QT6DIR/bin
+    - $(git config --global -l | grep -o 'url.*gitlab.protontech.ch.*insteadof' | xargs -L 1 git config --global --unset &> /dev/null) || echo "nothing to remove"
+    - git config --global url.https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}.insteadOf https://${CI_SERVER_HOST}
+  tags:
+    - large
+
+# Stage: TEST
+
+lint:
+  stage: test
+  extends:
+    - .rules-branch-manual-MR-and-devel-always
+  script:
+    - make lint
+  tags:
+    - medium
+
+.script-test:
+  stage: test
+  extends:
+    - .rules-branch-manual-MR-and-devel-always
+  script:
+    - make test
+  artifacts:
+    paths:
+      - coverage/**
+
+test-linux:
+  extends:
+    - .script-test
+  tags:
+    - large
+
+test-linux-race:
+  extends:
+    - test-linux
+    - .rules-branch-and-MR-manual
+  script:
+    - make test-race
+
+test-integration:
+  extends:
+    - test-linux
+  script:
+    - make test-integration
+
+test-integration-race:
+  extends:
+    - test-integration
+    - .rules-branch-and-MR-manual
+  script:
+    - make test-integration-race
+
+test-windows:
+  extends:
+    - .env-windows
+    - .script-test
+
+test-darwin:
+  extends:
+    - .env-darwin
+    - .script-test
+
+test-coverage:
+  stage: test
+  extends:
+    - .rules-branch-manual-MR-and-devel-always
+  script:
+    - ./utils/coverage.sh
+  coverage: '/total:.*\(statements\).*\d+\.\d+%/'
+  needs:
+    - test-linux
+    - test-windows
+    - test-darwin
+    - test-integration
+  tags:
+    - small
+  artifacts:
+    paths:
+      - coverage*
+      - coverage/**
+    when: 'always'
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+# Stage: BUILD
+
+.script-build:
+  stage: build
+  needs: ["lint"]
+  extends:
+    - .rules-branch-and-MR-manual
+  script:
+    - make build
+    - git diff && git diff-index --quiet HEAD
+    - make vault-editor
+  artifacts:
+    expire_in: 1 day
+    when: always
+    name: "$CI_JOB_NAME-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - bridge_*.tgz
+      - vault-editor
+
+build-linux:
+  extends:
+    - .script-build
+    - .env-linux-build
+
+build-linux-qa:
+  extends:
+    - build-linux
+    - .rules-branch-manual-MR-and-devel-always
+  variables:
+    BUILD_TAGS: "build_qa"
+
+build-darwin:
+  extends:
+    - .script-build
+    - .env-darwin
+
+build-darwin-qa:
+  extends:
+    - build-darwin
+  variables:
+    BUILD_TAGS: "build_qa"
+
 build-windows:
   extends:
-    - .build-base
-    - .windows-build-setup
+    - .script-build
+    - .env-windows
 
 build-windows-qa:
   extends:

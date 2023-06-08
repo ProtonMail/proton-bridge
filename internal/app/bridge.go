@@ -44,7 +44,7 @@ import (
 // deleteOldGoIMAPFiles Set with `-ldflags -X app.deleteOldGoIMAPFiles=true` to enable cleanup of old imap cache data.
 var deleteOldGoIMAPFiles bool //nolint:gochecknoglobals
 
-// withBridge creates creates and tears down the bridge.
+// withBridge creates and tears down the bridge.
 func withBridge(
 	c *cli.Context,
 	exe string,

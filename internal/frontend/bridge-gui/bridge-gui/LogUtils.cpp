@@ -19,7 +19,6 @@
 #include "LogUtils.h"
 #include "BuildConfig.h"
 #include <bridgepp/Log/LogUtils.h>
-#include <bridgepp/BridgeUtils.h>
 
 
 using namespace bridgepp;
@@ -28,7 +27,7 @@ using namespace bridgepp;
 //****************************************************************************************************************************************************
 /// \return A reference to the log.
 //****************************************************************************************************************************************************
-Log &initLog() {
+Log &initLog(QString const &sessionID) {
     Log &log = app().log();
     log.registerAsQtMessageHandler();
     log.setEchoInConsole(true);
@@ -41,7 +40,7 @@ Log &initLog() {
 
     // create new GUI log file
     QString error;
-    if (!log.startWritingToFile(logsDir.absoluteFilePath(QString("gui_v%1_%2.log").arg(PROJECT_VER).arg(QDateTime::currentSecsSinceEpoch())), &error)) {
+    if (!log.startWritingToFile(logsDir.absoluteFilePath(QString("%1_000_gui_v%2_%3.log").arg(sessionID, PROJECT_VER, PROJECT_TAG)), &error)) {
         log.error(error);
     }
 

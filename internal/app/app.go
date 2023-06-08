@@ -76,10 +76,12 @@ const (
 	flagNoWindow         = "no-window"
 	flagParentPID        = "parent-pid"
 	flagSoftwareRenderer = "software-renderer"
+	flagSessionID        = "session-id"
 )
 
 const (
-	appUsage = "Proton Mail IMAP and SMTP Bridge"
+	appUsage     = "Proton Mail IMAP and SMTP Bridge"
+	appShortName = "bridge"
 )
 
 func New() *cli.App {
@@ -149,6 +151,10 @@ func New() *cli.App {
 			Usage:  "GUI is using software renderer",
 			Hidden: true,
 			Value:  false,
+		},
+		&cli.StringFlag{
+			Name:   flagSessionID,
+			Hidden: true,
 		},
 	}
 
@@ -311,12 +317,13 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 	logrus.WithField("path", logsPath).Debug("Received logs path")
 
 	// Initialize logging.
-	if err := logging.Init(logsPath, c.String(flagLogLevel)); err != nil {
+	sessionID := logging.NewSessionIDFromString(c.String(flagSessionID))
+	if err := logging.Init(logsPath, sessionID, appShortName, c.String(flagLogLevel)); err != nil {
 		return fmt.Errorf("could not initialize logging: %w", err)
 	}
 
 	// Ensure we dump a stack trace if we crash.
-	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath))
+	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath, sessionID, appShortName))
 
 	logrus.
 		WithField("appName", constants.FullAppName).

@@ -286,15 +286,14 @@ int main(int argc, char *argv[]) {
 
         initQtApplication();
 
-        Log &log = initLog();
+        CommandLineOptions const cliOptions = parseCommandLine(argc, argv);
+        Log &log = initLog(cliOptions.sessionID);
 
         QLockFile lock(bridgepp::userCacheDir() + "/" + bridgeGUILock);
         if (!checkSingleInstance(lock)) {
             focusOtherInstance();
             return EXIT_FAILURE;
         }
-
-        CommandLineOptions const cliOptions = parseCommandLine(argc, argv);
 
 #ifdef Q_OS_MACOS
         registerSecondInstanceHandler();
