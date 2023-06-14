@@ -37,7 +37,7 @@ class Exception;
 /// \brief App controller class.
 //****************************************************************************************************************************************************
 class AppController : public QObject {
-Q_OBJECT
+    Q_OBJECT
     friend AppController &app();
 
 public: // member functions.
@@ -52,10 +52,12 @@ public: // member functions.
     std::unique_ptr<bridgepp::Overseer> &bridgeOverseer() { return bridgeOverseer_; }; ///< Returns a reference the bridge overseer
     bridgepp::ProcessMonitor *bridgeMonitor() const; ///< Return the bridge worker.
     Settings &settings();; ///< Return the application settings.
-    void setLauncherArgs(const QString &launcher, const QStringList &args);
+    void setLauncherArgs(const QString &launcher, const QStringList &args); ///< Set the launcher arguments.
+    void setSessionID(QString const &sessionID); ///< Set the sessionID.
+    QString sessionID(); ///< Get the sessionID.
 
 public slots:
-    void onFatalError(bridgepp::Exception const& e); ///< Handle fatal errors.
+    void onFatalError(bridgepp::Exception const &e); ///< Handle fatal errors.
 
 private: // member functions
     AppController(); ///< Default constructor.
@@ -67,8 +69,9 @@ private: // data members
     std::unique_ptr<bridgepp::Log> log_; ///< The log.
     std::unique_ptr<bridgepp::Overseer> bridgeOverseer_; ///< The overseer for the bridge monitor worker.
     std::unique_ptr<Settings> settings_; ///< The application settings.
-    QString launcher_;
-    QStringList launcherArgs_;
+    QString launcher_; ///< The launcher.
+    QStringList launcherArgs_; ///< The launcher arguments.
+    QString sessionID_; ///<  The sessionID.
 };
 
 

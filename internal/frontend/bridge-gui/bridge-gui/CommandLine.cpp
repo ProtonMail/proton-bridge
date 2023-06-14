@@ -143,12 +143,14 @@ CommandLineOptions parseCommandLine(int argc, char *argv[]) {
 
     options.logLevel = parseLogLevel(argc, argv);
 
-    options.sessionID = parseGoCLIStringArgument(argc, argv, { "session-id" });
-    if (options.sessionID.isEmpty()) {
-        options.sessionID = newSessionID();
+    QString sessionID = parseGoCLIStringArgument(argc, argv, { "session-id" });
+    if (sessionID.isEmpty()) {
+        // The session ID was not passed to us on the command-line -> create one and add to the command-line for bridge
+        sessionID = newSessionID();
         options.bridgeArgs.append("--session-id");
-        options.bridgeArgs.append(options.sessionID);
+        options.bridgeArgs.append(sessionID);
     }
+    app().setSessionID(sessionID);
 
     return options;
 }

@@ -57,11 +57,13 @@ void GRPCClient::removeServiceConfigFile(QString const &configDir) {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] sessionID The sessionID.
 /// \param[in] timeoutMs The timeout in milliseconds
 /// \param[in] serverProcess An optional server process to monitor. If the process it, no need and retry, as connexion cannot be established. Ignored if null.
 /// \return The service config.
 //****************************************************************************************************************************************************
-GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(QString const &configDir, qint64 timeoutMs, ProcessMonitor *serverProcess) {
+GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(QString const & sessionID, QString const &configDir, qint64 timeoutMs,
+    ProcessMonitor *serverProcess) {
     QString const path = grpcServerConfigPath(configDir);
     QFile file(path);
 
@@ -71,7 +73,7 @@ GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(QString const &configDir, qi
     while (true) {
         if (serverProcess && serverProcess->getStatus().ended) {
             throw Exception("Bridge application exited before providing a gRPC service configuration file.", QString(), __FUNCTION__,
-                tailOfLatestBridgeLog());
+                tailOfLatestBridgeLog(sessionID));
         }
 
         if (file.exists()) {
@@ -85,7 +87,7 @@ GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(QString const &configDir, qi
     }
 
     if (!found) {
-        throw Exception("Server did not provide gRPC service configuration in time.", QString(), __FUNCTION__, tailOfLatestBridgeLog());
+        throw Exception("Server did not provide gRPC service configuration in time.", QString(), __FUNCTION__, tailOfLatestBridgeLog(sessionID));
     }
 
     GRPCConfig sc;
@@ -114,10 +116,12 @@ void GRPCClient::setLog(Log *log) {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] sessionID The sessionID.
+/// \param[in] configDir The configuration directory
 /// \param[in] serverProcess An optional server process to monitor. If the process it, no need and retry, as connexion cannot be established. Ignored if null.
 /// \return true iff the connection was successful.
 //****************************************************************************************************************************************************
-void GRPCClient::connectToServer(QString const &configDir, GRPCConfig const &config, ProcessMonitor *serverProcess) {
+void GRPCClient::connectToServer(QString const &sessionID, QString const &configDir, GRPCConfig const &config, ProcessMonitor *serverProcess) {
     try {
         serverToken_ = config.token.toStdString();
         QString address;
@@ -147,7 +151,7 @@ void GRPCClient::connectToServer(QString const &configDir, GRPCConfig const &con
         while (true) {
             if (serverProcess && serverProcess->getStatus().ended) {
                 throw Exception("Bridge application ended before gRPC connexion could be established.", QString(), __FUNCTION__,
-                    tailOfLatestBridgeLog());
+                    tailOfLatestBridgeLog(sessionID));
             }
 
             this->logInfo(QString("Connection to gRPC server at %1. attempt #%2").arg(address).arg(++i));
@@ -158,7 +162,7 @@ void GRPCClient::connectToServer(QString const &configDir, GRPCConfig const &con
 
             if (QDateTime::currentDateTime() > giveUpTime) {
                 throw Exception("Connection to the gRPC server failed because of a timeout.", QString(), __FUNCTION__,
-                    tailOfLatestBridgeLog());
+                    tailOfLatestBridgeLog(sessionID));
             }
         }
 

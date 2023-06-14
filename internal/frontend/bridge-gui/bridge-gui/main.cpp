@@ -287,7 +287,7 @@ int main(int argc, char *argv[]) {
         initQtApplication();
 
         CommandLineOptions const cliOptions = parseCommandLine(argc, argv);
-        Log &log = initLog(cliOptions.sessionID);
+        Log &log = initLog();
 
         QLockFile lock(bridgepp::userCacheDir() + "/" + bridgeGUILock);
         if (!checkSingleInstance(lock)) {
@@ -306,22 +306,23 @@ int main(int argc, char *argv[]) {
         log.setLevel(cliOptions.logLevel);
         log.info(QString("New Sentry reporter - id: %1.").arg(getProtectedHostname()));
 
-        QString bridgeexec;
+        QString const &sessionID = app().sessionID();
+        QString bridgeExe;
         if (!cliOptions.attach) {
             if (isBridgeRunning()) {
                 throw Exception("An orphan instance of bridge is already running. Please terminate it and relaunch the application.",
-                    QString(), __FUNCTION__, tailOfLatestBridgeLog());
+                    QString(), __FUNCTION__, tailOfLatestBridgeLog(sessionID));
             }
 
             // before launching bridge, we remove any trailing service config file, because we need to make sure we get a newly generated one.
             FocusGRPCClient::removeServiceConfigFile(configDir);
             GRPCClient::removeServiceConfigFile(configDir);
-            bridgeexec = launchBridge(cliOptions.bridgeArgs);
+            bridgeExe = launchBridge(cliOptions.bridgeArgs);
         }
 
         log.info(QString("Retrieving gRPC service configuration from '%1'").arg(QDir::toNativeSeparators(grpcServerConfigPath(configDir))));
-        app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(configDir, cliOptions.attach ? 0 : grpcServiceConfigWaitDelayMs,
-            app().bridgeMonitor()));
+        app().backend().init(GRPCClient::waitAndRetrieveServiceConfig(sessionID, configDir,
+            cliOptions.attach ? 0 : grpcServiceConfigWaitDelayMs, app().bridgeMonitor()));
         if (!cliOptions.attach) {
             GRPCClient::removeServiceConfigFile(configDir);
         }
@@ -379,9 +380,9 @@ int main(int argc, char *argv[]) {
             QStringList args = cliOptions.bridgeGuiArgs;
             args.append(waitFlag);
             args.append(mainexec);
-            if (!bridgeexec.isEmpty()) {
+            if (!bridgeExe.isEmpty()) {
                 args.append(waitFlag);
-                args.append(bridgeexec);
+                args.append(bridgeExe);
             }
             app().setLauncherArgs(cliOptions.launcher, args);
             result = QGuiApplication::exec();

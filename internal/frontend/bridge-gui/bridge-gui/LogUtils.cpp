@@ -27,20 +27,15 @@ using namespace bridgepp;
 //****************************************************************************************************************************************************
 /// \return A reference to the log.
 //****************************************************************************************************************************************************
-Log &initLog(QString const &sessionID) {
+Log &initLog() {
     Log &log = app().log();
     log.registerAsQtMessageHandler();
     log.setEchoInConsole(true);
 
-    // remove old gui log files
-    QDir const logsDir(userLogsDir());
-    for (QFileInfo const fileInfo: logsDir.entryInfoList({ "gui_v*.log" }, QDir::Filter::Files)) { // entryInfolist apparently only support wildcards, not regex.
-        QFile(fileInfo.absoluteFilePath()).remove();
-    }
-
     // create new GUI log file
     QString error;
-    if (!log.startWritingToFile(logsDir.absoluteFilePath(QString("%1_gui_000_v%2_%3.log").arg(sessionID, PROJECT_VER, PROJECT_TAG)), &error)) {
+    if (!log.startWritingToFile(QDir(userLogsDir()).absoluteFilePath(QString("%1_gui_000_v%2_%3.log").arg(app().sessionID(),
+        PROJECT_VER, PROJECT_TAG)), &error)) {
         log.error(error);
     }
 

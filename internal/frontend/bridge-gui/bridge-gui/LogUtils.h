@@ -23,7 +23,7 @@
 #include <bridgepp/Log/Log.h>
 
 
-bridgepp::Log &initLog(QString const &sessionID); ///< Initialize the application log.
+bridgepp::Log &initLog(); ///< Initialize the application log.
 
 
 #endif //BRIDGE_GUI_LOG_UTILS_H

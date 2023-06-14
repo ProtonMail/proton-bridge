@@ -61,7 +61,7 @@ void QMLBackend::init(GRPCConfig const &serviceConfig) {
     app().grpc().setLog(&log);
     this->connectGrpcEvents();
 
-    app().grpc().connectToServer(bridgepp::userConfigDir(), serviceConfig, app().bridgeMonitor());
+    app().grpc().connectToServer(app().sessionID(), bridgepp::userConfigDir(), serviceConfig, app().bridgeMonitor());
     app().log().info("Connected to backend via gRPC service.");
 
     QString bridgeVer;
@@ -640,7 +640,7 @@ void QMLBackend::login(QString const &username, QString const &password) const {
     HANDLE_EXCEPTION(
         if (username.compare("coco@bandicoot", Qt::CaseInsensitive) == 0) {
             throw Exception("User requested bridge-gui to crash by trying to log as coco@bandicoot",
-                "This error exists for test purposes and should be ignored.", __func__, tailOfLatestBridgeLog());
+                "This error exists for test purposes and should be ignored.", __func__, tailOfLatestBridgeLog(app().sessionID()));
         }
         app().grpc().login(username, password);
     )

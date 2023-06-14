@@ -34,7 +34,6 @@ struct CommandLineOptions {
     bridgepp::Log::Level logLevel { bridgepp::Log::defaultLevel }; ///< The log level
     bool noWindow { false }; ///< Should the application start without displaying the main window?
     bool useSoftwareRenderer { false }; ///< Should QML be renderer in software (i.e. without rendering hardware interface).
-    QString sessionID; ///< The sessionID.
 };
 
 

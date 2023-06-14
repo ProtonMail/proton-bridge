@@ -24,7 +24,7 @@ namespace bridgepp {
 
 
 QString userLogsDir(); ///< Return the path of the user logs dir.
-QByteArray tailOfLatestBridgeLog(); ///< Return the last bytes of the last bridge log.
+QByteArray tailOfLatestBridgeLog(QString const &sessionID); ///< Return the last bytes of the last bridge log.
 
 
 } // namespace bridgepp
