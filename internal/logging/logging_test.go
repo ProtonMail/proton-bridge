@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/stretchr/testify/require"
 )
 
@@ -57,4 +58,38 @@ func TestLogging_MatchLogName(t *testing.T) {
 	require.False(t, MatchBridgeLogName(launcherLog))
 	require.False(t, MatchGUILogName(launcherLog))
 	require.True(t, MatchLauncherLogName(launcherLog))
+}
+
+func TestLogging_GetOrderedLogFileListForBugReport(t *testing.T) {
+	dir := t.TempDir()
+
+	filePaths, err := getOrderedLogFileListForBugReport(dir, 3)
+	require.NoError(t, err)
+	require.True(t, len(filePaths) == 0)
+
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "invalid.log"), []byte("proton"), 0660))
+
+	_ = createDummySession(t, dir, 1000, 250, 500, 3000)
+	sessionID1 := createDummySession(t, dir, 1000, 250, 500, 500)
+	sessionID2 := createDummySession(t, dir, 1000, 250, 500, 500)
+	sessionID3 := createDummySession(t, dir, 1000, 250, 500, 4500)
+
+	filePaths, err = getOrderedLogFileListForBugReport(dir, 3)
+	fileSuffix := "_v" + constants.Version + "_" + constants.Tag + ".log"
+	require.NoError(t, err)
+	require.EqualValues(t, []string{
+		filepath.Join(dir, string(sessionID3)+"_bri_004"+fileSuffix),
+		filepath.Join(dir, string(sessionID3)+"_bri_003"+fileSuffix),
+		filepath.Join(dir, string(sessionID3)+"_bri_000"+fileSuffix),
+		filepath.Join(dir, string(sessionID3)+"_gui_000"+fileSuffix),
+		filepath.Join(dir, string(sessionID3)+"_lau_000"+fileSuffix),
+		filepath.Join(dir, string(sessionID3)+"_bri_001"+fileSuffix),
+		filepath.Join(dir, string(sessionID3)+"_bri_002"+fileSuffix),
+		filepath.Join(dir, string(sessionID2)+"_bri_000"+fileSuffix),
+		filepath.Join(dir, string(sessionID2)+"_gui_000"+fileSuffix),
+		filepath.Join(dir, string(sessionID2)+"_lau_000"+fileSuffix),
+		filepath.Join(dir, string(sessionID1)+"_bri_000"+fileSuffix),
+		filepath.Join(dir, string(sessionID1)+"_gui_000"+fileSuffix),
+		filepath.Join(dir, string(sessionID1)+"_lau_000"+fileSuffix),
+	}, filePaths)
 }

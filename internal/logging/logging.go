@@ -18,13 +18,18 @@
 package logging
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"os"
+	"path/filepath"
 	"regexp"
 	"time"
 
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -33,9 +38,7 @@ const (
 	// The Zendesk limit for an attachment is 50MB and this is what will
 	// be allowed via the API. However, if that fails for some reason, the
 	// fallback is sending the report via email, which has a limit of 10mb
-	// total or 7MB per file. Since we can produce up to 6 logs, and we
-	// compress all the files (average compression - 80%), we need to have
-	// a limit of 30MB total before compression, hence 5MB per log file.
+	// total or 7MB per file.
 	DefaultMaxLogFileSize = 5 * 1024 * 1024
 )
 
@@ -102,6 +105,62 @@ func Init(logsPath string, sessionID SessionID, appName AppName, rotationSize, p
 	logrus.SetOutput(rotator)
 
 	return setLevel(level)
+}
+
+// ZipLogsForBugReport returns an archive containing the logs for bug report.
+func ZipLogsForBugReport(logsPath string, maxSessionCount int, maxZipSize int64) (*bytes.Buffer, error) {
+	paths, err := getOrderedLogFileListForBugReport(logsPath, maxSessionCount)
+	if err != nil {
+		return nil, err
+	}
+
+	buffer, _, err := zipFilesWithMaxSize(paths, maxZipSize)
+	return buffer, err
+}
+
+// getOrderedLogFileListForBugReport returns the ordered list of log file paths to include in the user triggered bug reports. Only the last
+// maxSessionCount sessions are included. Priorities:
+// - session in chronologically descending order.
+// - for each session: last 2 bridge logs, first bridge log, gui logs, launcher logs, all other bridge logs.
+func getOrderedLogFileListForBugReport(logsPath string, maxSessionCount int) ([]string, error) {
+	sessionInfoList, err := buildSessionInfoList(logsPath)
+	if err != nil {
+		return nil, err
+	}
+
+	sortedSessions := maps.Values(sessionInfoList)
+	slices.SortFunc(sortedSessions, func(lhs, rhs *sessionInfo) bool { return lhs.sessionID > rhs.sessionID })
+	count := len(sortedSessions)
+	if count > maxSessionCount {
+		sortedSessions = sortedSessions[:maxSessionCount]
+	}
+
+	filePathFunc := func(logFileInfo logFileInfo) string { return filepath.Join(logsPath, logFileInfo.filename) }
+
+	var result []string
+	for _, session := range sortedSessions {
+		bridgeLogCount := len(session.bridgeLogs)
+		if bridgeLogCount > 0 {
+			result = append(result, filepath.Join(logsPath, session.bridgeLogs[bridgeLogCount-1].filename))
+		}
+		if bridgeLogCount > 1 {
+			result = append(result, filepath.Join(logsPath, session.bridgeLogs[bridgeLogCount-2].filename))
+		}
+		if bridgeLogCount > 2 {
+			result = append(result, filepath.Join(logsPath, session.bridgeLogs[0].filename))
+		}
+		if len(session.guiLogs) > 0 {
+			result = append(result, xslices.Map(session.guiLogs, filePathFunc)...)
+		}
+		if len(session.launcherLogs) > 0 {
+			result = append(result, xslices.Map(session.launcherLogs, filePathFunc)...)
+		}
+		if bridgeLogCount > 3 {
+			result = append(result, xslices.Map(session.bridgeLogs[1:bridgeLogCount-2], filePathFunc)...)
+		}
+	}
+
+	return result, nil
 }
 
 // setLevel will change the level of logging and in case of Debug or Trace

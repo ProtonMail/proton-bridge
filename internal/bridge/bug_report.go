@@ -18,13 +18,8 @@
 package bridge
 
 import (
-	"archive/zip"
-	"bytes"
 	"context"
 	"io"
-	"os"
-	"path/filepath"
-	"sort"
 
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
@@ -33,8 +28,8 @@ import (
 )
 
 const (
-	MaxTotalAttachmentSize  = 7 * (1 << 20)
-	MaxCompressedFilesCount = 6
+	DefaultMaxBugReportZipSize         = 7 * 1024 * 1024
+	DefaultMaxSessionCountForBugReport = 10
 )
 
 func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, description, username, email, client string, attachLogs bool) error {
@@ -50,54 +45,25 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, descript
 		}
 	}
 
-	var atts []proton.ReportBugAttachment
+	var attachment []proton.ReportBugAttachment
 
 	if attachLogs {
-		logs, err := getMatchingLogs(bridge.locator, func(filename string) bool {
-			return logging.MatchBridgeLogName(filename) && !logging.MatchStackTraceName(filename)
-		})
+		logsPath, err := bridge.locator.ProvideLogsPath()
 		if err != nil {
 			return err
 		}
 
-		crashes, err := getMatchingLogs(bridge.locator, func(filename string) bool {
-			return logging.MatchBridgeLogName(filename) && logging.MatchStackTraceName(filename)
-		})
+		buffer, err := logging.ZipLogsForBugReport(logsPath, DefaultMaxSessionCountForBugReport, DefaultMaxBugReportZipSize)
 		if err != nil {
 			return err
 		}
 
-		guiLogs, err := getMatchingLogs(bridge.locator, func(filename string) bool {
-			return logging.MatchGUILogName(filename) && !logging.MatchStackTraceName(filename)
-		})
+		body, err := io.ReadAll(buffer)
 		if err != nil {
 			return err
 		}
 
-		var matchFiles []string
-
-		// Include bridge logs, up to a maximum amount.
-		matchFiles = append(matchFiles, logs[max(0, len(logs)-(MaxCompressedFilesCount/2)):]...)
-
-		// Include crash logs, up to a maximum amount.
-		matchFiles = append(matchFiles, crashes[max(0, len(crashes)-(MaxCompressedFilesCount/2)):]...)
-
-		// bridge-gui keeps just one small (~ 1kb) log file; we always include it.
-		if len(guiLogs) > 0 {
-			matchFiles = append(matchFiles, guiLogs[len(guiLogs)-1])
-		}
-
-		archive, err := zipFiles(matchFiles)
-		if err != nil {
-			return err
-		}
-
-		body, err := io.ReadAll(archive)
-		if err != nil {
-			return err
-		}
-
-		atts = append(atts, proton.ReportBugAttachment{
+		attachment = append(attachment, proton.ReportBugAttachment{
 			Name:     "logs.zip",
 			Filename: "logs.zip",
 			MIMEType: "application/zip",
@@ -118,116 +84,5 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, descript
 
 		Username: account,
 		Email:    email,
-	}, atts...)
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-
-	return b
-}
-
-func getMatchingLogs(locator Locator, filenameMatchFunc func(string) bool) (filenames []string, err error) {
-	logsPath, err := locator.ProvideLogsPath()
-	if err != nil {
-		return nil, err
-	}
-
-	files, err := os.ReadDir(logsPath)
-	if err != nil {
-		return nil, err
-	}
-
-	var matchFiles []string
-
-	for _, file := range files {
-		if filenameMatchFunc(file.Name()) {
-			matchFiles = append(matchFiles, filepath.Join(logsPath, file.Name()))
-		}
-	}
-
-	sort.Strings(matchFiles) // Sorted by timestamp: oldest first.
-
-	return matchFiles, nil
-}
-
-type limitedBuffer struct {
-	capacity int
-	buf      *bytes.Buffer
-}
-
-func newLimitedBuffer(capacity int) *limitedBuffer {
-	return &limitedBuffer{
-		capacity: capacity,
-		buf:      bytes.NewBuffer(make([]byte, 0, capacity)),
-	}
-}
-
-func (b *limitedBuffer) Write(p []byte) (n int, err error) {
-	if len(p)+b.buf.Len() > b.capacity {
-		return 0, ErrSizeTooLarge
-	}
-
-	return b.buf.Write(p)
-}
-
-func (b *limitedBuffer) Read(p []byte) (n int, err error) {
-	return b.buf.Read(p)
-}
-
-func zipFiles(filenames []string) (io.Reader, error) {
-	if len(filenames) == 0 {
-		return nil, nil
-	}
-
-	buf := newLimitedBuffer(MaxTotalAttachmentSize)
-
-	w := zip.NewWriter(buf)
-	defer w.Close() //nolint:errcheck
-
-	for _, file := range filenames {
-		if err := addFileToZip(file, w); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := w.Close(); err != nil {
-		return nil, err
-	}
-
-	return buf, nil
-}
-
-func addFileToZip(filename string, writer *zip.Writer) error {
-	fileReader, err := os.Open(filepath.Clean(filename))
-	if err != nil {
-		return err
-	}
-	defer fileReader.Close() //nolint:errcheck,gosec
-
-	fileInfo, err := fileReader.Stat()
-	if err != nil {
-		return err
-	}
-
-	header, err := zip.FileInfoHeader(fileInfo)
-	if err != nil {
-		return err
-	}
-
-	header.Method = zip.Deflate
-	header.Name = filepath.Base(filename)
-
-	fileWriter, err := writer.CreateHeader(header)
-	if err != nil {
-		return err
-	}
-
-	if _, err := io.Copy(fileWriter, fileReader); err != nil {
-		return err
-	}
-
-	return fileReader.Close()
+	}, attachment...)
 }
