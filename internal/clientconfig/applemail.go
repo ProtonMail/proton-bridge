@@ -70,9 +70,11 @@ func prepareMobileConfig(
 	password []byte,
 ) *mobileconfig.Config {
 	return &mobileconfig.Config{
-		DisplayName:  username,
-		EmailAddress: addresses,
-		Identifier:   "protonmail " + username + strconv.FormatInt(time.Now().Unix(), 10),
+		DisplayName:        username,
+		EmailAddress:       addresses,
+		AccountName:        username,
+		AccountDescription: username,
+		Identifier:         "protonmail " + username + strconv.FormatInt(time.Now().Unix(), 10),
 		IMAP: &mobileconfig.IMAP{
 			Hostname: hostname,
 			Port:     imapPort,

@@ -30,6 +30,7 @@ type Config struct {
 	DisplayName        string
 	Identifier         string
 	Organization       string
+	AccountName        string
 	AccountDescription string
 
 	IMAP *IMAP

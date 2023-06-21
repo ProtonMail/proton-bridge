@@ -24,6 +24,10 @@ const mailTemplate = `<?xml version="1.0" encoding="UTF-8"?>
     <key>PayloadContent</key>
     <array>
       <dict>
+        {{- if .AccountName}}
+        <key>EmailAccountName</key>
+        <string>{{.AccountName}}</string>
+        {{- end}}
         {{- if .AccountDescription}}
         <key>EmailAccountDescription</key>
         <string>{{.AccountDescription}}</string>
