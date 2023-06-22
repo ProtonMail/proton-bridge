@@ -46,7 +46,7 @@ public: // static member functions.
     static bool stringToLevel(QString const &str, Log::Level &outLevel); ///< parse a level from a string.
 
 public: // static data member.
-    static const Level defaultLevel { Level::Info }; ///< The default log level (the same as logrus).
+    static const Level defaultLevel { Level::Debug }; ///< The default log level in Bridge.
 
 public: // member functions.
     Log(); ///< Default constructor.
