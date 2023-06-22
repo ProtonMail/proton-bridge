@@ -353,15 +353,17 @@ func (conn *imapConnector) CreateMessage(
 	}
 
 	msg, literal, err := conn.importMessage(ctx, literal, wantLabelIDs, wantFlags, unread)
-	if err != nil && errors.Is(err, proton.ErrImportSizeExceeded) {
-		// Remap error so that Gluon does not put this message in the recovery mailbox.
-		err = fmt.Errorf("%v: %w", err, connector.ErrMessageSizeExceedsLimits)
-	}
+	if err != nil {
+		if errors.Is(err, proton.ErrImportSizeExceeded) {
+			// Remap error so that Gluon does not put this message in the recovery mailbox.
+			err = fmt.Errorf("%v: %w", err, connector.ErrMessageSizeExceedsLimits)
+		}
 
-	if apiErr := new(proton.APIError); errors.As(err, &apiErr) {
-		logrus.WithError(apiErr).WithField("Details", apiErr.DetailsToString()).Error("Failed to import message")
-	} else {
-		logrus.WithError(err).Error("Failed to import message")
+		if apiErr := new(proton.APIError); errors.As(err, &apiErr) {
+			logrus.WithError(apiErr).WithField("Details", apiErr.DetailsToString()).Error("Failed to import message")
+		} else {
+			logrus.WithError(err).Error("Failed to import message")
+		}
 	}
 
 	return msg, literal, err
