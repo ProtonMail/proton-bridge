@@ -47,6 +47,15 @@ QString grpcFocusServerConfigFilename() {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] log The log.
+//****************************************************************************************************************************************************
+FocusGRPCClient::FocusGRPCClient(Log& log)
+    :log_(log) {
+
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The absolute path of the focus service config path.
 //****************************************************************************************************************************************************
 QString FocusGRPCClient::grpcFocusServerConfigPath(QString const &configDir) {
@@ -91,6 +100,7 @@ bool FocusGRPCClient::connectToServer(qint64 timeoutMs, quint16 port, QString *o
             throw Exception("Connexion check with focus service failed.");
         }
 
+        log_.debug(QString("Successfully connected to focus gRPC service."));
         return true;
     }
     catch (Exception const &e) {
@@ -106,6 +116,7 @@ bool FocusGRPCClient::connectToServer(qint64 timeoutMs, quint16 port, QString *o
 /// \return The status for the call.
 //****************************************************************************************************************************************************
 grpc::Status FocusGRPCClient::raise() {
+    log_.debug("FocusGRPCService::raise()");
     ClientContext ctx;
     return stub_->Raise(&ctx, empty, &empty);
 }
@@ -116,6 +127,7 @@ grpc::Status FocusGRPCClient::raise() {
 /// \return The status for the call.
 //****************************************************************************************************************************************************
 grpc::Status FocusGRPCClient::version(QString &outVersion) {
+    log_.debug("FocusGRPCService::version()");
     ClientContext ctx;
     VersionResponse response;
     Status status = stub_->Version(&ctx, empty, &response);

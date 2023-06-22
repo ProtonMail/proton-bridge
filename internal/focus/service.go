@@ -45,6 +45,7 @@ type Service struct {
 	raiseCh chan struct{}
 	version *semver.Version
 
+	log          *logrus.Entry
 	panicHandler async.PanicHandler
 }
 
@@ -55,13 +56,14 @@ func NewService(locator service.Locator, version *semver.Version, panicHandler a
 		server:       grpc.NewServer(),
 		raiseCh:      make(chan struct{}, 1),
 		version:      version,
+		log:          logrus.WithField("pkg", "focus/service"),
 		panicHandler: panicHandler,
 	}
 
 	proto.RegisterFocusServer(serv.server, serv)
 
 	if listener, err := net.Listen("tcp", net.JoinHostPort(Host, fmt.Sprint(0))); err != nil {
-		logrus.WithError(err).Warn("Failed to start focus serv")
+		serv.log.WithError(err).Warn("Failed to start focus service")
 	} else {
 		config := service.Config{}
 		// retrieve the port assigned by the system, so that we can put it in the config file.
@@ -71,9 +73,9 @@ func NewService(locator service.Locator, version *semver.Version, panicHandler a
 		}
 		config.Port = address.Port
 		if path, err := service.SaveGRPCServerConfigFile(locator, &config, serverConfigFileName); err != nil {
-			logrus.WithError(err).WithField("path", path).Warn("Could not write focus gRPC service config file")
+			serv.log.WithError(err).WithField("path", path).Warn("Could not write focus gRPC service config file")
 		} else {
-			logrus.WithField("path", path).Info("Successfully saved gRPC Focus service config file")
+			serv.log.WithField("path", path).Info("Successfully saved gRPC Focus service config file")
 		}
 
 		go func() {
@@ -90,12 +92,14 @@ func NewService(locator service.Locator, version *semver.Version, panicHandler a
 
 // Raise implements the gRPC FocusService interface; it raises the application.
 func (service *Service) Raise(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	service.log.Debug("Raise")
 	service.raiseCh <- struct{}{}
 	return &emptypb.Empty{}, nil
 }
 
 // Version implements the gRPC FocusService interface; it returns the version of the service.
 func (service *Service) Version(context.Context, *emptypb.Empty) (*proto.VersionResponse, error) {
+	service.log.Debug("Version")
 	return &proto.VersionResponse{
 		Version: service.version.Original(),
 	}, nil

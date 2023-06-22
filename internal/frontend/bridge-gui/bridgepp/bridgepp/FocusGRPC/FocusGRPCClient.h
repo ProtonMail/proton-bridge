@@ -22,6 +22,7 @@
 
 #include "grpc++/grpc++.h"
 #include "focus.grpc.pb.h"
+#include "../Log/Log.h"
 
 
 namespace bridgepp {
@@ -36,7 +37,7 @@ public: // static member functions
     static QString grpcFocusServerConfigPath(QString const &configDir); ///< Return the path of the gRPC Focus server config file.
 
 public: // member functions.
-    FocusGRPCClient() = default; ///< Default constructor.
+    FocusGRPCClient(Log& log); ///< Default constructor.
     FocusGRPCClient(FocusGRPCClient const &) = delete; ///< Disabled copy-constructor.
     FocusGRPCClient(FocusGRPCClient &&) = delete; ///< Disabled assignment copy-constructor.
     ~FocusGRPCClient() = default; ///< Destructor.
@@ -48,6 +49,7 @@ public: // member functions.
     grpc::Status version(QString &outVersion); ///< Performs the 'version' call.
 
 private:
+    Log &log_; ///< The log to use for logging calls
     std::shared_ptr<grpc::Channel> channel_ { nullptr }; ///< The gRPC channel.
     std::shared_ptr<focus::Focus::Stub> stub_ { nullptr }; ///< The gRPC stub (a.k.a. client).
 };
