@@ -18,7 +18,7 @@ Feature: IMAP remove messages from mailbox
     When IMAP client "1" selects "Folders/mbox"
     And IMAP client "1" marks message 2 as deleted
     And it succeeds
-    Then IMAP client "1" sees that message 2 has the flag "\Deleted"
+    Then IMAP client "1" eventually sees that message at row 2 has the flag "\Deleted"
     When IMAP client "1" expunges
     And it succeeds
     Then IMAP client "1" eventually sees 9 messages in "Folders/mbox"
