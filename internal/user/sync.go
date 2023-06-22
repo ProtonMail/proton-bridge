@@ -139,6 +139,8 @@ func (user *User) sync(ctx context.Context) error {
 					return fmt.Errorf("failed to get message IDs to sync: %w", err)
 				}
 
+				logrus.Debugf("User has the following failed synced message ids: %v", user.vault.SyncStatus().FailedMessageIDs)
+
 				// Remove any messages that have already failed to sync.
 				messageIDs = xslices.Filter(messageIDs, func(messageID string) bool {
 					return !slices.Contains(user.vault.SyncStatus().FailedMessageIDs, messageID)
