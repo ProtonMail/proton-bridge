@@ -196,7 +196,7 @@ bool isBridgeRunning() {
 //****************************************************************************************************************************************************
 void focusOtherInstance() {
     try {
-        FocusGRPCClient client;
+        FocusGRPCClient client(app().log());
         GRPCConfig sc;
         QString const path = FocusGRPCClient::grpcFocusServerConfigPath(bridgepp::userConfigDir());
         QFile file(path);
@@ -208,7 +208,6 @@ void focusOtherInstance() {
         else {
             throw Exception("Server did not provide gRPC Focus service configuration.");
         }
-
 
         QString error;
         if (!client.connectToServer(5000, sc.port, &error)) {
@@ -286,15 +285,15 @@ int main(int argc, char *argv[]) {
 
         initQtApplication();
 
+        CommandLineOptions const cliOptions = parseCommandLine(argc, argv);
         Log &log = initLog();
+        log.setLevel(cliOptions.logLevel);
 
         QLockFile lock(bridgepp::userCacheDir() + "/" + bridgeGUILock);
         if (!checkSingleInstance(lock)) {
             focusOtherInstance();
             return EXIT_FAILURE;
         }
-
-        CommandLineOptions const cliOptions = parseCommandLine(argc, argv);
 
 #ifdef Q_OS_MACOS
         registerSecondInstanceHandler();
@@ -304,7 +303,6 @@ int main(int argc, char *argv[]) {
         // In attached mode, we do not intercept stderr and stdout of bridge, as we did not launch it ourselves, so we output the log to the console.
         // When not in attached mode, log entries are forwarded to bridge, which output it on stdout/stderr. bridge-gui's process monitor intercept
         // these outputs and output them on the command-line.
-        log.setLevel(cliOptions.logLevel);
         log.info(QString("New Sentry reporter - id: %1.").arg(getProtectedHostname()));
 
         QString bridgeexec;
