@@ -343,3 +343,34 @@ Feature: SMTP sending of plain messages
         }
       }
       """
+
+  Scenario: HTML message with Foreign/Nonascii chars in Subject and Body
+    When there exists an account with username "bridgetest" and password "password"
+    And the user logs in with username "bridgetest" and password "password"
+    And user "bridgetest" connects and authenticates SMTP client "1"
+    And SMTP client "1" sends the following EML "html/foreign_ascii_subject_body.eml" from "bridgetest@proton.local" to "pm.bridge.qa@gmail.com"
+    Then it succeeds
+    When user "bridgetest" connects and authenticates IMAP client "1"
+    Then IMAP client "1" eventually sees the following messages in "Sent":
+      | from                    | to                     | subject        |
+      | bridgetest@proton.local | pm.bridge.qa@gmail.com | Subjεέςτ ¶ Ä È |
+    And the body in the "POST" request to "/mail/v4/messages" is:
+      """
+      {
+        "Message": {
+          "Subject": "Subjεέςτ ¶ Ä È",
+          "Sender": {
+            "Name": "Bridge Test"
+          },
+          "ToList": [
+            {
+              "Address": "pm.bridge.qa@gmail.com",
+              "Name": "External Bridge"
+            }
+          ],
+          "CCList": [],
+          "BCCList": [],
+          "MIMEType": "text/html"
+        }
+      }
+      """

@@ -246,6 +246,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^SMTP client "([^"]*)" sends DATA:$`, s.smtpClientSendsData)
 			ctx.Step(`^SMTP client "([^"]*)" sends RSET$`, s.smtpClientSendsReset)
 			ctx.Step(`^SMTP client "([^"]*)" sends the following message from "([^"]*)" to "([^"]*)":$`, s.smtpClientSendsTheFollowingMessageFromTo)
+			ctx.Step(`^SMTP client "([^"]*)" sends the following EML "([^"]*)" from "([^"]*)" to "([^"]*)"$`, s.smtpClientSendsTheFollowingEmlFromTo)
 			ctx.Step(`^SMTP client "([^"]*)" logs out$`, s.smtpClientLogsOut)
 
 			// ==== TELEMETRY ====
