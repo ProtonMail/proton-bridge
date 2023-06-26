@@ -109,6 +109,12 @@ UserList const &QMLBackend::users() const {
     return *users_;
 }
 
+//****************************************************************************************************************************************************
+/// \return the if bridge considers internet is on.
+//****************************************************************************************************************************************************
+bool QMLBackend::isInternetOn() const {
+    return isInternetOn_;
+}
 
 //****************************************************************************************************************************************************
 /// \return The build year as a string (e.g. 2023)
@@ -874,7 +880,6 @@ void QMLBackend::sendBadEventUserFeedback(QString const &userID, bool doResync) 
         if (!badEventDisplayQueue_.isEmpty()) {
             // we introduce a small delay here, so that the user notices the dialog disappear and pops up again.
             QTimer::singleShot(500, [&]() { this->displayBadEventDialog(badEventDisplayQueue_.front()); });
-
         }
     )
 }
@@ -920,6 +925,25 @@ void QMLBackend::setUpdateTrayIcon(QString const &stateString, QString const &st
     if (trayIcon_) {
         trayIcon_->setState(TrayIcon::State::Update, stateString, statusIcon);
     }
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] isOn Does bridge consider internet as on.
+//****************************************************************************************************************************************************
+void QMLBackend::internetStatusChanged(bool isOn) {
+    HANDLE_EXCEPTION(
+        if (isInternetOn_ == isOn) {
+            return;
+        }
+
+        isInternetOn_ = isOn;
+        if (isOn) {
+            emit internetOn();
+        } else {
+            emit internetOff();
+        }
+    )
 }
 
 
@@ -1086,7 +1110,7 @@ void QMLBackend::connectGrpcEvents() {
     GRPCClient *client = &app().grpc();
 
     // app events
-    connect(client, &GRPCClient::internetStatus, this, [&](bool isOn) { if (isOn) { emit internetOn(); } else { emit internetOff(); }});
+    connect(client, &GRPCClient::internetStatus, this, &QMLBackend::internetStatusChanged);
     connect(client, &GRPCClient::toggleAutostartFinished, this, &QMLBackend::toggleAutostartFinished);
     connect(client, &GRPCClient::resetFinished, this, &QMLBackend::onResetFinished);
     connect(client, &GRPCClient::reportBugFinished, this, &QMLBackend::reportBugFinished);

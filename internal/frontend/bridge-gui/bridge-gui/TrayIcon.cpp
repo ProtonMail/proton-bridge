@@ -344,6 +344,7 @@ void TrayIcon::refreshContextMenu() {
         return;
     }
 
+    bool const internetOn = app().backend().isInternetOn();
     menu_->clear();
     menu_->addAction(statusIcon_, stateString_, &app().backend(), &QMLBackend::showMainWindow);
     menu_->addSeparator();
@@ -355,7 +356,9 @@ void TrayIcon::refreshContextMenu() {
         User const &user = *users.get(i);
         UserState const state = user.state();
         auto action = new QAction(user.primaryEmailOrUsername());
-        action->setIcon((UserState::Connected == state) ? greenDot_ : (UserState::Locked == state ? orangeDot_ : greyDot_));
+        if (internetOn) {
+            action->setIcon((UserState::Connected == state) ? greenDot_ : (UserState::Locked == state ? orangeDot_ : greyDot_));
+        }
         action->setData(user.id());
         connect(action, &QAction::triggered, this, &TrayIcon::onUserClicked);
         if ((i < 10) && onMac) {
