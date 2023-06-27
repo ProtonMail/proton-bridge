@@ -608,6 +608,11 @@ func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, 
 		logrus.WithError(err).Error("Failed to remove IMAP user")
 	}
 
+	// if this is actually a remove account
+	if withData && withAPI {
+		user.SendConfigStatusAbort()
+	}
+
 	if err := user.Logout(ctx, withAPI); err != nil {
 		logrus.WithError(err).Error("Failed to logout user")
 	}

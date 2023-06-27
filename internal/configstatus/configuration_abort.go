@@ -17,4 +17,38 @@
 
 package configstatus
 
-// GODT-2711
+import "time"
+
+type ConfigAbortValues struct {
+	Duration int `json:"duration"`
+}
+
+type ConfigAbortDimensions struct {
+	ReportClick interface{} `json:"report_click"`
+	ReportSent  interface{} `json:"report_sent"`
+	ClickedLink uint64      `json:"clicked_link"`
+}
+
+type ConfigAbortData struct {
+	MeasurementGroup string
+	Event            string
+	Values           ConfigSuccessValues
+	Dimensions       ConfigSuccessDimensions
+}
+
+type ConfigAbortBuilder struct{}
+
+func (*ConfigAbortBuilder) New(data *ConfigurationStatusData) ConfigAbortData {
+	return ConfigAbortData{
+		MeasurementGroup: "bridge.any.configuration",
+		Event:            "bridge_config_abort",
+		Values: ConfigSuccessValues{
+			Duration: int(time.Since(data.DataV1.PendingSince).Minutes()),
+		},
+		Dimensions: ConfigSuccessDimensions{
+			ReportClick: data.DataV1.ReportClick,
+			ReportSent:  data.DataV1.ReportSent,
+			ClickedLink: data.DataV1.ClickedLink,
+		},
+	}
+}
