@@ -86,7 +86,14 @@ func (status *ConfigurationStatus) Save() error {
 	return os.Rename(temp, status.FilePath)
 }
 
-func (status *ConfigurationStatus) Success() error {
+func (status *ConfigurationStatus) IsPending() bool {
+	status.DataLock.RLock()
+	defer status.DataLock.RUnlock()
+
+	return !status.Data.DataV1.PendingSince.IsZero()
+}
+
+func (status *ConfigurationStatus) ApplySuccess() error {
 	status.DataLock.Lock()
 	defer status.DataLock.Unlock()
 
@@ -95,7 +102,7 @@ func (status *ConfigurationStatus) Success() error {
 	return status.Save()
 }
 
-func (status *ConfigurationStatus) Failure(err string) error {
+func (status *ConfigurationStatus) ApplyFailure(err string) error {
 	status.DataLock.Lock()
 	defer status.DataLock.Unlock()
 
@@ -104,7 +111,7 @@ func (status *ConfigurationStatus) Failure(err string) error {
 	return status.Save()
 }
 
-func (status *ConfigurationStatus) Progress() error {
+func (status *ConfigurationStatus) ApplyProgress() error {
 	status.DataLock.Lock()
 	defer status.DataLock.Unlock()
 

@@ -32,7 +32,7 @@ type MetadataOnly struct {
 }
 
 type DataV1 struct {
-	PendingSince   time.Time `json:"auto_update"`
+	PendingSince   time.Time `json:"pending_since"`
 	LastProgress   time.Time `json:"last_progress"`
 	Autoconf       string    `json:"auto_conf"`
 	ClickedLink    uint64    `json:"clicked_link"`

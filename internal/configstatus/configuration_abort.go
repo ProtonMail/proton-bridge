@@ -15,6 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package telemetry
+package configstatus
 
-// GODT-2714
+// GODT-2711

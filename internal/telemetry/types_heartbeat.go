@@ -32,8 +32,12 @@ const (
 	dimensionStartTLS = "starttls"
 )
 
-type HeartbeatManager interface {
+type Availability interface {
 	IsTelemetryAvailable() bool
+}
+
+type HeartbeatManager interface {
+	Availability
 	SendHeartbeat(heartbeat *HeartbeatData) bool
 	GetLastHeartbeatSent() time.Time
 	SetLastHeartbeatSent(time.Time) error

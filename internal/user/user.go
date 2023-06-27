@@ -40,6 +40,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"github.com/bradenaw/juniper/xslices"
@@ -95,7 +96,8 @@ type User struct {
 
 	panicHandler async.PanicHandler
 
-	configStatus *configstatus.ConfigurationStatus
+	configStatus     *configstatus.ConfigurationStatus
+	telemetryManager telemetry.Availability
 }
 
 // New returns a new user.
@@ -108,7 +110,8 @@ func New(
 	crashHandler async.PanicHandler,
 	showAllMail bool,
 	maxSyncMemory uint64,
-	cacheDir string,
+	statsDir string,
+	telemetryManager telemetry.Availability,
 ) (*User, error) {
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
 
@@ -130,7 +133,7 @@ func New(
 		"numLabels": len(apiLabels),
 	}).Info("Creating user object")
 
-	configStatusFile := filepath.Join(cacheDir, apiUser.ID+".json")
+	configStatusFile := filepath.Join(statsDir, apiUser.ID+".json")
 	configStatus, err := configstatus.LoadConfigurationStatus(configStatusFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init configuration status file: %w", err)
@@ -169,7 +172,8 @@ func New(
 
 		panicHandler: crashHandler,
 
-		configStatus: configStatus,
+		configStatus:     configStatus,
+		telemetryManager: telemetryManager,
 	}
 
 	// Initialize the user's update channels for its current address mode.

@@ -86,6 +86,8 @@ func (conn *imapConnector) Authorize(username string, password []byte) bool {
 		return false
 	}
 
+	conn.User.SendConfigStatusSuccess()
+
 	return true
 }
 
