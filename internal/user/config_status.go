@@ -82,4 +82,33 @@ func (user *User) SendConfigStatusRecovery() {
 }
 
 func (user *User) SendConfigStatusProgress() {
+	if !user.telemetryManager.IsTelemetryAvailable() {
+		return
+	}
+	if !user.configStatus.IsPending() {
+		return
+	}
+
+	var builder configstatus.ConfigProgressBuilder
+	progress := builder.New(user.configStatus.Data)
+	if progress.Values.NbDaySinceLast == 0 || progress.Values.NbDay == 0 {
+		return
+	}
+
+	data, err := json.Marshal(progress)
+	if err != nil {
+		if err := user.reporter.ReportMessageWithContext("Cannot parse config_progress data.", reporter.Context{
+			"error": err,
+		}); err != nil {
+			user.log.WithError(err).Error("Failed to report config_progress data parsing error.")
+		}
+		return
+	}
+
+	if err := user.SendTelemetry(context.Background(), data); err == nil {
+		user.log.Info("Configuration Status Progress event sent.")
+		if err := user.configStatus.ApplyProgress(); err != nil {
+			user.log.WithError(err).Error("Failed to ApplyProgress on config_status.")
+		}
+	}
 }

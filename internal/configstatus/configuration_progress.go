@@ -17,4 +17,41 @@
 
 package configstatus
 
-// GODT-2713
+import "time"
+
+type ConfigProgressValues struct {
+	NbDay          int `json:"nb_day"`
+	NbDaySinceLast int `json:"nb_day_since_last"`
+}
+
+type ConfigProgressData struct {
+	MeasurementGroup string
+	Event            string
+	Values           ConfigProgressValues
+	Dimensions       struct{}
+}
+
+type ConfigProgressBuilder struct{}
+
+func (*ConfigProgressBuilder) New(data *ConfigurationStatusData) ConfigProgressData {
+	return ConfigProgressData{
+		MeasurementGroup: "bridge.any.configuration",
+		Event:            "bridge_config_progress",
+		Values: ConfigProgressValues{
+			NbDay:          numberOfDay(time.Now(), data.DataV1.PendingSince),
+			NbDaySinceLast: numberOfDay(time.Now(), data.DataV1.LastProgress),
+		},
+	}
+}
+
+func numberOfDay(now, prev time.Time) int {
+	if now.Year() > prev.Year() {
+		if now.YearDay() > prev.YearDay() {
+			return 365 + (now.YearDay() - prev.YearDay())
+		}
+		return (prev.YearDay() + now.YearDay()) - 365
+	} else if now.YearDay() > prev.YearDay() {
+		return now.YearDay() - prev.YearDay()
+	}
+	return 0
+}
