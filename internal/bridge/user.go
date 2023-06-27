@@ -519,6 +519,11 @@ func (bridge *Bridge) addUserWithVault(
 	apiUser proton.User,
 	vault *vault.User,
 ) error {
+	statsPath, err := bridge.locator.ProvideStatsPath()
+	if err != nil {
+		return fmt.Errorf("failed to get Statistics directory: %w", err)
+	}
+
 	user, err := user.New(
 		ctx,
 		vault,
@@ -528,6 +533,7 @@ func (bridge *Bridge) addUserWithVault(
 		bridge.panicHandler,
 		bridge.vault.GetShowAllMail(),
 		bridge.vault.GetMaxSyncMemory(),
+		statsPath,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
