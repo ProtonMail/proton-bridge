@@ -23,6 +23,8 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 )
 
+const ProgressCheckInterval = time.Hour
+
 type Metadata struct {
 	Version string `json:"version"`
 }

@@ -98,6 +98,8 @@ type User struct {
 
 	configStatus     *configstatus.ConfigurationStatus
 	telemetryManager telemetry.Availability
+	// goStatusProgress triggers a check/sending if progress is needed.
+	goStatusProgress func()
 }
 
 // New returns a new user.
@@ -175,6 +177,12 @@ func New(
 		configStatus:     configStatus,
 		telemetryManager: telemetryManager,
 	}
+
+	// Check for status_progress when triggered.
+	user.goStatusProgress = user.tasks.PeriodicOrTrigger(configstatus.ProgressCheckInterval, 0, func(ctx context.Context) {
+		user.SendConfigStatusProgress()
+	})
+	defer user.goStatusProgress()
 
 	// Initialize the user's update channels for its current address mode.
 	user.initUpdateCh(encVault.AddressMode())
