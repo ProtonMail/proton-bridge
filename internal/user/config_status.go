@@ -29,7 +29,6 @@ func (user *User) SendConfigStatusSuccess() {
 	if !user.telemetryManager.IsTelemetryAvailable() {
 		return
 	}
-
 	if !user.configStatus.IsPending() {
 		return
 	}
@@ -41,11 +40,13 @@ func (user *User) SendConfigStatusSuccess() {
 		if err := user.reporter.ReportMessageWithContext("Cannot parse config_success data.", reporter.Context{
 			"error": err,
 		}); err != nil {
-			user.log.WithError(err).Error("Failed to parse config_success data.")
+			user.log.WithError(err).Error("Failed to report config_success data parsing error.")
 		}
+		return
 	}
 
 	if err := user.SendTelemetry(context.Background(), data); err == nil {
+		user.log.Info("Configuration Status Success event sent.")
 		if err := user.configStatus.ApplySuccess(); err != nil {
 			user.log.WithError(err).Error("Failed to ApplySuccess on config_status.")
 		}
@@ -53,6 +54,28 @@ func (user *User) SendConfigStatusSuccess() {
 }
 
 func (user *User) SendConfigStatusAbort() {
+	if !user.telemetryManager.IsTelemetryAvailable() {
+		return
+	}
+	if !user.configStatus.IsPending() {
+		return
+	}
+
+	var builder configstatus.ConfigAbortBuilder
+	abort := builder.New(user.configStatus.Data)
+	data, err := json.Marshal(abort)
+	if err != nil {
+		if err := user.reporter.ReportMessageWithContext("Cannot parse config_abort data.", reporter.Context{
+			"error": err,
+		}); err != nil {
+			user.log.WithError(err).Error("Failed to report config_abort data parsing error.")
+		}
+		return
+	}
+
+	if err := user.SendTelemetry(context.Background(), data); err == nil {
+		user.log.Info("Configuration Status Abort event sent.")
+	}
 }
 
 func (user *User) SendConfigStatusRecovery() {
