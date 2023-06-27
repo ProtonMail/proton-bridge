@@ -188,6 +188,16 @@ func (l *Locations) ProvideUpdatesPath() (string, error) {
 	return l.getUpdatesPath(), nil
 }
 
+// ProvideStatsPath returns a location for statistics files (e.g. ~/.local/share/<company>/<app>/stats).
+// It creates it if it doesn't already exist.
+func (l *Locations) ProvideStatsPath() (string, error) {
+	if err := os.MkdirAll(l.getStatsPath(), 0o700); err != nil {
+		return "", err
+	}
+
+	return l.getStatsPath(), nil
+}
+
 func (l *Locations) getGluonCachePath() string {
 	return filepath.Join(l.userData, "gluon")
 }
@@ -214,6 +224,10 @@ func (l *Locations) getGoIMAPCachePath() string {
 
 func (l *Locations) getUpdatesPath() string {
 	return filepath.Join(l.userData, "updates")
+}
+
+func (l *Locations) getStatsPath() string {
+	return filepath.Join(l.userData, "stats")
 }
 
 // Clear removes everything except the lock and update files.

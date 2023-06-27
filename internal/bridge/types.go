@@ -28,6 +28,7 @@ type Locator interface {
 	ProvideLogsPath() (string, error)
 	ProvideGluonCachePath() (string, error)
 	ProvideGluonDataPath() (string, error)
+	ProvideStatsPath() (string, error)
 	GetLicenseFilePath() string
 	GetDependencyLicensesLink() string
 	Clear(...string) error

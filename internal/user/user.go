@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -92,6 +93,8 @@ type User struct {
 	maxSyncMemory uint64
 
 	panicHandler async.PanicHandler
+
+	configStatus *ConfigurationStatus
 }
 
 // New returns a new user.
@@ -104,6 +107,7 @@ func New(
 	crashHandler async.PanicHandler,
 	showAllMail bool,
 	maxSyncMemory uint64,
+	cacheDir string,
 ) (*User, error) {
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
 
@@ -124,6 +128,12 @@ func New(
 		"numAddr":   len(apiAddrs),
 		"numLabels": len(apiLabels),
 	}).Info("Creating user object")
+
+	configStatusFile := filepath.Join(cacheDir, apiUser.ID+".json")
+	configStatus, err := LoadConfigurationStatus(configStatusFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init configuration status file: %w", err)
+	}
 
 	// Create the user object.
 	user := &User{
@@ -157,6 +167,8 @@ func New(
 		maxSyncMemory: maxSyncMemory,
 
 		panicHandler: crashHandler,
+
+		configStatus: configStatus,
 	}
 
 	// Initialize the user's update channels for its current address mode.
