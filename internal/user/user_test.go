@@ -26,8 +26,10 @@ import (
 	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/go-proton-api/server/backend"
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
+	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry/mocks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/tests"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 )
@@ -143,7 +145,10 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 	vaultUser, err := v.AddUser(apiUser.ID, username, username+"@pm.me", apiAuth.UID, apiAuth.RefreshToken, saltedKeyPass)
 	require.NoError(tb, err)
 
-	user, err := New(ctx, vaultUser, client, nil, apiUser, nil, true, vault.DefaultMaxSyncMemory, tb.TempDir())
+	ctl := gomock.NewController(tb)
+	defer ctl.Finish()
+	manager := mocks.NewMockHeartbeatManager(ctl)
+	user, err := New(ctx, vaultUser, client, nil, apiUser, nil, true, vault.DefaultMaxSyncMemory, tb.TempDir(), manager)
 	require.NoError(tb, err)
 	defer user.Close()
 

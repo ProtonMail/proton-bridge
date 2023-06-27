@@ -60,6 +60,9 @@ func (s *smtpSession) AuthPlain(username, password string) error {
 			if strings.Contains(s.Bridge.GetCurrentUserAgent(), useragent.DefaultUserAgent) {
 				s.Bridge.setUserAgent(useragent.UnknownClient, useragent.DefaultVersion)
 			}
+
+			user.SendConfigStatusSuccess()
+
 			return nil
 		}
 
