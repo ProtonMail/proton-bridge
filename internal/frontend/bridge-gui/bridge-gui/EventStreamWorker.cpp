@@ -43,12 +43,9 @@ EventStreamReader::EventStreamReader(QObject *parent)
 void EventStreamReader::run() {
     try {
         emit started();
-
-        grpc::Status const status = app().grpc().runEventStreamReader();
-        if (!status.ok()) {
-            throw Exception(QString::fromStdString(status.error_message()));
-        }
-
+        // Status code for the call below is ignored. The event stream may have interrupted by system shutdown or OS user sign-out, and we do not
+        // want this to generate a sentry report.
+        app().grpc().runEventStreamReader();
         emit finished();
     }
     catch (Exception const &e) {
