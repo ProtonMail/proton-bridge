@@ -17,4 +17,44 @@
 
 package configstatus
 
-// GODT-2714
+import (
+	"time"
+)
+
+type ConfigRecoveryValues struct {
+	Duration int `json:"duration"`
+}
+
+type ConfigRecoveryDimensions struct {
+	Autoconf       string      `json:"autoconf"`
+	ReportClick    interface{} `json:"report_click"`
+	ReportSent     interface{} `json:"report_sent"`
+	ClickedLink    uint64      `json:"clicked_link"`
+	FailureDetails string      `json:"failure_details"`
+}
+
+type ConfigRecoveryData struct {
+	MeasurementGroup string
+	Event            string
+	Values           ConfigRecoveryValues
+	Dimensions       ConfigRecoveryDimensions
+}
+
+type ConfigRecoveryBuilder struct{}
+
+func (*ConfigRecoveryBuilder) New(data *ConfigurationStatusData) ConfigRecoveryData {
+	return ConfigRecoveryData{
+		MeasurementGroup: "bridge.any.configuration",
+		Event:            "bridge_config_recovery",
+		Values: ConfigRecoveryValues{
+			Duration: int(time.Since(data.DataV1.PendingSince).Minutes()),
+		},
+		Dimensions: ConfigRecoveryDimensions{
+			Autoconf:       data.DataV1.Autoconf,
+			ReportClick:    data.DataV1.ReportClick,
+			ReportSent:     data.DataV1.ReportSent,
+			ClickedLink:    data.DataV1.ClickedLink,
+			FailureDetails: data.DataV1.FailureDetails,
+		},
+	}
+}

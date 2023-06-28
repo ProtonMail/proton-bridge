@@ -514,7 +514,9 @@ func (user *User) CheckAuth(email string, password []byte) (string, error) {
 	}
 
 	if subtle.ConstantTimeCompare(user.vault.BridgePass(), dec) != 1 {
-		return "", fmt.Errorf("invalid password")
+		err := fmt.Errorf("invalid password")
+		user.ReportConfigStatusFailure(err.Error())
+		return "", err
 	}
 
 	return safe.RLockRetErr(func() (string, error) {

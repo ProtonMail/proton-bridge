@@ -166,7 +166,8 @@ func (bridge *Bridge) handleUserRefreshed(ctx context.Context, user *user.User, 
 
 func (bridge *Bridge) handleUserDeauth(ctx context.Context, user *user.User) {
 	safe.Lock(func() {
-		bridge.logoutUser(ctx, user, false, false)
+		bridge.logoutUser(ctx, user, false, false, false)
+		user.ReportConfigStatusFailure("User deauth.")
 	}, bridge.usersLock)
 }
 
