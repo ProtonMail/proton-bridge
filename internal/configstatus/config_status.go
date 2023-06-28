@@ -93,6 +93,13 @@ func (status *ConfigurationStatus) IsPending() bool {
 	return !status.Data.DataV1.PendingSince.IsZero()
 }
 
+func (status *ConfigurationStatus) IsFromFailure() bool {
+	status.DataLock.RLock()
+	defer status.DataLock.RUnlock()
+
+	return status.Data.DataV1.FailureDetails != ""
+}
+
 func (status *ConfigurationStatus) ApplySuccess() error {
 	status.DataLock.Lock()
 	defer status.DataLock.Unlock()

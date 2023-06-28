@@ -229,7 +229,7 @@ func (bridge *Bridge) LogoutUser(ctx context.Context, userID string) error {
 			return ErrNoSuchUser
 		}
 
-		bridge.logoutUser(ctx, user, true, false)
+		bridge.logoutUser(ctx, user, true, false, false)
 
 		bridge.publish(events.UserLoggedOut{
 			UserID: userID,
@@ -243,13 +243,15 @@ func (bridge *Bridge) LogoutUser(ctx context.Context, userID string) error {
 func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
 	logrus.WithField("userID", userID).Info("Deleting user")
 
+	telemetry := bridge.IsTelemetryAvailable()
+
 	return safe.LockRet(func() error {
 		if !bridge.vault.HasUser(userID) {
 			return ErrNoSuchUser
 		}
 
 		if user, ok := bridge.users[userID]; ok {
-			bridge.logoutUser(ctx, user, true, true)
+			bridge.logoutUser(ctx, user, true, true, telemetry)
 		}
 
 		if err := bridge.vault.DeleteUser(userID); err != nil {
@@ -351,7 +353,7 @@ func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string,
 			logrus.WithError(rerr).Error("Failed to report feedback failure")
 		}
 
-		bridge.logoutUser(ctx, user, true, false)
+		bridge.logoutUser(ctx, user, true, false, false)
 
 		bridge.publish(events.UserLoggedOut{
 			UserID: userID,
@@ -595,8 +597,13 @@ func (bridge *Bridge) newVaultUser(
 }
 
 // logout logs out the given user, optionally logging them out from the API too.
-func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, withData bool) {
+func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, withData, withTelemetry bool) {
 	defer delete(bridge.users, user.ID())
+
+	// if this is actually a remove account
+	if withTelemetry && withData && withAPI {
+		user.SendConfigStatusAbort()
+	}
 
 	logrus.WithFields(logrus.Fields{
 		"userID":   user.ID(),
@@ -606,11 +613,6 @@ func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, 
 
 	if err := bridge.removeIMAPUser(ctx, user, withData); err != nil {
 		logrus.WithError(err).Error("Failed to remove IMAP user")
-	}
-
-	// if this is actually a remove account
-	if withData && withAPI {
-		user.SendConfigStatusAbort()
 	}
 
 	if err := user.Logout(ctx, withAPI); err != nil {

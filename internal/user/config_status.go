@@ -26,6 +26,10 @@ import (
 )
 
 func (user *User) SendConfigStatusSuccess() {
+	if user.configStatus.IsFromFailure() {
+		user.SendConfigStatusRecovery()
+		return
+	}
 	if !user.telemetryManager.IsTelemetryAvailable() {
 		return
 	}
@@ -54,9 +58,6 @@ func (user *User) SendConfigStatusSuccess() {
 }
 
 func (user *User) SendConfigStatusAbort() {
-	if !user.telemetryManager.IsTelemetryAvailable() {
-		return
-	}
 	if !user.configStatus.IsPending() {
 		return
 	}
@@ -79,6 +80,35 @@ func (user *User) SendConfigStatusAbort() {
 }
 
 func (user *User) SendConfigStatusRecovery() {
+	if !user.configStatus.IsFromFailure() {
+		user.SendConfigStatusSuccess()
+		return
+	}
+	if !user.telemetryManager.IsTelemetryAvailable() {
+		return
+	}
+	if !user.configStatus.IsPending() {
+		return
+	}
+
+	var builder configstatus.ConfigRecoveryBuilder
+	success := builder.New(user.configStatus.Data)
+	data, err := json.Marshal(success)
+	if err != nil {
+		if err := user.reporter.ReportMessageWithContext("Cannot parse config_recovery data.", reporter.Context{
+			"error": err,
+		}); err != nil {
+			user.log.WithError(err).Error("Failed to report config_recovery data parsing error.")
+		}
+		return
+	}
+
+	if err := user.SendTelemetry(context.Background(), data); err == nil {
+		user.log.Info("Configuration Status Recovery event sent.")
+		if err := user.configStatus.ApplySuccess(); err != nil {
+			user.log.WithError(err).Error("Failed to ApplySuccess on config_status.")
+		}
+	}
 }
 
 func (user *User) SendConfigStatusProgress() {
@@ -110,5 +140,17 @@ func (user *User) SendConfigStatusProgress() {
 		if err := user.configStatus.ApplyProgress(); err != nil {
 			user.log.WithError(err).Error("Failed to ApplyProgress on config_status.")
 		}
+	}
+}
+
+func (user *User) ReportConfigStatusFailure(errDetails string) {
+	if user.configStatus.IsPending() {
+		return
+	}
+
+	if err := user.configStatus.ApplyFailure(errDetails); err != nil {
+		user.log.WithError(err).Error("Failed to ApplyFailure on config_status.")
+	} else {
+		user.log.Info("Configuration Status is back to Pending due to Failure.")
 	}
 }

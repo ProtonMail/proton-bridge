@@ -70,8 +70,11 @@ func (s *smtpSession) AuthPlain(username, password string) error {
 			"username": username,
 			"pkg":      "smtp",
 		}).Error("Incorrect login credentials.")
-
-		return fmt.Errorf("invalid username or password")
+		err := fmt.Errorf("invalid username or password")
+		for _, user := range s.users {
+			user.ReportConfigStatusFailure(err.Error())
+		}
+		return err
 	}, s.usersLock)
 }
 

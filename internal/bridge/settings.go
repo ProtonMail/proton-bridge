@@ -297,10 +297,12 @@ func (bridge *Bridge) SetColorScheme(colorScheme string) error {
 // Note: it does not clear the keychain. The only entry in the keychain is the vault password,
 // which we need at next startup to decrypt the vault.
 func (bridge *Bridge) FactoryReset(ctx context.Context) {
+	telemetry := bridge.IsTelemetryAvailable()
+
 	// Delete all the users.
 	safe.Lock(func() {
 		for _, user := range bridge.users {
-			bridge.logoutUser(ctx, user, true, true)
+			bridge.logoutUser(ctx, user, true, true, telemetry)
 		}
 	}, bridge.usersLock)
 
