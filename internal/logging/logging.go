@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -88,7 +89,7 @@ func (cs *coloredStdOutHook) Fire(entry *logrus.Entry) error {
 
 // Init Initialize logging. Log files are rotated when their size exceeds rotationSize. if pruningSize >= 0, pruning occurs using
 // the default pruning algorithm.
-func Init(logsPath string, sessionID SessionID, appName AppName, rotationSize, pruningSize int64, level string) error {
+func Init(logsPath string, sessionID SessionID, appName AppName, rotationSize, pruningSize int64, level string) (io.Closer, error) {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableColors:   true,
 		FullTimestamp:   true,
@@ -99,12 +100,22 @@ func Init(logsPath string, sessionID SessionID, appName AppName, rotationSize, p
 
 	rotator, err := NewDefaultRotator(logsPath, sessionID, appName, rotationSize, pruningSize)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	logrus.SetOutput(rotator)
 
-	return setLevel(level)
+	return rotator, setLevel(level)
+}
+
+// Close closes the log file. if closer is nil, no error is reported.
+func Close(closer io.Closer) error {
+	if closer == nil {
+		return nil
+	}
+
+	logrus.SetOutput(os.Stdout)
+	return closer.Close()
 }
 
 // ZipLogsForBugReport returns an archive containing the logs for bug report.

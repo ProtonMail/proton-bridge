@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
 
@@ -92,4 +93,13 @@ func TestLogging_GetOrderedLogFileListForBugReport(t *testing.T) {
 		filepath.Join(dir, string(sessionID1)+"_gui_000"+fileSuffix),
 		filepath.Join(dir, string(sessionID1)+"_lau_000"+fileSuffix),
 	}, filePaths)
+}
+
+func TestLogging_Close(t *testing.T) {
+	d := t.TempDir()
+	closer, err := Init(d, NewSessionID(), constants.AppName, 1, DefaultPruningSize, "debug")
+	require.NoError(t, err)
+	logrus.Debug("Test") // because we set max log file size to 1, this will force a rotation of the log file.
+	require.NotNil(t, closer)
+	require.NoError(t, closer.Close())
 }

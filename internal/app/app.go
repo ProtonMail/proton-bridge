@@ -19,6 +19,7 @@ package app
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -189,6 +190,11 @@ func run(c *cli.Context) error {
 		exe = os.Args[0]
 	}
 
+	var logCloser io.Closer
+	defer func() {
+		_ = logging.Close(logCloser)
+	}()
+
 	// Restart the app if requested.
 	return withRestarter(exe, func(restarter *restarter.Restarter) error {
 		// Handle crashes with various actions.
@@ -205,7 +211,9 @@ func run(c *cli.Context) error {
 					}
 
 					// Initialize logging.
-					return withLogging(c, crashHandler, locations, func() error {
+					return withLogging(c, crashHandler, locations, func(closer io.Closer) error {
+						logCloser = closer
+
 						// If there was an error during migration, log it now.
 						if migrationErr != nil {
 							logrus.WithError(migrationErr).Error("Failed to migrate old app data")
@@ -304,7 +312,7 @@ func withSingleInstance(settingPath, lockFile string, version *semver.Version, f
 }
 
 // Initialize our logging system.
-func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locations.Locations, fn func() error) error {
+func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locations.Locations, fn func(closer io.Closer) error) error {
 	logrus.Debug("Initializing logging")
 	defer logrus.Debug("Logging stopped")
 
@@ -318,7 +326,8 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 
 	// Initialize logging.
 	sessionID := logging.NewSessionIDFromString(c.String(flagSessionID))
-	if err := logging.Init(
+	var closer io.Closer
+	if closer, err = logging.Init(
 		logsPath,
 		sessionID,
 		logging.BridgeShortAppName,
@@ -343,7 +352,7 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 		WithField("SentryID", sentry.GetProtectedHostname()).
 		Info("Run app")
 
-	return fn()
+	return fn(closer)
 }
 
 // WithLocations provides access to locations where we store our files.

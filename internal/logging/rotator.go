@@ -86,6 +86,14 @@ func (r *Rotator) Write(p []byte) (int, error) {
 	return n, nil
 }
 
+func (r *Rotator) Close() error {
+	if r.wc != nil {
+		return r.wc.Close()
+	}
+
+	return nil
+}
+
 func (r *Rotator) rotate() error {
 	if r.wc != nil {
 		_ = r.wc.Close()

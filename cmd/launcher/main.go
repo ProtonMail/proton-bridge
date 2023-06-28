@@ -18,6 +18,7 @@
 package main
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -81,7 +82,8 @@ func main() { //nolint:funlen
 	sessionID := logging.NewSessionID()
 	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath, sessionID, launcherName))
 
-	if err := logging.Init(
+	var closer io.Closer
+	if closer, err = logging.Init(
 		logsPath,
 		sessionID,
 		logging.LauncherShortAppName,
@@ -91,6 +93,10 @@ func main() { //nolint:funlen
 	); err != nil {
 		l.WithError(err).Fatal("Failed to setup logging")
 	}
+
+	defer func() {
+		_ = logging.Close(closer)
+	}()
 
 	updatesPath, err := locations.ProvideUpdatesPath()
 	if err != nil {
