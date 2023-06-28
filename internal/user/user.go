@@ -36,6 +36,7 @@ import (
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal"
+	"github.com/ProtonMail/proton-bridge/v3/internal/configstatus"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
@@ -94,7 +95,7 @@ type User struct {
 
 	panicHandler async.PanicHandler
 
-	configStatus *ConfigurationStatus
+	configStatus *configstatus.ConfigurationStatus
 }
 
 // New returns a new user.
@@ -130,7 +131,7 @@ func New(
 	}).Info("Creating user object")
 
 	configStatusFile := filepath.Join(cacheDir, apiUser.ID+".json")
-	configStatus, err := LoadConfigurationStatus(configStatusFile)
+	configStatus, err := configstatus.LoadConfigurationStatus(configStatusFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init configuration status file: %w", err)
 	}
