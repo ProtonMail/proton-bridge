@@ -195,6 +195,7 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^IMAP client "([^"]*)" cannot authenticate with address "([^"]*)"$`, s.imapClientCannotAuthenticateWithAddress)
 			ctx.Step(`^IMAP client "([^"]*)" cannot authenticate with incorrect username$`, s.imapClientCannotAuthenticateWithIncorrectUsername)
 			ctx.Step(`^IMAP client "([^"]*)" cannot authenticate with incorrect password$`, s.imapClientCannotAuthenticateWithIncorrectPassword)
+			ctx.Step(`^IMAP client "([^"]*)" closes$`, s.imapClientCloses)
 			ctx.Step(`^IMAP client "([^"]*)" announces its ID with name "([^"]*)" and version "([^"]*)"$`, s.imapClientAnnouncesItsIDWithNameAndVersion)
 			ctx.Step(`^IMAP client "([^"]*)" creates "([^"]*)"$`, s.imapClientCreatesMailbox)
 			ctx.Step(`^IMAP client "([^"]*)" deletes "([^"]*)"$`, s.imapClientDeletesMailbox)
@@ -256,7 +257,11 @@ func TestFeatures(testingT *testing.T) {
 			ctx.Step(`^heartbeat is not whitelisted`, s.heartbeatIsNotwhitelisted)
 			ctx.Step(`^config status file exist for user "([^"]*)"$`, s.configStatusFileExistForUser)
 			ctx.Step(`^config status is pending for user "([^"]*)"$`, s.configStatusIsPendingForUser)
+			ctx.Step(`^config status is pending with failure for user "([^"]*)"$`, s.configStatusIsPendingWithFailureForUser)
 			ctx.Step(`^config status succeed for user "([^"]*)"$`, s.configStatusSucceedForUser)
+			ctx.Step(`^config status event "([^"]*)" is eventually send (\d+) time`, s.configStatusEventIsEventuallySendXTime)
+			ctx.Step(`^config status event "([^"]*)" is not send more than (\d+) time`, s.configStatusEventIsNotSendMoreThanXTime)
+			ctx.Step(`^force config status progress to be sent for user"([^"]*)"$`, s.forceConfigStatusProgressToBeSentForUser)
 		},
 		Options: &godog.Options{
 			Format:   "pretty",

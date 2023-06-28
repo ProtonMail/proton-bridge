@@ -125,6 +125,15 @@ func (s *scenario) imapClientCannotAuthenticateWithIncorrectPassword(clientID st
 	return nil
 }
 
+func (s *scenario) imapClientCloses(clientID string) error {
+	_, client := s.t.getIMAPClient(clientID)
+	if err := client.Logout(); err != nil {
+		return err
+	}
+	delete(s.t.imapClients, clientID)
+	return nil
+}
+
 func (s *scenario) imapClientAnnouncesItsIDWithNameAndVersion(clientID, name, version string) error {
 	_, client := s.t.getIMAPClient(clientID)
 

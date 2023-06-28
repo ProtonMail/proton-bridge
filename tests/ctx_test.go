@@ -360,21 +360,32 @@ func (t *testCtx) getDraftID(username string, draftIndex int) (string, error) {
 }
 
 func (t *testCtx) getLastCall(method, pathExp string) (server.Call, error) {
+	matches, err := t.getAllCalls(method, pathExp)
+	if err != nil {
+		return server.Call{}, err
+	}
+	if len(matches) > 0 {
+		return matches[len(matches)-1], nil
+	}
+	return server.Call{}, fmt.Errorf("no call with method %q and path %q was made", method, pathExp)
+}
+
+func (t *testCtx) getAllCalls(method, pathExp string) ([]server.Call, error) {
 	t.callsLock.RLock()
 	defer t.callsLock.RUnlock()
 
 	root, err := url.Parse(t.api.GetHostURL())
 	if err != nil {
-		return server.Call{}, err
+		return []server.Call{}, err
 	}
 
 	if matches := xslices.Filter(xslices.Join(t.calls...), func(call server.Call) bool {
 		return call.Method == method && regexp.MustCompile("^"+pathExp+"$").MatchString(strings.TrimPrefix(call.URL.Path, root.Path))
 	}); len(matches) > 0 {
-		return matches[len(matches)-1], nil
+		return matches, nil
 	}
 
-	return server.Call{}, fmt.Errorf("no call with method %q and path %q was made", method, pathExp)
+	return []server.Call{}, fmt.Errorf("no call with method %q and path %q was made", method, pathExp)
 }
 
 func (t *testCtx) getLastCallExcludingHTTPOverride(method, pathExp string) (server.Call, error) {
