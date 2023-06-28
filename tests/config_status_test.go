@@ -22,8 +22,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/proton-bridge/v3/internal/configstatus"
+	"github.com/sirupsen/logrus"
 )
 
 func (s *scenario) configStatusFileExistForUser(username string) error {
@@ -38,14 +42,11 @@ func (s *scenario) configStatusFileExistForUser(username string) error {
 }
 
 func (s *scenario) configStatusIsPendingForUser(username string) error {
-	configStatusFile, err := getConfigStatusFile(s.t, username)
+	data, err := loadConfigStatusFile(s.t, username)
 	if err != nil {
 		return err
 	}
-	data, err := loadConfigStatusFile(configStatusFile)
-	if err != nil {
-		return err
-	}
+
 	if data.DataV1.PendingSince.IsZero() {
 		return fmt.Errorf("expected ConfigStatus pending but got success instead")
 	}
@@ -53,19 +54,84 @@ func (s *scenario) configStatusIsPendingForUser(username string) error {
 	return nil
 }
 
+func (s *scenario) configStatusIsPendingWithFailureForUser(username string) error {
+	data, err := loadConfigStatusFile(s.t, username)
+	if err != nil {
+		return err
+	}
+
+	if data.DataV1.PendingSince.IsZero() {
+		return fmt.Errorf("expected ConfigStatus pending but got success instead")
+	}
+	if data.DataV1.FailureDetails == "" {
+		return fmt.Errorf("expected ConfigStatus pending with failure but got no failure instead")
+	}
+
+	return nil
+}
+
 func (s *scenario) configStatusSucceedForUser(username string) error {
-	configStatusFile, err := getConfigStatusFile(s.t, username)
+	data, err := loadConfigStatusFile(s.t, username)
 	if err != nil {
 		return err
 	}
-	data, err := loadConfigStatusFile(configStatusFile)
-	if err != nil {
-		return err
-	}
+
 	if !data.DataV1.PendingSince.IsZero() {
 		return fmt.Errorf("expected ConfigStatus success but got pending since %s", data.DataV1.PendingSince)
 	}
 
+	return nil
+}
+
+func (s *scenario) configStatusEventIsEventuallySendXTime(event string, number int) error {
+	return eventually(func() error {
+		err := s.checkEventSentForUser(event, number)
+		logrus.WithError(err).Trace("Matching eventually")
+		return err
+	})
+}
+
+func (s *scenario) configStatusEventIsNotSendMoreThanXTime(event string, number int) error {
+	if err := eventually(func() error {
+		err := s.checkEventSentForUser(event, number+1)
+		logrus.WithError(err).Trace("Matching eventually")
+		return err
+	}); err == nil {
+		return fmt.Errorf("expected %s to be sent %d but catch %d", event, number, number+1)
+	}
+	return nil
+}
+
+func (s *scenario) forceConfigStatusProgressToBeSentForUser(username string) error {
+	configStatusFile, err := getConfigStatusFile(s.t, username)
+	if err != nil {
+		return err
+	}
+
+	data, err := loadConfigStatusFile(s.t, username)
+	if err != nil {
+		return err
+	}
+	data.DataV1.PendingSince = time.Now().AddDate(0, 0, -2)
+	data.DataV1.LastProgress = time.Now().AddDate(0, 0, -1)
+
+	f, err := os.Create(configStatusFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return json.NewEncoder(f).Encode(data)
+}
+
+func (s *scenario) checkEventSentForUser(event string, number int) error {
+	calls, err := getLastTelemetryEventSent(s.t, event)
+	if err != nil {
+		return err
+	}
+	if len(calls) != number {
+		return fmt.Errorf("expected %s to be sent %d but catch %d", event, number, len(calls))
+	}
 	return nil
 }
 
@@ -78,13 +144,19 @@ func getConfigStatusFile(t *testCtx, username string) (string, error) {
 	return filepath.Join(statsDir, userID+".json"), nil
 }
 
-func loadConfigStatusFile(filepath string) (configstatus.ConfigurationStatusData, error) {
+func loadConfigStatusFile(t *testCtx, username string) (configstatus.ConfigurationStatusData, error) {
 	data := configstatus.ConfigurationStatusData{}
-	if _, err := os.Stat(filepath); err != nil {
+
+	configStatusFile, err := getConfigStatusFile(t, username)
+	if err != nil {
 		return data, err
 	}
 
-	f, err := os.Open(filepath)
+	if _, err := os.Stat(configStatusFile); err != nil {
+		return data, err
+	}
+
+	f, err := os.Open(configStatusFile)
 	if err != nil {
 		return data, err
 	}
@@ -92,4 +164,24 @@ func loadConfigStatusFile(filepath string) (configstatus.ConfigurationStatusData
 
 	err = json.NewDecoder(f).Decode(&data)
 	return data, err
+}
+
+func getLastTelemetryEventSent(t *testCtx, event string) ([]server.Call, error) {
+	var matches []server.Call
+
+	calls, err := t.getAllCalls("POST", "/data/v1/stats")
+	if err != nil {
+		return matches, err
+	}
+
+	for _, call := range calls {
+		var req proton.SendStatsReq
+		if err := json.Unmarshal(call.RequestBody, &req); err != nil {
+			continue
+		}
+		if req.Event == event {
+			matches = append(matches, call)
+		}
+	}
+	return matches, err
 }
