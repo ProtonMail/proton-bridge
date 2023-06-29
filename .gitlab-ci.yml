@@ -71,6 +71,7 @@ stages:
 
 .env-darwin:
   before_script:
+    - export BRIDGE_SYNC_FORCE_MINIMUM_SPEC=1
     - export PATH=/usr/local/bin:$PATH
     - export PATH=/usr/local/opt/git/bin:$PATH
     - export PATH=/usr/local/opt/make/libexec/gnubin:$PATH
@@ -97,6 +98,7 @@ stages:
     when: 'always'
   before_script:
     - mkdir -p .cache/bin
+    - export BRIDGE_SYNC_FORCE_MINIMUM_SPEC=1
     - export PATH=$(pwd)/.cache/bin:$PATH
     - export GOPATH="$CI_PROJECT_DIR/.cache"
     - export PATH=$PATH:$QT6DIR/bin
