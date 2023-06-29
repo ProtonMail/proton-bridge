@@ -195,6 +195,52 @@ func TestConfigStatus_RecordLinkClicked(t *testing.T) {
 	require.Equal(t, "", config2.Data.DataV1.FailureDetails)
 }
 
+func TestConfigStatus_ReportClicked(t *testing.T) {
+	dir := t.TempDir()
+	file := filepath.Join(dir, "dummy.json")
+	config, err := configstatus.LoadConfigurationStatus(file)
+	require.NoError(t, err)
+
+	require.Equal(t, false, config.Data.DataV1.ReportClick)
+	require.NoError(t, config.ReportClicked())
+	require.Equal(t, true, config.Data.DataV1.ReportClick)
+
+	config2, err := configstatus.LoadConfigurationStatus(file)
+	require.NoError(t, err)
+
+	require.Equal(t, "1.0.0", config2.Data.Metadata.Version)
+	require.Equal(t, false, config2.Data.DataV1.PendingSince.IsZero())
+	require.Equal(t, true, config2.Data.DataV1.LastProgress.IsZero())
+	require.Equal(t, "", config2.Data.DataV1.Autoconf)
+	require.Equal(t, uint64(0), config2.Data.DataV1.ClickedLink)
+	require.Equal(t, false, config2.Data.DataV1.ReportSent)
+	require.Equal(t, true, config2.Data.DataV1.ReportClick)
+	require.Equal(t, "", config2.Data.DataV1.FailureDetails)
+}
+
+func TestConfigStatus_ReportSent(t *testing.T) {
+	dir := t.TempDir()
+	file := filepath.Join(dir, "dummy.json")
+	config, err := configstatus.LoadConfigurationStatus(file)
+	require.NoError(t, err)
+
+	require.Equal(t, false, config.Data.DataV1.ReportSent)
+	require.NoError(t, config.ReportSent())
+	require.Equal(t, true, config.Data.DataV1.ReportSent)
+
+	config2, err := configstatus.LoadConfigurationStatus(file)
+	require.NoError(t, err)
+
+	require.Equal(t, "1.0.0", config2.Data.Metadata.Version)
+	require.Equal(t, false, config2.Data.DataV1.PendingSince.IsZero())
+	require.Equal(t, true, config2.Data.DataV1.LastProgress.IsZero())
+	require.Equal(t, "", config2.Data.DataV1.Autoconf)
+	require.Equal(t, uint64(0), config2.Data.DataV1.ClickedLink)
+	require.Equal(t, true, config2.Data.DataV1.ReportSent)
+	require.Equal(t, false, config2.Data.DataV1.ReportClick)
+	require.Equal(t, "", config2.Data.DataV1.FailureDetails)
+}
+
 func dumpConfigStatusInFile(data *configstatus.ConfigurationStatusData, file string) error {
 	f, err := os.Create(file)
 	if err != nil {

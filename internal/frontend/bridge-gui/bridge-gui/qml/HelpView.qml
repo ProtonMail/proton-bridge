@@ -41,7 +41,9 @@ SettingsView {
         actionIcon: "/qml/icons/ic-external-link.svg"
         description: qsTr("Get help setting up your client with our instructions and FAQs.")
         type: SettingsItem.PrimaryButton
-        onClicked: {Qt.openUrlExternally("https://proton.me/support/bridge")}
+        onClicked: {
+            Backend.notifyKBArticleClicked("https://proton.me/support/bridge");
+            Qt.openUrlExternally("https://proton.me/support/bridge")}
 
         Layout.fillWidth: true
     }
@@ -87,6 +89,7 @@ SettingsView {
         type: SettingsItem.Button
         onClicked: {
             Backend.updateCurrentMailClient()
+            Backend.notifyReportBugClicked()
             root.parent.showBugReport()
         }
 

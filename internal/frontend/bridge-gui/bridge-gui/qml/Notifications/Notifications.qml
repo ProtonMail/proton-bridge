@@ -891,7 +891,7 @@ QtObject {
         action: [
             Action {
                 id: allMail_change
-                text: root.changeAllMailVisibility.isVisibleNow ? 
+                text: root.changeAllMailVisibility.isVisibleNow ?
                 qsTr("Hide All Mail folder") :
                 qsTr("Show All Mail folder")
                 onTriggered: {
@@ -1005,6 +1005,7 @@ QtObject {
                 text: qsTr("Open the support page")
 
                 onTriggered: {
+                    Backend.notifyKBArticleClicked(root.rebuildKeychain.supportLink);
                     Qt.openUrlExternally(root.rebuildKeychain.supportLink)
                     Backend.quit()
                 }

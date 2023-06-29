@@ -1673,7 +1673,7 @@ const char descriptor_table_protodef_bridge_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "!SMTP_CONNECTION_MODE_CHANGE_ERROR\020\005*S\n\t"
   "ErrorCode\022\021\n\rUNKNOWN_ERROR\020\000\022\031\n\025TLS_CERT"
   "_EXPORT_ERROR\020\001\022\030\n\024TLS_KEY_EXPORT_ERROR\020"
-  "\0022\211\037\n\006Bridge\022I\n\013CheckTokens\022\034.google.pro"
+  "\0022\342 \n\006Bridge\022I\n\013CheckTokens\022\034.google.pro"
   "tobuf.StringValue\032\034.google.protobuf.Stri"
   "ngValue\022\?\n\013AddLogEntry\022\030.grpc.AddLogEntr"
   "yRequest\032\026.google.protobuf.Empty\022:\n\010GuiR"
@@ -1769,12 +1769,17 @@ const char descriptor_table_protodef_bridge_2eproto[] PROTOBUF_SECTION_VARIABLE(
   "e.protobuf.StringValue\032\026.google.protobuf"
   ".Empty\022Q\n\026ConfigureUserAppleMail\022\037.grpc."
   "ConfigureAppleMailRequest\032\026.google.proto"
-  "buf.Empty\022\?\n\016RunEventStream\022\030.grpc.Event"
-  "StreamRequest\032\021.grpc.StreamEvent0\001\022A\n\017St"
-  "opEventStream\022\026.google.protobuf.Empty\032\026."
-  "google.protobuf.EmptyB6Z4github.com/Prot"
-  "onMail/proton-bridge/v3/internal/grpcb\006p"
-  "roto3"
+  "buf.Empty\022B\n\020ReportBugClicked\022\026.google.p"
+  "rotobuf.Empty\032\026.google.protobuf.Empty\022I\n"
+  "\021AutoconfigClicked\022\034.google.protobuf.Str"
+  "ingValue\032\026.google.protobuf.Empty\022H\n\020KBAr"
+  "ticleClicked\022\034.google.protobuf.StringVal"
+  "ue\032\026.google.protobuf.Empty\022\?\n\016RunEventSt"
+  "ream\022\030.grpc.EventStreamRequest\032\021.grpc.St"
+  "reamEvent0\001\022A\n\017StopEventStream\022\026.google."
+  "protobuf.Empty\032\026.google.protobuf.EmptyB6"
+  "Z4github.com/ProtonMail/proton-bridge/v3"
+  "/internal/grpcb\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_bridge_2eproto_deps[2] = {
   &::descriptor_table_google_2fprotobuf_2fempty_2eproto,
@@ -1782,7 +1787,7 @@ static const ::_pbi::DescriptorTable* const descriptor_table_bridge_2eproto_deps
 };
 static ::_pbi::once_flag descriptor_table_bridge_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_bridge_2eproto = {
-    false, false, 10685, descriptor_table_protodef_bridge_2eproto,
+    false, false, 10902, descriptor_table_protodef_bridge_2eproto,
     "bridge.proto",
     &descriptor_table_bridge_2eproto_once, descriptor_table_bridge_2eproto_deps, 2, 64,
     schemas, file_default_instances, TableStruct_bridge_2eproto::offsets,

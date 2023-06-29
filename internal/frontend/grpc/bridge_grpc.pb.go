@@ -86,6 +86,10 @@ type BridgeClient interface {
 	LogoutUser(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RemoveUser(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ConfigureUserAppleMail(ctx context.Context, in *ConfigureAppleMailRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Telemetry
+	ReportBugClicked(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	AutoconfigClicked(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	KBArticleClicked(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Server -> Client event stream
 	RunEventStream(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (Bridge_RunEventStreamClient, error)
 	StopEventStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -594,6 +598,33 @@ func (c *bridgeClient) ConfigureUserAppleMail(ctx context.Context, in *Configure
 	return out, nil
 }
 
+func (c *bridgeClient) ReportBugClicked(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/ReportBugClicked", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bridgeClient) AutoconfigClicked(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/AutoconfigClicked", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bridgeClient) KBArticleClicked(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/KBArticleClicked", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *bridgeClient) RunEventStream(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (Bridge_RunEventStreamClient, error) {
 	stream, err := c.cc.NewStream(ctx, &Bridge_ServiceDesc.Streams[0], "/grpc.Bridge/RunEventStream", opts...)
 	if err != nil {
@@ -701,6 +732,10 @@ type BridgeServer interface {
 	LogoutUser(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	RemoveUser(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	ConfigureUserAppleMail(context.Context, *ConfigureAppleMailRequest) (*emptypb.Empty, error)
+	// Telemetry
+	ReportBugClicked(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	AutoconfigClicked(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
+	KBArticleClicked(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	// Server -> Client event stream
 	RunEventStream(*EventStreamRequest, Bridge_RunEventStreamServer) error
 	StopEventStream(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
@@ -875,6 +910,15 @@ func (UnimplementedBridgeServer) RemoveUser(context.Context, *wrapperspb.StringV
 }
 func (UnimplementedBridgeServer) ConfigureUserAppleMail(context.Context, *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigureUserAppleMail not implemented")
+}
+func (UnimplementedBridgeServer) ReportBugClicked(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReportBugClicked not implemented")
+}
+func (UnimplementedBridgeServer) AutoconfigClicked(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AutoconfigClicked not implemented")
+}
+func (UnimplementedBridgeServer) KBArticleClicked(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method KBArticleClicked not implemented")
 }
 func (UnimplementedBridgeServer) RunEventStream(*EventStreamRequest, Bridge_RunEventStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method RunEventStream not implemented")
@@ -1885,6 +1929,60 @@ func _Bridge_ConfigureUserAppleMail_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Bridge_ReportBugClicked_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).ReportBugClicked(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/ReportBugClicked",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).ReportBugClicked(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Bridge_AutoconfigClicked_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrapperspb.StringValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).AutoconfigClicked(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/AutoconfigClicked",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).AutoconfigClicked(ctx, req.(*wrapperspb.StringValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Bridge_KBArticleClicked_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrapperspb.StringValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).KBArticleClicked(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/KBArticleClicked",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).KBArticleClicked(ctx, req.(*wrapperspb.StringValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Bridge_RunEventStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(EventStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -2150,6 +2248,18 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ConfigureUserAppleMail",
 			Handler:    _Bridge_ConfigureUserAppleMail_Handler,
+		},
+		{
+			MethodName: "ReportBugClicked",
+			Handler:    _Bridge_ReportBugClicked_Handler,
+		},
+		{
+			MethodName: "AutoconfigClicked",
+			Handler:    _Bridge_AutoconfigClicked_Handler,
+		},
+		{
+			MethodName: "KBArticleClicked",
+			Handler:    _Bridge_KBArticleClicked_Handler,
 		},
 		{
 			MethodName: "StopEventStream",

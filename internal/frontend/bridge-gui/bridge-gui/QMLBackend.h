@@ -187,6 +187,9 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void onVersionChanged(); ///< Slot for the version change signal.
     void setMailServerSettings(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) const; ///< Forwards a connection mode change request from QML to gRPC
     void sendBadEventUserFeedback(QString const &userID, bool doResync); ///< Slot the providing user feedback for a bad event.
+    void notifyReportBugClicked() const; ///< Slot for the ReportBugClicked gRPC event.
+    void notifyAutoconfigClicked(QString const &client) const; ///< Slot for gAutoconfigClicked gRPC event.
+    void notifyKBArticleClicked(QString const &article) const; ///< Slot for KBArticleClicked gRPC event.
 
 public slots: // slots for functions that need to be processed locally.
     void setNormalTrayIcon(); ///< Set the tray icon to normal.

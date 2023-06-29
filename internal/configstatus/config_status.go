@@ -137,6 +137,39 @@ func (status *ConfigurationStatus) RecordLinkClicked(link uint) error {
 	return nil
 }
 
+func (status *ConfigurationStatus) ReportClicked() error {
+	status.DataLock.Lock()
+	defer status.DataLock.Unlock()
+
+	if !status.Data.DataV1.ReportClick {
+		status.Data.DataV1.ReportClick = true
+		return status.Save()
+	}
+	return nil
+}
+
+func (status *ConfigurationStatus) ReportSent() error {
+	status.DataLock.Lock()
+	defer status.DataLock.Unlock()
+
+	if !status.Data.DataV1.ReportSent {
+		status.Data.DataV1.ReportSent = true
+		return status.Save()
+	}
+	return nil
+}
+
+func (status *ConfigurationStatus) AutoconfigUsed(client string) error {
+	status.DataLock.Lock()
+	defer status.DataLock.Unlock()
+
+	if client != status.Data.DataV1.Autoconf {
+		status.Data.DataV1.Autoconf = client
+		return status.Save()
+	}
+	return nil
+}
+
 func (data *ConfigurationStatusData) init() {
 	data.Metadata = Metadata{
 		Version: version,

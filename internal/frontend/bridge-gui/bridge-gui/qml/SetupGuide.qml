@@ -288,7 +288,8 @@ Item {
             if (user) {
                 switch (clientID) {
                     case 0:
-                    root.user.configureAppleMail(root.address)
+                        root.user.configureAppleMail(root.address)
+                        Backend.notifyAutoconfigClicked("AppleMail");
                     break;
                 }
             }
@@ -298,6 +299,7 @@ Item {
             var clientObj = clients.get(clientID)
             if (clientObj != undefined && clientObj.link != "" ) {
                 Qt.openUrlExternally(clientObj.link)
+                Backend.notifyKBArticleClicked(clientObj.link);
             } else {
                 console.log("unexpected client index", actionID, clientID)
             }
