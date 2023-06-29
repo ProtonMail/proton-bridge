@@ -113,12 +113,15 @@ bool FocusGRPCClient::connectToServer(qint64 timeoutMs, quint16 port, QString *o
 
 
 //****************************************************************************************************************************************************
+/// \param[in] reason The reason behind the raise call.
 /// \return The status for the call.
 //****************************************************************************************************************************************************
-grpc::Status FocusGRPCClient::raise() {
+grpc::Status FocusGRPCClient::raise(QString const &reason) {
     log_.debug("FocusGRPCService::raise()");
     ClientContext ctx;
-    return stub_->Raise(&ctx, empty, &empty);
+    StringValue s;
+    s.set_value(reason.toStdString());
+    return stub_->Raise(&ctx, s, &empty);
 }
 
 

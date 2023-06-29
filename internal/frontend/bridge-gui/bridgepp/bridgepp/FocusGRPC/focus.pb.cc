@@ -58,22 +58,23 @@ static const ::_pb::Message* const file_default_instances[] = {
 
 const char descriptor_table_protodef_focus_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\013focus.proto\022\005focus\032\033google/protobuf/em"
-  "pty.proto\"\"\n\017VersionResponse\022\017\n\007version\030"
-  "\001 \001(\t2{\n\005Focus\0227\n\005Raise\022\026.google.protobu"
-  "f.Empty\032\026.google.protobuf.Empty\0229\n\007Versi"
-  "on\022\026.google.protobuf.Empty\032\026.focus.Versi"
-  "onResponseB=Z;github.com/ProtonMail/prot"
-  "on-bridge/v3/internal/focus/protob\006proto"
-  "3"
+  "pty.proto\032\036google/protobuf/wrappers.prot"
+  "o\"\"\n\017VersionResponse\022\017\n\007version\030\001 \001(\t2\201\001"
+  "\n\005Focus\022=\n\005Raise\022\034.google.protobuf.Strin"
+  "gValue\032\026.google.protobuf.Empty\0229\n\007Versio"
+  "n\022\026.google.protobuf.Empty\032\026.focus.Versio"
+  "nResponseB=Z;github.com/ProtonMail/proto"
+  "n-bridge/v3/internal/focus/protob\006proto3"
   ;
-static const ::_pbi::DescriptorTable* const descriptor_table_focus_2eproto_deps[1] = {
+static const ::_pbi::DescriptorTable* const descriptor_table_focus_2eproto_deps[2] = {
   &::descriptor_table_google_2fprotobuf_2fempty_2eproto,
+  &::descriptor_table_google_2fprotobuf_2fwrappers_2eproto,
 };
 static ::_pbi::once_flag descriptor_table_focus_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_focus_2eproto = {
-    false, false, 281, descriptor_table_protodef_focus_2eproto,
+    false, false, 320, descriptor_table_protodef_focus_2eproto,
     "focus.proto",
-    &descriptor_table_focus_2eproto_once, descriptor_table_focus_2eproto_deps, 1, 1,
+    &descriptor_table_focus_2eproto_once, descriptor_table_focus_2eproto_deps, 2, 1,
     schemas, file_default_instances, TableStruct_focus_2eproto::offsets,
     file_level_metadata_focus_2eproto, file_level_enum_descriptors_focus_2eproto,
     file_level_service_descriptors_focus_2eproto,

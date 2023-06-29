@@ -30,6 +30,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 // TryRaise tries to raise the application by dialing the focus service.
@@ -38,7 +39,7 @@ func TryRaise(settingsPath string) bool {
 	var raised bool
 
 	if err := withClientConn(context.Background(), settingsPath, func(ctx context.Context, client proto.FocusClient) error {
-		if _, err := client.Raise(ctx, &emptypb.Empty{}); err != nil {
+		if _, err := client.Raise(ctx, &wrapperspb.StringValue{Value: "TryRaise"}); err != nil {
 			return fmt.Errorf("failed to call client.Raise: %w", err)
 		}
 

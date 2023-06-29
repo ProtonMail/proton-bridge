@@ -213,7 +213,7 @@ void focusOtherInstance() {
         if (!client.connectToServer(5000, sc.port, &error)) {
             throw Exception("Could not connect to bridge focus service for a raise call.", error);
         }
-        if (!client.raise().ok()) {
+        if (!client.raise("focusOtherInstance").ok()) {
             throw Exception(QString("The raise call to the bridge focus service failed."));
         }
     }

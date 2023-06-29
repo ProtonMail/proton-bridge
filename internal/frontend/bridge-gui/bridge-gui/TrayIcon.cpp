@@ -34,7 +34,7 @@ QColor const warnColor(255, 153, 0); ///< The warn state color.
 QColor const updateColor(35, 158, 206); ///< The warn state color.
 QColor const greyColor(112, 109, 107); ///< The grey color.
 qint64 const iconRefreshTimerIntervalMs = 1000; ///< The interval for the refresh timer when switching DPI / screen config, in milliseconds.
-qint64 const iconRefreshDurationSecs = 10; ///< The total number of seconds during wich we periodically refresh the icon after a DPI change.
+qint64 const iconRefreshDurationSecs = 10; ///< The total number of seconds during which we periodically refresh the icon after a DPI change.
 
 
 //****************************************************************************************************************************************************
@@ -184,10 +184,12 @@ TrayIcon::TrayIcon()
     this->setContextMenu(menu_.get());
 
     connect(menu_.get(), &QMenu::aboutToShow, this, &TrayIcon::onMenuAboutToShow);
-    connect(this, &TrayIcon::selectUser, &app().backend(), &QMLBackend::selectUser);
+    connect(this, &TrayIcon::selectUser, &app().backend(), [](QString const& userID, bool forceShowWindow) {
+        app().backend().selectUser(userID, forceShowWindow);
+    });
     connect(this, &TrayIcon::activated, this, &TrayIcon::onActivated);
     // some OSes/Desktop managers will automatically show main window when clicked, but not all, so we do it manually.
-    connect(this, &TrayIcon::messageClicked, &app().backend(), &QMLBackend::showMainWindow);
+    connect(this, &TrayIcon::messageClicked, []() { app().backend().showMainWindow("tray icon popup notification clicked"); });
     this->show();
 
     // TrayIcon does not expose its screen, so we connect relevant screen events to our DPI change handler.
@@ -226,7 +228,7 @@ void TrayIcon::onUserClicked() {
             throw Exception("Could not retrieve context menu's selected user.");
         }
 
-        emit selectUser(userID, true);
+        app().backend().selectUser(userID, true, "tray menu user clicked");
     } catch (Exception const &e) {
         app().log().error(e.qwhat());
     }
@@ -238,7 +240,7 @@ void TrayIcon::onUserClicked() {
 //****************************************************************************************************************************************************
 void TrayIcon::onActivated(QSystemTrayIcon::ActivationReason reason) {
     if ((QSystemTrayIcon::Trigger == reason) && !onMacOS()) {
-        app().backend().showMainWindow();
+        app().backend().showMainWindow("tray icon activated");
     }
 }
 
@@ -345,7 +347,7 @@ void TrayIcon::refreshContextMenu() {
     }
 
     menu_->clear();
-    menu_->addAction(statusIcon_, stateString_, &app().backend(), &QMLBackend::showMainWindow);
+    menu_->addAction(statusIcon_, stateString_, []() {app().backend().showMainWindow("tray menu status clicked");});
     menu_->addSeparator();
     QKeySequence noShortcut;
     UserList const &users = app().backend().users();
@@ -367,11 +369,15 @@ void TrayIcon::refreshContextMenu() {
         menu_->addSeparator();
     }
 
-    menu_->addAction(tr("&Open Bridge"), onMac ? QKeySequence("Ctrl+O") : noShortcut, &app().backend(), &QMLBackend::showMainWindow);
-    menu_->addAction(tr("&Help"), onMac ? QKeySequence("Ctrl+F1") : noShortcut, &app().backend(), &QMLBackend::showHelp);
-    menu_->addAction(tr("&Settings"), onMac ? QKeySequence("Ctrl+,") : noShortcut, &app().backend(), &QMLBackend::showSettings);
+    menu_->addAction(tr("&Open Bridge"), onMac ? QKeySequence("Ctrl+O") : noShortcut, []() {
+        app().backend().showMainWindow("tray menu 'open bridge' clicked");
+    });
+    menu_->addAction(tr("&Help"), onMac ? QKeySequence("Ctrl+F1") : noShortcut, []() {
+        app().backend().showHelp("tray menu 'Help' clicked");
+    });
+    menu_->addAction(tr("&Settings"), onMac ? QKeySequence("Ctrl+,") : noShortcut, []() {
+        app().backend().showHelp("tray menu 'Settings' clicked");
+    });
     menu_->addSeparator();
     menu_->addAction(tr("&Quit Bridge"), onMac ? QKeySequence("Ctrl+Q") : noShortcut, &app().backend(), &QMLBackend::quit);
 }
-
-
