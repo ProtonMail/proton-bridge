@@ -119,7 +119,7 @@ func (s *scenario) forceConfigStatusProgressToBeSentForUser(username string) err
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	return json.NewEncoder(f).Encode(data)
 }
