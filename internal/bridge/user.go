@@ -243,7 +243,7 @@ func (bridge *Bridge) LogoutUser(ctx context.Context, userID string) error {
 func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
 	logrus.WithField("userID", userID).Info("Deleting user")
 
-	telemetry := bridge.IsTelemetryAvailable()
+	useTelemetry := bridge.IsTelemetryAvailable()
 
 	return safe.LockRet(func() error {
 		if !bridge.vault.HasUser(userID) {
@@ -251,7 +251,7 @@ func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
 		}
 
 		if user, ok := bridge.users[userID]; ok {
-			bridge.logoutUser(ctx, user, true, true, telemetry)
+			bridge.logoutUser(ctx, user, true, true, useTelemetry)
 		}
 
 		if err := bridge.vault.DeleteUser(userID); err != nil {
