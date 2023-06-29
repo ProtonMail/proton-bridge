@@ -33,7 +33,7 @@ using namespace bridgepp;
 /// \brief handle notification of attempt to re-open the application.
 //****************************************************************************************************************************************************
 void applicationShouldHandleReopen(id, SEL) {
-    app().backend().showMainWindow();
+    app().backend().showMainWindow("macOS applicationShouldHandleReopen notification");
 }
 
 

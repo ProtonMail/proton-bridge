@@ -30,6 +30,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 const (
@@ -91,8 +92,8 @@ func NewService(locator service.Locator, version *semver.Version, panicHandler a
 }
 
 // Raise implements the gRPC FocusService interface; it raises the application.
-func (service *Service) Raise(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
-	service.log.Debug("Raise")
+func (service *Service) Raise(_ context.Context, reason *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	service.log.WithField("Reason", reason.Value).Debug("Raise")
 	service.raiseCh <- struct{}{}
 	return &emptypb.Empty{}, nil
 }

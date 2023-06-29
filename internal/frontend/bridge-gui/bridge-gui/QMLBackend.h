@@ -46,6 +46,10 @@ public: // member functions.
     bool waitForEventStreamReaderToFinish(qint32 timeoutMs); ///< Wait for the event stream reader to finish.
     UserList const& users() const; ///< Return the list of users
     bool isInternetOn() const; ///< Check if bridge considers internet as on.
+    void showMainWindow(QString const &reason); ///< Show the main window.
+    void showHelp(QString const &reason); ///< Show the help page.
+    void showSettings(QString const &reason); ///< Show the settings page.
+    void selectUser(QString const &userID, bool forceShowWindow, QString const &reason); ///< Select the user and display its account details (or login screen).
 
     // invokable methods can be called from QML. They generally return a value, which slots cannot do.
     Q_INVOKABLE static QString buildYear(); ///< Return the application build year.

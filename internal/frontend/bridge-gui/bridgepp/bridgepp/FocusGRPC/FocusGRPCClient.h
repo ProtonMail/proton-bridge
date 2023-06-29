@@ -45,7 +45,7 @@ public: // member functions.
     FocusGRPCClient &operator=(FocusGRPCClient &&) = delete; ///< Disabled move assignment operator.
 
     bool connectToServer(qint64 timeoutMs, quint16 port, QString *outError = nullptr); ///< Connect to the focus server
-    grpc::Status raise(); ///< Performs the 'raise' call.
+    grpc::Status raise(QString const &reason); ///< Performs the 'raise' call.
     grpc::Status version(QString &outVersion); ///< Performs the 'version' call.
 
 private:

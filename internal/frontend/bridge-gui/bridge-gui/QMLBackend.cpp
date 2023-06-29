@@ -116,6 +116,46 @@ bool QMLBackend::isInternetOn() const {
     return isInternetOn_;
 }
 
+
+//****************************************************************************************************************************************************
+/// \param[in] reason The reason for the request.
+//****************************************************************************************************************************************************
+void QMLBackend::showMainWindow(QString const&reason) {
+    app().log().debug(QString("main window show requested: %1").arg(reason));
+    emit showMainWindow();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] reason The reason for the request.
+//****************************************************************************************************************************************************
+void QMLBackend::showHelp(QString const&reason) {
+    app().log().debug(QString("main window show requested (help page): %1").arg(reason));
+    emit showHelp();
+}
+
+//****************************************************************************************************************************************************
+/// \param[in] reason The reason for the request.
+//****************************************************************************************************************************************************
+void QMLBackend::showSettings(QString const&reason) {
+    app().log().debug(QString("main window show requested (settings page): %1").arg(reason));
+    emit showSettings();
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userID The userID.
+/// \param[in] forceShowWindow Should the window be force to display.
+/// \param[in] reason The reason for the request.
+//****************************************************************************************************************************************************
+void QMLBackend::selectUser(QString const &userID, bool forceShowWindow, QString const &reason) {
+    if (forceShowWindow) {
+        app().log().debug(QString("main window show requested (user page): %1").arg(reason));
+    }
+    emit selectUser(userID, forceShowWindow);
+}
+
+
 //****************************************************************************************************************************************************
 /// \return The build year as a string (e.g. 2023)
 //****************************************************************************************************************************************************
@@ -1116,7 +1156,7 @@ void QMLBackend::connectGrpcEvents() {
     connect(client, &GRPCClient::reportBugFinished, this, &QMLBackend::reportBugFinished);
     connect(client, &GRPCClient::reportBugSuccess, this, &QMLBackend::bugReportSendSuccess);
     connect(client, &GRPCClient::reportBugError, this, &QMLBackend::bugReportSendError);
-    connect(client, &GRPCClient::showMainWindow, this, &QMLBackend::showMainWindow);
+    connect(client, &GRPCClient::showMainWindow, [&]() { this->showMainWindow("gRPC showMainWindow event"); });
 
     // cache events
     connect(client, &GRPCClient::diskCacheUnavailable, this, &QMLBackend::diskCacheUnavailable);
