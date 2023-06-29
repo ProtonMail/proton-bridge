@@ -50,6 +50,7 @@ stages:
 # ENV
 .env-windows:
   before_script:
+    - export BRIDGE_SYNC_FORCE_MINIMUM_SPEC=1
     - export GOROOT=/c/Go1.20/
     - export PATH=$GOROOT/bin:$PATH
     - export GOARCH=amd64
