@@ -154,3 +154,58 @@ func (user *User) ReportConfigStatusFailure(errDetails string) {
 		user.log.Info("Configuration Status is back to Pending due to Failure.")
 	}
 }
+
+func (user *User) ReportBugClicked() {
+	if !user.configStatus.IsPending() {
+		return
+	}
+
+	if err := user.configStatus.ReportClicked(); err != nil {
+		user.log.WithError(err).Error("Failed to log ReportClicked in config_status.")
+	}
+}
+
+func (user *User) ReportBugSent() {
+	if !user.configStatus.IsPending() {
+		return
+	}
+
+	if err := user.configStatus.ReportSent(); err != nil {
+		user.log.WithError(err).Error("Failed to log ReportSent in config_status.")
+	}
+}
+
+func (user *User) AutoconfigUsed(client string) {
+	if !user.configStatus.IsPending() {
+		return
+	}
+
+	if err := user.configStatus.AutoconfigUsed(client); err != nil {
+		user.log.WithError(err).Error("Failed to log Autoconf in config_status.")
+	}
+}
+
+func (user *User) KBArticleOpened(article string) {
+	if !user.configStatus.IsPending() {
+		return
+	}
+
+	var kb_articles_to_track = [...]string{
+		"https://proton.me/support/bridge",
+		"https://proton.me/support/protonmail-bridge-clients-apple-mail",
+		"https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019",
+		"https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
+		"https://proton.me/support/protonmail-bridge-clients-windows-thunderbird",
+		"https://proton.me/support/protonmail-bridge-configure-client",
+	}
+
+	for id, url := range kb_articles_to_track {
+		if url == article {
+			if err := user.configStatus.RecordLinkClicked(uint(id)); err != nil {
+				user.log.WithError(err).Error("Failed to log LinkClicked in config_status.")
+			}
+			return
+		}
+	}
+	user.log.WithField("article", article).Error("Failed to find KB article id.")
+}

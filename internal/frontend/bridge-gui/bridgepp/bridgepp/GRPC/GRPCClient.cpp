@@ -1486,5 +1486,25 @@ UPClientContext GRPCClient::clientContext() const {
     return ctx;
 }
 
+//****************************************************************************************************************************************************
+/// \param[in] userID The user ID.
+/// \param[in] address The email address.
+/// \return the status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::reportBugClicked() {
+    return this->logGRPCCallStatus(stub_->ReportBugClicked(this->clientContext().get(), empty, &empty), __FUNCTION__);
+}
+
+grpc::Status GRPCClient::autoconfigClicked(QString const &client) {
+    StringValue s;
+    s.set_value(client.toStdString());
+    return this->logGRPCCallStatus(stub_->AutoconfigClicked(this->clientContext().get(), s, &empty), __FUNCTION__);
+}
+
+grpc::Status GRPCClient::KBArticleClicked(QString const &article) {
+    StringValue s;
+    s.set_value(article.toStdString());
+    return this->logGRPCCallStatus(stub_->KBArticleClicked(this->clientContext().get(), s, &empty), __FUNCTION__);
+}
 
 } // namespace bridgepp

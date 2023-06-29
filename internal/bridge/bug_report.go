@@ -29,6 +29,7 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 )
 
@@ -104,6 +105,12 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, descript
 			Body:     body,
 		})
 	}
+
+	safe.Lock(func() {
+		for _, user := range bridge.users {
+			user.ReportBugSent()
+		}
+	}, bridge.usersLock)
 
 	return bridge.api.ReportBug(ctx, proton.ReportBugReq{
 		OS:        osType,
