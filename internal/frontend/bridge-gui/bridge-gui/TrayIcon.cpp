@@ -189,7 +189,9 @@ TrayIcon::TrayIcon()
     });
     connect(this, &TrayIcon::activated, this, &TrayIcon::onActivated);
     // some OSes/Desktop managers will automatically show main window when clicked, but not all, so we do it manually.
-    connect(this, &TrayIcon::messageClicked, []() { app().backend().showMainWindow("tray icon popup notification clicked"); });
+    if (!onLinux()) { // we disable this on linux because of a Qt bug that causes the signal to be emitted for other apps (GODT-2750)
+        connect(this, &TrayIcon::messageClicked, []() { app().backend().showMainWindow("tray icon popup notification clicked"); });
+    }
     this->show();
 
     // TrayIcon does not expose its screen, so we connect relevant screen events to our DPI change handler.
