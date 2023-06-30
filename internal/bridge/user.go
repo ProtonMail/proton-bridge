@@ -601,8 +601,8 @@ func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, 
 	defer delete(bridge.users, user.ID())
 
 	// if this is actually a remove account
-	if withTelemetry && withData && withAPI {
-		user.SendConfigStatusAbort()
+	if withData && withAPI {
+		user.SendConfigStatusAbort(withTelemetry)
 	}
 
 	logrus.WithFields(logrus.Fields{

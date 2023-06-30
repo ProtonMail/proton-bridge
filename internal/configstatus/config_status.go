@@ -170,6 +170,12 @@ func (status *ConfigurationStatus) AutoconfigUsed(client string) error {
 	return nil
 }
 
+func (status *ConfigurationStatus) Remove() error {
+	status.DataLock.Lock()
+	defer status.DataLock.Unlock()
+	return os.Remove(status.FilePath)
+}
+
 func (data *ConfigurationStatusData) init() {
 	data.Metadata = Metadata{
 		Version: version,

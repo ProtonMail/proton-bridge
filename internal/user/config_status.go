@@ -57,11 +57,17 @@ func (user *User) SendConfigStatusSuccess() {
 	}
 }
 
-func (user *User) SendConfigStatusAbort() {
+func (user *User) SendConfigStatusAbort(withTelemetry bool) {
+	if err := user.configStatus.Remove(); err != nil {
+		user.log.WithError(err).Error("Failed to remove config_status file.")
+	}
+
 	if !user.configStatus.IsPending() {
 		return
 	}
-
+	if !withTelemetry {
+		return
+	}
 	var builder configstatus.ConfigAbortBuilder
 	abort := builder.New(user.configStatus.Data)
 	data, err := json.Marshal(abort)
