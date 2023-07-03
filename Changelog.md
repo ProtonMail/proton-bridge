@@ -3,6 +3,34 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Stone Bridge 3.3.1
+
+### Added
+
+### Changed
+* GODT-2674: Add more logs during update failed.
+* GODT-2750: Disable raise on main window when a notification is clicked on Linux.
+* GODT-2709: Remove the config status file when user is removed.
+* GODT-2748: Log calls that cause main window to show, with reason.
+* GODT-2705: Added log entries for focus service on client and server sides.
+* GODT-2712: Feed config_status with user action while pending.
+* GODT-2728: Remove the sentry report for gRPC event stream interruptions in bridge-gui.
+* GODT-2715: Add Unitary test for configStatus event.
+* GODT-2715: Add Functional test for configStatus telemetry event.
+* Disable windows runner.
+* GODT-2714: Apply PR comments.
+* GODT-2714: Set Configuration Status to Failure and send Recovery event when issue is solved.
+* GODT-2713: Send config_progress event once a day if the configuration is stucked in pending for more than a day.
+* GODT-2711: Send config_abort event on User removal.
+* GODT-2710: Send config success on IMAP/SMTP connection..
+* GODT-2716: Make Configuration Statistics persistent.
+* GODT-2709: Init Configuration status.
+* Log errors on failed message Downloads.
+
+### Fixed
+* GODT-2726: Fix Parsing of Details field in GPA error message.
+
+
 ## Stone Bridge 3.3.0
 
 ### Changed
