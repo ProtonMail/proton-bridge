@@ -378,7 +378,7 @@ void TrayIcon::refreshContextMenu() {
         app().backend().showHelp("tray menu 'Help' clicked");
     });
     menu_->addAction(tr("&Settings"), onMac ? QKeySequence("Ctrl+,") : noShortcut, []() {
-        app().backend().showHelp("tray menu 'Settings' clicked");
+        app().backend().showSettings("tray menu 'Settings' clicked");
     });
     menu_->addSeparator();
     menu_->addAction(tr("&Quit Bridge"), onMac ? QKeySequence("Ctrl+Q") : noShortcut, &app().backend(), &QMLBackend::quit);
