@@ -8,6 +8,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Added
 
 ### Changed
+* GODT-2707: Set bridge-gui default log level to 'debug'.
 * GODT-2674: Add more logs during update failed.
 * GODT-2750: Disable raise on main window when a notification is clicked on Linux.
 * GODT-2709: Remove the config status file when user is removed.
@@ -29,6 +30,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Fixed
 * GODT-2726: Fix Parsing of Details field in GPA error message.
+* GODT-2708: Fix dimensions event format + handling of ReportClicked event.
+* GODT-2756: Fix for 'Settings' context menu opening the 'Help' page.
 
 
 ## Stone Bridge 3.3.0
