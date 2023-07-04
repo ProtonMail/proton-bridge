@@ -39,9 +39,9 @@ func TestConfigurationRecovery_default(t *testing.T) {
 	require.Equal(t, "bridge_config_recovery", req.Event)
 	require.Equal(t, 0, req.Values.Duration)
 	require.Equal(t, "", req.Dimensions.Autoconf)
-	require.Equal(t, false, req.Dimensions.ReportClick)
-	require.Equal(t, false, req.Dimensions.ReportSent)
-	require.Equal(t, uint64(0), req.Dimensions.ClickedLink)
+	require.Equal(t, "false", req.Dimensions.ReportClick)
+	require.Equal(t, "false", req.Dimensions.ReportSent)
+	require.Equal(t, "", req.Dimensions.ClickedLink)
 	require.Equal(t, "", req.Dimensions.FailureDetails)
 }
 
@@ -72,8 +72,8 @@ func TestConfigurationRecovery_fed(t *testing.T) {
 	require.Equal(t, "bridge_config_recovery", req.Event)
 	require.Equal(t, 10, req.Values.Duration)
 	require.Equal(t, "Mr TBird", req.Dimensions.Autoconf)
-	require.Equal(t, true, req.Dimensions.ReportClick)
-	require.Equal(t, false, req.Dimensions.ReportSent)
-	require.Equal(t, uint64(42), req.Dimensions.ClickedLink)
+	require.Equal(t, "true", req.Dimensions.ReportClick)
+	require.Equal(t, "false", req.Dimensions.ReportSent)
+	require.Equal(t, "[1,3,5]", req.Dimensions.ClickedLink)
 	require.Equal(t, "Not an error", req.Dimensions.FailureDetails)
 }

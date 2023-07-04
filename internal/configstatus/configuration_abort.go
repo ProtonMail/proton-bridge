@@ -17,16 +17,19 @@
 
 package configstatus
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 type ConfigAbortValues struct {
 	Duration int `json:"duration"`
 }
 
 type ConfigAbortDimensions struct {
-	ReportClick interface{} `json:"report_click"`
-	ReportSent  interface{} `json:"report_sent"`
-	ClickedLink uint64      `json:"clicked_link"`
+	ReportClick string `json:"report_click"`
+	ReportSent  string `json:"report_sent"`
+	ClickedLink string `json:"clicked_link"`
 }
 
 type ConfigAbortData struct {
@@ -46,9 +49,9 @@ func (*ConfigAbortBuilder) New(data *ConfigurationStatusData) ConfigAbortData {
 			Duration: int(time.Since(data.DataV1.PendingSince).Minutes()),
 		},
 		Dimensions: ConfigSuccessDimensions{
-			ReportClick: data.DataV1.ReportClick,
-			ReportSent:  data.DataV1.ReportSent,
-			ClickedLink: data.DataV1.ClickedLink,
+			ReportClick: strconv.FormatBool(data.DataV1.ReportClick),
+			ReportSent:  strconv.FormatBool(data.DataV1.ReportSent),
+			ClickedLink: data.clickedLinkToString(),
 		},
 	}
 }
