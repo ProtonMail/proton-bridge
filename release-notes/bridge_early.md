@@ -1,3 +1,14 @@
+## v3.3.1
+- 2023-07-06
+
+### New
+- Improved Bridge debugging capabilities by adding more information to the application logs
+- Started measuring the Bridge setup experience
+
+### Fixed
+- Temporarily removed clickable notifications on Linux to not raise the Bridge window when receiving non-Bridge notifications
+
+
 ## v3.3.0
 - 2023-06-08
 
