@@ -46,7 +46,7 @@ func (*ConfigProgressBuilder) New(data *ConfigurationStatusData) ConfigProgressD
 
 func numberOfDay(now, prev time.Time) int {
 	if now.IsZero() || prev.IsZero() {
-		return 0
+		return 1
 	}
 	if now.Year() > prev.Year() {
 		if now.YearDay() > prev.YearDay() {

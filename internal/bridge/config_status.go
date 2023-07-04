@@ -24,7 +24,7 @@ import (
 func (bridge *Bridge) ReportBugClicked() {
 	safe.Lock(func() {
 		for _, user := range bridge.users {
-			user.ReportBugSent()
+			user.ReportBugClicked()
 		}
 	}, bridge.usersLock)
 }

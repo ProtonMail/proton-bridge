@@ -38,7 +38,7 @@ func TestConfigurationProgress_default(t *testing.T) {
 	require.Equal(t, "bridge.any.configuration", req.MeasurementGroup)
 	require.Equal(t, "bridge_config_progress", req.Event)
 	require.Equal(t, 0, req.Values.NbDay)
-	require.Equal(t, 0, req.Values.NbDaySinceLast)
+	require.Equal(t, 1, req.Values.NbDaySinceLast)
 }
 
 func TestConfigurationProgress_fed(t *testing.T) {
