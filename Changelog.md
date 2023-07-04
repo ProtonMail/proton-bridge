@@ -8,6 +8,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Added
 
 ### Changed
+* Trift Bridge 3.4.0 changelog.
 * Remove gRPC auto-generated C++ source files.
 * GODT-2709: Remove the config status file when user is removed.
 * GODT-2749: Manual test-windows again.
@@ -56,6 +57,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2655: Display internal build time tag in log and GUI.
 
 ### Fixed
+* GODT-2708: Fix dimensions event format + handling of ReportClicked event.
+* GODT-2578: Refresh literals appended to Sent folder.
+* GODT-2756: Fix for 'Settings' context menu opening the 'Help' page.
 * GODT-2753: Vault test now check that value auto-assigned is first available port.
 * GODT-2522: Handle migration with unreferenced db values.
 * GODT-2693: Allow missing whitespace after header field colon.
