@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
@@ -74,8 +75,9 @@ func (status *ConfigurationStatus) Save() error {
 	if err != nil {
 		return err
 	}
-
-	err = json.NewEncoder(f).Encode(status.Data)
+	enc := json.NewEncoder(f)
+	enc.SetIndent("", "  ")
+	err = enc.Encode(status.Data)
 	if err := f.Close(); err != nil {
 		logrus.WithError(err).Error("Error while closing configstatus file.")
 	}
@@ -196,4 +198,24 @@ func (data *ConfigurationStatusData) setClickedLink(pos uint) {
 func (data *ConfigurationStatusData) hasLinkClicked(pos uint) bool {
 	val := data.DataV1.ClickedLink & (1 << pos)
 	return val > 0
+}
+
+func (data *ConfigurationStatusData) clickedLinkToString() string {
+	var str = ""
+	var first = true
+	for i := 0; i < 64; i++ {
+		if data.hasLinkClicked(uint(i)) {
+			if !first {
+				str += ","
+			} else {
+				first = false
+				str += "["
+			}
+			str += strconv.Itoa(i)
+		}
+	}
+	if str != "" {
+		str += "]"
+	}
+	return str
 }

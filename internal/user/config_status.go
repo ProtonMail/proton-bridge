@@ -124,10 +124,12 @@ func (user *User) SendConfigStatusProgress() {
 	if !user.configStatus.IsPending() {
 		return
 	}
-
 	var builder configstatus.ConfigProgressBuilder
 	progress := builder.New(user.configStatus.Data)
-	if progress.Values.NbDaySinceLast == 0 || progress.Values.NbDay == 0 {
+	if progress.Values.NbDay == 0 {
+		return
+	}
+	if progress.Values.NbDaySinceLast == 0 {
 		return
 	}
 

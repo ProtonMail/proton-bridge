@@ -18,6 +18,7 @@
 package configstatus
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -26,11 +27,11 @@ type ConfigRecoveryValues struct {
 }
 
 type ConfigRecoveryDimensions struct {
-	Autoconf       string      `json:"autoconf"`
-	ReportClick    interface{} `json:"report_click"`
-	ReportSent     interface{} `json:"report_sent"`
-	ClickedLink    uint64      `json:"clicked_link"`
-	FailureDetails string      `json:"failure_details"`
+	Autoconf       string `json:"autoconf"`
+	ReportClick    string `json:"report_click"`
+	ReportSent     string `json:"report_sent"`
+	ClickedLink    string `json:"clicked_link"`
+	FailureDetails string `json:"failure_details"`
 }
 
 type ConfigRecoveryData struct {
@@ -51,9 +52,9 @@ func (*ConfigRecoveryBuilder) New(data *ConfigurationStatusData) ConfigRecoveryD
 		},
 		Dimensions: ConfigRecoveryDimensions{
 			Autoconf:       data.DataV1.Autoconf,
-			ReportClick:    data.DataV1.ReportClick,
-			ReportSent:     data.DataV1.ReportSent,
-			ClickedLink:    data.DataV1.ClickedLink,
+			ReportClick:    strconv.FormatBool(data.DataV1.ReportClick),
+			ReportSent:     strconv.FormatBool(data.DataV1.ReportSent),
+			ClickedLink:    data.clickedLinkToString(),
 			FailureDetails: data.DataV1.FailureDetails,
 		},
 	}

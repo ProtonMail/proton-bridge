@@ -18,6 +18,7 @@
 package configstatus
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -26,10 +27,10 @@ type ConfigSuccessValues struct {
 }
 
 type ConfigSuccessDimensions struct {
-	Autoconf    string      `json:"autoconf"`
-	ReportClick interface{} `json:"report_click"`
-	ReportSent  interface{} `json:"report_sent"`
-	ClickedLink uint64      `json:"clicked_link"`
+	Autoconf    string `json:"autoconf"`
+	ReportClick string `json:"report_click"`
+	ReportSent  string `json:"report_sent"`
+	ClickedLink string `json:"clicked_link"`
 }
 
 type ConfigSuccessData struct {
@@ -50,9 +51,9 @@ func (*ConfigSuccessBuilder) New(data *ConfigurationStatusData) ConfigSuccessDat
 		},
 		Dimensions: ConfigSuccessDimensions{
 			Autoconf:    data.DataV1.Autoconf,
-			ReportClick: data.DataV1.ReportClick,
-			ReportSent:  data.DataV1.ReportSent,
-			ClickedLink: data.DataV1.ClickedLink,
+			ReportClick: strconv.FormatBool(data.DataV1.ReportClick),
+			ReportSent:  strconv.FormatBool(data.DataV1.ReportSent),
+			ClickedLink: data.clickedLinkToString(),
 		},
 	}
 }

@@ -38,9 +38,9 @@ func TestConfigurationAbort_default(t *testing.T) {
 	require.Equal(t, "bridge.any.configuration", req.MeasurementGroup)
 	require.Equal(t, "bridge_config_abort", req.Event)
 	require.Equal(t, 0, req.Values.Duration)
-	require.Equal(t, false, req.Dimensions.ReportClick)
-	require.Equal(t, false, req.Dimensions.ReportSent)
-	require.Equal(t, uint64(0), req.Dimensions.ClickedLink)
+	require.Equal(t, "false", req.Dimensions.ReportClick)
+	require.Equal(t, "false", req.Dimensions.ReportSent)
+	require.Equal(t, "", req.Dimensions.ClickedLink)
 }
 
 func TestConfigurationAbort_fed(t *testing.T) {
@@ -69,7 +69,7 @@ func TestConfigurationAbort_fed(t *testing.T) {
 	require.Equal(t, "bridge.any.configuration", req.MeasurementGroup)
 	require.Equal(t, "bridge_config_abort", req.Event)
 	require.Equal(t, 10, req.Values.Duration)
-	require.Equal(t, true, req.Dimensions.ReportClick)
-	require.Equal(t, false, req.Dimensions.ReportSent)
-	require.Equal(t, uint64(42), req.Dimensions.ClickedLink)
+	require.Equal(t, "true", req.Dimensions.ReportClick)
+	require.Equal(t, "false", req.Dimensions.ReportSent)
+	require.Equal(t, "[1,3,5]", req.Dimensions.ClickedLink)
 }
