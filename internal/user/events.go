@@ -648,23 +648,7 @@ func (user *User) handleUpdateMessageEvent(_ context.Context, message proton.Mes
 			"subject":   logging.Sensitive(message.Subject),
 		}).Info("Handling message updated event")
 
-		flags := imap.NewFlagSet()
-
-		if message.Seen() {
-			flags.AddToSelf(imap.FlagSeen)
-		}
-
-		if message.Starred() {
-			flags.AddToSelf(imap.FlagFlagged)
-		}
-
-		if message.IsDraft() {
-			flags.AddToSelf(imap.FlagDraft)
-		}
-
-		if message.IsRepliedAll == true || message.IsReplied == true { //nolint: gosimple
-			flags.AddToSelf(imap.FlagAnswered)
-		}
+		flags := buildFlagSetFromMessageMetadata(message)
 
 		update := imap.NewMessageMailboxesUpdated(
 			imap.MessageID(message.ID),
@@ -866,4 +850,26 @@ func safePublishMessageUpdate(user *User, addressID string, update imap.Update) 
 	v.Enqueue(update)
 
 	return true, nil
+}
+
+func buildFlagSetFromMessageMetadata(message proton.MessageMetadata) imap.FlagSet {
+	flags := imap.NewFlagSet()
+
+	if message.Seen() {
+		flags.AddToSelf(imap.FlagSeen)
+	}
+
+	if message.Starred() {
+		flags.AddToSelf(imap.FlagFlagged)
+	}
+
+	if message.IsDraft() {
+		flags.AddToSelf(imap.FlagDraft)
+	}
+
+	if message.IsRepliedAll == true || message.IsReplied == true { //nolint: gosimple
+		flags.AddToSelf(imap.FlagAnswered)
+	}
+
+	return flags
 }

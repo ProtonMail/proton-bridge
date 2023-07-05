@@ -312,6 +312,19 @@ func New(
 	})
 	fe.AddCmd(telemetryCmd)
 
+	dbgCmd := &ishell.Cmd{
+		Name: "debug",
+		Help: "Debug diagnostics ",
+	}
+
+	dbgCmd.AddCmd(&ishell.Cmd{
+		Name: "mailbox-state",
+		Help: "Verify local mailbox state against proton server state",
+		Func: fe.debugMailboxState,
+	})
+
+	fe.AddCmd(dbgCmd)
+
 	go fe.watchEvents(eventCh)
 
 	go func() {
