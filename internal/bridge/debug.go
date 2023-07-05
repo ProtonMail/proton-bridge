@@ -26,8 +26,10 @@ import (
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/bradenaw/juniper/iterator"
+	"github.com/bradenaw/juniper/xslices"
 	goimap "github.com/emersion/go-imap"
 	goimapclient "github.com/emersion/go-imap/client"
 	"github.com/sirupsen/logrus"
@@ -165,6 +167,33 @@ func (bridge *Bridge) CheckClientState(ctx context.Context, checkFlags bool, pro
 				return nil
 			}(account, mboxMap); err != nil {
 				return result, err
+			}
+		}
+
+		// Check for orphaned messages (only present in All Mail)
+		if progressCB != nil {
+			progressCB(fmt.Sprintf("Checking user %v for orphans", usr.Name()))
+		}
+		log.Debugf("Checking for orphans")
+
+		for _, m := range meta.Metadata {
+			filteredLabels := xslices.Filter(m.LabelIDs, func(t string) bool {
+				switch t {
+				case proton.AllMailLabel:
+					return false
+				case proton.AllSentLabel:
+					return false
+				case proton.AllDraftsLabel:
+					return false
+				case proton.OutboxLabel:
+					return false
+				default:
+					return true
+				}
+			})
+
+			if len(filteredLabels) == 0 {
+				log.Warnf("Message %v is only present in All Mail (Subject=%v)", m.ID, m.Subject)
 			}
 		}
 	}
