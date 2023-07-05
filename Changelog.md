@@ -8,11 +8,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Added
 
 ### Changed
-* Merge remote-tracking branch 'origin/devel' into release/trift.
-* Trift Bridge 3.4.0 changelog.
-* Merge remote-tracking branch 'origin/devel' into release/trift.
-* Merge remote-tracking branch 'origin/devel' into release/trift.
-* Trift Bridge 3.4.0 changelog.
 * Remove gRPC auto-generated C++ source files.
 * GODT-2709: Remove the config status file when user is removed.
 * GODT-2749: Manual test-windows again.
