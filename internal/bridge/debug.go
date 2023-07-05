@@ -21,6 +21,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/rfc822"
@@ -32,13 +34,30 @@ import (
 	"golang.org/x/exp/maps"
 )
 
+type CheckClientStateResult struct {
+	MissingMessages map[string]map[string]user.DiagMailboxMessage
+}
+
+func (c *CheckClientStateResult) AddMissingMessage(userID string, message user.DiagMailboxMessage) {
+	v, ok := c.MissingMessages[userID]
+	if !ok {
+		c.MissingMessages[userID] = map[string]user.DiagMailboxMessage{message.ID: message}
+	} else {
+		v[message.ID] = message
+	}
+}
+
 // CheckClientState checks the current IMAP client reported state against the proton server state and reports
 // anything that is out of place.
-func (bridge *Bridge) CheckClientState(ctx context.Context, checkFlags bool, progressCB func(string)) error {
+func (bridge *Bridge) CheckClientState(ctx context.Context, checkFlags bool, progressCB func(string)) (CheckClientStateResult, error) {
 	bridge.usersLock.RLock()
 	defer bridge.usersLock.RUnlock()
 
 	users := maps.Values(bridge.users)
+
+	result := CheckClientStateResult{
+		MissingMessages: make(map[string]map[string]user.DiagMailboxMessage),
+	}
 
 	for _, usr := range users {
 		if progressCB != nil {
@@ -48,7 +67,7 @@ func (bridge *Bridge) CheckClientState(ctx context.Context, checkFlags bool, pro
 		log.Debug("Retrieving all server metadata")
 		meta, err := usr.GetDiagnosticMetadata(ctx)
 		if err != nil {
-			return err
+			return result, err
 		}
 
 		success := true
@@ -61,13 +80,13 @@ func (bridge *Bridge) CheckClientState(ctx context.Context, checkFlags bool, pro
 		state, err := meta.BuildMailboxToMessageMap(usr)
 		if err != nil {
 			log.WithError(err).Error("Failed to build state")
-			return err
+			return result, err
 		}
 
 		info, err := bridge.GetUserInfo(usr.ID())
 		if err != nil {
 			log.WithError(err).Error("Failed to get user info")
-			return err
+			return result, err
 		}
 
 		addr := fmt.Sprintf("127.0.0.1:%v", bridge.GetIMAPPort())
@@ -121,6 +140,7 @@ func (bridge *Bridge) CheckClientState(ctx context.Context, checkFlags bool, pro
 								log.Errorf("Missing message '%v'", msg.ID)
 							}
 
+							result.AddMissingMessage(msg.UserID, msg)
 							continue
 						}
 
@@ -144,8 +164,36 @@ func (bridge *Bridge) CheckClientState(ctx context.Context, checkFlags bool, pro
 
 				return nil
 			}(account, mboxMap); err != nil {
-				return err
+				return result, err
 			}
+		}
+	}
+
+	return result, nil
+}
+
+func (bridge *Bridge) DebugDownloadFailedMessages(
+	ctx context.Context,
+	result CheckClientStateResult,
+	exportPath string,
+	progressCB func(string, int, int),
+) error {
+	bridge.usersLock.RLock()
+	defer bridge.usersLock.RUnlock()
+
+	for userID, messages := range result.MissingMessages {
+		usr, ok := bridge.users[userID]
+		if !ok {
+			return fmt.Errorf("failed to find user with id %v", userID)
+		}
+
+		userDir := filepath.Join(exportPath, userID)
+		if err := os.MkdirAll(userDir, 0o700); err != nil {
+			return fmt.Errorf("failed to create directory '%v': %w", userDir, err)
+		}
+
+		if err := usr.DebugDownloadMessages(ctx, userDir, messages, progressCB); err != nil {
+			return err
 		}
 	}
 
