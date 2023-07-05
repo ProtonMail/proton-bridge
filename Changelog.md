@@ -8,6 +8,10 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Added
 
 ### Changed
+* Merge remote-tracking branch 'origin/devel' into release/trift.
+* Trift Bridge 3.4.0 changelog.
+* Merge remote-tracking branch 'origin/devel' into release/trift.
+* Merge remote-tracking branch 'origin/devel' into release/trift.
 * Trift Bridge 3.4.0 changelog.
 * Remove gRPC auto-generated C++ source files.
 * GODT-2709: Remove the config status file when user is removed.
@@ -57,6 +61,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2655: Display internal build time tag in log and GUI.
 
 ### Fixed
+* GODT-2758: Fix panic in SetFlagsOnMessages.
 * GODT-2708: Fix dimensions event format + handling of ReportClicked event.
 * GODT-2578: Refresh literals appended to Sent folder.
 * GODT-2756: Fix for 'Settings' context menu opening the 'Help' page.
@@ -68,8 +73,6 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2680: Fix for C++ debugger not working on ARM64 because of OpenSSL 3.1.
 * GODT-2675: Update GPA to applye togin-gonic/gin patch + update COPYING_NOTES.
 * GODT-2672: Fix context cancelled when IMAP/SMTP parameters change is in progress.
-* GODT-2669: Display sentry ID in bridge init log.
-
 
 ## Stone Bridge 3.3.0
 
