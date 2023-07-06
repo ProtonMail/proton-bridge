@@ -9,6 +9,11 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Added
 
 ### Changed
+* Test: Add require.Eventually to TestBridge_UserAgentFromSMTPClient.
+* Test: Add smtp-send utility.
+* GODT-2759: Check for oprhan messages.
+* GODT-2759: Add prompt to download missing messages for analysis.
+* GODT-2759: CLI debug commands.
 * Remove gRPC auto-generated C++ source files.
 * GODT-2749: Manual test-windows again.
 * Test: Force all unit test to use minimum sync spec.
@@ -46,6 +51,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2680: Fix for C++ debugger not working on ARM64 because of OpenSSL 3.1.
 * GODT-2675: Update GPA to applye togin-gonic/gin patch + update COPYING_NOTES.
 * GODT-2672: Fix context cancelled when IMAP/SMTP parameters change is in progress.
+* GODT-2763: Missing Answered flag on Sync and Message Create.
+* GODT-2774: Only check telemetry availability for the current user.
+* GODT-2774: Add external context to telemetry tasks.
 
 
 ## [Bridge 3.3.1] Stone changelog
