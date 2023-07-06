@@ -32,7 +32,7 @@ import (
 
 const HeartbeatCheckInterval = time.Hour
 
-func (bridge *Bridge) IsTelemetryAvailable() bool {
+func (bridge *Bridge) IsTelemetryAvailable(ctx context.Context) bool {
 	var flag = true
 	if bridge.GetTelemetryDisabled() {
 		return false
@@ -40,14 +40,14 @@ func (bridge *Bridge) IsTelemetryAvailable() bool {
 
 	safe.RLock(func() {
 		for _, user := range bridge.users {
-			flag = flag && user.IsTelemetryEnabled(context.Background())
+			flag = flag && user.IsTelemetryEnabled(ctx)
 		}
 	}, bridge.usersLock)
 
 	return flag
 }
 
-func (bridge *Bridge) SendHeartbeat(heartbeat *telemetry.HeartbeatData) bool {
+func (bridge *Bridge) SendHeartbeat(ctx context.Context, heartbeat *telemetry.HeartbeatData) bool {
 	data, err := json.Marshal(heartbeat)
 	if err != nil {
 		if err := bridge.reporter.ReportMessageWithContext("Cannot parse heartbeat data.", reporter.Context{
@@ -62,7 +62,7 @@ func (bridge *Bridge) SendHeartbeat(heartbeat *telemetry.HeartbeatData) bool {
 
 	safe.RLock(func() {
 		for _, user := range bridge.users {
-			if err := user.SendTelemetry(context.Background(), data); err == nil {
+			if err := user.SendTelemetry(ctx, data); err == nil {
 				sent = true
 				break
 			}
@@ -87,7 +87,7 @@ func (bridge *Bridge) StartHeartbeat(manager telemetry.HeartbeatManager) {
 	bridge.goHeartbeat = bridge.tasks.PeriodicOrTrigger(HeartbeatCheckInterval, 0, func(ctx context.Context) {
 		logrus.Debug("Checking for heartbeat")
 
-		bridge.heartbeat.TrySending()
+		bridge.heartbeat.TrySending(ctx)
 	})
 
 	bridge.heartbeat.SetRollout(bridge.GetUpdateRollout())

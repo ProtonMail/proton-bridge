@@ -76,7 +76,7 @@ func newIMAPConnector(user *User, addrID string) *imapConnector {
 }
 
 // Authorize returns whether the given username/password combination are valid for this connector.
-func (conn *imapConnector) Authorize(username string, password []byte) bool {
+func (conn *imapConnector) Authorize(ctx context.Context, username string, password []byte) bool {
 	addrID, err := conn.CheckAuth(username, password)
 	if err != nil {
 		return false
@@ -86,7 +86,7 @@ func (conn *imapConnector) Authorize(username string, password []byte) bool {
 		return false
 	}
 
-	conn.User.SendConfigStatusSuccess()
+	conn.User.SendConfigStatusSuccess(ctx)
 
 	return true
 }
@@ -608,19 +608,7 @@ func (conn *imapConnector) importMessage(
 }
 
 func toIMAPMessage(message proton.MessageMetadata) imap.Message {
-	flags := imap.NewFlagSet()
-
-	if !message.Unread {
-		flags = flags.Add(imap.FlagSeen)
-	}
-
-	if slices.Contains(message.LabelIDs, proton.StarredLabel) {
-		flags = flags.Add(imap.FlagFlagged)
-	}
-
-	if slices.Contains(message.LabelIDs, proton.DraftsLabel) {
-		flags = flags.Add(imap.FlagDraft)
-	}
+	flags := buildFlagSetFromMessageMetadata(message)
 
 	var date time.Time
 
@@ -712,4 +700,26 @@ func toIMAPMailbox(label proton.Label, flags, permFlags, attrs imap.FlagSet) ima
 
 func isAllMailOrScheduled(mailboxID imap.MailboxID) bool {
 	return (mailboxID == proton.AllMailLabel) || (mailboxID == proton.AllScheduledLabel)
+}
+
+func buildFlagSetFromMessageMetadata(message proton.MessageMetadata) imap.FlagSet {
+	flags := imap.NewFlagSet()
+
+	if message.Seen() {
+		flags.AddToSelf(imap.FlagSeen)
+	}
+
+	if message.Starred() {
+		flags.AddToSelf(imap.FlagFlagged)
+	}
+
+	if message.IsDraft() {
+		flags.AddToSelf(imap.FlagDraft)
+	}
+
+	if message.IsRepliedAll == true || message.IsReplied == true { //nolint: gosimple
+		flags.AddToSelf(imap.FlagAnswered)
+	}
+
+	return flags
 }

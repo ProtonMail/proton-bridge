@@ -180,7 +180,7 @@ func New(
 
 	// Check for status_progress when triggered.
 	user.goStatusProgress = user.tasks.PeriodicOrTrigger(configstatus.ProgressCheckInterval, 0, func(ctx context.Context) {
-		user.SendConfigStatusProgress()
+		user.SendConfigStatusProgress(ctx)
 	})
 	defer user.goStatusProgress()
 

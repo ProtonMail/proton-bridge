@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 	time "time"
 
@@ -50,31 +51,31 @@ func (mr *MockHeartbeatManagerMockRecorder) GetLastHeartbeatSent() *gomock.Call 
 }
 
 // IsTelemetryAvailable mocks base method.
-func (m *MockHeartbeatManager) IsTelemetryAvailable() bool {
+func (m *MockHeartbeatManager) IsTelemetryAvailable(arg0 context.Context) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsTelemetryAvailable")
+	ret := m.ctrl.Call(m, "IsTelemetryAvailable", arg0)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // IsTelemetryAvailable indicates an expected call of IsTelemetryAvailable.
-func (mr *MockHeartbeatManagerMockRecorder) IsTelemetryAvailable() *gomock.Call {
+func (mr *MockHeartbeatManagerMockRecorder) IsTelemetryAvailable(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTelemetryAvailable", reflect.TypeOf((*MockHeartbeatManager)(nil).IsTelemetryAvailable))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTelemetryAvailable", reflect.TypeOf((*MockHeartbeatManager)(nil).IsTelemetryAvailable), arg0)
 }
 
 // SendHeartbeat mocks base method.
-func (m *MockHeartbeatManager) SendHeartbeat(arg0 *telemetry.HeartbeatData) bool {
+func (m *MockHeartbeatManager) SendHeartbeat(arg0 context.Context, arg1 *telemetry.HeartbeatData) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendHeartbeat", arg0)
+	ret := m.ctrl.Call(m, "SendHeartbeat", arg0, arg1)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // SendHeartbeat indicates an expected call of SendHeartbeat.
-func (mr *MockHeartbeatManagerMockRecorder) SendHeartbeat(arg0 interface{}) *gomock.Call {
+func (mr *MockHeartbeatManagerMockRecorder) SendHeartbeat(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendHeartbeat", reflect.TypeOf((*MockHeartbeatManager)(nil).SendHeartbeat), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendHeartbeat", reflect.TypeOf((*MockHeartbeatManager)(nil).SendHeartbeat), arg0, arg1)
 }
 
 // SetLastHeartbeatSent mocks base method.

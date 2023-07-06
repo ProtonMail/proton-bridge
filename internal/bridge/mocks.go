@@ -50,7 +50,7 @@ func NewMocks(tb testing.TB, version, minAuto *semver.Version) *Mocks {
 	mocks.CrashHandler.EXPECT().HandlePanic(gomock.Any()).AnyTimes()
 
 	// this is called at start of heartbeat process.
-	mocks.Heartbeat.EXPECT().IsTelemetryAvailable().AnyTimes()
+	mocks.Heartbeat.EXPECT().IsTelemetryAvailable(gomock.Any()).AnyTimes()
 
 	return mocks
 }

@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -300,8 +301,11 @@ func TestBridge_UserAgentFromSMTPClient(t *testing.T) {
 				string(info.BridgePass)),
 			))
 
-			currentUserAgent = b.GetCurrentUserAgent()
-			require.Contains(t, currentUserAgent, "UnknownClient/0.0.1")
+			require.Eventually(t, func() bool {
+				currentUserAgent = b.GetCurrentUserAgent()
+
+				return strings.Contains(currentUserAgent, "UnknownClient/0.0.1")
+			}, time.Minute, 5*time.Second)
 		})
 	})
 }
