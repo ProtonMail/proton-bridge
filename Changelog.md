@@ -29,6 +29,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Log errors on failed message Downloads.
 
 ### Fixed
+* GODT-2774: Only check telemetry availability for the current user.
+* GODT-2774: Add external context to telemetry tasks.
+* GODT-2774: Add context to Authorize in `gluon.Connector`.
 * GODT-2726: Fix Parsing of Details field in GPA error message.
 * GODT-2708: Fix dimensions event format + handling of ReportClicked event.
 * GODT-2756: Fix for 'Settings' context menu opening the 'Help' page.
