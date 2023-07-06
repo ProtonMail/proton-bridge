@@ -18,6 +18,7 @@
 package telemetry_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -52,21 +53,21 @@ func TestHeartbeat_default_heartbeat(t *testing.T) {
 			},
 		}
 
-		mock.EXPECT().IsTelemetryAvailable().Return(true)
+		mock.EXPECT().IsTelemetryAvailable(context.Background()).Return(true)
 		mock.EXPECT().GetLastHeartbeatSent().Return(time.Date(2022, 6, 4, 0, 0, 0, 0, time.UTC))
-		mock.EXPECT().SendHeartbeat(&data).Return(true)
+		mock.EXPECT().SendHeartbeat(context.Background(), &data).Return(true)
 		mock.EXPECT().SetLastHeartbeatSent(gomock.Any()).Return(nil)
 
-		hb.TrySending()
+		hb.TrySending(context.Background())
 	})
 }
 
 func TestHeartbeat_already_sent_heartbeat(t *testing.T) {
 	withHeartbeat(t, 1143, 1025, "/tmp", "defaultKeychain", func(hb *telemetry.Heartbeat, mock *mocks.MockHeartbeatManager) {
-		mock.EXPECT().IsTelemetryAvailable().Return(true)
+		mock.EXPECT().IsTelemetryAvailable(context.Background()).Return(true)
 		mock.EXPECT().GetLastHeartbeatSent().Return(time.Now().Truncate(24 * time.Hour))
 
-		hb.TrySending()
+		hb.TrySending(context.Background())
 	})
 }
 

@@ -76,7 +76,7 @@ func newIMAPConnector(user *User, addrID string) *imapConnector {
 }
 
 // Authorize returns whether the given username/password combination are valid for this connector.
-func (conn *imapConnector) Authorize(_ context.Context, username string, password []byte) bool {
+func (conn *imapConnector) Authorize(ctx context.Context, username string, password []byte) bool {
 	addrID, err := conn.CheckAuth(username, password)
 	if err != nil {
 		return false
@@ -86,7 +86,7 @@ func (conn *imapConnector) Authorize(_ context.Context, username string, passwor
 		return false
 	}
 
-	conn.User.SendConfigStatusSuccess()
+	conn.User.SendConfigStatusSuccess(ctx)
 
 	return true
 }
@@ -355,15 +355,17 @@ func (conn *imapConnector) CreateMessage(
 	}
 
 	msg, literal, err := conn.importMessage(ctx, literal, wantLabelIDs, wantFlags, unread)
-	if err != nil && errors.Is(err, proton.ErrImportSizeExceeded) {
-		// Remap error so that Gluon does not put this message in the recovery mailbox.
-		err = fmt.Errorf("%v: %w", err, connector.ErrMessageSizeExceedsLimits)
-	}
+	if err != nil {
+		if errors.Is(err, proton.ErrImportSizeExceeded) {
+			// Remap error so that Gluon does not put this message in the recovery mailbox.
+			err = fmt.Errorf("%v: %w", err, connector.ErrMessageSizeExceedsLimits)
+		}
 
-	if apiErr := new(proton.APIError); errors.As(err, &apiErr) {
-		logrus.WithError(apiErr).WithField("Details", apiErr.DetailsToString()).Error("Failed to import message")
-	} else {
-		logrus.WithError(err).Error("Failed to import message")
+		if apiErr := new(proton.APIError); errors.As(err, &apiErr) {
+			logrus.WithError(apiErr).WithField("Details", apiErr.DetailsToString()).Error("Failed to import message")
+		} else {
+			logrus.WithError(err).Error("Failed to import message")
+		}
 	}
 
 	return msg, literal, err

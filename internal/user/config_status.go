@@ -25,12 +25,12 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/configstatus"
 )
 
-func (user *User) SendConfigStatusSuccess() {
+func (user *User) SendConfigStatusSuccess(ctx context.Context) {
 	if user.configStatus.IsFromFailure() {
-		user.SendConfigStatusRecovery()
+		user.SendConfigStatusRecovery(ctx)
 		return
 	}
-	if !user.telemetryManager.IsTelemetryAvailable() {
+	if !user.telemetryManager.IsTelemetryAvailable(ctx) {
 		return
 	}
 	if !user.configStatus.IsPending() {
@@ -49,7 +49,7 @@ func (user *User) SendConfigStatusSuccess() {
 		return
 	}
 
-	if err := user.SendTelemetry(context.Background(), data); err == nil {
+	if err := user.SendTelemetry(ctx, data); err == nil {
 		user.log.Info("Configuration Status Success event sent.")
 		if err := user.configStatus.ApplySuccess(); err != nil {
 			user.log.WithError(err).Error("Failed to ApplySuccess on config_status.")
@@ -57,7 +57,7 @@ func (user *User) SendConfigStatusSuccess() {
 	}
 }
 
-func (user *User) SendConfigStatusAbort(withTelemetry bool) {
+func (user *User) SendConfigStatusAbort(ctx context.Context, withTelemetry bool) {
 	if err := user.configStatus.Remove(); err != nil {
 		user.log.WithError(err).Error("Failed to remove config_status file.")
 	}
@@ -80,17 +80,17 @@ func (user *User) SendConfigStatusAbort(withTelemetry bool) {
 		return
 	}
 
-	if err := user.SendTelemetry(context.Background(), data); err == nil {
+	if err := user.SendTelemetry(ctx, data); err == nil {
 		user.log.Info("Configuration Status Abort event sent.")
 	}
 }
 
-func (user *User) SendConfigStatusRecovery() {
+func (user *User) SendConfigStatusRecovery(ctx context.Context) {
 	if !user.configStatus.IsFromFailure() {
-		user.SendConfigStatusSuccess()
+		user.SendConfigStatusSuccess(ctx)
 		return
 	}
-	if !user.telemetryManager.IsTelemetryAvailable() {
+	if !user.telemetryManager.IsTelemetryAvailable(ctx) {
 		return
 	}
 	if !user.configStatus.IsPending() {
@@ -109,7 +109,7 @@ func (user *User) SendConfigStatusRecovery() {
 		return
 	}
 
-	if err := user.SendTelemetry(context.Background(), data); err == nil {
+	if err := user.SendTelemetry(ctx, data); err == nil {
 		user.log.Info("Configuration Status Recovery event sent.")
 		if err := user.configStatus.ApplySuccess(); err != nil {
 			user.log.WithError(err).Error("Failed to ApplySuccess on config_status.")
@@ -117,8 +117,8 @@ func (user *User) SendConfigStatusRecovery() {
 	}
 }
 
-func (user *User) SendConfigStatusProgress() {
-	if !user.telemetryManager.IsTelemetryAvailable() {
+func (user *User) SendConfigStatusProgress(ctx context.Context) {
+	if !user.telemetryManager.IsTelemetryAvailable(ctx) {
 		return
 	}
 	if !user.configStatus.IsPending() {
@@ -143,7 +143,7 @@ func (user *User) SendConfigStatusProgress() {
 		return
 	}
 
-	if err := user.SendTelemetry(context.Background(), data); err == nil {
+	if err := user.SendTelemetry(ctx, data); err == nil {
 		user.log.Info("Configuration Status Progress event sent.")
 		if err := user.configStatus.ApplyProgress(); err != nil {
 			user.log.WithError(err).Error("Failed to ApplyProgress on config_status.")

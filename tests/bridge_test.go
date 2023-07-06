@@ -314,7 +314,7 @@ func (s *scenario) bridgeTelemetryFeatureDisabled() error {
 }
 
 func (s *scenario) checkTelemetry(expect bool) error {
-	res := s.t.bridge.IsTelemetryAvailable()
+	res := s.t.bridge.IsTelemetryAvailable(context.Background())
 	if res != expect {
 		return fmt.Errorf("expected telemetry feature %v but got %v ", expect, res)
 	}

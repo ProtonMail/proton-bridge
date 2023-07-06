@@ -18,6 +18,7 @@
 package telemetry
 
 import (
+	"context"
 	"strconv"
 	"time"
 
@@ -149,12 +150,12 @@ func (heartbeat *Heartbeat) SetPrevVersion(val string) {
 	heartbeat.metrics.Dimensions.PrevVersion = val
 }
 
-func (heartbeat *Heartbeat) TrySending() {
-	if heartbeat.manager.IsTelemetryAvailable() {
+func (heartbeat *Heartbeat) TrySending(ctx context.Context) {
+	if heartbeat.manager.IsTelemetryAvailable(ctx) {
 		lastSent := heartbeat.manager.GetLastHeartbeatSent()
 		now := time.Now()
 		if now.Year() > lastSent.Year() || (now.Year() == lastSent.Year() && now.YearDay() > lastSent.YearDay()) {
-			if !heartbeat.manager.SendHeartbeat(&heartbeat.metrics) {
+			if !heartbeat.manager.SendHeartbeat(ctx, &heartbeat.metrics) {
 				heartbeat.log.WithFields(logrus.Fields{
 					"metrics": heartbeat.metrics,
 				}).Error("Failed to send heartbeat")

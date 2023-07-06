@@ -148,7 +148,7 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 	ctl := gomock.NewController(tb)
 	defer ctl.Finish()
 	manager := mocks.NewMockHeartbeatManager(ctl)
-	manager.EXPECT().IsTelemetryAvailable().AnyTimes()
+	manager.EXPECT().IsTelemetryAvailable(context.Background()).AnyTimes()
 	user, err := New(ctx, vaultUser, client, nil, apiUser, nil, true, vault.DefaultMaxSyncMemory, tb.TempDir(), manager)
 	require.NoError(tb, err)
 	defer user.Close()
