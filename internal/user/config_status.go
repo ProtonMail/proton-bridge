@@ -30,7 +30,7 @@ func (user *User) SendConfigStatusSuccess(ctx context.Context) {
 		user.SendConfigStatusRecovery(ctx)
 		return
 	}
-	if !user.telemetryManager.IsTelemetryAvailable(ctx) {
+	if !user.IsTelemetryEnabled(ctx) {
 		return
 	}
 	if !user.configStatus.IsPending() {
@@ -65,7 +65,7 @@ func (user *User) SendConfigStatusAbort(ctx context.Context, withTelemetry bool)
 	if !user.configStatus.IsPending() {
 		return
 	}
-	if !withTelemetry {
+	if !withTelemetry || !user.IsTelemetryEnabled(ctx) {
 		return
 	}
 	var builder configstatus.ConfigAbortBuilder
@@ -90,7 +90,7 @@ func (user *User) SendConfigStatusRecovery(ctx context.Context) {
 		user.SendConfigStatusSuccess(ctx)
 		return
 	}
-	if !user.telemetryManager.IsTelemetryAvailable(ctx) {
+	if !user.IsTelemetryEnabled(ctx) {
 		return
 	}
 	if !user.configStatus.IsPending() {
@@ -118,7 +118,7 @@ func (user *User) SendConfigStatusRecovery(ctx context.Context) {
 }
 
 func (user *User) SendConfigStatusProgress(ctx context.Context) {
-	if !user.telemetryManager.IsTelemetryAvailable(ctx) {
+	if !user.IsTelemetryEnabled(ctx) {
 		return
 	}
 	if !user.configStatus.IsPending() {
