@@ -851,25 +851,3 @@ func safePublishMessageUpdate(user *User, addressID string, update imap.Update) 
 
 	return true, nil
 }
-
-func buildFlagSetFromMessageMetadata(message proton.MessageMetadata) imap.FlagSet {
-	flags := imap.NewFlagSet()
-
-	if message.Seen() {
-		flags.AddToSelf(imap.FlagSeen)
-	}
-
-	if message.Starred() {
-		flags.AddToSelf(imap.FlagFlagged)
-	}
-
-	if message.IsDraft() {
-		flags.AddToSelf(imap.FlagDraft)
-	}
-
-	if message.IsRepliedAll == true || message.IsReplied == true { //nolint: gosimple
-		flags.AddToSelf(imap.FlagAnswered)
-	}
-
-	return flags
-}
