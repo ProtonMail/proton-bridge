@@ -18,6 +18,7 @@
 package bridge
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -61,7 +62,7 @@ func (s *smtpSession) AuthPlain(username, password string) error {
 				s.Bridge.setUserAgent(useragent.UnknownClient, useragent.DefaultVersion)
 			}
 
-			user.SendConfigStatusSuccess()
+			user.SendConfigStatusSuccess(context.Background())
 
 			return nil
 		}

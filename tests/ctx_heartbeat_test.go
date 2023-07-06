@@ -18,6 +18,7 @@
 package tests
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -54,14 +55,14 @@ func (hb *heartbeatRecorder) GetLastHeartbeatSent() time.Time {
 	return hb.bridge.GetLastHeartbeatSent()
 }
 
-func (hb *heartbeatRecorder) IsTelemetryAvailable() bool {
+func (hb *heartbeatRecorder) IsTelemetryAvailable(ctx context.Context) bool {
 	if hb.bridge == nil {
 		return false
 	}
-	return hb.bridge.IsTelemetryAvailable()
+	return hb.bridge.IsTelemetryAvailable(ctx)
 }
 
-func (hb *heartbeatRecorder) SendHeartbeat(metrics *telemetry.HeartbeatData) bool {
+func (hb *heartbeatRecorder) SendHeartbeat(_ context.Context, metrics *telemetry.HeartbeatData) bool {
 	if hb.bridge == nil {
 		return false
 	}

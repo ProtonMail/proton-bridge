@@ -18,6 +18,7 @@
 package telemetry
 
 import (
+	"context"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -33,12 +34,12 @@ const (
 )
 
 type Availability interface {
-	IsTelemetryAvailable() bool
+	IsTelemetryAvailable(ctx context.Context) bool
 }
 
 type HeartbeatManager interface {
 	Availability
-	SendHeartbeat(heartbeat *HeartbeatData) bool
+	SendHeartbeat(ctx context.Context, heartbeat *HeartbeatData) bool
 	GetLastHeartbeatSent() time.Time
 	SetLastHeartbeatSent(time.Time) error
 }

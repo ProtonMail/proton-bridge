@@ -76,7 +76,7 @@ func newIMAPConnector(user *User, addrID string) *imapConnector {
 }
 
 // Authorize returns whether the given username/password combination are valid for this connector.
-func (conn *imapConnector) Authorize(username string, password []byte) bool {
+func (conn *imapConnector) Authorize(ctx context.Context, username string, password []byte) bool {
 	addrID, err := conn.CheckAuth(username, password)
 	if err != nil {
 		return false
@@ -86,7 +86,7 @@ func (conn *imapConnector) Authorize(username string, password []byte) bool {
 		return false
 	}
 
-	conn.User.SendConfigStatusSuccess()
+	conn.User.SendConfigStatusSuccess(ctx)
 
 	return true
 }
