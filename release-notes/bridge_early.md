@@ -1,5 +1,5 @@
 ## v3.3.1
-- 2023-07-06
+- 2023-07-07
 
 ### New
 - Improved Bridge debugging capabilities by adding more information to the application logs
