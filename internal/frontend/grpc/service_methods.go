@@ -461,7 +461,7 @@ func (s *Service) Login2FA(_ context.Context, login *LoginRequest) (*emptypb.Emp
 		defer async.HandlePanic(s.panicHandler)
 
 		if s.auth.UID == "" || s.authClient == nil {
-			s.log.Errorf("Login 2FA: authethication incomplete %s %p", s.auth.UID, s.authClient)
+			s.log.Errorf("Login 2FA: authentication incomplete %s %p", s.auth.UID, s.authClient)
 			_ = s.SendEvent(NewLoginError(LoginErrorType_TFA_ABORT, "Missing authentication, try again."))
 			s.loginClean()
 			return

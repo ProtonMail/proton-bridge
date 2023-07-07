@@ -178,7 +178,7 @@
 - Improved Sentry reporting
 
 ### Fixed
-- Ensure messageID is properly removed from DB when it is no logner present on the API
+- Ensure messageID is properly removed from DB when it is no longer present on the API
 
 
 ## v2.1.0
@@ -372,7 +372,7 @@ New local cache
 - Added IMAP requests to the logs for easier debugging 
 
 ### Fixed
-- NoGUI bulid
+- NoGUI buiid
 - Background of GUI welcome message
 - Incorrect total mailbox size displayed in Apple Mail
 

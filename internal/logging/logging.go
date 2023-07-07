@@ -34,11 +34,11 @@ import (
 const (
 	// MaxLogSize defines the maximum log size we should permit: 5 MB
 	//
-	// The Zendesk limit for an attachement is 50MB and this is what will
+	// The Zendesk limit for an attachment is 50MB and this is what will
 	// be allowed via the API. However, if that fails for some reason, the
 	// fallback is sending the report via email, which has a limit of 10mb
 	// total or 7MB per file. Since we can produce up to 6 logs, and we
-	// compress all the files (avarage compression - 80%), we need to have
+	// compress all the files (average compression - 80%), we need to have
 	// a limit of 30MB total before compression, hence 5MB per log file.
 	MaxLogSize = 5 * 1024 * 1024
 

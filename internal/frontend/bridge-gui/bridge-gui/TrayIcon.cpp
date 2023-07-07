@@ -34,7 +34,7 @@ QColor const warnColor(255, 153, 0); ///< The warn state color.
 QColor const updateColor(35, 158, 206); ///< The warn state color.
 QColor const greyColor(112, 109, 107); ///< The grey color.
 qint64 const iconRefreshTimerIntervalMs = 1000; ///< The interval for the refresh timer when switching DPI / screen config, in milliseconds.
-qint64 const iconRefreshDurationSecs = 10; ///< The total number of seconds during wich we periodically refresh the icon after a DPI change.
+qint64 const iconRefreshDurationSecs = 10; ///< The total number of seconds during which we periodically refresh the icon after a DPI change.
 
 
 //****************************************************************************************************************************************************

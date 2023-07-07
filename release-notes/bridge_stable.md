@@ -89,7 +89,7 @@
 - Improved Sentry reporting
 
 ### Fixed
-- Ensure messageID is properly removed from DB when it is no logner present on the API
+- Ensure messageID is properly removed from DB when it is no longer present on the API
 
 
 ## v2.1.0
@@ -251,7 +251,7 @@ Other
 - Fixed GUI freeze while switching to early update channel
 - Fixed Bridge autostart
 - Improved signing of update packages
-- NoGUI bulid
+- NoGUI build
 - Background of GUI welcome message
 - Incorrect total mailbox size displayed in Apple Mail
 
