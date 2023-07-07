@@ -121,7 +121,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2437: Silence harmless report to sentry.
 * GODT-2649: Clean up cache files after failed connector create (Gluon).
 * GODT-2638: Validate messages before import.
-* GODT-2646: Bump GPA and Gluon dependecy after CIRCL upgrade.
+* GODT-2646: Bump GPA and Gluon dependency after CIRCL upgrade.
 * GODT-2454: Only Send status update if transaction succeeded.
 * Test: fix flaky tests.
 * GODT-2628: Attempt to fix closed channel panic on logout.
@@ -181,7 +181,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2574: Fix label/unlabel of large amounts of messages.
 * GODT-2573: Handle invalid header fields in message.
 * GODT-2573: Crash on null update.
-* GODT-2407: Replace invalid email addresses with emtpy for new Drafts.
+* GODT-2407: Replace invalid email addresses with empty for new Drafts.
 
 ## [Bridge 3.1.3] Quebec
 
@@ -322,7 +322,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2429: Do not report context cancel to sentry.
 
 ### Fixed
-* GODT-2467: elide long email adresses in 'bad event' QML notification dialog.
+* GODT-2467: elide long email addresses in 'bad event' QML notification dialog.
 * GODT-2449: fix bug in Bridge-GUI's Exception::what().
 * GODT-2427: Parsing header issues.
 * GODT-2426: Fix crash on user delete.
@@ -339,7 +339,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2404: Handle unexpected EOF.
 * GODT-2400: Allow state updates to be applied if command fails.
 * GODT-2399: Fix immediate message deletion during updates.
-* GODT-2390: Missing changes from pervious commit.
+* GODT-2390: Missing changes from previous commit.
 * GODT-2390: Add reports for uncaught json and net.opErr.
 * GODT-2414: Multiple deletion bug in WriteControlledStore.
 
@@ -404,7 +404,7 @@ GODT-1804: Preserve MIME parameters when uploading attachments.
 * GODT-2223: Improve event handling.
 * GODT-2305: Detect missing gluon DB.
 * GODT-2291: Change gluon store default location from Cache to Data.
-* Other: Disable dialer test until badssl cert is bumbed.
+* Other: Disable dialer test until badssl cert is bumped.
 * GODT-2292: Updated BUILDS.md doc.
 * GODT-2258: suggest email as login when signing in via status window.
 * Other: Report corrupt and/or insecure vaults to sentry.
@@ -684,7 +684,7 @@ GODT-1804: Preserve MIME parameters when uploading attachments.
 ## [Bridge 2.4.6] Osney
 
 ### Changed
-* GODT-2019: When signing out and a single user is connecte* we do not go back to the welcome screen.
+* GODT-2019: When signing out and a single user is connected we do not go back to the welcome screen.
 * GODT-2071: Bridge-gui report error if an orphan bridge is detected.
 * GODT-2046: Bridge-gui log is included in optional archive sent with bug reports.
 * GODT-2039: Bridge monitors bridge-gui via its PID.
@@ -838,7 +838,7 @@ GODT-1804: Preserve MIME parameters when uploading attachments.
     * GODT-1260: Renaming.
     * GODT-1502: Rebranding: color and radius.
 * GODT-1549: Add notification when address list changes.
-* GODT-1560: Dependecy licenses update and link.
+* GODT-1560: Dependency licenses update and link.
 
 ### Changed
 * GODT-1543: Using one buffered event for off and on connection.
@@ -935,7 +935,7 @@ GODT-1537: Manual in-app update mechanism.
     * GODT-1338: GODT-1343 Help view buttons.
     * GODT-1340: Not crashing, user list updating in main thread.
     * GODT-1345: Adding panic handlers.
-    * GODT-1271: Fix Status margings.
+    * GODT-1271: Fix Status margins.
     * GODT-1320: Add loading property to each action within a notification.
     * GODT-1210: Add "free user" banner.
     * GODT-1314: Limit description field length within 150/800 bounds.
@@ -977,7 +977,7 @@ GODT-1537: Manual in-app update mechanism.
     * GODT-1381 Treat readonly folder as failure for cache on disk.
     * GODT-1431 Prevent watcher when not using disk on cache.
     * GODT-1381: Use in-memory cache in case local cache is unavailable.
-    * GODT-1356 GODT-1302: Cache on disk concurency and API retries.
+    * GODT-1356 GODT-1302: Cache on disk concurrency and API retries.
     * GODT-1332 Added tests for cache move functions.
     * GODT-1332: moved cache related functions to separate file.
     * GODT-1332 moving cache does not work on Windows.
@@ -1228,7 +1228,7 @@ GODT-1537: Manual in-app update mechanism.
 ### Fixed
 * GODT-1029 Fix tray icon not updating under certain conditions.
 * GODT-1062 Fix lost notification bar when window is closed.
-* GODT-1058 Install version after chaning channel right away only in case of downgrade.
+* GODT-1058 Install version after changing channel right away only in case of downgrade.
 * GODT-1073 Re-write autostart link on every start if turned on in preferences.
 * GODT-1055 Fix flaky empty trash test.
 
@@ -1318,7 +1318,7 @@ GODT-1537: Manual in-app update mechanism.
 * GODT-820 Added GUI notification on impossibility of update installation (both silent and manual).
 * GODT-870 Added GUI notification on error during silent update.
 * GODT-805 Added GUI notification on update available.
-* GODT-804 Added GUI notification on silent update installed (promt to restart).
+* GODT-804 Added GUI notification on silent update installed (prompt to restart).
 * GODT-275 Added option to disable autoupdates in settings (default autoupdate is enabled).
 * GODT-874 Added manual triggers to Updater module.
 * GODT-851 Added support of UID EXPUNGE.
@@ -1642,7 +1642,7 @@ CSB-331 Fix sending error due to mixed case in sender address.
 
 ### Changed
 * GODT-360 Detect charset embedded in html/xml.
-* GODT-354 Do not label/unlabel messsages from `All Mail` folder.
+* GODT-354 Do not label/unlabel messages from `All Mail` folder.
 * GODT-388 Support for both bridge and import/export credentials by package users.
 * GODT-387 Store factory to make store optional.
 * GODT-386 Renamed bridge to general users and keep bridge only for bridge stuff.
@@ -1807,13 +1807,13 @@ CSB-331 Fix sending error due to mixed case in sender address.
 * GODT-88 Run mbox sync in parallel when switch password mode (re-init not user).
 * GODT-95 Do not throw error when trying to create new mailbox in IMAP root.
 * GODT-75 Do not fail on unlabel inside delete.
-* #1095 always delete IMAP USER including wrong pasword.
+* #1095 always delete IMAP USER including wrong password.
 * Unique pmapi client userID (including #1098).
 * Using go.enmime@v0.6.1 snapshot.
 * Better detection of non-auth-error.
 * Reset `hasAuthChannel` during logout for proper login functionality (set up auth channel and unlock keys).
 * Allow `APPEND` messages without parsable email address in sender field.
-* #1060 avoid `Append` after internal message ID was found and message was copyed to mailbox using `MessageLabel`.
+* #1060 avoid `Append` after internal message ID was found and message was copied to mailbox using `MessageLabel`.
 * #1049 Basic usage of store in SMTP package to poll event loop during sending message.
 * #1050 pollNow waits for events to be processed.
 * #1047 Fix fetch of empty mailbox.
@@ -1939,7 +1939,7 @@ CSB-331 Fix sending error due to mixed case in sender address.
 * #903 added http.Client timeout to not hang out forever.
 * Closing body after checking internet connection.
 * Pedantic lint for bridgeUtils.
-* Selected events are buffered and emited again when frontend loop is ready.
+* Selected events are buffered and emitted again when frontend loop is ready.
 * #890 implemented 2FA endpoint (auth split).
 * #888 TLS Cert.
     * Error bar and modal with explanation in GUI.
@@ -1947,7 +1947,7 @@ CSB-331 Fix sending error due to mixed case in sender address.
     * Add pinning to bridge (only for live API builds).
 * #887 #883:
  * Wait before clearing data.
- * Configer which provides pmapi.ClientConfig and app directories.
+ * Configure which provides pmapi.ClientConfig and app directories.
 * #861 restart after clear data.
 * Panic handler for all goroutines.
 * CD for linux.
@@ -1995,7 +1995,7 @@ CSB-331 Fix sending error due to mixed case in sender address.
 * #882 unassign PMAPI client after logout and force to run garbage collector.
 * #880, #884, #885, #886 fix of informing user about outgoing non-encrypted e-mail.
 * #838 `Sirupsen` -> `sirupsen`.
-* #893 save panic report file everytime.
+* #893 save panic report file every time.
 * #880 fix of informing user about outgoing non-encrypted e-mail.
 * Fix aliases in split mode.
 * Fix decrypted data in log notification.
@@ -2069,7 +2069,7 @@ CSB-331 Fix sending error due to mixed case in sender address.
 
 ### Changed
 * Fix custom message format.
-* #802 acumulated long lines while parsing body structure.
+* #802 accumulated long lines while parsing body structure.
 * Process `AddressEvent` before `MessageEvent`.
 * #791 updated crypto: fix wrong signature format.
 * #793 fix returning size.
@@ -2091,7 +2091,7 @@ CSB-331 Fix sending error due to mixed case in sender address.
 
 ### Changed
 * #748 when charset missing assume utf8 and check the validity.
-* #750 before sync check that events are uptodate, if not poll events instead of sync.
+* #750 before sync check that events are up-to-date, if not poll events instead of sync.
 * Use pmapi with support of decrypted access token.
 * #750 Status is using DB status instead of API.
 * Format panic error as string instead of struct dump.
@@ -2108,7 +2108,7 @@ CSB-331 Fix sending error due to mixed case in sender address.
 * Full version of program visible on release notes.
 
 ### Changed
-* #720 only one concurent DB sync.
+* #720 only one concurrent DB sync.
 * #720 sync every 3 pages.
 * #512 extending list of charsets go-pm-mime!4.
 
@@ -2132,7 +2132,7 @@ CSB-331 Fix sending error due to mixed case in sender address.
 * Fix srp modulus issue with new `ProtonMail/crypto`.
 * Generate version files from main file.
 * Be able to set update set on build.
-* #597 check on start that certificat will be still valid after one month and generate new cert if not.
+* #597 check on start that certificate will be still valid after one month and generate new cert if not.
 * #597 extended certificate validity to 2 years.
 * Copyright 2019.
 * Exclude `protontech` repos from credits.
@@ -2151,7 +2151,7 @@ CSB-331 Fix sending error due to mixed case in sender address.
 * #592 internal references are added only when not present already.
 * #592 field `Date` changed to m.Time only when wrong format or missing `Date`.
 * #645 pmapi#26 `Message.Flags` instead of `IsEncrypted`, `Type`, `IsReplied`, `IsRepliedAll`, `IsForwarded`.
-* DB: do not allow to put Body or Attachements to db.
+* DB: do not allow to put Body or Attachments to db.
 * #574 SMTP: can now send more than one email.
 * #671 Verbosity levels: `debug` (only bridge), `debug-client` (bridge and client communication), `debug-server` (bridge, whole SMTP/IMAP communication).
 * #644 Return rfc.size 0 or correct size of fetched body (stored in DB).
@@ -2223,7 +2223,7 @@ CSB-331 Fix sending error due to mixed case in sender address.
 * Start with new versioning.
 
           1.1.0
-          | | `--- bug fix number (internal, irregular, beta relases)
+          | | `--- bug fix number (internal, irregular, beta releases)
           | `----- minor version (features, release once per month, live release, milestones)
           `------- major version (big changes, once per year, breaking changes, api force upgrade)
 
@@ -2289,7 +2289,7 @@ CSB-331 Fix sending error due to mixed case in sender address.
 * All `client.Do` errors are interpreted as connection issue.
 * Moved to internal gitlab.
 * Typo `frontend-qml`.
-* Better message for case when server is not reacheable.
+* Better message for case when server is not reachable.
 * Setting 1min timeout to IMAP connection.
 
 ### Changed
@@ -2321,12 +2321,12 @@ CSB-331 Fix sending error due to mixed case in sender address.
 * Keychain format and function refactor.
 * Create crash file on panic with full trace.
 * Clear old data only in main process (no double keychain typing).
-* Create label udpate API route.
+* Create label update API route.
 * Selectable text in release notes.
 
 ### Added
 * Support sending to external PGP recipients.
-* Return error codes: `0: Ok`, `2: Frontend crashed`, `3: Bridge already running`, `4: Uknown argument`, `42: Restart application`.
+* Return error codes: `0: Ok`, `2: Frontend crashed`, `3: Bridge already running`, `4: Unknown argument`, `42: Restart application`.
 
 ### Release notes
 * Support of encryption to external PGP recipients using contacts created on beta.protonmail.com (see https://protonmail.com/blog/pgp-vulnerability-efail/ to understand the vulnerabilities that may be associated with sending to other PGP clients).
@@ -2351,7 +2351,7 @@ CSB-331 Fix sending error due to mixed case in sender address.
     * Bug report window.
     * Checkbox and with label (only I/E).
     * Error dialog and Info tooltip (only I/E).
-    * Add user modal formating (colors, text).
+    * Add user modal formatting (colors, text).
     * Account view style.
     * Input box style (used in bug report).
     * Input field style (used in add account and change port).
