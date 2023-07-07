@@ -63,7 +63,7 @@ BRIDGE_BUILD_ENV= ${BRIDGE_BUILD_ENV:-"dev"}
 git submodule update --init --recursive ${VCPKG_ROOT}
 check_exit "Failed to initialize vcpkg as a submodule."
 
-echo submodule udpated
+echo submodule updated
 
 VCPKG_EXE="${VCPKG_ROOT}/vcpkg"
 VCPKG_BOOTSTRAP="${VCPKG_ROOT}/bootstrap-vcpkg.sh"

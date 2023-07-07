@@ -31,7 +31,7 @@ echo "0">$ERROR_COUNT_FILE
 # -- Helper functions -- #
 ##########################
 
-# err print out a given error ($2) and line where it hapens ($1),
+# err print out a given error ($2) and line where it happens ($1),
 # also it increases count of errors.
 err () {
     echo "CHANGELOG-LINTER: $2 on the following line:"
@@ -92,7 +92,7 @@ check_change_types () {
 
     case "$1" in
         "### Added"|"### Changed"|"### Deprecated"|"### Removed"|"### Fixed"|"### Security") ;; # Standard keepachangelog.com compliant types.
-        "### Release notes"|"### Fixed bugs") ;;                                                # Bridge aditional in app release notes types.
+        "### Release notes"|"### Fixed bugs") ;;                                                # Bridge additional in app release notes types.
         "### Guiding Principles"|"### Types of changes") ;;                                     # Ignoring guide at the end of the changelog.
         *) err "$1" "Change type must be one of the Added, Changed, Deprecated, Removed, Fixed, Hoftix"
     esac 

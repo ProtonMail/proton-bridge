@@ -31,7 +31,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Disabled due to flakyness.
+// Disabled due to flakiness.
 func _TestBridge_SyncExistsWithErrorWhenTooManyFilesAreOpen(t *testing.T) { //nolint:unused
 	var rlimitCurrent syscall.Rlimit
 
