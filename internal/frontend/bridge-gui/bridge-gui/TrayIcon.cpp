@@ -192,6 +192,8 @@ TrayIcon::TrayIcon()
     if (!onLinux()) { // we disable this on linux because of a Qt bug that causes the signal to be emitted for other apps (GODT-2750)
         connect(this, &TrayIcon::messageClicked, []() { app().backend().showMainWindow("tray icon popup notification clicked"); });
     }
+
+    this->setIcon();
     this->show();
 
     // TrayIcon does not expose its screen, so we connect relevant screen events to our DPI change handler.
