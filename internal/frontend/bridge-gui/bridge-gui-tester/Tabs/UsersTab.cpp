@@ -272,8 +272,8 @@ bridgepp::SPUser UsersTab::userWithID(QString const &userID) {
 /// \return The user with the given username.
 /// \return A null pointer if the user is not in the list.
 //****************************************************************************************************************************************************
-bridgepp::SPUser UsersTab::userWithUsername(QString const &username) {
-    return users_.userWithUsername(username);
+bridgepp::SPUser UsersTab::userWithUsernameOrEmail(QString const &username) {
+    return users_.userWithUsernameOrEmail(username);
 }
 
 

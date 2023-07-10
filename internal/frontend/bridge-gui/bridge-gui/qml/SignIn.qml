@@ -134,6 +134,11 @@ FocusScope {
                 stackLayout.currentIndex = 0
                 root.reset()
             }
+
+            function onLoginAlreadyLoggedIn(index) {
+                stackLayout.currentIndex = 0
+                root.reset()
+            }
         }
 
         ColumnLayout {

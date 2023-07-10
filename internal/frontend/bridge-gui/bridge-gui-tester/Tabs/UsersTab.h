@@ -38,7 +38,7 @@ public: // member functions.
     UsersTab &operator=(UsersTab &&) = delete; ///< Disabled move assignment operator.
     UserTable &userTable(); ///< Returns a reference to the user table.
     bridgepp::SPUser userWithID(QString const &userID); ///< Get the user with the given ID.
-    bridgepp::SPUser userWithUsername(QString const &username); ///< Get the user with the given username.
+    bridgepp::SPUser userWithUsernameOrEmail(QString const &username); ///< Get the user with the given username.
     bool nextUserUsernamePasswordError() const; ///< Check if next user login should trigger a username/password error.
     bool nextUserFreeUserError() const; ///< Check if next user login should trigger a Free user error.
     bool nextUserTFARequired() const; ///< Check if next user login should requires 2FA.

@@ -385,6 +385,14 @@ Status GRPCService::Login(ServerContext *, LoginRequest const *request, Empty *)
     app().log().debug(__FUNCTION__);
     UsersTab &usersTab = app().mainWindow().usersTab();
     loginUsername_ = QString::fromStdString(request->username());
+
+    SPUser const& user = usersTab.userTable().userWithUsernameOrEmail(QString::fromStdString(request->username()));
+    if (user) {
+        qtProxy_.sendDelayedEvent(newLoginAlreadyLoggedInEvent(user->id()));
+        return Status::OK;
+    }
+
+
     if (usersTab.nextUserUsernamePasswordError()) {
         qtProxy_.sendDelayedEvent(newLoginError(LoginErrorType::USERNAME_PASSWORD_ERROR, usersTab.usernamePasswordErrorMessage()));
         return Status::OK;
@@ -826,7 +834,7 @@ bool GRPCService::sendEvent(SPStreamEvent const &event) {
 //****************************************************************************************************************************************************
 void GRPCService::finishLogin() {
     UsersTab &usersTab = app().mainWindow().usersTab();
-    SPUser user = usersTab.userWithUsername(loginUsername_);
+    SPUser user = usersTab.userWithUsernameOrEmail(loginUsername_);
     bool const alreadyExist = user.get();
     if (!user) {
         user = randomUser();
