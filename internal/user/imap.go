@@ -28,6 +28,7 @@ import (
 
 	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/gluon/imap"
+	"github.com/ProtonMail/gluon/rfc5322"
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -281,6 +282,11 @@ func (conn *imapConnector) CreateMessage(
 		return imap.Message{}, nil, connector.ErrOperationNotAllowed
 	}
 
+	toList, err := getLiteralToList(literal)
+	if err != nil {
+		return imap.Message{}, nil, fmt.Errorf("failed to retrieve addresses from literal:%w", err)
+	}
+
 	// Compute the hash of the message (to match it against SMTP messages).
 	hash, err := getMessageHash(literal)
 	if err != nil {
@@ -288,7 +294,7 @@ func (conn *imapConnector) CreateMessage(
 	}
 
 	// Check if we already tried to send this message recently.
-	if messageID, ok, err := conn.sendHash.hasEntryWait(ctx, hash, time.Now().Add(90*time.Second)); err != nil {
+	if messageID, ok, err := conn.sendHash.hasEntryWait(ctx, hash, time.Now().Add(90*time.Second), toList); err != nil {
 		return imap.Message{}, nil, fmt.Errorf("failed to check send hash: %w", err)
 	} else if ok {
 		conn.log.WithField("messageID", messageID).Warn("Message already sent")
@@ -722,4 +728,46 @@ func buildFlagSetFromMessageMetadata(message proton.MessageMetadata) imap.FlagSe
 	}
 
 	return flags
+}
+
+func getLiteralToList(literal []byte) ([]string, error) {
+	headerLiteral, _ := rfc822.Split(literal)
+
+	header, err := rfc822.NewHeader(headerLiteral)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []string
+
+	parseAddress := func(field string) error {
+		if fieldAddr, ok := header.GetChecked(field); ok {
+			addr, err := rfc5322.ParseAddressList(fieldAddr)
+			if err != nil {
+				return fmt.Errorf("failed to parse addresses for '%v': %w", field, err)
+			}
+
+			result = append(result, xslices.Map(addr, func(addr *mail.Address) string {
+				return addr.Address
+			})...)
+
+			return nil
+		}
+
+		return nil
+	}
+
+	if err := parseAddress("To"); err != nil {
+		return nil, err
+	}
+
+	if err := parseAddress("Cc"); err != nil {
+		return nil, err
+	}
+
+	if err := parseAddress("Bcc"); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
