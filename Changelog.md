@@ -3,9 +3,13 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
-## Stone Bridge 3.3.1
+## Stone Bridge 3.3.2
 
-### Added
+### Fixed
+* GODT-2782: Filter all labels when doing perma delete check.
+
+
+## Stone Bridge 3.3.1
 
 ### Changed
 * GODT-2707: Set bridge-gui default log level to 'debug'.
