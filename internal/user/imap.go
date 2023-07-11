@@ -419,72 +419,13 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 		return connector.ErrOperationNotAllowed
 	}
 
-	if err := conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(mailboxID)); err != nil {
+	msgIDs := mapTo[imap.MessageID, string](messageIDs)
+	if err := conn.client.UnlabelMessages(ctx, msgIDs, string(mailboxID)); err != nil {
 		return err
 	}
 
 	if mailboxID == proton.TrashLabel || mailboxID == proton.DraftsLabel {
-		var msgToPermaDelete []string
-		// There's currently no limit on how many IDs we can filter on,
-		// but to be nice to API, let's chunk it by 150.
-		for _, messageIDs := range xslices.Chunk(messageIDs, 150) {
-			metadata, err := conn.client.GetMessageMetadata(ctx, proton.MessageFilter{
-				ID: mapTo[imap.MessageID, string](messageIDs),
-			})
-			if err != nil {
-				return err
-			}
-
-			msgIds, err := safe.LockRetErr(func() ([]string, error) {
-				var msgIds []string
-
-				// If a message is not preset in any other label other than AllMail, AllDrafts and AllSent, it can be
-				// permanently deleted.
-				for _, m := range metadata {
-					var remainingLabels []string
-
-					for _, id := range m.LabelIDs {
-						label, ok := conn.apiLabels[id]
-						if !ok {
-							// Handle case where this label was newly introduced and we do not yet know about it.
-							logrus.WithField("labelID", id).Warnf("Unknown label found during expung from Trash, attempting to locate it")
-							label, err = conn.client.GetLabel(ctx, id, proton.LabelTypeFolder, proton.LabelTypeSystem, proton.LabelTypeSystem)
-							if err != nil {
-								if errors.Is(err, proton.ErrNoSuchLabel) {
-									logrus.WithField("labelID", id).Warn("Label does not exist, ignoring")
-									continue
-								}
-
-								logrus.WithField("labelID", id).Errorf("Failed to resolve label: %v", err)
-								return nil, fmt.Errorf("failed to resolve label: %w", err)
-							}
-						}
-						if !wantLabel(label) {
-							continue
-						}
-
-						if id != proton.AllDraftsLabel && id != proton.AllMailLabel && id != proton.AllSentLabel {
-							remainingLabels = append(remainingLabels, m.ID)
-						}
-					}
-
-					if len(remainingLabels) == 0 {
-						msgIds = append(msgIds, m.ID)
-					}
-				}
-
-				return msgIds, nil
-			}, conn.User.apiLabelsLock)
-			if err != nil {
-				return err
-			}
-
-			msgToPermaDelete = append(msgToPermaDelete, msgIds...)
-		}
-
-		logrus.Debugf("Following message(s) will be perma-deleted: %v", msgToPermaDelete)
-
-		if err := conn.client.DeleteMessage(ctx, msgToPermaDelete...); err != nil {
+		if err := conn.client.DeleteMessage(ctx, msgIDs...); err != nil {
 			return err
 		}
 	}
