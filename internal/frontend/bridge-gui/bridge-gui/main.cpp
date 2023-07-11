@@ -137,12 +137,21 @@ bool checkSingleInstance(QLockFile &lock) {
         if (lock.getLockInfo(&pid, &hostname, &appName)) {
             details = QString("(PID : %1 - Host : %2 - App : %3)").arg(pid).arg(hostname, appName);
         }
-
+        if (lock.error() == QLockFile::LockFailedError) {
+            // This happens if a stale lock file exists and another process uses that PID.
+            // Try removing the stale file, which will fail if a real process is holding a
+            // file-level lock. A false error is more problematic than not locking properly
+            // on corner-case systems.
+            if (lock.removeStaleLockFile() && lock.tryLock()) {
+                app().log().info("Removed stale lock file");
+                app().log().info(QString("lock file created %1").arg(lock.fileName()));
+                return true;
+            }
+        }
         app().log().error(QString("Instance already exists %1 %2").arg(lock.fileName(), details));
         return false;
-    } else {
-        app().log().info(QString("lock file created %1").arg(lock.fileName()));
     }
+    app().log().info(QString("lock file created %1").arg(lock.fileName()));
     return true;
 }
 
