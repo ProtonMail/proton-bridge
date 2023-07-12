@@ -24,6 +24,7 @@ import (
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/ports"
 	"github.com/stretchr/testify/require"
 )
 
@@ -93,8 +94,8 @@ func TestVault_Reset(t *testing.T) {
 	require.NoError(t, s.Reset(s.GetGluonCacheDir()))
 
 	// The data is gone.
-	require.Equal(t, 1143, s.GetIMAPPort())
-	require.Equal(t, 1025, s.GetSMTPPort())
+	require.Equal(t, ports.FindFreePortFrom(1143), s.GetIMAPPort())
+	require.Equal(t, ports.FindFreePortFrom(1025), s.GetSMTPPort())
 }
 
 func newVault(t *testing.T) *vault.Vault {

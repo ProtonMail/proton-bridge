@@ -32,9 +32,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (NOT DEFINED BRIDGE_APP_VERSION)
     message(FATAL_ERROR "BRIDGE_APP_VERSION is not defined.")
-else()
+else ()
     message(STATUS "Bridge version is ${BRIDGE_APP_VERSION}")
-endif()
+endif ()
 
 
 #****************************************************************************************************************************************************
@@ -148,6 +148,7 @@ add_library(bridgepp
     bridgepp/Log/Log.h bridgepp/Log/Log.cpp
     bridgepp/Log/LogUtils.h bridgepp/Log/LogUtils.cpp
     bridgepp/ProcessMonitor.cpp bridgepp/ProcessMonitor.h
+    bridgepp/SessionID/SessionID.cpp bridgepp/SessionID/SessionID.h
     bridgepp/User/User.cpp bridgepp/User/User.h
     bridgepp/Worker/Worker.h bridgepp/Worker/Overseer.h bridgepp/Worker/Overseer.cpp)
 
@@ -167,7 +168,7 @@ target_precompile_headers(bridgepp PRIVATE Pch.h)
 
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
     cmake_policy(SET CMP0135 NEW) # avoid warning DOWNLOAD_EXTRACT_TIMESTAMP
-endif()
+endif ()
 
 include(FetchContent)
 FetchContent_Declare(
@@ -188,7 +189,9 @@ enable_testing()
 add_executable(bridgepp-test EXCLUDE_FROM_ALL
     Test/TestBridgeUtils.cpp
     Test/TestException.cpp
-    Test/TestWorker.cpp Test/TestWorker.h)
+    Test/TestSessionID.cpp
+    Test/TestWorker.cpp Test/TestWorker.h
+    )
 add_dependencies(bridgepp-test bridgepp)
 target_precompile_headers(bridgepp-test PRIVATE Pch.h)
 target_link_libraries(bridgepp-test

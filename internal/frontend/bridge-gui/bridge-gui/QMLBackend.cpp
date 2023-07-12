@@ -61,7 +61,7 @@ void QMLBackend::init(GRPCConfig const &serviceConfig) {
     app().grpc().setLog(&log);
     this->connectGrpcEvents();
 
-    app().grpc().connectToServer(bridgepp::userConfigDir(), serviceConfig, app().bridgeMonitor());
+    app().grpc().connectToServer(app().sessionID(), bridgepp::userConfigDir(), serviceConfig, app().bridgeMonitor());
     app().log().info("Connected to backend via gRPC service.");
 
     QString bridgeVer;
@@ -109,6 +109,12 @@ UserList const &QMLBackend::users() const {
     return *users_;
 }
 
+//****************************************************************************************************************************************************
+/// \return the if bridge considers internet is on.
+//****************************************************************************************************************************************************
+bool QMLBackend::isInternetOn() const {
+    return isInternetOn_;
+}
 
 
 //****************************************************************************************************************************************************
@@ -680,7 +686,7 @@ void QMLBackend::login(QString const &username, QString const &password) const {
     HANDLE_EXCEPTION(
         if (username.compare("coco@bandicoot", Qt::CaseInsensitive) == 0) {
             throw Exception("User requested bridge-gui to crash by trying to log as coco@bandicoot",
-                "This error exists for test purposes and should be ignored.", __func__, tailOfLatestBridgeLog());
+                "This error exists for test purposes and should be ignored.", __func__, tailOfLatestBridgeLog(app().sessionID()));
         }
         app().grpc().login(username, password);
     )
@@ -914,7 +920,6 @@ void QMLBackend::sendBadEventUserFeedback(QString const &userID, bool doResync) 
         if (!badEventDisplayQueue_.isEmpty()) {
             // we introduce a small delay here, so that the user notices the dialog disappear and pops up again.
             QTimer::singleShot(500, [&]() { this->displayBadEventDialog(badEventDisplayQueue_.front()); });
-
         }
     )
 }
@@ -986,6 +991,25 @@ void QMLBackend::setUpdateTrayIcon(QString const &stateString, QString const &st
     if (trayIcon_) {
         trayIcon_->setState(TrayIcon::State::Update, stateString, statusIcon);
     }
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] isOn Does bridge consider internet as on.
+//****************************************************************************************************************************************************
+void QMLBackend::internetStatusChanged(bool isOn) {
+    HANDLE_EXCEPTION(
+        if (isInternetOn_ == isOn) {
+            return;
+        }
+
+        isInternetOn_ = isOn;
+        if (isOn) {
+            emit internetOn();
+        } else {
+            emit internetOff();
+        }
+    )
 }
 
 
@@ -1152,7 +1176,7 @@ void QMLBackend::connectGrpcEvents() {
     GRPCClient *client = &app().grpc();
 
     // app events
-    connect(client, &GRPCClient::internetStatus, this, [&](bool isOn) { if (isOn) { emit internetOn(); } else { emit internetOff(); }});
+    connect(client, &GRPCClient::internetStatus, this, &QMLBackend::internetStatusChanged);
     connect(client, &GRPCClient::toggleAutostartFinished, this, &QMLBackend::toggleAutostartFinished);
     connect(client, &GRPCClient::resetFinished, this, &QMLBackend::onResetFinished);
     connect(client, &GRPCClient::reportBugFinished, this, &QMLBackend::reportBugFinished);

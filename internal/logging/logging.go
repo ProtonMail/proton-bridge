@@ -18,32 +18,37 @@
 package logging
 
 import (
+	"bytes"
 	"context"
-	"fmt"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"time"
 
-	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 const (
-	// MaxLogSize defines the maximum log size we should permit: 5 MB
+	// DefaultMaxLogFileSize defines the maximum log size we should permit: 5 MB
 	//
-	// The Zendesk limit for an attachement is 50MB and this is what will
+	// The Zendesk limit for an attachment is 50MB and this is what will
 	// be allowed via the API. However, if that fails for some reason, the
 	// fallback is sending the report via email, which has a limit of 10mb
-	// total or 7MB per file. Since we can produce up to 6 logs, and we
-	// compress all the files (avarage compression - 80%), we need to have
-	// a limit of 30MB total before compression, hence 5MB per log file.
-	MaxLogSize = 5 * 1024 * 1024
+	// total or 7MB per file.
+	DefaultMaxLogFileSize = 5 * 1024 * 1024
+)
 
-	// MaxLogs defines how many log files should be kept.
-	MaxLogs = 10
+type AppName string
+
+const (
+	BridgeShortAppName   AppName = "bri"
+	LauncherShortAppName AppName = "lau"
+	GUIShortAppName      AppName = "gui"
 )
 
 type coloredStdOutHook struct {
@@ -82,7 +87,9 @@ func (cs *coloredStdOutHook) Fire(entry *logrus.Entry) error {
 	return nil
 }
 
-func Init(logsPath, level string) error {
+// Init Initialize logging. Log files are rotated when their size exceeds rotationSize. if pruningSize >= 0, pruning occurs using
+// the default pruning algorithm.
+func Init(logsPath string, sessionID SessionID, appName AppName, rotationSize, pruningSize int64, level string) (io.Closer, error) {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableColors:   true,
 		FullTimestamp:   true,
@@ -91,20 +98,80 @@ func Init(logsPath, level string) error {
 
 	logrus.AddHook(newColoredStdOutHook())
 
-	rotator, err := NewRotator(MaxLogSize, func() (io.WriteCloser, error) {
-		if err := clearLogs(logsPath, MaxLogs, MaxLogs); err != nil {
-			return nil, err
-		}
-
-		return os.Create(filepath.Join(logsPath, getLogName(constants.Version, constants.Revision))) //nolint:gosec // G304
-	})
+	rotator, err := NewDefaultRotator(logsPath, sessionID, appName, rotationSize, pruningSize)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	logrus.SetOutput(rotator)
 
-	return setLevel(level)
+	return rotator, setLevel(level)
+}
+
+// Close closes the log file. if closer is nil, no error is reported.
+func Close(closer io.Closer) error {
+	if closer == nil {
+		return nil
+	}
+
+	logrus.SetOutput(os.Stdout)
+	return closer.Close()
+}
+
+// ZipLogsForBugReport returns an archive containing the logs for bug report.
+func ZipLogsForBugReport(logsPath string, maxSessionCount int, maxZipSize int64) (*bytes.Buffer, error) {
+	paths, err := getOrderedLogFileListForBugReport(logsPath, maxSessionCount)
+	if err != nil {
+		return nil, err
+	}
+
+	buffer, _, err := zipFilesWithMaxSize(paths, maxZipSize)
+	return buffer, err
+}
+
+// getOrderedLogFileListForBugReport returns the ordered list of log file paths to include in the user triggered bug reports. Only the last
+// maxSessionCount sessions are included. Priorities:
+// - session in chronologically descending order.
+// - for each session: last 2 bridge logs, first bridge log, gui logs, launcher logs, all other bridge logs.
+func getOrderedLogFileListForBugReport(logsPath string, maxSessionCount int) ([]string, error) {
+	sessionInfoList, err := buildSessionInfoList(logsPath)
+	if err != nil {
+		return nil, err
+	}
+
+	sortedSessions := maps.Values(sessionInfoList)
+	slices.SortFunc(sortedSessions, func(lhs, rhs *sessionInfo) bool { return lhs.sessionID > rhs.sessionID })
+	count := len(sortedSessions)
+	if count > maxSessionCount {
+		sortedSessions = sortedSessions[:maxSessionCount]
+	}
+
+	filePathFunc := func(logFileInfo logFileInfo) string { return filepath.Join(logsPath, logFileInfo.filename) }
+
+	var result []string
+	for _, session := range sortedSessions {
+		bridgeLogCount := len(session.bridgeLogs)
+		if bridgeLogCount > 0 {
+			result = append(result, filepath.Join(logsPath, session.bridgeLogs[bridgeLogCount-1].filename))
+		}
+		if bridgeLogCount > 1 {
+			result = append(result, filepath.Join(logsPath, session.bridgeLogs[bridgeLogCount-2].filename))
+		}
+		if bridgeLogCount > 2 {
+			result = append(result, filepath.Join(logsPath, session.bridgeLogs[0].filename))
+		}
+		if len(session.guiLogs) > 0 {
+			result = append(result, xslices.Map(session.guiLogs, filePathFunc)...)
+		}
+		if len(session.launcherLogs) > 0 {
+			result = append(result, xslices.Map(session.launcherLogs, filePathFunc)...)
+		}
+		if bridgeLogCount > 3 {
+			result = append(result, xslices.Map(session.bridgeLogs[1:bridgeLogCount-2], filePathFunc)...)
+		}
+	}
+
+	return result, nil
 }
 
 // setLevel will change the level of logging and in case of Debug or Trace
@@ -137,34 +204,51 @@ func setLevel(level string) error {
 	return nil
 }
 
-func getLogName(version, revision string) string {
-	return fmt.Sprintf("v%v_%v_%v.log", version, revision, time.Now().Unix())
-}
+func getLogSessionID(filename string) (SessionID, error) {
+	re := regexp.MustCompile(`^(?P<sessionID>\d{8}_\d{9})_.*\.log$`)
 
-func getLogTime(name string) int {
-	re := regexp.MustCompile(`^v.*_.*_(?P<timestamp>\d+).log$`)
+	match := re.FindStringSubmatch(filename)
 
-	match := re.FindStringSubmatch(name)
-
+	errInvalidFileName := errors.New("log file name is invalid")
 	if len(match) == 0 {
-		logrus.Warn("Could not parse log name: ", name)
-		return 0
+		logrus.WithField("filename", filename).Warn("Could not parse log filename")
+		return "", errInvalidFileName
 	}
 
-	timestamp, err := strconv.Atoi(match[re.SubexpIndex("timestamp")])
+	index := re.SubexpIndex("sessionID")
+	if index < 0 {
+		logrus.WithField("filename", filename).Warn("Could not parse log filename")
+		return "", errInvalidFileName
+	}
+
+	return SessionID(match[index]), nil
+}
+
+func getLogTime(filename string) time.Time {
+	sessionID, err := getLogSessionID(filename)
 	if err != nil {
-		return 0
+		return time.Time{}
 	}
-
-	return timestamp
+	return sessionID.toTime()
 }
 
-func MatchLogName(name string) bool {
-	return regexp.MustCompile(`^v.*\.log$`).MatchString(name)
+// MatchBridgeLogName return true iff filename is a bridge log filename.
+func MatchBridgeLogName(filename string) bool {
+	return matchLogName(filename, BridgeShortAppName)
 }
 
-func MatchGUILogName(name string) bool {
-	return regexp.MustCompile(`^gui_v.*\.log$`).MatchString(name)
+// MatchGUILogName return true iff filename is a bridge-gui log filename.
+func MatchGUILogName(filename string) bool {
+	return matchLogName(filename, GUIShortAppName)
+}
+
+// MatchLauncherLogName return true iff filename is a launcher log filename.
+func MatchLauncherLogName(filename string) bool {
+	return matchLogName(filename, LauncherShortAppName)
+}
+
+func matchLogName(logName string, appName AppName) bool {
+	return regexp.MustCompile(`^\d{8}_\d{9}_\Q` + string(appName) + `\E_\d{3}_.*\.log$`).MatchString(logName)
 }
 
 type logKey string
@@ -179,13 +263,4 @@ func WithLogrusField(ctx context.Context, key string, value interface{}) context
 
 	fields[key] = value
 	return context.WithValue(ctx, logrusFields, fields)
-}
-
-func LogFromContext(ctx context.Context) *logrus.Entry {
-	fields, ok := ctx.Value(logrusFields).(logrus.Fields)
-	if !ok || fields == nil {
-		return logrus.WithField("ctx", "empty")
-	}
-
-	return logrus.WithFields(fields)
 }

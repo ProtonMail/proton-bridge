@@ -49,7 +49,8 @@ class GRPCClient : public QObject {
 Q_OBJECT
 public: // static member functions
     static void removeServiceConfigFile(QString const &configDir); ///< Delete the service config file.
-    static GRPCConfig waitAndRetrieveServiceConfig(QString const &configDir, qint64 timeoutMs, class ProcessMonitor *serverProcess); ///< Wait and retrieve the service configuration.
+    static GRPCConfig waitAndRetrieveServiceConfig(QString const &sessionID, QString const &configDir, qint64 timeoutMs,
+        class ProcessMonitor *serverProcess); ///< Wait and retrieve the service configuration.
 
 public: // member functions.
     GRPCClient() = default; ///< Default constructor.
@@ -59,7 +60,7 @@ public: // member functions.
     GRPCClient &operator=(GRPCClient const &) = delete; ///< Disabled assignment operator.
     GRPCClient &operator=(GRPCClient &&) = delete; ///< Disabled move assignment operator.
     void setLog(Log *log); ///< Set the log for the client.
-    void connectToServer(QString const &configDir, GRPCConfig const &config, class ProcessMonitor *serverProcess); ///< Establish connection to the gRPC server.
+    void connectToServer(QString const &sessionID, QString const &configDir, GRPCConfig const &config, class ProcessMonitor *serverProcess); ///< Establish connection to the gRPC server.
     bool isConnected() const; ///< Check whether the gRPC client is connected to the server.
 
     grpc::Status checkTokens(QString const &clientConfigPath, QString &outReturnedClientToken); ///< Performs a token check.

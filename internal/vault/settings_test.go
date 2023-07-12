@@ -26,6 +26,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/ports"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,7 +35,7 @@ func TestVault_Settings_IMAP(t *testing.T) {
 	s := newVault(t)
 
 	// Check the default IMAP port and SSL setting.
-	require.Equal(t, 1143, s.GetIMAPPort())
+	require.Equal(t, ports.FindFreePortFrom(1143), s.GetIMAPPort())
 	require.Equal(t, false, s.GetIMAPSSL())
 
 	// Modify the IMAP port and SSL setting.
@@ -51,7 +52,7 @@ func TestVault_Settings_SMTP(t *testing.T) {
 	s := newVault(t)
 
 	// Check the default SMTP port and SSL setting.
-	require.Equal(t, 1025, s.GetSMTPPort())
+	require.Equal(t, ports.FindFreePortFrom(1025), s.GetSMTPPort())
 	require.Equal(t, false, s.GetSMTPSSL())
 
 	// Modify the SMTP port and SSL setting.

@@ -23,16 +23,15 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime/pprof"
-	"time"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/crash"
 	"github.com/sirupsen/logrus"
 )
 
-func DumpStackTrace(logsPath string) crash.RecoveryAction {
+func DumpStackTrace(logsPath string, sessionID SessionID, appName AppName) crash.RecoveryAction {
 	return func(r interface{}) error {
-		file := filepath.Join(logsPath, getStackTraceName(constants.Version, constants.Revision))
+		file := filepath.Join(logsPath, getStackTraceName(sessionID, appName, constants.Version, constants.Tag))
 
 		f, err := os.OpenFile(filepath.Clean(file), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0o600)
 		if err != nil {
@@ -53,10 +52,10 @@ func DumpStackTrace(logsPath string) crash.RecoveryAction {
 	}
 }
 
-func getStackTraceName(version, revision string) string {
-	return fmt.Sprintf("v%v_%v_crash_%v.log", version, revision, time.Now().Unix())
+func getStackTraceName(sessionID SessionID, appName AppName, version, tag string) string {
+	return fmt.Sprintf("%v_%v_000_v%v_%v_crash.log", sessionID, appName, version, tag)
 }
 
 func MatchStackTraceName(name string) bool {
-	return regexp.MustCompile(`^v.*_crash_.*\.log$`).MatchString(name)
+	return regexp.MustCompile(`^\d{8}_\d{9}_.*_000_.*_crash\.log$`).MatchString(name)
 }

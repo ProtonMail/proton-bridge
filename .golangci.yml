@@ -36,6 +36,14 @@ issues:
         - gosec
         - goconst
         - dogsled
+    - path: utils/smtp-send
+      linters:
+        - dupl
+        - gochecknoglobals
+        - gochecknoinits
+        - gosec
+        - goconst
+        - dogsled
 
 linters-settings:
   godox:

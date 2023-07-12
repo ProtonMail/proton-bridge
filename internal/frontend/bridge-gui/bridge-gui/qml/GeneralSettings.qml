@@ -90,9 +90,9 @@ SettingsView {
 
     RowLayout {
         ColorImage {
-            Layout.alignment: Qt.AlignTop
+            Layout.alignment: Qt.AlignCenter
 
-            source: root._isAdvancedShown ? "/qml/icons/ic-chevron-up.svg" : "/qml/icons/ic-chevron-down.svg"
+            source: root._isAdvancedShown ? "/qml/icons/ic-chevron-down.svg" : "/qml/icons/ic-chevron-right.svg"
             color: root.colorScheme.interaction_norm
             height: root.colorScheme.body_font_size
             sourceSize.height: root.colorScheme.body_font_size

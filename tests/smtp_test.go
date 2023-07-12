@@ -20,6 +20,8 @@ package tests
 import (
 	"fmt"
 	"net/smtp"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
@@ -132,28 +134,24 @@ func (s *scenario) smtpClientSendsReset(clientID string) error {
 func (s *scenario) smtpClientSendsTheFollowingMessageFromTo(clientID, from, to string, message *godog.DocString) error {
 	_, client := s.t.getSMTPClient(clientID)
 
-	s.t.pushError(func() error {
-		if err := client.Mail(from); err != nil {
-			return err
-		}
+	if err := clientSend(client, from, to, message.Content); err != nil {
+		s.t.pushError(err)
+	}
 
-		for _, to := range strings.Split(to, ", ") {
-			if err := client.Rcpt(to); err != nil {
-				return err
-			}
-		}
+	return nil
+}
 
-		wc, err := client.Data()
-		if err != nil {
-			return err
-		}
+func (s *scenario) smtpClientSendsTheFollowingEmlFromTo(clientID, file, from, to string) error {
+	_, client := s.t.getSMTPClient(clientID)
 
-		if _, err := wc.Write([]byte(message.Content)); err != nil {
-			return err
-		}
+	b, err := os.ReadFile(filepath.Join("testdata", file))
+	if err != nil {
+		return err
+	}
 
-		return wc.Close()
-	}())
+	if err := clientSend(client, from, to, string(b)); err != nil {
+		s.t.pushError(err)
+	}
 
 	return nil
 }
@@ -164,4 +162,27 @@ func (s *scenario) smtpClientLogsOut(clientID string) error {
 	s.t.pushError(client.Quit())
 
 	return nil
+}
+
+func clientSend(client *smtp.Client, from, to, message string) error {
+	if err := client.Mail(from); err != nil {
+		return err
+	}
+
+	for _, to := range strings.Split(to, ", ") {
+		if err := client.Rcpt(to); err != nil {
+			return err
+		}
+	}
+
+	wc, err := client.Data()
+	if err != nil {
+		return err
+	}
+
+	if _, err := wc.Write([]byte(message)); err != nil {
+		return err
+	}
+
+	return wc.Close()
 }

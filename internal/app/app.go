@@ -19,6 +19,7 @@ package app
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -76,10 +77,12 @@ const (
 	flagNoWindow         = "no-window"
 	flagParentPID        = "parent-pid"
 	flagSoftwareRenderer = "software-renderer"
+	flagSessionID        = "session-id"
 )
 
 const (
-	appUsage = "Proton Mail IMAP and SMTP Bridge"
+	appUsage     = "Proton Mail IMAP and SMTP Bridge"
+	appShortName = "bridge"
 )
 
 func New() *cli.App {
@@ -150,6 +153,10 @@ func New() *cli.App {
 			Hidden: true,
 			Value:  false,
 		},
+		&cli.StringFlag{
+			Name:   flagSessionID,
+			Hidden: true,
+		},
 	}
 
 	app.Action = run
@@ -183,6 +190,11 @@ func run(c *cli.Context) error {
 		exe = os.Args[0]
 	}
 
+	var logCloser io.Closer
+	defer func() {
+		_ = logging.Close(logCloser)
+	}()
+
 	// Restart the app if requested.
 	return withRestarter(exe, func(restarter *restarter.Restarter) error {
 		// Handle crashes with various actions.
@@ -199,7 +211,9 @@ func run(c *cli.Context) error {
 					}
 
 					// Initialize logging.
-					return withLogging(c, crashHandler, locations, func() error {
+					return withLogging(c, crashHandler, locations, func(closer io.Closer) error {
+						logCloser = closer
+
 						// If there was an error during migration, log it now.
 						if migrationErr != nil {
 							logrus.WithError(migrationErr).Error("Failed to migrate old app data")
@@ -298,7 +312,7 @@ func withSingleInstance(settingPath, lockFile string, version *semver.Version, f
 }
 
 // Initialize our logging system.
-func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locations.Locations, fn func() error) error {
+func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locations.Locations, fn func(closer io.Closer) error) error {
 	logrus.Debug("Initializing logging")
 	defer logrus.Debug("Logging stopped")
 
@@ -311,12 +325,21 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 	logrus.WithField("path", logsPath).Debug("Received logs path")
 
 	// Initialize logging.
-	if err := logging.Init(logsPath, c.String(flagLogLevel)); err != nil {
+	sessionID := logging.NewSessionIDFromString(c.String(flagSessionID))
+	var closer io.Closer
+	if closer, err = logging.Init(
+		logsPath,
+		sessionID,
+		logging.BridgeShortAppName,
+		logging.DefaultMaxLogFileSize,
+		logging.DefaultPruningSize,
+		c.String(flagLogLevel),
+	); err != nil {
 		return fmt.Errorf("could not initialize logging: %w", err)
 	}
 
 	// Ensure we dump a stack trace if we crash.
-	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath))
+	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath, sessionID, appShortName))
 
 	logrus.
 		WithField("appName", constants.FullAppName).
@@ -329,7 +352,7 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 		WithField("SentryID", sentry.GetProtectedHostname()).
 		Info("Run app")
 
-	return fn()
+	return fn(closer)
 }
 
 // WithLocations provides access to locations where we store our files.

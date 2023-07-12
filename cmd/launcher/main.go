@@ -18,6 +18,7 @@
 package main
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -43,9 +44,10 @@ import (
 )
 
 const (
-	appName = "Proton Mail Launcher"
-	exeName = "bridge"
-	guiName = "bridge-gui"
+	appName      = "Proton Mail Launcher"
+	exeName      = "bridge"
+	guiName      = "bridge-gui"
+	launcherName = "launcher"
 
 	FlagCLI                 = "cli"
 	FlagCLIShort            = "c"
@@ -53,6 +55,7 @@ const (
 	FlagNonInteractiveShort = "n"
 	FlagLauncher            = "--launcher"
 	FlagWait                = "--wait"
+	FlagSessionID           = "--session-id"
 )
 
 func main() { //nolint:funlen
@@ -75,11 +78,25 @@ func main() { //nolint:funlen
 	if err != nil {
 		l.WithError(err).Fatal("Failed to get logs path")
 	}
-	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath))
 
-	if err := logging.Init(logsPath, os.Getenv("VERBOSITY")); err != nil {
+	sessionID := logging.NewSessionID()
+	crashHandler.AddRecoveryAction(logging.DumpStackTrace(logsPath, sessionID, launcherName))
+
+	var closer io.Closer
+	if closer, err = logging.Init(
+		logsPath,
+		sessionID,
+		logging.LauncherShortAppName,
+		logging.DefaultMaxLogFileSize,
+		logging.NoPruning,
+		os.Getenv("VERBOSITY"),
+	); err != nil {
 		l.WithError(err).Fatal("Failed to setup logging")
 	}
+
+	defer func() {
+		_ = logging.Close(closer)
+	}()
 
 	updatesPath, err := locations.ProvideUpdatesPath()
 	if err != nil {
@@ -134,7 +151,7 @@ func main() { //nolint:funlen
 		}
 	}
 
-	cmd := execabs.Command(exe, appendLauncherPath(launcher, args)...) //nolint:gosec
+	cmd := execabs.Command(exe, appendLauncherPath(launcher, append(args, FlagSessionID, string(sessionID)))...) //nolint:gosec
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

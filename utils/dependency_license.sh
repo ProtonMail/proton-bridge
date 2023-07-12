@@ -49,6 +49,8 @@ generate_dep_licenses(){
     sed  -i -r '/^github.com\/therecipe\/qt\/internal\/binding\/files\/docs\//d;' "$tmpDepLicenses"
     sed -i -r 's|^(.*)/([[:alnum:]-]+)/(v[[:digit:]]+)$|* [\2](https://\1/\2/\3)|g' "$tmpDepLicenses"
     sed -i -r 's|^(.*)/([[:alnum:]-]+)$|* [\2](https://\1/\2)|g' "$tmpDepLicenses"
+    sed -i -r 's|^(.*)/([[:alnum:]-]+).(v[[:digit:]]+)$|* [\2](https://\1/\2.\3)|g' "$tmpDepLicenses"
+
 
     ## add license file to github links, and others
     sed -i -r '/github.com/s|^(.*(https://[^)]+).*)$|\1 available under [license](\2/blob/master/LICENSE) |g' "$tmpDepLicenses"
@@ -57,7 +59,13 @@ generate_dep_licenses(){
     sed -i -r '/golang.org\/x/s|^(.*golang.org/x/([^)]+).*)$|\1 available under [license](https://cs.opensource.google/go/x/\2/+/master:LICENSE) |g' "$tmpDepLicenses"
     sed -i -r '/google.golang.org\/grpc/s|^(.*)$|\1 available under [license](https://github.com/grpc/grpc-go/blob/master/LICENSE) |g' "$tmpDepLicenses"
     sed -i -r '/google.golang.org\/protobuf/s|^(.*)$|\1 available under [license](https://github.com/protocolbuffers/protobuf/blob/main/LICENSE) |g' "$tmpDepLicenses"
+    sed -i -r '/go.uber.org\/goleak/s|^(.*)$|\1 available under [license](https://pkg.go.dev/go.uber.org/goleak?tab=licenses) |g' "$tmpDepLicenses"
+    sed -i -r '/ariga.io\/atlas/s|^(.*)$|\1 available under [license](https://github.com/ariga/atlas/blob/master/LICENSE) |g' "$tmpDepLicenses"
+    sed -i -r '/entgo.io\/ent/s|^(.*)$|\1 available under [license](https://pkg.go.dev/entgo.io/ent?tab=licenses) |g' "$tmpDepLicenses"
+    sed -i -r '/google.golang.org\/genproto/s|^(.*)$|\1 available under [license](https://pkg.go.dev/google.golang.org/genproto?tab=licenses) |g' "$tmpDepLicenses"
+    sed -i -r '/gopkg.in\/yaml\.v3/s|^(.*)$|\1 available under [license](https://github.com/go-yaml/yaml/blob/v3.0.1/LICENSE) |g' "$tmpDepLicenses"
 }
+
 
 check_dependecies(){
     generate_dep_licenses

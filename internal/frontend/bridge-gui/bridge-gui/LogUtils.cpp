@@ -19,7 +19,6 @@
 #include "LogUtils.h"
 #include "BuildConfig.h"
 #include <bridgepp/Log/LogUtils.h>
-#include <bridgepp/BridgeUtils.h>
 
 
 using namespace bridgepp;
@@ -33,15 +32,10 @@ Log &initLog() {
     log.registerAsQtMessageHandler();
     log.setEchoInConsole(true);
 
-    // remove old gui log files
-    QDir const logsDir(userLogsDir());
-    for (QFileInfo const fileInfo: logsDir.entryInfoList({ "gui_v*.log" }, QDir::Filter::Files)) { // entryInfolist apparently only support wildcards, not regex.
-        QFile(fileInfo.absoluteFilePath()).remove();
-    }
-
     // create new GUI log file
     QString error;
-    if (!log.startWritingToFile(logsDir.absoluteFilePath(QString("gui_v%1_%2.log").arg(PROJECT_VER).arg(QDateTime::currentSecsSinceEpoch())), &error)) {
+    if (!log.startWritingToFile(QDir(userLogsDir()).absoluteFilePath(QString("%1_gui_000_v%2_%3.log").arg(app().sessionID(),
+        PROJECT_VER, PROJECT_TAG)), &error)) {
         log.error(error);
     }
 

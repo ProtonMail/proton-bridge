@@ -73,7 +73,7 @@ Feature: IMAP import messages
 
   # The message is imported as UTF-8 and the content type is determined at build time.
   Scenario: Import message as latin1 without content type
-    When IMAP client "1" appends "text_plain_unknown_latin1.eml" to "INBOX"
+    When IMAP client "1" appends "plain/text_plain_unknown_latin1.eml" to "INBOX"
     Then it succeeds
     And IMAP client "1" eventually sees the following messages in "INBOX":
       | from         | to             | body    |
@@ -81,7 +81,7 @@ Feature: IMAP import messages
 
   # The message is imported and the body is converted to UTF-8.
   Scenario: Import message as latin1 with content type
-    When IMAP client "1" appends "text_plain_latin1.eml" to "INBOX"
+    When IMAP client "1" appends "plain/text_plain_latin1.eml" to "INBOX"
     Then it succeeds
     And IMAP client "1" eventually sees the following messages in "INBOX":
       | from         | to             | body    |
@@ -89,7 +89,7 @@ Feature: IMAP import messages
 
   # The message is imported anad the body is wrongly converted (body is corrupted).
   Scenario: Import message as latin1 with wrong content type
-    When IMAP client "1" appends "text_plain_wrong_latin1.eml" to "INBOX"
+    When IMAP client "1" appends "plain/text_plain_wrong_latin1.eml" to "INBOX"
     Then it succeeds
     And IMAP client "1" eventually sees the following messages in "INBOX":
       | from         | to             |

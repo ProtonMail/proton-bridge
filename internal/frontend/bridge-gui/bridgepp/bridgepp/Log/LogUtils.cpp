@@ -35,34 +35,29 @@ QString userLogsDir() {
 
 //****************************************************************************************************************************************************
 /// \brief Return the path of the latest bridge log.
+///
+/// \param[in] sessionID The sessionID.
 /// \return The path of the latest bridge log file.
 /// \return An empty string if no bridge log file was found.
 //****************************************************************************************************************************************************
-QString latestBridgeLogPath() {
+QString latestBridgeLogPath(QString const &sessionID) {
     QDir const logsDir(userLogsDir());
     if (logsDir.isEmpty()) {
         return QString();
     }
 
-    QFileInfoList files = logsDir.entryInfoList({ "v*.log" }, QDir::Files); // could do sorting, but only by last modification time. we want to sort by creation time.
-    if (files.isEmpty()) {
-        return QString();
-    }
-
-    std::sort(files.begin(), files.end(), [](QFileInfo const &lhs, QFileInfo const &rhs) -> bool {
-        return lhs.birthTime() < rhs.birthTime();
-    });
-    return files.back().absoluteFilePath();
+    QFileInfoList const files = logsDir.entryInfoList({ sessionID + "_bri_*.log" }, QDir::Files, QDir::Name);
+    return files.isEmpty() ? QString() : files.back().absoluteFilePath();
 }
 
 
 //****************************************************************************************************************************************************
 /// Return the maxSize last bytes of the latest bridge log.
 //****************************************************************************************************************************************************
-QByteArray tailOfLatestBridgeLog() {
-    QString path = latestBridgeLogPath();
+QByteArray tailOfLatestBridgeLog(QString const &sessionID) {
+    QString path = latestBridgeLogPath(sessionID);
     if (path.isEmpty()) {
-        return QByteArray();
+        return QString("We could not find a bridge log file for the current session.").toLocal8Bit();
     }
 
     QFile file(path);

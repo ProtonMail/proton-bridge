@@ -410,23 +410,86 @@ func (s *scenario) imapClientMarksAllMessagesAsDeleted(clientID string) error {
 	return nil
 }
 
-func (s *scenario) imapClientSeesThatMessageHasTheFlag(clientID string, seq int, flag string) error {
+func (s *scenario) imapClientMarksMessageAsState(clientID string, seq int, messageState string) error {
 	_, client := s.t.getIMAPClient(clientID)
 
-	fetch, err := clientFetch(client, client.Mailbox().Name)
+	err := clientChangeMessageState(client, seq, messageState, true)
+	if err != nil {
+		s.t.pushError(err)
+	}
+
+	return nil
+}
+
+func (s *scenario) imapClientMarksTheMessageWithSubjectAsState(clientID, subject, messageState string) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	uid, err := clientGetUIDBySubject(client, client.Mailbox().Name, subject)
 	if err != nil {
 		return err
 	}
 
-	idx := xslices.IndexFunc(fetch, func(msg *imap.Message) bool {
-		return msg.SeqNum == uint32(seq)
-	})
-
-	if !slices.Contains(fetch[idx].Flags, flag) {
-		return fmt.Errorf("expected message %v to have flag %v, got %v", seq, flag, fetch[idx].Flags)
+	if err := clientChangeMessageState(client, int(uid), messageState, true); err != nil {
+		s.t.pushError(err)
 	}
 
 	return nil
+}
+
+func (s *scenario) imapClientMarksAllMessagesAsState(clientID, messageState string) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	if err := clientChangeAllMessageState(client, messageState); err != nil {
+		s.t.pushError(err)
+	}
+
+	return nil
+}
+
+func (s *scenario) imapClientSeesThatMessageHasTheFlag(clientID string, seq int, flag string) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	return clientIsFlagApplied(client, seq, flag, true, false)
+}
+
+func (s *scenario) imapClientSeesThatMessageDoesNotHaveTheFlag(clientID string, seq int, flag string) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	return clientIsFlagApplied(client, seq, flag, false, false)
+}
+
+func (s *scenario) imapClientSeesThatTheMessageWithSubjectHasTheFlag(clientID, subject, flag string) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	uid, err := clientGetUIDBySubject(client, client.Mailbox().Name, subject)
+	if err != nil {
+		return err
+	}
+
+	return clientIsFlagApplied(client, int(uid), flag, true, false)
+}
+
+func (s *scenario) imapClientSeesThatTheMessageWithSubjectDoesNotHaveTheFlag(clientID, subject, flag string) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	uid, err := clientGetUIDBySubject(client, client.Mailbox().Name, subject)
+	if err != nil {
+		return err
+	}
+
+	return clientIsFlagApplied(client, int(uid), flag, false, false)
+}
+
+func (s *scenario) imapClientSeesThatAllTheMessagesHaveTheFlag(clientID string, flag string) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	return clientIsFlagApplied(client, 1, flag, true, true)
+}
+
+func (s *scenario) imapClientSeesThatAllTheMessagesDoNotHaveTheFlag(clientID string, flag string) error {
+	_, client := s.t.getIMAPClient(clientID)
+
+	return clientIsFlagApplied(client, 1, flag, false, true)
 }
 
 func (s *scenario) imapClientExpunges(clientID string) error {
@@ -775,4 +838,79 @@ func clientStore(client *client.Client, from, to int, isUID bool, item imap.Stor
 
 func clientAppend(client *client.Client, mailbox string, literal string) error {
 	return client.Append(mailbox, []string{}, time.Now(), strings.NewReader(literal))
+}
+
+func clientIsFlagApplied(client *client.Client, seq int, flag string, applied bool, wholeMailbox bool) error {
+	fetch, err := clientFetch(client, client.Mailbox().Name)
+	if err != nil {
+		return err
+	}
+
+	idx := xslices.IndexFunc(fetch, func(msg *imap.Message) bool {
+		return msg.SeqNum == uint32(seq)
+	})
+
+	if slices.Contains(fetch[idx].Flags, flag) != applied {
+		return fmt.Errorf("expected message %v to have flag %v set to %v, got %v", seq, flag, applied, fetch[idx].Flags)
+	}
+
+	if wholeMailbox {
+		for i := seq; i <= int(client.Mailbox().Messages); i++ {
+			idx := xslices.IndexFunc(fetch, func(msg *imap.Message) bool {
+				return msg.SeqNum == uint32(i)
+			})
+
+			if slices.Contains(fetch[idx].Flags, flag) != applied {
+				return fmt.Errorf("expected message %v to have flag %v set to %v, got %v", seq, flag, applied, fetch[idx].Flags)
+			}
+		}
+	}
+
+	return nil
+}
+
+func clientChangeMessageState(client *client.Client, seq int, messageState string, isUID bool) error {
+	switch {
+	case messageState == "read":
+		_, err := clientStore(client, seq, seq, isUID, imap.FormatFlagsOp(imap.AddFlags, true), imap.SeenFlag)
+		if err != nil {
+			return err
+		}
+
+	case messageState == "unread":
+		_, err := clientStore(client, seq, seq, isUID, imap.FormatFlagsOp(imap.RemoveFlags, true), imap.SeenFlag)
+		if err != nil {
+			return err
+		}
+
+	case messageState == "starred":
+		_, err := clientStore(client, seq, seq, isUID, imap.FormatFlagsOp(imap.AddFlags, true), imap.FlaggedFlag)
+		if err != nil {
+			return err
+		}
+
+	case messageState == "unstarred":
+		_, err := clientStore(client, seq, seq, isUID, imap.FormatFlagsOp(imap.RemoveFlags, true), imap.FlaggedFlag)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func clientChangeAllMessageState(client *client.Client, messageState string) error {
+	if messageState == "read" {
+		_, err := clientStore(client, 1, int(client.Mailbox().Messages), false, imap.FormatFlagsOp(imap.AddFlags, true), imap.SeenFlag)
+		if err != nil {
+			return err
+		}
+	} else if messageState == "unread" {
+		_, err := clientStore(client, 1, int(client.Mailbox().Messages), false, imap.FormatFlagsOp(imap.RemoveFlags, true), imap.SeenFlag)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

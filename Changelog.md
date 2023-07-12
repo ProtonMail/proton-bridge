@@ -3,6 +3,56 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## [Bridge 3.4.0] Trift changelog
+
+### Changed
+* Test: Add require.Eventually to TestBridge_UserAgentFromSMTPClient.
+* Test: Add smtp-send utility.
+* GODT-2759: Check for oprhan messages.
+* GODT-2759: Add prompt to download missing messages for analysis.
+* GODT-2759: CLI debug commands.
+* Remove gRPC auto-generated C++ source files.
+* GODT-2749: Manual test-windows again.
+* Test: Force all unit test to use minimum sync spec.
+* Test: Force sync limits to minimum with env variable.
+* GODT-2749: Manual windows-test.
+* GODT-2691: Close logrus output file on exit.
+* GODT-2522: New Gluon database layout.
+* GODT-2678: When internet is off, do not display status dot icon for the user in the context menu.
+* GODT-2686: Change the orientation of the expand/collapse arrow for Advanced settings.
+* Test(GODT-2636): Add step for sending from EML.
+* Log failed message ids during sync.
+* GODT-2510: Remove Ent.
+* Test(GODT-2600): Changing state (read/unread, starred/unstarred) of a message in integration tests.
+* GODT-2703: Got rid of account details dialog with Apple Mail autoconf.
+* GODT-2685: Update to bug report log attachment logic.
+* GODT-2690: Update sentry reporting in GUI for new log file naming.
+* GODT-2668: Implemented new log retention policy.
+* Test(GODT-2683): Save Draft without "Date" & "From" in headers.
+* GODT-2666: Feat(GODT-2667): introduce sessionID in bridge.
+* GODT-2653: Log API error details on Message import and send.
+* GODT-2674: Add more logs to failed update.
+* GODT-2660: Calculate bridge coverage and refactor CI yaml file.
+* Fix dependency_license script to handle dot formated version.
+* Add error logs when messages fail to build during sync.
+* GODT-2673: Use NoClient as UserAgent without any client connected and...
+* GODT-2655: Display internal build time tag in log and GUI.
+
+### Fixed
+* GODT-2758: Fix panic in SetFlagsOnMessages.
+* GODT-2578: Refresh literals appended to Sent folder.
+* GODT-2753: Vault test now check that value auto-assigned is first available port.
+* GODT-2522: Handle migration with unreferenced db values.
+* GODT-2693: Allow missing whitespace after header field colon.
+* GODT-2653: Only log when err is not nil.
+* GODT-2680: Fix for C++ debugger not working on ARM64 because of OpenSSL 3.1.
+* GODT-2675: Update GPA to applye togin-gonic/gin patch + update COPYING_NOTES.
+* GODT-2672: Fix context cancelled when IMAP/SMTP parameters change is in progress.
+* GODT-2763: Missing Answered flag on Sync and Message Create.
+* GODT-2774: Only check telemetry availability for the current user.
+* GODT-2774: Add external context to telemetry tasks.
+
+
 ## Stone Bridge 3.3.2
 
 ### Fixed

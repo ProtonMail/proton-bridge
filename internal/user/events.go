@@ -514,9 +514,9 @@ func (user *User) handleMessageEvents(ctx context.Context, messageEvents []proto
 		case proton.EventUpdate, proton.EventUpdateFlags:
 			// Draft update means to completely remove old message and upload the new data again, but we should
 			// only do this if the event is of type EventUpdate otherwise label switch operations will not work.
-			if event.Message.IsDraft() && event.Action == proton.EventUpdate {
-				updates, err := user.handleUpdateDraftEvent(
-					logging.WithLogrusField(ctx, "action", "update draft"),
+			if (event.Message.IsDraft() || (event.Message.Flags&proton.MessageFlagSent != 0)) && event.Action == proton.EventUpdate {
+				updates, err := user.handleUpdateDraftOrSentMessage(
+					logging.WithLogrusField(ctx, "action", "update draft or sent message"),
 					event,
 				)
 				if err != nil {
@@ -648,23 +648,7 @@ func (user *User) handleUpdateMessageEvent(_ context.Context, message proton.Mes
 			"subject":   logging.Sensitive(message.Subject),
 		}).Info("Handling message updated event")
 
-		flags := imap.NewFlagSet()
-
-		if message.Seen() {
-			flags.AddToSelf(imap.FlagSeen)
-		}
-
-		if message.Starred() {
-			flags.AddToSelf(imap.FlagFlagged)
-		}
-
-		if message.IsDraft() {
-			flags.AddToSelf(imap.FlagDraft)
-		}
-
-		if message.IsRepliedAll == true || message.IsReplied == true { //nolint: gosimple
-			flags.AddToSelf(imap.FlagAnswered)
-		}
+		flags := buildFlagSetFromMessageMetadata(message)
 
 		update := imap.NewMessageMailboxesUpdated(
 			imap.MessageID(message.ID),
@@ -701,18 +685,19 @@ func (user *User) handleDeleteMessageEvent(_ context.Context, event proton.Messa
 	}, user.updateChLock)
 }
 
-func (user *User) handleUpdateDraftEvent(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) {
+func (user *User) handleUpdateDraftOrSentMessage(ctx context.Context, event proton.MessageEvent) ([]imap.Update, error) {
 	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		user.log.WithFields(logrus.Fields{
 			"messageID": event.ID,
 			"subject":   logging.Sensitive(event.Message.Subject),
-		}).Info("Handling draft updated event")
+			"isDraft":   event.Message.IsDraft(),
+		}).Info("Handling draft or sent updated event")
 
 		full, err := user.client.GetFullMessage(ctx, event.Message.ID, newProtonAPIScheduler(user.panicHandler), proton.NewDefaultAttachmentAllocator())
 		if err != nil {
 			// If the message is not found, it means that it has been deleted before we could fetch it.
 			if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
-				user.log.WithField("messageID", event.Message.ID).Warn("Cannot update draft: full message is missing on API")
+				user.log.WithField("messageID", event.Message.ID).Warn("Cannot update message: full message is missing on API")
 				return nil, nil
 			}
 

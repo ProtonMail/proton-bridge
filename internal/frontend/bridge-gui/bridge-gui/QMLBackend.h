@@ -45,6 +45,7 @@ public: // member functions.
     void init(GRPCConfig const &serviceConfig); ///< Initialize the backend.
     bool waitForEventStreamReaderToFinish(qint32 timeoutMs); ///< Wait for the event stream reader to finish.
     UserList const& users() const; ///< Return the list of users
+    bool isInternetOn() const; ///< Check if bridge considers internet as on.
     void showMainWindow(QString const &reason); ///< Show the main window.
     void showHelp(QString const &reason); ///< Show the help page.
     void showSettings(QString const &reason); ///< Show the settings page.
@@ -88,7 +89,6 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(QString currentKeychain READ currentKeychain NOTIFY currentKeychainChanged)
     Q_PROPERTY(UserList *users MEMBER users_ NOTIFY usersChanged)
     Q_PROPERTY(bool dockIconVisible READ dockIconVisible WRITE setDockIconVisible NOTIFY dockIconVisibleChanged)
-
 
     // Qt Property system setters & getters.
     bool showOnStartup() const; ///< Getter for the 'showOnStartup' property.
@@ -198,6 +198,7 @@ public slots: // slots for functions that need to be processed locally.
     void setUpdateTrayIcon(QString const& stateString, QString const &statusIcon); ///< Set the tray icon to 'update' state.
 
 public slots: // slot for signals received from gRPC that need transformation instead of simple forwarding
+    void internetStatusChanged(bool isOn); ///< Check if bridge considers internet as on.
     void onMailServerSettingsChanged(int imapPort, int smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Slot for the ConnectionModeChanged gRPC event.
     void onGenericError(bridgepp::ErrorInfo const &info); ///< Slot for generic errors received from the gRPC service.
     void onLoginFinished(QString const &userID, bool wasSignedOut); ///< Slot for LoginFinished gRPC event.
@@ -280,8 +281,9 @@ private: // data members
     int smtpPort_ { 0 }; ///< The cached value for the SMTP port.
     bool useSSLForIMAP_ { false }; ///< The cached value for useSSLForIMAP.
     bool useSSLForSMTP_ { false }; ///< The cached value for useSSLForSMTP.
+    bool isInternetOn_ { true }; ///< Does bridge consider internet as on?
     QList<QString> badEventDisplayQueue_; ///< THe queue for displaying 'bad event feedback request dialog'.
-    std::unique_ptr<TrayIcon> trayIcon_;
+    std::unique_ptr<TrayIcon> trayIcon_; ///< The tray icon for the application.
     friend class AppController;
 };
 

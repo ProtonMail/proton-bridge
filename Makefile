@@ -11,7 +11,7 @@ ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 .PHONY: build build-gui build-nogui build-launcher versioner hasher
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=3.3.2+git
+BRIDGE_APP_VERSION?=3.4.0+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 APP_FULL_NAME:=Proton Mail Bridge
 APP_VENDOR:=Proton AG
@@ -229,14 +229,28 @@ add-license:
 change-copyright-year:
 	./utils/missing_license.sh change-year
 
+GOCOVERAGE=-covermode=count -coverpkg=github.com/ProtonMail/proton-bridge/v3/internal/...,github.com/ProtonMail/proton-bridge/v3/pkg/...,
+GOCOVERDIR=-args -test.gocoverdir=$$PWD/coverage
+
 test: gofiles
-	go test -v -timeout=20m -p=1 -count=1 -coverprofile=/tmp/coverage.out -run=${TESTRUN} ./internal/... ./pkg/...
+	mkdir -p coverage/unit-${GOOS}
+	go test \
+		-v -timeout=20m -p=1 -count=1 \
+		${GOCOVERAGE} \
+		-run=${TESTRUN} ./internal/... ./pkg/... \
+		${GOCOVERDIR}/unit-${GOOS}
 
 test-race: gofiles
 	go test -v -timeout=40m -p=1 -count=1 -race -failfast -run=${TESTRUN} ./internal/... ./pkg/...
 
 test-integration: gofiles
-	go test -v -timeout=60m -p=1 -count=1 github.com/ProtonMail/proton-bridge/v3/tests
+	mkdir -p coverage/integration
+	go test \
+		-v -timeout=60m -p=1 -count=1 \
+		${GOCOVERAGE} \
+		github.com/ProtonMail/proton-bridge/v3/tests \
+		${GOCOVERDIR}/integration
+
 
 test-integration-debug: gofiles
 	dlv test github.com/ProtonMail/proton-bridge/v3/tests -- -test.v -test.timeout=10m -test.parallel=1 -test.count=1

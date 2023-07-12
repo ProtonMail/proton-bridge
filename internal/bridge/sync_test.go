@@ -399,6 +399,10 @@ func createNumMessages(ctx context.Context, t *testing.T, c *proton.Client, addr
 }
 
 func createMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID, labelID string, messages ...[]byte) []string {
+	return createMessagesWithFlags(ctx, t, c, addrID, labelID, 0, messages...)
+}
+
+func createMessagesWithFlags(ctx context.Context, t *testing.T, c *proton.Client, addrID, labelID string, flags proton.MessageFlag, messages ...[]byte) []string {
 	user, err := c.GetUser(ctx)
 	require.NoError(t, err)
 
@@ -417,6 +421,13 @@ func createMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID,
 	_, ok := addrKRs[addrID]
 	require.True(t, ok)
 
+	var msgFlags proton.MessageFlag
+	if flags == 0 {
+		msgFlags = proton.MessageFlagReceived
+	} else {
+		msgFlags = flags
+	}
+
 	str, err := c.ImportMessages(
 		ctx,
 		addrKRs[addrID],
@@ -427,7 +438,7 @@ func createMessages(ctx context.Context, t *testing.T, c *proton.Client, addrID,
 				Metadata: proton.ImportMetadata{
 					AddressID: addrID,
 					LabelIDs:  []string{labelID},
-					Flags:     proton.MessageFlagReceived,
+					Flags:     msgFlags,
 				},
 				Message: message,
 			}
