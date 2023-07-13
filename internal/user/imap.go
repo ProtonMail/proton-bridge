@@ -28,6 +28,7 @@ import (
 
 	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/gluon/imap"
+	"github.com/ProtonMail/gluon/rfc5322"
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -281,6 +282,11 @@ func (conn *imapConnector) CreateMessage(
 		return imap.Message{}, nil, connector.ErrOperationNotAllowed
 	}
 
+	toList, err := getLiteralToList(literal)
+	if err != nil {
+		return imap.Message{}, nil, fmt.Errorf("failed to retrieve addresses from literal:%w", err)
+	}
+
 	// Compute the hash of the message (to match it against SMTP messages).
 	hash, err := getMessageHash(literal)
 	if err != nil {
@@ -288,7 +294,7 @@ func (conn *imapConnector) CreateMessage(
 	}
 
 	// Check if we already tried to send this message recently.
-	if messageID, ok, err := conn.sendHash.hasEntryWait(ctx, hash, time.Now().Add(90*time.Second)); err != nil {
+	if messageID, ok, err := conn.sendHash.hasEntryWait(ctx, hash, time.Now().Add(90*time.Second), toList); err != nil {
 		return imap.Message{}, nil, fmt.Errorf("failed to check send hash: %w", err)
 	} else if ok {
 		conn.log.WithField("messageID", messageID).Warn("Message already sent")
@@ -413,72 +419,13 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 		return connector.ErrOperationNotAllowed
 	}
 
-	if err := conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(mailboxID)); err != nil {
+	msgIDs := mapTo[imap.MessageID, string](messageIDs)
+	if err := conn.client.UnlabelMessages(ctx, msgIDs, string(mailboxID)); err != nil {
 		return err
 	}
 
 	if mailboxID == proton.TrashLabel || mailboxID == proton.DraftsLabel {
-		var msgToPermaDelete []string
-		// There's currently no limit on how many IDs we can filter on,
-		// but to be nice to API, let's chunk it by 150.
-		for _, messageIDs := range xslices.Chunk(messageIDs, 150) {
-			metadata, err := conn.client.GetMessageMetadata(ctx, proton.MessageFilter{
-				ID: mapTo[imap.MessageID, string](messageIDs),
-			})
-			if err != nil {
-				return err
-			}
-
-			msgIds, err := safe.LockRetErr(func() ([]string, error) {
-				var msgIds []string
-
-				// If a message is not preset in any other label other than AllMail, AllDrafts and AllSent, it can be
-				// permanently deleted.
-				for _, m := range metadata {
-					var remainingLabels []string
-
-					for _, id := range m.LabelIDs {
-						label, ok := conn.apiLabels[id]
-						if !ok {
-							// Handle case where this label was newly introduced and we do not yet know about it.
-							logrus.WithField("labelID", id).Warnf("Unknown label found during expung from Trash, attempting to locate it")
-							label, err = conn.client.GetLabel(ctx, id, proton.LabelTypeFolder, proton.LabelTypeSystem, proton.LabelTypeSystem)
-							if err != nil {
-								if errors.Is(err, proton.ErrNoSuchLabel) {
-									logrus.WithField("labelID", id).Warn("Label does not exist, ignoring")
-									continue
-								}
-
-								logrus.WithField("labelID", id).Errorf("Failed to resolve label: %v", err)
-								return nil, fmt.Errorf("failed to resolve label: %w", err)
-							}
-						}
-						if !wantLabel(label) {
-							continue
-						}
-
-						if id != proton.AllDraftsLabel && id != proton.AllMailLabel && id != proton.AllSentLabel {
-							remainingLabels = append(remainingLabels, m.ID)
-						}
-					}
-
-					if len(remainingLabels) == 0 {
-						msgIds = append(msgIds, m.ID)
-					}
-				}
-
-				return msgIds, nil
-			}, conn.User.apiLabelsLock)
-			if err != nil {
-				return err
-			}
-
-			msgToPermaDelete = append(msgToPermaDelete, msgIds...)
-		}
-
-		logrus.Debugf("Following message(s) will be perma-deleted: %v", msgToPermaDelete)
-
-		if err := conn.client.DeleteMessage(ctx, msgToPermaDelete...); err != nil {
+		if err := conn.client.DeleteMessage(ctx, msgIDs...); err != nil {
 			return err
 		}
 	}
@@ -756,4 +703,46 @@ func buildFlagSetFromMessageMetadata(message proton.MessageMetadata) imap.FlagSe
 	}
 
 	return flags
+}
+
+func getLiteralToList(literal []byte) ([]string, error) {
+	headerLiteral, _ := rfc822.Split(literal)
+
+	header, err := rfc822.NewHeader(headerLiteral)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []string
+
+	parseAddress := func(field string) error {
+		if fieldAddr, ok := header.GetChecked(field); ok {
+			addr, err := rfc5322.ParseAddressList(fieldAddr)
+			if err != nil {
+				return fmt.Errorf("failed to parse addresses for '%v': %w", field, err)
+			}
+
+			result = append(result, xslices.Map(addr, func(addr *mail.Address) string {
+				return addr.Address
+			})...)
+
+			return nil
+		}
+
+		return nil
+	}
+
+	if err := parseAddress("To"); err != nil {
+		return nil, err
+	}
+
+	if err := parseAddress("Cc"); err != nil {
+		return nil, err
+	}
+
+	if err := parseAddress("Bcc"); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

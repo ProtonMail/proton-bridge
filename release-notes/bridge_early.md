@@ -1,3 +1,238 @@
+## v3.3.1
+- 2023-07-07
+
+### New
+- Improved Bridge debugging capabilities by adding more information to the application logs
+- Started measuring the Bridge setup experience
+
+### Fixed
+- Temporarily removed clickable notifications on Linux to not raise the Bridge window when receiving non-Bridge notifications
+
+
+## v3.3.0
+- 2023-06-08
+
+### New
+- Reduced the number of occasions when email clients ask for Bridge credentials
+- Added new Bridge notifications to help users to configure and troubleshoot their email clients
+- To avoid the need to reconfigure email clients, Bridge remembers the old account password when an account is re-added (removed and added again)
+- Further improved logging to support troubleshooting
+- 2 factor authentication (2FA) is submitted automatically after entering a code
+- Removed the requirement of having an administrator account on macOS to install Bridge
+
+### Fixed
+- Fixed numerous crashes
+- Fixed the case when an email could not be sent if a PDF was attached to the email
+- Added varioius bugfixes and security improvemenets
+- Reduced the Bridge cache size by cleaning up temporary emails that were saved during failed initial synchronizations
+- Further reduced the chance of desyncronization between the email client and Bridge
+
+
+## v3.2.0
+- 2023-05-15
+
+### New
+- Enhanced Proton infrastructure protection
+- Enhanced the integration with the operating system by replacing status windows with native tray icon context menu
+- Switched to two columns layout on the account details page to make the informaion easier to access
+- Improved logs to support troubleshooting
+- Added optional usage sharing to support user experience improvements. Additional information about data sharing can be found on our [support page](https://proton.me/support/share-usage-statistics).
+- Implemented smart picking of default IMAP and SMTP ports
+- Added various security and performance improvements
+
+### Fixed
+- Replaced invalid email addresses with empty field for new drafts so it can be syncronized across Proton clients
+- Improved crash handling
+- Fixed label / unlabel performance when applied on large amount of emails
+- Fixed "reply to" related issues
+- Updated build instructions
+- Announced IMAP ID capability to email clients
+
+
+## v3.1.3
+- 2023-05-10
+
+### Fixed
+- Added a missing error handler that can make the initial synchronization to stuck
+
+
+## v3.1.2
+- 2023-04-27
+
+### New
+- Optimized Recovered Messages folder size by not adding a message to the folder if that message has been added to it before (deduplication)
+
+## v3.1.1
+- 2023-04-11
+
+### Fixed
+- Improved exception / crash handling
+
+## v3.1.0
+- 2023-04-05
+
+### New
+- Significantly reduced memory consumption both during synchronization and communication with email clients
+- Added synchronization indicator to the graphical user interface (GUI)
+- Added "Close window" and "Quit Bridge" buttons to the main window
+- Added command line switches to control GUI rendering
+- Switched to software rendering on Windows to support old graphics cards
+- Added support for Proton's Scheduled send feature
+- Avoided making email clients to ask for Bridge credentials when they started faster than Bridge at startup
+- Added a notification when a user is signed out from Bridge in the background
+- Improved desynchronization avoidence by setting UIDValidity from the current time
+- Started updating emails in the email clients frequently when Bridge is started after not being online for longer period of time
+- Improved error detection and handling
+
+### Fixed
+- Fixed transparent window with old graphics cards or virtual machines on Windows
+- Reduced notifications that does not require user actions
+- Improved exception / crash handling
+- Improved handling complex MIME types
+- Reduced the source of errors that can lead to gRPC related error messages
+- Fixed sub-folder rename issues
+- Fixed various bugs related to secure vault handling, network communication errors, Proton server communication, operating system integration.
+
+
+## v3.0.21
+- 2023-03-23
+
+### New
+- Extended the migration from the previous major Bridge version with certificates
+- Improved error detection
+
+### Fixed
+- Fixed the misplaced .desktop file on Linux
+- Fixed DBUS secret service integration (e.g., KWallet, KeePass)
+- Made Bridge more resilient against Proton server outages
+
+
+## v3.0.20
+- 2023-03-09
+
+### New
+- Added better explanation when an email cannot be sent because of non-existing email addresses
+- Added a dialog to Bridge where users can repair the application when it encounters an internal error
+- Improved error detection
+
+### Fixed
+- Reduced the cases when Bridge could not restart automatically
+- Fixed the bug that could cause email states (e.g., read, unread, answered) to come out of sync with the web application. **NOTE: This fix is only applied to new emails. In order to fix older emails in Bridge, the account in Bridge needs to be removed and added back.**
+- Fixed incorrect subject parsing caused by double quotes
+
+
+## v3.0.19
+- 2023-03-01
+
+### New
+- Improved inter-process communication error detection
+- Improved exceptions related error detection
+
+### Fixed
+- Fixed numerous sources of errors leading to logout (internal errors)
+- Fixed inter-process communication related startup issues (e.g., gRPC, service configuration file exchange)
+
+
+## v3.0.18
+- 2023-02-24
+
+### New
+- Improved event processing related error handling
+
+### Fixed
+- Fixed manual update errors on Windows by ensuring that all new files are deployed by the Bridge installer
+
+
+## v3.0.16
+- 2023-02-17
+
+### Fixed
+- Desynchronization while creating draft.
+
+
+## v3.0.15
+- 2023-02-14
+
+### Fixed
+- Better network error handling
+
+
+## v3.0.14
+- 2023-02-09
+
+### New
+- Improved error detection
+
+### Fixed
+- Fixed the sync issues that can happen when updating from an earlier v3 version
+- Improved attachment handling by setting proper MIME parameters
+- Improved update processing while Bridge is not active or performs a synchronization with Proton servers
+
+## v3.0.12
+- 2023-02-01
+
+### New
+- Changed the default location of the database and storage files. **NOTE: Please delete the old cache location if necessary.**
+- Optimised cache, database and storage placement
+- Improved email sending performance
+- Improved unexpected event handling
+
+### Fixed
+- Outlook does not show sent messages as drafts
+- Improved 'Reply to' behaviour
+
+
+## v3.0.10
+- 2023-01-17
+
+### New
+- Program argument to use software rendering.
+- Improved exception handling in GUI.
+
+### Fixed
+- API event processing more robust.
+- Improve the startup process.
+- Fixed sub-folder creation bug.
+
+
+## v3.0.9
+- 2023-01-05
+
+### New
+- Added an option to the GUI to export TLS certificates
+- Increased tolerance of invalid messages
+
+### Fixed
+- Autostart is set only when changed by the user
+- Folders that are created during initial sync are synchronized correctly
+- Improved settings migration from 2.x to 3.x
+- Error reporting improvements on Intel Macs
+- Show the setup guide after the first login
+- User name and password validation messages are shown only when the Sign in button is pressed
+- The Bridge main window is not shown on startup or after a crash
+- Sign in button is not greyed out after the first login
+
+
+## v3.0.8
+- 2022-12-20
+
+### New
+- Improved error detection when Proton server updates cannot be processed
+
+### Fixed
+- Proton server update processing will not stop after a folder update failure
+
+## v3.0.7
+- 2022-12-19
+
+### New
+- Increase worker count (performance improvement)
+
+### Fixed
+- Bridge password migration from 2.x to 3.x
+- Ensure proper handling of folders and labels with non-US ASCII chars
+
+
 ## v3.0.6
 - 2022-12-12
 
@@ -178,7 +413,7 @@
 - Improved Sentry reporting
 
 ### Fixed
-- Ensure messageID is properly removed from DB when it is no logner present on the API
+- Ensure messageID is properly removed from DB when it is no longer present on the API
 
 
 ## v2.1.0
@@ -372,7 +607,7 @@ New local cache
 - Added IMAP requests to the logs for easier debugging 
 
 ### Fixed
-- NoGUI bulid
+- NoGUI build
 - Background of GUI welcome message
 - Incorrect total mailbox size displayed in Apple Mail
 

@@ -81,7 +81,8 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 		}
 
 		// Check if we already tried to send this message recently.
-		if ok, err := user.sendHash.tryInsertWait(ctx, hash, to, time.Now().Add(90*time.Second)); err != nil {
+		srID, ok, err := user.sendHash.tryInsertWait(ctx, hash, to, time.Now().Add(90*time.Second))
+		if err != nil {
 			return fmt.Errorf("failed to check send hash: %w", err)
 		} else if !ok {
 			user.log.Warn("A duplicate message was already sent recently, skipping")
@@ -89,7 +90,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 		}
 
 		// If we fail to send this message, we should remove the hash from the send recorder.
-		defer user.sendHash.removeOnFail(hash, to)
+		defer user.sendHash.removeOnFail(hash, srID)
 
 		// Create a new message parser from the reader.
 		parser, err := parser.New(bytes.NewReader(b))
@@ -162,7 +163,7 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 			}
 
 			// If the message was successfully sent, we can update the message ID in the record.
-			user.sendHash.signalMessageSent(hash, sent.ID, to)
+			user.sendHash.signalMessageSent(hash, srID, sent.ID)
 
 			return nil
 		})

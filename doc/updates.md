@@ -1,12 +1,12 @@
 # Update mechanism of Bridge
 
-There are mulitple options how to change version of application:
+There are multiple options how to change version of application:
 * Automatic in-app update
 * Manual in-app update
 * Manual install
 
 In-app update ends with restarting bridge into new version. Automatic in-app
-update is downloading, verifying and installing the new version immediatelly
+update is downloading, verifying and installing the new version immediately
 without user confirmation. For manual in-app update user needs to confirm first.
 Update is done from special update file published on website.
 
@@ -25,7 +25,7 @@ The bridge is installed and executed differently for given OS:
 
 * macOS app does not use launcher
     * No launcher, only one executable
-    * In-App udpate replaces the bridge files in installation path directly
+    * In-App update replaces the bridge files in installation path directly
 
 
 ```mermaid

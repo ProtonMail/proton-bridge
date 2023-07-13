@@ -1,31 +1,157 @@
-## v2.4.8
-- 2022-11-22
+## v3.3.0
+- 2023-06-20
 
 ### New
-- Native Mac M1 release
-- Upgrade to Qt 6:
-    - Change the app architecture
-    - Drop therecipe/qt dependency
-    - Update to go1.18
-    - Update to Qt 6.3.2
-- Ensured the use of random port for gRPC
-- Implemented token exchange for identity validation
-- Ensured gRPC generates its own TLS certificate
-- Increased bridge-gui timeout for gRPC server connection
-- Added new warnings for 'TLS pinning' and 'no active key for recipient' errors
-- GUI improvements
-- More verbose logs for GUI-related issues
-- New icon for .dmg installer
+- Reduced the number of occasions when email clients ask for Bridge credentials
+- Added new Bridge notifications to help users to configure and troubleshoot their email clients
+- To avoid the need to reconfigure email clients, Bridge remembers the old account password when an account is re-added (removed and added again)
+- Further improved logging to support troubleshooting
+- 2 factor authentication (2FA) is submitted automatically after entering a code
+- Removed the requirement of having an administrator account on macOS to install Bridge
 
 ### Fixed
+- Fixed numerous crashes
+- Fixed the case when an email could not be sent if a PDF was attached to the email
+- Added varioius bugfixes and security improvemenets
+- Reduced the Bridge cache size by cleaning up temporary emails that were saved during failed initial synchronizations
+- Further reduced the chance of desyncronization between the email client and Bridge
+
+
+## v3.2.0
+- 2023-05-26
+
+### New
+- Enhanced Proton infrastructure protection
+- Enhanced the integration with the operating system by replacing status windows with native tray icon context menu
+- Switched to two columns layout on the account details page to make the informaion easier to access
+- Improved logs to support troubleshooting
+- Added optional usage sharing to support user experience improvements. Additional information about data sharing can be found on our [support page](https://proton.me/support/share-usage-statistics).
+- Implemented smart picking of default IMAP and SMTP ports
+- Added various security and performance improvements
+
+### Fixed
+- Replaced invalid email addresses with empty field for new drafts so it can be syncronized across Proton clients
+- Improved crash handling
+- Fixed label / unlabel performance when applied on large amount of emails
+- Fixed "reply to" related issues
+- Updated build instructions
+- Announced IMAP ID capability to email clients
+
+## v3.1.3
+- 2023-05-10
+
+### Fixed
+- Added a missing error handler that can make the initial synchronization to stuck
+
+
+## v3.1.2
+- 2023-04-27
+
+### New
+- Significantly reduced memory consumption both during synchronization and communication with email clients
+- Added synchronization indicator to the graphical user interface (GUI)
+- Added "Close window" and "Quit Bridge" buttons to the main window
+- Added command line switches to control GUI rendering
+- Switched to software rendering on Windows to support old graphics cards
+- Added support for Proton's Scheduled send feature
+- Avoided making email clients to ask for Bridge credentials when they started faster than Bridge at startup
+- Added a notification when a user is signed out from Bridge in the background
+- Improved desynchronization avoidence by setting UIDValidity from the current time
+- Started updating emails in the email clients frequently when Bridge is started after not being online for longer period of time
+- Improved error detection and handling
+- Optimized Recovered Messages folder size by not adding a message to the folder if that message has been added to it before (deduplication)
+
+### Fixed
+- Fixed transparent window with old graphics cards or virtual machines on Windows
+- Reduced notifications that does not require user actions
+- Improved exception / crash handling
+- Improved handling complex MIME types
+- Reduced the source of errors that can lead to gRPC related error messages
+- Fixed sub-folder rename issues
+- Fixed various bugs related to secure vault handling, network communication errors, Proton server communication, operating system integration.
+
+
+## v3.0.21
+- 2023-03-23
+
+### New
+- Extended the migration from the previous major Bridge version with certificates
+- Improved error detection
+
+### Fixed
+- Fixed the misplaced .desktop file on Linux
+- Fixed DBUS secret service integration (e.g., KWallet, KeePass)
+- Made Bridge more resilient against Proton server outages
+
+
+## v3.0.20
+- 2023-03-09
+
+### New
+- Added better explanation when an email cannot be sent because of non-existing email addresses
+- Added a dialog to Bridge where users can repair the application when it encounters an internal error
+- Improved error detection
+
+### Fixed
+- Reduced the cases when Bridge could not restart automatically
+- Fixed the bug that could cause email states (e.g., read, unread, answered) to come out of sync with the web application. **NOTE: This fix is only applied to new emails. In order to fix older emails in Bridge, the account in Bridge needs to be removed and added back.**
+- Fixed incorrect subject parsing caused by double quotes
+
+
+## v3.0.19
+- 2023-03-01
+
+### New
+- Improved inter-process communication error detection
+- Improved exceptions related error detection
+
+### Fixed
+- Fixed numerous sources of errors leading to logout (internal errors)
+- Fixed inter-process communication related startup issues (e.g., gRPC, service configuration file exchange)
+
+
+## v3.0.18
+- 2023-02-24
+
+### New
+- Improved event processing related error handling
+
+### Fixed
+- Fixed manual update errors on Windows by ensuring that all new files are deployed by the Bridge installer
+
+
+## v3.0.17
+- 2023-02-22
+
+### New
+- Rewrote a significant part of Bridge to improve overall Bridge stability and performance
+- Open sourced and integrated a new IMAP library, Gluon (https://github.com/ProtonMail/gluon)
+- Open sourced and integrated a new Proton API library, Go Proton API (GPA) (https://github.com/ProtonMail/go-proton-api)
+- Significantly improved error detection and unexpected error handling
+- Improved email sending performance
+- Improved synchronization performance
+- Added new command line argument for software rendering
+- Extended the coverage of the Bridge data that is encrypted on the users' computers
+- Added an option to the graphical user interface to export TLS certificates
+- Reimplemented the user interface (upgraded to the Qt 6 user interface library)
+- Added native Apple Silicon macOS support
+- Added an option to change IMAP connection mode
+- Added subfolder support
+- Added a new icon for the .dmg installer
+- Increased automated test coverage
+
+### Fixed
+- Desynchronization while creating a draft email
+- Fixed sub-folder creation issues
+- User name and password validation messages are shown only when the Sign in button is pressed
+- Improved handling SMTP send deduplication
 - Improved robustness of Bridge restart
-- The notification for when Bridge ports are occupied
+- Fixed the user notification for occupied Bridge ports
 - Fixed vulnerabilities of golang.org/x/crypto
-- Missing Library on Fedora/Gnome upgrade form 2.3 to 2.4
-- Added Digital-Signature for DLLs (Windows Security Alert to show Bridge as coming from a trusted publisher)
-- Change download and version check urls to proton.me
-- Fixed manual check for updates after switching the update channel
-- Fixes to the update process on Linux and Windows (qt6 related)
+- Added the missing Library on Fedora/Gnome for 2.3 to 2.4 update
+- Added digital-signature for DLLs (to avoid the Windows Security alert, and to show if Bridge is coming from a trusted publisher)
+- Fixed many Qt 6 related Linux and Windows update process issues
+- Changed the default location of the database and storage files to avoid conflicts with cache cleaner applications
 
 
 ## v2.3.0
@@ -89,7 +215,7 @@
 - Improved Sentry reporting
 
 ### Fixed
-- Ensure messageID is properly removed from DB when it is no logner present on the API
+- Ensure messageID is properly removed from DB when it is no longer present on the API
 
 
 ## v2.1.0
@@ -251,7 +377,7 @@ Other
 - Fixed GUI freeze while switching to early update channel
 - Fixed Bridge autostart
 - Improved signing of update packages
-- NoGUI bulid
+- NoGUI build
 - Background of GUI welcome message
 - Incorrect total mailbox size displayed in Apple Mail
 

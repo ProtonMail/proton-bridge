@@ -158,7 +158,6 @@ test-windows:
   extends:
     - .env-windows
     - .script-test
-    - .rules-branch-and-MR-manual
 
 test-darwin:
   extends:
@@ -174,7 +173,7 @@ test-coverage:
   coverage: '/total:.*\(statements\).*\d+\.\d+%/'
   needs:
     - test-linux
-    #- test-windows
+    - test-windows
     - test-darwin
     - test-integration
   tags:

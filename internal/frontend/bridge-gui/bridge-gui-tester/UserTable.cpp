@@ -150,13 +150,16 @@ bridgepp::SPUser UserTable::userWithID(QString const &userID) {
 
 
 //****************************************************************************************************************************************************
-/// \param[in] username The username.
+/// \param[in] username The username, or any email address attached to the account.
 /// \return The user with the given username.
 /// \return A null pointer if the user is not in the list.
 //****************************************************************************************************************************************************
-bridgepp::SPUser UserTable::userWithUsername(QString const &username) {
+bridgepp::SPUser UserTable::userWithUsernameOrEmail(QString const &username) {
     QList<SPUser>::const_iterator it = std::find_if(users_.constBegin(), users_.constEnd(), [&username](SPUser const &user) -> bool {
-        return user->username() == username;
+        if (user->username().compare(username, Qt::CaseInsensitive) == 0) {
+            return true;
+        }
+        return user->addresses().contains(username, Qt::CaseInsensitive);
     });
 
     return it == users_.end() ? nullptr : *it;

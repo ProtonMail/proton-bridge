@@ -59,7 +59,7 @@ void GRPCClient::removeServiceConfigFile(QString const &configDir) {
 //****************************************************************************************************************************************************
 /// \param[in] sessionID The sessionID.
 /// \param[in] timeoutMs The timeout in milliseconds
-/// \param[in] serverProcess An optional server process to monitor. If the process it, no need and retry, as connexion cannot be established. Ignored if null.
+/// \param[in] serverProcess An optional server process to monitor. If the process it, no need and retry, as connection cannot be established. Ignored if null.
 /// \return The service config.
 //****************************************************************************************************************************************************
 GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(QString const & sessionID, QString const &configDir, qint64 timeoutMs,
@@ -118,7 +118,7 @@ void GRPCClient::setLog(Log *log) {
 //****************************************************************************************************************************************************
 /// \param[in] sessionID The sessionID.
 /// \param[in] configDir The configuration directory
-/// \param[in] serverProcess An optional server process to monitor. If the process it, no need and retry, as connexion cannot be established. Ignored if null.
+/// \param[in] serverProcess An optional server process to monitor. If the process it, no need and retry, as connection cannot be established. Ignored if null.
 /// \return true iff the connection was successful.
 //****************************************************************************************************************************************************
 void GRPCClient::connectToServer(QString const &sessionID, QString const &configDir, GRPCConfig const &config, ProcessMonitor *serverProcess) {
@@ -150,7 +150,7 @@ void GRPCClient::connectToServer(QString const &sessionID, QString const &config
         int i = 0;
         while (true) {
             if (serverProcess && serverProcess->getStatus().ended) {
-                throw Exception("Bridge application ended before gRPC connexion could be established.", QString(), __FUNCTION__,
+                throw Exception("Bridge application ended before gRPC connection could be established.", QString(), __FUNCTION__,
                     tailOfLatestBridgeLog(sessionID));
             }
 

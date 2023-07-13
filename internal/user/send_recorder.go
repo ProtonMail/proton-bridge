@@ -32,11 +32,14 @@ import (
 
 const sendEntryExpiry = 30 * time.Minute
 
+type SendRecorderID uint64
+
 type sendRecorder struct {
 	expiry time.Duration
 
-	entries     map[string][]*sendEntry
-	entriesLock sync.Mutex
+	entries         map[string][]*sendEntry
+	entriesLock     sync.Mutex
+	cancelIDCounter uint64
 }
 
 func newSendRecorder(expiry time.Duration) *sendRecorder {
@@ -47,6 +50,7 @@ func newSendRecorder(expiry time.Duration) *sendRecorder {
 }
 
 type sendEntry struct {
+	srID         SendRecorderID
 	msgID        string
 	toList       []string
 	exp          time.Time
@@ -69,16 +73,17 @@ func (h *sendRecorder) tryInsertWait(
 	hash string,
 	toList []string,
 	deadline time.Time,
-) (bool, error) {
+) (SendRecorderID, bool, error) {
 	// If we successfully inserted the hash, we can return true.
-	if h.tryInsert(hash, toList) {
-		return true, nil
+	srID, waitCh, ok := h.tryInsert(hash, toList)
+	if ok {
+		return srID, true, nil
 	}
 
 	// A message with this hash is already being sent; wait for it.
-	_, wasSent, err := h.wait(ctx, hash, deadline)
+	_, wasSent, err := h.wait(ctx, hash, waitCh, srID, deadline)
 	if err != nil {
-		return false, fmt.Errorf("failed to wait for message to be sent: %w", err)
+		return 0, false, fmt.Errorf("failed to wait for message to be sent: %w", err)
 	}
 
 	// If the message failed to send, try to insert it again.
@@ -86,18 +91,23 @@ func (h *sendRecorder) tryInsertWait(
 		return h.tryInsertWait(ctx, hash, toList, deadline)
 	}
 
-	return false, nil
+	return srID, false, nil
 }
 
 // hasEntryWait returns whether the given message already exists in the send recorder.
 // If it does, it waits for its ID to be known, then returns it and true.
 // If no entry exists, or it times out while waiting for its ID to be known, it returns false.
-func (h *sendRecorder) hasEntryWait(ctx context.Context, hash string, deadline time.Time) (string, bool, error) {
-	if !h.hasEntry(hash) {
+func (h *sendRecorder) hasEntryWait(ctx context.Context,
+	hash string,
+	deadline time.Time,
+	toList []string,
+) (string, bool, error) {
+	srID, waitCh, found := h.getEntryWaitInfo(hash, toList)
+	if !found {
 		return "", false, nil
 	}
 
-	messageID, wasSent, err := h.wait(ctx, hash, deadline)
+	messageID, wasSent, err := h.wait(ctx, hash, waitCh, srID, deadline)
 	if errors.Is(err, context.DeadlineExceeded) {
 		return "", false, nil
 	} else if err != nil {
@@ -108,7 +118,7 @@ func (h *sendRecorder) hasEntryWait(ctx context.Context, hash string, deadline t
 		return messageID, true, nil
 	}
 
-	return h.hasEntryWait(ctx, hash, deadline)
+	return h.hasEntryWait(ctx, hash, deadline, toList)
 }
 
 func (h *sendRecorder) removeExpiredUnsafe() {
@@ -125,7 +135,7 @@ func (h *sendRecorder) removeExpiredUnsafe() {
 	}
 }
 
-func (h *sendRecorder) tryInsert(hash string, toList []string) bool {
+func (h *sendRecorder) tryInsert(hash string, toList []string) (SendRecorderID, <-chan struct{}, bool) {
 	h.entriesLock.Lock()
 	defer h.entriesLock.Unlock()
 
@@ -135,42 +145,50 @@ func (h *sendRecorder) tryInsert(hash string, toList []string) bool {
 	if ok {
 		for _, entry := range entries {
 			if matchToList(entry.toList, toList) {
-				return false
+				return entry.srID, entry.waitCh, false
 			}
 		}
 	}
 
+	cancelID := h.newSendRecorderID()
+	waitCh := make(chan struct{})
+
 	h.entries[hash] = append(entries, &sendEntry{
+		srID:   cancelID,
 		exp:    time.Now().Add(h.expiry),
 		toList: toList,
-		waitCh: make(chan struct{}),
+		waitCh: waitCh,
 	})
 
-	return true
+	return cancelID, waitCh, true
 }
 
-func (h *sendRecorder) hasEntry(hash string) bool {
+func (h *sendRecorder) getEntryWaitInfo(hash string, toList []string) (SendRecorderID, <-chan struct{}, bool) {
 	h.entriesLock.Lock()
 	defer h.entriesLock.Unlock()
 
 	h.removeExpiredUnsafe()
 
-	if _, ok := h.entries[hash]; ok {
-		return true
+	if entries, ok := h.entries[hash]; ok {
+		for _, e := range entries {
+			if matchToList(e.toList, toList) {
+				return e.srID, e.waitCh, true
+			}
+		}
 	}
 
-	return false
+	return 0, nil, false
 }
 
 // signalMessageSent should be called after a message has been successfully sent.
-func (h *sendRecorder) signalMessageSent(hash, msgID string, toList []string) {
+func (h *sendRecorder) signalMessageSent(hash string, srID SendRecorderID, msgID string) {
 	h.entriesLock.Lock()
 	defer h.entriesLock.Unlock()
 
 	entries, ok := h.entries[hash]
 	if ok {
 		for _, entry := range entries {
-			if matchToList(entry.toList, toList) {
+			if entry.srID == srID {
 				entry.msgID = msgID
 				entry.closeWaitChannel()
 				return
@@ -181,7 +199,7 @@ func (h *sendRecorder) signalMessageSent(hash, msgID string, toList []string) {
 	logrus.Warn("Cannot add message ID to send hash entry, it may have expired")
 }
 
-func (h *sendRecorder) removeOnFail(hash string, toList []string) {
+func (h *sendRecorder) removeOnFail(hash string, id SendRecorderID) {
 	h.entriesLock.Lock()
 	defer h.entriesLock.Unlock()
 
@@ -191,7 +209,7 @@ func (h *sendRecorder) removeOnFail(hash string, toList []string) {
 	}
 
 	for idx, entry := range entries {
-		if entry.msgID == "" && matchToList(entry.toList, toList) {
+		if entry.srID == id && entry.msgID == "" {
 			entry.closeWaitChannel()
 
 			remaining := xslices.Remove(entries, idx, 1)
@@ -204,14 +222,15 @@ func (h *sendRecorder) removeOnFail(hash string, toList []string) {
 	}
 }
 
-func (h *sendRecorder) wait(ctx context.Context, hash string, deadline time.Time) (string, bool, error) {
+func (h *sendRecorder) wait(
+	ctx context.Context,
+	hash string,
+	waitCh <-chan struct{},
+	srID SendRecorderID,
+	deadline time.Time,
+) (string, bool, error) {
 	ctx, cancel := context.WithDeadline(ctx, deadline)
 	defer cancel()
-
-	waitCh, ok := h.getWaitCh(hash)
-	if !ok {
-		return "", false, nil
-	}
 
 	select {
 	case <-ctx.Done():
@@ -225,21 +244,19 @@ func (h *sendRecorder) wait(ctx context.Context, hash string, deadline time.Time
 	defer h.entriesLock.Unlock()
 
 	if entry, ok := h.entries[hash]; ok {
-		return entry[0].msgID, true, nil
+		for _, e := range entry {
+			if e.srID == srID {
+				return e.msgID, true, nil
+			}
+		}
 	}
 
 	return "", false, nil
 }
 
-func (h *sendRecorder) getWaitCh(hash string) (<-chan struct{}, bool) {
-	h.entriesLock.Lock()
-	defer h.entriesLock.Unlock()
-
-	if entry, ok := h.entries[hash]; ok {
-		return entry[0].waitCh, true
-	}
-
-	return nil, false
+func (h *sendRecorder) newSendRecorderID() SendRecorderID {
+	h.cancelIDCounter++
+	return SendRecorderID(h.cancelIDCounter)
 }
 
 // getMessageHash returns the hash of the given message.

@@ -40,7 +40,7 @@ public: // member functions.
     void append(bridgepp::SPUser const &user); ///< Append a user.
     bridgepp::SPUser userAtIndex(qint32 index); ///< Return the user at the given index.
     bridgepp::SPUser userWithID(QString const &userID); ///< Return the user with a given id.
-    bridgepp::SPUser userWithUsername(QString const &username); ///< Return the user with a given username.
+    bridgepp::SPUser userWithUsernameOrEmail(QString const &username); ///< Return the user with a given username.
     qint32 indexOfUser(QString const &userID); ///< Return the index of a given User.
     void touch(qint32 index); ///< touch the user at a given index (indicates it has been modified).
     void touch(QString const& userID); ///< touch the user with the given userID (indicates it has been modified).

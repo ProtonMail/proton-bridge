@@ -205,7 +205,7 @@ func EncodeHeader(s string) string {
 	return mime.QEncoding.Encode("utf-8", s)
 }
 
-// DecodeCharset decodes the orginal using content type parameters.
+// DecodeCharset decodes the original using content type parameters.
 // If the charset parameter is missing it checks that the content is valid utf8.
 // If it isn't, it checks if it's embedded in the html/xml.
 // If it isn't, it falls back to windows-1252.
@@ -240,7 +240,7 @@ func DecodeCharset(original []byte, contentType string) ([]byte, error) {
 		logrus.WithField("encoding", name).Warn("Determined encoding but was not certain")
 	}
 
-	// Reencode as UTF-8.
+	// Re-encode as UTF-8.
 	decoded, err := encoding.NewDecoder().Bytes(original)
 	if err != nil {
 		return original, errors.Wrap(err, "failed to decode as windows-1252")

@@ -28,7 +28,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// maxFileSize limit tre single file size after decopression is not larger than 1GB.
+// maxFileSize limit the single file size after decompression is not larger than 1GB.
 const maxFileSize = int64(1 * 1024 * 1024 * 1024) // 1 GB
 
 // ErrFileTooLarge returned when decompressed file is too large.
