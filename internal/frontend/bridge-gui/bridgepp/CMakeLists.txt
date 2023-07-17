@@ -136,6 +136,7 @@ add_custom_command(
 
 add_library(bridgepp
     bridgepp/BridgeUtils.cpp bridgepp/BridgeUtils.h
+    bridgepp/CLI/CLIUtils.cpp bridgepp/CLI/CLIUtils.h
     bridgepp/Exception/Exception.h bridgepp/Exception/Exception.cpp
     bridgepp/GRPC/GRPCClient.cpp bridgepp/GRPC/GRPCClient.h
     bridgepp/GRPC/GRPCErrors.h bridgepp/GRPC/GRPCErrors.cpp
@@ -188,6 +189,7 @@ enable_testing()
 #*****************************************************************************************************************************************************
 add_executable(bridgepp-test EXCLUDE_FROM_ALL
     Test/TestBridgeUtils.cpp
+    Test/TestCLI.cpp
     Test/TestException.cpp
     Test/TestSessionID.cpp
     Test/TestWorker.cpp Test/TestWorker.h

@@ -20,6 +20,7 @@
 #include "QMLBackend.h"
 #include "SentryUtils.h"
 #include "Settings.h"
+#include <bridgepp/CLI/CLIUtils.h>
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/ProcessMonitor.h>
@@ -101,19 +102,23 @@ void AppController::onFatalError(Exception const &exception) {
     qApp->exit(EXIT_FAILURE);
 }
 
-
+//****************************************************************************************************************************************************
+/// \param[in] isCrashing Is the restart triggered by a crash.
+//****************************************************************************************************************************************************
 void AppController::restart(bool isCrashing) {
-    if (!launcher_.isEmpty()) {
-        QProcess p;
-        log_->info(QString("Restarting - App : %1 - Args : %2").arg(launcher_, launcherArgs_.join(" ")));
-        QStringList args = launcherArgs_;
-        if (isCrashing) {
-            args.append(noWindowFlag);
-        }
-
-        p.startDetached(launcher_, args);
-        p.waitForStarted();
+    if (launcher_.isEmpty()) {
+        return;
     }
+
+    QProcess p;
+    QStringList args = stripStringParameterFromCommandLine("--session-id", launcherArgs_);
+    if (isCrashing) {
+        args.append(noWindowFlag);
+    }
+
+    log_->info(QString("Restarting - App : %1 - Args : %2").arg(launcher_, args.join(" ")));
+    p.startDetached(launcher_, args);
+    p.waitForStarted();
 }
 
 
