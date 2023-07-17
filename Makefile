@@ -258,6 +258,13 @@ test-integration-debug: gofiles
 test-integration-race: gofiles
 	go test -v -timeout=60m -p=1 -count=1 -race -failfast github.com/ProtonMail/proton-bridge/v3/tests
 
+fuzz: gofiles
+	go test -fuzz=FuzzUnmarshal 	 -parallel=4 -fuzztime=60s $(PWD)/internal/legacy/credentials
+	go test -fuzz=FuzzNewParser 	 -parallel=4 -fuzztime=60s $(PWD)/pkg/message/parser
+	go test -fuzz=FuzzReadHeaderBody -parallel=4 -fuzztime=60s $(PWD)/pkg/message
+	go test -fuzz=FuzzDecodeHeader 	 -parallel=4 -fuzztime=60s $(PWD)/pkg/mime
+	go test -fuzz=FuzzDecodeCharset  -parallel=4 -fuzztime=60s $(PWD)/pkg/mime
+
 bench:
 	go test -run '^$$' -bench=. -memprofile bench_mem.pprof -cpuprofile bench_cpu.pprof ./internal/store
 	go tool pprof -png -output bench_mem.png bench_mem.pprof
