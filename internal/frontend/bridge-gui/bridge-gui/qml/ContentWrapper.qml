@@ -1,36 +1,62 @@
 // Copyright (c) 2023 Proton AG
-//
 // This file is part of Proton Mail Bridge.
-//
 // Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//
 // Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
-
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-
 import Proton
 import Notifications
 
 Item {
     id: root
-    property ColorScheme colorScheme
 
+    property ColorScheme colorScheme
     property var notifications
 
+    signal closeWindow
+    signal quitBridge
     signal showSetupGuide(var user, string address)
-    signal closeWindow()
-    signal quitBridge()
+
+    function selectUser(userID) {
+        const users = Backend.users;
+        for (let i = 0; i < users.count; i++) {
+            const user = users.get(i);
+            if (user.id !== userID) {
+                continue;
+            }
+            accounts.currentIndex = i;
+            if (user.state === EUserState.SignedOut)
+                showSignIn(user.primaryEmailOrUsername());
+            return;
+        }
+        console.error("User with ID ", userID, " was not found in the account list");
+    }
+    function showBugReportAndPrefill(description) {
+        rightContent.showBugReport();
+        bugReport.setDescription(description);
+    }
+    function showHelp() {
+        rightContent.showHelpView();
+    }
+    function showLocalCacheSettings() {
+        rightContent.showLocalCacheSettings();
+    }
+    function showSettings() {
+        rightContent.showGeneralSettings();
+    }
+    function showSignIn(username) {
+        signIn.username = username;
+        rightContent.showSignIn();
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -38,13 +64,13 @@ Item {
 
         Rectangle {
             id: leftBar
+
             property ColorScheme colorScheme: root.colorScheme.prominent
 
-            Layout.minimumWidth: 264
-            Layout.maximumWidth: 320
-            Layout.preferredWidth: 320
             Layout.fillHeight: true
-
+            Layout.maximumWidth: 320
+            Layout.minimumWidth: 264
+            Layout.preferredWidth: 320
             color: colorScheme.background_norm
 
             ColumnLayout {
@@ -52,24 +78,21 @@ Item {
                 spacing: 0
 
                 RowLayout {
-                    id:topLeftBar
-
+                    id: topLeftBar
                     Layout.fillWidth: true
-                    Layout.minimumHeight: 60
                     Layout.maximumHeight: 60
+                    Layout.minimumHeight: 60
                     Layout.preferredHeight: 60
                     spacing: 0
 
                     Status {
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.bottomMargin: 17
                         Layout.leftMargin: 16
                         Layout.topMargin: 24
-                        Layout.bottomMargin: 17
-                        Layout.alignment: Qt.AlignHCenter
-
                         colorScheme: leftBar.colorScheme
-                        notifications: root.notifications
-
                         notificationWhitelist: Notifications.Group.Connection | Notifications.Group.ForceUpdate
+                        notifications: root.notifications
                     }
 
                     // just a placeholder
@@ -77,47 +100,38 @@ Item {
                         Layout.fillHeight: true
                         Layout.fillWidth: true
                     }
-
                     Button {
-                        colorScheme: leftBar.colorScheme
-                        Layout.minimumHeight: 36
-                        Layout.maximumHeight: 36
-                        Layout.preferredHeight: 36
-                        Layout.minimumWidth: 36
-                        Layout.maximumWidth: 36
-                        Layout.preferredWidth: 36
-
-                        Layout.topMargin: 16
                         Layout.bottomMargin: 9
+                        Layout.maximumHeight: 36
+                        Layout.maximumWidth: 36
+                        Layout.minimumHeight: 36
+                        Layout.minimumWidth: 36
+                        Layout.preferredHeight: 36
+                        Layout.preferredWidth: 36
                         Layout.rightMargin: 4
-
+                        Layout.topMargin: 16
+                        colorScheme: leftBar.colorScheme
                         horizontalPadding: 0
-
                         icon.source: "/qml/icons/ic-question-circle.svg"
 
                         onClicked: rightContent.showHelpView()
                     }
-
                     Button {
-                        colorScheme: leftBar.colorScheme
-                        Layout.minimumHeight: 36
-                        Layout.maximumHeight: 36
-                        Layout.preferredHeight: 36
-                        Layout.minimumWidth: 36
-                        Layout.maximumWidth: 36
-                        Layout.preferredWidth: 36
-
-                        Layout.topMargin: 16
                         Layout.bottomMargin: 9
+                        Layout.maximumHeight: 36
+                        Layout.maximumWidth: 36
+                        Layout.minimumHeight: 36
+                        Layout.minimumWidth: 36
+                        Layout.preferredHeight: 36
+                        Layout.preferredWidth: 36
                         Layout.rightMargin: 4
-
+                        Layout.topMargin: 16
+                        colorScheme: leftBar.colorScheme
                         horizontalPadding: 0
-
                         icon.source: "/qml/icons/ic-cog-wheel.svg"
 
                         onClicked: rightContent.showGeneralSettings()
                     }
-
                     Button {
                         id: dotMenuButton
                         Layout.bottomMargin: 9
@@ -134,7 +148,7 @@ Item {
                         icon.source: "/qml/icons/ic-three-dots-vertical.svg"
 
                         onClicked: {
-                            dotMenu.open()
+                            dotMenu.open();
                         }
 
                         Menu {
@@ -143,332 +157,319 @@ Item {
                             modal: true
                             y: dotMenuButton.Layout.preferredHeight + dotMenuButton.Layout.bottomMargin
 
+                            onClosed: {
+                                parent.checked = false;
+                            }
+                            onOpened: {
+                                parent.checked = true;
+                            }
+
                             MenuItem {
                                 colorScheme: root.colorScheme
                                 text: qsTr("Close window")
+
                                 onClicked: {
-                                    root.closeWindow()
+                                    root.closeWindow();
                                 }
                             }
                             MenuItem {
                                 colorScheme: root.colorScheme
                                 text: qsTr("Quit Bridge")
-                                onClicked: {
-                                    root.quitBridge()
-                                }
-                            }
 
-                            onClosed: {
-                                parent.checked = false
-                            }
-                            onOpened: {
-                                parent.checked = true
+                                onClicked: {
+                                    root.quitBridge();
+                                }
                             }
                         }
                     }
                 }
-
-                Item {implicitHeight:10}
+                Item {
+                    implicitHeight: 10
+                }
 
                 // Separator line
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.minimumHeight: 1
                     Layout.maximumHeight: 1
+                    Layout.minimumHeight: 1
                     color: leftBar.colorScheme.border_weak
                 }
-
                 ListView {
                     id: accounts
 
-                    property var _topBottomMargins: 24
                     property var _leftRightMargins: 16
+                    property var _topBottomMargins: 24
 
-                    Layout.fillWidth: true
+                    Layout.bottomMargin: accounts._topBottomMargins
                     Layout.fillHeight: true
+                    Layout.fillWidth: true
                     Layout.leftMargin: accounts._leftRightMargins
                     Layout.rightMargin: accounts._leftRightMargins
                     Layout.topMargin: accounts._topBottomMargins
-                    Layout.bottomMargin: accounts._topBottomMargins
-
-                    spacing: 12
-                    clip: true
                     boundsBehavior: Flickable.StopAtBounds
+                    clip: true
+                    model: Backend.users
+                    spacing: 12
 
-                    header: Rectangle {
-                        height: headerLabel.height+16
-                        // color: ProtonStyle.transparent
-                        Label{
+                    delegate: Item {
+                        implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
+                        implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
+                        width: leftBar.width - 2 * accounts._leftRightMargins
+
+                        AccountDelegate {
+                            id: accountDelegate
+                            anchors.bottomMargin: 8
+                            anchors.fill: parent
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
+                            anchors.topMargin: 8
                             colorScheme: leftBar.colorScheme
+                            user: Backend.users.get(index)
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+
+                            onClicked: {
+                                const user = Backend.users.get(index);
+                                accounts.currentIndex = index;
+                                if (!user)
+                                    return;
+                                if (user.state !== EUserState.SignedOut) {
+                                    rightContent.showAccount();
+                                } else {
+                                    signIn.username = user.primaryEmailOrUsername();
+                                    rightContent.showSignIn();
+                                }
+                            }
+                        }
+                    }
+                    header: Rectangle {
+                        height: headerLabel.height + 16
+
+                        // color: ProtonStyle.transparent
+                        Label {
                             id: headerLabel
+                            colorScheme: leftBar.colorScheme
                             text: qsTr("Accounts")
                             type: Label.LabelType.Body
                         }
                     }
-
                     highlight: Rectangle {
                         color: leftBar.colorScheme.interaction_default_active
                         radius: ProtonStyle.account_row_radius
-                    }
-
-                    model: Backend.users
-                    delegate: Item {
-                        width: leftBar.width - 2*accounts._leftRightMargins
-                        implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
-                        implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
-
-                        AccountDelegate {
-                            id: accountDelegate
-
-                            anchors.fill: parent
-                            anchors.topMargin: 8
-                            anchors.bottomMargin: 8
-                            anchors.leftMargin: 12
-                            anchors.rightMargin: 12
-
-                            colorScheme: leftBar.colorScheme
-                            user: Backend.users.get(index)
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                var user = Backend.users.get(index)
-                                accounts.currentIndex = index
-                                if (!user) return
-                                if (user.state !== EUserState.SignedOut) {
-                                    rightContent.showAccount()
-                                } else {
-                                    signIn.username = user.primaryEmailOrUsername()
-                                    rightContent.showSignIn()
-                                }
-                            }
-                        }
                     }
                 }
 
                 // Separator
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.minimumHeight: 1
                     Layout.maximumHeight: 1
+                    Layout.minimumHeight: 1
                     color: leftBar.colorScheme.border_weak
                 }
-
                 Item {
                     id: bottomLeftBar
-
                     Layout.fillWidth: true
-                    Layout.minimumHeight: 52
                     Layout.maximumHeight: 52
+                    Layout.minimumHeight: 52
                     Layout.preferredHeight: 52
 
                     Button {
-                        colorScheme: leftBar.colorScheme
-                        width: 36
-                        height: 36
-
                         anchors.left: parent.left
-                        anchors.top: parent.top
-
                         anchors.leftMargin: 16
+                        anchors.top: parent.top
                         anchors.topMargin: 7
-
+                        colorScheme: leftBar.colorScheme
+                        height: 36
                         horizontalPadding: 0
-
                         icon.source: "/qml/icons/ic-plus.svg"
+                        width: 36
 
                         onClicked: {
-                            signIn.username = ""
-                            rightContent.showSignIn()
+                            signIn.username = "";
+                            rightContent.showSignIn();
                         }
                     }
                 }
             }
         }
-
-        Rectangle { // right content background
+        Rectangle {
+            Layout.fillHeight: true // right content background
             Layout.fillWidth: true
-            Layout.fillHeight: true
-
             color: colorScheme.background_norm
 
             StackLayout {
                 id: rightContent
+                function showAccount(index) {
+                    if (index !== undefined && index >= 0) {
+                        accounts.currentIndex = index;
+                    }
+                    rightContent.currentIndex = 0;
+                }
+                function showBugReport() {
+                    rightContent.currentIndex = 8;
+                }
+                function showConnectionModeSettings() {
+                    rightContent.currentIndex = 5;
+                }
+                function showGeneralSettings() {
+                    rightContent.currentIndex = 2;
+                }
+                function showHelpView() {
+                    rightContent.currentIndex = 7;
+                }
+                function showKeychainSettings() {
+                    rightContent.currentIndex = 3;
+                }
+                function showLocalCacheSettings() {
+                    rightContent.currentIndex = 6;
+                }
+                function showPortSettings() {
+                    rightContent.currentIndex = 4;
+                }
+                function showSignIn() {
+                    rightContent.currentIndex = 1;
+                    signIn.focus = true;
+                }
+
                 anchors.fill: parent
 
-                AccountView { // 0
+                AccountView {
+                    // 0
                     colorScheme: root.colorScheme
                     notifications: root.notifications
                     user: {
-                        if (accounts.currentIndex < 0) return undefined
-                        if (Backend.users.count == 0) return undefined
-                        return Backend.users.get(accounts.currentIndex)
+                        if (accounts.currentIndex < 0)
+                            return undefined;
+                        if (Backend.users.count === 0)
+                            return undefined;
+                        return Backend.users.get(accounts.currentIndex);
+                    }
+
+                    onShowSetupGuide: function (user, address) {
+                        root.showSetupGuide(user, address);
                     }
                     onShowSignIn: {
-                        var user = this.user
-                        signIn.username = user ? user.primaryEmailOrUsername() : ""
-                        rightContent.showSignIn()
-                    }
-                    onShowSetupGuide: function(user, address) {
-                        root.showSetupGuide(user,address)
+                        const user = this.user;
+                        signIn.username = user ? user.primaryEmailOrUsername() : "";
+                        rightContent.showSignIn();
                     }
                 }
-
-                GridLayout { // 1 Sign In
+                GridLayout {
+                    // 1 Sign In
                     columns: 2
 
                     Button {
                         id: backButton
+                        Layout.alignment: Qt.AlignTop
                         Layout.leftMargin: 18
                         Layout.topMargin: 10
-                        Layout.alignment: Qt.AlignTop
-
                         colorScheme: root.colorScheme
-                        onClicked: {
-                            signIn.abort()
-                            rightContent.showAccount()
-                        }
+                        horizontalPadding: 8
                         icon.source: "/qml/icons/ic-arrow-left.svg"
                         secondary: true
-                        horizontalPadding: 8
-                    }
 
+                        onClicked: {
+                            signIn.abort();
+                            rightContent.showAccount();
+                        }
+                    }
                     SignIn {
                         id: signIn
-                        Layout.topMargin: 68
-                        Layout.leftMargin: 80 - backButton.width - 18
-                        Layout.rightMargin: 80
                         Layout.bottomMargin: 68
-                        Layout.preferredWidth: 320
-                        Layout.fillWidth: true
                         Layout.fillHeight: true
-
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 80 - backButton.width - 18
+                        Layout.preferredWidth: 320
+                        Layout.rightMargin: 80
+                        Layout.topMargin: 68
                         colorScheme: root.colorScheme
                     }
                 }
-
-                GeneralSettings { // 2
+                GeneralSettings {
+                    // 2
                     colorScheme: root.colorScheme
                     notifications: root.notifications
 
                     onBack: {
-                        rightContent.showAccount()
+                        rightContent.showAccount();
                     }
                 }
-
-                KeychainSettings { // 3
+                KeychainSettings {
+                    // 3
                     colorScheme: root.colorScheme
 
                     onBack: {
-                        rightContent.showGeneralSettings()
+                        rightContent.showGeneralSettings();
                     }
                 }
-
-                PortSettings { // 4
-                    colorScheme: root.colorScheme
-                    notifications: root.notifications
-                    onBack: {
-                        rightContent.showGeneralSettings()
-                    }
-                }
-
-                ConnectionModeSettings { // 5
-                    colorScheme: root.colorScheme
-
-                    onBack: {
-                        rightContent.showGeneralSettings()
-                    }
-                }
-
-                LocalCacheSettings { // 6
+                PortSettings {
+                    // 4
                     colorScheme: root.colorScheme
                     notifications: root.notifications
 
                     onBack: {
-                        rightContent.showGeneralSettings()
+                        rightContent.showGeneralSettings();
                     }
                 }
-
-                HelpView { // 7
+                ConnectionModeSettings {
+                    // 5
                     colorScheme: root.colorScheme
 
                     onBack: {
-                        rightContent.showAccount()
+                        rightContent.showGeneralSettings();
                     }
                 }
+                LocalCacheSettings {
+                    // 6
+                    colorScheme: root.colorScheme
+                    notifications: root.notifications
 
-                BugReportView { // 8
+                    onBack: {
+                        rightContent.showGeneralSettings();
+                    }
+                }
+                HelpView {
+                    // 7
+                    colorScheme: root.colorScheme
+
+                    onBack: {
+                        rightContent.showAccount();
+                    }
+                }
+                BugReportView {
+                    // 8
                     id: bugReport
                     colorScheme: root.colorScheme
                     selectedAddress: {
-                        if (accounts.currentIndex < 0) return ""
-                        if (Backend.users.count == 0) return ""
-                        var user = Backend.users.get(accounts.currentIndex)
-                        if (!user) return ""
-                        return user.addresses[0]
+                        if (accounts.currentIndex < 0)
+                            return "";
+                        if (Backend.users.count === 0)
+                            return "";
+                        const user = Backend.users.get(accounts.currentIndex);
+                        if (!user)
+                            return "";
+                        return user.addresses[0];
                     }
 
                     onBack: {
-                        rightContent.showHelpView()
+                        rightContent.showHelpView();
                     }
-
                     onBugReportWasSent: {
-                        rightContent.showAccount()
+                        rightContent.showAccount();
                     }
                 }
-
-                function showAccount(index) {
-                    if (index !== undefined && index >= 0){
-                        accounts.currentIndex = index
-                    }
-                    rightContent.currentIndex = 0
-                }
-
-                function showSignIn                () { rightContent.currentIndex = 1; signIn.focus = true }
-                function showGeneralSettings       () { rightContent.currentIndex = 2 }
-                function showKeychainSettings      () { rightContent.currentIndex = 3 }
-                function showPortSettings          () { rightContent.currentIndex = 4 }
-                function showConnectionModeSettings() { rightContent.currentIndex = 5 }
-                function showLocalCacheSettings    () { rightContent.currentIndex = 6 }
-                function showHelpView              () { rightContent.currentIndex = 7 }
-                function showBugReport             () { rightContent.currentIndex = 8 }
-
                 Connections {
-                    target: Backend
+                    function onLoginAlreadyLoggedIn(index) {
+                        rightContent.showAccount(index);
+                    }
+                    function onLoginFinished(index) {
+                        rightContent.showAccount(index);
+                    }
 
-                    function onLoginFinished(index) { rightContent.showAccount(index) }
-                    function onLoginAlreadyLoggedIn(index) { rightContent.showAccount(index) }
+                    target: Backend
                 }
             }
         }
-    }
-
-    function showLocalCacheSettings(){rightContent.showLocalCacheSettings() }
-    function showSettings(){rightContent.showGeneralSettings() }
-    function showHelp(){rightContent.showHelpView() }
-    function showSignIn(username){
-        signIn.username = username
-        rightContent.showSignIn()
-    }
-
-    function selectUser(userID) {
-        var users = Backend.users;
-        for (var i = 0; i < users.count; i++) {
-            var user = users.get(i)
-            if (user.id !== userID) {
-                continue;
-            }
-            accounts.currentIndex = i;
-            if (user.state === EUserState.SignedOut)
-            showSignIn(user.primaryEmailOrUsername())
-            return;
-        }
-        console.error("User with ID ", userID, " was not found in the account list")
-    }
-
-    function showBugReportAndPrefill(description) {
-        rightContent.showBugReport()
-        bugReport.setDescription(description)
     }
 }

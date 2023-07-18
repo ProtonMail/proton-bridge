@@ -1,25 +1,19 @@
 // Copyright (c) 2023 Proton AG
-//
 // This file is part of Proton Mail Bridge.
-//
 // Proton Mail Bridge is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//
 // Proton Mail Bridge is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
-
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Controls.impl
-
 import Proton
 
 SettingsView {
@@ -31,144 +25,138 @@ SettingsView {
     fillHeight: false
 
     Label {
+        Layout.fillWidth: true
         colorScheme: root.colorScheme
         text: qsTr("Settings")
         type: Label.Heading
-        Layout.fillWidth: true
     }
-
     SettingsItem {
         id: autoUpdate
-        colorScheme: root.colorScheme
-        text: qsTr("Automatic updates")
-        description: qsTr("Bridge will automatically update in the background.")
-        type: SettingsItem.Toggle
-        checked: Backend.isAutomaticUpdateOn
-        onClicked: Backend.toggleAutomaticUpdate(!autoUpdate.checked)
-
         Layout.fillWidth: true
-    }
+        checked: Backend.isAutomaticUpdateOn
+        colorScheme: root.colorScheme
+        description: qsTr("Bridge will automatically update in the background.")
+        text: qsTr("Automatic updates")
+        type: SettingsItem.Toggle
 
+        onClicked: Backend.toggleAutomaticUpdate(!autoUpdate.checked)
+    }
     SettingsItem {
         id: autostart
-        colorScheme: root.colorScheme
-        text: qsTr("Open on startup")
-        description: qsTr("Bridge will open upon startup.")
-        type: SettingsItem.Toggle
-        checked: Backend.isAutostartOn
-        onClicked: {
-            autostart.loading = true
-            Backend.toggleAutostart(!autostart.checked)
-        }
-        Connections{
-            target: Backend
-            function onToggleAutostartFinished() {
-                autostart.loading = false
-            }
-        }
-
         Layout.fillWidth: true
-    }
+        checked: Backend.isAutostartOn
+        colorScheme: root.colorScheme
+        description: qsTr("Bridge will open upon startup.")
+        text: qsTr("Open on startup")
+        type: SettingsItem.Toggle
 
+        onClicked: {
+            autostart.loading = true;
+            Backend.toggleAutostart(!autostart.checked);
+        }
+
+        Connections {
+            function onToggleAutostartFinished() {
+                autostart.loading = false;
+            }
+
+            target: Backend
+        }
+    }
     SettingsItem {
         id: beta
-        colorScheme: root.colorScheme
-        text: qsTr("Beta access")
-        description: qsTr("Be among the first to try new features.")
-        type: SettingsItem.Toggle
+        Layout.fillWidth: true
         checked: Backend.isBetaEnabled
+        colorScheme: root.colorScheme
+        description: qsTr("Be among the first to try new features.")
+        text: qsTr("Beta access")
+        type: SettingsItem.Toggle
+
         onClicked: {
             if (!beta.checked) {
-                root.notifications.askEnableBeta()
+                root.notifications.askEnableBeta();
             } else {
-                Backend.toggleBeta(false)
+                Backend.toggleBeta(false);
             }
         }
-
-        Layout.fillWidth: true
     }
-
     RowLayout {
         ColorImage {
             Layout.alignment: Qt.AlignCenter
-
-            source: root._isAdvancedShown ? "/qml/icons/ic-chevron-down.svg" : "/qml/icons/ic-chevron-right.svg"
             color: root.colorScheme.interaction_norm
             height: root.colorScheme.body_font_size
+            source: root._isAdvancedShown ? "/qml/icons/ic-chevron-down.svg" : "/qml/icons/ic-chevron-right.svg"
             sourceSize.height: root.colorScheme.body_font_size
+
             MouseArea {
                 anchors.fill: parent
+
                 onClicked: root._isAdvancedShown = !root._isAdvancedShown
             }
         }
-
         Label {
             id: advSettLabel
+            color: root.colorScheme.interaction_norm
             colorScheme: root.colorScheme
             text: qsTr("Advanced settings")
-            color: root.colorScheme.interaction_norm
             type: Label.Body
 
             MouseArea {
                 anchors.fill: parent
+
                 onClicked: root._isAdvancedShown = !root._isAdvancedShown
             }
         }
     }
-
     SettingsItem {
         id: keychains
-        visible: root._isAdvancedShown && Backend.availableKeychain.length > 1
-        colorScheme: root.colorScheme
-        text: qsTr("Change keychain")
-        description: qsTr("Change which keychain Bridge uses as default")
-        actionText: qsTr("Change")
-        type: SettingsItem.Button
-        checked: Backend.isDoHEnabled
-        onClicked: root.parent.showKeychainSettings()
-
         Layout.fillWidth: true
-    }
+        actionText: qsTr("Change")
+        checked: Backend.isDoHEnabled
+        colorScheme: root.colorScheme
+        description: qsTr("Change which keychain Bridge uses as default")
+        text: qsTr("Change keychain")
+        type: SettingsItem.Button
+        visible: root._isAdvancedShown && Backend.availableKeychain.length > 1
 
+        onClicked: root.parent.showKeychainSettings()
+    }
     SettingsItem {
         id: doh
-        visible: root._isAdvancedShown
-        colorScheme: root.colorScheme
-        text: qsTr("Alternative routing")
-        description: qsTr("If Proton’s servers are blocked in your location, alternative network routing will be used to reach Proton.")
-        type: SettingsItem.Toggle
-        checked: Backend.isDoHEnabled
-        onClicked: Backend.toggleDoH(!doh.checked)
-
         Layout.fillWidth: true
-    }
+        checked: Backend.isDoHEnabled
+        colorScheme: root.colorScheme
+        description: qsTr("If Proton’s servers are blocked in your location, alternative network routing will be used to reach Proton.")
+        text: qsTr("Alternative routing")
+        type: SettingsItem.Toggle
+        visible: root._isAdvancedShown
 
+        onClicked: Backend.toggleDoH(!doh.checked)
+    }
     SettingsItem {
         id: darkMode
-        visible: root._isAdvancedShown
-        colorScheme: root.colorScheme
-        text: qsTr("Dark mode")
-        description: qsTr("Choose dark color theme.")
-        type: SettingsItem.Toggle
-        checked: Backend.colorSchemeName == "dark"
-        onClicked: Backend.changeColorScheme( darkMode.checked ? "light" : "dark")
-
         Layout.fillWidth: true
-    }
+        checked: Backend.colorSchemeName === "dark"
+        colorScheme: root.colorScheme
+        description: qsTr("Choose dark color theme.")
+        text: qsTr("Dark mode")
+        type: SettingsItem.Toggle
+        visible: root._isAdvancedShown
 
+        onClicked: Backend.changeColorScheme(darkMode.checked ? "light" : "dark")
+    }
     SettingsItem {
         id: allMail
-        visible: root._isAdvancedShown
-        colorScheme: root.colorScheme
-        text: qsTr("Show All Mail")
-        description: qsTr("Choose to list the All Mail folder in your local client.")
-        type: SettingsItem.Toggle
-        checked: Backend.isAllMailVisible
-        onClicked: root.notifications.askChangeAllMailVisibility(Backend.isAllMailVisible)
-
         Layout.fillWidth: true
-    }
+        checked: Backend.isAllMailVisible
+        colorScheme: root.colorScheme
+        description: qsTr("Choose to list the All Mail folder in your local client.")
+        text: qsTr("Show All Mail")
+        type: SettingsItem.Toggle
+        visible: root._isAdvancedShown
 
+        onClicked: root.notifications.askChangeAllMailVisibility(Backend.isAllMailVisible)
+    }
     SettingsItem {
         id: telemetry
         Layout.fillWidth: true
@@ -181,73 +169,68 @@ SettingsView {
 
         onClicked: Backend.toggleIsTelemetryDisabled(telemetry.checked)
     }
-    
     SettingsItem {
         id: ports
-        visible: root._isAdvancedShown
-        colorScheme: root.colorScheme
-        text: qsTr("Default ports")
-        actionText: qsTr("Change")
-        description: qsTr("Choose which ports are used by default.")
-        type: SettingsItem.Button
-        onClicked: root.parent.showPortSettings()
-
         Layout.fillWidth: true
-    }
+        actionText: qsTr("Change")
+        colorScheme: root.colorScheme
+        description: qsTr("Choose which ports are used by default.")
+        text: qsTr("Default ports")
+        type: SettingsItem.Button
+        visible: root._isAdvancedShown
 
+        onClicked: root.parent.showPortSettings()
+    }
     SettingsItem {
         id: imap
-        visible: root._isAdvancedShown
-        colorScheme: root.colorScheme
-        text: qsTr("Connection mode")
-        actionText: qsTr("Change")
-        description: qsTr("Change the protocol Bridge and the email client use to connect for IMAP and SMTP.")
-        type: SettingsItem.Button
-        onClicked: root.parent.showConnectionModeSettings()
-
         Layout.fillWidth: true
-    }
+        actionText: qsTr("Change")
+        colorScheme: root.colorScheme
+        description: qsTr("Change the protocol Bridge and the email client use to connect for IMAP and SMTP.")
+        text: qsTr("Connection mode")
+        type: SettingsItem.Button
+        visible: root._isAdvancedShown
 
+        onClicked: root.parent.showConnectionModeSettings()
+    }
     SettingsItem {
         id: cache
-        visible: root._isAdvancedShown
-        colorScheme: root.colorScheme
-        text: qsTr("Local cache")
-        actionText: qsTr("Configure")
-        description: qsTr("Configure Bridge's local cache.")
-        type: SettingsItem.Button
-        onClicked: root.parent.showLocalCacheSettings()
-
         Layout.fillWidth: true
-    }
+        actionText: qsTr("Configure")
+        colorScheme: root.colorScheme
+        description: qsTr("Configure Bridge's local cache.")
+        text: qsTr("Local cache")
+        type: SettingsItem.Button
+        visible: root._isAdvancedShown
 
+        onClicked: root.parent.showLocalCacheSettings()
+    }
     SettingsItem {
         id: exportTLSCertificates
-        visible: root._isAdvancedShown
-        colorScheme: root.colorScheme
-        text: qsTr("Export TLS certificates")
-        actionText: qsTr("Export")
-        description: qsTr("Export the TLS private key and certificate used by the IMAP and SMTP servers.")
-        type: SettingsItem.Button
-        onClicked: {
-            Backend.exportTLSCertificates()
-        }
         Layout.fillWidth: true
+        actionText: qsTr("Export")
+        colorScheme: root.colorScheme
+        description: qsTr("Export the TLS private key and certificate used by the IMAP and SMTP servers.")
+        text: qsTr("Export TLS certificates")
+        type: SettingsItem.Button
+        visible: root._isAdvancedShown
 
+        onClicked: {
+            Backend.exportTLSCertificates();
+        }
     }
-
     SettingsItem {
         id: reset
-        visible: root._isAdvancedShown
-        colorScheme: root.colorScheme
-        text: qsTr("Reset Bridge")
-        actionText: qsTr("Reset")
-        description: qsTr("Remove all accounts, clear cached data, and restore the original settings.")
-        type: SettingsItem.Button
-        onClicked: {
-            root.notifications.askResetBridge()
-        }
-
         Layout.fillWidth: true
+        actionText: qsTr("Reset")
+        colorScheme: root.colorScheme
+        description: qsTr("Remove all accounts, clear cached data, and restore the original settings.")
+        text: qsTr("Reset Bridge")
+        type: SettingsItem.Button
+        visible: root._isAdvancedShown
+
+        onClicked: {
+            root.notifications.askResetBridge();
+        }
     }
 }
