@@ -34,20 +34,6 @@ type Locator interface {
 	Clear(...string) error
 }
 
-type Identifier interface {
-	GetUserAgent() string
-	HasClient() bool
-	SetClient(name, version string)
-	SetPlatform(platform string)
-	SetClientString(client string)
-	GetClientString() string
-}
-
-type UserAgentUpdater interface {
-	Identifier
-	SetUserAgent(name, version string)
-}
-
 type ProxyController interface {
 	AllowProxy()
 	DisallowProxy()

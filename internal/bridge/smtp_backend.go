@@ -24,6 +24,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/identifier"
 	smtpservice "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/emersion/go-smtp"
@@ -32,12 +33,12 @@ import (
 
 type smtpBackend struct {
 	accounts  *smtpservice.Accounts
-	userAgent UserAgentUpdater
+	userAgent identifier.UserAgentUpdater
 }
 
 type smtpSession struct {
 	accounts  *smtpservice.Accounts
-	userAgent UserAgentUpdater
+	userAgent identifier.UserAgentUpdater
 
 	userID string
 	authID string

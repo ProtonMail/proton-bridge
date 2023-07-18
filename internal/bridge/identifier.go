@@ -45,6 +45,30 @@ type bridgeUserAgentUpdater struct {
 	*Bridge
 }
 
+func (b *bridgeUserAgentUpdater) GetUserAgent() string {
+	return b.identifier.GetUserAgent()
+}
+
+func (b *bridgeUserAgentUpdater) HasClient() bool {
+	return b.identifier.HasClient()
+}
+
+func (b *bridgeUserAgentUpdater) SetClient(name, version string) {
+	b.identifier.SetClient(name, version)
+}
+
+func (b *bridgeUserAgentUpdater) SetPlatform(platform string) {
+	b.identifier.SetPlatform(platform)
+}
+
+func (b *bridgeUserAgentUpdater) SetClientString(client string) {
+	b.identifier.SetClientString(client)
+}
+
+func (b *bridgeUserAgentUpdater) GetClientString() string {
+	return b.identifier.GetClientString()
+}
+
 func (b *bridgeUserAgentUpdater) SetUserAgent(name, version string) {
 	b.setUserAgent(name, version)
 }

@@ -36,7 +36,7 @@ func (bridge *Bridge) restartSMTP(ctx context.Context) error {
 func newSMTPServer(bridge *Bridge, accounts *bridgesmtp.Accounts, tlsConfig *tls.Config, logSMTP bool) *smtp.Server {
 	logrus.WithField("logSMTP", logSMTP).Info("Creating SMTP server")
 
-	smtpServer := smtp.NewServer(&smtpBackend{bridge: bridge, accounts: accounts})
+	smtpServer := smtp.NewServer(&smtpBackend{userAgent: &bridgeUserAgentUpdater{Bridge: bridge}, accounts: accounts})
 
 	smtpServer.TLSConfig = tlsConfig
 	smtpServer.Domain = constants.Host

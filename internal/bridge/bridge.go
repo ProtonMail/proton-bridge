@@ -38,6 +38,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/focus"
+	"github.com/ProtonMail/proton-bridge/v3/internal/identifier"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
@@ -59,7 +60,7 @@ type Bridge struct {
 	// api manages user API clients.
 	api        *proton.Manager
 	proxyCtl   ProxyController
-	identifier Identifier
+	identifier identifier.Identifier
 
 	// tlsConfig holds the bridge TLS config used by the IMAP and SMTP servers.
 	tlsConfig *tls.Config
@@ -140,7 +141,7 @@ func New(
 
 	apiURL string, // the URL of the API to use
 	cookieJar http.CookieJar, // the cookie jar to use
-	identifier Identifier, // the identifier to keep track of the user agent
+	identifier identifier.Identifier, // the identifier to keep track of the user agent
 	tlsReporter TLSReporter, // the TLS reporter to report TLS errors
 	roundTripper http.RoundTripper, // the round tripper to use for API requests
 	proxyCtl ProxyController, // the DoH controller
@@ -207,7 +208,7 @@ func newBridge(
 	reporter reporter.Reporter,
 
 	api *proton.Manager,
-	identifier Identifier,
+	identifier identifier.Identifier,
 	proxyCtl ProxyController,
 	uidValidityGenerator imap.UIDValidityGenerator,
 
