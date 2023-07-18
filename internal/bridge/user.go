@@ -545,6 +545,10 @@ func (bridge *Bridge) addUserWithVault(
 		return fmt.Errorf("failed to add IMAP user: %w", err)
 	}
 
+	if err := bridge.addSMTPUser(ctx, user); err != nil {
+		return fmt.Errorf("failed to add SMTP user: %w", err)
+	}
+
 	// Handle events coming from the user before forwarding them to the bridge.
 	// For example, if the user's addresses change, we need to update them in gluon.
 	bridge.tasks.Once(func(ctx context.Context) {
@@ -611,6 +615,10 @@ func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, 
 
 	if err := bridge.removeIMAPUser(ctx, user, withData); err != nil {
 		logrus.WithError(err).Error("Failed to remove IMAP user")
+	}
+
+	if err := bridge.removeSMTPUser(ctx, user); err != nil {
+		logrus.WithError(err).Error("Failed to remove SMTP user")
 	}
 
 	if err := user.Logout(ctx, withAPI); err != nil {

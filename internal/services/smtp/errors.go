@@ -21,3 +21,4 @@ import "errors"
 
 var ErrInvalidRecipient = errors.New("invalid recipient")
 var ErrInvalidReturnPath = errors.New("invalid return path")
+var ErrNoSuchUser = errors.New("no such user")

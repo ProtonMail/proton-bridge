@@ -43,6 +43,11 @@ type Identifier interface {
 	GetClientString() string
 }
 
+type UserAgentUpdater interface {
+	Identifier
+	SetUserAgent(name, version string)
+}
+
 type ProxyController interface {
 	AllowProxy()
 	DisallowProxy()

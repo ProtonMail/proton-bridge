@@ -19,22 +19,25 @@ package bridge
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
 
-	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	smtpservice "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 )
 
 type smtpBackend struct {
-	*Bridge
+	accounts  *smtpservice.Accounts
+	userAgent UserAgentUpdater
 }
 
 type smtpSession struct {
-	*Bridge
+	accounts  *smtpservice.Accounts
+	userAgent UserAgentUpdater
 
 	userID string
 	authID string
@@ -44,44 +47,31 @@ type smtpSession struct {
 }
 
 func (be *smtpBackend) NewSession(*smtp.Conn) (smtp.Session, error) {
-	return &smtpSession{Bridge: be.Bridge}, nil
+	return &smtpSession{accounts: be.accounts, userAgent: be.userAgent}, nil
 }
 
 func (s *smtpSession) AuthPlain(username, password string) error {
-	return safe.RLockRet(func() error {
-		for _, user := range s.users {
-			addrID, err := user.CheckAuth(username, []byte(password))
-			if err != nil {
-				continue
-			}
-
-			s.userID = user.ID()
-			s.authID = addrID
-
-			if strings.Contains(s.Bridge.GetCurrentUserAgent(), useragent.DefaultUserAgent) {
-				s.Bridge.setUserAgent(useragent.UnknownClient, useragent.DefaultVersion)
-			}
-
-			user.SendConfigStatusSuccess(context.Background())
-
-			return nil
+	userID, authID, err := s.accounts.CheckAuth(username, []byte(password))
+	if err != nil {
+		if !errors.Is(err, smtpservice.ErrNoSuchUser) {
+			return fmt.Errorf("unknown error")
 		}
-
 		logrus.WithFields(logrus.Fields{
 			"username": username,
 			"pkg":      "smtp",
 		}).Error("Incorrect login credentials.")
-		err := fmt.Errorf("invalid username or password")
-		for _, user := range s.users {
-			for _, mail := range user.Emails() {
-				if mail == username {
-					user.ReportConfigStatusFailure(err.Error())
-					return err
-				}
-			}
-		}
-		return err
-	}, s.usersLock)
+
+		return fmt.Errorf("invalid username or password")
+	}
+
+	s.userID = userID
+	s.authID = authID
+
+	if strings.Contains(s.userAgent.GetUserAgent(), useragent.DefaultUserAgent) {
+		s.userAgent.SetUserAgent(useragent.UnknownClient, useragent.DefaultVersion)
+	}
+
+	return nil
 }
 
 func (s *smtpSession) Reset() {
@@ -108,14 +98,7 @@ func (s *smtpSession) Rcpt(to string) error {
 }
 
 func (s *smtpSession) Data(r io.Reader) error {
-	err := safe.RLockRet(func() error {
-		user, ok := s.users[s.userID]
-		if !ok {
-			return ErrNoSuchUser
-		}
-
-		return user.SendMail(s.authID, s.from, s.to, r)
-	}, s.usersLock)
+	err := s.accounts.SendMail(context.Background(), s.userID, s.authID, s.from, s.to, r)
 
 	if err != nil {
 		logrus.WithField("pkg", "smtp").WithError(err).Error("Send mail failed.")

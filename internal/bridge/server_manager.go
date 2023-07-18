@@ -28,6 +28,7 @@ import (
 	"github.com/ProtonMail/gluon/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	bridgesmtp "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
 	"github.com/emersion/go-smtp"
@@ -43,13 +44,15 @@ type ServerManager struct {
 
 	smtpServer   *smtp.Server
 	smtpListener net.Listener
+	smtpAccounts *bridgesmtp.Accounts
 
 	loadedUserCount int
 }
 
 func newServerManager() *ServerManager {
 	return &ServerManager{
-		requests: cpc.NewCPC(),
+		requests:     cpc.NewCPC(),
+		smtpAccounts: bridgesmtp.NewAccounts(),
 	}
 }
 
@@ -59,7 +62,7 @@ func (sm *ServerManager) Init(bridge *Bridge) error {
 		return err
 	}
 
-	smtpServer := createSMTPServer(bridge)
+	smtpServer := createSMTPServer(bridge, sm.smtpAccounts)
 
 	sm.imapServer = imapServer
 	sm.smtpServer = smtpServer
@@ -130,6 +133,18 @@ func (sm *ServerManager) RemoveGluonUser(ctx context.Context, gluonID string) er
 	_, err := sm.requests.Send(ctx, &smRequestRemoveGluonUser{
 		userID: gluonID,
 	})
+
+	return err
+}
+
+func (sm *ServerManager) AddSMTPAccount(ctx context.Context, service *bridgesmtp.Service) error {
+	_, err := sm.requests.Send(ctx, &smRequestAddSMTPAccount{account: service})
+
+	return err
+}
+
+func (sm *ServerManager) RemoveSMTPAccount(ctx context.Context, service *bridgesmtp.Service) error {
+	_, err := sm.requests.Send(ctx, &smRequestRemoveSMTPAccount{account: service})
 
 	return err
 }
@@ -206,6 +221,16 @@ func (sm *ServerManager) run(ctx context.Context, bridge *Bridge) {
 			case *smRequestRemoveGluonUser:
 				err := sm.handleRemoveGluonUser(ctx, r.userID)
 				request.Reply(ctx, nil, err)
+
+			case *smRequestAddSMTPAccount:
+				logrus.WithField("user", r.account.UserID()).Debug("Adding SMTP Account")
+				sm.smtpAccounts.AddAccount(r.account)
+				request.Reply(ctx, nil, nil)
+
+			case *smRequestRemoveSMTPAccount:
+				logrus.WithField("user", r.account.UserID()).Debug("Removing SMTP Account")
+				sm.smtpAccounts.RemoveAccount(r.account)
+				request.Reply(ctx, nil, nil)
 			}
 		}
 	}
@@ -386,8 +411,8 @@ func createIMAPServer(bridge *Bridge) (*gluon.Server, error) {
 	)
 }
 
-func createSMTPServer(bridge *Bridge) *smtp.Server {
-	return newSMTPServer(bridge, bridge.tlsConfig, bridge.logSMTP)
+func createSMTPServer(bridge *Bridge, accounts *bridgesmtp.Accounts) *smtp.Server {
+	return newSMTPServer(bridge, accounts, bridge.tlsConfig, bridge.logSMTP)
 }
 
 func (sm *ServerManager) closeSMTPServer(bridge *Bridge) error {
@@ -473,7 +498,7 @@ func (sm *ServerManager) restartSMTP(bridge *Bridge) error {
 
 	bridge.publish(events.SMTPServerStopped{})
 
-	sm.smtpServer = newSMTPServer(bridge, bridge.tlsConfig, bridge.logSMTP)
+	sm.smtpServer = newSMTPServer(bridge, sm.smtpAccounts, bridge.tlsConfig, bridge.logSMTP)
 
 	if sm.shouldStartServers() {
 		return sm.serveSMTP(bridge)
@@ -693,4 +718,12 @@ type smRequestAddGluonUser struct {
 
 type smRequestRemoveGluonUser struct {
 	userID string
+}
+
+type smRequestAddSMTPAccount struct {
+	account *bridgesmtp.Service
+}
+
+type smRequestRemoveSMTPAccount struct {
+	account *bridgesmtp.Service
 }

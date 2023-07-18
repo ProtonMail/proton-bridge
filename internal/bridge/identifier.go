@@ -40,3 +40,11 @@ func (bridge *Bridge) setUserAgent(name, version string) {
 		}
 	}
 }
+
+type bridgeUserAgentUpdater struct {
+	*Bridge
+}
+
+func (b *bridgeUserAgentUpdater) SetUserAgent(name, version string) {
+	b.setUserAgent(name, version)
+}

@@ -50,6 +50,16 @@ func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
 	return bridge.serverManager.AddIMAPUser(ctx, user)
 }
 
+// addSMTPUser connects the given user to gluon.
+func (bridge *Bridge) addSMTPUser(ctx context.Context, user *user.User) error {
+	return bridge.serverManager.AddSMTPAccount(ctx, user.GetSMTPService())
+}
+
+// removeSMTPUser connects the given user to gluon.
+func (bridge *Bridge) removeSMTPUser(ctx context.Context, user *user.User) error {
+	return bridge.serverManager.RemoveSMTPAccount(ctx, user.GetSMTPService())
+}
+
 // removeIMAPUser disconnects the given user from gluon, optionally also removing its files.
 func (bridge *Bridge) removeIMAPUser(ctx context.Context, user *user.User, withData bool) error {
 	return bridge.serverManager.RemoveIMAPUser(ctx, user, withData)

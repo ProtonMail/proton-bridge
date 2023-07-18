@@ -23,6 +23,7 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
+	bridgesmtp "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
@@ -32,10 +33,10 @@ func (bridge *Bridge) restartSMTP(ctx context.Context) error {
 	return bridge.serverManager.RestartSMTP(ctx)
 }
 
-func newSMTPServer(bridge *Bridge, tlsConfig *tls.Config, logSMTP bool) *smtp.Server {
+func newSMTPServer(bridge *Bridge, accounts *bridgesmtp.Accounts, tlsConfig *tls.Config, logSMTP bool) *smtp.Server {
 	logrus.WithField("logSMTP", logSMTP).Info("Creating SMTP server")
 
-	smtpServer := smtp.NewServer(&smtpBackend{Bridge: bridge})
+	smtpServer := smtp.NewServer(&smtpBackend{bridge: bridge, accounts: accounts})
 
 	smtpServer.TLSConfig = tlsConfig
 	smtpServer.Domain = constants.Host

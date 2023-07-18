@@ -488,27 +488,6 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 	}, user.apiAddrsLock)
 }
 
-// SendMail sends an email from the given address to the given recipients.
-func (user *User) SendMail(authID string, from string, to []string, r io.Reader) error {
-	if user.vault.SyncStatus().IsComplete() {
-		defer user.goPollAPIEvents(true)
-	}
-
-	if len(to) == 0 {
-		return smtp.ErrInvalidRecipient
-	}
-
-	if err := user.smtpService.SendMail(context.Background(), authID, from, to, r); err != nil {
-		if apiErr := new(proton.APIError); errors.As(err, &apiErr) {
-			logrus.WithError(apiErr).WithField("Details", apiErr.DetailsToString()).Error("failed to send message")
-		}
-
-		return err
-	}
-
-	return nil
-}
-
 // CheckAuth returns whether the given email and password can be used to authenticate over IMAP or SMTP with this user.
 // It returns the address ID of the authenticated address.
 func (user *User) CheckAuth(email string, password []byte) (string, error) {
@@ -678,6 +657,23 @@ func (user *User) WithSMTPData(ctx context.Context, op func(context.Context, map
 	return safe.RLockRet(func() error {
 		return op(ctx, user.apiAddrs, user.apiUser, user.vault)
 	}, user.apiUserLock, user.apiAddrsLock, user.eventLock)
+}
+
+func (user *User) ReportSMTPAuthFailed(username string) {
+	emails := user.Emails()
+	for _, mail := range emails {
+		if mail == username {
+			user.ReportConfigStatusFailure("invalid username or password")
+		}
+	}
+}
+
+func (user *User) ReportSMTPAuthSuccess(ctx context.Context) {
+	user.SendConfigStatusSuccess(ctx)
+}
+
+func (user *User) GetSMTPService() *smtp.Service {
+	return user.smtpService
 }
 
 // initUpdateCh initializes the user's update channels in the given address mode.

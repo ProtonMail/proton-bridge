@@ -19,6 +19,7 @@ package smtp
 
 import (
 	"context"
+	"errors"
 	"io"
 
 	"github.com/ProtonMail/gluon/async"
@@ -34,7 +35,10 @@ import (
 // UserInterface is just wrapper to avoid recursive go module imports. To be removed when the identity service is ready.
 type UserInterface interface {
 	ID() string
+	CheckAuth(string, []byte) (string, error)
 	WithSMTPData(context.Context, func(context.Context, map[string]proton.Address, proton.User, *vault.User) error) error
+	ReportSMTPAuthSuccess(context.Context)
+	ReportSMTPAuthFailed(username string)
 }
 
 type Service struct {
@@ -91,6 +95,10 @@ func (s *Service) Start(group *async.Group) {
 	})
 }
 
+func (s *Service) UserID() string {
+	return s.user.ID()
+}
+
 func (s *Service) run(ctx context.Context) {
 	s.log.Debug("Starting service main loop")
 	defer s.log.Debug("Exiting service main loop")
@@ -128,5 +136,13 @@ type sendMailReq struct {
 
 func (s *Service) sendMail(ctx context.Context, req *sendMailReq) error {
 	defer async.HandlePanic(s.panicHandler)
-	return s.smtpSendMail(ctx, req.authID, req.from, req.to, req.r)
+	if err := s.smtpSendMail(ctx, req.authID, req.from, req.to, req.r); err != nil {
+		if apiErr := new(proton.APIError); errors.As(err, &apiErr) {
+			s.log.WithError(apiErr).WithField("Details", apiErr.DetailsToString()).Error("failed to send message")
+		}
+
+		return err
+	}
+
+	return nil
 }
