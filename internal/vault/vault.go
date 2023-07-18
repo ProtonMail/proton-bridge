@@ -416,7 +416,17 @@ func (vault *Vault) modUnsafe(fn func(data *Data)) error {
 
 	vault.enc = enc
 
-	return os.WriteFile(vault.path, vault.enc, 0o600)
+	tmpFile := vault.path + ".tmp"
+
+	if err := os.WriteFile(tmpFile, vault.enc, 0o600); err != nil {
+		return fmt.Errorf("failed write new vault to disk: %w", err)
+	}
+
+	if err := os.Rename(tmpFile, vault.path); err != nil {
+		return fmt.Errorf("failed to overwrite old vault data: %w", err)
+	}
+
+	return nil
 }
 
 func (vault *Vault) getUser(userID string) UserData {
