@@ -25,6 +25,7 @@ import (
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
 	"github.com/bradenaw/juniper/xslices"
@@ -87,7 +88,7 @@ func newMessageCreatedUpdate(
 	return &imap.MessageCreated{
 		Message:       toIMAPMessage(message),
 		Literal:       literal,
-		MailboxIDs:    mapTo[string, imap.MailboxID](wantLabels(apiLabels, message.LabelIDs)),
+		MailboxIDs:    usertypes.MapTo[string, imap.MailboxID](wantLabels(apiLabels, message.LabelIDs)),
 		ParsedMessage: parsedMessage,
 	}, nil
 }
@@ -106,7 +107,7 @@ func newMessageCreatedFailedUpdate(
 
 	return &imap.MessageCreated{
 		Message:       toIMAPMessage(message),
-		MailboxIDs:    mapTo[string, imap.MailboxID](wantLabels(apiLabels, message.LabelIDs)),
+		MailboxIDs:    usertypes.MapTo[string, imap.MailboxID](wantLabels(apiLabels, message.LabelIDs)),
 		Literal:       literal,
 		ParsedMessage: parsedMessage,
 	}

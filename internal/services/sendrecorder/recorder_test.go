@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package user
+package sendrecorder
 
 import (
 	"context"
@@ -26,7 +26,7 @@ import (
 )
 
 func TestSendHasher_Insert(t *testing.T) {
-	h := newSendRecorder(sendEntryExpiry)
+	h := NewSendRecorder(SendEntryExpiry)
 
 	// Insert a message into the hasher.
 	srdID1, hash1, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
@@ -35,7 +35,7 @@ func TestSendHasher_Insert(t *testing.T) {
 	require.NotEmpty(t, hash1)
 
 	// Simulate successfully sending the message.
-	h.signalMessageSent(hash1, srdID1, "abc")
+	h.SignalMessageSent(hash1, srdID1, "abc")
 
 	// Inserting a message with the same hash should return false.
 	srdID2, _, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
@@ -52,7 +52,7 @@ func TestSendHasher_Insert(t *testing.T) {
 }
 
 func TestSendHasher_Insert_Expired(t *testing.T) {
-	h := newSendRecorder(time.Second)
+	h := NewSendRecorder(time.Second)
 
 	// Insert a message into the hasher.
 	srID1, hash1, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
@@ -61,7 +61,7 @@ func TestSendHasher_Insert_Expired(t *testing.T) {
 	require.NotEmpty(t, hash1)
 
 	// Simulate successfully sending the message.
-	h.signalMessageSent(hash1, srID1, "abc")
+	h.SignalMessageSent(hash1, srID1, "abc")
 
 	// Wait for the entry to expire.
 	time.Sleep(time.Second)
@@ -79,7 +79,7 @@ func TestSendHasher_Insert_Expired(t *testing.T) {
 }
 
 func TestSendHasher_Insert_DifferentToList(t *testing.T) {
-	h := newSendRecorder(time.Second)
+	h := NewSendRecorder(time.Second)
 
 	// Insert a message into the hasher.
 	srID1, hash1, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second), []string{"abc", "def"}...)
@@ -101,7 +101,7 @@ func TestSendHasher_Insert_DifferentToList(t *testing.T) {
 }
 
 func TestSendHasher_Wait_SendSuccess(t *testing.T) {
-	h := newSendRecorder(sendEntryExpiry)
+	h := NewSendRecorder(SendEntryExpiry)
 
 	// Insert a message into the hasher.
 	srID1, hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
@@ -112,7 +112,7 @@ func TestSendHasher_Wait_SendSuccess(t *testing.T) {
 	// Simulate successfully sending the message after half a second.
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		h.signalMessageSent(hash, srID1, "abc")
+		h.SignalMessageSent(hash, srID1, "abc")
 	}()
 
 	// Inserting a message with the same hash should fail.
@@ -123,7 +123,7 @@ func TestSendHasher_Wait_SendSuccess(t *testing.T) {
 }
 
 func TestSendHasher_Wait_SendFail(t *testing.T) {
-	h := newSendRecorder(sendEntryExpiry)
+	h := NewSendRecorder(SendEntryExpiry)
 
 	// Insert a message into the hasher.
 	srID1, hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
@@ -134,7 +134,7 @@ func TestSendHasher_Wait_SendFail(t *testing.T) {
 	// Simulate failing to send the message after half a second.
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		h.removeOnFail(hash, srID1)
+		h.RemoveOnFail(hash, srID1)
 	}()
 
 	// Inserting a message with the same hash should succeed because the first message failed to send.
@@ -148,7 +148,7 @@ func TestSendHasher_Wait_SendFail(t *testing.T) {
 }
 
 func TestSendHasher_Wait_Timeout(t *testing.T) {
-	h := newSendRecorder(sendEntryExpiry)
+	h := NewSendRecorder(SendEntryExpiry)
 
 	// Insert a message into the hasher.
 	_, hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
@@ -162,7 +162,7 @@ func TestSendHasher_Wait_Timeout(t *testing.T) {
 }
 
 func TestSendHasher_HasEntry(t *testing.T) {
-	h := newSendRecorder(sendEntryExpiry)
+	h := NewSendRecorder(SendEntryExpiry)
 
 	// Insert a message into the hasher.
 	srID1, hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
@@ -171,7 +171,7 @@ func TestSendHasher_HasEntry(t *testing.T) {
 	require.NotEmpty(t, hash)
 
 	// Simulate successfully sending the message.
-	h.signalMessageSent(hash, srID1, "abc")
+	h.SignalMessageSent(hash, srID1, "abc")
 
 	// The message was already sent; we should find it in the hasher.
 	messageID, ok, err := testHasEntry(h, literal1, time.Now().Add(time.Second))
@@ -181,7 +181,7 @@ func TestSendHasher_HasEntry(t *testing.T) {
 }
 
 func TestSendHasher_HasEntry_SendSuccess(t *testing.T) {
-	h := newSendRecorder(sendEntryExpiry)
+	h := NewSendRecorder(SendEntryExpiry)
 
 	// Insert a message into the hasher.
 	srID1, hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
@@ -192,7 +192,7 @@ func TestSendHasher_HasEntry_SendSuccess(t *testing.T) {
 	// Simulate successfully sending the message after half a second.
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		h.signalMessageSent(hash, srID1, "abc")
+		h.SignalMessageSent(hash, srID1, "abc")
 	}()
 
 	// The message was already sent; we should find it in the hasher.
@@ -205,9 +205,9 @@ func TestSendHasher_HasEntry_SendSuccess(t *testing.T) {
 func TestSendHasher_DualAddDoesNotCauseCrash(t *testing.T) {
 	// There may be a rare case where one 2 smtp connections attempt to send the same message, but if the first message
 	// is stuck long enough for it to expire, the second connection will remove it from the list and cause it to be
-	// inserted as a new entry. The two clients end up sending the message twice and calling the `signalMessageSent` x2,
+	// inserted as a new entry. The two clients end up sending the message twice and calling the `SignalMessageSent` x2,
 	// resulting in a crash.
-	h := newSendRecorder(sendEntryExpiry)
+	h := NewSendRecorder(SendEntryExpiry)
 
 	// Insert a message into the hasher.
 	srID1, hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
@@ -217,8 +217,8 @@ func TestSendHasher_DualAddDoesNotCauseCrash(t *testing.T) {
 
 	// Simulate successfully sending the message. We call this method twice as it possible for multiple SMTP connections
 	// to attempt to send the same message.
-	h.signalMessageSent(hash, srID1, "abc")
-	h.signalMessageSent(hash, srID1, "abc")
+	h.SignalMessageSent(hash, srID1, "abc")
+	h.SignalMessageSent(hash, srID1, "abc")
 
 	// The message was already sent; we should find it in the hasher.
 	messageID, ok, err := testHasEntry(h, literal1, time.Now().Add(time.Second))
@@ -228,7 +228,7 @@ func TestSendHasher_DualAddDoesNotCauseCrash(t *testing.T) {
 }
 
 func TestSendHashed_MessageWithSameHasButDifferentRecipientsIsInserted(t *testing.T) {
-	h := newSendRecorder(sendEntryExpiry)
+	h := NewSendRecorder(SendEntryExpiry)
 
 	// Insert a message into the hasher.
 	srID1, hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second), "Receiver <receiver@pm.me>")
@@ -249,7 +249,7 @@ func TestSendHashed_MessageWithSameHasButDifferentRecipientsIsInserted(t *testin
 func TestSendHashed_SameMessageWIthDifferentToListShouldWaitSuccessfullyAfterSend(t *testing.T) {
 	// Check that if we send the same message twice with different recipients and the second message is somehow
 	// sent before the first, ensure that we check if the message was sent we wait on the correct object.
-	h := newSendRecorder(sendEntryExpiry)
+	h := NewSendRecorder(SendEntryExpiry)
 
 	// Insert a message into the hasher.
 	_, hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Minute), "Receiver <receiver@pm.me>")
@@ -264,16 +264,16 @@ func TestSendHashed_SameMessageWIthDifferentToListShouldWaitSuccessfullyAfterSen
 	require.Equal(t, hash, hash2)
 
 	// simulate message sent
-	h.signalMessageSent(hash2, srID2, "newID")
+	h.SignalMessageSent(hash2, srID2, "newID")
 
 	// Simulate Wait on message 2
-	_, ok, err = h.hasEntryWait(context.Background(), hash2, time.Now().Add(time.Second), []string{"Receiver <receiver@pm.me>", "Receiver2 <receiver2@pm.me>"})
+	_, ok, err = h.HasEntryWait(context.Background(), hash2, time.Now().Add(time.Second), []string{"Receiver <receiver@pm.me>", "Receiver2 <receiver2@pm.me>"})
 	require.NoError(t, err)
 	require.True(t, ok)
 }
 
 func TestSendHasher_HasEntry_SendFail(t *testing.T) {
-	h := newSendRecorder(sendEntryExpiry)
+	h := NewSendRecorder(SendEntryExpiry)
 
 	// Insert a message into the hasher.
 	srID1, hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
@@ -284,7 +284,7 @@ func TestSendHasher_HasEntry_SendFail(t *testing.T) {
 	// Simulate failing to send the message after half a second.
 	go func() {
 		time.Sleep(time.Millisecond * 500)
-		h.removeOnFail(hash, srID1)
+		h.RemoveOnFail(hash, srID1)
 	}()
 
 	// The message failed to send; we should not find it in the hasher.
@@ -294,7 +294,7 @@ func TestSendHasher_HasEntry_SendFail(t *testing.T) {
 }
 
 func TestSendHasher_HasEntry_Timeout(t *testing.T) {
-	h := newSendRecorder(sendEntryExpiry)
+	h := NewSendRecorder(SendEntryExpiry)
 
 	// Insert a message into the hasher.
 	_, hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
@@ -309,7 +309,7 @@ func TestSendHasher_HasEntry_Timeout(t *testing.T) {
 }
 
 func TestSendHasher_HasEntry_Expired(t *testing.T) {
-	h := newSendRecorder(time.Second)
+	h := NewSendRecorder(time.Second)
 
 	// Insert a message into the hasher.
 	srID1, hash, ok, err := testTryInsert(h, literal1, time.Now().Add(time.Second))
@@ -318,7 +318,7 @@ func TestSendHasher_HasEntry_Expired(t *testing.T) {
 	require.NotEmpty(t, hash)
 
 	// Simulate successfully sending the message.
-	h.signalMessageSent(hash, srID1, "abc")
+	h.SignalMessageSent(hash, srID1, "abc")
 
 	// Wait for the entry to expire.
 	time.Sleep(time.Second)
@@ -432,10 +432,10 @@ func TestGetMessageHash(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			hash1, err := getMessageHash(tt.lit1)
+			hash1, err := GetMessageHash(tt.lit1)
 			require.NoError(t, err)
 
-			hash2, err := getMessageHash(tt.lit2)
+			hash2, err := GetMessageHash(tt.lit2)
 			require.NoError(t, err)
 
 			if tt.wantEqual {
@@ -447,13 +447,13 @@ func TestGetMessageHash(t *testing.T) {
 	}
 }
 
-func testTryInsert(h *sendRecorder, literal string, deadline time.Time, toList ...string) (SendRecorderID, string, bool, error) { //nolint:unparam
-	hash, err := getMessageHash([]byte(literal))
+func testTryInsert(h *SendRecorder, literal string, deadline time.Time, toList ...string) (ID, string, bool, error) { //nolint:unparam
+	hash, err := GetMessageHash([]byte(literal))
 	if err != nil {
 		return 0, "", false, err
 	}
 
-	srID, ok, err := h.tryInsertWait(context.Background(), hash, toList, deadline)
+	srID, ok, err := h.TryInsertWait(context.Background(), hash, toList, deadline)
 	if err != nil {
 		return 0, "", false, err
 	}
@@ -461,11 +461,11 @@ func testTryInsert(h *sendRecorder, literal string, deadline time.Time, toList .
 	return srID, hash, ok, nil
 }
 
-func testHasEntry(h *sendRecorder, literal string, deadline time.Time, toList ...string) (string, bool, error) { //nolint:unparam
-	hash, err := getMessageHash([]byte(literal))
+func testHasEntry(h *SendRecorder, literal string, deadline time.Time, toList ...string) (string, bool, error) { //nolint:unparam
+	hash, err := GetMessageHash([]byte(literal))
 	if err != nil {
 		return "", false, err
 	}
 
-	return h.hasEntryWait(context.Background(), hash, deadline, toList)
+	return h.HasEntryWait(context.Background(), hash, deadline, toList)
 }

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package user
+package usertypes
 
 import (
 	"fmt"
@@ -29,10 +29,10 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-// mapTo converts the slice to the given type.
+// MapTo converts the slice to the given type.
 // This is not runtime safe, so make sure the slice is of the correct type!
 // (This is a workaround for the fact that slices cannot be converted to other types generically).
-func mapTo[From, To any](from []From) []To {
+func MapTo[From, To any](from []From) []To {
 	to := make([]To, 0, len(from))
 
 	for _, from := range from {
@@ -47,9 +47,9 @@ func mapTo[From, To any](from []From) []To {
 	return to
 }
 
-// groupBy returns a map of the given slice grouped by the given key.
+// GroupBy returns a map of the given slice grouped by the given key.
 // Duplicate keys are overwritten.
-func groupBy[Key comparable, Value any](items []Value, key func(Value) Key) map[Key]Value {
+func GroupBy[Key comparable, Value any](items []Value, key func(Value) Key) map[Key]Value {
 	groups := make(map[Key]Value)
 
 	for _, item := range items {
@@ -59,10 +59,10 @@ func groupBy[Key comparable, Value any](items []Value, key func(Value) Key) map[
 	return groups
 }
 
-// getAddrID returns the address ID for the given email address.
-func getAddrID(apiAddrs map[string]proton.Address, email string) (string, error) {
+// GetAddrID returns the address ID for the given email address.
+func GetAddrID(apiAddrs map[string]proton.Address, email string) (string, error) {
 	for _, addr := range apiAddrs {
-		if strings.EqualFold(addr.Email, sanitizeEmail(email)) {
+		if strings.EqualFold(addr.Email, SanitizeEmail(email)) {
 			return addr.ID, nil
 		}
 	}
@@ -70,8 +70,8 @@ func getAddrID(apiAddrs map[string]proton.Address, email string) (string, error)
 	return "", fmt.Errorf("address %s not found", email)
 }
 
-// getAddrIdx returns the address with the given index.
-func getAddrIdx(apiAddrs map[string]proton.Address, idx int) (proton.Address, error) {
+// GetAddrIdx returns the address with the given index.
+func GetAddrIdx(apiAddrs map[string]proton.Address, idx int) (proton.Address, error) {
 	sorted := sortSlice(maps.Values(apiAddrs), func(a, b proton.Address) bool {
 		return a.Order < b.Order
 	})
@@ -83,7 +83,7 @@ func getAddrIdx(apiAddrs map[string]proton.Address, idx int) (proton.Address, er
 	return sorted[idx], nil
 }
 
-func getPrimaryAddr(apiAddrs map[string]proton.Address) (proton.Address, error) {
+func GetPrimaryAddr(apiAddrs map[string]proton.Address) (proton.Address, error) {
 	sorted := sortSlice(maps.Values(apiAddrs), func(a, b proton.Address) bool {
 		return a.Order < b.Order
 	})
@@ -106,6 +106,15 @@ func sortSlice[Item any](items []Item, less func(Item, Item) bool) []Item {
 	return sorted
 }
 
-func newProtonAPIScheduler(panicHandler async.PanicHandler) proton.Scheduler {
+func NewProtonAPIScheduler(panicHandler async.PanicHandler) proton.Scheduler {
 	return proton.NewParallelScheduler(runtime.NumCPU()/2, panicHandler)
+}
+
+func SanitizeEmail(email string) string {
+	splitAt := strings.Split(email, "@")
+	if len(splitAt) != 2 {
+		return email
+	}
+
+	return strings.Split(splitAt[0], "+")[0] + "@" + splitAt[1]
 }

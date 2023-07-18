@@ -17,7 +17,7 @@
 
 //go:build build_qa
 
-package user
+package smtp
 
 import (
 	"fmt"

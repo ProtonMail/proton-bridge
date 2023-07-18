@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package user
+package sendrecorder
 
 import (
 	"context"
@@ -30,11 +30,11 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-const sendEntryExpiry = 30 * time.Minute
+const SendEntryExpiry = 30 * time.Minute
 
-type SendRecorderID uint64
+type ID uint64
 
-type sendRecorder struct {
+type SendRecorder struct {
 	expiry time.Duration
 
 	entries         map[string][]*sendEntry
@@ -42,15 +42,15 @@ type sendRecorder struct {
 	cancelIDCounter uint64
 }
 
-func newSendRecorder(expiry time.Duration) *sendRecorder {
-	return &sendRecorder{
+func NewSendRecorder(expiry time.Duration) *SendRecorder {
+	return &SendRecorder{
 		expiry:  expiry,
 		entries: make(map[string][]*sendEntry),
 	}
 }
 
 type sendEntry struct {
-	srID         SendRecorderID
+	srID         ID
 	msgID        string
 	toList       []string
 	exp          time.Time
@@ -65,17 +65,17 @@ func (s *sendEntry) closeWaitChannel() {
 	}
 }
 
-// tryInsertWait tries to insert the given message into the send recorder.
+// TryInsertWait tries to insert the given message into the send recorder.
 // If an entry already exists but it was not sent yet, it waits.
 // It returns whether an entry could be inserted and an error if it times out while waiting.
-func (h *sendRecorder) tryInsertWait(
+func (h *SendRecorder) TryInsertWait(
 	ctx context.Context,
 	hash string,
 	toList []string,
 	deadline time.Time,
-) (SendRecorderID, bool, error) {
+) (ID, bool, error) {
 	// If we successfully inserted the hash, we can return true.
-	srID, waitCh, ok := h.tryInsert(hash, toList)
+	srID, waitCh, ok := h.TryInsert(hash, toList)
 	if ok {
 		return srID, true, nil
 	}
@@ -88,16 +88,16 @@ func (h *sendRecorder) tryInsertWait(
 
 	// If the message failed to send, try to insert it again.
 	if !wasSent {
-		return h.tryInsertWait(ctx, hash, toList, deadline)
+		return h.TryInsertWait(ctx, hash, toList, deadline)
 	}
 
 	return srID, false, nil
 }
 
-// hasEntryWait returns whether the given message already exists in the send recorder.
+// HasEntryWait returns whether the given message already exists in the send recorder.
 // If it does, it waits for its ID to be known, then returns it and true.
 // If no entry exists, or it times out while waiting for its ID to be known, it returns false.
-func (h *sendRecorder) hasEntryWait(ctx context.Context,
+func (h *SendRecorder) HasEntryWait(ctx context.Context,
 	hash string,
 	deadline time.Time,
 	toList []string,
@@ -118,10 +118,10 @@ func (h *sendRecorder) hasEntryWait(ctx context.Context,
 		return messageID, true, nil
 	}
 
-	return h.hasEntryWait(ctx, hash, deadline, toList)
+	return h.HasEntryWait(ctx, hash, deadline, toList)
 }
 
-func (h *sendRecorder) removeExpiredUnsafe() {
+func (h *SendRecorder) removeExpiredUnsafe() {
 	for hash, entry := range h.entries {
 		remaining := xslices.Filter(entry, func(t *sendEntry) bool {
 			return !t.exp.Before(time.Now())
@@ -135,7 +135,7 @@ func (h *sendRecorder) removeExpiredUnsafe() {
 	}
 }
 
-func (h *sendRecorder) tryInsert(hash string, toList []string) (SendRecorderID, <-chan struct{}, bool) {
+func (h *SendRecorder) TryInsert(hash string, toList []string) (ID, <-chan struct{}, bool) {
 	h.entriesLock.Lock()
 	defer h.entriesLock.Unlock()
 
@@ -163,7 +163,7 @@ func (h *sendRecorder) tryInsert(hash string, toList []string) (SendRecorderID, 
 	return cancelID, waitCh, true
 }
 
-func (h *sendRecorder) getEntryWaitInfo(hash string, toList []string) (SendRecorderID, <-chan struct{}, bool) {
+func (h *SendRecorder) getEntryWaitInfo(hash string, toList []string) (ID, <-chan struct{}, bool) {
 	h.entriesLock.Lock()
 	defer h.entriesLock.Unlock()
 
@@ -180,8 +180,8 @@ func (h *sendRecorder) getEntryWaitInfo(hash string, toList []string) (SendRecor
 	return 0, nil, false
 }
 
-// signalMessageSent should be called after a message has been successfully sent.
-func (h *sendRecorder) signalMessageSent(hash string, srID SendRecorderID, msgID string) {
+// SignalMessageSent should be called after a message has been successfully sent.
+func (h *SendRecorder) SignalMessageSent(hash string, srID ID, msgID string) {
 	h.entriesLock.Lock()
 	defer h.entriesLock.Unlock()
 
@@ -199,7 +199,7 @@ func (h *sendRecorder) signalMessageSent(hash string, srID SendRecorderID, msgID
 	logrus.Warn("Cannot add message ID to send hash entry, it may have expired")
 }
 
-func (h *sendRecorder) removeOnFail(hash string, id SendRecorderID) {
+func (h *SendRecorder) RemoveOnFail(hash string, id ID) {
 	h.entriesLock.Lock()
 	defer h.entriesLock.Unlock()
 
@@ -222,11 +222,11 @@ func (h *sendRecorder) removeOnFail(hash string, id SendRecorderID) {
 	}
 }
 
-func (h *sendRecorder) wait(
+func (h *SendRecorder) wait(
 	ctx context.Context,
 	hash string,
 	waitCh <-chan struct{},
-	srID SendRecorderID,
+	srID ID,
 	deadline time.Time,
 ) (string, bool, error) {
 	ctx, cancel := context.WithDeadline(ctx, deadline)
@@ -254,19 +254,19 @@ func (h *sendRecorder) wait(
 	return "", false, nil
 }
 
-func (h *sendRecorder) newSendRecorderID() SendRecorderID {
+func (h *SendRecorder) newSendRecorderID() ID {
 	h.cancelIDCounter++
-	return SendRecorderID(h.cancelIDCounter)
+	return ID(h.cancelIDCounter)
 }
 
-// getMessageHash returns the hash of the given message.
+// GetMessageHash returns the hash of the given message.
 // This takes into account:
 // - the Subject header,
 // - the From/To/Cc headers,
 // - the Content-Type header of each (leaf) part,
 // - the Content-Disposition header of each (leaf) part,
 // - the (decoded) body of each part.
-func getMessageHash(b []byte) (string, error) {
+func GetMessageHash(b []byte) (string, error) {
 	return rfc822.GetMessageHash(b)
 }
 

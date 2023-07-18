@@ -35,6 +35,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/constants"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/bradenaw/juniper/xmaps"
 	"github.com/bradenaw/juniper/xslices"
@@ -62,7 +63,7 @@ func (apm DiagnosticMetadata) BuildMailboxToMessageMap(user *User) (map[string]A
 		result := make(map[string]AccountMailboxMap)
 
 		mode := user.GetAddressMode()
-		primaryAddrID, err := getPrimaryAddr(user.apiAddrs)
+		primaryAddrID, err := usertypes.GetPrimaryAddr(user.apiAddrs)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get primary addr for user: %w", err)
 		}
@@ -178,7 +179,7 @@ func (user *User) DebugDownloadMessages(
 					return fmt.Errorf("failed to create directory '%v':%w", msgDir, err)
 				}
 
-				message, err := user.client.GetFullMessage(ctx, msg.ID, newProtonAPIScheduler(user.panicHandler), proton.NewDefaultAttachmentAllocator())
+				message, err := user.client.GetFullMessage(ctx, msg.ID, usertypes.NewProtonAPIScheduler(user.panicHandler), proton.NewDefaultAttachmentAllocator())
 				if err != nil {
 					return fmt.Errorf("failed to download message '%v':%w", msg.ID, err)
 				}
@@ -187,7 +188,7 @@ func (user *User) DebugDownloadMessages(
 					return err
 				}
 
-				if err := withAddrKR(user.apiUser, user.apiAddrs[msg.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+				if err := usertypes.WithAddrKR(user.apiUser, user.apiAddrs[msg.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
 					switch {
 					case len(message.Attachments) > 0:
 						return decodeMultipartMessage(msgDir, addrKR, message.Message, message.AttData)

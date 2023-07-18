@@ -34,6 +34,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
@@ -114,8 +115,8 @@ func (user *User) syncUserAddressesLabelsAndClearSync(ctx context.Context, cance
 
 		// Update the API info in the user.
 		user.apiUser = apiUser
-		user.apiAddrs = groupBy(apiAddrs, func(addr proton.Address) string { return addr.ID })
-		user.apiLabels = groupBy(apiLabels, func(label proton.Label) string { return label.ID })
+		user.apiAddrs = usertypes.GroupBy(apiAddrs, func(addr proton.Address) string { return addr.ID })
+		user.apiLabels = usertypes.GroupBy(apiLabels, func(label proton.Label) string { return label.ID })
 
 		// Clear sync status; we want to sync everything again.
 		if err := user.clearSyncStatus(); err != nil {
@@ -208,7 +209,7 @@ func (user *User) handleCreateAddressEvent(ctx context.Context, event proton.Add
 		// If the address is enabled, we need to hook it up to the update channels.
 		switch user.vault.AddressMode() {
 		case vault.CombinedMode:
-			primAddr, err := getPrimaryAddr(user.apiAddrs)
+			primAddr, err := usertypes.GetPrimaryAddr(user.apiAddrs)
 			if err != nil {
 				return fmt.Errorf("failed to get primary address: %w", err)
 			}
@@ -267,7 +268,7 @@ func (user *User) handleUpdateAddressEvent(_ context.Context, event proton.Addre
 		case oldAddr.Status != proton.AddressStatusEnabled && event.Address.Status == proton.AddressStatusEnabled:
 			switch user.vault.AddressMode() {
 			case vault.CombinedMode:
-				primAddr, err := getPrimaryAddr(user.apiAddrs)
+				primAddr, err := usertypes.GetPrimaryAddr(user.apiAddrs)
 				if err != nil {
 					return fmt.Errorf("failed to get primary address: %w", err)
 				}
@@ -585,7 +586,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, message proton.M
 		"subject":   logging.Sensitive(message.Subject),
 	}).Info("Handling message created event")
 
-	full, err := user.client.GetFullMessage(ctx, message.ID, newProtonAPIScheduler(user.panicHandler), proton.NewDefaultAttachmentAllocator())
+	full, err := user.client.GetFullMessage(ctx, message.ID, usertypes.NewProtonAPIScheduler(user.panicHandler), proton.NewDefaultAttachmentAllocator())
 	if err != nil {
 		// If the message is not found, it means that it has been deleted before we could fetch it.
 		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
@@ -599,7 +600,7 @@ func (user *User) handleCreateMessageEvent(ctx context.Context, message proton.M
 	return safe.RLockRetErr(func() ([]imap.Update, error) {
 		var update imap.Update
 
-		if err := withAddrKR(user.apiUser, user.apiAddrs[message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+		if err := usertypes.WithAddrKR(user.apiUser, user.apiAddrs[message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
 			res := buildRFC822(user.apiLabels, full, addrKR, new(bytes.Buffer))
 
 			if res.err != nil {
@@ -652,7 +653,7 @@ func (user *User) handleUpdateMessageEvent(_ context.Context, message proton.Mes
 
 		update := imap.NewMessageMailboxesUpdated(
 			imap.MessageID(message.ID),
-			mapTo[string, imap.MailboxID](wantLabels(user.apiLabels, message.LabelIDs)),
+			usertypes.MapTo[string, imap.MailboxID](wantLabels(user.apiLabels, message.LabelIDs)),
 			flags,
 		)
 
@@ -693,7 +694,7 @@ func (user *User) handleUpdateDraftOrSentMessage(ctx context.Context, event prot
 			"isDraft":   event.Message.IsDraft(),
 		}).Info("Handling draft or sent updated event")
 
-		full, err := user.client.GetFullMessage(ctx, event.Message.ID, newProtonAPIScheduler(user.panicHandler), proton.NewDefaultAttachmentAllocator())
+		full, err := user.client.GetFullMessage(ctx, event.Message.ID, usertypes.NewProtonAPIScheduler(user.panicHandler), proton.NewDefaultAttachmentAllocator())
 		if err != nil {
 			// If the message is not found, it means that it has been deleted before we could fetch it.
 			if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status == http.StatusUnprocessableEntity {
@@ -706,7 +707,7 @@ func (user *User) handleUpdateDraftOrSentMessage(ctx context.Context, event prot
 
 		var update imap.Update
 
-		if err := withAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+		if err := usertypes.WithAddrKR(user.apiUser, user.apiAddrs[event.Message.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
 			res := buildRFC822(user.apiLabels, full, addrKR, new(bytes.Buffer))
 
 			if res.err != nil {
@@ -827,7 +828,7 @@ func safePublishMessageUpdate(user *User, addressID string, update imap.Update) 
 	v, ok := user.updateCh[addressID]
 	if !ok {
 		if user.GetAddressMode() == vault.CombinedMode {
-			primAddr, err := getPrimaryAddr(user.apiAddrs)
+			primAddr, err := usertypes.GetPrimaryAddr(user.apiAddrs)
 			if err != nil {
 				return false, fmt.Errorf("failed to get primary address: %w", err)
 			}

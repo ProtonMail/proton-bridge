@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package user
+package usertypes
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func withAddrKR(apiUser proton.User, apiAddr proton.Address, keyPass []byte, fn func(userKR, addrKR *crypto.KeyRing) error) error {
+func WithAddrKR(apiUser proton.User, apiAddr proton.Address, keyPass []byte, fn func(userKR, addrKR *crypto.KeyRing) error) error {
 	userKR, err := apiUser.Keys.Unlock(keyPass, nil)
 	if err != nil {
 		return fmt.Errorf("failed to unlock user keys: %w", err)
@@ -41,7 +41,7 @@ func withAddrKR(apiUser proton.User, apiAddr proton.Address, keyPass []byte, fn 
 	return fn(userKR, addrKR)
 }
 
-func withAddrKRs(apiUser proton.User, apiAddr map[string]proton.Address, keyPass []byte, fn func(*crypto.KeyRing, map[string]*crypto.KeyRing) error) error {
+func WithAddrKRs(apiUser proton.User, apiAddr map[string]proton.Address, keyPass []byte, fn func(*crypto.KeyRing, map[string]*crypto.KeyRing) error) error {
 	userKR, err := apiUser.Keys.Unlock(keyPass, nil)
 	if err != nil {
 		return fmt.Errorf("failed to unlock user keys: %w", err)

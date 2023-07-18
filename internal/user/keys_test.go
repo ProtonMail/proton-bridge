@@ -24,6 +24,7 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,7 +37,7 @@ func BenchmarkAddrKeyRing(b *testing.B) {
 				b.StartTimer()
 
 				for i := 0; i < b.N; i++ {
-					require.NoError(b, withAddrKRs(user.apiUser, user.apiAddrs, user.vault.KeyPass(), func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
+					require.NoError(b, usertypes.WithAddrKRs(user.apiUser, user.apiAddrs, user.vault.KeyPass(), func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
 						return nil
 					}))
 				}

@@ -40,7 +40,10 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
+	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"github.com/bradenaw/juniper/xslices"
@@ -65,7 +68,7 @@ type User struct {
 	vault    *vault.User
 	client   *proton.Client
 	reporter reporter.Reporter
-	sendHash *sendRecorder
+	sendHash *sendrecorder.SendRecorder
 
 	eventCh   *async.QueuedChannel[events.Event]
 	eventLock safe.RWMutex
@@ -100,6 +103,8 @@ type User struct {
 	telemetryManager telemetry.Availability
 	// goStatusProgress triggers a check/sending if progress is needed.
 	goStatusProgress func()
+
+	smtpService *smtp.Service
 }
 
 // New returns a new user.
@@ -148,7 +153,7 @@ func New(
 		vault:    encVault,
 		client:   client,
 		reporter: reporter,
-		sendHash: newSendRecorder(sendEntryExpiry),
+		sendHash: sendrecorder.NewSendRecorder(sendrecorder.SendEntryExpiry),
 
 		eventCh:   async.NewQueuedChannel[events.Event](0, 0, crashHandler),
 		eventLock: safe.NewRWMutex(),
@@ -156,10 +161,10 @@ func New(
 		apiUser:     apiUser,
 		apiUserLock: safe.NewRWMutex(),
 
-		apiAddrs:     groupBy(apiAddrs, func(addr proton.Address) string { return addr.ID }),
+		apiAddrs:     usertypes.GroupBy(apiAddrs, func(addr proton.Address) string { return addr.ID }),
 		apiAddrsLock: safe.NewRWMutex(),
 
-		apiLabels:     groupBy(apiLabels, func(label proton.Label) string { return label.ID }),
+		apiLabels:     usertypes.GroupBy(apiLabels, func(label proton.Label) string { return label.ID }),
 		apiLabelsLock: safe.NewRWMutex(),
 
 		updateCh:     make(map[string]*async.QueuedChannel[imap.Update]),
@@ -177,6 +182,8 @@ func New(
 		configStatus:     configStatus,
 		telemetryManager: telemetryManager,
 	}
+
+	user.smtpService = smtp.NewService(user, client, user.sendHash, user.panicHandler, user.reporter)
 
 	// Check for status_progress when triggered.
 	user.goStatusProgress = user.tasks.PeriodicOrTrigger(configstatus.ProgressCheckInterval, 0, func(ctx context.Context) {
@@ -263,6 +270,9 @@ func New(
 			})
 		}
 	})
+
+	// Start SMTP Service
+	user.smtpService.Start(user.tasks)
 
 	return user, nil
 }
@@ -461,7 +471,7 @@ func (user *User) NewIMAPConnectors() (map[string]connector.Connector, error) {
 
 		switch user.vault.AddressMode() {
 		case vault.CombinedMode:
-			primAddr, err := getAddrIdx(user.apiAddrs, 0)
+			primAddr, err := usertypes.GetAddrIdx(user.apiAddrs, 0)
 			if err != nil {
 				return nil, fmt.Errorf("failed to get primary address: %w", err)
 			}
@@ -485,10 +495,10 @@ func (user *User) SendMail(authID string, from string, to []string, r io.Reader)
 	}
 
 	if len(to) == 0 {
-		return ErrInvalidRecipient
+		return smtp.ErrInvalidRecipient
 	}
 
-	if err := user.sendMail(authID, from, to, r); err != nil {
+	if err := user.smtpService.SendMail(context.Background(), authID, from, to, r); err != nil {
 		if apiErr := new(proton.APIError); errors.As(err, &apiErr) {
 			logrus.WithError(apiErr).WithField("Details", apiErr.DetailsToString()).Error("failed to send message")
 		}
@@ -662,6 +672,12 @@ func (user *User) SendTelemetry(ctx context.Context, data []byte) error {
 		return err
 	}
 	return nil
+}
+
+func (user *User) WithSMTPData(ctx context.Context, op func(context.Context, map[string]proton.Address, proton.User, *vault.User) error) error {
+	return safe.RLockRet(func() error {
+		return op(ctx, user.apiAddrs, user.apiUser, user.vault)
+	}, user.apiUserLock, user.apiAddrsLock, user.eventLock)
 }
 
 // initUpdateCh initializes the user's update channels in the given address mode.

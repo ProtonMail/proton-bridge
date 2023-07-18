@@ -15,11 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package user
+package smtp
 
 import "errors"
 
-var (
-	ErrNoSuchAddress  = errors.New("no such address")
-	ErrMissingAddrKey = errors.New("missing address key")
-)
+var ErrInvalidRecipient = errors.New("invalid recipient")
+var ErrInvalidReturnPath = errors.New("invalid return path")

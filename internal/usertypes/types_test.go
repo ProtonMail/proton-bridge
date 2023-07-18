@@ -15,10 +15,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-//go:build !build_qa
+package usertypes
 
-package user
+import (
+	"testing"
 
-func debugDumpToDisk(_ []byte) error {
-	return nil
+	"github.com/stretchr/testify/require"
+)
+
+func TestToType(t *testing.T) {
+	type myString string
+
+	// Slices of different types are not equal.
+	require.NotEqual(t, []myString{"a", "b", "c"}, []string{"a", "b", "c"})
+
+	// But converting them to the same type makes them equal.
+	require.Equal(t, []myString{"a", "b", "c"}, MapTo[string, myString]([]string{"a", "b", "c"}))
+
+	// The conversion can happen in the other direction too.
+	require.Equal(t, []string{"a", "b", "c"}, MapTo[myString, string]([]myString{"a", "b", "c"}))
 }

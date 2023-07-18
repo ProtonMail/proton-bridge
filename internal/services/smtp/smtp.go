@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package user
+package smtp
 
 import (
 	"bytes"
@@ -36,7 +36,8 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
-	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
+	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
@@ -47,19 +48,14 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-// sendMail sends an email from the given address to the given recipients.
-func (user *User) sendMail(authID string, from string, to []string, r io.Reader) error {
-	defer async.HandlePanic(user.panicHandler)
-
-	return safe.RLockRet(func() error {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		if _, err := getAddrID(user.apiAddrs, from); err != nil {
+// smtpSendMail sends an email from the given address to the given recipients.
+func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, to []string, r io.Reader) error {
+	return s.user.WithSMTPData(ctx, func(ctx context.Context, apiAddrs map[string]proton.Address, user proton.User, vault *vault.User) error {
+		if _, err := usertypes.GetAddrID(apiAddrs, from); err != nil {
 			return ErrInvalidReturnPath
 		}
 
-		emails := xslices.Map(maps.Values(user.apiAddrs), func(addr proton.Address) string {
+		emails := xslices.Map(maps.Values(apiAddrs), func(addr proton.Address) string {
 			return addr.Email
 		})
 
@@ -71,26 +67,26 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 
 		// If running a QA build, dump to disk.
 		if err := debugDumpToDisk(b); err != nil {
-			user.log.WithError(err).Warn("Failed to dump message to disk")
+			s.log.WithError(err).Warn("Failed to dump message to disk")
 		}
 
 		// Compute the hash of the message (to match it against SMTP messages).
-		hash, err := getMessageHash(b)
+		hash, err := sendrecorder.GetMessageHash(b)
 		if err != nil {
 			return err
 		}
 
 		// Check if we already tried to send this message recently.
-		srID, ok, err := user.sendHash.tryInsertWait(ctx, hash, to, time.Now().Add(90*time.Second))
+		srID, ok, err := s.recorder.TryInsertWait(ctx, hash, to, time.Now().Add(90*time.Second))
 		if err != nil {
 			return fmt.Errorf("failed to check send hash: %w", err)
 		} else if !ok {
-			user.log.Warn("A duplicate message was already sent recently, skipping")
+			s.log.Warn("A duplicate message was already sent recently, skipping")
 			return nil
 		}
 
 		// If we fail to send this message, we should remove the hash from the send recorder.
-		defer user.sendHash.removeOnFail(hash, srID)
+		defer s.recorder.RemoveOnFail(hash, srID)
 
 		// Create a new message parser from the reader.
 		parser, err := parser.New(bytes.NewReader(b))
@@ -104,17 +100,17 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 		}
 
 		// Load the user's mail settings.
-		settings, err := user.client.GetMailSettings(ctx)
+		settings, err := s.client.GetMailSettings(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to get mail settings: %w", err)
 		}
 
-		addrID, err := getAddrID(user.apiAddrs, from)
+		addrID, err := usertypes.GetAddrID(apiAddrs, from)
 		if err != nil {
 			return err
 		}
 
-		return withAddrKR(user.apiUser, user.apiAddrs[addrID], user.vault.KeyPass(), func(userKR, addrKR *crypto.KeyRing) error {
+		return usertypes.WithAddrKR(user, apiAddrs[addrID], vault.KeyPass(), func(userKR, addrKR *crypto.KeyRing) error {
 			// Use the first key for encrypting the message.
 			addrKR, err := addrKR.FirstKey()
 			if err != nil {
@@ -147,12 +143,10 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 			}
 
 			// Send the message using the correct key.
-			sent, err := user.sendWithKey(
+			sent, err := s.sendWithKey(
 				ctx,
-				user.client,
-				user.reporter,
 				authID,
-				user.vault.AddressMode(),
+				vault.AddressMode(),
 				settings,
 				userKR, addrKR,
 				emails, from, to,
@@ -163,18 +157,16 @@ func (user *User) sendMail(authID string, from string, to []string, r io.Reader)
 			}
 
 			// If the message was successfully sent, we can update the message ID in the record.
-			user.sendHash.signalMessageSent(hash, srID, sent.ID)
+			s.recorder.SignalMessageSent(hash, srID, sent.ID)
 
 			return nil
 		})
-	}, user.apiUserLock, user.apiAddrsLock, user.eventLock)
+	})
 }
 
 // sendWithKey sends the message with the given address key.
-func (user *User) sendWithKey(
+func (s *Service) sendWithKey(
 	ctx context.Context,
-	client *proton.Client,
-	sentry reporter.Reporter,
 	authAddrID string,
 	addrMode vault.AddressMode,
 	settings proton.MailSettings,
@@ -188,16 +180,16 @@ func (user *User) sendWithKey(
 	if message.InReplyTo != "" {
 		references = append(references, message.InReplyTo)
 	}
-	parentID, err := getParentID(ctx, client, authAddrID, addrMode, references)
+	parentID, err := getParentID(ctx, s.client, authAddrID, addrMode, references)
 	if err != nil {
-		if err := sentry.ReportMessageWithContext("Failed to get parent ID", reporter.Context{
+		if err := s.reporter.ReportMessageWithContext("Failed to get parent ID", reporter.Context{
 			"error":      err,
 			"references": message.References,
 		}); err != nil {
 			logrus.WithError(err).Error("Failed to report error")
 		}
 
-		logrus.WithError(err).Warn("Failed to get parent ID")
+		s.log.WithError(err).Warn("Failed to get parent ID")
 	}
 
 	var decBody string
@@ -214,7 +206,7 @@ func (user *User) sendWithKey(
 		return proton.Message{}, fmt.Errorf("unsupported MIME type: %v", message.MIMEType)
 	}
 
-	draft, err := createDraft(ctx, client, addrKR, emails, from, to, parentID, message.InReplyTo, proton.DraftTemplate{
+	draft, err := s.createDraft(ctx, addrKR, emails, from, to, parentID, message.InReplyTo, proton.DraftTemplate{
 		Subject:  message.Subject,
 		Body:     decBody,
 		MIMEType: message.MIMEType,
@@ -230,12 +222,12 @@ func (user *User) sendWithKey(
 		return proton.Message{}, fmt.Errorf("failed to create attachments: %w", err)
 	}
 
-	attKeys, err := user.createAttachments(ctx, client, addrKR, draft.ID, message.Attachments)
+	attKeys, err := s.createAttachments(ctx, s.client, addrKR, draft.ID, message.Attachments)
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to create attachments: %w", err)
 	}
 
-	recipients, err := user.getRecipients(ctx, client, userKR, settings, draft)
+	recipients, err := s.getRecipients(ctx, s.client, userKR, settings, draft)
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to get recipients: %w", err)
 	}
@@ -245,7 +237,7 @@ func (user *User) sendWithKey(
 		return proton.Message{}, fmt.Errorf("failed to create packages: %w", err)
 	}
 
-	res, err := client.SendDraft(ctx, draft.ID, req)
+	res, err := s.client.SendDraft(ctx, draft.ID, req)
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to send draft: %w", err)
 	}
@@ -340,9 +332,8 @@ func getParentID(
 	return parentID, nil
 }
 
-func createDraft(
+func (s *Service) createDraft(
 	ctx context.Context,
-	client *proton.Client,
 	addrKR *crypto.KeyRing,
 	emails []string,
 	from string,
@@ -360,7 +351,7 @@ func createDraft(
 
 	// Check that the sending address is owned by the user, and if so, sanitize it.
 	if idx := xslices.IndexFunc(emails, func(email string) bool {
-		return strings.EqualFold(email, sanitizeEmail(template.Sender.Address))
+		return strings.EqualFold(email, usertypes.SanitizeEmail(template.Sender.Address))
 	}); idx < 0 {
 		return proton.Message{}, fmt.Errorf("address %q is not owned by user", template.Sender.Address)
 	} else { //nolint:revive
@@ -389,14 +380,14 @@ func createDraft(
 		action = proton.ForwardAction
 	}
 
-	return client.CreateDraft(ctx, addrKR, proton.CreateDraftReq{
+	return s.client.CreateDraft(ctx, addrKR, proton.CreateDraftReq{
 		Message:  template,
 		ParentID: parentID,
 		Action:   action,
 	})
 }
 
-func (user *User) createAttachments(
+func (s *Service) createAttachments(
 	ctx context.Context,
 	client *proton.Client,
 	addrKR *crypto.KeyRing,
@@ -409,9 +400,9 @@ func (user *User) createAttachments(
 	}
 
 	keys, err := parallel.MapContext(ctx, runtime.NumCPU(), attachments, func(ctx context.Context, att message.Attachment) (attKey, error) {
-		defer async.HandlePanic(user.panicHandler)
+		defer async.HandlePanic(s.panicHandler)
 
-		logrus.WithFields(logrus.Fields{
+		s.log.WithFields(logrus.Fields{
 			"name":        logging.Sensitive(att.Name),
 			"contentID":   att.ContentID,
 			"disposition": att.Disposition,
@@ -480,7 +471,7 @@ func (user *User) createAttachments(
 	return attKeys, nil
 }
 
-func (user *User) getRecipients(
+func (s *Service) getRecipients(
 	ctx context.Context,
 	client *proton.Client,
 	userKR *crypto.KeyRing,
@@ -492,7 +483,7 @@ func (user *User) getRecipients(
 	})
 
 	prefs, err := parallel.MapContext(ctx, runtime.NumCPU(), addresses, func(ctx context.Context, recipient string) (proton.SendPreferences, error) {
-		defer async.HandlePanic(user.panicHandler)
+		defer async.HandlePanic(s.panicHandler)
 
 		pubKeys, recType, err := client.GetPublicKeys(ctx, recipient)
 		if err != nil {
@@ -555,15 +546,6 @@ func getMessageSender(parser *parser.Parser) (string, bool) {
 	}
 
 	return address[0].Address, true
-}
-
-func sanitizeEmail(email string) string {
-	splitAt := strings.Split(email, "@")
-	if len(splitAt) != 2 {
-		return email
-	}
-
-	return strings.Split(splitAt[0], "+")[0] + "@" + splitAt[1]
 }
 
 func constructEmail(headerEmail string, addressEmail string) string {

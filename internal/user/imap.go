@@ -33,6 +33,8 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
+	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
@@ -288,26 +290,26 @@ func (conn *imapConnector) CreateMessage(
 	}
 
 	// Compute the hash of the message (to match it against SMTP messages).
-	hash, err := getMessageHash(literal)
+	hash, err := sendrecorder.GetMessageHash(literal)
 	if err != nil {
 		return imap.Message{}, nil, err
 	}
 
 	// Check if we already tried to send this message recently.
-	if messageID, ok, err := conn.sendHash.hasEntryWait(ctx, hash, time.Now().Add(90*time.Second), toList); err != nil {
+	if messageID, ok, err := conn.sendHash.HasEntryWait(ctx, hash, time.Now().Add(90*time.Second), toList); err != nil {
 		return imap.Message{}, nil, fmt.Errorf("failed to check send hash: %w", err)
 	} else if ok {
 		conn.log.WithField("messageID", messageID).Warn("Message already sent")
 
 		// Query the server-side message.
-		full, err := conn.client.GetFullMessage(ctx, messageID, newProtonAPIScheduler(conn.panicHandler), proton.NewDefaultAttachmentAllocator())
+		full, err := conn.client.GetFullMessage(ctx, messageID, usertypes.NewProtonAPIScheduler(conn.panicHandler), proton.NewDefaultAttachmentAllocator())
 		if err != nil {
 			return imap.Message{}, nil, fmt.Errorf("failed to fetch message: %w", err)
 		}
 
 		// Build the message as it is on the server.
 		if err := safe.RLockRet(func() error {
-			return withAddrKR(conn.apiUser, conn.apiAddrs[full.AddressID], conn.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+			return usertypes.WithAddrKR(conn.apiUser, conn.apiAddrs[full.AddressID], conn.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
 				var err error
 
 				if literal, err = message.BuildRFC822(addrKR, full.Message, full.AttData, defaultJobOpts()); err != nil {
@@ -378,14 +380,14 @@ func (conn *imapConnector) CreateMessage(
 }
 
 func (conn *imapConnector) GetMessageLiteral(ctx context.Context, id imap.MessageID) ([]byte, error) {
-	msg, err := conn.client.GetFullMessage(ctx, string(id), newProtonAPIScheduler(conn.panicHandler), proton.NewDefaultAttachmentAllocator())
+	msg, err := conn.client.GetFullMessage(ctx, string(id), usertypes.NewProtonAPIScheduler(conn.panicHandler), proton.NewDefaultAttachmentAllocator())
 	if err != nil {
 		return nil, err
 	}
 
 	return safe.RLockRetErr(func() ([]byte, error) {
 		var literal []byte
-		err := withAddrKR(conn.apiUser, conn.apiAddrs[msg.AddressID], conn.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+		err := usertypes.WithAddrKR(conn.apiUser, conn.apiAddrs[msg.AddressID], conn.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
 			l, buildErr := message.BuildRFC822(addrKR, msg.Message, msg.AttData, defaultJobOpts())
 			if buildErr != nil {
 				return buildErr
@@ -408,7 +410,7 @@ func (conn *imapConnector) AddMessagesToMailbox(ctx context.Context, messageIDs 
 		return connector.ErrOperationNotAllowed
 	}
 
-	return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(mailboxID))
+	return conn.client.LabelMessages(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs), string(mailboxID))
 }
 
 // RemoveMessagesFromMailbox unlabels the given messages with the given label ID.
@@ -419,7 +421,7 @@ func (conn *imapConnector) RemoveMessagesFromMailbox(ctx context.Context, messag
 		return connector.ErrOperationNotAllowed
 	}
 
-	msgIDs := mapTo[imap.MessageID, string](messageIDs)
+	msgIDs := usertypes.MapTo[imap.MessageID, string](messageIDs)
 	if err := conn.client.UnlabelMessages(ctx, msgIDs, string(mailboxID)); err != nil {
 		return err
 	}
@@ -461,12 +463,12 @@ func (conn *imapConnector) MoveMessages(ctx context.Context, messageIDs []imap.M
 		return result
 	}()
 
-	if err := conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelToID)); err != nil {
+	if err := conn.client.LabelMessages(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs), string(labelToID)); err != nil {
 		return false, fmt.Errorf("labeling messages: %w", err)
 	}
 
 	if shouldExpungeOldLocation {
-		if err := conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), string(labelFromID)); err != nil {
+		if err := conn.client.UnlabelMessages(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs), string(labelFromID)); err != nil {
 			return false, fmt.Errorf("unlabeling messages: %w", err)
 		}
 	}
@@ -479,10 +481,10 @@ func (conn *imapConnector) MarkMessagesSeen(ctx context.Context, messageIDs []im
 	defer conn.goPollAPIEvents(false)
 
 	if seen {
-		return conn.client.MarkMessagesRead(ctx, mapTo[imap.MessageID, string](messageIDs)...)
+		return conn.client.MarkMessagesRead(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs)...)
 	}
 
-	return conn.client.MarkMessagesUnread(ctx, mapTo[imap.MessageID, string](messageIDs)...)
+	return conn.client.MarkMessagesUnread(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs)...)
 }
 
 // MarkMessagesFlagged sets the flagged value of the given messages.
@@ -490,10 +492,10 @@ func (conn *imapConnector) MarkMessagesFlagged(ctx context.Context, messageIDs [
 	defer conn.goPollAPIEvents(false)
 
 	if flagged {
-		return conn.client.LabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), proton.StarredLabel)
+		return conn.client.LabelMessages(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs), proton.StarredLabel)
 	}
 
-	return conn.client.UnlabelMessages(ctx, mapTo[imap.MessageID, string](messageIDs), proton.StarredLabel)
+	return conn.client.UnlabelMessages(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs), proton.StarredLabel)
 }
 
 // GetUpdates returns a stream of updates that the gluon server should apply.
@@ -535,7 +537,7 @@ func (conn *imapConnector) importMessage(
 	var full proton.FullMessage
 
 	if err := safe.RLockRet(func() error {
-		return withAddrKR(conn.apiUser, conn.apiAddrs[conn.addrID], conn.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+		return usertypes.WithAddrKR(conn.apiUser, conn.apiAddrs[conn.addrID], conn.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
 			var messageID string
 
 			if slices.Contains(labelIDs, proton.DraftsLabel) {
@@ -571,7 +573,7 @@ func (conn *imapConnector) importMessage(
 
 			var err error
 
-			if full, err = conn.client.GetFullMessage(ctx, messageID, newProtonAPIScheduler(conn.panicHandler), proton.NewDefaultAttachmentAllocator()); err != nil {
+			if full, err = conn.client.GetFullMessage(ctx, messageID, usertypes.NewProtonAPIScheduler(conn.panicHandler), proton.NewDefaultAttachmentAllocator()); err != nil {
 				return fmt.Errorf("failed to fetch message: %w", err)
 			}
 
