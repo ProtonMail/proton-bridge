@@ -134,6 +134,15 @@ test-linux:
   tags:
     - large
 
+fuzz-linux:
+  stage: test
+  extends:
+    - .rules-branch-manual-MR-and-devel-always
+  script:
+    - make fuzz
+  tags:
+    - large
+
 test-linux-race:
   extends:
     - test-linux
