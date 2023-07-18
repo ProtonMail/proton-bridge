@@ -23,7 +23,8 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
-	bridgesmtp "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
+	smtpservice "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
+	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
@@ -33,10 +34,10 @@ func (bridge *Bridge) restartSMTP(ctx context.Context) error {
 	return bridge.serverManager.RestartSMTP(ctx)
 }
 
-func newSMTPServer(bridge *Bridge, accounts *bridgesmtp.Accounts, tlsConfig *tls.Config, logSMTP bool) *smtp.Server {
+func newSMTPServer(bridge *Bridge, accounts *smtpservice.Accounts, tlsConfig *tls.Config, logSMTP bool) *smtp.Server {
 	logrus.WithField("logSMTP", logSMTP).Info("Creating SMTP server")
 
-	smtpServer := smtp.NewServer(&smtpBackend{userAgent: &bridgeUserAgentUpdater{Bridge: bridge}, accounts: accounts})
+	smtpServer := smtp.NewServer(smtpservice.NewBackend(accounts, &bridgeUserAgentUpdater{Bridge: bridge}))
 
 	smtpServer.TLSConfig = tlsConfig
 	smtpServer.Domain = constants.Host
@@ -61,4 +62,14 @@ func newSMTPServer(bridge *Bridge, accounts *bridgesmtp.Accounts, tlsConfig *tls
 	}
 
 	return smtpServer
+}
+
+// addSMTPUser connects the given user to the smtp server.
+func (bridge *Bridge) addSMTPUser(ctx context.Context, user *user.User) error {
+	return bridge.serverManager.AddSMTPAccount(ctx, user.GetSMTPService())
+}
+
+// removeSMTPUser disconnects the given user from the smtp server.
+func (bridge *Bridge) removeSMTPUser(ctx context.Context, user *user.User) error {
+	return bridge.serverManager.RemoveSMTPAccount(ctx, user.GetSMTPService())
 }

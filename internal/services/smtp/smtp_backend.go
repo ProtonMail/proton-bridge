@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package smtp
 
 import (
 	"context"
@@ -25,19 +25,25 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/identifier"
-	smtpservice "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
 )
 
-type smtpBackend struct {
-	accounts  *smtpservice.Accounts
+type Backend struct {
+	accounts  *Accounts
 	userAgent identifier.UserAgentUpdater
 }
 
+func NewBackend(accounts *Accounts, userAgent identifier.UserAgentUpdater) *Backend {
+	return &Backend{
+		accounts:  accounts,
+		userAgent: userAgent,
+	}
+}
+
 type smtpSession struct {
-	accounts  *smtpservice.Accounts
+	accounts  *Accounts
 	userAgent identifier.UserAgentUpdater
 
 	userID string
@@ -47,14 +53,14 @@ type smtpSession struct {
 	to   []string
 }
 
-func (be *smtpBackend) NewSession(*smtp.Conn) (smtp.Session, error) {
+func (be *Backend) NewSession(*smtp.Conn) (smtp.Session, error) {
 	return &smtpSession{accounts: be.accounts, userAgent: be.userAgent}, nil
 }
 
 func (s *smtpSession) AuthPlain(username, password string) error {
 	userID, authID, err := s.accounts.CheckAuth(username, []byte(password))
 	if err != nil {
-		if !errors.Is(err, smtpservice.ErrNoSuchUser) {
+		if !errors.Is(err, ErrNoSuchUser) {
 			return fmt.Errorf("unknown error")
 		}
 		logrus.WithFields(logrus.Fields{
