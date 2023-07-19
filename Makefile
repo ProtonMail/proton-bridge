@@ -281,6 +281,13 @@ mocks:
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/updater Downloader,Installer > internal/updater/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/telemetry HeartbeatManager > internal/telemetry/mocks/mocks.go
 	cp internal/telemetry/mocks/mocks.go internal/bridge/mocks/telemetry_mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/services/userevents \
+EventSource,EventIDStore > internal/services/userevents/mocks/mocks.go
+	mockgen --package userevents github.com/ProtonMail/proton-bridge/v3/internal/services/userevents \
+MessageSubscriber,LabelSubscriber,AddressSubscriber,RefreshSubscriber,UserSubscriber,UserUsedSpaceSubscriber > tmp
+	mv tmp internal/services/userevents/mocks_test.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/events EventPublisher \
+> internal/events/mocks/mocks.go
 
 lint: gofiles lint-golang lint-license lint-dependencies lint-changelog
 

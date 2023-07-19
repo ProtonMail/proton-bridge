@@ -15,23 +15,26 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package events
+package userevents
 
 import (
 	"context"
-	"fmt"
+
+	"github.com/ProtonMail/go-proton-api"
 )
 
-type Event interface {
-	fmt.Stringer
-
-	_isEvent()
+// EventSource represents a type which produces proton events.
+type EventSource interface {
+	GetLatestEventID(ctx context.Context) (string, error)
+	GetEvent(ctx context.Context, id string) ([]proton.Event, bool, error)
 }
 
-type eventBase struct{}
+type NullEventSource struct{}
 
-func (eventBase) _isEvent() {}
+func (n NullEventSource) GetLatestEventID(_ context.Context) (string, error) {
+	return "", nil
+}
 
-type EventPublisher interface {
-	PublishEvent(ctx context.Context, event Event)
+func (n NullEventSource) GetEvent(_ context.Context, _ string) ([]proton.Event, bool, error) {
+	return nil, false, nil
 }
