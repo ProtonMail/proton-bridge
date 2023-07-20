@@ -367,4 +367,14 @@ QtObject {
     property int title_font_size: 20
     property int title_line_height: 24
     property real tooltip_radius: 8 * root.px // px
+
+    // WebView overlay styling
+    property real web_view_button_width: 320 * root.px
+    property real web_view_corner_radius: 10 * root.px
+    property real web_view_overlay_horizontal_margin: 10 * root.px
+    property real web_view_overlay_vertical_margin: web_view_corner_radius
+    property real web_view_overlay_opacity: 0.6
+    property real web_view_overlay_button_vertical_margin: 10 * root.px
+    property real web_view_overlay_margin: 50 * root.px
+    property real web_view_overley_border_width: 1 * root.px
 }

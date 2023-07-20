@@ -29,6 +29,7 @@
 #include <bridgepp/Log/Log.h>
 #include <bridgepp/Log/LogUtils.h>
 #include <bridgepp/ProcessMonitor.h>
+#include <QtWebView>
 
 
 #ifdef Q_OS_MACOS
@@ -284,6 +285,7 @@ int main(int argc, char *argv[]) {
         QCoreApplication::setAttribute(Qt::AA_UseSoftwareOpenGL); // must be called before instantiating the BridgeApp
     }
 
+    QtWebView::initialize();
     BridgeApp guiApp(argc, argv);
     initSentry();
     auto sentryCloser = qScopeGuard([] { sentry_close(); });

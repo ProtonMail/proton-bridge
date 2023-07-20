@@ -100,8 +100,9 @@
         <file>qml/Proton/TextArea.qml</file>
         <file>qml/Proton/TextField.qml</file>
         <file>qml/Proton/Toggle.qml</file>
+        <file>qml/Proton/WebViewOverlay.qml</file>
         <file>qml/QuestionItem.qml</file>
-	<file>qml/Resources/bug_report_flow.json</file>
+        <file>qml/Resources/bug_report_flow.json</file>
         <file>qml/SettingsItem.qml</file>
         <file>qml/SettingsView.qml</file>
         <file>qml/SetupGuide.qml</file>

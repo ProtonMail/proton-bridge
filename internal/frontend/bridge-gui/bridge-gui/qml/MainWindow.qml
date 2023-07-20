@@ -36,7 +36,7 @@ ApplicationWindow {
         }
     }
     function showHelp() {
-        contentWrapper.showHelp();
+        showWebViewOverlay("https://proton.me/support/bridge");
     }
     function showLocalCacheSettings() {
         contentWrapper.showLocalCacheSettings();
@@ -54,6 +54,10 @@ ApplicationWindow {
         if (contentLayout.currentIndex === 1)
             return;
         contentWrapper.showSignIn(username);
+    }
+    function showWebViewOverlay(url) {
+        webViewOverlay.visible = true;
+        webViewOverlay.url = url;
     }
 
     colorScheme: ProtonStyle.currentStyle
@@ -195,5 +199,12 @@ ApplicationWindow {
     SplashScreen {
         id: splashScreen
         colorScheme: root.colorScheme
+    }
+    WebViewOverlay {
+        id: webViewOverlay
+        anchors.fill: parent
+        colorScheme: root.colorScheme
+        url: ""
+        visible: false
     }
 }

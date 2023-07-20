@@ -37,7 +37,7 @@ SettingsView {
 
         onClicked: {
             Backend.notifyKBArticleClicked("https://proton.me/support/bridge");
-            Qt.openUrlExternally("https://proton.me/support/bridge");
+            Backend.showHelp()
         }
     }
     SettingsItem {
