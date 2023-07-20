@@ -36,4 +36,4 @@ Switch 4.0 Switch.qml
 TextArea 4.0 TextArea.qml
 TextField 4.0 TextField.qml
 Toggle 4.0 Toggle.qml
-WebViewOverlay 4.0 WebViewOverlay.qml
+WebView 4.0 WebView.qml

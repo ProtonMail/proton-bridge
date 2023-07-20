@@ -69,6 +69,21 @@ QtObject {
             Backend.setNormalTrayIcon();
         }
     }
+    property WebViewWindow _webviewWindow: WebViewWindow {
+        id: webViewWindow
+        flags: Qt.Tool
+        transientParent: mainWindow
+        visible: false
+
+        Connections {
+            function onShowWebViewWindow(url) {
+                webViewWindow.url = url;
+                webViewWindow.show();
+            }
+
+            target: Backend
+        }
+    }
     property var title: Backend.appname
 
     function bound(num, lowerLimit, upperLimit) {

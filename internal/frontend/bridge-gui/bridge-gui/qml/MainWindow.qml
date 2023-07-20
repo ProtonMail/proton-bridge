@@ -191,6 +191,16 @@ ApplicationWindow {
             }
         }
     }
+
+    WebView {
+        id: webViewOverlay
+        anchors.fill: parent
+        colorScheme: root.colorScheme
+        overlay: true
+        url: ""
+        visible: false
+    }
+
     NotificationPopups {
         colorScheme: root.colorScheme
         mainWindow: root
@@ -199,12 +209,5 @@ ApplicationWindow {
     SplashScreen {
         id: splashScreen
         colorScheme: root.colorScheme
-    }
-    WebViewOverlay {
-        id: webViewOverlay
-        anchors.fill: parent
-        colorScheme: root.colorScheme
-        url: ""
-        visible: false
     }
 }

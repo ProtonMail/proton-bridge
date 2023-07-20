@@ -104,7 +104,7 @@ SettingsView {
         type: Label.Caption
 
         onLinkActivated: function (link) {
-            Qt.openUrlExternally(link);
+            Backend.showWebViewWindow(link)
         }
     }
 }

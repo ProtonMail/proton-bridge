@@ -16,41 +16,47 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Controls.impl
 import QtWebView
-import QtQuick.Templates as T
 import "." as Proton
 
 Item {
     id: root
 
     property ColorScheme colorScheme
-    property url url
+    property bool overlay: true
+    property string url: ""
+
+    function showBlankPage() {
+        webView.loadHtml("<!doctype html><meta charset=utf-8><title>blank</title>", "blank.html");
+    }
 
     Rectangle {
         anchors.fill: parent
         color: "#000"
         opacity: ProtonStyle.web_view_overlay_opacity
+        visible: overlay
     }
     Rectangle {
         anchors.fill: parent
-        anchors.margins: ProtonStyle.web_view_overlay_margin
+        anchors.margins: overlay ? ProtonStyle.web_view_overlay_margin : 0
         color: root.colorScheme.background_norm
         radius: ProtonStyle.web_view_corner_radius
 
         ColumnLayout {
             anchors.bottomMargin: 0
             anchors.fill: parent
-            anchors.leftMargin: ProtonStyle.web_view_overlay_horizontal_margin
-            anchors.rightMargin: ProtonStyle.web_view_overlay_horizontal_margin
-            anchors.topMargin: ProtonStyle.web_view_overlay_vertical_margin
+            anchors.leftMargin: overlay ? ProtonStyle.web_view_overlay_horizontal_margin : 0
+            anchors.rightMargin: overlay ? ProtonStyle.web_view_overlay_horizontal_margin : 0
+            anchors.topMargin: overlay ? ProtonStyle.web_view_overlay_vertical_margin : 0
             spacing: 0
 
             Rectangle {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 border.color: root.colorScheme.border_norm
-                border.width: ProtonStyle.web_view_overley_border_width
+                border.width: overlay ? ProtonStyle.web_view_overley_border_width : 0
 
                 WebView {
+                    id: webView
                     anchors.fill: parent
                     anchors.margins: ProtonStyle.web_view_overley_border_width
                     url: root.url
@@ -63,6 +69,7 @@ Item {
                 Layout.topMargin: ProtonStyle.web_view_overlay_button_vertical_margin
                 colorScheme: root.colorScheme
                 text: qsTr("Close")
+                visible: overlay
 
                 onClicked: {
                     root.url = "";
