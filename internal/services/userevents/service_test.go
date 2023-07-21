@@ -226,7 +226,7 @@ func TestService_UnsubscribeBeforeHandlingEventIsNotConsideredError(t *testing.T
 	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
 	eventIDStore := mocks.NewMockEventIDStore(mockCtrl)
 	eventSource := mocks.NewMockEventSource(mockCtrl)
-	subscriber := newChanneledSubscriber[proton.MessageEvent]("My subscriber")
+	subscriber := NewMessageSubscriber("My subscriber")
 
 	firstEventID := "EVENT01"
 	secondEventID := "EVENT02"

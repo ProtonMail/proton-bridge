@@ -31,27 +31,34 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func NewMessageSubscriber(name string) *ChanneledSubscriber[proton.MessageEvent] {
-	return newChanneledSubscriber[proton.MessageEvent](name)
+type AddressChanneledSubscriber = ChanneledSubscriber[[]proton.AddressEvent]
+type LabelChanneledSubscriber = ChanneledSubscriber[[]proton.LabelEvent]
+type MessageChanneledSubscriber = ChanneledSubscriber[[]proton.MessageEvent]
+type UserChanneledSubscriber = ChanneledSubscriber[proton.User]
+type RefreshChanneledSubscriber = ChanneledSubscriber[proton.RefreshFlag]
+type UserUsedSpaceChanneledSubscriber = ChanneledSubscriber[int]
+
+func NewMessageSubscriber(name string) *MessageChanneledSubscriber {
+	return newChanneledSubscriber[[]proton.MessageEvent](name)
 }
 
-func NewAddressSubscriber(name string) *ChanneledSubscriber[proton.AddressEvent] {
-	return newChanneledSubscriber[proton.AddressEvent](name)
+func NewAddressSubscriber(name string) *AddressChanneledSubscriber {
+	return newChanneledSubscriber[[]proton.AddressEvent](name)
 }
 
-func NewLabelSubscriber(name string) *ChanneledSubscriber[proton.LabelEvent] {
-	return newChanneledSubscriber[proton.LabelEvent](name)
+func NewLabelSubscriber(name string) *LabelChanneledSubscriber {
+	return newChanneledSubscriber[[]proton.LabelEvent](name)
 }
 
-func NewRefreshSubscriber(name string) *ChanneledSubscriber[struct{}] {
-	return newChanneledSubscriber[struct{}](name)
+func NewRefreshSubscriber(name string) *RefreshChanneledSubscriber {
+	return newChanneledSubscriber[proton.RefreshFlag](name)
 }
 
-func NewUserSubscriber(name string) *ChanneledSubscriber[proton.User] {
+func NewUserSubscriber(name string) *UserChanneledSubscriber {
 	return newChanneledSubscriber[proton.User](name)
 }
 
-func NewUserUsedSpaceSubscriber(name string) *ChanneledSubscriber[int] {
+func NewUserUsedSpaceSubscriber(name string) *UserUsedSpaceChanneledSubscriber {
 	return newChanneledSubscriber[int](name)
 }
 
@@ -193,11 +200,11 @@ func newChanneledSubscriber[T any](name string) *ChanneledSubscriber[T] {
 }
 
 type ChanneledSubscriberEvent[T any] struct {
-	data     []T
+	data     T
 	response chan error
 }
 
-func (c ChanneledSubscriberEvent[T]) Consume(f func([]T) error) {
+func (c ChanneledSubscriberEvent[T]) Consume(f func(T) error) {
 	if err := f(c.data); err != nil {
 		c.response <- err
 	}
@@ -208,7 +215,7 @@ func (c *ChanneledSubscriber[T]) name() string { //nolint:unused
 	return c.id
 }
 
-func (c *ChanneledSubscriber[T]) handle(ctx context.Context, event []T) error { //nolint:unused
+func (c *ChanneledSubscriber[T]) handle(ctx context.Context, event T) error { //nolint:unused
 	data := &ChanneledSubscriberEvent[T]{
 		data:     event,
 		response: make(chan error),
@@ -246,7 +253,7 @@ func (c *ChanneledSubscriber[T]) cancel() { //nolint:unused
 				return
 			}
 
-			e.Consume(func(_ []T) error { return nil })
+			e.Consume(func(_ T) error { return nil })
 		}
 	}()
 }

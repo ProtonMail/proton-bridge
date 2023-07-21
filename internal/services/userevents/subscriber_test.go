@@ -39,13 +39,13 @@ func TestChanneledSubscriber_CtxTimeoutDoesNotBlockFutureEvents(t *testing.T) {
 		defer wg.Done()
 
 		// Send one event, that succeeds.
-		require.NoError(t, subscriber.handle(context.Background(), []int{30}))
+		require.NoError(t, subscriber.handle(context.Background(), 30))
 
 		// Add an impossible deadline that fails immediately to simulate on event taking too long to send.
 		ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Microsecond))
 		defer cancel()
 
-		err := subscriber.handle(ctx, []int{20})
+		err := subscriber.handle(ctx, 20)
 		require.Error(t, err)
 		require.True(t, errors.Is(err, context.DeadlineExceeded))
 	}()
@@ -53,8 +53,8 @@ func TestChanneledSubscriber_CtxTimeoutDoesNotBlockFutureEvents(t *testing.T) {
 	// Receive first event. Notify success.
 	event, ok := <-subscriber.OnEventCh()
 	require.True(t, ok)
-	event.Consume(func(event []int) error {
-		require.Equal(t, []int{30}, event)
+	event.Consume(func(event int) error {
+		require.Equal(t, 30, event)
 		return nil
 	})
 	wg.Wait()
@@ -63,13 +63,13 @@ func TestChanneledSubscriber_CtxTimeoutDoesNotBlockFutureEvents(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		require.NoError(t, subscriber.handle(context.Background(), []int{40}))
+		require.NoError(t, subscriber.handle(context.Background(), 40))
 	}()
 
 	event, ok = <-subscriber.OnEventCh()
 	require.True(t, ok)
-	event.Consume(func(event []int) error {
-		require.Equal(t, []int{40}, event)
+	event.Consume(func(event int) error {
+		require.Equal(t, 40, event)
 		return nil
 	})
 
@@ -88,7 +88,7 @@ func TestChanneledSubscriber_ErrorReported(t *testing.T) {
 		defer wg.Done()
 
 		// Send one event, that succeeds.
-		err := subscriber.handle(context.Background(), []int{30})
+		err := subscriber.handle(context.Background(), 30)
 		require.Error(t, err)
 		require.Equal(t, reportedErr, err)
 	}()
@@ -96,8 +96,8 @@ func TestChanneledSubscriber_ErrorReported(t *testing.T) {
 	// Receive first event. Notify success.
 	event, ok := <-subscriber.OnEventCh()
 	require.True(t, ok)
-	event.Consume(func(event []int) error {
-		require.Equal(t, []int{30}, event)
+	event.Consume(func(event int) error {
+		require.Equal(t, 30, event)
 		return reportedErr
 	})
 
