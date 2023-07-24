@@ -32,7 +32,9 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 )
 
 // Service polls from the given event source and ensures that all the respective subscribers get notified
@@ -122,6 +124,27 @@ func (s Subscription) cancel() {
 	}
 	if s.UserUsedSpace != nil {
 		s.UserUsedSpace.cancel()
+	}
+}
+
+func (s Subscription) close() {
+	if s.User != nil {
+		s.User.close()
+	}
+	if s.Refresh != nil {
+		s.Refresh.close()
+	}
+	if s.Address != nil {
+		s.Address.close()
+	}
+	if s.Labels != nil {
+		s.Labels.close()
+	}
+	if s.Messages != nil {
+		s.Messages.close()
+	}
+	if s.UserUsedSpace != nil {
+		s.UserUsedSpace.close()
 	}
 }
 
@@ -274,6 +297,28 @@ func (s *Service) run(ctx context.Context, lastEventID string) {
 
 		lastEventID = newEventID
 	}
+}
+
+// Close should be called after the service has been cancelled to clean up any remaining pending operations.
+func (s *Service) Close() {
+	s.pendingSubscriptionsLock.Lock()
+	defer s.pendingSubscriptionsLock.Unlock()
+
+	// Cleanup pending removes.
+	for _, subscription := range s.pendingSubscriptionsRemove {
+		subscription.close()
+	}
+
+	// Cleanup pending adds.
+	for _, subscription := range xslices.Filter(s.pendingSubscriptionsAdd, func(sub Subscription) bool {
+		return !slices.Contains(s.pendingSubscriptionsRemove, sub)
+	}) {
+		subscription.cancel()
+		subscription.close()
+	}
+
+	s.pendingSubscriptionsRemove = nil
+	s.pendingSubscriptionsAdd = nil
 }
 
 func (s *Service) handleEvent(ctx context.Context, lastEventID string, event proton.Event) error {

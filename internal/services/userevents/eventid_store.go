@@ -62,8 +62,8 @@ type VaultEventIDStore struct {
 	vault *vault.User
 }
 
-func NewVaultEventIDStore(vault *VaultEventIDStore) *VaultEventIDStore {
-	return &VaultEventIDStore{vault: vault.vault}
+func NewVaultEventIDStore(vault *vault.User) *VaultEventIDStore {
+	return &VaultEventIDStore{vault: vault}
 }
 
 func (v VaultEventIDStore) Load(_ context.Context) (string, error) {
