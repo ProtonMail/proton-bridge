@@ -35,3 +35,7 @@ func (eventBase) _isEvent() {}
 type EventPublisher interface {
 	PublishEvent(ctx context.Context, event Event)
 }
+
+type NullEventPublisher struct{}
+
+func (NullEventPublisher) PublishEvent(_ context.Context, _ Event) {}
