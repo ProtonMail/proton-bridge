@@ -305,7 +305,7 @@ func (t *testCtx) initFrontendClient() error {
 		return fmt.Errorf("could not start event stream: %w", err)
 	}
 
-	eventCh := async.NewQueuedChannel[*frontend.StreamEvent](0, 0, async.NoopPanicHandler{})
+	eventCh := async.NewQueuedChannel[*frontend.StreamEvent](0, 0, async.NoopPanicHandler{}, "test-frontend-client")
 
 	go func() {
 		defer eventCh.CloseAndDiscardQueued()

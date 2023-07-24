@@ -44,7 +44,7 @@ func (c *eventCollector) collectFrom(eventCh <-chan events.Event) <-chan events.
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	fwdCh := async.NewQueuedChannel[events.Event](0, 0, async.NoopPanicHandler{})
+	fwdCh := async.NewQueuedChannel[events.Event](0, 0, async.NoopPanicHandler{}, "event-collector")
 
 	c.fwdCh = append(c.fwdCh, fwdCh)
 
@@ -87,7 +87,7 @@ func (c *eventCollector) push(event events.Event) {
 	defer c.lock.Unlock()
 
 	if _, ok := c.events[reflect.TypeOf(event)]; !ok {
-		c.events[reflect.TypeOf(event)] = async.NewQueuedChannel[events.Event](0, 0, async.NoopPanicHandler{})
+		c.events[reflect.TypeOf(event)] = async.NewQueuedChannel[events.Event](0, 0, async.NoopPanicHandler{}, "event-pusher")
 	}
 
 	c.events[reflect.TypeOf(event)].Enqueue(event)
@@ -102,7 +102,7 @@ func (c *eventCollector) getEventCh(ofType events.Event) <-chan events.Event {
 	defer c.lock.Unlock()
 
 	if _, ok := c.events[reflect.TypeOf(ofType)]; !ok {
-		c.events[reflect.TypeOf(ofType)] = async.NewQueuedChannel[events.Event](0, 0, async.NoopPanicHandler{})
+		c.events[reflect.TypeOf(ofType)] = async.NewQueuedChannel[events.Event](0, 0, async.NoopPanicHandler{}, "event-pusher")
 	}
 
 	return c.events[reflect.TypeOf(ofType)].GetChannel()

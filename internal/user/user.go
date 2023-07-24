@@ -155,7 +155,7 @@ func New(
 		reporter: reporter,
 		sendHash: sendrecorder.NewSendRecorder(sendrecorder.SendEntryExpiry),
 
-		eventCh:   async.NewQueuedChannel[events.Event](0, 0, crashHandler),
+		eventCh:   async.NewQueuedChannel[events.Event](0, 0, crashHandler, fmt.Sprintf("bridge-user-%v", apiUser.ID)),
 		eventLock: safe.NewRWMutex(),
 
 		apiUser:     apiUser,
@@ -687,7 +687,12 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 
 	switch mode {
 	case vault.CombinedMode:
-		primaryUpdateCh := async.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
+		primaryUpdateCh := async.NewQueuedChannel[imap.Update](
+			0,
+			0,
+			user.panicHandler,
+			"user-update-combined",
+		)
 
 		for addrID := range user.apiAddrs {
 			user.updateCh[addrID] = primaryUpdateCh
@@ -695,7 +700,12 @@ func (user *User) initUpdateCh(mode vault.AddressMode) {
 
 	case vault.SplitMode:
 		for addrID := range user.apiAddrs {
-			user.updateCh[addrID] = async.NewQueuedChannel[imap.Update](0, 0, user.panicHandler)
+			user.updateCh[addrID] = async.NewQueuedChannel[imap.Update](
+				0,
+				0,
+				user.panicHandler,
+				fmt.Sprintf("user-update-split-%v", addrID),
+			)
 		}
 	}
 }
