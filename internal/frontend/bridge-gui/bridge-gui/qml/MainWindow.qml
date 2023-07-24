@@ -17,6 +17,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Proton
 import Notifications
+import "SetupWizard"
 
 ApplicationWindow {
     id: root
@@ -129,7 +130,8 @@ ApplicationWindow {
         currentIndex: {
             // show welcome when there are no users
             if (Backend.users.count === 0) {
-                return 1;
+                setupWizard.start();
+                return 0;
             }
             const u = Backend.users.get(0);
             if (!u) {
@@ -167,6 +169,9 @@ ApplicationWindow {
             onShowSetupGuide: function (user, address) {
                 root.showSetup(user, address);
             }
+            onShowSetupWizard: {
+                setupWizard.start();
+            }
         }
         WelcomeGuide {
             Layout.fillHeight: true
@@ -191,7 +196,6 @@ ApplicationWindow {
             }
         }
     }
-
     WebView {
         id: webViewOverlay
         anchors.fill: parent
@@ -200,7 +204,12 @@ ApplicationWindow {
         url: ""
         visible: false
     }
-
+    SetupWizard {
+        id: setupWizard
+        anchors.fill: parent
+        colorScheme: root.colorScheme
+        visible: false
+    }
     NotificationPopups {
         colorScheme: root.colorScheme
         mainWindow: root

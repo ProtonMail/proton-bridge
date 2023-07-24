@@ -25,6 +25,7 @@ Item {
     signal closeWindow
     signal quitBridge
     signal showSetupGuide(var user, string address)
+    signal showSetupWizard
 
     function selectUser(userID) {
         const users = Backend.users;
@@ -283,7 +284,7 @@ Item {
 
                         onClicked: {
                             signIn.username = "";
-                            rightContent.showSignIn();
+                            root.showSetupWizard();
                         }
                     }
                 }

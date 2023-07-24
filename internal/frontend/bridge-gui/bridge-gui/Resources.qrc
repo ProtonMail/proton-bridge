@@ -49,6 +49,8 @@
         <file>qml/icons/ic-success.svg</file>
         <file>qml/icons/ic-three-dots-vertical.svg</file>
         <file>qml/icons/ic-trash.svg</file>
+        <file>qml/icons/img-mail-logo-wordmark-dark.svg</file>
+        <file>qml/icons/img-mail-logo-wordmark.svg</file>
         <file>qml/icons/img-proton-logos.png</file>
         <file>qml/icons/img-proton-logos.svg</file>
         <file>qml/icons/img-splash.png</file>
@@ -107,6 +109,7 @@
         <file>qml/SettingsItem.qml</file>
         <file>qml/SettingsView.qml</file>
         <file>qml/SetupGuide.qml</file>
+        <file>qml/SetupWizard/SetupWizard.qml</file>
         <file>qml/SignIn.qml</file>
         <file>qml/ConnectionModeSettings.qml</file>
         <file>qml/SplashScreen.qml</file>

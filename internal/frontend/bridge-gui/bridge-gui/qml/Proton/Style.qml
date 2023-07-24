@@ -72,6 +72,7 @@ QtObject {
         interaction_weak_active: "#6D697D"
         interaction_weak_hover: "#5B576B"
         logo_img: "/qml/icons/product_logos_dark.svg"
+        mail_logo_with_wordmark: "/qml/icons/img-mail-logo-wordmark-dark.svg"
 
         // Primary
         primary_norm: "#8A6EFF"
@@ -145,6 +146,7 @@ QtObject {
         interaction_weak_active: "#6D697D"
         interaction_weak_hover: "#5B576B"
         logo_img: "/qml/icons/product_logos_dark.svg"
+        mail_logo_with_wordmark: "/qml/icons/img-mail-logo-wordmark-dark.svg"
 
         // Primary
         primary_norm: "#8A6EFF"
@@ -245,6 +247,7 @@ QtObject {
         interaction_weak_active: "#8A6EFF"
         interaction_weak_hover: "#6D4AFF"
         logo_img: "/qml/icons/product_logos_dark.svg"
+        mail_logo_with_wordmark: "/qml/icons/img-mail-logo-wordmark-dark.svg"
 
         // Primary
         primary_norm: "#8A6EFF"
@@ -325,6 +328,7 @@ QtObject {
         interaction_weak_active: "#A8A6A3"
         interaction_weak_hover: "#C2BFBC"
         logo_img: "/qml/icons/product_logos.svg"
+        mail_logo_with_wordmark: "/qml/icons/img-mail-logo-wordmark.svg"
 
         // Primary
         primary_norm: "#6D4AFF"
@@ -371,10 +375,10 @@ QtObject {
     // WebView overlay styling
     property real web_view_button_width: 320 * root.px
     property real web_view_corner_radius: 10 * root.px
-    property real web_view_overlay_horizontal_margin: 10 * root.px
-    property real web_view_overlay_vertical_margin: web_view_corner_radius
-    property real web_view_overlay_opacity: 0.6
     property real web_view_overlay_button_vertical_margin: 10 * root.px
+    property real web_view_overlay_horizontal_margin: 10 * root.px
     property real web_view_overlay_margin: 50 * root.px
+    property real web_view_overlay_opacity: 0.6
+    property real web_view_overlay_vertical_margin: web_view_corner_radius
     property real web_view_overley_border_width: 1 * root.px
 }
