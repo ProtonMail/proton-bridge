@@ -48,7 +48,7 @@ SettingsView {
 
     Label {
         colorScheme: root.colorScheme
-        text: qsTr("Report a problem")
+        text: qsTr("Send report")
         type: Label.Heading
     }
     TextArea {

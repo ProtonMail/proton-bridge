@@ -35,9 +35,6 @@ ApplicationWindow {
             root.requestActivate();
         }
     }
-    function showBugReportAndPrefill(message) {
-        contentWrapper.showBugReportAndPrefill(message);
-    }
     function showHelp() {
         contentWrapper.showHelp();
     }

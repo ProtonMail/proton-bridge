@@ -76,7 +76,7 @@ SettingsView {
     SettingsItem {
         id: reportBug
         Layout.fillWidth: true
-        actionText: qsTr("Report a problem")
+        actionText: qsTr("Report problem")
         colorScheme: root.colorScheme
         description: qsTr("Something not working as expected? Let us know.")
         text: qsTr("Report a problem")

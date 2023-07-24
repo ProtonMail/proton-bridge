@@ -6,7 +6,11 @@
         <file>qml/Banner.qml</file>
         <file>qml/Bridge.qml</file>
         <file>qml/bridgeqml.qmlproject</file>
+        <file>qml/BugCategoryView.qml</file>
+        <file>qml/BugQuestionView.qml</file>
+        <file>qml/BugReportFlow.qml</file>
         <file>qml/BugReportView.qml</file>
+        <file>qml/CategoryItem.qml</file>
         <file>qml/Configuration.qml</file>
         <file>qml/ConfigurationItem.qml</file>
         <file>qml/ContentWrapper.qml</file>
@@ -95,6 +99,7 @@
         <file>qml/Proton/TextArea.qml</file>
         <file>qml/Proton/TextField.qml</file>
         <file>qml/Proton/Toggle.qml</file>
+        <file>qml/QuestionItem.qml</file>
         <file>qml/SettingsItem.qml</file>
         <file>qml/SettingsView.qml</file>
         <file>qml/SetupGuide.qml</file>

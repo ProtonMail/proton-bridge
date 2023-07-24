@@ -29,6 +29,8 @@ Item {
     // fillHeight indicates whether the SettingsView should fill all available explicit height set
     property bool fillHeight: false
     default property alias items: content.children
+    property var path: ListModel{}
+    property var currPath: 0
 
     signal back
 
@@ -61,6 +63,37 @@ Item {
                     Layout.rightMargin: root._rightMargin
                     Layout.topMargin: root._topMargin
                     spacing: root._spacing
+                    ListView {
+                        id: trackPath
+                        Layout.fillWidth: true
+                        Layout.topMargin: root._topMargin
+                        Layout.bottomMargin: root._spacing
+
+                        interactive: false
+                        orientation: ListView.Horizontal
+                        model: path
+
+                        delegate: Item{
+                            width: children[0].width + children[0].spacing
+                            RowLayout {
+                                Label {
+                                    colorScheme: root.colorScheme
+                                    text: qsTr(modelData)
+                                    type: Label.Caption
+                                    color: index === currPath ? colorScheme.interaction_norm : colorScheme.text_hint
+                                }
+                                Label {
+                                    colorScheme: root.colorScheme
+                                    text: "/"
+                                    color: colorScheme.text_hint
+                                    type: Label.Caption
+                                    visible: index < (root.path.length - 1)
+                                }
+                            }
+                        }
+
+                        visible: model.length > 0
+                    }
                 }
                 Item {
                     id: filler

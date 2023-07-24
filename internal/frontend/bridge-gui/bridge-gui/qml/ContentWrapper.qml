@@ -40,10 +40,6 @@ Item {
         }
         console.error("User with ID ", userID, " was not found in the account list");
     }
-    function showBugReportAndPrefill(description) {
-        rightContent.showBugReport();
-        bugReport.setDescription(description);
-    }
     function showHelp() {
         rightContent.showHelpView();
     }
@@ -437,7 +433,7 @@ Item {
                         rightContent.showAccount();
                     }
                 }
-                BugReportView {
+                BugReportFlow {
                     // 8
                     id: bugReport
                     colorScheme: root.colorScheme
