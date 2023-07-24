@@ -51,33 +51,25 @@ type Service struct {
 }
 
 func NewService(
-	ctx context.Context,
 	service userevents.Subscribable,
-	user proton.User,
 	eventPublisher events.EventPublisher,
-	provider IdentityProvider,
-) (*Service, error) {
-	addresses, err := provider.GetAddresses(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get addresses: %w", err)
-	}
-
-	subscriberName := fmt.Sprintf("identity-%v", user.ID)
+	state *State,
+) *Service {
+	subscriberName := fmt.Sprintf("identity-%v", state.User.ID)
 
 	return &Service{
 		eventService:   service,
-		identity:       NewState(user, addresses, provider),
+		identity:       *state,
 		eventPublisher: eventPublisher,
 		log: logrus.WithFields(logrus.Fields{
 			"service": "user-identity",
-			"user":    user.ID,
+			"user":    state.User.ID,
 		}),
-
 		userSubscriber:      userevents.NewUserSubscriber(subscriberName),
 		refreshSubscriber:   userevents.NewRefreshSubscriber(subscriberName),
 		addressSubscriber:   userevents.NewAddressSubscriber(subscriberName),
 		usedSpaceSubscriber: userevents.NewUserUsedSpaceSubscriber(subscriberName),
-	}, nil
+	}
 }
 
 func (s *Service) Start(group *async.Group) {

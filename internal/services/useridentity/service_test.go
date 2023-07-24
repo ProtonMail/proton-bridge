@@ -356,17 +356,13 @@ func TestService_OnAddressDeletedUnknownDoesNotProduceEvent(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func newTestService(t *testing.T, mockCtrl *gomock.Controller) (*Service, *mocks2.MockEventPublisher, *mocks.MockIdentityProvider) {
+func newTestService(_ *testing.T, mockCtrl *gomock.Controller) (*Service, *mocks2.MockEventPublisher, *mocks.MockIdentityProvider) {
 	subscribable := &userevents.NoOpSubscribable{}
 	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
 	provider := mocks.NewMockIdentityProvider(mockCtrl)
 	user := newTestUser()
 
-	provider.EXPECT().GetAddresses(gomock.Any()).Times(1).Return(newTestAddresses(), nil)
-
-	service, err := NewService(context.Background(), subscribable, user, eventPublisher, provider)
-	require.NoError(t, err)
-
+	service := NewService(subscribable, eventPublisher, NewState(user, newTestAddresses(), provider))
 	return service, eventPublisher, provider
 }
 

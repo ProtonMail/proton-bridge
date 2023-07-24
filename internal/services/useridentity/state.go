@@ -19,12 +19,15 @@ package useridentity
 
 import (
 	"context"
+	"crypto/subtle"
 	"fmt"
 	"strings"
 
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 // State holds all the required user identity state. The idea of this type is that
@@ -42,9 +45,9 @@ func NewState(
 	user proton.User,
 	addresses []proton.Address,
 	provider IdentityProvider,
-) State {
+) *State {
 	addressMap := buildAddressMapFromSlice(addresses)
-	return State{
+	return &State{
 		AddressesSorted: sortAddresses(maps.Values(addressMap)),
 		Addresses:       addressMap,
 		User:            user,
@@ -53,15 +56,15 @@ func NewState(
 	}
 }
 
-func NewStateFromProvider(ctx context.Context, provider IdentityProvider) (State, error) {
+func NewStateFromProvider(ctx context.Context, provider IdentityProvider) (*State, error) {
 	user, err := provider.GetUser(ctx)
 	if err != nil {
-		return State{}, fmt.Errorf("failed to get user: %w", err)
+		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
 	addresses, err := provider.GetAddresses(ctx)
 	if err != nil {
-		return State{}, fmt.Errorf("failed to get user addresses: %w", err)
+		return nil, fmt.Errorf("failed to get user addresses: %w", err)
 	}
 
 	return NewState(user, addresses, provider), nil
@@ -184,4 +187,59 @@ func (s *State) OnAddressDeleted(event proton.AddressEvent) (proton.Address, Add
 	}
 
 	return addr, AddressUpdateDeleted
+}
+
+func (s *State) OnAddressEvents(events []proton.AddressEvent) {
+	for _, evt := range events {
+		switch evt.Action {
+		case proton.EventCreate:
+			s.OnAddressCreated(evt)
+		case proton.EventUpdate, proton.EventUpdateFlags:
+			s.OnAddressUpdated(evt)
+		case proton.EventDelete:
+			s.OnAddressDeleted(evt)
+		}
+	}
+}
+
+func (s *State) Clone() *State {
+	return &State{
+		AddressesSorted: slices.Clone(s.AddressesSorted),
+		Addresses:       maps.Clone(s.Addresses),
+		User:            s.User,
+		provider:        s.provider,
+	}
+}
+
+// CheckAuth returns whether the given email and password can be used to authenticate over IMAP or SMTP with this user.
+// It returns the address ID of the authenticated address.
+func (s *State) CheckAuth(email string, password []byte, bridgePassProvider BridgePassProvider, telemetry Telemetry) (string, error) {
+	if email == "crash@bandicoot" {
+		panic("your wish is my command.. I crash")
+	}
+
+	dec, err := algo.B64RawDecode(password)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode password: %w", err)
+	}
+
+	if subtle.ConstantTimeCompare(bridgePassProvider.BridgePass(), dec) != 1 {
+		err := fmt.Errorf("invalid password")
+		if telemetry != nil {
+			telemetry.ReportConfigStatusFailure(err.Error())
+		}
+		return "", err
+	}
+
+	for _, addr := range s.AddressesSorted {
+		if addr.Status != proton.AddressStatusEnabled {
+			continue
+		}
+
+		if strings.EqualFold(addr.Email, email) {
+			return addr.ID, nil
+		}
+	}
+
+	return "", fmt.Errorf("invalid email")
 }
