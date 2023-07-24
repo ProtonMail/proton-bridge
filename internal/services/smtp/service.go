@@ -20,55 +20,94 @@ package smtp
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/logging"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
+	bridgelogging "github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
-	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/useridentity"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
 	"github.com/sirupsen/logrus"
 )
 
-// UserInterface is just wrapper to avoid recursive go module imports. To be removed when the identity service is ready.
-type UserInterface interface {
-	ID() string
-	CheckAuth(string, []byte) (string, error)
-	WithSMTPData(context.Context, func(context.Context, map[string]proton.Address, proton.User, *vault.User) error) error
+type Telemetry interface {
+	useridentity.Telemetry
 	ReportSMTPAuthSuccess(context.Context)
 	ReportSMTPAuthFailed(username string)
 }
 
+type AddressMode int
+
+const (
+	AddressModeCombined AddressMode = iota
+	AddressModeSplit
+)
+
 type Service struct {
+	userID       string
 	panicHandler async.PanicHandler
 	cpc          *cpc.CPC
-	user         UserInterface
 	client       *proton.Client
 	recorder     *sendrecorder.SendRecorder
 	log          *logrus.Entry
 	reporter     reporter.Reporter
+
+	bridgePassProvider useridentity.BridgePassProvider
+	keyPassProvider    useridentity.KeyPassProvider
+	identityState      *useridentity.State
+	telemetry          Telemetry
+
+	eventService      userevents.Subscribable
+	refreshSubscriber *userevents.RefreshChanneledSubscriber
+	addressSubscriber *userevents.AddressChanneledSubscriber
+	userSubscriber    *userevents.UserChanneledSubscriber
+
+	addressMode AddressMode
 }
 
 func NewService(
-	user UserInterface,
+	userID string,
 	client *proton.Client,
 	recorder *sendrecorder.SendRecorder,
 	handler async.PanicHandler,
 	reporter reporter.Reporter,
+	bridgePassProvider useridentity.BridgePassProvider,
+	keyPassProvider useridentity.KeyPassProvider,
+	telemetry Telemetry,
+	eventService userevents.Subscribable,
+	mode AddressMode,
+	identityState *useridentity.State,
 ) *Service {
+	subscriberName := fmt.Sprintf("smpt-%v", userID)
+
 	return &Service{
 		panicHandler: handler,
-		user:         user,
+		userID:       userID,
 		cpc:          cpc.NewCPC(),
 		recorder:     recorder,
 		log: logrus.WithFields(logrus.Fields{
-			"user":    user.ID(),
+			"user":    userID,
 			"service": "smtp",
 		}),
 		reporter: reporter,
 		client:   client,
+
+		bridgePassProvider: bridgePassProvider,
+		keyPassProvider:    keyPassProvider,
+		telemetry:          telemetry,
+		identityState:      identityState,
+		eventService:       eventService,
+
+		refreshSubscriber: userevents.NewRefreshSubscriber(subscriberName),
+		userSubscriber:    userevents.NewUserSubscriber(subscriberName),
+		addressSubscriber: userevents.NewAddressSubscriber(subscriberName),
+
+		addressMode: mode,
 	}
 }
 
@@ -83,26 +122,48 @@ func (s *Service) SendMail(ctx context.Context, authID string, from string, to [
 	return err
 }
 
+func (s *Service) SetAddressMode(ctx context.Context, mode AddressMode) error {
+	_, err := s.cpc.Send(ctx, &setAddressModeReq{mode: mode})
+
+	return err
+}
+
+func (s *Service) checkAuth(ctx context.Context, email string, password []byte) (string, error) {
+	return cpc.SendTyped[string](ctx, s.cpc, &checkAuthReq{
+		email:    email,
+		password: password,
+	})
+}
+
 func (s *Service) Start(group *async.Group) {
 	s.log.Debug("Starting service")
 	group.Once(func(ctx context.Context) {
 		logging.DoAnnotated(ctx, func(ctx context.Context) {
 			s.run(ctx)
 		}, logging.Labels{
-			"user":    s.user.ID(),
+			"user":    s.userID,
 			"service": "smtp",
 		})
 	})
 }
 
 func (s *Service) UserID() string {
-	return s.user.ID()
+	return s.userID
 }
 
 func (s *Service) run(ctx context.Context) {
 	s.log.Debug("Starting service main loop")
 	defer s.log.Debug("Exiting service main loop")
 	defer s.cpc.Close()
+
+	subscription := userevents.Subscription{
+		User:    s.userSubscriber,
+		Refresh: s.refreshSubscriber,
+		Address: s.addressSubscriber,
+	}
+
+	s.eventService.Subscribe(subscription)
+	defer s.eventService.Unsubscribe(subscription)
 
 	for {
 		select {
@@ -120,9 +181,48 @@ func (s *Service) run(ctx context.Context) {
 				err := s.sendMail(ctx, r)
 				request.Reply(ctx, nil, err)
 
+			case *setAddressModeReq:
+				s.log.Debugf("Set address mode %v", r.mode)
+				s.addressMode = r.mode
+				request.Reply(ctx, nil, nil)
+
+			case *checkAuthReq:
+				s.log.WithField("email", bridgelogging.Sensitive(r.email)).Debug("Checking authentication")
+				addrID, err := s.identityState.CheckAuth(r.email, r.password, s.bridgePassProvider, s.telemetry)
+				request.Reply(ctx, addrID, err)
+
 			default:
 				s.log.Error("Received unknown request")
 			}
+		case e, ok := <-s.userSubscriber.OnEventCh():
+			if !ok {
+				continue
+			}
+
+			s.log.Debug("Handling user event")
+			e.Consume(func(user proton.User) error {
+				s.identityState.OnUserEvent(user)
+				return nil
+			})
+		case e, ok := <-s.refreshSubscriber.OnEventCh():
+			if !ok {
+				continue
+			}
+
+			s.log.Debug("Handling refresh event")
+			e.Consume(func(_ proton.RefreshFlag) error {
+				return s.identityState.OnRefreshEvent(ctx)
+			})
+		case e, ok := <-s.addressSubscriber.OnEventCh():
+			if !ok {
+				continue
+			}
+
+			s.log.Debug("Handling Address Event")
+			e.Consume(func(evt []proton.AddressEvent) error {
+				s.identityState.OnAddressEvents(evt)
+				return nil
+			})
 		}
 	}
 }
@@ -145,4 +245,13 @@ func (s *Service) sendMail(ctx context.Context, req *sendMailReq) error {
 	}
 
 	return nil
+}
+
+type setAddressModeReq struct {
+	mode AddressMode
+}
+
+type checkAuthReq struct {
+	email    string
+	password []byte
 }

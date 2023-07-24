@@ -38,129 +38,121 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
-	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
 	"github.com/bradenaw/juniper/parallel"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
 
 // smtpSendMail sends an email from the given address to the given recipients.
 func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, to []string, r io.Reader) error {
-	return s.user.WithSMTPData(ctx, func(ctx context.Context, apiAddrs map[string]proton.Address, user proton.User, vault *vault.User) error {
-		if _, err := usertypes.GetAddrID(apiAddrs, from); err != nil {
-			return ErrInvalidReturnPath
-		}
+	fromAddr, err := s.identityState.GetAddr(from)
+	if err != nil {
+		return ErrInvalidReturnPath
+	}
 
-		emails := xslices.Map(maps.Values(apiAddrs), func(addr proton.Address) string {
-			return addr.Email
-		})
+	emails := xslices.Map(s.identityState.AddressesSorted, func(addr proton.Address) string {
+		return addr.Email
+	})
 
-		// Read the message to send.
-		b, err := io.ReadAll(r)
+	// Read the message to send.
+	b, err := io.ReadAll(r)
+	if err != nil {
+		return fmt.Errorf("failed to read message: %w", err)
+	}
+
+	// If running a QA build, dump to disk.
+	if err := debugDumpToDisk(b); err != nil {
+		s.log.WithError(err).Warn("Failed to dump message to disk")
+	}
+
+	// Compute the hash of the message (to match it against SMTP messages).
+	hash, err := sendrecorder.GetMessageHash(b)
+	if err != nil {
+		return err
+	}
+
+	// Check if we already tried to send this message recently.
+	srID, ok, err := s.recorder.TryInsertWait(ctx, hash, to, time.Now().Add(90*time.Second))
+	if err != nil {
+		return fmt.Errorf("failed to check send hash: %w", err)
+	} else if !ok {
+		s.log.Warn("A duplicate message was already sent recently, skipping")
+		return nil
+	}
+
+	// If we fail to send this message, we should remove the hash from the send recorder.
+	defer s.recorder.RemoveOnFail(hash, srID)
+
+	// Create a new message parser from the reader.
+	parser, err := parser.New(bytes.NewReader(b))
+	if err != nil {
+		return fmt.Errorf("failed to create parser: %w", err)
+	}
+
+	// If the message contains a sender, use it instead of the one from the return path.
+	if sender, ok := getMessageSender(parser); ok {
+		from = sender
+	}
+
+	// Load the user's mail settings.
+	settings, err := s.client.GetMailSettings(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get mail settings: %w", err)
+	}
+
+	return usertypes.WithAddrKR(s.identityState.User, fromAddr, s.keyPassProvider.KeyPass(), func(userKR, addrKR *crypto.KeyRing) error {
+		// Use the first key for encrypting the message.
+		addrKR, err := addrKR.FirstKey()
 		if err != nil {
-			return fmt.Errorf("failed to read message: %w", err)
+			return fmt.Errorf("failed to get first key: %w", err)
 		}
 
-		// If running a QA build, dump to disk.
-		if err := debugDumpToDisk(b); err != nil {
-			s.log.WithError(err).Warn("Failed to dump message to disk")
-		}
+		// Ensure that there is always a text/html or text/plain body part. This is required by the API. If none
+		// exists and empty text part will be added.
+		parser.AttachEmptyTextPartIfNoneExists()
 
-		// Compute the hash of the message (to match it against SMTP messages).
-		hash, err := sendrecorder.GetMessageHash(b)
-		if err != nil {
-			return err
-		}
-
-		// Check if we already tried to send this message recently.
-		srID, ok, err := s.recorder.TryInsertWait(ctx, hash, to, time.Now().Add(90*time.Second))
-		if err != nil {
-			return fmt.Errorf("failed to check send hash: %w", err)
-		} else if !ok {
-			s.log.Warn("A duplicate message was already sent recently, skipping")
-			return nil
-		}
-
-		// If we fail to send this message, we should remove the hash from the send recorder.
-		defer s.recorder.RemoveOnFail(hash, srID)
-
-		// Create a new message parser from the reader.
-		parser, err := parser.New(bytes.NewReader(b))
-		if err != nil {
-			return fmt.Errorf("failed to create parser: %w", err)
-		}
-
-		// If the message contains a sender, use it instead of the one from the return path.
-		if sender, ok := getMessageSender(parser); ok {
-			from = sender
-		}
-
-		// Load the user's mail settings.
-		settings, err := s.client.GetMailSettings(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to get mail settings: %w", err)
-		}
-
-		addrID, err := usertypes.GetAddrID(apiAddrs, from)
-		if err != nil {
-			return err
-		}
-
-		return usertypes.WithAddrKR(user, apiAddrs[addrID], vault.KeyPass(), func(userKR, addrKR *crypto.KeyRing) error {
-			// Use the first key for encrypting the message.
-			addrKR, err := addrKR.FirstKey()
+		// If we have to attach the public key, do it now.
+		if settings.AttachPublicKey {
+			key, err := addrKR.GetKey(0)
 			if err != nil {
-				return fmt.Errorf("failed to get first key: %w", err)
+				return fmt.Errorf("failed to get sending key: %w", err)
 			}
 
-			// Ensure that there is always a text/html or text/plain body part. This is required by the API. If none
-			// exists and empty text part will be added.
-			parser.AttachEmptyTextPartIfNoneExists()
-
-			// If we have to attach the public key, do it now.
-			if settings.AttachPublicKey {
-				key, err := addrKR.GetKey(0)
-				if err != nil {
-					return fmt.Errorf("failed to get sending key: %w", err)
-				}
-
-				pubKey, err := key.GetArmoredPublicKey()
-				if err != nil {
-					return fmt.Errorf("failed to get public key: %w", err)
-				}
-
-				parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKR.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
-			}
-
-			// Parse the message we want to send (after we have attached the public key).
-			message, err := message.ParseWithParser(parser, false)
+			pubKey, err := key.GetArmoredPublicKey()
 			if err != nil {
-				return fmt.Errorf("failed to parse message: %w", err)
+				return fmt.Errorf("failed to get public key: %w", err)
 			}
 
-			// Send the message using the correct key.
-			sent, err := s.sendWithKey(
-				ctx,
-				authID,
-				vault.AddressMode(),
-				settings,
-				userKR, addrKR,
-				emails, from, to,
-				message,
-			)
-			if err != nil {
-				return fmt.Errorf("failed to send message: %w", err)
-			}
+			parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKR.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
+		}
 
-			// If the message was successfully sent, we can update the message ID in the record.
-			s.recorder.SignalMessageSent(hash, srID, sent.ID)
+		// Parse the message we want to send (after we have attached the public key).
+		message, err := message.ParseWithParser(parser, false)
+		if err != nil {
+			return fmt.Errorf("failed to parse message: %w", err)
+		}
 
-			return nil
-		})
+		// Send the message using the correct key.
+		sent, err := s.sendWithKey(
+			ctx,
+			authID,
+			s.addressMode,
+			settings,
+			userKR, addrKR,
+			emails, from, to,
+			message,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to send message: %w", err)
+		}
+
+		// If the message was successfully sent, we can update the message ID in the record.
+		s.recorder.SignalMessageSent(hash, srID, sent.ID)
+
+		return nil
 	})
 }
 
@@ -168,7 +160,7 @@ func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, 
 func (s *Service) sendWithKey(
 	ctx context.Context,
 	authAddrID string,
-	addrMode vault.AddressMode,
+	addrMode AddressMode,
 	settings proton.MailSettings,
 	userKR, addrKR *crypto.KeyRing,
 	emails []string,
@@ -249,7 +241,7 @@ func getParentID(
 	ctx context.Context,
 	client *proton.Client,
 	authAddrID string,
-	addrMode vault.AddressMode,
+	addrMode AddressMode,
 	references []string,
 ) (string, error) {
 	var (
@@ -271,7 +263,7 @@ func getParentID(
 	for _, internal := range internal {
 		var addrID string
 
-		if addrMode == vault.SplitMode {
+		if addrMode == AddressModeSplit {
 			addrID = authAddrID
 		}
 
@@ -299,7 +291,7 @@ func getParentID(
 	if parentID == "" && len(external) > 0 {
 		var addrID string
 
-		if addrMode == vault.SplitMode {
+		if addrMode == AddressModeSplit {
 			addrID = authAddrID
 		}
 

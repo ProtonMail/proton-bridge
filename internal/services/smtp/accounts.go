@@ -53,17 +53,17 @@ func (s *Accounts) CheckAuth(user string, password []byte) (string, string, erro
 	defer s.accountsLock.RUnlock()
 
 	for id, service := range s.accounts {
-		addrID, err := service.user.CheckAuth(user, password)
+		addrID, err := service.checkAuth(context.Background(), user, password)
 		if err != nil {
 			continue
 		}
 
-		service.user.ReportSMTPAuthSuccess(context.Background())
+		service.telemetry.ReportSMTPAuthSuccess(context.Background())
 		return id, addrID, nil
 	}
 
 	for _, service := range s.accounts {
-		service.user.ReportSMTPAuthFailed(user)
+		service.telemetry.ReportSMTPAuthFailed(user)
 	}
 
 	return "", "", ErrNoSuchUser
