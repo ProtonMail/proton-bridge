@@ -89,6 +89,7 @@ void QMLBackend::init(GRPCConfig const &serviceConfig) {
     this->setUseSSLForIMAP(sslForIMAP);
     this->setUseSSLForSMTP(sslForSMTP);
     this->retrieveUserList();
+    this->retrieveBugReportFlow();
 }
 
 
@@ -207,6 +208,42 @@ bool QMLBackend::areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs) const {
     HANDLE_EXCEPTION_RETURN_BOOL(
         return QFileInfo(lhs.toLocalFile()) == QFileInfo(rhs.toLocalFile());
     )
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] categoryId The id of the bug category.
+/// \return Set of question for this category.
+//****************************************************************************************************************************************************
+QVariantList QMLBackend::getQuestionSet(quint8 categoryId) const {
+    return questionsSet_[categoryId];
+};
+
+
+//****************************************************************************************************************************************************
+/// \param[in] questionId The id of the question.
+/// \param[in] answer     The answer to that question.
+//****************************************************************************************************************************************************
+void QMLBackend::setQuestionAnswer(quint8 questionId, QString const &answer) {
+    this->answers_[questionId] =  answer;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] categoryId The id of the question set.
+/// \return concatenate answers for set of questions.
+//****************************************************************************************************************************************************
+QString QMLBackend::collectAnswer(quint8 categoryId) const {
+    QString answers;
+    QVariantList sets = this->getQuestionSet(categoryId);
+    foreach(const QVariant& var, sets) {
+        answers += " - ";
+        answers += questions_[var.toInt()].toMap()["text"].toString();
+        answers += " ";
+        answers += answers_[var.toInt()];
+        answers += "\n\r";
+    }
+    return answers;
 }
 
 
@@ -578,6 +615,21 @@ QStringList QMLBackend::availableKeychain() const {
         return keychains;
     )
     return QStringList();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The value for the 'bugCategories' property.
+//****************************************************************************************************************************************************
+QStringList QMLBackend::bugCategories() const {
+    return categories_;
+}
+
+//****************************************************************************************************************************************************
+/// \return The value for the 'bugQuestions' property.
+//****************************************************************************************************************************************************
+QVariantList QMLBackend::bugQuestions() const {
+    return questions_;
 }
 
 
@@ -1166,6 +1218,31 @@ void QMLBackend::retrieveUserList() {
     }
 
     users_->reset(newUsers);
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void QMLBackend::retrieveBugReportFlow() {
+    categories_.clear();
+    questions_.clear();
+    questionsSet_.clear();
+    QString val;
+    QFile file;
+    file.setFileName(":qml/Resources/bug_report_flow.json");
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    val = file.readAll();
+    file.close();
+    QJsonDocument d = QJsonDocument::fromJson(val.toUtf8());
+    QJsonObject root = d.object();
+    QJsonObject data = root.value(QString("data_v1.0.0")).toObject();
+    QJsonArray categoriesJson = data.value(QString("categories")).toArray();
+    foreach (const QJsonValue & v, categoriesJson) {
+        categories_.append(v.toObject()["name"].toString());
+        questionsSet_.append(v.toObject()["questions"].toArray().toVariantList());
+    }
+    questions_ = data.value(QString("questions")).toArray().toVariantList();
 }
 
 

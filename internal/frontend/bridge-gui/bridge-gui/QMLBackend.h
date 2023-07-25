@@ -57,6 +57,9 @@ public: // member functions.
     Q_INVOKABLE bool isPortFree(int port) const; ///< Check if a given network port is available.
     Q_INVOKABLE QString nativePath(QUrl const &url) const; ///< Retrieve the native path of a local URL.
     Q_INVOKABLE bool areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs) const; ///< Check if two local URL point to the same file.
+    Q_INVOKABLE QVariantList getQuestionSet(quint8 categoryId) const; ///< Retrieve the set of question for a given bug category.
+    Q_INVOKABLE void setQuestionAnswer(quint8 questionId, QString const &answer); ///< Feed an answer for a given question.
+    Q_INVOKABLE QString collectAnswer(quint8 categoryId) const; ///< Collect answer for a given set of questions.
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
     Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)
@@ -87,6 +90,8 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(QString currentEmailClient READ currentEmailClient NOTIFY currentEmailClientChanged)
     Q_PROPERTY(QStringList availableKeychain READ availableKeychain NOTIFY availableKeychainChanged)
     Q_PROPERTY(QString currentKeychain READ currentKeychain NOTIFY currentKeychainChanged)
+    Q_PROPERTY(QStringList bugCategories READ bugCategories NOTIFY bugCategoriesChanged)
+    Q_PROPERTY(QVariantList bugQuestions READ bugQuestions NOTIFY bugQuestionsChanged)
     Q_PROPERTY(UserList *users MEMBER users_ NOTIFY usersChanged)
     Q_PROPERTY(bool dockIconVisible READ dockIconVisible WRITE setDockIconVisible NOTIFY dockIconVisibleChanged)
 
@@ -124,6 +129,8 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     QString currentEmailClient() const; ///< Getter for the 'currentEmail' property.
     QStringList availableKeychain() const; ///< Getter for the 'availableKeychain' property.
     QString currentKeychain() const; ///< Getter for the 'currentKeychain' property.
+    QStringList bugCategories() const; ///< Getter for the 'bugCategories' property.
+    QVariantList bugQuestions() const; ///< Getter for the 'bugQuestions' property.
     void setDockIconVisible(bool visible); ///< Setter for the 'dockIconVisible' property.
     bool dockIconVisible() const;; ///< Getter for the 'dockIconVisible' property.
 
@@ -153,6 +160,8 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void tagChanged(QString const &tag); ///<Signal for the change of the 'tag' property.
     void currentEmailClientChanged(QString const &email); ///<Signal for the change of the 'currentEmailClient' property.
     void currentKeychainChanged(QString const &keychain); ///<Signal for the change of the 'currentKeychain' property.
+    void bugCategoriesChanged(QStringList const &bugCategories); ///<Signal for the change of the 'bugCategories' property.
+    void bugQuestionsChanged(QVariantList const &bugQuestions); ///<Signal for the change of the 'bugQuestions' property.
     void availableKeychainChanged(QStringList const &keychains); ///<Signal for the change of the 'availableKeychain' property.
     void hostnameChanged(QString const &hostname); ///<Signal for the change of the 'hostname' property.
     void isAutostartOnChanged(bool value); ///<Signal for the change of the 'isAutostartOn' property.
@@ -269,6 +278,7 @@ private: // member functions
     void retrieveUserList(); ///< Retrieve the list of users via gRPC.
     void connectGrpcEvents(); ///< Connect gRPC that need to be forwarded to QML via backend signals
     void displayBadEventDialog(QString const& userID); ///< Displays the bad event dialog for a user.
+    void retrieveBugReportFlow(); ///< Get the bug report flow description file and parse it.
 
 private: // data members
     UserList *users_ { nullptr }; ///< The user list. Owned by backend.
@@ -284,6 +294,10 @@ private: // data members
     bool isInternetOn_ { true }; ///< Does bridge consider internet as on?
     QList<QString> badEventDisplayQueue_; ///< THe queue for displaying 'bad event feedback request dialog'.
     std::unique_ptr<TrayIcon> trayIcon_; ///< The tray icon for the application.
+    QStringList categories_; ///< The list of Bug Category parsed from the description file.
+    QVariantList questions_; ///< The list of Questions parsed from the description file.
+    QList<QVariantList> questionsSet_; ///< Sets of questions per bug category.
+    QMap<quint8, QString> answers_; ///< Map of QuestionId/Answer for the bug form.
     friend class AppController;
 };
 
