@@ -21,6 +21,7 @@ import (
 	"context"
 	"crypto/subtle"
 	"fmt"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"strings"
 
 	"github.com/ProtonMail/go-proton-api"
@@ -242,4 +243,17 @@ func (s *State) CheckAuth(email string, password []byte, bridgePassProvider Brid
 	}
 
 	return "", fmt.Errorf("invalid email")
+}
+
+func (s *State) WithAddrKR(addrID string, keyPass []byte, fn func(userKR, addrKR *crypto.KeyRing) error) error {
+	addr, ok := s.Addresses[addrID]
+	if !ok {
+		return fmt.Errorf("address not found")
+	}
+
+	return usertypes.WithAddrKR(s.User, addr, keyPass, fn)
+}
+
+func (s *State) WithAddrKRs(keyPass []byte, fn func(*crypto.KeyRing, map[string]*crypto.KeyRing) error) error {
+	return usertypes.WithAddrKRs(s.User, s.Addresses, keyPass, fn)
 }
