@@ -24,6 +24,7 @@
 #include "BuildConfig.h"
 #include "TrayIcon.h"
 #include "UserList.h"
+#include <bridgepp/BugReportFlow/BugReportFlow.h>
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/GRPC/GRPCUtils.h>
 #include <bridgepp/Worker/Overseer.h>
@@ -278,7 +279,6 @@ private: // member functions
     void retrieveUserList(); ///< Retrieve the list of users via gRPC.
     void connectGrpcEvents(); ///< Connect gRPC that need to be forwarded to QML via backend signals
     void displayBadEventDialog(QString const& userID); ///< Displays the bad event dialog for a user.
-    void retrieveBugReportFlow(); ///< Get the bug report flow description file and parse it.
 
 private: // data members
     UserList *users_ { nullptr }; ///< The user list. Owned by backend.
@@ -294,10 +294,7 @@ private: // data members
     bool isInternetOn_ { true }; ///< Does bridge consider internet as on?
     QList<QString> badEventDisplayQueue_; ///< THe queue for displaying 'bad event feedback request dialog'.
     std::unique_ptr<TrayIcon> trayIcon_; ///< The tray icon for the application.
-    QStringList categories_; ///< The list of Bug Category parsed from the description file.
-    QVariantList questions_; ///< The list of Questions parsed from the description file.
-    QList<QVariantList> questionsSet_; ///< Sets of questions per bug category.
-    QMap<quint8, QString> answers_; ///< Map of QuestionId/Answer for the bug form.
+    BugReportFlow reportFlow_;  ///< The bug report flow.
     friend class AppController;
 };
 

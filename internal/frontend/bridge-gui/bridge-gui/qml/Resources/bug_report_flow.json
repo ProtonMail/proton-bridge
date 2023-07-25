@@ -33,13 +33,13 @@
     "questions": [
       {
         "id": 0,
-        "text": "What did you expect to happen?",
+        "text": "What happened?",
         "tips": "Expected behavior",
         "type": 1
       },
       {
         "id": 1,
-        "text": "What happened instead?",
+        "text": "What did you want or expect to happen?",
         "tips": "Result",
         "type": 1
       },
@@ -51,15 +51,15 @@
       },
       {
         "id": 3,
-        "text": "Can you reproduce your issue?",
+        "text": "Can you reproduce this issue? (If you repeat the actions, the same thing happens.)",
         "type": 2,
-        "answerList": ["yes", "no", "I don't know"]
+        "answerList": ["Yes", "No", "I don't know"]
       },
       {
         "id": 4,
-        "text": "Do you have such software running?",
+        "text": "Are you running any of these software?",
         "type": 3,
-        "answerList": ["VPN", "anti-virus", "firewall", "cache cleaner", "None of this"]
+        "answerList": ["VPN", "Antivirus", "Firewall", "Cache cleaner", "None of the above"]
       }
     ]
   }

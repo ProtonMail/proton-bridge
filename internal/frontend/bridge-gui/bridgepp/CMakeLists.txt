@@ -135,6 +135,7 @@ add_custom_command(
 
 
 add_library(bridgepp
+    bridgepp/BugReportFlow/BugReportFlow.cpp bridgepp/BugReportFlow/BugReportFlow.h
     bridgepp/BridgeUtils.cpp bridgepp/BridgeUtils.h
     bridgepp/CLI/CLIUtils.cpp bridgepp/CLI/CLIUtils.h
     bridgepp/Exception/Exception.h bridgepp/Exception/Exception.cpp
