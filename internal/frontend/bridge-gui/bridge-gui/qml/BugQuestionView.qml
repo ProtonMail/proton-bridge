@@ -18,38 +18,27 @@ import Proton
 SettingsView {
     id: root
 
-    signal resume
+    property var questions:Backend.bugQuestions
+    property var categoryId:0
+    property var questionSet:ListModel{}
+
     signal questionAnswered
 
     function setDefaultValue() {
     }
 
-    function next() {
-
-        if (stackLayout.currentIndex >=(stackLayout.count - 1))  {
-            root.questionAnswered();
-        }
-        else
-            {
-            ++stackLayout.currentIndex
-            root.setDefaultValue();
-        }
+    function setCategoryId(catId) {
+        root.categoryId = catId;
     }
-
-    function previous() {
-        if (stackLayout.currentIndex === 0) {
-            root.resume()
-        }
-        else {
-            --stackLayout.currentIndex
-            root.setDefaultValue();
-        }
+    function submit() {
+        root.questionAnswered();
     }
 
     fillHeight: true
 
-    onBack: {
-        root.previous();
+    onCategoryIdChanged: {
+        root.questionSet = Backend.getQuestionSet(root.categoryId)
+        root.setDefaultValue();
     }
 
     onVisibleChanged: {
@@ -63,48 +52,22 @@ SettingsView {
         type: Label.Heading
     }
 
-    Label {
-        Layout.fillWidth: true
-        colorScheme: root.colorScheme
-        text: qsTr("Step " + (stackLayout.currentIndex + 1) + " of " + stackLayout.count )
-        type: Label.Caption
-    }
-
-    StackLayout {
-        id: stackLayout
-        QuestionItem {
-            Layout.fillWidth: true
-            colorScheme: root.colorScheme
-
-            text: "question 1"
-            type: QuestionItem.InputType.TextInput
-            mandatory: true
-            tips: ""
-            errorString: "please answer the question"
-        }
+    Repeater {
+        model: root.questionSet
 
         QuestionItem {
             Layout.fillWidth: true
+
+            implicitWidth: parent.implicitWidth
+
             colorScheme: root.colorScheme
+            showSeparator: index < (root.questionSet.length - 1)
 
-            text: "question 2"
-            type: QuestionItem.InputType.Radio
-            mandatory: true
-            answerList: ["answer A", "answer B", "answer C","answer D"]
-            tips: ""
-            errorString: "please answer the question"
-        }
-
-        QuestionItem {
-            Layout.fillWidth: true
-            colorScheme: root.colorScheme
-
-            text: "question 3"
-            type: QuestionItem.InputType.Checkbox
-            mandatory: true
-            answerList: ["answer 1", "answer 2", "answer 3","answer 4"]
-            tips: ""
-            errorString: "please answer the question"
+            text: root.questions[modelData].text
+            tips: root.questions[modelData].tips ? root.questions[modelData].tips : ""
+            label: root.questions[modelData].label ? root.questions[modelData].label : ""
+            type: root.questions[modelData].type
+            answerList: root.questions[modelData].answerList ? root.questions[modelData].answerList : []
         }
     }
     // fill height so the footer label will always be attached to the bottom
@@ -118,10 +81,7 @@ SettingsView {
         text: qsTr("Continue")
 
         onClicked: {
-            if (stackLayout.children[stackLayout.currentIndex].validate()) {
-                next();
-            }
-
+            submit();
         }
     }
 }

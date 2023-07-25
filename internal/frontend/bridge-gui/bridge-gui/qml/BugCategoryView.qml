@@ -22,7 +22,7 @@ SettingsView {
 
     fillHeight: true
 
-    property var categories: ["category 1", "category 2"]
+    property var categories: Backend.bugCategories
 
     Label {
         Layout.fillWidth: true

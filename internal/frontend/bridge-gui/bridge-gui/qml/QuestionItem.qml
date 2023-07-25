@@ -24,13 +24,16 @@ Item {
     }
 
     property var colorScheme
+    property var _bottomMargin: 20
+    property var _lineHeight: 1
+    property bool showSeparator: true
+
     property string text: ""
     property string tips: ""
-    property string errorString: ""
-    property bool error: false
+    property string label: ""
     property var type: QuestionItem.InputType.TextInput
-    property bool mandatory: true
     property var answerList: ListModel{}
+
     property string answer:{
         if (type === QuestionItem.InputType.TextInput) {
             return textInput.text
@@ -40,18 +43,6 @@ Item {
             return selectionCheckBox.text
         }
         return ""
-    }
-
-    function validate() {
-        if (type === QuestionItem.InputType.TextInput) {
-            textInput.validate()
-            root.error = textInput.error
-        } else if (type === QuestionItem.InputType.Radio) {
-            selectionRadio.validate()
-        } else if (type === QuestionItem.InputType.Checkbox) {
-            selectionCheckBox.validate()
-        }
-        return !root.error
     }
 
     implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
@@ -68,6 +59,7 @@ Item {
         }
         ColumnLayout {
             spacing: 16
+            Layout.bottomMargin: root._bottomMargin
             TextArea {
                 id: textInput
                 Layout.fillWidth: true
@@ -75,15 +67,8 @@ Item {
                 Layout.minimumHeight: root.type === QuestionItem.InputType.TextInput ? heightForLinesVisible(2) : 0
                 colorScheme: root.colorScheme
 
-                label: qsTr("Your answer")
+                label: qsTr(root.label)
                 placeholderText: qsTr(root.tips)
-
-                validator: function (str) {
-                    if (root.mandatory && str.length === 0) {
-                        return root.errorStr;
-                    }
-                    return;
-                }
 
                 visible: root.type === QuestionItem.InputType.TextInput
             }
@@ -92,10 +77,6 @@ Item {
                 id: selectionRadio
                 property string text: {
                     return checkedButton ? checkedButton.text : "";
-                }
-
-                function validate() {
-                    root.error = false
                 }
             }
             Repeater {
@@ -120,10 +101,6 @@ Item {
                     }
                     return str;
                 }
-
-                function validate() {
-                    root.error = false
-                }
             }
             Repeater {
                 model: root.answerList
@@ -137,14 +114,13 @@ Item {
             }
         }
     }
-    Label {
-        id: errorText
-        Layout.fillWidth: true
-        visible: root.error
-        color: root.colorScheme.signal_danger
-        colorScheme: root.colorScheme
-        text: root.errorString
-        type: Label.LabelType.Caption_semibold
+    Rectangle {
+        anchors.bottom: root.bottom
+        anchors.left: root.left
+        anchors.right: root.right
+        color: colorScheme.border_weak
+        height: root._lineHeight
+        visible: root.showSeparator
     }
     // fill height so the footer label will always be attached to the bottom
     Item {

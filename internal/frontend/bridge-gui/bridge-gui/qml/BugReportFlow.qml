@@ -27,6 +27,21 @@ Item {
     signal back
     signal bugReportWasSent
 
+    onVisibleChanged: {
+        root.showBugCategory();
+    }
+
+    function showBugCategory() {
+        bugReportFlow.currentIndex = 0;
+    }
+    function showBugQuestion() {
+        bugReportFlow.currentIndex = 1;
+        bugQuestion.setCategoryId(root.categoryId);
+    }
+    function showBugReport() {
+        bugReportFlow.currentIndex = 2;
+    }
+
     Rectangle {
         anchors.fill: parent
 
@@ -36,16 +51,6 @@ Item {
 
         StackLayout {
             id: bugReportFlow
-
-            function showBugCategory() {
-                bugReportFlow.currentIndex = 0;
-            }
-            function showBugQuestion() {
-                bugReportFlow.currentIndex = 1;
-            }
-            function showBugReport() {
-                bugReportFlow.currentIndex = 2;
-            }
 
             anchors.fill: parent
 
@@ -61,7 +66,7 @@ Item {
                 }
                 onCategorySelected: function(categoryId){
                     root.categoryId = categoryId
-                    bugReportFlow.showBugQuestion();
+                    root.showBugQuestion();
                 }
             }
             BugQuestionView {
@@ -71,11 +76,11 @@ Item {
                 path: root.titles
                 currPath: 1
 
-                onResume: {
-                    bugReportFlow.showBugCategory();
+                onBack: {
+                    root.showBugCategory();
                 }
                 onQuestionAnswered: {
-                    bugReportFlow.showBugReport();
+                    root.showBugReport();
                 }
             }
             BugReportView {
@@ -87,7 +92,7 @@ Item {
                 currPath: 2
 
                 onBack: {
-                    bugReportFlow.showBugQuestion();
+                    root.showBugQuestion();
                 }
                 onBugReportWasSent: {
                     root.bugReportWasSent();
