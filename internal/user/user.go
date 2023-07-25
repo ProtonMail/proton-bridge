@@ -224,7 +224,7 @@ func New(
 		encVault,
 		user,
 		eventService,
-		vaultToSMTPAddressMode(encVault.AddressMode()),
+		usertypes.VaultToAddressMode(encVault.AddressMode()),
 		identityState.Clone(),
 	)
 
@@ -402,7 +402,7 @@ func (user *User) SetAddressMode(ctx context.Context, mode vault.AddressMode) er
 			return fmt.Errorf("failed to set address mode: %w", err)
 		}
 
-		if err := user.smtpService.SetAddressMode(ctx, vaultToSMTPAddressMode(mode)); err != nil {
+		if err := user.smtpService.SetAddressMode(ctx, usertypes.VaultToAddressMode(mode)); err != nil {
 			return fmt.Errorf("failed to set smtp address mode: %w", err)
 		}
 
@@ -916,16 +916,4 @@ func sleepCtx(ctx context.Context, d time.Duration) {
 	case <-ctx.Done():
 	case <-time.After(d):
 	}
-}
-
-func vaultToSMTPAddressMode(mode vault.AddressMode) smtp.AddressMode {
-	var smtpAddressMode smtp.AddressMode
-
-	if mode == vault.SplitMode {
-		smtpAddressMode = smtp.AddressModeSplit
-	} else {
-		smtpAddressMode = smtp.AddressModeCombined
-	}
-
-	return smtpAddressMode
 }

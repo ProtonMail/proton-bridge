@@ -31,6 +31,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/useridentity"
+	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
 	"github.com/sirupsen/logrus"
 )
@@ -40,13 +41,6 @@ type Telemetry interface {
 	ReportSMTPAuthSuccess(context.Context)
 	ReportSMTPAuthFailed(username string)
 }
-
-type AddressMode int
-
-const (
-	AddressModeCombined AddressMode = iota
-	AddressModeSplit
-)
 
 type Service struct {
 	userID       string
@@ -67,7 +61,7 @@ type Service struct {
 	addressSubscriber *userevents.AddressChanneledSubscriber
 	userSubscriber    *userevents.UserChanneledSubscriber
 
-	addressMode AddressMode
+	addressMode usertypes.AddressMode
 }
 
 func NewService(
@@ -80,7 +74,7 @@ func NewService(
 	keyPassProvider useridentity.KeyPassProvider,
 	telemetry Telemetry,
 	eventService userevents.Subscribable,
-	mode AddressMode,
+	mode usertypes.AddressMode,
 	identityState *useridentity.State,
 ) *Service {
 	subscriberName := fmt.Sprintf("smpt-%v", userID)
@@ -122,7 +116,7 @@ func (s *Service) SendMail(ctx context.Context, authID string, from string, to [
 	return err
 }
 
-func (s *Service) SetAddressMode(ctx context.Context, mode AddressMode) error {
+func (s *Service) SetAddressMode(ctx context.Context, mode usertypes.AddressMode) error {
 	_, err := s.cpc.Send(ctx, &setAddressModeReq{mode: mode})
 
 	return err
@@ -248,7 +242,7 @@ func (s *Service) sendMail(ctx context.Context, req *sendMailReq) error {
 }
 
 type setAddressModeReq struct {
-	mode AddressMode
+	mode usertypes.AddressMode
 }
 
 type checkAuthReq struct {

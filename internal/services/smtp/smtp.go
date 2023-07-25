@@ -160,7 +160,7 @@ func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, 
 func (s *Service) sendWithKey(
 	ctx context.Context,
 	authAddrID string,
-	addrMode AddressMode,
+	addrMode usertypes.AddressMode,
 	settings proton.MailSettings,
 	userKR, addrKR *crypto.KeyRing,
 	emails []string,
@@ -241,7 +241,7 @@ func getParentID(
 	ctx context.Context,
 	client *proton.Client,
 	authAddrID string,
-	addrMode AddressMode,
+	addrMode usertypes.AddressMode,
 	references []string,
 ) (string, error) {
 	var (
@@ -263,7 +263,7 @@ func getParentID(
 	for _, internal := range internal {
 		var addrID string
 
-		if addrMode == AddressModeSplit {
+		if addrMode == usertypes.AddressModeSplit {
 			addrID = authAddrID
 		}
 
@@ -291,7 +291,7 @@ func getParentID(
 	if parentID == "" && len(external) > 0 {
 		var addrID string
 
-		if addrMode == AddressModeSplit {
+		if addrMode == usertypes.AddressModeSplit {
 			addrID = authAddrID
 		}
 
