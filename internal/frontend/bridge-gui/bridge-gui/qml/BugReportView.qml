@@ -19,6 +19,7 @@ SettingsView {
     id: root
 
     property var selectedAddress
+    property var categoryId:-1
 
     signal bugReportWasSent
 
@@ -26,15 +27,18 @@ SettingsView {
         const reEmail = /^[^@]+@[^@]+\.[A-Za-z]+\s*$/;
         return reEmail.test(text);
     }
+
+    function setCategoryId(catId) {
+        root.categoryId = catId;
+    }
+
     function setDefaultValue() {
-        description.text = "";
+        description.text = Backend.collectAnswers(root.categoryId);
         address.text = root.selectedAddress;
         emailClient.text = Backend.currentEmailClient;
         includeLogs.checked = true;
     }
-    function setDescription(message) {
-        description.text = message;
-    }
+
     function submit() {
         sendButton.loading = true;
         Backend.reportBug(description.text, address.text, emailClient.text, includeLogs.checked);
@@ -54,39 +58,19 @@ SettingsView {
     TextArea {
         id: description
 
-        property int _maxLength: 800
-        property int _minLength: 150
-
         KeyNavigation.priority: KeyNavigation.BeforeItem
         KeyNavigation.tab: address
         Layout.fillHeight: true
         Layout.fillWidth: true
         Layout.minimumHeight: heightForLinesVisible(4)
         colorScheme: root.colorScheme
-        hint: description.text.length + "/" + _maxLength
 
         // set implicitHeight to explicit height because se don't
         // want TextArea implicitHeight (which is height of all text)
         // to be considered in SettingsView internal scroll view
         implicitHeight: height
-        label: qsTr("Description")
-        placeholderText: qsTr("Tell us what went wrong or isn't working (min. %1 characters).").arg(_minLength)
-        validator: function (text) {
-            if (description.text.length < description._minLength) {
-                return qsTr("Enter a problem description (min. %1 characters).").arg(_minLength);
-            }
-            if (description.text.length > description._maxLength) {
-                return qsTr("Enter a problem description (max. %1 characters).").arg(_maxLength);
-            }
-            return;
-        }
-
-        onTextChanged: {
-            // Rise max length error immediately while typing
-            if (description.text.length > description._maxLength) {
-                validate();
-            }
-        }
+        label: qsTr("Your answers")
+        readOnly : true
     }
     TextField {
         id: address

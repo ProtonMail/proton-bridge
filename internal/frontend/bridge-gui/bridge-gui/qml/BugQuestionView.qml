@@ -24,9 +24,6 @@ SettingsView {
 
     signal questionAnswered
 
-    function setDefaultValue() {
-    }
-
     function setCategoryId(catId) {
         root.categoryId = catId;
     }
@@ -38,11 +35,6 @@ SettingsView {
 
     onCategoryIdChanged: {
         root.questionSet = Backend.getQuestionSet(root.categoryId)
-        root.setDefaultValue();
-    }
-
-    onVisibleChanged: {
-        root.setDefaultValue();
     }
 
     Label {
@@ -67,7 +59,12 @@ SettingsView {
             tips: root.questions[modelData].tips ? root.questions[modelData].tips : ""
             label: root.questions[modelData].label ? root.questions[modelData].label : ""
             type: root.questions[modelData].type
+            mandatory: root.questions[modelData].mandatory ? root.questions[modelData].mandatory : false
             answerList: root.questions[modelData].answerList ? root.questions[modelData].answerList : []
+
+            onAnswerChanged:{
+                Backend.setQuestionAnswer(modelData, answer);
+            }
         }
     }
     // fill height so the footer label will always be attached to the bottom

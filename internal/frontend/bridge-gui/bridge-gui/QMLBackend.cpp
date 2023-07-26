@@ -247,7 +247,7 @@ void QMLBackend::setQuestionAnswer(quint8 questionId, QString const &answer) {
 /// \param[in] categoryId The id of the question set.
 /// \return concatenate answers for set of questions.
 //****************************************************************************************************************************************************
-QString QMLBackend::collectAnswer(quint8 categoryId) const {
+QString QMLBackend::collectAnswers(quint8 categoryId) const {
     return reportFlow_.collectAnswers(categoryId);
 }
 

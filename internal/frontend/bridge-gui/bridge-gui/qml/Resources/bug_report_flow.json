@@ -35,13 +35,15 @@
         "id": 0,
         "text": "What happened?",
         "tips": "Expected behavior",
-        "type": 1
+        "type": 1,
+        "mandatory": true
       },
       {
         "id": 1,
         "text": "What did you want or expect to happen?",
         "tips": "Result",
-        "type": 1
+        "type": 1,
+        "mandatory": true
       },
       {
         "id": 2,

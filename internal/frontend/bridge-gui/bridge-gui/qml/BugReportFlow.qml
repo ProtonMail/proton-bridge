@@ -35,10 +35,11 @@ Item {
         bugReportFlow.currentIndex = 0;
     }
     function showBugQuestion() {
-        bugReportFlow.currentIndex = 1;
         bugQuestion.setCategoryId(root.categoryId);
+        bugReportFlow.currentIndex = 1;
     }
     function showBugReport() {
+        bugReport.setCategoryId(root.categoryId);
         bugReportFlow.currentIndex = 2;
     }
 

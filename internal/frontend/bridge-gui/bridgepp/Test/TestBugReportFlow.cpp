@@ -129,10 +129,10 @@ TEST_F(BugReportFlowFixture, validFile) {
     EXPECT_TRUE(flow_.setAnswer(0, "pwet"));
     EXPECT_FALSE(flow_.setAnswer(1, "pwet"));
     qDebug() << flow_.collectAnswers(0);
-    EXPECT_EQ(flow_.collectAnswers(0), " - What happened? pwet\n\r");
+    EXPECT_EQ(flow_.collectAnswers(0), "Category: I can't receive mail\n\r - What happened?\n\rpwet\n\r");
     EXPECT_EQ(flow_.collectAnswers(1), "");
     flow_.clearAnswers();
-    EXPECT_EQ(flow_.collectAnswers(0), " - What happened? \n\r");
+    EXPECT_EQ(flow_.collectAnswers(0), "Category: I can't receive mail\n\r");
 }
 
 

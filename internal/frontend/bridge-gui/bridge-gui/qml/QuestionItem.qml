@@ -31,6 +31,7 @@ Item {
     property string text: ""
     property string tips: ""
     property string label: ""
+    property bool mandatory: false
     property var type: QuestionItem.InputType.TextInput
     property var answerList: ListModel{}
 
@@ -67,8 +68,30 @@ Item {
                 Layout.minimumHeight: root.type === QuestionItem.InputType.TextInput ? heightForLinesVisible(2) : 0
                 colorScheme: root.colorScheme
 
+                property int _maxLength: 400
+                property int _minLength: 10
+
                 label: qsTr(root.label)
-                placeholderText: qsTr(root.tips)
+                hint: mandatory ? textInput.text.length + "/" + _maxLength : ""
+                placeholderText: mandatory ? qsTr("%1... (min. %2 characters)").arg(root.text).arg(_minLength) : ""
+
+                validator: function (text) {
+                    if (!mandatory)
+                        return;
+                    if (textInput.text.length < textInput._minLength) {
+                        return qsTr("min. %1 characters").arg(_minLength);
+                    }
+                    if (textInput.text.length > textInput._maxLength) {
+                        return qsTr("max. %1 characters").arg(_maxLength);
+                    }
+                    return;
+                }
+                onTextChanged: {
+                    // Rise max length error immediately while typing if mandatory field
+                    if (mandatory && textInput.text.length > textInput._maxLength) {
+                        validate();
+                    }
+                }
 
                 visible: root.type === QuestionItem.InputType.TextInput
             }
@@ -96,10 +119,10 @@ Item {
                     var str = "";
                     for (var i = 0; i < buttons.length; ++i) {
                         if (buttons[i].checked) {
-                            str += buttons[i].text + " ";
+                            str += buttons[i].text + ", ";
                         }
                     }
-                    return str;
+                    return str.slice(0, -2);
                 }
             }
             Repeater {

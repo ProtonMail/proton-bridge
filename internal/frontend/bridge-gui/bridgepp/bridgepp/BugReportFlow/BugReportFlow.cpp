@@ -97,14 +97,17 @@ bool BugReportFlow::setAnswer(quint8 questionId, QString const &answer) {
 //****************************************************************************************************************************************************
 QString BugReportFlow::collectAnswers(quint8 categoryId) const {
     QString answers;
+    if (categoryId > categories_.count() - 1)
+        return answers;
 
+    answers += "Category: " + categories_[categoryId] + "\n\r";
     QVariantList sets = this->questionSet(categoryId);
-    foreach(const QVariant& var, sets) {
-        answers += " - ";
-        answers += questions_[var.toInt()].toMap()["text"].toString();
-        answers += " ";
-        answers += answers_[var.toInt()];
-        answers += "\n\r";
+    for (QVariant const &var: sets) {
+        const QString& answer = answers_[var.toInt()];
+        if (answer.isEmpty())
+            continue;
+        answers += " - " + questions_[var.toInt()].toMap()["text"].toString() + "\n\r";
+        answers += answer + "\n\r";
     }
     return answers;
 }
@@ -129,7 +132,7 @@ bool BugReportFlow::parseFile() {
     QJsonObject data = getJsonDataObj(getJsonRootObj());
 
     QJsonArray categoriesJson = data.value("categories").toArray();
-    foreach (const QJsonValue & v, categoriesJson) {
+    for (const QJsonValueRef &v : categoriesJson) {
         categories_.append(v.toObject()["name"].toString());
         questionsSet_.append(v.toObject()["questions"].toArray().toVariantList());
     }
