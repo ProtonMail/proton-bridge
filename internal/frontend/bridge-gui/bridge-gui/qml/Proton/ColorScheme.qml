@@ -83,7 +83,4 @@ QtObject {
     // Text
     property color text_norm
     property color text_weak
-
-    // Images
-    property string welcome_img
 }

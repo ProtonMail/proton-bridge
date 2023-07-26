@@ -106,9 +106,6 @@ QtObject {
         // Text
         text_norm: "#FFFFFF"
         text_weak: "#A7A4B5"
-
-        // Images
-        welcome_img: "/qml/icons/img-welcome-dark.png"
     }
     property ColorScheme darkStyle: ColorScheme {
         id: _darkStyle
@@ -180,9 +177,6 @@ QtObject {
         // Text
         text_norm: "#FFFFFF"
         text_weak: "#A7A4B5"
-
-        // Images
-        welcome_img: "/qml/icons/img-welcome-dark.png"
     }
     property real dialog_radius: 12 * root.px // px
     property int fontWeight_100: Font.Thin
@@ -281,9 +275,6 @@ QtObject {
         // Text
         text_norm: "#FFFFFF"
         text_weak: "#9282D4"
-
-        // Images
-        welcome_img: "/qml/icons/img-welcome-dark.png"
     }
     // TODO: Once we will use Qt >=5.15 this should be refactored with inline components as follows:
     // https://doc.qt.io/qt-5/qtqml-documents-definetypes.html#inline-components
@@ -362,9 +353,6 @@ QtObject {
         // Text
         text_norm: "#0C0C14"
         text_weak: "#706D6B"
-
-        // Images
-        welcome_img: "/qml/icons/img-welcome.png"
     }
     property real progress_bar_radius: 3 * root.px // px
     property real px: 1.00 // px

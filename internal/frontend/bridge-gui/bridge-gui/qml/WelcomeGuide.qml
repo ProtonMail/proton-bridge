@@ -95,7 +95,7 @@ Item {
                     Image {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.topMargin: 16
-                        source: colorScheme.welcome_img
+                        source: "/qml/icons/img-welcome.svg"
                         sourceSize.height: 148
                         sourceSize.width: 264
                     }

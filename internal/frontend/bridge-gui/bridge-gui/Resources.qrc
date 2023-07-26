@@ -55,9 +55,6 @@
         <file>qml/icons/img-proton-logos.svg</file>
         <file>qml/icons/img-splash.png</file>
         <file>qml/icons/img-splash.svg</file>
-        <file>qml/icons/img-welcome-dark.png</file>
-        <file>qml/icons/img-welcome-dark.svg</file>
-        <file>qml/icons/img-welcome.png</file>
         <file>qml/icons/img-welcome.svg</file>
         <file>qml/icons/Loader_16.svg</file>
         <file>qml/icons/Loader_48.svg</file>
@@ -110,6 +107,7 @@
         <file>qml/SettingsView.qml</file>
         <file>qml/SetupGuide.qml</file>
         <file>qml/SetupWizard/SetupWizard.qml</file>
+        <file>qml/SetupWizard/OnboardingLeftPane.qml</file>
         <file>qml/SignIn.qml</file>
         <file>qml/ConnectionModeSettings.qml</file>
         <file>qml/SplashScreen.qml</file>

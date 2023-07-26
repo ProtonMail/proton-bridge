@@ -36,15 +36,20 @@ Item {
             Layout.fillWidth: true
             color: root.colorScheme.background_norm
 
-            Rectangle {
+            Item {
                 id: leftContent
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 96
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.top
                 anchors.topMargin: 96
-                color: "#ff0000"
                 width: 444
+
+                OnboardingLeftPane {
+                    colorScheme: root.colorScheme
+                    anchors.fill: parent
+                }
+
             }
             Image {
                 id: mailLogoWithWordmark
