@@ -23,7 +23,7 @@ Item {
     property ColorScheme colorScheme
 
     function start() {
-        root.visible = true
+        root.visible = true;
     }
 
     RowLayout {
@@ -46,10 +46,9 @@ Item {
                 width: 444
 
                 OnboardingLeftPane {
-                    colorScheme: root.colorScheme
                     anchors.fill: parent
+                    colorScheme: root.colorScheme
                 }
-
             }
             Image {
                 id: mailLogoWithWordmark
@@ -71,15 +70,19 @@ Item {
             Layout.fillWidth: true
             color: root.colorScheme.background_weak
 
-            Rectangle {
+            Item {
                 id: rightContent
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 96
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.top
                 anchors.topMargin: 96
-                color: "#ff0000"
                 width: 444
+
+                OnboardingRightPane {
+                    anchors.fill: parent
+                    colorScheme: root.colorScheme
+                }
             }
             Label {
                 id: reportProblemLink

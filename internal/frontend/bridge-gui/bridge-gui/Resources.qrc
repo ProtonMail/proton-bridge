@@ -20,6 +20,7 @@
         <file>qml/icons/ic-alert.svg</file>
         <file>qml/icons/ic-apple-mail.svg</file>
         <file>qml/icons/ic-arrow-left.svg</file>
+        <file>qml/icons/ic-bridge.svg</file>
         <file>qml/icons/ic-card-identity.svg</file>
         <file>qml/icons/ic-check.svg</file>
         <file>qml/icons/ic-chevron-down.svg</file>
@@ -49,6 +50,7 @@
         <file>qml/icons/ic-success.svg</file>
         <file>qml/icons/ic-three-dots-vertical.svg</file>
         <file>qml/icons/ic-trash.svg</file>
+        <file>qml/icons/img-mail-clients.svg</file>
         <file>qml/icons/img-mail-logo-wordmark-dark.svg</file>
         <file>qml/icons/img-mail-logo-wordmark.svg</file>
         <file>qml/icons/img-proton-logos.png</file>
@@ -108,6 +110,8 @@
         <file>qml/SetupGuide.qml</file>
         <file>qml/SetupWizard/SetupWizard.qml</file>
         <file>qml/SetupWizard/OnboardingLeftPane.qml</file>
+        <file>qml/SetupWizard/OnboardingRightPane.qml</file>
+        <file>qml/SetupWizard/StepDescriptionBox.qml</file>
         <file>qml/SignIn.qml</file>
         <file>qml/ConnectionModeSettings.qml</file>
         <file>qml/SplashScreen.qml</file>
