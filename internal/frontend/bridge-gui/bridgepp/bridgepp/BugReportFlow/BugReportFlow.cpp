@@ -26,6 +26,10 @@ namespace {
 
 }
 
+
+namespace bridgepp {
+
+
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
@@ -47,11 +51,27 @@ bool BugReportFlow::parse(const QString& filepath) {
 
 
 //****************************************************************************************************************************************************
+/// \return The value for the 'bugCategories' property.
+//****************************************************************************************************************************************************
+    QStringList BugReportFlow::categories() const {
+        return categories_;
+    }
+
+
+//****************************************************************************************************************************************************
+/// \return The value for the 'bugQuestions' property.
+//****************************************************************************************************************************************************
+    QVariantList BugReportFlow::questions() const {
+        return questions_;
+    }
+
+
+//****************************************************************************************************************************************************
 /// \param[in] categoryId The id of the bug category.
 /// \return Set of question for this category.
 //****************************************************************************************************************************************************
 QVariantList BugReportFlow::questionSet(quint8 categoryId) const {
-    if (categoryId >= questionsSet_.count() - 1)
+    if (categoryId > questionsSet_.count() - 1)
         return QVariantList();
     return questionsSet_[categoryId];
 };
@@ -63,7 +83,7 @@ QVariantList BugReportFlow::questionSet(quint8 categoryId) const {
 /// \return true iff questionId match an existing question.
 //****************************************************************************************************************************************************
 bool BugReportFlow::setAnswer(quint8 questionId, QString const &answer) {
-    if (questionId >= questions_.count() - 1)
+    if (questionId > questions_.count() - 1)
         return false;
 
     this->answers_[questionId] = answer;
@@ -91,18 +111,10 @@ QString BugReportFlow::collectAnswers(quint8 categoryId) const {
 
 
 //****************************************************************************************************************************************************
-/// \return The value for the 'bugCategories' property.
+//
 //****************************************************************************************************************************************************
-QStringList BugReportFlow::categories() const {
-    return categories_;
-}
-
-
-//****************************************************************************************************************************************************
-/// \return The value for the 'bugQuestions' property.
-//****************************************************************************************************************************************************
-QVariantList BugReportFlow::questions() const {
-    return questions_;
+void BugReportFlow::clearAnswers() {
+    answers_.clear();
 }
 
 
@@ -170,3 +182,5 @@ QJsonObject BugReportFlow::migrateData(const QJsonObject& data, const QString& v
     // nothing to migrate now but migration should be done here.
     return data;
 }
+
+} // namespace bridgepp

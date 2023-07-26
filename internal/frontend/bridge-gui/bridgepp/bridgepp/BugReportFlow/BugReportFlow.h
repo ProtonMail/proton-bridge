@@ -19,6 +19,9 @@
 #ifndef BRIDGE_GUI_BUG_REPORT_FLOW_H
 #define BRIDGE_GUI_BUG_REPORT_FLOW_H
 
+namespace bridgepp {
+
+
 //****************************************************************************************************************************************************
 /// \brief Bug Report Flow parser.
 //****************************************************************************************************************************************************
@@ -32,11 +35,14 @@ public: // member functions.
 
     bool parse(const QString& filepath); ///< Initialize the Bug Report Flow.
 
-    QVariantList questionSet(quint8 categoryId) const; ///< Retrieve the set of question for a given bug category.
-    bool setAnswer(quint8 questionId, QString const &answer); ///< Feed an answer for a given question.
-    QString collectAnswers(quint8 categoryId) const; ///< Collect answer for a given set of questions.
     QStringList categories() const; ///< Getter for the 'bugCategories' property.
     QVariantList questions() const; ///< Getter for the 'bugQuestions' property.
+    QVariantList questionSet(quint8 categoryId) const; ///< Retrieve the set of question for a given bug category.
+
+    bool setAnswer(quint8 questionId, QString const &answer); ///< Feed an answer for a given question.
+    QString collectAnswers(quint8 categoryId) const; ///< Collect answer for a given set of questions.
+    void clearAnswers(); ///< Clear all collected answers.
+
 
 private: // member functions
     bool parseFile(); ///< Parse the bug report flow description file.
@@ -53,5 +59,7 @@ private: // data members
     QMap<quint8, QString> answers_; ///< Map of QuestionId/Answer for the bug form.
 };
 
+
+} // namespace bridgepp
 
 #endif // BRIDGE_GUI_BUG_REPORT_FLOW_H

@@ -190,6 +190,7 @@ enable_testing()
 #*****************************************************************************************************************************************************
 add_executable(bridgepp-test EXCLUDE_FROM_ALL
     Test/TestBridgeUtils.cpp
+    Test/TestBugReportFlow.cpp Test/TestBugReportFlow.h
     Test/TestCLI.cpp
     Test/TestException.cpp
     Test/TestSessionID.cpp

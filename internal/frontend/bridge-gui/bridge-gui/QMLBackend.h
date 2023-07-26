@@ -294,7 +294,7 @@ private: // data members
     bool isInternetOn_ { true }; ///< Does bridge consider internet as on?
     QList<QString> badEventDisplayQueue_; ///< THe queue for displaying 'bad event feedback request dialog'.
     std::unique_ptr<TrayIcon> trayIcon_; ///< The tray icon for the application.
-    BugReportFlow reportFlow_;  ///< The bug report flow.
+    bridgepp::BugReportFlow reportFlow_;  ///< The bug report flow.
     friend class AppController;
 };
 
