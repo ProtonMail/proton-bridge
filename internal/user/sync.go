@@ -439,7 +439,18 @@ func (user *User) syncMessages(
 		metadataChunks := xslices.Chunk(messageIDs, MetadataDataPageSize)
 		for i, metadataChunk := range metadataChunks {
 			logrus.Debugf("Metadata Request (%v of %v), previous: %v", i, len(metadataChunks), len(downloadReq.ids))
+
+			cooldown := expCooldown{}
+
 			metadata, err := client.GetMessageMetadataPage(ctx, 0, len(metadataChunk), proton.MessageFilter{ID: metadataChunk})
+			for is429Error(err) {
+				wait := cooldown.GetNextWaitTime()
+				logrus.WithError(err).Warnf("Retrying in %v to download message metadata for chunk %v", wait, i)
+				sleepCtx(ctx, wait)
+
+				metadata, err = client.GetMessageMetadataPage(ctx, 0, len(metadataChunk), proton.MessageFilter{ID: metadataChunk})
+			}
+
 			if err != nil {
 				logrus.WithError(err).Errorf("Failed to download message metadata for chunk %v", i)
 				downloadReq.err = err

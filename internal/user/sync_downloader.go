@@ -103,7 +103,7 @@ func startSyncDownloader(
 				return
 			}
 
-			batch, err := downloadMessagesStage2(ctx, result, downloader, cache, SyncRetryCooldown)
+			batch, err := downloadMessagesStage2(ctx, result, downloader, cache, &expCooldown{})
 			if err != nil {
 				errorCh <- err
 				return
@@ -281,7 +281,7 @@ func downloadMessagesStage2(
 	state []downloadResult,
 	downloader MessageDownloader,
 	cache *SyncDownloadCache,
-	coolDown time.Duration,
+	cooldown cooldownProvider,
 ) ([]proton.FullMessage, error) {
 	logrus.Debug("Entering download stage 2")
 	var retryList []int
@@ -289,7 +289,7 @@ func downloadMessagesStage2(
 
 	for {
 		if shouldWaitBeforeRetry {
-			time.Sleep(coolDown)
+			time.Sleep(cooldown.GetNextWaitTime())
 		}
 
 		retryList = nil

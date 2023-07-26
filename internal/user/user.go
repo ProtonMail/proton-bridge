@@ -55,10 +55,6 @@ var (
 	EventJitter = 20 * time.Second // nolint:gochecknoglobals,revive
 )
 
-const (
-	SyncRetryCooldown = 20 * time.Second
-)
-
 type User struct {
 	log *logrus.Entry
 
@@ -244,13 +240,16 @@ func New(
 				return
 			}
 
+			cooldown := expCooldown{}
+
 			for {
 				if err := ctx.Err(); err != nil {
 					user.log.WithError(err).Error("Sync aborted")
 					return
 				} else if err := user.doSync(ctx); err != nil {
-					user.log.WithError(err).Error("Failed to sync, will retry later")
-					sleepCtx(ctx, SyncRetryCooldown)
+					wait := cooldown.GetNextWaitTime()
+					user.log.WithField("retry-after", wait).WithError(err).Error("Failed to sync, will retry later")
+					sleepCtx(ctx, wait)
 				} else {
 					user.log.Info("Sync complete, starting API event stream")
 					return

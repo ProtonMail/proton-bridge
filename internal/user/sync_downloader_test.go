@@ -23,7 +23,6 @@ import (
 	"io"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
@@ -143,7 +142,7 @@ func TestSyncDownloader_Stage2_Everything200(t *testing.T) {
 		},
 	}
 
-	result, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, time.Millisecond)
+	result, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
 	require.NoError(t, err)
 	require.Equal(t, 2, len(result))
 }
@@ -171,7 +170,7 @@ func TestSyncDownloader_Stage2_Not429(t *testing.T) {
 		},
 	}
 
-	_, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, time.Millisecond)
+	_, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
 	require.Error(t, err)
 	require.Equal(t, msgErr, err)
 }
@@ -195,7 +194,7 @@ func TestSyncDownloader_Stage2_API500(t *testing.T) {
 		},
 	}
 
-	_, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, time.Millisecond)
+	_, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
 	require.Error(t, err)
 	require.Equal(t, msgErr, err)
 }
@@ -303,7 +302,7 @@ func TestSyncDownloader_Stage2_Some429(t *testing.T) {
 		})
 	}
 
-	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, time.Millisecond)
+	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
 	require.NoError(t, err)
 	require.Equal(t, 3, len(messages))
 
@@ -381,7 +380,7 @@ func TestSyncDownloader_Stage2_ErrorOnNon429MessageDownload(t *testing.T) {
 		messageDownloader.EXPECT().GetMessage(gomock.Any(), gomock.Eq("Msg3")).Times(1).Return(proton.Message{}, err500)
 	}
 
-	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, time.Millisecond)
+	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
 	require.Error(t, err)
 	require.Empty(t, 0, messages)
 }
@@ -424,7 +423,7 @@ func TestSyncDownloader_Stage2_ErrorOnNon429AttachmentDownload(t *testing.T) {
 	// 500 for second attachment
 	messageDownloader.EXPECT().GetAttachmentInto(gomock.Any(), gomock.Eq("A4"), gomock.Any()).Times(1).Return(err500)
 
-	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, time.Millisecond)
+	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
 	require.Error(t, err)
 	require.Empty(t, 0, messages)
 }
