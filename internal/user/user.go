@@ -93,6 +93,7 @@ type User struct {
 	showAllMail uint32
 
 	maxSyncMemory uint64
+	syncCache     *SyncDownloadCache
 
 	panicHandler async.PanicHandler
 
@@ -171,6 +172,7 @@ func New(
 		showAllMail: b32(showAllMail),
 
 		maxSyncMemory: maxSyncMemory,
+		syncCache:     newSyncDownloadCache(),
 
 		panicHandler: crashHandler,
 

@@ -89,6 +89,8 @@ func (user *User) handleRefreshEvent(ctx context.Context, refresh proton.Refresh
 	// Re-sync messages after the user, address and label refresh.
 	defer user.goSync()
 
+	user.syncCache.Clear()
+
 	return user.syncUserAddressesLabelsAndClearSync(ctx, false)
 }
 

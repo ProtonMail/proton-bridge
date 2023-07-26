@@ -373,13 +373,15 @@ func (user *User) syncMessages(
 	)
 
 	type flushUpdate struct {
-		messageID string
-		err       error
-		batchLen  int
+		batchMessageID string
+		messages       []proton.FullMessage
+		err            error
+		batchLen       int
 	}
 
 	type builtMessageBatch struct {
-		batch []*buildRes
+		batch    []*buildRes
+		messages []proton.FullMessage
 	}
 
 	downloadCh := make(chan downloadRequest)
@@ -455,7 +457,7 @@ func (user *User) syncMessages(
 	}, logging.Labels{"sync-stage": "meta-data"})
 
 	// Goroutine in charge of downloading and building messages in maxBatchSize batches.
-	buildCh, errorCh := startSyncDownloader(ctx, user.panicHandler, user.client, downloadCh, syncLimits)
+	buildCh, errorCh := startSyncDownloader(ctx, user.panicHandler, user.client, user.syncCache, downloadCh, syncLimits)
 
 	// Goroutine which builds messages after they have been downloaded
 	async.GoAnnotated(ctx, user.panicHandler, func(ctx context.Context) {
@@ -501,7 +503,7 @@ func (user *User) syncMessages(
 				}
 
 				select {
-				case flushCh <- builtMessageBatch{result}:
+				case flushCh <- builtMessageBatch{batch: result, messages: buildBatch.batch}:
 
 				case <-ctx.Done():
 					return
@@ -580,9 +582,11 @@ func (user *User) syncMessages(
 
 			select {
 			case flushUpdateCh <- flushUpdate{
-				messageID: downloadBatch.batch[0].messageID,
-				err:       nil,
-				batchLen:  len(downloadBatch.batch),
+				batchMessageID: downloadBatch.batch[0].messageID,
+				messages:       downloadBatch.messages,
+
+				err:      nil,
+				batchLen: len(downloadBatch.batch),
 			}:
 			case <-ctx.Done():
 				return
@@ -595,14 +599,29 @@ func (user *User) syncMessages(
 			return flushUpdate.err
 		}
 
-		if err := vault.SetLastMessageID(flushUpdate.messageID); err != nil {
+		if err := vault.SetLastMessageID(flushUpdate.batchMessageID); err != nil {
 			return fmt.Errorf("failed to set last synced message ID: %w", err)
+		}
+
+		for _, m := range flushUpdate.messages {
+			user.syncCache.DeleteMessages(m.ID)
+			if m.NumAttachments != 0 {
+				user.syncCache.DeleteAttachments(xslices.Map(m.Attachments, func(a proton.Attachment) string {
+					return a.ID
+				})...)
+			}
 		}
 
 		syncReporter.add(flushUpdate.batchLen)
 	}
 
-	return <-errorCh
+	err := <-errorCh
+
+	if err != nil {
+		user.syncCache.Clear()
+	}
+
+	return err
 }
 
 func newSystemMailboxCreatedUpdate(labelID imap.MailboxID, labelName string) *imap.MailboxCreated {

@@ -89,10 +89,11 @@ func TestSyncDownloader_Stage1_429(t *testing.T) {
 		return err
 	})
 
-	attachmentDownloader := newAttachmentDownloader(ctx, panicHandler, messageDownloader, 1)
+	cache := newSyncDownloadCache()
+	attachmentDownloader := newAttachmentDownloader(ctx, panicHandler, messageDownloader, cache, 1)
 	defer attachmentDownloader.close()
 
-	result, err := downloadMessageStage1(ctx, panicHandler, requests, messageDownloader, attachmentDownloader, 1)
+	result, err := downloadMessageStage1(ctx, panicHandler, requests, messageDownloader, attachmentDownloader, cache, 1)
 	require.NoError(t, err)
 	require.Equal(t, 3, len(result))
 	// Check message 1
@@ -115,12 +116,21 @@ func TestSyncDownloader_Stage1_429(t *testing.T) {
 	require.Nil(t, result[2].Message.AttData[0])
 	require.NotEqual(t, attachmentData, result[2].Message.AttData[1])
 	require.NotNil(t, result[2].err)
+
+	_, ok := cache.GetMessage("MsgID1")
+	require.True(t, ok)
+	_, ok = cache.GetMessage("MsgID3")
+	require.True(t, ok)
+	att, ok := cache.GetAttachment("Attachment1_1")
+	require.True(t, ok)
+	require.Equal(t, attachmentData, string(att))
 }
 
 func TestSyncDownloader_Stage2_Everything200(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	messageDownloader := mocks.NewMockMessageDownloader(mockCtrl)
 	ctx := context.Background()
+	cache := newSyncDownloadCache()
 
 	downloadResult := []downloadResult{
 		{
@@ -133,7 +143,7 @@ func TestSyncDownloader_Stage2_Everything200(t *testing.T) {
 		},
 	}
 
-	result, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, time.Millisecond)
+	result, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, time.Millisecond)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(result))
 }
@@ -142,6 +152,7 @@ func TestSyncDownloader_Stage2_Not429(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	messageDownloader := mocks.NewMockMessageDownloader(mockCtrl)
 	ctx := context.Background()
+	cache := newSyncDownloadCache()
 
 	msgErr := fmt.Errorf("something not 429")
 	downloadResult := []downloadResult{
@@ -160,7 +171,7 @@ func TestSyncDownloader_Stage2_Not429(t *testing.T) {
 		},
 	}
 
-	_, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, time.Millisecond)
+	_, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, time.Millisecond)
 	require.Error(t, err)
 	require.Equal(t, msgErr, err)
 }
@@ -169,6 +180,7 @@ func TestSyncDownloader_Stage2_API500(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	messageDownloader := mocks.NewMockMessageDownloader(mockCtrl)
 	ctx := context.Background()
+	cache := newSyncDownloadCache()
 
 	msgErr := &proton.APIError{Status: 500}
 	downloadResult := []downloadResult{
@@ -183,7 +195,7 @@ func TestSyncDownloader_Stage2_API500(t *testing.T) {
 		},
 	}
 
-	_, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, time.Millisecond)
+	_, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, time.Millisecond)
 	require.Error(t, err)
 	require.Equal(t, msgErr, err)
 }
@@ -192,6 +204,7 @@ func TestSyncDownloader_Stage2_Some429(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	messageDownloader := mocks.NewMockMessageDownloader(mockCtrl)
 	ctx := context.Background()
+	cache := newSyncDownloadCache()
 
 	const attachmentData1 = "attachment data 1"
 	const attachmentData2 = "attachment data 2"
@@ -290,7 +303,7 @@ func TestSyncDownloader_Stage2_Some429(t *testing.T) {
 		})
 	}
 
-	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, time.Millisecond)
+	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, time.Millisecond)
 	require.NoError(t, err)
 	require.Equal(t, 3, len(messages))
 
@@ -304,12 +317,28 @@ func TestSyncDownloader_Stage2_Some429(t *testing.T) {
 	require.Equal(t, attachmentData1, string(messages[1].AttData[0]))
 	require.Equal(t, attachmentData2, string(messages[1].AttData[1]))
 	require.Empty(t, messages[2].AttData)
+
+	_, ok := cache.GetMessage("Msg3")
+	require.True(t, ok)
+
+	att3, ok := cache.GetAttachment("A3")
+	require.True(t, ok)
+	require.Equal(t, attachmentData3, string(att3))
+
+	att1, ok := cache.GetAttachment("A1")
+	require.True(t, ok)
+	require.Equal(t, attachmentData1, string(att1))
+
+	att2, ok := cache.GetAttachment("A2")
+	require.True(t, ok)
+	require.Equal(t, attachmentData2, string(att2))
 }
 
 func TestSyncDownloader_Stage2_ErrorOnNon429MessageDownload(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	messageDownloader := mocks.NewMockMessageDownloader(mockCtrl)
 	ctx := context.Background()
+	cache := newSyncDownloadCache()
 
 	err429 := &proton.APIError{Status: 429}
 	err500 := &proton.APIError{Status: 500}
@@ -352,7 +381,7 @@ func TestSyncDownloader_Stage2_ErrorOnNon429MessageDownload(t *testing.T) {
 		messageDownloader.EXPECT().GetMessage(gomock.Any(), gomock.Eq("Msg3")).Times(1).Return(proton.Message{}, err500)
 	}
 
-	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, time.Millisecond)
+	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, time.Millisecond)
 	require.Error(t, err)
 	require.Empty(t, 0, messages)
 }
@@ -361,6 +390,7 @@ func TestSyncDownloader_Stage2_ErrorOnNon429AttachmentDownload(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	messageDownloader := mocks.NewMockMessageDownloader(mockCtrl)
 	ctx := context.Background()
+	cache := newSyncDownloadCache()
 
 	err429 := &proton.APIError{Status: 429}
 	err500 := &proton.APIError{Status: 500}
@@ -394,7 +424,50 @@ func TestSyncDownloader_Stage2_ErrorOnNon429AttachmentDownload(t *testing.T) {
 	// 500 for second attachment
 	messageDownloader.EXPECT().GetAttachmentInto(gomock.Any(), gomock.Eq("A4"), gomock.Any()).Times(1).Return(err500)
 
-	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, time.Millisecond)
+	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, time.Millisecond)
 	require.Error(t, err)
 	require.Empty(t, 0, messages)
+}
+
+func TestSyncDownloader_Stage1_DoNotDownloadIfAlreadyInCache(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	messageDownloader := mocks.NewMockMessageDownloader(mockCtrl)
+	panicHandler := &async.NoopPanicHandler{}
+	ctx := context.Background()
+
+	requests := downloadRequest{
+		ids:          []string{"Msg1", "Msg3"},
+		expectedSize: 0,
+		err:          nil,
+	}
+
+	cache := newSyncDownloadCache()
+	attachmentDownloader := newAttachmentDownloader(ctx, panicHandler, messageDownloader, cache, 1)
+	defer attachmentDownloader.close()
+
+	const attachmentData = "attachment data"
+
+	cache.StoreMessage(proton.Message{MessageMetadata: proton.MessageMetadata{ID: "Msg1", NumAttachments: 1}, Attachments: []proton.Attachment{{ID: "A1"}}})
+	cache.StoreMessage(proton.Message{MessageMetadata: proton.MessageMetadata{ID: "Msg3", NumAttachments: 2}, Attachments: []proton.Attachment{{ID: "A2"}}})
+
+	cache.StoreAttachment("A1", []byte(attachmentData))
+	cache.StoreAttachment("A2", []byte(attachmentData))
+
+	result, err := downloadMessageStage1(ctx, panicHandler, requests, messageDownloader, attachmentDownloader, cache, 1)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(result))
+
+	require.Equal(t, result[0].State, downloadStateFinished)
+	require.Equal(t, result[0].Message.ID, "Msg1")
+	require.NotEmpty(t, result[0].Message.AttData)
+	require.NotEqual(t, attachmentData, result[0].Message.AttData[0])
+	require.NotNil(t, result[0].Message.AttData[0])
+	require.Nil(t, result[0].err)
+
+	require.Equal(t, result[1].State, downloadStateFinished)
+	require.Equal(t, result[1].Message.ID, "Msg3")
+	require.NotEmpty(t, result[1].Message.AttData)
+	require.NotEqual(t, attachmentData, result[1].Message.AttData[0])
+	require.NotNil(t, result[1].Message.AttData[0])
+	require.Nil(t, result[1].err)
 }

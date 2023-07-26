@@ -63,7 +63,14 @@ type downloadResult struct {
 	err     error
 }
 
-func startSyncDownloader(ctx context.Context, panicHandler async.PanicHandler, downloader MessageDownloader, downloadCh <-chan downloadRequest, syncLimits syncLimits) (<-chan downloadedMessageBatch, <-chan error) {
+func startSyncDownloader(
+	ctx context.Context,
+	panicHandler async.PanicHandler,
+	downloader MessageDownloader,
+	cache *SyncDownloadCache,
+	downloadCh <-chan downloadRequest,
+	syncLimits syncLimits,
+) (<-chan downloadedMessageBatch, <-chan error) {
 	buildCh := make(chan downloadedMessageBatch)
 	errorCh := make(chan error, syncLimits.MaxParallelDownloads*4)
 
@@ -75,7 +82,7 @@ func startSyncDownloader(ctx context.Context, panicHandler async.PanicHandler, d
 			logrus.Debugf("sync downloader exit")
 		}()
 
-		attachmentDownloader := newAttachmentDownloader(ctx, panicHandler, downloader, syncLimits.MaxParallelDownloads)
+		attachmentDownloader := newAttachmentDownloader(ctx, panicHandler, downloader, cache, syncLimits.MaxParallelDownloads)
 		defer attachmentDownloader.close()
 
 		for request := range downloadCh {
@@ -85,7 +92,7 @@ func startSyncDownloader(ctx context.Context, panicHandler async.PanicHandler, d
 				return
 			}
 
-			result, err := downloadMessageStage1(ctx, panicHandler, request, downloader, attachmentDownloader, syncLimits.MaxParallelDownloads)
+			result, err := downloadMessageStage1(ctx, panicHandler, request, downloader, attachmentDownloader, cache, syncLimits.MaxParallelDownloads)
 			if err != nil {
 				errorCh <- err
 				return
@@ -96,7 +103,7 @@ func startSyncDownloader(ctx context.Context, panicHandler async.PanicHandler, d
 				return
 			}
 
-			batch, err := downloadMessagesStage2(ctx, result, downloader, SyncRetryCooldown)
+			batch, err := downloadMessagesStage2(ctx, result, downloader, cache, SyncRetryCooldown)
 			if err != nil {
 				errorCh <- err
 				return
@@ -132,7 +139,7 @@ type attachmentDownloader struct {
 	cancel   context.CancelFunc
 }
 
-func attachmentWorker(ctx context.Context, downloader MessageDownloader, work <-chan attachmentJob) {
+func attachmentWorker(ctx context.Context, downloader MessageDownloader, cache *SyncDownloadCache, work <-chan attachmentJob) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -141,26 +148,45 @@ func attachmentWorker(ctx context.Context, downloader MessageDownloader, work <-
 			if !ok {
 				return
 			}
-			var b bytes.Buffer
-			b.Grow(int(job.size))
-			err := downloader.GetAttachmentInto(ctx, job.id, &b)
+
+			var result attachmentResult
+			if data, ok := cache.GetAttachment(job.id); ok {
+				result.attachment = data
+				result.err = nil
+			} else {
+				var b bytes.Buffer
+				b.Grow(int(job.size))
+				err := downloader.GetAttachmentInto(ctx, job.id, &b)
+				result.attachment = b.Bytes()
+				result.err = err
+				if err == nil {
+					cache.StoreAttachment(job.id, result.attachment)
+				}
+			}
+
 			select {
 			case <-ctx.Done():
 				close(job.result)
 				return
-			case job.result <- attachmentResult{attachment: b.Bytes(), err: err}:
+			case job.result <- result:
 				close(job.result)
 			}
 		}
 	}
 }
 
-func newAttachmentDownloader(ctx context.Context, panicHandler async.PanicHandler, downloader MessageDownloader, workerCount int) *attachmentDownloader {
+func newAttachmentDownloader(
+	ctx context.Context,
+	panicHandler async.PanicHandler,
+	downloader MessageDownloader,
+	cache *SyncDownloadCache,
+	workerCount int,
+) *attachmentDownloader {
 	workerCh := make(chan attachmentJob, (workerCount+2)*workerCount)
 	ctx, cancel := context.WithCancel(ctx)
 	for i := 0; i < workerCount; i++ {
 		workerCh = make(chan attachmentJob)
-		async.GoAnnotated(ctx, panicHandler, func(ctx context.Context) { attachmentWorker(ctx, downloader, workerCh) }, logging.Labels{
+		async.GoAnnotated(ctx, panicHandler, func(ctx context.Context) { attachmentWorker(ctx, downloader, cache, workerCh) }, logging.Labels{
 			"sync": fmt.Sprintf("att-downloader %v", i),
 		})
 	}
@@ -209,6 +235,7 @@ func downloadMessageStage1(
 	request downloadRequest,
 	downloader MessageDownloader,
 	attachmentDownloader *attachmentDownloader,
+	cache *SyncDownloadCache,
 	parallelDownloads int,
 ) ([]downloadResult, error) {
 	// 1st attempt download everything in parallel
@@ -217,21 +244,28 @@ func downloadMessageStage1(
 
 		result := downloadResult{ID: id}
 
-		msg, err := downloader.GetMessage(ctx, id)
-		if err != nil {
-			logrus.WithError(err).WithField("msgID", msg.ID).Error("Failed to download message")
-			result.err = err
-			return result, nil
+		v, ok := cache.GetMessage(id)
+		if !ok {
+			msg, err := downloader.GetMessage(ctx, id)
+			if err != nil {
+				logrus.WithError(err).WithField("msgID", msg.ID).Error("Failed to download message")
+				result.err = err
+				return result, nil
+			}
+
+			cache.StoreMessage(msg)
+			result.Message.Message = msg
+		} else {
+			result.Message.Message = v
 		}
 
-		result.Message.Message = msg
 		result.State = downloadStateHasMessage
 
-		attachments, err := attachmentDownloader.getAttachments(ctx, msg.Attachments)
+		attachments, err := attachmentDownloader.getAttachments(ctx, result.Message.Attachments)
 		result.Message.AttData = attachments
 
 		if err != nil {
-			logrus.WithError(err).WithField("msgID", msg.ID).Error("Failed to download message attachments")
+			logrus.WithError(err).WithField("msgID", id).Error("Failed to download message attachments")
 			result.err = err
 			return result, nil
 		}
@@ -242,7 +276,13 @@ func downloadMessageStage1(
 	})
 }
 
-func downloadMessagesStage2(ctx context.Context, state []downloadResult, downloader MessageDownloader, coolDown time.Duration) ([]proton.FullMessage, error) {
+func downloadMessagesStage2(
+	ctx context.Context,
+	state []downloadResult,
+	downloader MessageDownloader,
+	cache *SyncDownloadCache,
+	coolDown time.Duration,
+) ([]proton.FullMessage, error) {
 	logrus.Debug("Entering download stage 2")
 	var retryList []int
 	var shouldWaitBeforeRetry bool
@@ -289,6 +329,7 @@ func downloadMessagesStage2(ctx context.Context, state []downloadResult, downloa
 					return nil, err
 				}
 
+				cache.StoreMessage(message)
 				st.Message.Message = message
 				st.State = downloadStateHasMessage
 			}
@@ -314,6 +355,7 @@ func downloadMessagesStage2(ctx context.Context, state []downloadResult, downloa
 					}
 
 					st.Message.AttData[i] = buffer.Bytes()
+					cache.StoreAttachment(st.Message.Attachments[i].ID, st.Message.AttData[i])
 				}
 			}
 
