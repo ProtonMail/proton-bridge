@@ -274,6 +274,7 @@ mocks:
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/updater Downloader,Installer > internal/updater/mocks/mocks.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/telemetry HeartbeatManager > internal/telemetry/mocks/mocks.go
 	cp internal/telemetry/mocks/mocks.go internal/bridge/mocks/telemetry_mocks.go
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/user MessageDownloader > internal/user/mocks/mocks.go
 
 lint: gofiles lint-golang lint-license lint-dependencies lint-changelog
 
