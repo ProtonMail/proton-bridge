@@ -68,7 +68,7 @@ func TestServiceHandleEventError_BadEventPutsServiceOnPause(t *testing.T) {
 	eventIDStore := NewInMemoryEventIDStore()
 
 	service := NewService("foo", &NullEventSource{}, eventIDStore, eventPublisher, 100*time.Millisecond, time.Second, async.NoopPanicHandler{})
-	service.paused = false
+	service.Resume()
 	lastEventID := "PrevEvent"
 	event := proton.Event{EventID: "MyEvent"}
 
@@ -83,7 +83,7 @@ func TestServiceHandleEventError_BadEventPutsServiceOnPause(t *testing.T) {
 	})).Times(1)
 
 	_, _ = service.handleEventError(context.Background(), lastEventID, event, err)
-	require.True(t, service.paused)
+	require.True(t, service.IsPaused())
 }
 
 func TestServiceHandleEventError_BadEventFromPublishTimeout(t *testing.T) {

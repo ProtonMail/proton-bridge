@@ -67,7 +67,7 @@ func TestService_EventIDLoadStore(t *testing.T) {
 
 	service := NewService("foo", eventSource, eventIDStore, eventPublisher, 1*time.Millisecond, time.Second, async.NoopPanicHandler{})
 	require.NoError(t, service.Start(context.Background(), group))
-	require.NoError(t, service.Resume(context.Background()))
+	service.Resume()
 	group.WaitToFinish()
 }
 
@@ -113,7 +113,7 @@ func TestService_RetryEventOnNonCatastrophicFailure(t *testing.T) {
 	service.Subscribe(Subscription{Messages: subscriber})
 
 	require.NoError(t, service.Start(context.Background(), group))
-	require.NoError(t, service.Resume(context.Background()))
+	service.Resume()
 	group.WaitToFinish()
 }
 
@@ -160,16 +160,14 @@ func TestService_OnBadEventServiceIsPaused(t *testing.T) {
 	}).Do(func(_ context.Context, event events.Event) {
 		group.Once(func(_ context.Context) {
 			// Use background context to avoid having the request cancelled
-			paused, err := service.IsPaused(context.Background())
-			require.NoError(t, err)
-			require.True(t, paused)
+			require.True(t, service.IsPaused())
 			group.Cancel()
 		})
 	})
 
 	service.Subscribe(Subscription{Messages: subscriber})
 	require.NoError(t, service.Start(context.Background(), group))
-	require.NoError(t, service.Resume(context.Background()))
+	service.Resume()
 	group.WaitToFinish()
 }
 
@@ -216,7 +214,7 @@ func TestService_UnsubscribeDuringEventHandlingDoesNotCauseDeadlock(t *testing.T
 
 	service.Subscribe(Subscription{Messages: subscriber})
 	require.NoError(t, service.Start(context.Background(), group))
-	require.NoError(t, service.Resume(context.Background()))
+	service.Resume()
 	group.WaitToFinish()
 }
 
@@ -264,6 +262,6 @@ func TestService_UnsubscribeBeforeHandlingEventIsNotConsideredError(t *testing.T
 
 	service.Subscribe(Subscription{Messages: subscriber})
 	require.NoError(t, service.Start(context.Background(), group))
-	require.NoError(t, service.Resume(context.Background()))
+	service.Resume()
 	group.WaitToFinish()
 }

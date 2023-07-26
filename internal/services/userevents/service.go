@@ -25,13 +25,13 @@ import (
 	"io"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
-	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
@@ -48,14 +48,13 @@ import (
 // By default this service starts paused, you need to call `Service.Resume` at least one time to begin event polling.
 type Service struct {
 	userID         string
-	cpc            *cpc.CPC
 	eventSource    EventSource
 	eventIDStore   EventIDStore
 	log            *logrus.Entry
 	eventPublisher events.EventPublisher
 	timer          *time.Ticker
 	eventTimeout   time.Duration
-	paused         bool
+	paused         uint32
 	panicHandler   async.PanicHandler
 
 	userSubscriberList      userSubscriberList
@@ -81,7 +80,6 @@ func NewService(
 ) *Service {
 	return &Service{
 		userID:       userID,
-		cpc:          cpc.NewCPC(),
 		eventSource:  eventSource,
 		eventIDStore: store,
 		log: logrus.WithFields(logrus.Fields{
@@ -90,7 +88,7 @@ func NewService(
 		}),
 		eventPublisher: eventPublisher,
 		timer:          time.NewTicker(pollPeriod),
-		paused:         true,
+		paused:         1,
 		eventTimeout:   eventTimeout,
 		panicHandler:   panicHandler,
 	}
@@ -169,25 +167,18 @@ func (s *Service) Unsubscribe(subscription Subscription) {
 }
 
 // Pause pauses the event polling.
-// DO NOT CALL THIS DURING EVENT HANDLING.
-func (s *Service) Pause(ctx context.Context) error {
-	_, err := s.cpc.Send(ctx, &pauseRequest{})
-
-	return err
+func (s *Service) Pause() {
+	atomic.StoreUint32(&s.paused, 1)
 }
 
 // Resume resumes the event polling.
-// DO NOT CALL THIS DURING EVENT HANDLING.
-func (s *Service) Resume(ctx context.Context) error {
-	_, err := s.cpc.Send(ctx, &resumeRequest{})
-
-	return err
+func (s *Service) Resume() {
+	atomic.StoreUint32(&s.paused, 0)
 }
 
 // IsPaused return true if the service is paused
-// DO NOT CALL THIS DURING EVENT HANDLING.
-func (s *Service) IsPaused(ctx context.Context) (bool, error) {
-	return cpc.SendTyped[bool](ctx, s.cpc, &isPausedRequest{})
+func (s *Service) IsPaused() bool {
+	return atomic.LoadUint32(&s.paused) == 1
 }
 
 func (s *Service) Start(ctx context.Context, group *async.Group) error {
@@ -226,15 +217,8 @@ func (s *Service) run(ctx context.Context, lastEventID string) {
 		select {
 		case <-ctx.Done():
 			return
-		case req, ok := <-s.cpc.ReceiveCh():
-			if !ok {
-				return
-			}
-
-			s.handleRequest(ctx, req)
-			continue
 		case <-s.timer.C:
-			if s.paused {
+			if s.IsPaused() {
 				continue
 			}
 		}
@@ -448,23 +432,8 @@ func (s *Service) handleEventError(ctx context.Context, lastEventID string, even
 }
 
 func (s *Service) onBadEvent(ctx context.Context, event events.UserBadEvent) {
-	s.paused = true
+	s.Pause()
 	s.eventPublisher.PublishEvent(ctx, event)
-}
-
-func (s *Service) handleRequest(ctx context.Context, request *cpc.Request) {
-	switch request.Value().(type) {
-	case *pauseRequest:
-		s.paused = true
-		request.Reply(ctx, nil, nil)
-	case *resumeRequest:
-		s.paused = false
-		request.Reply(ctx, nil, nil)
-	case *isPausedRequest:
-		request.Reply(ctx, s.paused, nil)
-	default:
-		s.log.Errorf("Unknown request")
-	}
 }
 
 func (s *Service) addSubscription(subscription Subscription) {
@@ -520,7 +489,6 @@ func (s *Service) removeSubscription(subscription Subscription) {
 }
 
 func (s *Service) close() {
-	s.cpc.Close()
 	s.timer.Stop()
 }
 
