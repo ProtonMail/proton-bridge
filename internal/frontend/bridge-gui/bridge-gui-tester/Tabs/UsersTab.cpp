@@ -140,7 +140,7 @@ void UsersTab::onSendUserBadEvent() {
     int const index = this->selectedIndex();
 
     if (!user) {
-        app().log().error(QString("%1 failed. Unkown user.").arg(__FUNCTION__));
+        app().log().error(QString("%1 failed. Unknown user.").arg(__FUNCTION__));
         return;
     }
 
@@ -167,7 +167,7 @@ void UsersTab::onSendUsedBytesChangedEvent() {
     int const index = this->selectedIndex();
 
     if (!user) {
-        app().log().error(QString("%1 failed. Unkown user.").arg(__FUNCTION__));
+        app().log().error(QString("%1 failed. Unknown user.").arg(__FUNCTION__));
         return;
     }
 

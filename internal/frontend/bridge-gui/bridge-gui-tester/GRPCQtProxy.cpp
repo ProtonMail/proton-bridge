@@ -146,8 +146,8 @@ void GRPCQtProxy::setClientPlatform(QString const &clientPlatform) {
 //****************************************************************************************************************************************************
 /// \param[in] imapPort The IMAP port.
 /// \param[in] smtpPort The SMTP port.
-/// \param[in] useSSLForIMAP The IMAP connexion mode.
-/// \param[in] useSSLForSMTP The IMAP connexion mode.
+/// \param[in] useSSLForIMAP The IMAP connection mode.
+/// \param[in] useSSLForSMTP The IMAP connection mode.
 //****************************************************************************************************************************************************
 void GRPCQtProxy::setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool userSSLForSMTP) {
     emit setMailServerSettingsReceived(imapPort, smtpPort, useSSLForIMAP, userSSLForSMTP);

@@ -45,7 +45,7 @@ generate_dep_licenses(){
     grep -E $'^\t[^=>]*$'    $src  | sed -r 's/\t([^ ]*) v.*/\1/g'         > "$tmpDepLicenses"
     grep -E $'^\t.*=>.*v.*$' $src  | sed -r 's/^.*=> ([^ ]*)( v.*)?/\1/g' >> "$tmpDepLicenses"
 
-    # Replace each line with formated link
+    # Replace each line with formatted link
     sed  -i -r '/^github.com\/therecipe\/qt\/internal\/binding\/files\/docs\//d;' "$tmpDepLicenses"
     sed -i -r 's|^(.*)/([[:alnum:]-]+)/(v[[:digit:]]+)$|* [\2](https://\1/\2/\3)|g' "$tmpDepLicenses"
     sed -i -r 's|^(.*)/([[:alnum:]-]+)$|* [\2](https://\1/\2)|g' "$tmpDepLicenses"

@@ -78,10 +78,10 @@ void FocusGRPCClient::removeServiceConfigFile(QString const &configDir) {
 
 
 //****************************************************************************************************************************************************
-/// \param[in] timeoutMs The timeout for the connexion.
+/// \param[in] timeoutMs The timeout for the connection.
 /// \param[in] port The gRPC server port.
 /// \param[out] outError if not null and the function returns false.
-/// \return true iff the connexion was successfully established.
+/// \return true iff the connection was successfully established.
 //****************************************************************************************************************************************************
 bool FocusGRPCClient::connectToServer(qint64 timeoutMs, quint16 port, QString *outError) {
     try {
@@ -97,7 +97,7 @@ bool FocusGRPCClient::connectToServer(qint64 timeoutMs, quint16 port, QString *o
         }
 
         if (channel_->GetState(true) != GRPC_CHANNEL_READY) {
-            throw Exception("Connexion check with focus service failed.");
+            throw Exception("Connection check with focus service failed.");
         }
 
         log_.debug(QString("Successfully connected to focus gRPC service."));

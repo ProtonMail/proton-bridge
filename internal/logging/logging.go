@@ -38,7 +38,7 @@ const (
 	//
 	// The Zendesk limit for an attachment is 50MB and this is what will
 	// be allowed via the API. However, if that fails for some reason, the
-	// fallback is sending the report via email, which has a limit of 10mb
+	// fallback is sending the report via email, which has a limit of 10 MB
 	// total or 7MB per file.
 	DefaultMaxLogFileSize = 5 * 1024 * 1024
 )

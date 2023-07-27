@@ -43,7 +43,7 @@ func newSMTPServer(bridge *Bridge, tlsConfig *tls.Config, logSMTP bool) *smtp.Se
 	smtpServer.MaxLineLength = 1 << 16
 	smtpServer.ErrorLog = logging.NewSMTPLogger()
 
-	// go-smtp suppors SASL PLAIN but not LOGIN. We need to add LOGIN support ourselves.
+	// go-smtp supports SASL PLAIN but not LOGIN. We need to add LOGIN support ourselves.
 	smtpServer.EnableAuth(sasl.Login, func(conn *smtp.Conn) sasl.Server {
 		return sasl.NewLoginServer(func(username, password string) error {
 			return conn.Session().AuthPlain(username, password)
