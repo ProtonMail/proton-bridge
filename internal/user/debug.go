@@ -131,7 +131,7 @@ func (apm DiagnosticMetadata) BuildMailboxToMessageMap(user *User) (map[string]A
 func (user *User) GetDiagnosticMetadata(ctx context.Context) (DiagnosticMetadata, error) {
 	failedMessages := xmaps.SetFromSlice(user.vault.SyncStatus().FailedMessageIDs)
 
-	messageIDs, err := user.client.GetMessageIDs(ctx, "")
+	messageIDs, err := user.client.GetAllMessageIDs(ctx, "")
 	if err != nil {
 		return DiagnosticMetadata{}, err
 	}

@@ -150,7 +150,7 @@ func (user *User) sync(ctx context.Context) error {
 			user.log.Info("Syncing messages")
 
 			// Determine which messages to sync.
-			messageIDs, err := user.client.GetMessageIDs(ctx, "")
+			messageIDs, err := getAllMessageIDs(ctx, user.client)
 			if err != nil {
 				return fmt.Errorf("failed to get message IDs to sync: %w", err)
 			}
@@ -196,6 +196,30 @@ func (user *User) sync(ctx context.Context) error {
 
 		return nil
 	})
+}
+
+func getAllMessageIDs(ctx context.Context, client *proton.Client) ([]string, error) {
+	var messageIDs []string
+
+	for afterID := ""; ; afterID = messageIDs[len(messageIDs)-1] {
+		for {
+			page, err := client.GetMessageIDs(ctx, afterID, 1000)
+			if err != nil {
+				if is429Error(err) {
+					continue
+				}
+				return nil, err
+			}
+
+			if len(page) == 0 {
+				return messageIDs, nil
+			}
+
+			messageIDs = append(messageIDs, page...)
+
+			break
+		}
+	}
 }
 
 // nolint:exhaustive
