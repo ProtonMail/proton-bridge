@@ -24,6 +24,13 @@ Item {
 
     function start() {
         root.visible = true;
+        leftContent.currentIndex = 0;
+        rightContent.currentIndex = 0;
+    }
+    function startLogin() {
+        root.visible = true;
+        leftContent.currentIndex = 1;
+        rightContent.currentIndex = 1;
     }
 
     RowLayout {
@@ -36,17 +43,27 @@ Item {
             Layout.fillWidth: true
             color: root.colorScheme.background_norm
 
-            Item {
+            StackLayout {
                 id: leftContent
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 96
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.top
                 anchors.topMargin: 96
+                currentIndex: 0
                 width: 444
 
+                // stack index 0
                 OnboardingLeftPane {
-                    anchors.fill: parent
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    colorScheme: root.colorScheme
+                }
+
+                // stack index 1
+                LoginLeftPane {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
                     colorScheme: root.colorScheme
                 }
             }
@@ -55,13 +72,10 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 48
                 anchors.horizontalCenter: parent.horizontalCenter
-                antialiasing: true
                 fillMode: Image.PreserveAspectFit
                 height: 24
-                smooth: true
                 source: root.colorScheme.mail_logo_with_wordmark
-                sourceSize.height: 24
-                sourceSize.width: 142
+                mipmap: true
             }
         }
         Rectangle {
@@ -70,18 +84,30 @@ Item {
             Layout.fillWidth: true
             color: root.colorScheme.background_weak
 
-            Item {
+            StackLayout {
                 id: rightContent
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 96
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.top
                 anchors.topMargin: 96
+                currentIndex: 0
                 width: 444
 
+                // stack index 0
                 OnboardingRightPane {
-                    anchors.fill: parent
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
                     colorScheme: root.colorScheme
+
+                    onOnboardingAccepted: root.startLogin()
+                }
+
+                // stack index 1
+                Rectangle {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    color: "#f00"
                 }
             }
             Label {

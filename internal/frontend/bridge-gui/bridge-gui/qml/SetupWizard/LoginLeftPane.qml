@@ -21,44 +21,60 @@ Item {
     id: root
 
     property ColorScheme colorScheme
-
-    signal onboardingAccepted
+    property string description: qsTr("Let's start by signing in to your Proton account.")
 
     ColumnLayout {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        spacing: 96
+        spacing: 0
 
+        Image {
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+            Layout.preferredHeight: 72
+            Layout.preferredWidth: 72
+            fillMode: Image.PreserveAspectFit
+            source: "/qml/icons/ic-bridge.svg"
+            sourceSize.height: 128
+            sourceSize.width: 128
+        }
         Label {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
+            Layout.topMargin: 16
             colorScheme: root.colorScheme
             horizontalAlignment: Text.AlignHCenter
-            text: qsTr("Two-step process")
+            text: qsTr("Sign in to your Proton Account")
             type: Label.LabelType.Heading
+            wrapMode: Text.WordWrap
         }
-        StepDescriptionBox {
-            colorScheme: root.colorScheme
-            description: qsTr("Connect Bridge to your Proton account")
-            icon: "/qml/icons/ic-bridge.svg"
-            iconSize: 48
-            title: qsTr("Step 1")
-        }
-        StepDescriptionBox {
-            colorScheme: root.colorScheme
-            description: qsTr("Connect your email client to Bridge")
-            icon: "/qml/icons/img-mail-clients.svg"
-            iconSize: 64
-            title: qsTr("Step 2")
-        }
-        Button {
+        Label {
             Layout.alignment: Qt.AlignHCenter
-            Layout.preferredWidth: 320
+            Layout.fillWidth: true
+            Layout.topMargin: 96
             colorScheme: root.colorScheme
-            text: qsTr("Let's start")
+            horizontalAlignment: Text.AlignHCenter
+            text: description
+            type: Label.LabelType.Body
+            wrapMode: Text.WordWrap
+        }
+        Label {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.fillWidth: false
+            Layout.topMargin: 96
+            colorScheme: root.colorScheme
+            horizontalAlignment: Text.AlignHCenter
+            text: link("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"))
+            type: Label.LabelType.Body
 
-            onClicked: root.onboardingAccepted();
+            onLinkActivated: function (link) {
+                Qt.openUrlExternally(link);
+            }
+
+            HoverHandler {
+                acceptedDevices: PointerDevice.Mouse
+                cursorShape: Qt.PointingHandCursor
+            }
         }
     }
 }
