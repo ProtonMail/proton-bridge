@@ -1057,6 +1057,7 @@ func getConnectedUserIDs(t *testing.T, b *bridge.Bridge) []string {
 func chToType[In, Out any](inCh <-chan In, done func()) (<-chan Out, func()) {
 	outCh := make(chan Out)
 
+	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		defer close(outCh)
 
@@ -1066,11 +1067,19 @@ func chToType[In, Out any](inCh <-chan In, done func()) (<-chan Out, func()) {
 				panic(fmt.Sprintf("unexpected type %T", in))
 			}
 
-			outCh <- out
+			select {
+			case <-ctx.Done():
+				return
+
+			case outCh <- out:
+			}
 		}
 	}()
 
-	return outCh, done
+	return outCh, func() {
+		cancel()
+		done()
+	}
 }
 
 type eventWaiter struct {
