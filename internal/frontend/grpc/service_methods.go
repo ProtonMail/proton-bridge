@@ -330,6 +330,7 @@ func (s *Service) ReportBug(_ context.Context, report *ReportBugRequest) (*empty
 	s.log.WithFields(logrus.Fields{
 		"osType":      report.OsType,
 		"osVersion":   report.OsVersion,
+		"title":       report.Title,
 		"description": report.Description,
 		"address":     report.Address,
 		"emailClient": report.EmailClient,
@@ -345,6 +346,7 @@ func (s *Service) ReportBug(_ context.Context, report *ReportBugRequest) (*empty
 			context.Background(),
 			report.OsType,
 			report.OsVersion,
+			report.Title,
 			report.Description,
 			report.Address,
 			report.Address,

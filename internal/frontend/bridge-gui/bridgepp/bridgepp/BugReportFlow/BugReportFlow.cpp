@@ -53,17 +53,17 @@ bool BugReportFlow::parse(const QString& filepath) {
 //****************************************************************************************************************************************************
 /// \return The value for the 'bugCategories' property.
 //****************************************************************************************************************************************************
-    QStringList BugReportFlow::categories() const {
-        return categories_;
-    }
+QStringList BugReportFlow::categories() const {
+    return categories_;
+}
 
 
 //****************************************************************************************************************************************************
 /// \return The value for the 'bugQuestions' property.
 //****************************************************************************************************************************************************
-    QVariantList BugReportFlow::questions() const {
-        return questions_;
-    }
+QVariantList BugReportFlow::questions() const {
+    return questions_;
+}
 
 
 //****************************************************************************************************************************************************
@@ -95,6 +95,19 @@ bool BugReportFlow::setAnswer(quint8 questionId, QString const &answer) {
 /// \param[in] questionId The id of the question.
 /// \return answer the given question.
 //****************************************************************************************************************************************************
+QString BugReportFlow::getCategory(quint8 categoryId) const {
+    QString category;
+    if (categoryId <= categories_.count() - 1) {
+        category = categories_[categoryId];
+    }
+    return category;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] questionId The id of the question.
+/// \return answer the given question.
+//****************************************************************************************************************************************************
 QString BugReportFlow::getAnswer(quint8 questionId) const {
     QString answer;
     if (questionId <= questions_.count() - 1) {
@@ -113,7 +126,6 @@ QString BugReportFlow::collectAnswers(quint8 categoryId) const {
     if (categoryId > categories_.count() - 1)
         return answers;
 
-    answers += "Category: " + categories_[categoryId] + "\n\r";
     QVariantList sets = this->questionSet(categoryId);
     for (QVariant const &var: sets) {
         const QString& answer = getAnswer(var.toInt());

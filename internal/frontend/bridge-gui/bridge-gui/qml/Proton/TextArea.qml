@@ -236,7 +236,15 @@ FocusScope {
                 KeyNavigation.tab: root.KeyNavigation.tab
                 KeyNavigation.up: root.KeyNavigation.up
                 bottomPadding: 8
-                color: control.enabled ? root.colorScheme.text_norm : root.colorScheme.text_disabled
+                color: {
+                    if (!control.enabled) {
+                        return root.colorScheme.text_disabled
+                    }
+                    if (control.readOnly) {
+                        return root.colorScheme.text_hint
+                    }
+                    return root.colorScheme.text_norm
+                }
 
                 // enforcing default focus here within component
                 focus: root.focus
@@ -258,7 +266,7 @@ FocusScope {
                 background: Rectangle {
                     anchors.fill: parent
                     border.color: {
-                        if (!control.enabled) {
+                        if (!control.enabled || control.readOnly) {
                             return root.colorScheme.field_disabled;
                         }
                         if (control.activeFocus) {

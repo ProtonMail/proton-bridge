@@ -77,7 +77,7 @@ public: // member functions.
     grpc::Status colorSchemeName(QString &outName); ///< Performs the "colorSchemeName' gRPC call.
     grpc::Status setColorSchemeName(QString const &name); ///< Performs the "setColorSchemeName' gRPC call.
     grpc::Status currentEmailClient(QString &outName); ///< Performs the 'currentEmailClient' gRPC call.
-    grpc::Status reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs); ///< Performs the 'ReportBug' gRPC call.
+    grpc::Status reportBug(QString const &category, QString const &description, QString const &address, QString const &emailClient, bool includeLogs); ///< Performs the 'ReportBug' gRPC call.
     grpc::Status exportTLSCertificates(QString const &folderPath); ///< Performs the 'ExportTLSCertificates' gRPC call.
     grpc::Status quit(); ///< Perform the "Quit" gRPC call.
     grpc::Status restart(); ///< Performs the Restart gRPC call.

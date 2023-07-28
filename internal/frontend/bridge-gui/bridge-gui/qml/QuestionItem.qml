@@ -45,11 +45,26 @@ Item {
         }
         return ""
     }
+    property bool error: {
+            if (root.type === QuestionItem.InputType.TextInput)
+                return textInput.error;
+            if (root.type === QuestionItem.InputType.Radio)
+                return selectionRadio.error;
+            if (root.type === QuestionItem.InputType.Checkbox)
+                return selectionCheckBox.error;
+            return false
+    }
 
     function setDefaultValue(defaultValue) {
         textInput.setDefaultValue(defaultValue)
         selectionRadio.setDefaultValue(defaultValue)
         selectionCheckBox.setDefaultValue(defaultValue)
+    }
+
+    function validate() {
+        textInput.validate()
+        selectionRadio.validate()
+        selectionCheckBox.validate()
     }
 
     implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
@@ -61,7 +76,7 @@ Item {
         Label {
             id: mainLabel
             colorScheme: root.colorScheme
-            text: qsTr(root.text)
+            text: root.mandatory ? qsTr(root.text+" *") : qsTr(root.text)
             type: Label.Body
         }
         ColumnLayout {
@@ -98,7 +113,7 @@ Item {
                 }
                 onTextChanged: {
                     // Rise max length error immediately while typing if mandatory field
-                    if (mandatory && textInput.text.length > textInput._maxLength) {
+                    if (textInput.text.length > textInput._maxLength) {
                         validate();
                     }
                 }
@@ -108,15 +123,28 @@ Item {
 
             ButtonGroup {
                 id: selectionRadio
+
                 property string text: {
                     return checkedButton ? checkedButton.text : "";
                 }
+                property bool error: root.mandatory
 
                 function setDefaultValue(defaultValue) {
                     const values = root.type === QuestionItem.InputType.Radio ? defaultValue : [];
                     for (var i = 0; i < buttons.length; ++i) {
                         buttons[i].checked  = values.includes(buttons[i].text);
                     }
+                }
+                function validate() {
+                    if (mandatory && selectionRadio.text.length === 0) {
+                        error = true;
+                        return
+                    }
+                    error = false;
+                }
+
+                onTextChanged: {
+                    validate();
                 }
             }
             Repeater {
@@ -142,12 +170,25 @@ Item {
                     }
                     return str.slice(0, -delimitor.length);
                 }
+                property bool error: root.mandatory
 
                 function setDefaultValue(defaultValue) {
                     const values = root.type === QuestionItem.InputType.Checkbox ? defaultValue.split(delimitor) : [];
                     for (var i = 0; i < buttons.length; ++i) {
                         buttons[i].checked  = values.includes(buttons[i].text);
                     }
+                }
+
+                function validate() {
+                    if (mandatory && selectionCheckBox.text.length === 0) {
+                        error = true;
+                        return
+                    }
+                    error = false;
+                }
+
+                onTextChanged: {
+                    validate();
                 }
             }
             Repeater {

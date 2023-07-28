@@ -20,6 +20,7 @@ SettingsView {
 
     property var selectedAddress
     property var categoryId:-1
+    property string category: Backend.getBugCategory(root.categoryId)
 
     signal bugReportWasSent
 
@@ -41,7 +42,7 @@ SettingsView {
 
     function submit() {
         sendButton.loading = true;
-        Backend.reportBug(description.text, address.text, emailClient.text, includeLogs.checked);
+        Backend.reportBug(root.category, description.text, address.text, emailClient.text, includeLogs.checked);
     }
 
     fillHeight: true
@@ -69,7 +70,7 @@ SettingsView {
         // want TextArea implicitHeight (which is height of all text)
         // to be considered in SettingsView internal scroll view
         implicitHeight: height
-        label: qsTr("Your answers")
+        label: "Your answers to: " + qsTr(root.category);
         readOnly : true
     }
     TextField {

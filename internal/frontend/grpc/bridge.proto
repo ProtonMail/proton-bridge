@@ -147,10 +147,11 @@ message GuiReadyResponse {
 message ReportBugRequest {
   string osType = 1;
   string osVersion = 2;
-  string description = 3;
-  string address = 4;
-  string emailClient = 5;
-  bool includeLogs = 6;
+  string title = 3;
+  string description = 4;
+  string address = 5;
+  string emailClient = 6;
+  bool includeLogs = 7;
 
 }
 

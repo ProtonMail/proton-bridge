@@ -225,6 +225,15 @@ bool QMLBackend::areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs) const {
 /// \param[in] categoryId The id of the bug category.
 /// \return Set of question for this category.
 //****************************************************************************************************************************************************
+QString QMLBackend::getBugCategory(quint8 categoryId) const {
+    return reportFlow_.getCategory(categoryId);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] categoryId The id of the bug category.
+/// \return Set of question for this category.
+//****************************************************************************************************************************************************
 QVariantList QMLBackend::getQuestionSet(quint8 categoryId) const {
     QVariantList list = reportFlow_.questionSet(categoryId);
     if (list.count() == 0)
@@ -919,14 +928,15 @@ void QMLBackend::triggerReset() const {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] category The category of the bug.
 /// \param[in] description The description of the bug.
 /// \param[in] address The email address.
 /// \param[in] emailClient The email client.
 /// \param[in] includeLogs Should the logs be included in the report.
 //****************************************************************************************************************************************************
-void QMLBackend::reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs) const {
+void QMLBackend::reportBug(QString const &category, QString const &description, QString const &address, QString const &emailClient, bool includeLogs) const {
     HANDLE_EXCEPTION(
-        app().grpc().reportBug(description, address, emailClient, includeLogs);
+        app().grpc().reportBug(category, description, address, emailClient, includeLogs);
     )
 }
 

@@ -58,6 +58,7 @@ public: // member functions.
     Q_INVOKABLE bool isPortFree(int port) const; ///< Check if a given network port is available.
     Q_INVOKABLE QString nativePath(QUrl const &url) const; ///< Retrieve the native path of a local URL.
     Q_INVOKABLE bool areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs) const; ///< Check if two local URL point to the same file.
+    Q_INVOKABLE QString getBugCategory(quint8 categoryId) const; ///< Get a Category name.
     Q_INVOKABLE QVariantList getQuestionSet(quint8 categoryId) const; ///< Retrieve the set of question for a given bug category.
     Q_INVOKABLE void setQuestionAnswer(quint8 questionId, QString const &answer); ///< Feed an answer for a given question.
     Q_INVOKABLE QString getQuestionAnswer(quint8 questionId) const; ///< Get the answer for a given question.
@@ -193,7 +194,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void checkUpdates() const; ///< Slot for the update check.
     void installUpdate() const; ///< Slot for the update install.
     void triggerReset() const; ///< Slot for the triggering of reset.
-    void reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs) const; ///< Slot for the bug report.
+    void reportBug(QString const &category, QString const &description, QString const &address, QString const &emailClient, bool includeLogs) const; ///< Slot for the bug report.
     void exportTLSCertificates() const; ///< Slot for the export of the TLS certificates.
     void onResetFinished(); ///< Slot for the reset finish signal.
     void onVersionChanged(); ///< Slot for the version change signal.

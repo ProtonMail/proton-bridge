@@ -353,16 +353,18 @@ grpc::Status GRPCClient::currentEmailClient(QString &outName) {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] category The category of the bug.
 /// \param[in] description The description of the bug.
 /// \param[in] address The email address.
 /// \param[in] emailClient The email client.
 /// \param[in] includeLogs Should the report include the logs.
 /// \return The status for the gRPC call.
 //****************************************************************************************************************************************************
-grpc::Status GRPCClient::reportBug(QString const &description, QString const &address, QString const &emailClient, bool includeLogs) {
+grpc::Status GRPCClient::reportBug(QString const &category, QString const &description, QString const &address, QString const &emailClient, bool includeLogs) {
     ReportBugRequest request;
     request.set_ostype(QSysInfo::productType().toStdString());
     request.set_osversion(QSysInfo::prettyProductName().toStdString());
+    request.set_title(category.toStdString());
     request.set_description(description.toStdString());
     request.set_address(address.toStdString());
     request.set_emailclient(emailClient.toStdString());

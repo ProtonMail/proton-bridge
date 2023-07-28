@@ -33,7 +33,7 @@ const (
 	DefaultMaxSessionCountForBugReport = 10
 )
 
-func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, description, username, email, client string, attachLogs bool) error {
+func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, title, description, username, email, client string, attachLogs bool) error {
 	var account string
 
 	if info, err := bridge.QueryUserInfo(username); err == nil {
@@ -82,7 +82,7 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, descript
 		OS:        osType,
 		OSVersion: osVersion,
 
-		Title:       "[Bridge] Bug",
+		Title:       "[Bridge] Bug - " + title,
 		Description: description,
 
 		Client:        client,

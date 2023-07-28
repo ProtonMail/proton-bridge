@@ -21,7 +21,7 @@ SettingsView {
     property var questions:Backend.bugQuestions
     property var categoryId:0
     property var questionSet:ListModel{}
-
+    property bool error: questionRepeater.error
     signal questionAnswered
 
     function setCategoryId(catId) {
@@ -44,8 +44,38 @@ SettingsView {
         type: Label.Heading
     }
 
+    TextEdit {
+        Layout.fillWidth: true
+        color: root.colorScheme.text_weak
+        font.family: ProtonStyle.font_family
+        font.letterSpacing: ProtonStyle.caption_letter_spacing
+        font.pixelSize: ProtonStyle.caption_font_size
+        font.weight: ProtonStyle.fontWeight_400
+        readOnly: true
+        selectByMouse: true
+        selectedTextColor: root.colorScheme.text_invert
+        // No way to set lineHeight: ProtonStyle.caption_line_height
+        selectionColor: root.colorScheme.interaction_norm
+        text: qsTr("* Mandatory questions")
+        wrapMode: Text.WordWrap
+    }
+
     Repeater {
+        id: questionRepeater
         model: root.questionSet
+        property bool error :{
+            for (var i = 0; i < questionRepeater.count; i++) {
+                if (questionRepeater.itemAt(i).error)
+                    return true;
+            }
+            return false;
+        }
+
+        function validate(){
+            for (var i = 0; i < questionRepeater.count; i++) {
+                questionRepeater.itemAt(i).validate()
+            }
+        }
 
         QuestionItem {
             Layout.fillWidth: true
@@ -62,7 +92,7 @@ SettingsView {
             mandatory: root.questions[modelData].mandatory ? root.questions[modelData].mandatory : false
             answerList: root.questions[modelData].answerList ? root.questions[modelData].answerList : []
 
-            onAnswerChanged:{
+            onAnswerChanged: {
                 Backend.setQuestionAnswer(modelData, answer);
             }
 
@@ -70,7 +100,7 @@ SettingsView {
                 function onVisibleChanged() {
                     setDefaultValue(Backend.getQuestionAnswer(modelData))
                 }
-                target:root
+                target: root
             }
         }
     }
@@ -81,11 +111,13 @@ SettingsView {
     Button {
         id: continueButton
         colorScheme: root.colorScheme
-        enabled: !loading
+        enabled: !loading && !root.error
         text: qsTr("Continue")
 
         onClicked: {
-            submit();
+            questionRepeater.validate()
+            if (!root.error)
+                submit();
         }
     }
 }

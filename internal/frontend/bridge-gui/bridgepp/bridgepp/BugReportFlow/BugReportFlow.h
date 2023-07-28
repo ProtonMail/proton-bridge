@@ -38,9 +38,9 @@ public: // member functions.
     [[nodiscard]] QStringList categories() const; ///< Getter for the 'bugCategories' property.
     [[nodiscard]] QVariantList questions() const; ///< Getter for the 'bugQuestions' property.
     [[nodiscard]] QVariantList questionSet(quint8 categoryId) const; ///< Retrieve the set of question for a given bug category.
-
     [[nodiscard]] bool setAnswer(quint8 questionId, QString const &answer); ///< Feed an answer for a given question.
-    [[nodiscard]] QString getAnswer(quint8 questionId) const; ///< Collect answer for a given questions.
+    [[nodiscard]] QString getCategory(quint8 categoryId) const;  ///< Get category name.
+    [[nodiscard]] QString getAnswer(quint8 questionId) const; ///< Get answer for a given question.
     [[nodiscard]] QString collectAnswers(quint8 categoryId) const; ///< Collect answer for a given set of questions.
     void clearAnswers(); ///< Clear all collected answers.
 
