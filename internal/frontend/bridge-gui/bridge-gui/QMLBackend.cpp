@@ -244,11 +244,28 @@ void QMLBackend::setQuestionAnswer(quint8 questionId, QString const &answer) {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] questionId The id of the question.
+/// \return answer for the given question.
+//****************************************************************************************************************************************************
+QString QMLBackend::getQuestionAnswer(quint8 questionId) const {
+    return reportFlow_.getAnswer(questionId);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] categoryId The id of the question set.
 /// \return concatenate answers for set of questions.
 //****************************************************************************************************************************************************
 QString QMLBackend::collectAnswers(quint8 categoryId) const {
     return reportFlow_.collectAnswers(categoryId);
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void QMLBackend::clearAnswers() {
+    reportFlow_.clearAnswers();
 }
 
 

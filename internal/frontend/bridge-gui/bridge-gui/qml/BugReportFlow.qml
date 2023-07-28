@@ -96,6 +96,7 @@ Item {
                     root.showBugQuestion();
                 }
                 onBugReportWasSent: {
+                    Backend.clearAnswers();
                     root.bugReportWasSent();
                 }
             }

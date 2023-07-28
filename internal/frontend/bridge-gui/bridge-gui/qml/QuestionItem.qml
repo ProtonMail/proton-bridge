@@ -46,6 +46,12 @@ Item {
         return ""
     }
 
+    function setDefaultValue(defaultValue) {
+        textInput.setDefaultValue(defaultValue)
+        selectionRadio.setDefaultValue(defaultValue)
+        selectionCheckBox.setDefaultValue(defaultValue)
+    }
+
     implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
 
     ColumnLayout {
@@ -75,6 +81,10 @@ Item {
                 hint: mandatory ? textInput.text.length + "/" + _maxLength : ""
                 placeholderText: mandatory ? qsTr("%1... (min. %2 characters)").arg(root.text).arg(_minLength) : ""
 
+                function setDefaultValue(defaultValue) {
+                    textInput.text = root.type === QuestionItem.InputType.TextInput ? defaultValue : ""
+                }
+
                 validator: function (text) {
                     if (!mandatory)
                         return;
@@ -101,6 +111,13 @@ Item {
                 property string text: {
                     return checkedButton ? checkedButton.text : "";
                 }
+
+                function setDefaultValue(defaultValue) {
+                    const values = root.type === QuestionItem.InputType.Radio ? defaultValue : [];
+                    for (var i = 0; i < buttons.length; ++i) {
+                        buttons[i].checked  = values.includes(buttons[i].text);
+                    }
+                }
             }
             Repeater {
                 model: root.answerList
@@ -115,14 +132,22 @@ Item {
             ButtonGroup {
                 id: selectionCheckBox
                 exclusive: false
+                property string delimitor: ", "
                 property string text: {
                     var str = "";
                     for (var i = 0; i < buttons.length; ++i) {
                         if (buttons[i].checked) {
-                            str += buttons[i].text + ", ";
+                            str += buttons[i].text + delimitor;
                         }
                     }
-                    return str.slice(0, -2);
+                    return str.slice(0, -delimitor.length);
+                }
+
+                function setDefaultValue(defaultValue) {
+                    const values = root.type === QuestionItem.InputType.Checkbox ? defaultValue.split(delimitor) : [];
+                    for (var i = 0; i < buttons.length; ++i) {
+                        buttons[i].checked  = values.includes(buttons[i].text);
+                    }
                 }
             }
             Repeater {

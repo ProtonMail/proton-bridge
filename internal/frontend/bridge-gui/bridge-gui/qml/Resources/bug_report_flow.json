@@ -59,9 +59,9 @@
       },
       {
         "id": 4,
-        "text": "Are you running any of these software?",
+        "text": "Can you list the software you are running?",
         "type": 3,
-        "answerList": ["VPN", "Antivirus", "Firewall", "Cache cleaner", "None of the above"]
+        "answerList": ["VPN", "Antivirus", "Firewall", "Cache cleaner"]
       }
     ]
   }

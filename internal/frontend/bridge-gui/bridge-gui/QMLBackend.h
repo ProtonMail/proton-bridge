@@ -60,7 +60,9 @@ public: // member functions.
     Q_INVOKABLE bool areSameFileOrFolder(QUrl const &lhs, QUrl const &rhs) const; ///< Check if two local URL point to the same file.
     Q_INVOKABLE QVariantList getQuestionSet(quint8 categoryId) const; ///< Retrieve the set of question for a given bug category.
     Q_INVOKABLE void setQuestionAnswer(quint8 questionId, QString const &answer); ///< Feed an answer for a given question.
+    Q_INVOKABLE QString getQuestionAnswer(quint8 questionId) const; ///< Get the answer for a given question.
     Q_INVOKABLE QString collectAnswers(quint8 categoryId) const; ///< Collect answer for a given set of questions.
+    Q_INVOKABLE void clearAnswers(); ///< Clear all collected answers.
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
     Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)

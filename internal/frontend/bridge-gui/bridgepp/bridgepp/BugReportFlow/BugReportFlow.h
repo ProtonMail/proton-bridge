@@ -33,23 +33,25 @@ public: // member functions.
     BugReportFlow(BugReportFlow &&) = delete; ///< Disabled assignment copy-constructor.
     ~BugReportFlow() = default; ///< Destructor.
 
-    bool parse(const QString& filepath); ///< Initialize the Bug Report Flow.
+    [[nodiscard]] bool parse(const QString& filepath); ///< Initialize the Bug Report Flow.
 
-    QStringList categories() const; ///< Getter for the 'bugCategories' property.
-    QVariantList questions() const; ///< Getter for the 'bugQuestions' property.
-    QVariantList questionSet(quint8 categoryId) const; ///< Retrieve the set of question for a given bug category.
+    [[nodiscard]] QStringList categories() const; ///< Getter for the 'bugCategories' property.
+    [[nodiscard]] QVariantList questions() const; ///< Getter for the 'bugQuestions' property.
+    [[nodiscard]] QVariantList questionSet(quint8 categoryId) const; ///< Retrieve the set of question for a given bug category.
 
-    bool setAnswer(quint8 questionId, QString const &answer); ///< Feed an answer for a given question.
-    QString collectAnswers(quint8 categoryId) const; ///< Collect answer for a given set of questions.
+    [[nodiscard]] bool setAnswer(quint8 questionId, QString const &answer); ///< Feed an answer for a given question.
+    [[nodiscard]] QString getAnswer(quint8 questionId) const; ///< Collect answer for a given questions.
+    [[nodiscard]] QString collectAnswers(quint8 categoryId) const; ///< Collect answer for a given set of questions.
     void clearAnswers(); ///< Clear all collected answers.
 
 
 private: // member functions
     bool parseFile(); ///< Parse the bug report flow description file.
-    QJsonObject getJsonRootObj(); ///< Extract the JSON root object.
-    QJsonObject getJsonDataObj(const QJsonObject& root); ///< Extract the JSON data object.
-    QString getJsonVersion(const QJsonObject& root); ///< Extract the JSON version of the file.
-    QJsonObject migrateData(const QJsonObject& data, const QString& version); ///< Migrate data if needed/possible.
+    void reset(); ///< Reset all data.
+    [[nodiscard]] QJsonObject getJsonRootObj() const; ///< Extract the JSON root object.
+    [[nodiscard]] QJsonObject getJsonDataObj(const QJsonObject& root) const; ///< Extract the JSON data object.
+    [[nodiscard]] QString getJsonVersion(const QJsonObject& root) const; ///< Extract the JSON version of the file.
+    [[nodiscard]] QJsonObject migrateData(const QJsonObject& data, const QString& version) const; ///< Migrate data if needed/possible.
 
 private: // data members
     QString filepath_; ///< The file path of the BugReportFlow description file.

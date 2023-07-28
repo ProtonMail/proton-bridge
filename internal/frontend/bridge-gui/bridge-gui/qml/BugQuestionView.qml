@@ -65,6 +65,13 @@ SettingsView {
             onAnswerChanged:{
                 Backend.setQuestionAnswer(modelData, answer);
             }
+
+            Connections {
+                function onVisibleChanged() {
+                    setDefaultValue(Backend.getQuestionAnswer(modelData))
+                }
+                target:root
+            }
         }
     }
     // fill height so the footer label will always be attached to the bottom

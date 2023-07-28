@@ -22,6 +22,36 @@
 using namespace bridgepp;
 
 
+namespace {
+
+
+    const QString goodJson = "{"
+                             "  \"metadata\": {"
+                             "    \"version\": \"1.0.0\""
+                             "  },"
+                             "  \"data_v1.0.0\": {"
+                             "    \"categories\": ["
+                             "      {"
+                             "        \"id\": 0,"
+                             "        \"name\": \"I can't receive mail\","
+                             "        \"questions\": [0]"
+                             "      }"
+                             "    ],"
+                             "    \"questions\": ["
+                             "      {"
+                             "        \"id\": 0,"
+                             "        \"text\": \"What happened?\","
+                             "        \"tips\": \"Expected behavior\","
+                             "        \"type\": 1"
+                             "      }"
+                             "    ]"
+                             "  }"
+                             "}";
+
+
+}
+
+
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
@@ -84,28 +114,7 @@ TEST_F(BugReportFlowFixture, emptyFile) {
 //
 //****************************************************************************************************************************************************
 TEST_F(BugReportFlowFixture, validFile) {
-    feedTempFile("{"
-                 "  \"metadata\": {"
-                 "    \"version\": \"1.0.0\""
-                 "  },"
-                 "  \"data_v1.0.0\": {"
-                 "    \"categories\": ["
-                 "      {"
-                 "        \"id\": 0,"
-                 "        \"name\": \"I can't receive mail\","
-                 "        \"questions\": [0]"
-                 "      }"
-                 "    ],"
-                 "    \"questions\": ["
-                 "      {"
-                 "        \"id\": 0,"
-                 "        \"text\": \"What happened?\","
-                 "        \"tips\": \"Expected behavior\","
-                 "        \"type\": 1"
-                 "      }"
-                 "    ]"
-                 "  }"
-                 "}");
+    feedTempFile(goodJson);
 
     EXPECT_TRUE(flow_.parse(file_.fileName()));
     QStringList categories = flow_.categories();
@@ -131,6 +140,8 @@ TEST_F(BugReportFlowFixture, validFile) {
     qDebug() << flow_.collectAnswers(0);
     EXPECT_EQ(flow_.collectAnswers(0), "Category: I can't receive mail\n\r - What happened?\n\rpwet\n\r");
     EXPECT_EQ(flow_.collectAnswers(1), "");
+    EXPECT_EQ(flow_.getAnswer(0), "pwet");
+    EXPECT_EQ(flow_.getAnswer(1), "");
     flow_.clearAnswers();
     EXPECT_EQ(flow_.collectAnswers(0), "Category: I can't receive mail\n\r");
 }

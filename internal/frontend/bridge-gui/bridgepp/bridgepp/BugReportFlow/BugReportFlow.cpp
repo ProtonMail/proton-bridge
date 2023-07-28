@@ -92,6 +92,19 @@ bool BugReportFlow::setAnswer(quint8 questionId, QString const &answer) {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] questionId The id of the question.
+/// \return answer the given question.
+//****************************************************************************************************************************************************
+QString BugReportFlow::getAnswer(quint8 questionId) const {
+    QString answer;
+    if (questionId <= questions_.count() - 1) {
+        answer = answers_[questionId];
+    }
+    return answer;
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] categoryId The id of the question set.
 /// \return concatenate answers for set of questions.
 //****************************************************************************************************************************************************
@@ -103,7 +116,7 @@ QString BugReportFlow::collectAnswers(quint8 categoryId) const {
     answers += "Category: " + categories_[categoryId] + "\n\r";
     QVariantList sets = this->questionSet(categoryId);
     for (QVariant const &var: sets) {
-        const QString& answer = answers_[var.toInt()];
+        const QString& answer = getAnswer(var.toInt());
         if (answer.isEmpty())
             continue;
         answers += " - " + questions_[var.toInt()].toMap()["text"].toString() + "\n\r";
@@ -122,15 +135,12 @@ void BugReportFlow::clearAnswers() {
 
 
 //****************************************************************************************************************************************************
-//
+/// \return true iff parsing succeed.
 //****************************************************************************************************************************************************
 bool BugReportFlow::parseFile() {
-    categories_.clear();
-    questions_.clear();
-    questionsSet_.clear();
+    reset();
 
     QJsonObject data = getJsonDataObj(getJsonRootObj());
-
     QJsonArray categoriesJson = data.value("categories").toArray();
     for (const QJsonValueRef &v : categoriesJson) {
         categories_.append(v.toObject()["name"].toString());
@@ -140,7 +150,22 @@ bool BugReportFlow::parseFile() {
     return true;
 }
 
-QJsonObject BugReportFlow::getJsonRootObj() {
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void BugReportFlow::reset() {
+    categories_.clear();
+    questions_.clear();
+    questionsSet_.clear();
+    answers_.clear();
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+QJsonObject BugReportFlow::getJsonRootObj() const {
     QFile file(filepath_);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return QJsonObject();
@@ -152,7 +177,10 @@ QJsonObject BugReportFlow::getJsonRootObj() {
 }
 
 
-QJsonObject BugReportFlow::getJsonDataObj(const QJsonObject& root) {
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+QJsonObject BugReportFlow::getJsonDataObj(const QJsonObject& root) const {
     QString version = getJsonVersion(root);
     if (version.isEmpty())
         return QJsonObject();
@@ -160,13 +188,15 @@ QJsonObject BugReportFlow::getJsonDataObj(const QJsonObject& root) {
     QJsonValue data = root.value(QString("data_v%1").arg(version));
     if (data == QJsonValue::Undefined || !data.isObject())
         return QJsonObject();
-    QJsonObject dataObj = data.toObject();
 
-    return migrateData(dataObj, version);
+    return migrateData(data.toObject(), version);
 }
 
 
-QString BugReportFlow::getJsonVersion(const QJsonObject& root) {
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+QString BugReportFlow::getJsonVersion(const QJsonObject& root) const{
     QJsonValue metadata = root.value("metadata");
     if (metadata == QJsonValue::Undefined || !metadata.isObject()) {
         return QString();
@@ -179,9 +209,13 @@ QString BugReportFlow::getJsonVersion(const QJsonObject& root) {
 }
 
 
-QJsonObject BugReportFlow::migrateData(const QJsonObject& data, const QString& version) {
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+QJsonObject BugReportFlow::migrateData(const QJsonObject& data, const QString& version) const{
     if (version != currentFormatVersion)
         return QJsonObject();
+
     // nothing to migrate now but migration should be done here.
     return data;
 }
