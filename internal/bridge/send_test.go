@@ -467,7 +467,9 @@ SGVsbG8gd29ybGQK
 			require.Eventually(t, func() bool {
 				messages, err := clientFetch(senderIMAPClient, `Sent`, imap.FetchBodyStructure)
 				require.NoError(t, err)
-				require.Equal(t, 4, len(messages))
+				if len(messages) != 4 {
+					return false
+				}
 
 				// messages may not be in order
 				for _, message := range messages {
