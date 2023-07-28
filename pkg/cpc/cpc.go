@@ -20,6 +20,7 @@ package cpc
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 var ErrInvalidReplyType = errors.New("reply type does not match")
@@ -40,6 +41,12 @@ func (r *Request) Value() any {
 // Reply should be used to send a reply to a given request.
 func (r *Request) Reply(ctx context.Context, value any, err error) {
 	defer close(r.reply)
+
+	// There is a chance when `A` sends a request to `B` that the `A`'s context is cancelled before `B` is able to reply.
+	// This can cause `B` to wait forever. To avoid that situation we use a context with a deadline. This is safe
+	// since `A` is blocked waiting on our reply, and if the above happens, there's nothing left to do.
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(10*time.Second))
+	defer cancel()
 
 	select {
 	case <-ctx.Done():
