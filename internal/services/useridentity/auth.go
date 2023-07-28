@@ -24,3 +24,15 @@ type KeyPassProvider interface {
 type BridgePassProvider interface {
 	BridgePass() []byte
 }
+
+type FixedBridgePassProvider struct {
+	pass []byte
+}
+
+func (f FixedBridgePassProvider) BridgePass() []byte {
+	return f.pass
+}
+
+func NewFixedBridgePassProvider(pass []byte) *FixedBridgePassProvider {
+	return &FixedBridgePassProvider{pass: pass}
+}

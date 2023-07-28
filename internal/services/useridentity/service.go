@@ -21,13 +21,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/orderedtasks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
 
@@ -39,6 +41,7 @@ type IdentityProvider interface {
 // Service contains all the data required to establish the user identity. This
 // includes all the user's information as well as mail addresses and keys.
 type Service struct {
+	cpc            *cpc.CPC
 	eventService   userevents.Subscribable
 	eventPublisher events.EventPublisher
 	log            *logrus.Entry
@@ -48,16 +51,22 @@ type Service struct {
 	addressSubscriber   *userevents.AddressChanneledSubscriber
 	usedSpaceSubscriber *userevents.UserUsedSpaceChanneledSubscriber
 	refreshSubscriber   *userevents.RefreshChanneledSubscriber
+
+	bridgePassProvider BridgePassProvider
+	telemetry          Telemetry
 }
 
 func NewService(
 	service userevents.Subscribable,
 	eventPublisher events.EventPublisher,
 	state *State,
+	bridgePassProvider BridgePassProvider,
+	telemetry Telemetry,
 ) *Service {
 	subscriberName := fmt.Sprintf("identity-%v", state.User.ID)
 
 	return &Service{
+		cpc:            cpc.NewCPC(),
 		eventService:   service,
 		identity:       *state,
 		eventPublisher: eventPublisher,
@@ -69,12 +78,33 @@ func NewService(
 		refreshSubscriber:   userevents.NewRefreshSubscriber(subscriberName),
 		addressSubscriber:   userevents.NewAddressSubscriber(subscriberName),
 		usedSpaceSubscriber: userevents.NewUserUsedSpaceSubscriber(subscriberName),
+		bridgePassProvider:  bridgePassProvider,
+		telemetry:           telemetry,
 	}
 }
 
-func (s *Service) Start(group *async.Group) {
-	group.Once(func(ctx context.Context) {
-		s.run(ctx)
+func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGroup) {
+	group.Go(ctx, s.identity.User.ID, "identity-service", s.run)
+}
+
+func (s *Service) Resync(ctx context.Context) error {
+	_, err := s.cpc.Send(ctx, &resyncReq{})
+
+	return err
+}
+
+func (s *Service) GetAPIUser(ctx context.Context) (proton.User, error) {
+	return cpc.SendTyped[proton.User](ctx, s.cpc, &getUserReq{})
+}
+
+func (s *Service) GetAddresses(ctx context.Context) (map[string]proton.Address, error) {
+	return cpc.SendTyped[map[string]proton.Address](ctx, s.cpc, &getAddressesReq{})
+}
+
+func (s *Service) CheckAuth(ctx context.Context, email string, password []byte) (string, error) {
+	return cpc.SendTyped[string](ctx, s.cpc, &checkAuthReq{
+		email:    email,
+		password: password,
 	})
 }
 
@@ -82,14 +112,40 @@ func (s *Service) run(ctx context.Context) {
 	s.log.WithFields(logrus.Fields{
 		"numAddr": len(s.identity.Addresses),
 	}).Info("Starting user identity service")
+	defer s.log.Info("Exiting Service")
 
 	s.registerSubscription()
 	defer s.unregisterSubscription()
+
+	defer s.cpc.Close()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
+		case r, ok := <-s.cpc.ReceiveCh():
+			if !ok {
+				continue
+			}
+			switch req := r.Value().(type) {
+			case *resyncReq:
+				err := s.identity.OnRefreshEvent(ctx)
+				r.Reply(ctx, nil, err)
+
+			case *getUserReq:
+				r.Reply(ctx, s.identity.User, nil)
+
+			case *getAddressesReq:
+				r.Reply(ctx, maps.Clone(s.identity.Addresses), nil)
+
+			case *checkAuthReq:
+				id, err := s.identity.CheckAuth(req.email, req.password, s.bridgePassProvider, s.telemetry)
+				r.Reply(ctx, id, err)
+
+			default:
+				s.log.Error("Invalid request")
+			}
+
 		case evt, ok := <-s.userSubscriber.OnEventCh():
 			if !ok {
 				continue
@@ -260,3 +316,14 @@ func sortAddresses(addr []proton.Address) []proton.Address {
 func buildAddressMapFromSlice(addr []proton.Address) map[string]proton.Address {
 	return usertypes.GroupBy(addr, func(addr proton.Address) string { return addr.ID })
 }
+
+type resyncReq struct{}
+
+type getUserReq struct{}
+
+type checkAuthReq struct {
+	email    string
+	password []byte
+}
+
+type getAddressesReq struct{}

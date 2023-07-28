@@ -21,14 +21,13 @@ import (
 	"context"
 	"crypto/subtle"
 	"fmt"
-	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"strings"
 
 	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 )
 
 // State holds all the required user identity state. The idea of this type is that
@@ -80,6 +79,13 @@ func (s *State) GetAddr(email string) (proton.Address, error) {
 	}
 
 	return proton.Address{}, fmt.Errorf("address %s not found", email)
+}
+
+// GetAddrByID returns the address for the given addressID.
+func (s *State) GetAddrByID(id string) (proton.Address, bool) {
+	v, ok := s.Addresses[id]
+
+	return v, ok
 }
 
 // GetPrimaryAddr returns the primary address for this user.
@@ -204,9 +210,15 @@ func (s *State) OnAddressEvents(events []proton.AddressEvent) {
 }
 
 func (s *State) Clone() *State {
+	mapCopy := make(map[string]proton.Address, len(s.Addresses))
+	sliceCopy := make([]proton.Address, len(s.AddressesSorted))
+
+	copy(sliceCopy, s.AddressesSorted)
+	maps.Copy(mapCopy, s.Addresses)
+
 	return &State{
-		AddressesSorted: slices.Clone(s.AddressesSorted),
-		Addresses:       maps.Clone(s.Addresses),
+		AddressesSorted: sliceCopy,
+		Addresses:       mapCopy,
 		User:            s.User,
 		provider:        s.provider,
 	}
