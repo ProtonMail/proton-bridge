@@ -211,13 +211,19 @@ func (s *scenario) bridgeSendsAnAddressDeletedEventForUser(username string) erro
 }
 
 func (s *scenario) bridgeSendsSyncStartedAndFinishedEventsForUser(username string) error {
-	startEvent, ok := awaitType(s.t.events, events.SyncStarted{}, 30*time.Second)
-	if !ok {
-		return errors.New("expected sync started event, got none")
-	}
+	wantUserID := s.t.getUserByName(username).getUserID()
+	for {
+		startEvent, ok := awaitType(s.t.events, events.SyncStarted{}, 30*time.Second)
+		if !ok {
+			return errors.New("expected sync started event, got none")
+		}
 
-	if wantUserID := s.t.getUserByName(username).getUserID(); startEvent.UserID != wantUserID {
-		return fmt.Errorf("expected sync started event for user %s, got %s", wantUserID, startEvent.UserID)
+		// There can be multiple sync events, and some might not be for this user
+		if startEvent.UserID != wantUserID {
+			continue
+		}
+
+		break
 	}
 
 	finishEvent, ok := awaitType(s.t.events, events.SyncFinished{}, 30*time.Second)
