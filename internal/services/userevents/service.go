@@ -32,6 +32,7 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/orderedtasks"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
@@ -176,12 +177,12 @@ func (s *Service) Resume() {
 	atomic.StoreUint32(&s.paused, 0)
 }
 
-// IsPaused return true if the service is paused
+// IsPaused return true if the service is paused.
 func (s *Service) IsPaused() bool {
 	return atomic.LoadUint32(&s.paused) == 1
 }
 
-func (s *Service) Start(ctx context.Context, group *async.Group) error {
+func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGroup) error {
 	lastEventID, err := s.eventIDStore.Load(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to load last event id: %w", err)
@@ -201,7 +202,7 @@ func (s *Service) Start(ctx context.Context, group *async.Group) error {
 		lastEventID = eventID
 	}
 
-	group.Once(func(ctx context.Context) {
+	group.Go(ctx, s.userID, "event-service", func(ctx context.Context) {
 		s.run(ctx, lastEventID)
 	})
 
@@ -209,9 +210,10 @@ func (s *Service) Start(ctx context.Context, group *async.Group) error {
 }
 
 func (s *Service) run(ctx context.Context, lastEventID string) {
-	s.log.Debugf("Starting service Last EventID=%v", lastEventID)
+	s.log.Infof("Starting service Last EventID=%v", lastEventID)
 	defer s.close()
-	defer s.log.Debug("Exiting service")
+	defer s.log.Info("Exiting service")
+	defer s.Close()
 
 	for {
 		select {
@@ -491,9 +493,3 @@ func (s *Service) removeSubscription(subscription Subscription) {
 func (s *Service) close() {
 	s.timer.Stop()
 }
-
-type pauseRequest struct{}
-
-type resumeRequest struct{}
-
-type isPausedRequest struct{}

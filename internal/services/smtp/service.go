@@ -28,6 +28,7 @@ import (
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	bridgelogging "github.com/ProtonMail/proton-bridge/v3/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/orderedtasks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/useridentity"
@@ -122,6 +123,12 @@ func (s *Service) SetAddressMode(ctx context.Context, mode usertypes.AddressMode
 	return err
 }
 
+func (s *Service) Resync(ctx context.Context) error {
+	_, err := s.cpc.Send(ctx, &resyncReq{})
+
+	return err
+}
+
 func (s *Service) checkAuth(ctx context.Context, email string, password []byte) (string, error) {
 	return cpc.SendTyped[string](ctx, s.cpc, &checkAuthReq{
 		email:    email,
@@ -129,9 +136,9 @@ func (s *Service) checkAuth(ctx context.Context, email string, password []byte) 
 	})
 }
 
-func (s *Service) Start(group *async.Group) {
+func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGroup) {
 	s.log.Debug("Starting service")
-	group.Once(func(ctx context.Context) {
+	group.Go(ctx, s.userID, "smtp-service", func(ctx context.Context) {
 		logging.DoAnnotated(ctx, func(ctx context.Context) {
 			s.run(ctx)
 		}, logging.Labels{
@@ -146,8 +153,8 @@ func (s *Service) UserID() string {
 }
 
 func (s *Service) run(ctx context.Context) {
-	s.log.Debug("Starting service main loop")
-	defer s.log.Debug("Exiting service main loop")
+	s.log.Info("Starting service main loop")
+	defer s.log.Info("Exiting service main loop")
 	defer s.cpc.Close()
 
 	subscription := userevents.Subscription{
@@ -184,6 +191,10 @@ func (s *Service) run(ctx context.Context) {
 				s.log.WithField("email", bridgelogging.Sensitive(r.email)).Debug("Checking authentication")
 				addrID, err := s.identityState.CheckAuth(r.email, r.password, s.bridgePassProvider, s.telemetry)
 				request.Reply(ctx, addrID, err)
+
+			case *resyncReq:
+				err := s.identityState.OnRefreshEvent(ctx)
+				request.Reply(ctx, nil, err)
 
 			default:
 				s.log.Error("Received unknown request")
@@ -249,3 +260,5 @@ type checkAuthReq struct {
 	email    string
 	password []byte
 }
+
+type resyncReq struct{}

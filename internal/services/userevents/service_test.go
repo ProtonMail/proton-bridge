@@ -27,6 +27,7 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	mocks2 "github.com/ProtonMail/proton-bridge/v3/internal/events/mocks"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/orderedtasks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -40,7 +41,7 @@ func TestService_EventIDLoadStore(t *testing.T) {
 	// * Start event poll loop
 	// * Get new event id, store it in vault
 	// * Try to poll new event it, but context is cancelled
-	group := async.NewGroup(context.Background(), &async.NoopPanicHandler{})
+	group := orderedtasks.NewOrderedCancelGroup(async.NoopPanicHandler{})
 	mockCtrl := gomock.NewController(t)
 	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
 	eventIDStore := mocks.NewMockEventIDStore(mockCtrl)
@@ -68,11 +69,11 @@ func TestService_EventIDLoadStore(t *testing.T) {
 	service := NewService("foo", eventSource, eventIDStore, eventPublisher, 1*time.Millisecond, time.Second, async.NoopPanicHandler{})
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
-	group.WaitToFinish()
+	group.Wait()
 }
 
 func TestService_RetryEventOnNonCatastrophicFailure(t *testing.T) {
-	group := async.NewGroup(context.Background(), &async.NoopPanicHandler{})
+	group := orderedtasks.NewOrderedCancelGroup(async.NoopPanicHandler{})
 	mockCtrl := gomock.NewController(t)
 	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
 	eventIDStore := mocks.NewMockEventIDStore(mockCtrl)
@@ -114,11 +115,11 @@ func TestService_RetryEventOnNonCatastrophicFailure(t *testing.T) {
 
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
-	group.WaitToFinish()
+	group.Wait()
 }
 
 func TestService_OnBadEventServiceIsPaused(t *testing.T) {
-	group := async.NewGroup(context.Background(), &async.NoopPanicHandler{})
+	group := orderedtasks.NewOrderedCancelGroup(async.NoopPanicHandler{})
 	mockCtrl := gomock.NewController(t)
 	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
 	eventIDStore := mocks.NewMockEventIDStore(mockCtrl)
@@ -158,7 +159,7 @@ func TestService_OnBadEventServiceIsPaused(t *testing.T) {
 		EventInfo:  secondEvent[0].String(),
 		Error:      badEventErr,
 	}).Do(func(_ context.Context, event events.Event) {
-		group.Once(func(_ context.Context) {
+		group.Go(context.Background(), "", "", func(_ context.Context) {
 			// Use background context to avoid having the request cancelled
 			require.True(t, service.IsPaused())
 			group.Cancel()
@@ -168,11 +169,11 @@ func TestService_OnBadEventServiceIsPaused(t *testing.T) {
 	service.Subscribe(Subscription{Messages: subscriber})
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
-	group.WaitToFinish()
+	group.Wait()
 }
 
 func TestService_UnsubscribeDuringEventHandlingDoesNotCauseDeadlock(t *testing.T) {
-	group := async.NewGroup(context.Background(), &async.NoopPanicHandler{})
+	group := orderedtasks.NewOrderedCancelGroup(async.NoopPanicHandler{})
 	mockCtrl := gomock.NewController(t)
 	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
 	eventIDStore := mocks.NewMockEventIDStore(mockCtrl)
@@ -207,6 +208,7 @@ func TestService_UnsubscribeDuringEventHandlingDoesNotCauseDeadlock(t *testing.T
 	// Subscriber expectations.
 	subscriber.EXPECT().name().AnyTimes().Return("Foo")
 	subscriber.EXPECT().cancel().Times(1)
+	subscriber.EXPECT().close().Times(1)
 	subscriber.EXPECT().handle(gomock.Any(), gomock.Eq(messageEvents)).Times(1).DoAndReturn(func(_ context.Context, _ []proton.MessageEvent) error {
 		service.Unsubscribe(Subscription{Messages: subscriber})
 		return nil
@@ -215,11 +217,11 @@ func TestService_UnsubscribeDuringEventHandlingDoesNotCauseDeadlock(t *testing.T
 	service.Subscribe(Subscription{Messages: subscriber})
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
-	group.WaitToFinish()
+	group.Wait()
 }
 
 func TestService_UnsubscribeBeforeHandlingEventIsNotConsideredError(t *testing.T) {
-	group := async.NewGroup(context.Background(), &async.NoopPanicHandler{})
+	group := orderedtasks.NewOrderedCancelGroup(async.NoopPanicHandler{})
 	mockCtrl := gomock.NewController(t)
 	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
 	eventIDStore := mocks.NewMockEventIDStore(mockCtrl)
@@ -253,7 +255,7 @@ func TestService_UnsubscribeBeforeHandlingEventIsNotConsideredError(t *testing.T
 	service := NewService("foo", eventSource, eventIDStore, eventPublisher, 1*time.Millisecond, time.Second, async.NoopPanicHandler{})
 
 	// start subscriber
-	group.Once(func(_ context.Context) {
+	group.Go(context.Background(), "", "", func(_ context.Context) {
 		defer service.Unsubscribe(Subscription{Messages: subscriber})
 
 		// Simulate the reception of an event, but it is never handled due to unexpected exit
@@ -263,5 +265,5 @@ func TestService_UnsubscribeBeforeHandlingEventIsNotConsideredError(t *testing.T
 	service.Subscribe(Subscription{Messages: subscriber})
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
-	group.WaitToFinish()
+	group.Wait()
 }
