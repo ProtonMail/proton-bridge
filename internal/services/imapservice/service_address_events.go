@@ -41,10 +41,6 @@ func (s *Service) onAddressEvent(ctx context.Context, events []proton.AddressEve
 		return nil
 	}
 
-	if s.addressMode != usertypes.AddressModeSplit {
-		return nil
-	}
-
 	for _, event := range events {
 		switch event.Action {
 		case proton.EventCreate:

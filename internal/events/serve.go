@@ -37,6 +37,22 @@ func (event IMAPServerStopped) String() string {
 	return "IMAPServerStopped"
 }
 
+type IMAPServerClosed struct {
+	eventBase
+}
+
+func (event IMAPServerClosed) String() string {
+	return "IMAPServerClosed"
+}
+
+type IMAPServerCreated struct {
+	eventBase
+}
+
+func (event IMAPServerCreated) String() string {
+	return "IMAPServerCreated"
+}
+
 type IMAPServerError struct {
 	eventBase
 

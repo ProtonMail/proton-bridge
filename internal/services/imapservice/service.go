@@ -200,7 +200,7 @@ func (s *Service) CancelSync(ctx context.Context) error {
 }
 
 func (s *Service) ResumeSync(ctx context.Context) error {
-	_, err := s.cpc.Send(ctx, &cancelSyncReq{})
+	_, err := s.cpc.Send(ctx, &resumeSyncReq{})
 
 	return err
 }

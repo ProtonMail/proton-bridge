@@ -20,6 +20,9 @@ package events
 import (
 	"context"
 	"fmt"
+
+	"github.com/ProtonMail/gluon/async"
+	"github.com/ProtonMail/gluon/watcher"
 )
 
 type Event interface {
@@ -39,3 +42,22 @@ type EventPublisher interface {
 type NullEventPublisher struct{}
 
 func (NullEventPublisher) PublishEvent(_ context.Context, _ Event) {}
+
+type Subscription interface {
+	Add(ofType ...Event) *watcher.Watcher[Event]
+	Remove(watcher *watcher.Watcher[Event])
+}
+
+type NullSubscription struct{}
+
+func (n NullSubscription) Add(ofType ...Event) *watcher.Watcher[Event] {
+	return watcher.New[Event](&async.NoopPanicHandler{}, ofType...)
+}
+
+func (n NullSubscription) Remove(watcher *watcher.Watcher[Event]) {
+	watcher.Close()
+}
+
+func NewNullSubscription() *NullSubscription {
+	return &NullSubscription{}
+}

@@ -26,6 +26,8 @@ import (
 	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/go-proton-api/server/backend"
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry/mocks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/tests"
@@ -147,9 +149,28 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 
 	ctl := gomock.NewController(tb)
 	defer ctl.Finish()
+
 	manager := mocks.NewMockHeartbeatManager(ctl)
+
 	manager.EXPECT().IsTelemetryAvailable(context.Background()).AnyTimes()
-	user, err := New(ctx, vaultUser, client, nil, apiUser, nil, true, vault.DefaultMaxSyncMemory, tb.TempDir(), manager)
+
+	nullEventSubscription := events.NewNullSubscription()
+	nullServerManager := imapservice.NewNullIMAPServerManager()
+
+	user, err := New(
+		ctx,
+		vaultUser,
+		client,
+		nil,
+		apiUser,
+		nil,
+		true,
+		vault.DefaultMaxSyncMemory,
+		tb.TempDir(),
+		manager,
+		nullServerManager,
+		nullEventSubscription,
+	)
 	require.NoError(tb, err)
 	defer user.Close()
 

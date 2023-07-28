@@ -36,8 +36,14 @@ func BenchmarkAddrKeyRing(b *testing.B) {
 			withUser(b, ctx, s, m, "username", "password", func(user *User) {
 				b.StartTimer()
 
+				apiUser, err := user.identityService.GetAPIUser(ctx)
+				require.NoError(b, err)
+
+				apiAddrs, err := user.identityService.GetAddresses(ctx)
+				require.NoError(b, err)
+
 				for i := 0; i < b.N; i++ {
-					require.NoError(b, usertypes.WithAddrKRs(user.apiUser, user.apiAddrs, user.vault.KeyPass(), func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
+					require.NoError(b, usertypes.WithAddrKRs(apiUser, apiAddrs, user.vault.KeyPass(), func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
 						return nil
 					}))
 				}

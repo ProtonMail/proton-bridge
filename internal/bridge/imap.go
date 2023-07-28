@@ -36,23 +36,12 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
-	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/sirupsen/logrus"
 )
 
 func (bridge *Bridge) restartIMAP(ctx context.Context) error {
 	return bridge.serverManager.RestartIMAP(ctx)
-}
-
-// addIMAPUser connects the given user to gluon.
-func (bridge *Bridge) addIMAPUser(ctx context.Context, user *user.User) error {
-	return bridge.serverManager.AddIMAPUser(ctx, user)
-}
-
-// removeIMAPUser disconnects the given user from gluon, optionally also removing its files.
-func (bridge *Bridge) removeIMAPUser(ctx context.Context, user *user.User, withData bool) error {
-	return bridge.serverManager.RemoveIMAPUser(ctx, user, withData)
 }
 
 func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {

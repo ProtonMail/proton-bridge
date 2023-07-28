@@ -79,7 +79,7 @@ func (bridge *Bridge) CheckClientState(ctx context.Context, checkFlags bool, pro
 		}
 
 		log.Debug("Building state")
-		state, err := meta.BuildMailboxToMessageMap(usr)
+		state, err := meta.BuildMailboxToMessageMap(ctx, usr)
 		if err != nil {
 			log.WithError(err).Error("Failed to build state")
 			return result, err

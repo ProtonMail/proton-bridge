@@ -54,6 +54,7 @@ import (
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 var (
@@ -621,6 +622,10 @@ func TestBridge_AddressWithoutKeys(t *testing.T) {
 		defer m.Close()
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Watch for sync finished event.
+			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+			defer done()
+
 			// Create a user which will have an address without keys.
 			userID, _, err := s.CreateUser("nokeys", []byte("password"))
 			require.NoError(t, err)
@@ -640,10 +645,6 @@ func TestBridge_AddressWithoutKeys(t *testing.T) {
 
 			// Remove the address keys.
 			require.NoError(t, s.RemoveAddressKey(userID, aliasAddrID, aliasAddr.Keys[0].ID))
-
-			// Watch for sync finished event.
-			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
-			defer done()
 
 			// We should be able to log the user in.
 			require.NoError(t, getErr(bridge.LoginFull(context.Background(), "nokeys", []byte("password"), nil, nil)))
@@ -873,6 +874,9 @@ func TestBridge_ChangeAddressOrder(t *testing.T) {
 
 // withEnv creates the full test environment and runs the tests.
 func withEnv(t *testing.T, tests func(context.Context, *server.Server, *proton.NetCtl, bridge.Locator, []byte), opts ...server.Option) {
+	opt := goleak.IgnoreCurrent()
+	defer goleak.VerifyNone(t, opt)
+
 	server := server.New(opts...)
 	defer server.Close()
 

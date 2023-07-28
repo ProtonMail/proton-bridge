@@ -288,7 +288,7 @@ MessageSubscriber,LabelSubscriber,AddressSubscriber,RefreshSubscriber,UserSubscr
 	mv tmp internal/services/userevents/mocks_test.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/events EventPublisher \
 > internal/events/mocks/mocks.go
-	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/services/useridentity IdentityProvider \
+	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/services/useridentity IdentityProvider,Telemetry \
 > internal/services/useridentity/mocks/mocks.go
 
 lint: gofiles lint-golang lint-license lint-dependencies lint-changelog

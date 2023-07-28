@@ -408,17 +408,17 @@ func (bridge *Bridge) GetErrors() []error {
 func (bridge *Bridge) Close(ctx context.Context) {
 	logrus.Info("Closing bridge")
 
-	// Close the servers
-	if err := bridge.serverManager.CloseServers(ctx); err != nil {
-		logrus.WithError(err).Error("Failed to close servers")
-	}
-
 	// Close all users.
 	safe.Lock(func() {
 		for _, user := range bridge.users {
 			user.Close()
 		}
 	}, bridge.usersLock)
+
+	// Close the servers
+	if err := bridge.serverManager.CloseServers(ctx); err != nil {
+		logrus.WithError(err).Error("Failed to close servers")
+	}
 
 	// Stop all ongoing tasks.
 	bridge.tasks.CancelAndWait()

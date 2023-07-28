@@ -28,8 +28,8 @@ import (
 	"github.com/ProtonMail/gluon/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
 	bridgesmtp "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
-	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
@@ -97,16 +97,18 @@ func (sm *ServerManager) RestartSMTP(ctx context.Context) error {
 	return err
 }
 
-func (sm *ServerManager) AddIMAPUser(ctx context.Context, user *user.User) error {
-	_, err := sm.requests.Send(ctx, &smRequestAddIMAPUser{user: user})
-
-	return err
-}
-
-func (sm *ServerManager) RemoveIMAPUser(ctx context.Context, user *user.User, withData bool) error {
-	_, err := sm.requests.Send(ctx, &smRequestRemoveIMAPUser{
-		user:     user,
-		withData: withData,
+func (sm *ServerManager) AddIMAPUser(
+	ctx context.Context,
+	connector connector.Connector,
+	addrID string,
+	idProvider imapservice.GluonIDProvider,
+	syncStateProvider imapservice.SyncStateProvider,
+) error {
+	_, err := sm.requests.Send(ctx, &smRequestAddIMAPUser{
+		connector:         connector,
+		addrID:            addrID,
+		idProvider:        idProvider,
+		syncStateProvider: syncStateProvider,
 	})
 
 	return err
@@ -120,18 +122,11 @@ func (sm *ServerManager) SetGluonDir(ctx context.Context, gluonDir string) error
 	return err
 }
 
-func (sm *ServerManager) AddGluonUser(ctx context.Context, conn connector.Connector, passphrase []byte) (string, error) {
-	reply, err := cpc.SendTyped[string](ctx, sm.requests, &smRequestAddGluonUser{
-		conn:       conn,
-		passphrase: passphrase,
-	})
-
-	return reply, err
-}
-
-func (sm *ServerManager) RemoveGluonUser(ctx context.Context, gluonID string) error {
-	_, err := sm.requests.Send(ctx, &smRequestRemoveGluonUser{
-		userID: gluonID,
+func (sm *ServerManager) RemoveIMAPUser(ctx context.Context, deleteData bool, provider imapservice.GluonIDProvider, addrID ...string) error {
+	_, err := sm.requests.Send(ctx, &smRequestRemoveIMAPUser{
+		withData:   deleteData,
+		addrID:     addrID,
+		idProvider: provider,
 	})
 
 	return err
@@ -195,31 +190,21 @@ func (sm *ServerManager) run(ctx context.Context, bridge *Bridge) {
 				request.Reply(ctx, nil, err)
 
 			case *smRequestAddIMAPUser:
-				err := sm.handleAddIMAPUser(ctx, r.user)
+				err := sm.handleAddIMAPUser(ctx, r.connector, r.addrID, r.idProvider, r.syncStateProvider)
 				request.Reply(ctx, nil, err)
 				if err == nil {
-					sm.loadedUserCount++
 					sm.handleLoadedUserCountChange(ctx, bridge)
 				}
 
 			case *smRequestRemoveIMAPUser:
-				err := sm.handleRemoveIMAPUser(ctx, r.user, r.withData)
+				err := sm.handleRemoveIMAPUser(ctx, r.withData, r.idProvider, r.addrID...)
 				request.Reply(ctx, nil, err)
 				if err == nil {
-					sm.loadedUserCount--
 					sm.handleLoadedUserCountChange(ctx, bridge)
 				}
 
 			case *smRequestSetGluonDir:
 				err := sm.handleSetGluonDir(ctx, bridge, r.dir)
-				request.Reply(ctx, nil, err)
-
-			case *smRequestAddGluonUser:
-				id, err := sm.handleAddGluonUser(ctx, r.conn, r.passphrase)
-				request.Reply(ctx, id, err)
-
-			case *smRequestRemoveGluonUser:
-				err := sm.handleRemoveGluonUser(ctx, r.userID)
 				request.Reply(ctx, nil, err)
 
 			case *smRequestAddSMTPAccount:
@@ -277,114 +262,133 @@ func (sm *ServerManager) handleClose(ctx context.Context, bridge *Bridge) {
 	}
 }
 
-func (sm *ServerManager) handleAddIMAPUser(ctx context.Context, user *user.User) error {
+func (sm *ServerManager) handleAddIMAPUser(ctx context.Context,
+	connector connector.Connector,
+	addrID string,
+	idProvider imapservice.GluonIDProvider,
+	syncStateProvider imapservice.SyncStateProvider,
+) error {
+	// Due to the many different error exits, performer user count change at this stage rather we split the incrementing
+	// of users from the logic.
+	err := sm.handleAddIMAPUserImpl(ctx, connector, addrID, idProvider, syncStateProvider)
+	if err == nil {
+		sm.loadedUserCount++
+	}
+
+	return err
+}
+
+func (sm *ServerManager) handleAddIMAPUserImpl(ctx context.Context,
+	connector connector.Connector,
+	addrID string,
+	idProvider imapservice.GluonIDProvider,
+	syncStateProvider imapservice.SyncStateProvider,
+) error {
 	if sm.imapServer == nil {
 		return fmt.Errorf("no imap server instance running")
 	}
 
-	imapConn, err := user.NewIMAPConnectors()
-	if err != nil {
-		return fmt.Errorf("failed to create IMAP connectors: %w", err)
-	}
+	log := logrus.WithFields(logrus.Fields{
+		"addrID": addrID,
+	})
+	log.Info("Adding user to imap server")
 
-	for addrID, imapConn := range imapConn {
-		log := logrus.WithFields(logrus.Fields{
-			"userID": user.ID(),
-			"addrID": addrID,
-		})
+	if gluonID, ok := idProvider.GetGluonID(addrID); ok {
+		log.WithField("gluonID", gluonID).Info("Loading existing IMAP user")
 
-		if gluonID, ok := user.GetGluonID(addrID); ok {
-			log.WithField("gluonID", gluonID).Info("Loading existing IMAP user")
+		// Load the user, checking whether the DB was newly created.
+		isNew, err := sm.imapServer.LoadUser(ctx, connector, gluonID, idProvider.GluonKey())
+		if err != nil {
+			return fmt.Errorf("failed to load IMAP user: %w", err)
+		}
 
-			// Load the user, checking whether the DB was newly created.
-			isNew, err := sm.imapServer.LoadUser(ctx, imapConn, gluonID, user.GluonKey())
-			if err != nil {
-				return fmt.Errorf("failed to load IMAP user: %w", err)
+		if isNew {
+			// If the DB was newly created, clear the sync status; gluon's DB was not found.
+			logrus.Warn("IMAP user DB was newly created, clearing sync status")
+
+			// Remove the user from IMAP so we can clear the sync status.
+			if err := sm.imapServer.RemoveUser(ctx, gluonID, false); err != nil {
+				return fmt.Errorf("failed to remove IMAP user: %w", err)
 			}
 
-			if isNew {
-				// If the DB was newly created, clear the sync status; gluon's DB was not found.
-				logrus.Warn("IMAP user DB was newly created, clearing sync status")
-
-				// Remove the user from IMAP so we can clear the sync status.
-				if err := sm.imapServer.RemoveUser(ctx, gluonID, false); err != nil {
-					return fmt.Errorf("failed to remove IMAP user: %w", err)
-				}
-
-				// Clear the sync status -- we need to resync all messages.
-				if err := user.ClearSyncStatus(); err != nil {
-					return fmt.Errorf("failed to clear sync status: %w", err)
-				}
-
-				// Add the user back to the IMAP server.
-				if isNew, err := sm.imapServer.LoadUser(ctx, imapConn, gluonID, user.GluonKey()); err != nil {
-					return fmt.Errorf("failed to add IMAP user: %w", err)
-				} else if isNew {
-					panic("IMAP user should already have a database")
-				}
-			} else if status := user.GetSyncStatus(); !status.HasLabels {
-				// Otherwise, the DB already exists -- if the labels are not yet synced, we need to re-create the DB.
-				if err := sm.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
-					return fmt.Errorf("failed to remove old IMAP user: %w", err)
-				}
-
-				if err := user.RemoveGluonID(addrID, gluonID); err != nil {
-					return fmt.Errorf("failed to remove old IMAP user ID: %w", err)
-				}
-
-				gluonID, err := sm.imapServer.AddUser(ctx, imapConn, user.GluonKey())
-				if err != nil {
-					return fmt.Errorf("failed to add IMAP user: %w", err)
-				}
-
-				if err := user.SetGluonID(addrID, gluonID); err != nil {
-					return fmt.Errorf("failed to set IMAP user ID: %w", err)
-				}
-
-				log.WithField("gluonID", gluonID).Info("Re-created IMAP user")
+			// Clear the sync status -- we need to resync all messages.
+			if err := syncStateProvider.ClearSyncStatus(); err != nil {
+				return fmt.Errorf("failed to clear sync status: %w", err)
 			}
-		} else {
-			log.Info("Creating new IMAP user")
 
-			gluonID, err := sm.imapServer.AddUser(ctx, imapConn, user.GluonKey())
+			// Add the user back to the IMAP server.
+			if isNew, err := sm.imapServer.LoadUser(ctx, connector, gluonID, idProvider.GluonKey()); err != nil {
+				return fmt.Errorf("failed to add IMAP user: %w", err)
+			} else if isNew {
+				panic("IMAP user should already have a database")
+			}
+		} else if status := syncStateProvider.GetSyncStatus(); !status.HasLabels {
+			// Otherwise, the DB already exists -- if the labels are not yet synced, we need to re-create the DB.
+			if err := sm.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
+				return fmt.Errorf("failed to remove old IMAP user: %w", err)
+			}
+
+			if err := idProvider.RemoveGluonID(addrID, gluonID); err != nil {
+				return fmt.Errorf("failed to remove old IMAP user ID: %w", err)
+			}
+
+			gluonID, err := sm.imapServer.AddUser(ctx, connector, idProvider.GluonKey())
 			if err != nil {
 				return fmt.Errorf("failed to add IMAP user: %w", err)
 			}
 
-			if err := user.SetGluonID(addrID, gluonID); err != nil {
+			if err := idProvider.SetGluonID(addrID, gluonID); err != nil {
 				return fmt.Errorf("failed to set IMAP user ID: %w", err)
 			}
 
-			log.WithField("gluonID", gluonID).Info("Created new IMAP user")
+			log.WithField("gluonID", gluonID).Info("Re-created IMAP user")
 		}
-	}
+	} else {
+		log.Info("Creating new IMAP user")
 
-	// Trigger a sync for the user, if needed.
-	user.TriggerSync()
+		gluonID, err := sm.imapServer.AddUser(ctx, connector, idProvider.GluonKey())
+		if err != nil {
+			return fmt.Errorf("failed to add IMAP user: %w", err)
+		}
+
+		if err := idProvider.SetGluonID(addrID, gluonID); err != nil {
+			return fmt.Errorf("failed to set IMAP user ID: %w", err)
+		}
+
+		log.WithField("gluonID", gluonID).Info("Created new IMAP user")
+	}
 
 	return nil
 }
 
-func (sm *ServerManager) handleRemoveIMAPUser(ctx context.Context, user *user.User, withData bool) error {
+func (sm *ServerManager) handleRemoveIMAPUser(ctx context.Context, withData bool, idProvider imapservice.GluonIDProvider, addrIDs ...string) error {
 	if sm.imapServer == nil {
 		return fmt.Errorf("no imap server instance running")
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"userID":   user.ID(),
-		"withData": withData,
+		"withData":  withData,
+		"addresses": addrIDs,
 	}).Debug("Removing IMAP user")
 
-	for addrID, gluonID := range user.GetGluonIDs() {
+	for _, addrID := range addrIDs {
+		gluonID, ok := idProvider.GetGluonID(addrID)
+		if !ok {
+			logrus.Warnf("Could not find Gluon ID for addrID %v", addrID)
+			continue
+		}
+
 		if err := sm.imapServer.RemoveUser(ctx, gluonID, withData); err != nil {
 			return fmt.Errorf("failed to remove IMAP user: %w", err)
 		}
 
 		if withData {
-			if err := user.RemoveGluonID(addrID, gluonID); err != nil {
+			if err := idProvider.RemoveGluonID(addrID, gluonID); err != nil {
 				return fmt.Errorf("failed to remove IMAP user ID: %w", err)
 			}
 		}
+
+		sm.loadedUserCount--
 	}
 
 	return nil
@@ -396,7 +400,7 @@ func createIMAPServer(bridge *Bridge) (*gluon.Server, error) {
 		return nil, fmt.Errorf("failed to get Gluon Database directory: %w", err)
 	}
 
-	return newIMAPServer(
+	server, err := newIMAPServer(
 		bridge.vault.GetGluonCacheDir(),
 		gluonDataDir,
 		bridge.curVersion,
@@ -409,6 +413,11 @@ func createIMAPServer(bridge *Bridge) (*gluon.Server, error) {
 		bridge.uidValidityGenerator,
 		bridge.panicHandler,
 	)
+	if err == nil {
+		bridge.publish(events.IMAPServerCreated{})
+	}
+
+	return server, err
 }
 
 func createSMTPServer(bridge *Bridge, accounts *bridgesmtp.Accounts) *smtp.Server {
@@ -464,6 +473,8 @@ func (sm *ServerManager) closeIMAPServer(ctx context.Context, bridge *Bridge) er
 		}
 
 		sm.imapServer = nil
+
+		bridge.publish(events.IMAPServerClosed{})
 	}
 
 	return nil
@@ -632,35 +643,12 @@ func (sm *ServerManager) handleSetGluonDir(ctx context.Context, bridge *Bridge, 
 
 		bridge.heartbeat.SetCacheLocation(newGluonDir)
 
-		gluonDataDir, err := bridge.GetGluonDataDir()
-		if err != nil {
-			return fmt.Errorf("failed to get Gluon Database directory: %w", err)
-		}
-
-		imapServer, err := newIMAPServer(
-			bridge.vault.GetGluonCacheDir(),
-			gluonDataDir,
-			bridge.curVersion,
-			bridge.tlsConfig,
-			bridge.reporter,
-			bridge.logIMAPClient,
-			bridge.logIMAPServer,
-			bridge.imapEventCh,
-			bridge.tasks,
-			bridge.uidValidityGenerator,
-			bridge.panicHandler,
-		)
+		imapServer, err := createIMAPServer(bridge)
 		if err != nil {
 			return fmt.Errorf("failed to create new IMAP server: %w", err)
 		}
 
 		sm.imapServer = imapServer
-		for _, bridgeUser := range bridge.users {
-			if err := sm.handleAddIMAPUser(ctx, bridgeUser); err != nil {
-				return fmt.Errorf("failed to add users to new IMAP server: %w", err)
-			}
-			sm.loadedUserCount++
-		}
 
 		if sm.shouldStartServers() {
 			if err := sm.serveIMAP(ctx, bridge); err != nil {
@@ -670,22 +658,6 @@ func (sm *ServerManager) handleSetGluonDir(ctx context.Context, bridge *Bridge, 
 
 		return nil
 	}, bridge.usersLock)
-}
-
-func (sm *ServerManager) handleAddGluonUser(ctx context.Context, conn connector.Connector, passphrase []byte) (string, error) {
-	if sm.imapServer == nil {
-		return "", fmt.Errorf("no imap server instance running")
-	}
-
-	return sm.imapServer.AddUser(ctx, conn, passphrase)
-}
-
-func (sm *ServerManager) handleRemoveGluonUser(ctx context.Context, userID string) error {
-	if sm.imapServer == nil {
-		return fmt.Errorf("no imap server instance running")
-	}
-
-	return sm.imapServer.RemoveUser(ctx, userID, true)
 }
 
 func (sm *ServerManager) shouldStartServers() bool {
@@ -699,25 +671,20 @@ type smRequestRestartIMAP struct{}
 type smRequestRestartSMTP struct{}
 
 type smRequestAddIMAPUser struct {
-	user *user.User
+	connector         connector.Connector
+	addrID            string
+	idProvider        imapservice.GluonIDProvider
+	syncStateProvider imapservice.SyncStateProvider
 }
 
 type smRequestRemoveIMAPUser struct {
-	user     *user.User
-	withData bool
+	withData   bool
+	addrID     []string
+	idProvider imapservice.GluonIDProvider
 }
 
 type smRequestSetGluonDir struct {
 	dir string
-}
-
-type smRequestAddGluonUser struct {
-	conn       connector.Connector
-	passphrase []byte
-}
-
-type smRequestRemoveGluonUser struct {
-	userID string
 }
 
 type smRequestAddSMTPAccount struct {

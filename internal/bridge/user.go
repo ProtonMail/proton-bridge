@@ -278,16 +278,8 @@ func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode va
 			return fmt.Errorf("address mode is already %q", mode)
 		}
 
-		if err := bridge.removeIMAPUser(ctx, user, true); err != nil {
-			return fmt.Errorf("failed to remove IMAP user: %w", err)
-		}
-
 		if err := user.SetAddressMode(ctx, mode); err != nil {
 			return fmt.Errorf("failed to set address mode: %w", err)
-		}
-
-		if err := bridge.addIMAPUser(ctx, user); err != nil {
-			return fmt.Errorf("failed to add IMAP user: %w", err)
 		}
 
 		bridge.publish(events.AddressModeChanged{
@@ -335,13 +327,7 @@ func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string,
 				logrus.WithError(rerr).Error("Failed to report feedback failure")
 			}
 
-			if err := bridge.addIMAPUser(ctx, user); err != nil {
-				return fmt.Errorf("failed to add IMAP user: %w", err)
-			}
-
-			user.BadEventFeedbackResync(ctx)
-
-			return nil
+			return user.BadEventFeedbackResync(ctx)
 		}
 
 		if rerr := bridge.reporter.ReportMessageWithContext(
@@ -535,14 +521,11 @@ func (bridge *Bridge) addUserWithVault(
 		bridge.vault.GetMaxSyncMemory(),
 		statsPath,
 		bridge,
+		bridge.serverManager,
+		&bridgeEventSubscription{b: bridge},
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
-	}
-
-	// Connect the user's address(es) to gluon.
-	if err := bridge.addIMAPUser(ctx, user); err != nil {
-		return fmt.Errorf("failed to add IMAP user: %w", err)
 	}
 
 	if err := bridge.addSMTPUser(ctx, user); err != nil {
@@ -558,11 +541,8 @@ func (bridge *Bridge) addUserWithVault(
 				"event":  event,
 			}).Debug("Received user event")
 
-			if err := bridge.handleUserEvent(ctx, user, event); err != nil {
-				logrus.WithError(err).Error("Failed to handle user event")
-			} else {
-				bridge.publish(event)
-			}
+			bridge.handleUserEvent(ctx, user, event)
+			bridge.publish(event)
 		})
 	})
 
@@ -612,10 +592,6 @@ func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, 
 		"withAPI":  withAPI,
 		"withData": withData,
 	}).Debug("Logging out user")
-
-	if err := bridge.removeIMAPUser(ctx, user, withData); err != nil {
-		logrus.WithError(err).Error("Failed to remove IMAP user")
-	}
 
 	if err := bridge.removeSMTPUser(ctx, user); err != nil {
 		logrus.WithError(err).Error("Failed to remove SMTP user")

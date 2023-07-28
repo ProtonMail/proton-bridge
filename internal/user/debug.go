@@ -34,7 +34,7 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/constants"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	imapservice "github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/bradenaw/juniper/xmaps"
@@ -58,75 +58,83 @@ type DiagMailboxMessage struct {
 	Flags     imap.FlagSet
 }
 
-func (apm DiagnosticMetadata) BuildMailboxToMessageMap(user *User) (map[string]AccountMailboxMap, error) {
-	return safe.RLockRetErr(func() (map[string]AccountMailboxMap, error) {
-		result := make(map[string]AccountMailboxMap)
+func (apm DiagnosticMetadata) BuildMailboxToMessageMap(ctx context.Context, user *User) (map[string]AccountMailboxMap, error) {
+	apiAddrs, err := user.identityService.GetAddresses(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get addresses: %w", err)
+	}
 
-		mode := user.GetAddressMode()
-		primaryAddrID, err := usertypes.GetPrimaryAddr(user.apiAddrs)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get primary addr for user: %w", err)
+	apiLabels, err := user.imapService.GetLabels(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get labels: %w", err)
+	}
+
+	result := make(map[string]AccountMailboxMap)
+
+	mode := user.GetAddressMode()
+	primaryAddrID, err := usertypes.GetPrimaryAddr(apiAddrs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get primary addr for user: %w", err)
+	}
+
+	getAccount := func(addrID string) (AccountMailboxMap, bool) {
+		if mode == vault.CombinedMode {
+			addrID = primaryAddrID.ID
 		}
 
-		getAccount := func(addrID string) (AccountMailboxMap, bool) {
-			if mode == vault.CombinedMode {
-				addrID = primaryAddrID.ID
-			}
+		addr := apiAddrs[addrID]
+		if addr.Status != proton.AddressStatusEnabled {
+			return nil, false
+		}
 
-			addr := user.apiAddrs[addrID]
-			if addr.Status != proton.AddressStatusEnabled {
-				return nil, false
-			}
+		v, ok := result[addr.Email]
+		if !ok {
+			result[addr.Email] = make(AccountMailboxMap)
+			v = result[addr.Email]
+		}
 
-			v, ok := result[addr.Email]
+		return v, true
+	}
+
+	for _, metadata := range apm.Metadata {
+		for _, label := range metadata.LabelIDs {
+			details, ok := apiLabels[label]
 			if !ok {
-				result[addr.Email] = make(AccountMailboxMap)
-				v = result[addr.Email]
+				logrus.Warnf("User %v has message with unknown label '%v'", user.Name(), label)
+				continue
 			}
 
-			return v, true
-		}
+			if !imapservice.WantLabel(details) {
+				continue
+			}
 
-		for _, metadata := range apm.Metadata {
-			for _, label := range metadata.LabelIDs {
-				details, ok := user.apiLabels[label]
-				if !ok {
-					logrus.Warnf("User %v has message with unknown label '%v'", user.Name(), label)
-					continue
-				}
+			account, enabled := getAccount(metadata.AddressID)
+			if !enabled {
+				continue
+			}
 
-				if !wantLabel(details) {
-					continue
-				}
+			var mboxName string
+			if details.Type == proton.LabelTypeSystem {
+				mboxName = details.Name
+			} else {
+				mboxName = strings.Join(imapservice.GetMailboxName(details), "/")
+			}
 
-				account, enabled := getAccount(metadata.AddressID)
-				if !enabled {
-					continue
-				}
+			mboxMessage := DiagMailboxMessage{
+				UserID:    user.ID(),
+				ID:        metadata.ID,
+				AddressID: metadata.AddressID,
+				Flags:     imapservice.BuildFlagSetFromMessageMetadata(metadata),
+			}
 
-				var mboxName string
-				if details.Type == proton.LabelTypeSystem {
-					mboxName = details.Name
-				} else {
-					mboxName = strings.Join(getMailboxName(details), "/")
-				}
-
-				mboxMessage := DiagMailboxMessage{
-					UserID:    user.ID(),
-					ID:        metadata.ID,
-					AddressID: metadata.AddressID,
-					Flags:     buildFlagSetFromMessageMetadata(metadata),
-				}
-
-				if v, ok := account[mboxName]; ok {
-					account[mboxName] = append(v, mboxMessage)
-				} else {
-					account[mboxName] = []DiagMailboxMessage{mboxMessage}
-				}
+			if v, ok := account[mboxName]; ok {
+				account[mboxName] = append(v, mboxMessage)
+			} else {
+				account[mboxName] = []DiagMailboxMessage{mboxMessage}
 			}
 		}
-		return result, nil
-	}, user.apiAddrsLock, user.apiLabelsLock)
+	}
+	return result, nil
 }
 
 func (user *User) GetDiagnosticMetadata(ctx context.Context) (DiagnosticMetadata, error) {
@@ -161,52 +169,56 @@ func (user *User) DebugDownloadMessages(
 	msgs map[string]DiagMailboxMessage,
 	progressCB func(string, int, int),
 ) error {
-	var err error
-	safe.RLock(func() {
-		err = func() error {
-			total := len(msgs)
-			userID := user.ID()
+	total := len(msgs)
+	userID := user.ID()
 
-			counter := 1
-			for _, msg := range msgs {
-				if progressCB != nil {
-					progressCB(userID, counter, total)
-					counter++
-				}
+	apiUser, err := user.identityService.GetAPIUser(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get api user: %w", err)
+	}
 
-				msgDir := filepath.Join(path, msg.ID)
-				if err := os.MkdirAll(msgDir, 0o700); err != nil {
-					return fmt.Errorf("failed to create directory '%v':%w", msgDir, err)
-				}
+	apiAddrs, err := user.identityService.GetAddresses(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get address: %w", err)
+	}
 
-				message, err := user.client.GetFullMessage(ctx, msg.ID, usertypes.NewProtonAPIScheduler(user.panicHandler), proton.NewDefaultAttachmentAllocator())
-				if err != nil {
-					return fmt.Errorf("failed to download message '%v':%w", msg.ID, err)
-				}
+	counter := 1
+	for _, msg := range msgs {
+		if progressCB != nil {
+			progressCB(userID, counter, total)
+			counter++
+		}
 
-				if err := writeMetadata(msgDir, message.Message); err != nil {
-					return err
-				}
+		msgDir := filepath.Join(path, msg.ID)
+		if err := os.MkdirAll(msgDir, 0o700); err != nil {
+			return fmt.Errorf("failed to create directory '%v':%w", msgDir, err)
+		}
 
-				if err := usertypes.WithAddrKR(user.apiUser, user.apiAddrs[msg.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
-					switch {
-					case len(message.Attachments) > 0:
-						return decodeMultipartMessage(msgDir, addrKR, message.Message, message.AttData)
+		message, err := user.client.GetFullMessage(ctx, msg.ID, usertypes.NewProtonAPIScheduler(user.panicHandler), proton.NewDefaultAttachmentAllocator())
+		if err != nil {
+			return fmt.Errorf("failed to download message '%v':%w", msg.ID, err)
+		}
 
-					case message.MIMEType == "multipart/mixed":
-						return decodePGPMessage(msgDir, addrKR, message.Message)
+		if err := writeMetadata(msgDir, message.Message); err != nil {
+			return err
+		}
 
-					default:
-						return decodeSimpleMessage(msgDir, addrKR, message.Message)
-					}
-				}); err != nil {
-					return err
-				}
+		if err := usertypes.WithAddrKR(apiUser, apiAddrs[msg.AddressID], user.vault.KeyPass(), func(_, addrKR *crypto.KeyRing) error {
+			switch {
+			case len(message.Attachments) > 0:
+				return decodeMultipartMessage(msgDir, addrKR, message.Message, message.AttData)
+
+			case message.MIMEType == "multipart/mixed":
+				return decodePGPMessage(msgDir, addrKR, message.Message)
+
+			default:
+				return decodeSimpleMessage(msgDir, addrKR, message.Message)
 			}
-			return nil
-		}()
-	}, user.apiAddrsLock, user.apiUserLock)
-	return err
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func getBodyName(path string) string {
