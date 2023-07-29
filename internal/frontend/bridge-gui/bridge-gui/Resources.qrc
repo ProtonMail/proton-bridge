@@ -110,6 +110,7 @@
         <file>qml/SetupGuide.qml</file>
         <file>qml/SetupWizard/SetupWizard.qml</file>
         <file>qml/SetupWizard/LoginLeftPane.qml</file>
+        <file>qml/SetupWizard/LoginRightPane.qml</file>
         <file>qml/SetupWizard/OnboardingLeftPane.qml</file>
         <file>qml/SetupWizard/OnboardingRightPane.qml</file>
         <file>qml/SetupWizard/StepDescriptionBox.qml</file>

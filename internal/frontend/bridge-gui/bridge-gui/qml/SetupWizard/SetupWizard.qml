@@ -22,6 +22,9 @@ Item {
 
     property ColorScheme colorScheme
 
+    function closeWizard() {
+        root.visible = false;
+    }
     function start() {
         root.visible = true;
         leftContent.currentIndex = 0;
@@ -31,8 +34,16 @@ Item {
         root.visible = true;
         leftContent.currentIndex = 1;
         rightContent.currentIndex = 1;
+        loginRightPane.reset(true);
     }
 
+    Connections {
+        function onLoginFinished() {
+            root.closeWizard();
+        }
+
+        target: Backend
+    }
     RowLayout {
         anchors.fill: parent
         spacing: 0
@@ -74,8 +85,8 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 fillMode: Image.PreserveAspectFit
                 height: 24
-                source: root.colorScheme.mail_logo_with_wordmark
                 mipmap: true
+                source: root.colorScheme.mail_logo_with_wordmark
             }
         }
         Rectangle {
@@ -104,10 +115,15 @@ Item {
                 }
 
                 // stack index 1
-                Rectangle {
+                LoginRightPane {
+                    id: loginRightPane
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    color: "#f00"
+                    colorScheme: root.colorScheme
+
+                    onLoginAbort: {
+                        root.closeWizard();
+                    }
                 }
             }
             Label {
