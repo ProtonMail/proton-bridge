@@ -778,7 +778,7 @@ func (user *User) doEventPoll(ctx context.Context) error {
 			}
 
 			// If the error is a server-side issue, return error to retry later.
-			if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status >= 500 {
+			if is429Or5XXError(err) {
 				return fmt.Errorf("failed to handle event due to server error: %w", err)
 			}
 

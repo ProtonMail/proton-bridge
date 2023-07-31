@@ -379,3 +379,12 @@ func is429Error(err error) bool {
 
 	return false
 }
+
+func is429Or5XXError(err error) bool {
+	var apiErr *proton.APIError
+	if errors.As(err, &apiErr) {
+		return apiErr.Status == 429 || apiErr.Status >= 500
+	}
+
+	return false
+}
