@@ -31,7 +31,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSyncDownloader_Stage1_429(t *testing.T) {
+func TestSyncDownloader_Parallel_429(t *testing.T) {
 	// Check 429 is correctly caught and download state recorded correctly
 	// Message 1: All ok
 	// Message 2: Message failed
@@ -92,7 +92,7 @@ func TestSyncDownloader_Stage1_429(t *testing.T) {
 	attachmentDownloader := newAttachmentDownloader(ctx, panicHandler, messageDownloader, cache, 1)
 	defer attachmentDownloader.close()
 
-	result, err := downloadMessageStage1(ctx, panicHandler, requests, messageDownloader, attachmentDownloader, cache, 1)
+	result, err := downloadMessagesParallel(ctx, panicHandler, requests, messageDownloader, attachmentDownloader, cache, 1)
 	require.NoError(t, err)
 	require.Equal(t, 3, len(result))
 	// Check message 1
@@ -142,7 +142,7 @@ func TestSyncDownloader_Stage2_Everything200(t *testing.T) {
 		},
 	}
 
-	result, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
+	result, err := downloadMessagesSequential(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
 	require.NoError(t, err)
 	require.Equal(t, 2, len(result))
 }
@@ -170,7 +170,7 @@ func TestSyncDownloader_Stage2_Not429(t *testing.T) {
 		},
 	}
 
-	_, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
+	_, err := downloadMessagesSequential(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
 	require.Error(t, err)
 	require.Equal(t, msgErr, err)
 }
@@ -194,7 +194,7 @@ func TestSyncDownloader_Stage2_API500(t *testing.T) {
 		},
 	}
 
-	_, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
+	_, err := downloadMessagesSequential(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
 	require.Error(t, err)
 	require.Equal(t, msgErr, err)
 }
@@ -302,7 +302,7 @@ func TestSyncDownloader_Stage2_Some429(t *testing.T) {
 		})
 	}
 
-	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
+	messages, err := downloadMessagesSequential(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
 	require.NoError(t, err)
 	require.Equal(t, 3, len(messages))
 
@@ -380,7 +380,7 @@ func TestSyncDownloader_Stage2_ErrorOnNon429MessageDownload(t *testing.T) {
 		messageDownloader.EXPECT().GetMessage(gomock.Any(), gomock.Eq("Msg3")).Times(1).Return(proton.Message{}, err500)
 	}
 
-	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
+	messages, err := downloadMessagesSequential(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
 	require.Error(t, err)
 	require.Empty(t, 0, messages)
 }
@@ -423,12 +423,12 @@ func TestSyncDownloader_Stage2_ErrorOnNon429AttachmentDownload(t *testing.T) {
 	// 500 for second attachment
 	messageDownloader.EXPECT().GetAttachmentInto(gomock.Any(), gomock.Eq("A4"), gomock.Any()).Times(1).Return(err500)
 
-	messages, err := downloadMessagesStage2(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
+	messages, err := downloadMessagesSequential(ctx, downloadResult, messageDownloader, cache, &noCooldown{})
 	require.Error(t, err)
 	require.Empty(t, 0, messages)
 }
 
-func TestSyncDownloader_Stage1_DoNotDownloadIfAlreadyInCache(t *testing.T) {
+func TestSyncDownloader_Parallel_DoNotDownloadIfAlreadyInCache(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	messageDownloader := mocks.NewMockMessageDownloader(mockCtrl)
 	panicHandler := &async.NoopPanicHandler{}
@@ -452,7 +452,7 @@ func TestSyncDownloader_Stage1_DoNotDownloadIfAlreadyInCache(t *testing.T) {
 	cache.StoreAttachment("A1", []byte(attachmentData))
 	cache.StoreAttachment("A2", []byte(attachmentData))
 
-	result, err := downloadMessageStage1(ctx, panicHandler, requests, messageDownloader, attachmentDownloader, cache, 1)
+	result, err := downloadMessagesParallel(ctx, panicHandler, requests, messageDownloader, attachmentDownloader, cache, 1)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(result))
 

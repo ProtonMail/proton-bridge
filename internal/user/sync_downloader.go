@@ -92,7 +92,7 @@ func startSyncDownloader(
 				return
 			}
 
-			result, err := downloadMessageStage1(ctx, panicHandler, request, downloader, attachmentDownloader, cache, syncLimits.MaxParallelDownloads)
+			result, err := downloadMessagesParallel(ctx, panicHandler, request, downloader, attachmentDownloader, cache, syncLimits.MaxParallelDownloads)
 			if err != nil {
 				errorCh <- err
 				return
@@ -103,7 +103,7 @@ func startSyncDownloader(
 				return
 			}
 
-			batch, err := downloadMessagesStage2(ctx, result, downloader, cache, &expCooldown{})
+			batch, err := downloadMessagesSequential(ctx, result, downloader, cache, &expCooldown{})
 			if err != nil {
 				errorCh <- err
 				return
@@ -229,7 +229,7 @@ func (a *attachmentDownloader) close() {
 	a.cancel()
 }
 
-func downloadMessageStage1(
+func downloadMessagesParallel(
 	ctx context.Context,
 	panicHandler async.PanicHandler,
 	request downloadRequest,
@@ -276,7 +276,7 @@ func downloadMessageStage1(
 	})
 }
 
-func downloadMessagesStage2(
+func downloadMessagesSequential(
 	ctx context.Context,
 	state []downloadResult,
 	downloader MessageDownloader,
