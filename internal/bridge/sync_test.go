@@ -252,14 +252,17 @@ func TestBridge_SyncWithOngoingEvents(t *testing.T) {
 
 		// Login the user; its sync should fail.
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
+			defer done()
+
 			{
-				syncCh, done := chToType[events.Event, events.SyncFailed](b.GetEvents(events.SyncFailed{}))
-				defer done()
+				syncFailedCh, syncFailedDone := chToType[events.Event, events.SyncFailed](b.GetEvents(events.SyncFailed{}))
+				defer syncFailedDone()
 
 				userID, err := b.LoginFull(ctx, "imap", password, nil, nil)
 				require.NoError(t, err)
 
-				require.Equal(t, userID, (<-syncCh).UserID)
+				require.Equal(t, userID, (<-syncFailedCh).UserID)
 
 				info, err := b.GetUserInfo(userID)
 				require.NoError(t, err)
@@ -282,11 +285,7 @@ func TestBridge_SyncWithOngoingEvents(t *testing.T) {
 
 			// Remove the network limit, allowing the sync to finish.
 			netCtl.SetReadLimit(0)
-
 			{
-				syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
-				defer done()
-
 				require.Equal(t, userID, (<-syncCh).UserID)
 
 				info, err := b.GetUserInfo(userID)
