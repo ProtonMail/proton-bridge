@@ -120,6 +120,7 @@ func TestServiceHandleEventError_NoBadEventCheck(t *testing.T) {
 	_, _ = service.handleEventError(context.Background(), lastEventID, event, &net.OpError{})
 	_, _ = service.handleEventError(context.Background(), lastEventID, event, io.ErrUnexpectedEOF)
 	_, _ = service.handleEventError(context.Background(), lastEventID, event, &proton.APIError{Status: 500})
+	_, _ = service.handleEventError(context.Background(), lastEventID, event, &proton.APIError{Status: 429})
 }
 
 func TestServiceHandleEventError_JsonUnmarshalEventProducesUncategorizedErrorEvent(t *testing.T) {

@@ -413,7 +413,7 @@ func (s *Service) handleEventError(ctx context.Context, lastEventID string, even
 	}
 
 	// If the error is a server-side issue, return error to retry later.
-	if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Status >= 500 {
+	if apiErr := new(proton.APIError); errors.As(err, &apiErr) && (apiErr.Status == 429 || apiErr.Status >= 500) {
 		return subscriberName, fmt.Errorf("failed to handle event due to server error: %w", err)
 	}
 
