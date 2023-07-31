@@ -67,28 +67,30 @@ Item {
                         id: trackPath
                         Layout.fillWidth: true
                         Layout.topMargin: root._topMargin
-                        Layout.bottomMargin: root._spacing
+                        Layout.bottomMargin: root._bottomMargin
+                        Layout.leftMargin: (parent.width/2) - (contentItem.childrenRect.width/2)
+                        spacing: root._spacing
 
                         interactive: false
                         orientation: ListView.Horizontal
                         model: path
 
-                        delegate: Item{
-                            width: children[0].width + children[0].spacing
-                            RowLayout {
-                                Label {
-                                    colorScheme: root.colorScheme
-                                    text: qsTr(modelData)
-                                    type: Label.Caption
-                                    color: index === currPath ? colorScheme.interaction_norm : colorScheme.text_hint
+                        delegate: Rectangle{
+                            width: Math.max(100, children[0].width)
+                            height: children[0].height
+                            color: index <= currPath ? root.colorScheme.interaction_norm : root.colorScheme.interaction_weak
+                            radius: width / 4
+                            Label {
+                                colorScheme: root.colorScheme
+                                text: qsTr(modelData)
+                                type: Label.Caption
+                                color: "#FFFFFF"
+                                padding: root._spacing / 2
+                                anchors {
+                                    verticalCenter: parent.verticalCenter
+                                    horizontalCenter: parent.horizontalCenter
                                 }
-                                Label {
-                                    colorScheme: root.colorScheme
-                                    text: "/"
-                                    color: colorScheme.text_hint
-                                    type: Label.Caption
-                                    visible: index < (root.path.length - 1)
-                                }
+                                Layout.leftMargin: (parent.width - width) / 2
                             }
                         }
 
