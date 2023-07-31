@@ -34,6 +34,7 @@ Item {
     property bool mandatory: false
     property var type: QuestionItem.InputType.TextInput
     property var answerList: ListModel{}
+    property int maxChar: 150
 
     property string answer:{
         if (type === QuestionItem.InputType.TextInput) {
@@ -62,8 +63,12 @@ Item {
     }
 
     function validate() {
+
+    if (root.type === QuestionItem.InputType.TextInput)
         textInput.validate()
+    else if (root.type === QuestionItem.InputType.Radio)
         selectionRadio.validate()
+    else if (root.type === QuestionItem.InputType.Checkbox)
         selectionCheckBox.validate()
     }
 
@@ -89,11 +94,11 @@ Item {
                 Layout.minimumHeight: root.type === QuestionItem.InputType.TextInput ? heightForLinesVisible(2) : 0
                 colorScheme: root.colorScheme
 
-                property int _maxLength: 400
+                property int _maxLength: root.maxChar
                 property int _minLength: 10
 
                 label: qsTr(root.label)
-                hint: mandatory ? textInput.text.length + "/" + _maxLength : ""
+                hint: textInput.text.length + "/" + _maxLength
                 placeholderText: mandatory ? qsTr("%1... (min. %2 characters)").arg(root.text).arg(_minLength) : ""
 
                 function setDefaultValue(defaultValue) {
@@ -101,9 +106,7 @@ Item {
                 }
 
                 validator: function (text) {
-                    if (!mandatory)
-                        return;
-                    if (textInput.text.length < textInput._minLength) {
+                    if (mandatory && textInput.text.length < textInput._minLength) {
                         return qsTr("min. %1 characters").arg(_minLength);
                     }
                     if (textInput.text.length > textInput._maxLength) {

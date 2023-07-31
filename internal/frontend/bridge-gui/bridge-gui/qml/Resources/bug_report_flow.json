@@ -36,20 +36,23 @@
         "text": "What happened?",
         "tips": "Expected behavior",
         "type": 1,
-        "mandatory": true
+        "mandatory": true,
+        "maxChar": 400
       },
       {
         "id": 1,
         "text": "What did you want or expect to happen?",
         "tips": "Result",
         "type": 1,
-        "mandatory": true
+        "mandatory": true,
+        "maxChar": 400
       },
       {
         "id": 2,
         "text": "What were the step-by-step actions you took that led to this happening?",
         "tips": "Steps to reproduce",
-        "type": 1
+        "type": 1,
+        "maxChar": 400
       },
       {
         "id": 3,

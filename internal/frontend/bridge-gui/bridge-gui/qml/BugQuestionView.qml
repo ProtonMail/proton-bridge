@@ -91,6 +91,7 @@ SettingsView {
             type: root.questions[modelData].type
             mandatory: root.questions[modelData].mandatory ? root.questions[modelData].mandatory : false
             answerList: root.questions[modelData].answerList ? root.questions[modelData].answerList : []
+            maxChar: root.questions[modelData].maxChar ? root.questions[modelData].maxChar : 150
 
             onAnswerChanged: {
                 Backend.setQuestionAnswer(modelData, answer);

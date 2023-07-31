@@ -152,7 +152,7 @@ func (s *scenario) theUserSetSMTPModeToSSL() error {
 }
 
 func (s *scenario) theUserReportsABug() error {
-	return s.t.bridge.ReportBug(context.Background(), "osType", "osVersion", "description", "username", "email", "client", false)
+	return s.t.bridge.ReportBug(context.Background(), "osType", "osVersion", "title", "description", "username", "email", "client", false)
 }
 
 func (s *scenario) bridgeSendsAConnectionUpEvent() error {
