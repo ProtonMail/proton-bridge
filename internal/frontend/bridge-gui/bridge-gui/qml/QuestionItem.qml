@@ -102,7 +102,7 @@ Item {
 
                 label: qsTr(root.label)
                 hint: textInput.text.length + "/" + _maxLength
-                placeholderText: mandatory ? qsTr("%1... (min. %2 characters)").arg(root.text).arg(_minLength) : ""
+                placeholderText: mandatory ? qsTr("%1... (min. %2 characters)").arg(root.tips).arg(_minLength) : ""
 
                 function setDefaultValue(defaultValue) {
                     textInput.text = root.type === root._typeOpen ? defaultValue : ""

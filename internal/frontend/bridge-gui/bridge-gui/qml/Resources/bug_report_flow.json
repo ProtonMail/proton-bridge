@@ -5,30 +5,30 @@
   "data_v1.0.0": {
     "categories": [
       {
-        "name": "I can't receive mail",
-        "questions": [0,1,2,3,4]
+        "name": "I am not receiving messages in my email client",
+        "questions": [0,5,6,4]
       },
       {
-        "name": "I can't send mail",
-        "questions": [0,1,2,3,4]
+        "name": "I am not able to send messages",
+        "questions": [0,2,3,4]
       },
       {
         "name": "Bridge is not starting",
-        "questions": [0,1,2,3]
+        "questions": [0,2,3,4]
       },
       {
-        "name": "Bridge is slow",
-        "questions": [0,1,2,3]
+        "name": "Bridge is running slow",
+        "questions": [0,2,7,4]
       },
       {
-        "name": "None of the above",
+        "name": "Something else",
         "questions": [0,1,2,3]
       }
     ],
     "questions": [
       {
         "id": 0,
-        "text": "What happened?",
+        "text": "What happened? Please also let us know if you received any errors",
         "tips": "Expected behavior",
         "type": "open",
         "mandatory": true,
@@ -39,7 +39,6 @@
         "text": "What did you want or expect to happen?",
         "tips": "Result",
         "type": "open",
-        "mandatory": true,
         "maxChar": 400
       },
       {
@@ -51,15 +50,33 @@
       },
       {
         "id": 3,
-        "text": "Can you reproduce this issue? (If you repeat the actions, the same thing happens.)",
+        "text": "Can you reproduce this issue? (If you repeat the actions, does the same thing happen?)",
         "type": "choice",
-        "answerList": ["Yes", "No", "I don't know"]
+        "answerList": ["Yes", "No"]
       },
       {
         "id": 4,
-        "text": "Can you list the software you are running?",
+        "text": "Can you check the software you are running from the list?",
         "type": "multichoice",
-        "answerList": ["VPN", "Antivirus", "Firewall", "Cache cleaner"]
+        "answerList": ["VPN", "Antivirus", "Firewall", "Cache Cleaner", "None of the above"]
+      },
+      {
+        "id": 5,
+        "text": "Are you missing messages from the email client or not receiving new ones?",
+        "type": "choice",
+        "answerList": ["An old message is missing", "New messages are not arriving"]
+      },
+      {
+        "id": 6,
+        "text": "Can you locate the messages in the web/mobile applications?",
+        "type": "choice",
+        "answerList": ["Yes", "No"]
+      },
+      {
+        "id": 7,
+        "text": "Are you facing one of the below issues?",
+        "type": "multichoice",
+        "answerList": ["Messages arrive with a delay", "Messages are sending slowly", "Bridge is slow to launch", "Bridge is slowing down my computer"]
       }
     ]
   }
