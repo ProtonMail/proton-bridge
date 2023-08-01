@@ -5,6 +5,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ## Trift Bridge 3.4.0
 
+### Added
+
 ### Changed
 * Test: Add require.Eventually to TestBridge_UserAgentFromSMTPClient.
 * Test: Add smtp-send utility.
@@ -12,32 +14,14 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2759: Add prompt to download missing messages for analysis.
 * GODT-2759: CLI debug commands.
 * Remove gRPC auto-generated C++ source files.
-* GODT-2709: Remove the config status file when user is removed.
-* GODT-2749: Manual test-windows again.
-* GODT-2712: Feed config_status with user action while pending.
-* GODT-2715: Add Unitary test for configStatus event.
-* GODT-2715: Add Functional test for configStatus telemetry event.
-* GODT-2714: Apply PR comments.
-* GODT-2714: Set Configuration Status to Failure and send Recovery event when issue is solved.
-* GODT-2713: Send config_progress event once a day if the configuration is stucked in pending for more than a day.
-* GODT-2711: Send config_abort event on User removal.
-* GODT-2710: Send config success on IMAP/SMTP connection..
-* GODT-2716: Make Configuration Statistics persistent.
-* GODT-2709: Init Configuration status.
-* GODT-2750: Disable raise on main window when a notification is clicked on Linux.
-* GODT-2748: Log calls that cause main window to show, with reason.
 * Test: Force all unit test to use minimum sync spec.
 * Test: Force sync limits to minimum with env variable.
-* GODT-2749: Manual windows-test.
 * GODT-2691: Close logrus output file on exit.
 * GODT-2522: New Gluon database layout.
-* GODT-2728: Remove the sentry report for gRPC event stream interruptions in bridge-gui.
 * GODT-2678: When internet is off, do not display status dot icon for the user in the context menu.
 * GODT-2686: Change the orientation of the expand/collapse arrow for Advanced settings.
 * Test(GODT-2636): Add step for sending from EML.
-* GODT-2707: Set bridge-gui default log level to 'debug'.
 * Log failed message ids during sync.
-* GODT-2705: Added log entries for focus service on client and server sides.
 * GODT-2510: Remove Ent.
 * Test(GODT-2600): Changing state (read/unread, starred/unstarred) of a message in integration tests.
 * GODT-2703: Got rid of account details dialog with Apple Mail autoconf.
@@ -45,35 +29,22 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2690: Update sentry reporting in GUI for new log file naming.
 * GODT-2668: Implemented new log retention policy.
 * Test(GODT-2683): Save Draft without "Date" & "From" in headers.
-* Merge branch release/stone to devel.
 * GODT-2666: Feat(GODT-2667): introduce sessionID in bridge.
-* Fix linter errors.
-* GODT-2653: Log API error details on Message import and send.
-* GODT-2674: Add more logs to failed update.
 * GODT-2660: Calculate bridge coverage and refactor CI yaml file.
-* GODT-2674: Add more logs during update failed.
 * Fix dependency_license script to handle dot formated version.
-* Add error logs when messages fail to build during sync.
-* GODT-2673: Use NoClient as UserAgent without any client connected and...
-* GODT-2655: Display internal build time tag in log and GUI.
 
 ### Fixed
+* GODT-2812: Fix rare sync deadlock.
+* GODT-2822: Better handling 429 during sync and event loop.
 * GODT-2763: Missing Answered flag on Sync and Message Create.
-* GODT-2774: Only check telemetry availability for the current user.
-* GODT-2774: Add external context to telemetry tasks.
 * GODT-2758: Fix panic in SetFlagsOnMessages.
-* GODT-2708: Fix dimensions event format + handling of ReportClicked event.
 * GODT-2578: Refresh literals appended to Sent folder.
-* GODT-2756: Fix for 'Settings' context menu opening the 'Help' page.
 * GODT-2753: Vault test now check that value auto-assigned is first available port.
 * GODT-2522: Handle migration with unreferenced db values.
 * GODT-2693: Allow missing whitespace after header field colon.
-* GODT-2726: Fix Parsing of Details field in GPA error message.
 * GODT-2653: Only log when err is not nil.
 * GODT-2680: Fix for C++ debugger not working on ARM64 because of OpenSSL 3.1.
 * GODT-2675: Update GPA to applye togin-gonic/gin patch + update COPYING_NOTES.
-* GODT-2672: Fix context cancelled when IMAP/SMTP parameters change is in progress.
-* GODT-2669: Display sentry ID in bridge init log.
 
 
 ## Stone Bridge 3.3.2
