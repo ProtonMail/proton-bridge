@@ -23,6 +23,9 @@ Item {
         Checkbox
     }
 
+    property string _typeOpen: "open"
+    property string _typeChoice: "choice"
+    property string _typeMutlichoice: "multichoice"
     property var colorScheme
     property var _bottomMargin: 20
     property var _lineHeight: 1
@@ -32,26 +35,26 @@ Item {
     property string tips: ""
     property string label: ""
     property bool mandatory: false
-    property var type: QuestionItem.InputType.TextInput
+    property var type: root._typeOpen
     property var answerList: ListModel{}
     property int maxChar: 150
 
     property string answer:{
-        if (type === QuestionItem.InputType.TextInput) {
+        if (type === root._typeOpen) {
             return textInput.text
-        } else if (type === QuestionItem.InputType.Radio) {
+        } else if (type === root._typeChoice) {
             return selectionRadio.text
-        } else if (type === QuestionItem.InputType.Checkbox) {
+        } else if (type === root._typeMutlichoice) {
             return selectionCheckBox.text
         }
         return ""
     }
     property bool error: {
-            if (root.type === QuestionItem.InputType.TextInput)
+            if (root.type === root._typeOpen)
                 return textInput.error;
-            if (root.type === QuestionItem.InputType.Radio)
+            if (root.type === root._typeChoice)
                 return selectionRadio.error;
-            if (root.type === QuestionItem.InputType.Checkbox)
+            if (root.type === root._typeMutlichoice)
                 return selectionCheckBox.error;
             return false
     }
@@ -64,11 +67,11 @@ Item {
 
     function validate() {
 
-    if (root.type === QuestionItem.InputType.TextInput)
+    if (root.type === root._typeOpen)
         textInput.validate()
-    else if (root.type === QuestionItem.InputType.Radio)
+    else if (root.type === root._typeChoice)
         selectionRadio.validate()
-    else if (root.type === QuestionItem.InputType.Checkbox)
+    else if (root.type === root._typeMutlichoice)
         selectionCheckBox.validate()
     }
 
@@ -91,7 +94,7 @@ Item {
                 id: textInput
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.minimumHeight: root.type === QuestionItem.InputType.TextInput ? heightForLinesVisible(2) : 0
+                Layout.minimumHeight: root.type === root._typeOpen ? heightForLinesVisible(2) : 0
                 colorScheme: root.colorScheme
 
                 property int _maxLength: root.maxChar
@@ -102,7 +105,7 @@ Item {
                 placeholderText: mandatory ? qsTr("%1... (min. %2 characters)").arg(root.text).arg(_minLength) : ""
 
                 function setDefaultValue(defaultValue) {
-                    textInput.text = root.type === QuestionItem.InputType.TextInput ? defaultValue : ""
+                    textInput.text = root.type === root._typeOpen ? defaultValue : ""
                 }
 
                 validator: function (text) {
@@ -121,7 +124,7 @@ Item {
                     }
                 }
 
-                visible: root.type === QuestionItem.InputType.TextInput
+                visible: root.type === root._typeOpen
             }
 
             ButtonGroup {
@@ -133,7 +136,7 @@ Item {
                 property bool error: root.mandatory
 
                 function setDefaultValue(defaultValue) {
-                    const values = root.type === QuestionItem.InputType.Radio ? defaultValue : [];
+                    const values = root.type === root._typeChoice ? defaultValue : [];
                     for (var i = 0; i < buttons.length; ++i) {
                         buttons[i].checked  = values.includes(buttons[i].text);
                     }
@@ -157,7 +160,7 @@ Item {
                     ButtonGroup.group: selectionRadio
                     colorScheme: root.colorScheme
                     text: modelData
-                    visible: root.type === QuestionItem.InputType.Radio
+                    visible: root.type === root._typeChoice
                 }
             }
             ButtonGroup {
@@ -176,7 +179,7 @@ Item {
                 property bool error: root.mandatory
 
                 function setDefaultValue(defaultValue) {
-                    const values = root.type === QuestionItem.InputType.Checkbox ? defaultValue.split(delimitor) : [];
+                    const values = root.type === root._typeMutlichoice ? defaultValue.split(delimitor) : [];
                     for (var i = 0; i < buttons.length; ++i) {
                         buttons[i].checked  = values.includes(buttons[i].text);
                     }
@@ -201,7 +204,7 @@ Item {
                     ButtonGroup.group: selectionCheckBox
                     colorScheme: root.colorScheme
                     text: modelData
-                    visible: root.type === QuestionItem.InputType.Checkbox
+                    visible: root.type === root._typeMutlichoice
                 }
             }
         }

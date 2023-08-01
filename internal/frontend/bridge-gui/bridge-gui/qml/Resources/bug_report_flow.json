@@ -5,27 +5,22 @@
   "data_v1.0.0": {
     "categories": [
       {
-        "id": 0,
         "name": "I can't receive mail",
         "questions": [0,1,2,3,4]
       },
       {
-        "id": 1,
         "name": "I can't send mail",
         "questions": [0,1,2,3,4]
       },
       {
-        "id": 2,
         "name": "Bridge is not starting",
         "questions": [0,1,2,3]
       },
       {
-        "id": 3,
         "name": "Bridge is slow",
         "questions": [0,1,2,3]
       },
       {
-        "id": 4,
         "name": "None of the above",
         "questions": [0,1,2,3]
       }
@@ -35,7 +30,7 @@
         "id": 0,
         "text": "What happened?",
         "tips": "Expected behavior",
-        "type": 1,
+        "type": "open",
         "mandatory": true,
         "maxChar": 400
       },
@@ -43,7 +38,7 @@
         "id": 1,
         "text": "What did you want or expect to happen?",
         "tips": "Result",
-        "type": 1,
+        "type": "open",
         "mandatory": true,
         "maxChar": 400
       },
@@ -51,19 +46,19 @@
         "id": 2,
         "text": "What were the step-by-step actions you took that led to this happening?",
         "tips": "Steps to reproduce",
-        "type": 1,
+        "type": "open",
         "maxChar": 400
       },
       {
         "id": 3,
         "text": "Can you reproduce this issue? (If you repeat the actions, the same thing happens.)",
-        "type": 2,
+        "type": "choice",
         "answerList": ["Yes", "No", "I don't know"]
       },
       {
         "id": 4,
         "text": "Can you list the software you are running?",
-        "type": 3,
+        "type": "multichoice",
         "answerList": ["VPN", "Antivirus", "Firewall", "Cache cleaner"]
       }
     ]

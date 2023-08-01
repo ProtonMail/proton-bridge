@@ -291,7 +291,7 @@ MessageSubscriber,LabelSubscriber,AddressSubscriber,RefreshSubscriber,UserSubscr
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/services/useridentity IdentityProvider,Telemetry \
 > internal/services/useridentity/mocks/mocks.go
 
-lint: gofiles lint-golang lint-license lint-dependencies lint-changelog
+lint: gofiles lint-golang lint-license lint-dependencies lint-changelog lint-bug-report
 
 lint-license:
 	./utils/missing_license.sh check
@@ -306,6 +306,9 @@ lint-golang:
 	which golangci-lint || $(MAKE) install-linter
 	$(info linting with GOMAXPROCS=${GOMAXPROCS})
 	golangci-lint run ./...
+
+lint-bug-report:
+	python3 utils/validate_bug_report_file.py --file "internal/frontend/bridge-gui/bridge-gui/qml/Resources/bug_report_flow.json"
 
 gobinsec: gobinsec-cache.yml build
 	gobinsec -wait -cache -config utils/gobinsec_conf.yml ${EXE_TARGET} ${DEPLOY_DIR}/${TARGET_OS}/${LAUNCHER_EXE}
