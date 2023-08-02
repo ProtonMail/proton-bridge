@@ -40,34 +40,6 @@ FocusScope {
 
     implicitHeight: children[0].implicitHeight
     implicitWidth: children[0].implicitWidth
-    state: "Page 1"
-
-    states: [
-        State {
-            name: "Page 1"
-
-            PropertyChanges {
-                currentIndex: 0
-                target: stackLayout
-            }
-        },
-        State {
-            name: "Page 2"
-
-            PropertyChanges {
-                currentIndex: 1
-                target: stackLayout
-            }
-        },
-        State {
-            name: "Page 3"
-
-            PropertyChanges {
-                currentIndex: 2
-                target: stackLayout
-            }
-        }
-    ]
 
     StackLayout {
         id: stackLayout
@@ -169,10 +141,9 @@ FocusScope {
 
             Label {
                 Layout.alignment: Qt.AlignHCenter
-                Layout.topMargin: 16
                 colorScheme: root.colorScheme
                 text: qsTr("Sign in")
-                type: Label.LabelType.Title
+                type: Label.LabelType.Heading
             }
             Label {
                 id: subTitle
@@ -181,11 +152,11 @@ FocusScope {
                 color: root.colorScheme.text_weak
                 colorScheme: root.colorScheme
                 text: qsTr("Enter your Proton Account details.")
-                type: Label.LabelType.Body
+                type: Label.LabelType.Lead
             }
             RowLayout {
                 Layout.fillWidth: true
-                Layout.topMargin: 36
+                Layout.topMargin: 48
                 spacing: 0
                 visible: errorLabel.text.length > 0
 
@@ -208,7 +179,7 @@ FocusScope {
             TextField {
                 id: usernameTextField
                 Layout.fillWidth: true
-                Layout.topMargin: 24
+                Layout.topMargin: 48
                 colorScheme: root.colorScheme
                 focus: true
                 label: qsTr("Email or username")
@@ -232,7 +203,7 @@ FocusScope {
             TextField {
                 id: passwordTextField
                 Layout.fillWidth: true
-                Layout.topMargin: 8
+                Layout.topMargin: 48
                 colorScheme: root.colorScheme
                 echoMode: TextInput.Password
                 label: qsTr("Password")
@@ -268,7 +239,7 @@ FocusScope {
                 }
 
                 Layout.fillWidth: true
-                Layout.topMargin: 24
+                Layout.topMargin: 48
                 colorScheme: root.colorScheme
                 enabled: !loading
                 text: loading ? qsTr("Signing in") : qsTr("Sign in")
@@ -278,11 +249,10 @@ FocusScope {
                 }
             }
             Button {
-                id: cancelButton
                 Layout.fillWidth: true
-                Layout.topMargin: 24
+                Layout.topMargin: 32
                 colorScheme: root.colorScheme
-                enabled: !loading
+                enabled: !signInButton.loading
                 secondary: true
                 text: qsTr("Cancel")
 
@@ -305,7 +275,6 @@ FocusScope {
 
             Label {
                 Layout.alignment: Qt.AlignCenter
-                Layout.topMargin: 16
                 colorScheme: root.colorScheme
                 text: qsTr("Two-factor authentication")
                 type: Label.LabelType.Heading
@@ -344,7 +313,7 @@ FocusScope {
             Button {
                 id: twoFAButton
                 Layout.fillWidth: true
-                Layout.topMargin: 24
+                Layout.topMargin: 48
                 colorScheme: root.colorScheme
                 enabled: !loading
                 text: loading ? qsTr("Authenticating") : qsTr("Authenticate")
@@ -357,6 +326,18 @@ FocusScope {
                     twoFactorPasswordTextField.enabled = false;
                     loading = true;
                     Backend.login2FA(usernameTextField.text, Qt.btoa(twoFactorPasswordTextField.text));
+                }
+            }
+            Button {
+                Layout.fillWidth: true
+                Layout.topMargin: 32
+                colorScheme: root.colorScheme
+                enabled: !twoFAButton.loading
+                secondary: true
+                text: qsTr("Cancel")
+
+                onClicked: {
+                    root.abort();
                 }
             }
         }
@@ -374,15 +355,21 @@ FocusScope {
 
             Label {
                 Layout.alignment: Qt.AlignCenter
-                Layout.topMargin: 16
                 colorScheme: root.colorScheme
                 text: qsTr("Unlock your mailbox")
                 type: Label.LabelType.Heading
             }
+            Label {
+                Layout.alignment: Qt.AlignCenter
+                Layout.topMargin: 8
+                color: root.colorScheme.text_weak
+                colorScheme: root.colorScheme
+                type: Label.LabelType.Lead
+            }
             TextField {
                 id: secondPasswordTextField
                 Layout.fillWidth: true
-                Layout.topMargin: 8 + implicitHeight + 24 + subTitle.implicitHeight
+                Layout.topMargin: 48
                 colorScheme: root.colorScheme
                 echoMode: TextInput.Password
                 label: qsTr("Mailbox password")
@@ -400,7 +387,7 @@ FocusScope {
             Button {
                 id: secondPasswordButton
                 Layout.fillWidth: true
-                Layout.topMargin: 24
+                Layout.topMargin: 48
                 colorScheme: root.colorScheme
                 enabled: !loading
                 text: loading ? qsTr("Unlocking") : qsTr("Unlock")
@@ -413,6 +400,18 @@ FocusScope {
                     secondPasswordTextField.enabled = false;
                     loading = true;
                     Backend.login2Password(usernameTextField.text, Qt.btoa(secondPasswordTextField.text));
+                }
+            }
+            Button {
+                Layout.fillWidth: true
+                Layout.topMargin: 32
+                colorScheme: root.colorScheme
+                enabled: !secondPasswordButton.loading
+                secondary: true
+                text: qsTr("Cancel")
+
+                onClicked: {
+                    root.abort();
                 }
             }
         }

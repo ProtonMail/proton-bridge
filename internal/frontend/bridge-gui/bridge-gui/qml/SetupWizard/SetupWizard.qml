@@ -34,6 +34,7 @@ Item {
         root.visible = true;
         leftContent.currentIndex = 1;
         rightContent.currentIndex = 1;
+        loginLeftPane.showSignIn();
         loginRightPane.reset(true);
     }
 
@@ -61,6 +62,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.top
                 anchors.topMargin: 96
+                clip: true
                 currentIndex: 0
                 width: 444
 
@@ -73,6 +75,7 @@ Item {
 
                 // stack index 1
                 LoginLeftPane {
+                    id: loginLeftPane
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     colorScheme: root.colorScheme
@@ -103,6 +106,7 @@ Item {
                 anchors.top: parent.top
                 anchors.topMargin: 96
                 currentIndex: 0
+                clip: true
                 width: 444
 
                 // stack index 0

@@ -21,8 +21,32 @@ Item {
     id: root
 
     property ColorScheme colorScheme
-    property string description: qsTr("Let's start by signing in to your Proton account.")
+    property string description: ""
+    property string helpLink: ""
 
+    function show2FA() {
+        root.description = qsTr("You have enabled two-factor authentication. Please enter the 6-digit code provided by your authenticator application.");
+        root.helpLink = "";
+    }
+    function showMailboxPassword() {
+        root.description = qsTr("You have secured your account with a separate mailbox password. ");
+        root.helpLink = "";
+    }
+    function showSignIn() {
+        root.description = qsTr("Let's start by signing in to your Proton account.");
+        root.helpLink = linkLabel.link("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"));
+    }
+
+    Connections {
+        function onLogin2FARequested() {
+            show2FA();
+        }
+        function onLogin2PasswordRequested() {
+            showMailboxPassword();
+        }
+
+        target: Backend
+    }
     ColumnLayout {
         anchors.left: parent.left
         anchors.right: parent.right
@@ -59,13 +83,17 @@ Item {
             wrapMode: Text.WordWrap
         }
         Label {
+            id: linkLabel
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: false
             Layout.topMargin: 96
             colorScheme: root.colorScheme
             horizontalAlignment: Text.AlignHCenter
-            text: link("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"))
+            text: root.helpLink
             type: Label.LabelType.Body
+            visible: {
+                root.helpLink !== "";
+            }
 
             onLinkActivated: function (link) {
                 Qt.openUrlExternally(link);
