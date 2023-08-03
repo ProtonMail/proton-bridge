@@ -5,12 +5,12 @@
   "data_v1.0.0": {
     "categories": [
       {
-        "name": "I am not receiving messages in my email client",
+        "name": "I am not receiving emails in my email client",
         "questions": [0,5,6,4],
         "hint": ""
       },
       {
-        "name": "I am not able to send messages",
+        "name": "I am not able to send emails",
         "questions": [0,2,3,4],
         "hint": ""
       },
@@ -70,11 +70,11 @@
         "id": 5,
         "text": "Are you missing messages from the email client or not receiving new ones?",
         "type": "choice",
-        "answerList": ["An old message is missing", "New messages are not arriving"]
+        "answerList": ["An old email is missing", "New emails are not arriving"]
       },
       {
         "id": 6,
-        "text": "Can you locate the messages in the web/mobile applications?",
+        "text": "Can you locate the email in the web/mobile applications?",
         "type": "choice",
         "answerList": ["Yes", "No", "I do not know"]
       },
@@ -82,7 +82,7 @@
         "id": 7,
         "text": "Are you facing one of the below issues?",
         "type": "multichoice",
-        "answerList": ["Messages arrive with a delay", "Messages are sending slowly", "Bridge is slow to launch", "Bridge is slowing down my computer"]
+        "answerList": ["Emails arrive with a delay", "Emails are sending slowly", "Bridge is slow to launch", "Bridge is slowing down my computer"]
       }
     ]
   }
