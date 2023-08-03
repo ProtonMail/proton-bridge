@@ -29,8 +29,6 @@ Item {
     // fillHeight indicates whether the SettingsView should fill all available explicit height set
     property bool fillHeight: false
     default property alias items: content.children
-    property var path: ListModel{}
-    property var currPath: 0
 
     signal back
 
@@ -63,39 +61,6 @@ Item {
                     Layout.rightMargin: root._rightMargin
                     Layout.topMargin: root._topMargin
                     spacing: root._spacing
-                    ListView {
-                        id: trackPath
-                        Layout.fillWidth: true
-                        Layout.topMargin: root._topMargin
-                        Layout.bottomMargin: root._bottomMargin
-                        Layout.leftMargin: (parent.width/2) - (contentItem.childrenRect.width/2)
-                        spacing: root._spacing
-
-                        interactive: false
-                        orientation: ListView.Horizontal
-                        model: path
-
-                        delegate: Rectangle{
-                            width: Math.max(100, children[0].width)
-                            height: children[0].height
-                            color: index <= currPath ? root.colorScheme.interaction_norm : root.colorScheme.interaction_weak
-                            radius: width / 4
-                            Label {
-                                colorScheme: root.colorScheme
-                                text: qsTr(modelData)
-                                type: Label.Caption
-                                color: "#FFFFFF"
-                                padding: root._spacing / 2
-                                anchors {
-                                    verticalCenter: parent.verticalCenter
-                                    horizontalCenter: parent.horizontalCenter
-                                }
-                                Layout.leftMargin: (parent.width - width) / 2
-                            }
-                        }
-
-                        visible: model.length > 0
-                    }
                 }
                 Item {
                     id: filler

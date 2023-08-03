@@ -24,6 +24,7 @@ Item {
     property var colorScheme
     property bool showSeparator: true
     property string text: "Text"
+    property string hint: ""
 
     signal clicked
 
@@ -39,11 +40,53 @@ Item {
             text: root.text
             type: Label.Body
             Layout.fillHeight: true
-            Layout.fillWidth: true
-            Layout.preferredWidth: parent.width
             Layout.alignment: Qt.AlignVCenter
             Layout.bottomMargin: root._bottomMargin
             wrapMode: Text.WordWrap
+        }
+
+        ColorImage {
+            id: infoImage
+            Layout.preferredHeight: 21
+            Layout.preferredWidth: 21
+            Layout.alignment: Qt.AlignVCenter
+            color: root.colorScheme.interaction_norm
+            height: 21
+            source: "/qml/icons/ic-info-circle.svg"
+            sourceSize.height: 21
+            sourceSize.width: 21
+            width: 21
+            visible: root.hint !== ""
+            MouseArea {
+                id: imageArea
+                anchors.fill: infoImage
+                hoverEnabled: true
+            }
+            ToolTip {
+                id: toolTipinfo
+                text: root.hint
+                visible: imageArea.containsMouse
+                implicitWidth: 400
+                background: Rectangle {
+                    radius: 4
+                    border.color: root.colorScheme.border_weak
+                    color: root.colorScheme.background_weak
+                }
+                contentItem: Text {
+                    id: tooltipText
+                    color: root.colorScheme.text_hint
+                    text: toolTipinfo.text
+                    wrapMode: Text.WordWrap
+
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+        }
+
+        // fill height so the footer label will always be attached to the bottom
+        Item {
+            Layout.fillWidth: true
         }
         Button {
             id: button

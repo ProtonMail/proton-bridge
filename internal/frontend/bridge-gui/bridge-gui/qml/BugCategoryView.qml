@@ -38,7 +38,8 @@ SettingsView {
             Layout.fillWidth: true
             actionIcon: "/qml/icons/ic-chevron-right.svg"
             colorScheme: root.colorScheme
-            text: modelData
+            text: modelData.name
+            hint: modelData.hint ? modelData.hint: ""
 
             onClicked: root.categorySelected(index)
         }

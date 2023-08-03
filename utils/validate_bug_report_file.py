@@ -161,7 +161,7 @@ class BugReportJson:
                 self.error = ("category should be a dictionary.")
                 return False
             for option in category:
-                if option not in ["name", "questions"]:
+                if option not in ["name", "questions", "hint"]:
                     self.error = ("Unexpected option '%s' in category." % option)
                     return False
             if "name" not in category:

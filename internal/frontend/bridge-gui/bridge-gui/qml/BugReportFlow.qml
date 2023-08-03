@@ -21,7 +21,6 @@ Item {
 
     property ColorScheme colorScheme
     property string selectedAddress
-    property var titles: ["Category", "Description", "Confirmation"]
     property int categoryId: -1
 
     signal back
@@ -59,8 +58,6 @@ Item {
                 // 0
                 id: bugCategory
                 colorScheme: root.colorScheme
-                path: root.titles
-                currPath: 0
 
                 onBack: {
                     root.back()
@@ -74,8 +71,6 @@ Item {
                 // 1
                 id: bugQuestion
                 colorScheme: root.colorScheme
-                path: root.titles
-                currPath: 1
 
                 onBack: {
                     root.showBugCategory();
@@ -89,8 +84,6 @@ Item {
                 id: bugReport
                 colorScheme: root.colorScheme
                 selectedAddress: root.selectedAddress
-                path: root.titles
-                currPath: 2
 
                 onBack: {
                     root.showBugQuestion();

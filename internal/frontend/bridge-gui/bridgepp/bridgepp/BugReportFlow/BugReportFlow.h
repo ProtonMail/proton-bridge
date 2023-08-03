@@ -35,7 +35,7 @@ public: // member functions.
 
     [[nodiscard]] bool parse(const QString& filepath); ///< Initialize the Bug Report Flow.
 
-    [[nodiscard]] QStringList categories() const; ///< Getter for the 'bugCategories' property.
+    [[nodiscard]] QVariantList categories() const; ///< Getter for the 'bugCategories' property.
     [[nodiscard]] QVariantList questions() const; ///< Getter for the 'bugQuestions' property.
     [[nodiscard]] QVariantList questionSet(quint8 categoryId) const; ///< Retrieve the set of question for a given bug category.
     [[nodiscard]] bool setAnswer(quint8 questionId, QString const &answer); ///< Feed an answer for a given question.
@@ -55,7 +55,7 @@ private: // member functions
 
 private: // data members
     QString filepath_; ///< The file path of the BugReportFlow description file.
-    QStringList categories_; ///< The list of Bug Category parsed from the description file.
+    QVariantList categories_; ///< The list of Bug Category parsed from the description file.
     QVariantList questions_; ///< The list of Questions parsed from the description file.
     QList<QVariantList> questionsSet_; ///< Sets of questions per bug category.
     QMap<quint8, QString> answers_; ///< Map of QuestionId/Answer for the bug form.

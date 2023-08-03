@@ -652,7 +652,7 @@ QStringList QMLBackend::availableKeychain() const {
 //****************************************************************************************************************************************************
 /// \return The value for the 'bugCategories' property.
 //****************************************************************************************************************************************************
-QStringList QMLBackend::bugCategories() const {
+QVariantList QMLBackend::bugCategories() const {
     return reportFlow_.categories();
 }
 

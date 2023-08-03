@@ -44,6 +44,13 @@ SettingsView {
         type: Label.Heading
     }
 
+    Label {
+        Layout.fillWidth: true
+        colorScheme: root.colorScheme
+        text: qsTr(Backend.getBugCategory(root.categoryId))
+        type: Label.Title
+    }
+
     TextEdit {
         Layout.fillWidth: true
         color: root.colorScheme.text_weak

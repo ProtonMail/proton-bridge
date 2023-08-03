@@ -6,23 +6,28 @@
     "categories": [
       {
         "name": "I am not receiving messages in my email client",
-        "questions": [0,5,6,4]
+        "questions": [0,5,6,4],
+        "hint": ""
       },
       {
         "name": "I am not able to send messages",
-        "questions": [0,2,3,4]
+        "questions": [0,2,3,4],
+        "hint": ""
       },
       {
-        "name": "Bridge is not starting",
-        "questions": [0,2,3,4]
+        "name": "Bridge is not starting correctly",
+        "questions": [0,2,3,4],
+        "hint": "Bridge does not autostart or behave wrongly at startup"
       },
       {
         "name": "Bridge is running slow",
-        "questions": [0,2,7,4]
+        "questions": [0,2,7,4],
+        "hint": ""
       },
       {
         "name": "Something else",
-        "questions": [0,1,2,3]
+        "questions": [0,1,2,3],
+        "hint": ""
       }
     ],
     "questions": [
@@ -50,15 +55,16 @@
       },
       {
         "id": 3,
-        "text": "Can you reproduce this issue? (If you repeat the actions, does the same thing happen?)",
-        "type": "choice",
-        "answerList": ["Yes", "No"]
+         "text": "When the issue last occurred? Is it repeating?",
+         "tips": "Can you reproduce",
+         "type": "open",
+        "maxChar": 400
       },
       {
         "id": 4,
-        "text": "Can you check the software you are running from the list?",
+        "text": "Can you select the software you are running from the list?",
         "type": "multichoice",
-        "answerList": ["VPN", "Antivirus", "Firewall", "Cache Cleaner", "None of the above"]
+        "answerList": ["VPN", "Antivirus", "Firewall", "Cache Cleaner"]
       },
       {
         "id": 5,
@@ -70,7 +76,7 @@
         "id": 6,
         "text": "Can you locate the messages in the web/mobile applications?",
         "type": "choice",
-        "answerList": ["Yes", "No"]
+        "answerList": ["Yes", "No", "I do not know"]
       },
       {
         "id": 7,

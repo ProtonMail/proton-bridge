@@ -98,11 +98,11 @@ Item {
                 colorScheme: root.colorScheme
 
                 property int _maxLength: root.maxChar
-                property int _minLength: 10
+                property int _minLength: 1
 
                 label: qsTr(root.label)
                 hint: textInput.text.length + "/" + _maxLength
-                placeholderText: mandatory ? qsTr("%1... (min. %2 characters)").arg(root.tips).arg(_minLength) : ""
+                placeholderText: qsTr(root.tips)
 
                 function setDefaultValue(defaultValue) {
                     textInput.text = root.type === root._typeOpen ? defaultValue : ""
@@ -110,7 +110,7 @@ Item {
 
                 validator: function (text) {
                     if (mandatory && textInput.text.length < textInput._minLength) {
-                        return qsTr("min. %1 characters").arg(_minLength);
+                        return qsTr("Field is mandatory");
                     }
                     if (textInput.text.length > textInput._maxLength) {
                         return qsTr("max. %1 characters").arg(_maxLength);
