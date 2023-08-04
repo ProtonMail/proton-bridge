@@ -75,6 +75,7 @@
         <file alias="bridgeMacOS.svg">../../../../dist/bridgeMacOS.svg</file>
         <file>qml/KeychainSettings.qml</file>
         <file>qml/LocalCacheSettings.qml</file>
+        <file>qml/LinkLabel.qml</file>
         <file>qml/MainWindow.qml</file>
         <file>qml/NotificationDialog.qml</file>
         <file>qml/NotificationPopups.qml</file>
@@ -108,10 +109,10 @@
         <file>qml/SettingsItem.qml</file>
         <file>qml/SettingsView.qml</file>
         <file>qml/SetupGuide.qml</file>
+        <file>qml/SetupWizard/LeftPane.qml</file>
+        <file>qml/SetupWizard/ClientConfigSelector.qml</file>
         <file>qml/SetupWizard/SetupWizard.qml</file>
-        <file>qml/SetupWizard/LoginLeftPane.qml</file>
         <file>qml/SetupWizard/LoginRightPane.qml</file>
-        <file>qml/SetupWizard/OnboardingLeftPane.qml</file>
         <file>qml/SetupWizard/OnboardingRightPane.qml</file>
         <file>qml/SetupWizard/StepDescriptionBox.qml</file>
         <file>qml/SignIn.qml</file>

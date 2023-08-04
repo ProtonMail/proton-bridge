@@ -95,11 +95,11 @@ ApplicationWindow {
     }
     Connections {
         function onLoginFinished(index, wasSignedOut) {
-            const user = Backend.users.get(index);
-            if (user && !wasSignedOut) {
-                root.showSetup(user, user.addresses[0]);
-            }
-            console.debug("Login finished", index);
+            // const user = Backend.users.get(index);
+            // if (user && !wasSignedOut) {
+            //    root.showSetup(user, user.addresses[0]);
+            // }
+            // console.debug("Login finished", index);
         }
         function onSelectUser(userID, forceShowWindow) {
             contentWrapper.selectUser(userID);

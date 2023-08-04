@@ -16,6 +16,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Controls.impl
 import "." as Proton
+import ".."
 
 Item {
     id: root
@@ -27,20 +28,24 @@ Item {
     }
     function start() {
         root.visible = true;
-        leftContent.currentIndex = 0;
+        leftContent.showOnboarding();
         rightContent.currentIndex = 0;
+    }
+    function startClientConfig() {
+        root.visible = true;
+        leftContent.showClientSelector();
+        rightContent.currentIndex = 2;
     }
     function startLogin() {
         root.visible = true;
-        leftContent.currentIndex = 1;
+        leftContent.showLogin();
         rightContent.currentIndex = 1;
-        loginLeftPane.showSignIn();
         loginRightPane.reset(true);
     }
 
     Connections {
         function onLoginFinished() {
-            root.closeWizard();
+            startClientConfig();
         }
 
         target: Backend
@@ -55,7 +60,7 @@ Item {
             Layout.fillWidth: true
             color: root.colorScheme.background_norm
 
-            StackLayout {
+            LeftPane {
                 id: leftContent
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 96
@@ -63,23 +68,8 @@ Item {
                 anchors.top: parent.top
                 anchors.topMargin: 96
                 clip: true
-                currentIndex: 0
+                colorScheme: root.colorScheme
                 width: 444
-
-                // stack index 0
-                OnboardingLeftPane {
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    colorScheme: root.colorScheme
-                }
-
-                // stack index 1
-                LoginLeftPane {
-                    id: loginLeftPane
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    colorScheme: root.colorScheme
-                }
             }
             Image {
                 id: mailLogoWithWordmark
@@ -105,8 +95,8 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.top: parent.top
                 anchors.topMargin: 96
-                currentIndex: 0
                 clip: true
+                currentIndex: 0
                 width: 444
 
                 // stack index 0
@@ -129,26 +119,30 @@ Item {
                         root.closeWizard();
                     }
                 }
+
+                // stack index 2
+                ClientConfigSelector {
+                    id: clientCOnfigSelector
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    colorScheme: root.colorScheme
+                }
             }
-            Label {
+            LinkLabel {
                 id: reportProblemLink
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 48
                 anchors.horizontalCenter: parent.horizontalCenter
                 colorScheme: root.colorScheme
                 horizontalAlignment: Text.AlignRight
-                text: link("#", "Report problem")
+                linkText: qsTr("Report problem")
+                linkURL: "#"
                 width: 444
 
                 onLinkActivated: {
                     root.visible = false;
                 }
 
-                HoverHandler {
-                    id: mouse
-                    acceptedDevices: PointerDevice.Mouse
-                    cursorShape: Qt.PointingHandCursor
-                }
             }
         }
     }
