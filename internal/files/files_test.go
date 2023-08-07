@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package files
 
 import (
 	"os"
@@ -41,7 +41,7 @@ func TestMoveDir(t *testing.T) {
 	}
 
 	// Move the files.
-	if err := moveDir(from, to); err != nil {
+	if err := MoveDir(from, to); err != nil {
 		t.Fatal(err)
 	}
 

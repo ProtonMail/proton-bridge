@@ -17,29 +17,10 @@
 
 package bridge
 
-import (
-	"context"
-
-	"github.com/ProtonMail/gluon/watcher"
-	"github.com/ProtonMail/proton-bridge/v3/internal/events"
-)
-
-type bridgeEventSubscription struct {
+type bridgeIMAPSMTPTelemetry struct {
 	b *Bridge
 }
 
-func (b bridgeEventSubscription) Add(ofType ...events.Event) *watcher.Watcher[events.Event] {
-	return b.b.addWatcher(ofType...)
-}
-
-func (b bridgeEventSubscription) Remove(watcher *watcher.Watcher[events.Event]) {
-	b.b.remWatcher(watcher)
-}
-
-type bridgeEventPublisher struct {
-	b *Bridge
-}
-
-func (b bridgeEventPublisher) PublishEvent(_ context.Context, event events.Event) {
-	b.b.publish(event)
+func (b bridgeIMAPSMTPTelemetry) SetCacheLocation(s string) {
+	b.b.heartbeat.SetCacheLocation(s)
 }

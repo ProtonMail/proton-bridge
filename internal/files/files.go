@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package files
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 )
 
-func moveDir(from, to string) error {
+func MoveDir(from, to string) error {
 	entries, err := os.ReadDir(from)
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func moveDir(from, to string) error {
 				return err
 			}
 
-			if err := moveDir(filepath.Join(from, entry.Name()), filepath.Join(to, entry.Name())); err != nil {
+			if err := MoveDir(filepath.Join(from, entry.Name()), filepath.Join(to, entry.Name())); err != nil {
 				return err
 			}
 
@@ -61,12 +61,12 @@ func moveFile(from, to string) error {
 	return os.Rename(from, to)
 }
 
-func copyDir(from, to string) error {
+func CopyDir(from, to string) error {
 	entries, err := os.ReadDir(from)
 	if err != nil {
 		return err
 	}
-	if err := createIfNotExists(to, 0o700); err != nil {
+	if err := CreateIfNotExists(to, 0o700); err != nil {
 		return err
 	}
 	for _, entry := range entries {
@@ -74,11 +74,11 @@ func copyDir(from, to string) error {
 		destPath := filepath.Join(to, entry.Name())
 
 		if entry.IsDir() {
-			if err := copyDir(sourcePath, destPath); err != nil {
+			if err := CopyDir(sourcePath, destPath); err != nil {
 				return err
 			}
 		} else {
-			if err := copyFile(sourcePath, destPath); err != nil {
+			if err := CopyFile(sourcePath, destPath); err != nil {
 				return err
 			}
 		}
@@ -86,7 +86,7 @@ func copyDir(from, to string) error {
 	return nil
 }
 
-func copyFile(srcFile, dstFile string) error {
+func CopyFile(srcFile, dstFile string) error {
 	out, err := os.Create(filepath.Clean(dstFile))
 	defer func(out *os.File) {
 		_ = out.Close()
@@ -113,7 +113,7 @@ func copyFile(srcFile, dstFile string) error {
 	return nil
 }
 
-func exists(filePath string) bool {
+func Exists(filePath string) bool {
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return false
 	}
@@ -121,8 +121,8 @@ func exists(filePath string) bool {
 	return true
 }
 
-func createIfNotExists(dir string, perm os.FileMode) error {
-	if exists(dir) {
+func CreateIfNotExists(dir string, perm os.FileMode) error {
+	if Exists(dir) {
 		return nil
 	}
 

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package imapsmtpserver
 
 import (
 	"context"
@@ -24,10 +24,12 @@ import (
 	"path/filepath"
 
 	"github.com/ProtonMail/gluon"
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/connector"
+	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/logging"
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
-	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
 	bridgesmtp "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
@@ -35,8 +37,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ServerManager manages the IMAP & SMTP servers and their listeners.
-type ServerManager struct {
+// Service manages the IMAP & SMTP servers and their listeners.
+type Service struct {
 	requests *cpc.CPC
 
 	imapServer   *gluon.Server
@@ -46,30 +48,60 @@ type ServerManager struct {
 	smtpListener net.Listener
 	smtpAccounts *bridgesmtp.Accounts
 
+	smtpSettings   SMTPSettingsProvider
+	imapSettings   IMAPSettingsProvider
+	eventPublisher events.EventPublisher
+	panicHandler   async.PanicHandler
+	reporter       reporter.Reporter
+
 	loadedUserCount int
+	log             *logrus.Entry
+	tasks           *async.Group
+
+	uidValidityGenerator imap.UIDValidityGenerator
+	telemetry            Telemetry
 }
 
-func newServerManager() *ServerManager {
-	return &ServerManager{
+func NewService(
+	ctx context.Context,
+	smtpSettings SMTPSettingsProvider,
+	imapSettings IMAPSettingsProvider,
+	eventPublisher events.EventPublisher,
+	panicHandler async.PanicHandler,
+	reporter reporter.Reporter,
+	uidValidityGenerator imap.UIDValidityGenerator,
+	telemetry Telemetry,
+) *Service {
+	return &Service{
 		requests:     cpc.NewCPC(),
 		smtpAccounts: bridgesmtp.NewAccounts(),
+
+		panicHandler:         panicHandler,
+		reporter:             reporter,
+		smtpSettings:         smtpSettings,
+		imapSettings:         imapSettings,
+		eventPublisher:       eventPublisher,
+		log:                  logrus.WithField("service", "server-manager"),
+		tasks:                async.NewGroup(ctx, panicHandler),
+		uidValidityGenerator: uidValidityGenerator,
+		telemetry:            telemetry,
 	}
 }
 
-func (sm *ServerManager) Init(bridge *Bridge) error {
-	imapServer, err := createIMAPServer(bridge)
+func (sm *Service) Init(ctx context.Context, group *async.Group, subscription events.Subscription) error {
+	imapServer, err := sm.createIMAPServer(ctx)
 	if err != nil {
 		return err
 	}
 
-	smtpServer := createSMTPServer(bridge, sm.smtpAccounts)
+	smtpServer := sm.createSMTPServer()
 
 	sm.imapServer = imapServer
 	sm.smtpServer = smtpServer
 
-	bridge.tasks.Once(func(ctx context.Context) {
+	group.Once(func(ctx context.Context) {
 		logging.DoAnnotated(ctx, func(ctx context.Context) {
-			sm.run(ctx, bridge)
+			sm.run(ctx, subscription)
 		}, logging.Labels{
 			"service": "server-manager",
 		})
@@ -78,26 +110,26 @@ func (sm *ServerManager) Init(bridge *Bridge) error {
 	return nil
 }
 
-func (sm *ServerManager) CloseServers(ctx context.Context) error {
+func (sm *Service) CloseServers(ctx context.Context) error {
 	defer sm.requests.Close()
 	_, err := sm.requests.Send(ctx, &smRequestClose{})
 
 	return err
 }
 
-func (sm *ServerManager) RestartIMAP(ctx context.Context) error {
+func (sm *Service) RestartIMAP(ctx context.Context) error {
 	_, err := sm.requests.Send(ctx, &smRequestRestartIMAP{})
 
 	return err
 }
 
-func (sm *ServerManager) RestartSMTP(ctx context.Context) error {
+func (sm *Service) RestartSMTP(ctx context.Context) error {
 	_, err := sm.requests.Send(ctx, &smRequestRestartSMTP{})
 
 	return err
 }
 
-func (sm *ServerManager) AddIMAPUser(
+func (sm *Service) AddIMAPUser(
 	ctx context.Context,
 	connector connector.Connector,
 	addrID string,
@@ -114,7 +146,7 @@ func (sm *ServerManager) AddIMAPUser(
 	return err
 }
 
-func (sm *ServerManager) SetGluonDir(ctx context.Context, gluonDir string) error {
+func (sm *Service) SetGluonDir(ctx context.Context, gluonDir string) error {
 	_, err := sm.requests.Send(ctx, &smRequestSetGluonDir{
 		dir: gluonDir,
 	})
@@ -122,7 +154,7 @@ func (sm *ServerManager) SetGluonDir(ctx context.Context, gluonDir string) error
 	return err
 }
 
-func (sm *ServerManager) RemoveIMAPUser(ctx context.Context, deleteData bool, provider imapservice.GluonIDProvider, addrID ...string) error {
+func (sm *Service) RemoveIMAPUser(ctx context.Context, deleteData bool, provider imapservice.GluonIDProvider, addrID ...string) error {
 	_, err := sm.requests.Send(ctx, &smRequestRemoveIMAPUser{
 		withData:   deleteData,
 		addrID:     addrID,
@@ -132,42 +164,42 @@ func (sm *ServerManager) RemoveIMAPUser(ctx context.Context, deleteData bool, pr
 	return err
 }
 
-func (sm *ServerManager) AddSMTPAccount(ctx context.Context, service *bridgesmtp.Service) error {
+func (sm *Service) AddSMTPAccount(ctx context.Context, service *bridgesmtp.Service) error {
 	_, err := sm.requests.Send(ctx, &smRequestAddSMTPAccount{account: service})
 
 	return err
 }
 
-func (sm *ServerManager) RemoveSMTPAccount(ctx context.Context, service *bridgesmtp.Service) error {
+func (sm *Service) RemoveSMTPAccount(ctx context.Context, service *bridgesmtp.Service) error {
 	_, err := sm.requests.Send(ctx, &smRequestRemoveSMTPAccount{account: service})
 
 	return err
 }
 
-func (sm *ServerManager) run(ctx context.Context, bridge *Bridge) {
-	eventCh, cancel := bridge.GetEvents()
-	defer cancel()
+func (sm *Service) run(ctx context.Context, subscription events.Subscription) {
+	eventSub := subscription.Add()
+	defer subscription.Remove(eventSub)
 
 	for {
 		select {
 		case <-ctx.Done():
-			sm.handleClose(ctx, bridge)
+			sm.handleClose(ctx)
 			return
 
-		case evt := <-eventCh:
+		case evt := <-eventSub.GetChannel():
 			switch evt.(type) {
 			case events.ConnStatusDown:
 				logrus.Info("Server Manager, network down stopping listeners")
-				if err := sm.closeSMTPServer(bridge); err != nil {
+				if err := sm.closeSMTPServer(ctx); err != nil {
 					logrus.WithError(err).Error("Failed to close SMTP server")
 				}
 
-				if err := sm.stopIMAPListener(bridge); err != nil {
+				if err := sm.stopIMAPListener(ctx); err != nil {
 					logrus.WithError(err)
 				}
 			case events.ConnStatusUp:
 				logrus.Info("Server Manager, network up starting listeners")
-				sm.handleLoadedUserCountChange(ctx, bridge)
+				sm.handleLoadedUserCountChange(ctx)
 			}
 
 		case request, ok := <-sm.requests.ReceiveCh():
@@ -177,34 +209,34 @@ func (sm *ServerManager) run(ctx context.Context, bridge *Bridge) {
 
 			switch r := request.Value().(type) {
 			case *smRequestClose:
-				sm.handleClose(ctx, bridge)
+				sm.handleClose(ctx)
 				request.Reply(ctx, nil, nil)
 				return
 
 			case *smRequestRestartSMTP:
-				err := sm.restartSMTP(bridge)
+				err := sm.restartSMTP(ctx)
 				request.Reply(ctx, nil, err)
 
 			case *smRequestRestartIMAP:
-				err := sm.restartIMAP(ctx, bridge)
+				err := sm.restartIMAP(ctx)
 				request.Reply(ctx, nil, err)
 
 			case *smRequestAddIMAPUser:
 				err := sm.handleAddIMAPUser(ctx, r.connector, r.addrID, r.idProvider, r.syncStateProvider)
 				request.Reply(ctx, nil, err)
 				if err == nil {
-					sm.handleLoadedUserCountChange(ctx, bridge)
+					sm.handleLoadedUserCountChange(ctx)
 				}
 
 			case *smRequestRemoveIMAPUser:
 				err := sm.handleRemoveIMAPUser(ctx, r.withData, r.idProvider, r.addrID...)
 				request.Reply(ctx, nil, err)
 				if err == nil {
-					sm.handleLoadedUserCountChange(ctx, bridge)
+					sm.handleLoadedUserCountChange(ctx)
 				}
 
 			case *smRequestSetGluonDir:
-				err := sm.handleSetGluonDir(ctx, bridge, r.dir)
+				err := sm.handleSetGluonDir(ctx, r.dir)
 				request.Reply(ctx, nil, err)
 
 			case *smRequestAddSMTPAccount:
@@ -221,48 +253,50 @@ func (sm *ServerManager) run(ctx context.Context, bridge *Bridge) {
 	}
 }
 
-func (sm *ServerManager) handleLoadedUserCountChange(ctx context.Context, bridge *Bridge) {
+func (sm *Service) handleLoadedUserCountChange(ctx context.Context) {
 	logrus.Infof("Validating Listener State %v", sm.loadedUserCount)
 	if sm.shouldStartServers() {
 		if sm.imapListener == nil {
-			if err := sm.serveIMAP(ctx, bridge); err != nil {
+			if err := sm.serveIMAP(ctx); err != nil {
 				logrus.WithError(err).Error("Failed to start IMAP server")
 			}
 		}
 
 		if sm.smtpListener == nil {
-			if err := sm.restartSMTP(bridge); err != nil {
+			if err := sm.restartSMTP(ctx); err != nil {
 				logrus.WithError(err).Error("Failed to start SMTP server")
 			}
 		}
 	} else {
 		if sm.imapListener != nil {
-			if err := sm.stopIMAPListener(bridge); err != nil {
+			if err := sm.stopIMAPListener(ctx); err != nil {
 				logrus.WithError(err).Error("Failed to stop IMAP server")
 			}
 		}
 
 		if sm.smtpListener != nil {
-			if err := sm.closeSMTPServer(bridge); err != nil {
+			if err := sm.closeSMTPServer(ctx); err != nil {
 				logrus.WithError(err).Error("Failed to stop SMTP server")
 			}
 		}
 	}
 }
 
-func (sm *ServerManager) handleClose(ctx context.Context, bridge *Bridge) {
+func (sm *Service) handleClose(ctx context.Context) {
+	sm.tasks.Cancel()
+
 	// Close the IMAP server.
-	if err := sm.closeIMAPServer(ctx, bridge); err != nil {
+	if err := sm.closeIMAPServer(ctx); err != nil {
 		logrus.WithError(err).Error("Failed to close IMAP server")
 	}
 
 	// Close the SMTP server.
-	if err := sm.closeSMTPServer(bridge); err != nil {
+	if err := sm.closeSMTPServer(ctx); err != nil {
 		logrus.WithError(err).Error("Failed to close SMTP server")
 	}
 }
 
-func (sm *ServerManager) handleAddIMAPUser(ctx context.Context,
+func (sm *Service) handleAddIMAPUser(ctx context.Context,
 	connector connector.Connector,
 	addrID string,
 	idProvider imapservice.GluonIDProvider,
@@ -278,7 +312,7 @@ func (sm *ServerManager) handleAddIMAPUser(ctx context.Context,
 	return err
 }
 
-func (sm *ServerManager) handleAddIMAPUserImpl(ctx context.Context,
+func (sm *Service) handleAddIMAPUserImpl(ctx context.Context,
 	connector connector.Connector,
 	addrID string,
 	idProvider imapservice.GluonIDProvider,
@@ -361,7 +395,7 @@ func (sm *ServerManager) handleAddIMAPUserImpl(ctx context.Context,
 	return nil
 }
 
-func (sm *ServerManager) handleRemoveIMAPUser(ctx context.Context, withData bool, idProvider imapservice.GluonIDProvider, addrIDs ...string) error {
+func (sm *Service) handleRemoveIMAPUser(ctx context.Context, withData bool, idProvider imapservice.GluonIDProvider, addrIDs ...string) error {
 	if sm.imapServer == nil {
 		return fmt.Errorf("no imap server instance running")
 	}
@@ -394,37 +428,37 @@ func (sm *ServerManager) handleRemoveIMAPUser(ctx context.Context, withData bool
 	return nil
 }
 
-func createIMAPServer(bridge *Bridge) (*gluon.Server, error) {
-	gluonDataDir, err := bridge.GetGluonDataDir()
+func (sm *Service) createIMAPServer(ctx context.Context) (*gluon.Server, error) {
+	gluonDataDir, err := sm.imapSettings.DataDirectory()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Gluon Database directory: %w", err)
 	}
 
 	server, err := newIMAPServer(
-		bridge.vault.GetGluonCacheDir(),
+		sm.imapSettings.CacheDirectory(),
 		gluonDataDir,
-		bridge.curVersion,
-		bridge.tlsConfig,
-		bridge.reporter,
-		bridge.logIMAPClient,
-		bridge.logIMAPServer,
-		bridge.imapEventCh,
-		bridge.tasks,
-		bridge.uidValidityGenerator,
-		bridge.panicHandler,
+		sm.imapSettings.Version(),
+		sm.imapSettings.TLSConfig(),
+		sm.reporter,
+		sm.imapSettings.LogClient(),
+		sm.imapSettings.LogServer(),
+		sm.imapSettings.EventPublisher(),
+		sm.tasks,
+		sm.uidValidityGenerator,
+		sm.panicHandler,
 	)
 	if err == nil {
-		bridge.publish(events.IMAPServerCreated{})
+		sm.eventPublisher.PublishEvent(ctx, events.IMAPServerCreated{})
 	}
 
 	return server, err
 }
 
-func createSMTPServer(bridge *Bridge, accounts *bridgesmtp.Accounts) *smtp.Server {
-	return newSMTPServer(bridge, accounts, bridge.tlsConfig, bridge.logSMTP)
+func (sm *Service) createSMTPServer() *smtp.Server {
+	return newSMTPServer(sm.smtpAccounts, sm.smtpSettings)
 }
 
-func (sm *ServerManager) closeSMTPServer(bridge *Bridge) error {
+func (sm *Service) closeSMTPServer(ctx context.Context) error {
 	// We close the listener ourselves even though it's also closed by smtpServer.Close().
 	// This is because smtpServer.Serve() is called in a separate goroutine and might be executed
 	// after we've already closed the server. However, go-smtp has a bug; it blocks on the listener
@@ -447,13 +481,13 @@ func (sm *ServerManager) closeSMTPServer(bridge *Bridge) error {
 
 		sm.smtpServer = nil
 
-		bridge.publish(events.SMTPServerStopped{})
+		sm.eventPublisher.PublishEvent(ctx, events.SMTPServerStopped{})
 	}
 
 	return nil
 }
 
-func (sm *ServerManager) closeIMAPServer(ctx context.Context, bridge *Bridge) error {
+func (sm *Service) closeIMAPServer(ctx context.Context) error {
 	if sm.imapListener != nil {
 		logrus.Info("Closing IMAP Listener")
 
@@ -463,7 +497,7 @@ func (sm *ServerManager) closeIMAPServer(ctx context.Context, bridge *Bridge) er
 
 		sm.imapListener = nil
 
-		bridge.publish(events.IMAPServerStopped{})
+		sm.eventPublisher.PublishEvent(ctx, events.IMAPServerStopped{})
 	}
 
 	if sm.imapServer != nil {
@@ -474,13 +508,13 @@ func (sm *ServerManager) closeIMAPServer(ctx context.Context, bridge *Bridge) er
 
 		sm.imapServer = nil
 
-		bridge.publish(events.IMAPServerClosed{})
+		sm.eventPublisher.PublishEvent(ctx, events.IMAPServerClosed{})
 	}
 
 	return nil
 }
 
-func (sm *ServerManager) restartIMAP(ctx context.Context, bridge *Bridge) error {
+func (sm *Service) restartIMAP(ctx context.Context) error {
 	logrus.Info("Restarting IMAP server")
 
 	if sm.imapListener != nil {
@@ -490,55 +524,55 @@ func (sm *ServerManager) restartIMAP(ctx context.Context, bridge *Bridge) error 
 
 		sm.imapListener = nil
 
-		bridge.publish(events.IMAPServerStopped{})
+		sm.eventPublisher.PublishEvent(ctx, events.IMAPServerStopped{})
 	}
 
 	if sm.shouldStartServers() {
-		return sm.serveIMAP(ctx, bridge)
+		return sm.serveIMAP(ctx)
 	}
 
 	return nil
 }
 
-func (sm *ServerManager) restartSMTP(bridge *Bridge) error {
+func (sm *Service) restartSMTP(ctx context.Context) error {
 	logrus.Info("Restarting SMTP server")
 
-	if err := sm.closeSMTPServer(bridge); err != nil {
+	if err := sm.closeSMTPServer(ctx); err != nil {
 		return fmt.Errorf("failed to close SMTP: %w", err)
 	}
 
-	bridge.publish(events.SMTPServerStopped{})
+	sm.eventPublisher.PublishEvent(ctx, events.SMTPServerStopped{})
 
-	sm.smtpServer = newSMTPServer(bridge, sm.smtpAccounts, bridge.tlsConfig, bridge.logSMTP)
+	sm.smtpServer = newSMTPServer(sm.smtpAccounts, sm.smtpSettings)
 
 	if sm.shouldStartServers() {
-		return sm.serveSMTP(bridge)
+		return sm.serveSMTP(ctx)
 	}
 
 	return nil
 }
 
-func (sm *ServerManager) serveSMTP(bridge *Bridge) error {
+func (sm *Service) serveSMTP(ctx context.Context) error {
 	port, err := func() (int, error) {
 		logrus.WithFields(logrus.Fields{
-			"port": bridge.vault.GetSMTPPort(),
-			"ssl":  bridge.vault.GetSMTPSSL(),
+			"port": sm.smtpSettings.Port(),
+			"ssl":  sm.smtpSettings.UseSSL(),
 		}).Info("Starting SMTP server")
 
-		smtpListener, err := newListener(bridge.vault.GetSMTPPort(), bridge.vault.GetSMTPSSL(), bridge.tlsConfig)
+		smtpListener, err := newListener(sm.smtpSettings.Port(), sm.smtpSettings.UseSSL(), sm.smtpSettings.TLSConfig())
 		if err != nil {
 			return 0, fmt.Errorf("failed to create SMTP listener: %w", err)
 		}
 
 		sm.smtpListener = smtpListener
 
-		bridge.tasks.Once(func(context.Context) {
+		sm.tasks.Once(func(context.Context) {
 			if err := sm.smtpServer.Serve(smtpListener); err != nil {
 				logrus.WithError(err).Info("SMTP server stopped")
 			}
 		})
 
-		if err := bridge.vault.SetSMTPPort(getPort(smtpListener.Addr())); err != nil {
+		if err := sm.smtpSettings.SetPort(getPort(smtpListener.Addr())); err != nil {
 			return 0, fmt.Errorf("failed to store SMTP port in vault: %w", err)
 		}
 
@@ -546,32 +580,32 @@ func (sm *ServerManager) serveSMTP(bridge *Bridge) error {
 	}()
 
 	if err != nil {
-		bridge.publish(events.SMTPServerError{
+		sm.eventPublisher.PublishEvent(ctx, events.SMTPServerError{
 			Error: err,
 		})
 
 		return err
 	}
 
-	bridge.publish(events.SMTPServerReady{
+	sm.eventPublisher.PublishEvent(ctx, events.SMTPServerReady{
 		Port: port,
 	})
 
 	return nil
 }
 
-func (sm *ServerManager) serveIMAP(ctx context.Context, bridge *Bridge) error {
+func (sm *Service) serveIMAP(ctx context.Context) error {
 	port, err := func() (int, error) {
 		if sm.imapServer == nil {
 			return 0, fmt.Errorf("no IMAP server instance running")
 		}
 
 		logrus.WithFields(logrus.Fields{
-			"port": bridge.vault.GetIMAPPort(),
-			"ssl":  bridge.vault.GetIMAPSSL(),
+			"port": sm.imapSettings.Port(),
+			"ssl":  sm.imapSettings.UseSSL(),
 		}).Info("Starting IMAP server")
 
-		imapListener, err := newListener(bridge.vault.GetIMAPPort(), bridge.vault.GetIMAPSSL(), bridge.tlsConfig)
+		imapListener, err := newListener(sm.imapSettings.Port(), sm.imapSettings.UseSSL(), sm.imapSettings.TLSConfig())
 		if err != nil {
 			return 0, fmt.Errorf("failed to create IMAP listener: %w", err)
 		}
@@ -582,7 +616,7 @@ func (sm *ServerManager) serveIMAP(ctx context.Context, bridge *Bridge) error {
 			return 0, fmt.Errorf("failed to serve IMAP: %w", err)
 		}
 
-		if err := bridge.vault.SetIMAPPort(getPort(imapListener.Addr())); err != nil {
+		if err := sm.imapSettings.SetPort(getPort(imapListener.Addr())); err != nil {
 			return 0, fmt.Errorf("failed to store IMAP port in vault: %w", err)
 		}
 
@@ -590,21 +624,21 @@ func (sm *ServerManager) serveIMAP(ctx context.Context, bridge *Bridge) error {
 	}()
 
 	if err != nil {
-		bridge.publish(events.IMAPServerError{
+		sm.eventPublisher.PublishEvent(ctx, events.IMAPServerError{
 			Error: err,
 		})
 
 		return err
 	}
 
-	bridge.publish(events.IMAPServerReady{
+	sm.eventPublisher.PublishEvent(ctx, events.IMAPServerReady{
 		Port: port,
 	})
 
 	return nil
 }
 
-func (sm *ServerManager) stopIMAPListener(bridge *Bridge) error {
+func (sm *Service) stopIMAPListener(ctx context.Context) error {
 	logrus.Info("Stopping IMAP listener")
 	if sm.imapListener != nil {
 		if err := sm.imapListener.Close(); err != nil {
@@ -613,54 +647,54 @@ func (sm *ServerManager) stopIMAPListener(bridge *Bridge) error {
 
 		sm.imapListener = nil
 
-		bridge.publish(events.IMAPServerStopped{})
+		sm.eventPublisher.PublishEvent(ctx, events.IMAPServerStopped{})
 	}
 
 	return nil
 }
 
-func (sm *ServerManager) handleSetGluonDir(ctx context.Context, bridge *Bridge, newGluonDir string) error {
-	return safe.RLockRet(func() error {
-		currentGluonDir := bridge.GetGluonCacheDir()
-		newGluonDir = filepath.Join(newGluonDir, "gluon")
-		if newGluonDir == currentGluonDir {
-			return fmt.Errorf("new gluon dir is the same as the old one")
+func (sm *Service) handleSetGluonDir(ctx context.Context, newGluonDir string) error {
+	currentGluonDir := sm.imapSettings.CacheDirectory()
+	newGluonDir = filepath.Join(newGluonDir, "gluon")
+	if newGluonDir == currentGluonDir {
+		return fmt.Errorf("new gluon dir is the same as the old one")
+	}
+
+	if err := sm.closeIMAPServer(ctx); err != nil {
+		return fmt.Errorf("failed to close IMAP: %w", err)
+	}
+
+	sm.loadedUserCount = 0
+
+	if err := moveGluonCacheDir(sm.imapSettings, currentGluonDir, newGluonDir); err != nil {
+		logrus.WithError(err).Error("failed to move GluonCacheDir")
+
+		if err := sm.imapSettings.SetCacheDirectory(currentGluonDir); err != nil {
+			return fmt.Errorf("failed to revert GluonCacheDir: %w", err)
 		}
 
-		if err := sm.closeIMAPServer(context.Background(), bridge); err != nil {
-			return fmt.Errorf("failed to close IMAP: %w", err)
+		return err
+	}
+
+	sm.telemetry.SetCacheLocation(newGluonDir)
+
+	imapServer, err := sm.createIMAPServer(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create new IMAP server: %w", err)
+	}
+
+	sm.imapServer = imapServer
+
+	if sm.shouldStartServers() {
+		if err := sm.serveIMAP(ctx); err != nil {
+			return fmt.Errorf("failed to serve IMAP: %w", err)
 		}
+	}
 
-		sm.loadedUserCount = 0
-
-		if err := bridge.moveGluonCacheDir(currentGluonDir, newGluonDir); err != nil {
-			logrus.WithError(err).Error("failed to move GluonCacheDir")
-
-			if err := bridge.vault.SetGluonDir(currentGluonDir); err != nil {
-				return fmt.Errorf("failed to revert GluonCacheDir: %w", err)
-			}
-		}
-
-		bridge.heartbeat.SetCacheLocation(newGluonDir)
-
-		imapServer, err := createIMAPServer(bridge)
-		if err != nil {
-			return fmt.Errorf("failed to create new IMAP server: %w", err)
-		}
-
-		sm.imapServer = imapServer
-
-		if sm.shouldStartServers() {
-			if err := sm.serveIMAP(ctx, bridge); err != nil {
-				return fmt.Errorf("failed to serve IMAP: %w", err)
-			}
-		}
-
-		return nil
-	}, bridge.usersLock)
+	return nil
 }
 
-func (sm *ServerManager) shouldStartServers() bool {
+func (sm *Service) shouldStartServers() bool {
 	return sm.loadedUserCount >= 1
 }
 

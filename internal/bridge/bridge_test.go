@@ -44,6 +44,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/focus"
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapsmtpserver"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
@@ -701,10 +702,10 @@ func TestBridge_InitGluonDirectory(t *testing.T) {
 			configDir, err := b.GetGluonDataDir()
 			require.NoError(t, err)
 
-			_, err = os.ReadDir(bridge.ApplyGluonCachePathSuffix(b.GetGluonCacheDir()))
+			_, err = os.ReadDir(imapsmtpserver.ApplyGluonCachePathSuffix(b.GetGluonCacheDir()))
 			require.False(t, os.IsNotExist(err))
 
-			_, err = os.ReadDir(bridge.ApplyGluonConfigPathSuffix(configDir))
+			_, err = os.ReadDir(imapsmtpserver.ApplyGluonConfigPathSuffix(configDir))
 			require.False(t, os.IsNotExist(err))
 		})
 	})
@@ -777,16 +778,16 @@ func TestBridge_ChangeCacheDirectory(t *testing.T) {
 			require.NoError(t, err)
 
 			// Old store should no more exists.
-			_, err = os.ReadDir(bridge.ApplyGluonCachePathSuffix(currentCacheDir))
+			_, err = os.ReadDir(imapsmtpserver.ApplyGluonCachePathSuffix(currentCacheDir))
 			require.True(t, os.IsNotExist(err))
 			// Database should not have changed.
-			_, err = os.ReadDir(bridge.ApplyGluonConfigPathSuffix(configDir))
+			_, err = os.ReadDir(imapsmtpserver.ApplyGluonConfigPathSuffix(configDir))
 			require.False(t, os.IsNotExist(err))
 
 			// New path should have Gluon sub-folder.
 			require.Equal(t, filepath.Join(newCacheDir, "gluon"), b.GetGluonCacheDir())
 			// And store should be inside it.
-			_, err = os.ReadDir(bridge.ApplyGluonCachePathSuffix(b.GetGluonCacheDir()))
+			_, err = os.ReadDir(imapsmtpserver.ApplyGluonCachePathSuffix(b.GetGluonCacheDir()))
 			require.False(t, os.IsNotExist(err))
 
 			// We should be able to fetch.

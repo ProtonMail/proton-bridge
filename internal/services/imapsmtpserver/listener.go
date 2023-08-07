@@ -15,31 +15,43 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
 
-package bridge
+package imapsmtpserver
 
 import (
-	"context"
+	"crypto/tls"
+	"fmt"
+	"net"
 
-	"github.com/ProtonMail/gluon/watcher"
-	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 )
 
-type bridgeEventSubscription struct {
-	b *Bridge
+func newListener(port int, useTLS bool, tlsConfig *tls.Config) (net.Listener, error) {
+	if useTLS {
+		tlsListener, err := tls.Listen("tcp", fmt.Sprintf("%v:%v", constants.Host, port), tlsConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		return tlsListener, nil
+	}
+
+	netListener, err := net.Listen("tcp", fmt.Sprintf("%v:%v", constants.Host, port))
+	if err != nil {
+		return nil, err
+	}
+
+	return netListener, nil
 }
 
-func (b bridgeEventSubscription) Add(ofType ...events.Event) *watcher.Watcher[events.Event] {
-	return b.b.addWatcher(ofType...)
-}
+func getPort(addr net.Addr) int {
+	switch addr := addr.(type) {
+	case *net.TCPAddr:
+		return addr.Port
 
-func (b bridgeEventSubscription) Remove(watcher *watcher.Watcher[events.Event]) {
-	b.b.remWatcher(watcher)
-}
+	case *net.UDPAddr:
+		return addr.Port
 
-type bridgeEventPublisher struct {
-	b *Bridge
-}
-
-func (b bridgeEventPublisher) PublishEvent(_ context.Context, event events.Event) {
-	b.b.publish(event)
+	default:
+		return 0
+	}
 }

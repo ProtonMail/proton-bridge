@@ -19,9 +19,6 @@ package bridge
 
 import (
 	"context"
-	"fmt"
-	"net"
-	"os"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
@@ -132,23 +129,6 @@ func (bridge *Bridge) GetGluonDataDir() (string, error) {
 
 func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error {
 	return bridge.serverManager.SetGluonDir(ctx, newGluonDir)
-}
-
-func (bridge *Bridge) moveGluonCacheDir(oldGluonDir, newGluonDir string) error {
-	logrus.Infof("gluon cache moving from %s to %s", oldGluonDir, newGluonDir)
-	oldCacheDir := ApplyGluonCachePathSuffix(oldGluonDir)
-	if err := copyDir(oldCacheDir, ApplyGluonCachePathSuffix(newGluonDir)); err != nil {
-		return fmt.Errorf("failed to copy gluon dir: %w", err)
-	}
-
-	if err := bridge.vault.SetGluonDir(newGluonDir); err != nil {
-		return fmt.Errorf("failed to set new gluon cache dir: %w", err)
-	}
-
-	if err := os.RemoveAll(oldCacheDir); err != nil {
-		logrus.WithError(err).Error("failed to remove old gluon cache dir")
-	}
-	return nil
 }
 
 func (bridge *Bridge) GetProxyAllowed() bool {
@@ -316,18 +296,5 @@ func (bridge *Bridge) FactoryReset(ctx context.Context) {
 	// Lastly, delete all files except the vault.
 	if err := bridge.locator.Clear(bridge.vault.Path()); err != nil {
 		logrus.WithError(err).Error("Failed to clear data paths")
-	}
-}
-
-func getPort(addr net.Addr) int {
-	switch addr := addr.(type) {
-	case *net.TCPAddr:
-		return addr.Port
-
-	case *net.UDPAddr:
-		return addr.Port
-
-	default:
-		return 0
 	}
 }

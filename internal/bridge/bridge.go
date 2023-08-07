@@ -23,7 +23,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"net"
 	"net/http"
 	"sync"
 	"time"
@@ -41,6 +40,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/identifier"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapsmtpserver"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
@@ -126,9 +126,7 @@ type Bridge struct {
 	// goHeartbeat triggers a check/sending if heartbeat is needed.
 	goHeartbeat func()
 
-	uidValidityGenerator imap.UIDValidityGenerator
-
-	serverManager *ServerManager
+	serverManager *imapsmtpserver.Service
 }
 
 // New creates a new bridge.
@@ -271,13 +269,19 @@ func newBridge(
 		lastVersion: lastVersion,
 
 		tasks: tasks,
-
-		uidValidityGenerator: uidValidityGenerator,
-
-		serverManager: newServerManager(),
 	}
 
-	if err := bridge.serverManager.Init(bridge); err != nil {
+	bridge.serverManager = imapsmtpserver.NewService(context.Background(),
+		&bridgeSMTPSettings{b: bridge},
+		&bridgeIMAPSettings{b: bridge},
+		&bridgeEventPublisher{b: bridge},
+		panicHandler,
+		reporter,
+		uidValidityGenerator,
+		&bridgeIMAPSMTPTelemetry{b: bridge},
+	)
+
+	if err := bridge.serverManager.Init(context.Background(), bridge.tasks, &bridgeEventSubscription{b: bridge}); err != nil {
 		return nil, err
 	}
 
@@ -526,24 +530,6 @@ func loadTLSConfig(vault *vault.Vault) (*tls.Config, error) {
 		Certificates: []tls.Certificate{cert},
 		MinVersion:   tls.VersionTLS12,
 	}, nil
-}
-
-func newListener(port int, useTLS bool, tlsConfig *tls.Config) (net.Listener, error) {
-	if useTLS {
-		tlsListener, err := tls.Listen("tcp", fmt.Sprintf("%v:%v", constants.Host, port), tlsConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		return tlsListener, nil
-	}
-
-	netListener, err := net.Listen("tcp", fmt.Sprintf("%v:%v", constants.Host, port))
-	if err != nil {
-		return nil, err
-	}
-
-	return netListener, nil
 }
 
 func min(a, b time.Duration) time.Duration {

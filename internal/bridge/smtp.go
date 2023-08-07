@@ -21,47 +21,12 @@ import (
 	"context"
 	"crypto/tls"
 
-	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
-	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
-	smtpservice "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
+	"github.com/ProtonMail/proton-bridge/v3/internal/identifier"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
-	"github.com/emersion/go-sasl"
-	"github.com/emersion/go-smtp"
-	"github.com/sirupsen/logrus"
 )
 
 func (bridge *Bridge) restartSMTP(ctx context.Context) error {
 	return bridge.serverManager.RestartSMTP(ctx)
-}
-
-func newSMTPServer(bridge *Bridge, accounts *smtpservice.Accounts, tlsConfig *tls.Config, logSMTP bool) *smtp.Server {
-	logrus.WithField("logSMTP", logSMTP).Info("Creating SMTP server")
-
-	smtpServer := smtp.NewServer(smtpservice.NewBackend(accounts, &bridgeUserAgentUpdater{Bridge: bridge}))
-
-	smtpServer.TLSConfig = tlsConfig
-	smtpServer.Domain = constants.Host
-	smtpServer.AllowInsecureAuth = true
-	smtpServer.MaxLineLength = 1 << 16
-	smtpServer.ErrorLog = logging.NewSMTPLogger()
-
-	// go-smtp suppors SASL PLAIN but not LOGIN. We need to add LOGIN support ourselves.
-	smtpServer.EnableAuth(sasl.Login, func(conn *smtp.Conn) sasl.Server {
-		return sasl.NewLoginServer(func(username, password string) error {
-			return conn.Session().AuthPlain(username, password)
-		})
-	})
-
-	if logSMTP {
-		log := logrus.WithField("protocol", "SMTP")
-		log.Warning("================================================")
-		log.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
-		log.Warning("================================================")
-
-		smtpServer.Debug = logging.NewSMTPDebugLogger()
-	}
-
-	return smtpServer
 }
 
 // addSMTPUser connects the given user to the smtp server.
@@ -72,4 +37,32 @@ func (bridge *Bridge) addSMTPUser(ctx context.Context, user *user.User) error {
 // removeSMTPUser disconnects the given user from the smtp server.
 func (bridge *Bridge) removeSMTPUser(ctx context.Context, user *user.User) error {
 	return bridge.serverManager.RemoveSMTPAccount(ctx, user.GetSMTPService())
+}
+
+type bridgeSMTPSettings struct {
+	b *Bridge
+}
+
+func (b *bridgeSMTPSettings) TLSConfig() *tls.Config {
+	return b.b.tlsConfig
+}
+
+func (b *bridgeSMTPSettings) Log() bool {
+	return b.b.logSMTP
+}
+
+func (b *bridgeSMTPSettings) Port() int {
+	return b.b.vault.GetSMTPPort()
+}
+
+func (b *bridgeSMTPSettings) SetPort(i int) error {
+	return b.b.vault.SetSMTPPort(i)
+}
+
+func (b *bridgeSMTPSettings) UseSSL() bool {
+	return b.b.vault.GetSMTPSSL()
+}
+
+func (b *bridgeSMTPSettings) Identifier() identifier.UserAgentUpdater {
+	return &bridgeUserAgentUpdater{Bridge: b.b}
 }

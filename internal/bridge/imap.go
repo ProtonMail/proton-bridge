@@ -20,22 +20,12 @@ package bridge
 import (
 	"context"
 	"crypto/tls"
-	"io"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/ProtonMail/gluon"
-	"github.com/ProtonMail/gluon/async"
 	imapEvents "github.com/ProtonMail/gluon/events"
-	"github.com/ProtonMail/gluon/imap"
-	"github.com/ProtonMail/gluon/reporter"
-	"github.com/ProtonMail/gluon/store"
-	"github.com/ProtonMail/gluon/store/fallback_v0"
-	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
-	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapsmtpserver"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/sirupsen/logrus"
 )
@@ -81,108 +71,59 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 	}
 }
 
-func ApplyGluonCachePathSuffix(basePath string) string {
-	return filepath.Join(basePath, "backend", "store")
+type bridgeIMAPSettings struct {
+	b *Bridge
 }
 
-func ApplyGluonConfigPathSuffix(basePath string) string {
-	return filepath.Join(basePath, "backend", "db")
+func (b *bridgeIMAPSettings) EventPublisher() imapsmtpserver.IMAPEventPublisher {
+	return b
 }
 
-func newIMAPServer(
-	gluonCacheDir, gluonConfigDir string,
-	version *semver.Version,
-	tlsConfig *tls.Config,
-	reporter reporter.Reporter,
-	logClient, logServer bool,
-	eventCh chan<- imapEvents.Event,
-	tasks *async.Group,
-	uidValidityGenerator imap.UIDValidityGenerator,
-	panicHandler async.PanicHandler,
-) (*gluon.Server, error) {
-	gluonCacheDir = ApplyGluonCachePathSuffix(gluonCacheDir)
-	gluonConfigDir = ApplyGluonConfigPathSuffix(gluonConfigDir)
+func (b *bridgeIMAPSettings) TLSConfig() *tls.Config {
+	return b.b.tlsConfig
+}
 
-	logrus.WithFields(logrus.Fields{
-		"gluonStore": gluonCacheDir,
-		"gluonDB":    gluonConfigDir,
-		"version":    version,
-		"logClient":  logClient,
-		"logServer":  logServer,
-	}).Info("Creating IMAP server")
+func (b *bridgeIMAPSettings) LogClient() bool {
+	return b.b.logIMAPClient
+}
 
-	if logClient || logServer {
-		log := logrus.WithField("protocol", "IMAP")
-		log.Warning("================================================")
-		log.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
-		log.Warning("================================================")
+func (b *bridgeIMAPSettings) LogServer() bool {
+	return b.b.logIMAPServer
+}
+
+func (b *bridgeIMAPSettings) Port() int {
+	return b.b.vault.GetIMAPPort()
+}
+
+func (b *bridgeIMAPSettings) SetPort(i int) error {
+	return b.b.vault.SetIMAPPort(i)
+}
+
+func (b *bridgeIMAPSettings) UseSSL() bool {
+	return b.b.vault.GetIMAPSSL()
+}
+
+func (b *bridgeIMAPSettings) CacheDirectory() string {
+	return b.b.GetGluonCacheDir()
+}
+
+func (b *bridgeIMAPSettings) DataDirectory() (string, error) {
+	return b.b.GetGluonDataDir()
+}
+
+func (b *bridgeIMAPSettings) SetCacheDirectory(s string) error {
+	return b.b.vault.SetGluonDir(s)
+}
+
+func (b *bridgeIMAPSettings) Version() *semver.Version {
+	return b.b.curVersion
+}
+
+func (b *bridgeIMAPSettings) PublishIMAPEvent(ctx context.Context, event imapEvents.Event) {
+	select {
+	case <-ctx.Done():
+		return
+	case b.b.imapEventCh <- event:
+		// do nothing
 	}
-
-	var imapClientLog io.Writer
-
-	if logClient {
-		imapClientLog = logging.NewIMAPLogger()
-	} else {
-		imapClientLog = io.Discard
-	}
-
-	var imapServerLog io.Writer
-
-	if logServer {
-		imapServerLog = logging.NewIMAPLogger()
-	} else {
-		imapServerLog = io.Discard
-	}
-
-	imapServer, err := gluon.New(
-		gluon.WithTLS(tlsConfig),
-		gluon.WithDataDir(gluonCacheDir),
-		gluon.WithDatabaseDir(gluonConfigDir),
-		gluon.WithStoreBuilder(new(storeBuilder)),
-		gluon.WithLogger(imapClientLog, imapServerLog),
-		getGluonVersionInfo(version),
-		gluon.WithReporter(reporter),
-		gluon.WithUIDValidityGenerator(uidValidityGenerator),
-		gluon.WithPanicHandler(panicHandler),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	tasks.Once(func(ctx context.Context) {
-		async.ForwardContext(ctx, eventCh, imapServer.AddWatcher())
-	})
-
-	tasks.Once(func(ctx context.Context) {
-		async.RangeContext(ctx, imapServer.GetErrorCh(), func(err error) {
-			logrus.WithError(err).Error("IMAP server error")
-		})
-	})
-
-	return imapServer, nil
-}
-
-func getGluonVersionInfo(version *semver.Version) gluon.Option {
-	return gluon.WithVersionInfo(
-		int(version.Major()),
-		int(version.Minor()),
-		int(version.Patch()),
-		constants.FullAppName,
-		"TODO",
-		"TODO",
-	)
-}
-
-type storeBuilder struct{}
-
-func (*storeBuilder) New(path, userID string, passphrase []byte) (store.Store, error) {
-	return store.NewOnDiskStore(
-		filepath.Join(path, userID),
-		passphrase,
-		store.WithFallback(fallback_v0.NewOnDiskStoreV0WithCompressor(&fallback_v0.GZipCompressor{})),
-	)
-}
-
-func (*storeBuilder) Delete(path, userID string) error {
-	return os.RemoveAll(filepath.Join(path, userID))
 }
