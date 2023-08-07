@@ -109,6 +109,7 @@
         <file>qml/SettingsItem.qml</file>
         <file>qml/SettingsView.qml</file>
         <file>qml/SetupGuide.qml</file>
+        <file>qml/SetupWizard/ClientListItem.qml</file>
         <file>qml/SetupWizard/LeftPane.qml</file>
         <file>qml/SetupWizard/ClientConfigSelector.qml</file>
         <file>qml/SetupWizard/SetupWizard.qml</file>

@@ -25,19 +25,15 @@ Item {
 
     function showLogin2FA() {
         descriptionLabel.text = qsTr("You have enabled two-factor authentication. Please enter the 6-digit code provided by your authenticator application.");
-        linkLabel1.linkText = "";
-        linkLabel1.linkURL = "";
-        linkLabel2.linkText = "";
-        linkLabel2.linkURL = "";
+        linkLabel1.clear();
+        linkLabel2.clear();
         showLoginCommon();
     }
     function showClientSelector() {
         titleLabel.text = qsTr("Configure your email client");
         descriptionLabel.text = qsTr("Bridge is now connected to Proton, and has already started downloading your messages. Let’s now connect your email client to Bridge.");
-        linkLabel1.linkText = qsTr("Why do");
-        linkLabel1.linkURL = "https://proton.me";
-        linkLabel2.linkText = qsTr("I need");
-        linkLabel2.linkURL = "https://proton.me";
+        linkLabel1.clear();
+        linkLabel2.clear();
         icon.source = "/qml/icons/img-mail-clients.svg";
         icon.sourceSize.height = 128;
         icon.sourceSize.width = 128;
@@ -54,19 +50,15 @@ Item {
     }
     function showLoginMailboxPassword() {
         root.description = qsTr("You have secured your account with a separate mailbox password.");
-        linkLabel1.linkText = "";
-        linkLabel1.linkURL = "";
-        linkLabel2.linkText = "";
-        linkLabel2.linkURL = "";
+        linkLabel1.clear();
+        linkLabel2.clear();
         showLoginCommon();
     }
     function showOnboarding() {
         titleLabel.text = qsTr("Welcome to\nProton Mail Bridge");
         descriptionLabel.text = qsTr("Bridge is the gateway between your Proton account and your email client. It runs in the background and encrypts and decrypts your messages seamlessly. ");
-        linkLabel1.linkText = qsTr("Why do I need Bridge?");
-        linkLabel1.linkURL = "https://proton.me/support/bridge";
-        linkLabel2.linkText = "";
-        linkLabel2.linkURL = "";
+        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why do I need Bridge?"));
+        linkLabel2.clear();
         icon.Layout.preferredHeight = 148;
         icon.Layout.preferredWidth = 265;
         icon.source = "/qml/icons/img-welcome.svg";
@@ -75,10 +67,8 @@ Item {
     }
     function showLogin() {
         descriptionLabel.text = qsTr("Let's start by signing in to your Proton account.");
-        linkLabel1.linkText = qsTr("Create or upgrade your account");
-        linkLabel1.linkURL = "https://proton.me/mail/pricing";
-        linkLabel2.linkText = "";
-        linkLabel2.linkURL = "";
+        linkLabel1.setLink("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"));
+        linkLabel2.clear();
         showLoginCommon();
     }
     Connections {

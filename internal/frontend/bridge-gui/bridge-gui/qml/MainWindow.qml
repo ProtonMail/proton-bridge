@@ -167,7 +167,7 @@ ApplicationWindow {
                 Backend.quit();
             }
             onShowSetupGuide: function (user, address) {
-                root.showSetup(user, address);
+                setupWizard.startClientConfig();
             }
             onShowSetupWizard: {
                 setupWizard.start();

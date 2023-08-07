@@ -19,11 +19,13 @@ import "." as Proton
 
 Label {
     id: root
+    function clear() {
+        text = "";
+    }
+    function setLink(linkURL, linkText) {
+        text = link(linkURL, linkText);
+    }
 
-    property string linkText
-    property string linkURL
-
-    text: link(linkURL, linkText)
     type: Label.LabelType.Body
 
     onLinkActivated: function (link) {

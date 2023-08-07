@@ -20,8 +20,19 @@ import ".."
 
 Item {
     id: root
+    enum Client {
+        AppleMail,
+        MicrosoftOutlook,
+        MozillaThunderbird,
+        Generic
+    }
 
+    property string address
+    property int client
+    property string clientVersion
     property ColorScheme colorScheme
+    property string userID
+    property bool wasSignedOut
 
     function closeWizard() {
         root.visible = false;
@@ -36,8 +47,11 @@ Item {
         leftContent.showClientSelector();
         rightContent.currentIndex = 2;
     }
-    function startLogin() {
+    function startLogin(wasSignedOut = false) {
         root.visible = true;
+        root.userID = "";
+        root.address = "";
+        root.wasSignedOut = wasSignedOut;
         leftContent.showLogin();
         rightContent.currentIndex = 1;
         loginRightPane.reset(true);
@@ -122,10 +136,10 @@ Item {
 
                 // stack index 2
                 ClientConfigSelector {
-                    id: clientCOnfigSelector
+                    id: clientConfigSelector
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    colorScheme: root.colorScheme
+                    wizard: root
                 }
             }
             LinkLabel {
@@ -135,14 +149,12 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 colorScheme: root.colorScheme
                 horizontalAlignment: Text.AlignRight
-                linkText: qsTr("Report problem")
-                linkURL: "#"
+                text: link("#", qsTr("Report problem"))
                 width: 444
 
                 onLinkActivated: {
                     root.visible = false;
                 }
-
             }
         }
     }
