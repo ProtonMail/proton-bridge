@@ -215,6 +215,16 @@ grpc::Status GRPCService::IsTelemetryDisabled(::grpc::ServerContext *, ::google:
 
 
 //****************************************************************************************************************************************************
+/// \param[out] response The response.
+/// \return The status for the call.
+//****************************************************************************************************************************************************
+Status GRPCService::GoOs(ServerContext *, Empty const*, StringValue *response) {
+    response->set_value(app().mainWindow().settingsTab().os().toStdString());
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The status for the call.
 //****************************************************************************************************************************************************
 Status GRPCService::TriggerReset(ServerContext *, Empty const *, Empty *) {
