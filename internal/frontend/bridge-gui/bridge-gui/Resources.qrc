@@ -113,8 +113,8 @@
         <file>qml/SetupWizard/ClientConfigSelector.qml</file>
         <file>qml/SetupWizard/ClientConfigWarning.qml</file>
         <file>qml/SetupWizard/SetupWizard.qml</file>
-        <file>qml/SetupWizard/LoginRightPane.qml</file>
-        <file>qml/SetupWizard/OnboardingRightPane.qml</file>
+        <file>qml/SetupWizard/Login.qml</file>
+        <file>qml/SetupWizard/Onboarding.qml</file>
         <file>qml/SetupWizard/StepDescriptionBox.qml</file>
         <file>qml/SignIn.qml</file>
         <file>qml/ConnectionModeSettings.qml</file>

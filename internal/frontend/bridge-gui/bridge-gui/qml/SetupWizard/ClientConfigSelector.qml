@@ -72,6 +72,7 @@ Item {
 
             onClicked: {
                 wizard.client = SetupWizard.Client.MozillaThunderbird;
+                wizard.showClientWarning();
             }
         }
         ClientListItem {
@@ -82,6 +83,7 @@ Item {
 
             onClicked: {
                 wizard.client = SetupWizard.Client.Generic;
+                wizard.showClientWarning();
             }
         }
         Item {

@@ -34,11 +34,42 @@ Item {
     property string userID
     property bool wasSignedOut
 
+    function clientIconSource() {
+        switch (client) {
+            case SetupWizard.Client.AppleMail:
+                return "/qml/icons/ic-apple-mail.svg";
+            case SetupWizard.Client.MicrosoftOutlook:
+                return "/qml/icons/ic-microsoft-outlook.svg";
+            case SetupWizard.Client.MozillaThunderbird:
+                return "/qml/icons/ic-mozilla-thunderbird.svg";
+            case SetupWizard.Client.Generic:
+                return "/qml/icons/ic-other-mail-clients.svg";
+            default:
+                console.error("Unknown mail client " + client)
+                return "/qml/icons/ic-other-mail-clients.svg";
+        }
+    }
+
+    function clientName() {
+        switch (client) {
+            case SetupWizard.Client.AppleMail:
+                return "Apple Mail";
+            case SetupWizard.Client.MicrosoftOutlook:
+                return "Outlook";
+            case SetupWizard.Client.MozillaThunderbird:
+                return "Thunderbird";
+            case SetupWizard.Client.Generic:
+                return "your email client";
+            default:
+                console.error("Unknown mail client " + client)
+                return "your email client";
+        }
+    }
+
     function closeWizard() {
         root.visible = false;
     }
     function showOutlookSelector() {
-        console.error("showOutlookSelector()");
         root.visible = true;
         leftContent.showOutlookSelector();
         rightContent.currentIndex = 3;
@@ -60,13 +91,12 @@ Item {
         root.wasSignedOut = wasSignedOut;
         leftContent.showLogin();
         rightContent.currentIndex = 1;
-        loginRightPane.reset(true);
+        login.reset(true);
     }
 
     function showClientWarning() {
-        console.error("showClientWarning()");
         root.visible = true;
-        //leftContent.showWarning();
+        leftContent.showClientConfigWarning();
         rightContent.currentIndex = 4
     }
 
@@ -89,6 +119,7 @@ Item {
 
             LeftPane {
                 id: leftContent
+
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 96
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -97,6 +128,7 @@ Item {
                 clip: true
                 colorScheme: root.colorScheme
                 width: 444
+                wizard: root
             }
             Image {
                 id: mailLogoWithWordmark
@@ -127,7 +159,7 @@ Item {
                 width: 444
 
                 // stack index 0
-                OnboardingRightPane {
+                Onboarding {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     colorScheme: root.colorScheme
@@ -136,8 +168,8 @@ Item {
                 }
 
                 // stack index 1
-                LoginRightPane {
-                    id: loginRightPane
+                Login {
+                    id: login
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     colorScheme: root.colorScheme
