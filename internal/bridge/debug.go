@@ -230,7 +230,7 @@ func (bridge *Bridge) DebugDownloadFailedMessages(
 }
 
 func clientGetMessageIDs(client *goimapclient.Client, mailbox string) (map[string]imap.FlagSet, error) {
-	status, err := client.Select(mailbox, false)
+	status, err := client.Select(mailbox, true)
 	if err != nil {
 		return nil, err
 	}
