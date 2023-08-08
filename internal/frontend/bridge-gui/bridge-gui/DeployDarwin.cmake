@@ -30,6 +30,8 @@ install(DIRECTORY "${QT_DIR}/qml/QtQml"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS")
 install(DIRECTORY "${QT_DIR}/qml/QtQuick"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS")
+install(DIRECTORY "${QT_DIR}/qml/QtWebView"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS")
 # FRAMEWORKS
 install(DIRECTORY "${QT_DIR}/lib/QtQmlWorkerScript.framework"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
@@ -42,6 +44,8 @@ install(DIRECTORY "${QT_DIR}/lib/QtQuickDialogs2.framework"
 install(DIRECTORY "${QT_DIR}/lib/QtQuickDialogs2QuickImpl.framework"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
 install(DIRECTORY "${QT_DIR}/lib/QtQuickDialogs2Utils.framework"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
+install(DIRECTORY "${QT_DIR}/lib/QtWebViewQuick.framework"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
 # PLUGINS
 install(FILES "${QT_DIR}/plugins/imageformats/libqsvg.dylib"
