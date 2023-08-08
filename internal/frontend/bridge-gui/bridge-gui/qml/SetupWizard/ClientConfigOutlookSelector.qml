@@ -35,7 +35,7 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
             colorScheme: root.colorScheme
-            text: qsTr("Select your email application")
+            text: qsTr("Pick your version of Outlook")
             type: Label.LabelType.Heading
         }
         Item {
@@ -44,44 +44,34 @@ Item {
         ClientListItem {
             Layout.fillWidth: true
             colorScheme: root.colorScheme
-            iconSource: "/qml/icons/ic-apple-mail.svg"
-            text: "Apple Mail"
-            visible: root.onMacOS
+            iconSource: "/qml/icons/ic-microsoft-outlook.svg"
+            text: "Outlook from Microsoft 365"
 
             onClicked: {
-                wizard.client = SetupWizard.Client.AppleMail;
+                wizard.clientVersion = "365";
+                wizard.showClientWarning();
             }
         }
         ClientListItem {
             Layout.fillWidth: true
             colorScheme: root.colorScheme
             iconSource: "/qml/icons/ic-microsoft-outlook.svg"
-            text: "Microsoft Outlook"
-            visible: root.onMacOS || root.onWindows
+            text: "Outlook 2019"
 
             onClicked: {
-                wizard.client = SetupWizard.Client.MicrosoftOutlook;
-                wizard.showOutlookSelector();
+                wizard.clientVersion = "2019";
+                wizard.showClientWarning();
             }
         }
         ClientListItem {
             Layout.fillWidth: true
             colorScheme: root.colorScheme
-            iconSource: "/qml/icons/ic-mozilla-thunderbird.svg"
-            text: "Mozilla Thunderbird"
+            iconSource: "/qml/icons/ic-microsoft-outlook.svg"
+            text: "Outlook 2016"
 
             onClicked: {
-                wizard.client = SetupWizard.Client.MozillaThunderbird;
-            }
-        }
-        ClientListItem {
-            Layout.fillWidth: true
-            colorScheme: root.colorScheme
-            iconSource: "/qml/icons/ic-other-mail-clients.svg"
-            text: "Other"
-
-            onClicked: {
-                wizard.client = SetupWizard.Client.Generic;
+                wizard.clientVersion = "2016";
+                wizard.showClientWarning();
             }
         }
         Item {

@@ -23,12 +23,6 @@ Item {
 
     property ColorScheme colorScheme
 
-    function showLogin2FA() {
-        descriptionLabel.text = qsTr("You have enabled two-factor authentication. Please enter the 6-digit code provided by your authenticator application.");
-        linkLabel1.clear();
-        linkLabel2.clear();
-        showLoginCommon();
-    }
     function showClientSelector() {
         titleLabel.text = qsTr("Configure your email client");
         descriptionLabel.text = qsTr("Bridge is now connected to Proton, and has already started downloading your messages. Let’s now connect your email client to Bridge.");
@@ -39,6 +33,18 @@ Item {
         icon.sourceSize.width = 128;
         Layout.preferredHeight = 72;
         Layout.preferredWidth = 72;
+    }
+    function showLogin() {
+        descriptionLabel.text = qsTr("Let's start by signing in to your Proton account.");
+        linkLabel1.setLink("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"));
+        linkLabel2.clear();
+        showLoginCommon();
+    }
+    function showLogin2FA() {
+        descriptionLabel.text = qsTr("You have enabled two-factor authentication. Please enter the 6-digit code provided by your authenticator application.");
+        linkLabel1.clear();
+        linkLabel2.clear();
+        showLoginCommon();
     }
     function showLoginCommon() {
         titleLabel.text = qsTr("Sign in to your Proton Account");
@@ -65,12 +71,18 @@ Item {
         icon.sourceSize.height = 148;
         icon.sourceSize.width = 265;
     }
-    function showLogin() {
-        descriptionLabel.text = qsTr("Let's start by signing in to your Proton account.");
-        linkLabel1.setLink("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"));
+    function showOutlookSelector() {
+        titleLabel.text = qsTr("Configure Outlook");
+        descriptionLabel.text = qsTr("We will now guide you through the process of setting up your Proton account in Outlook.");
+        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("My version of Outlook is not listed"));
         linkLabel2.clear();
-        showLoginCommon();
+        icon.Layout.preferredHeight = 72;
+        icon.Layout.preferredWidth = 72;
+        icon.source = "/qml/icons/ic-microsoft-outlook.svg";
+        icon.sourceSize.height = 128;
+        icon.sourceSize.width = 128;
     }
+
     Connections {
         function onLogin2FARequested() {
             showLogin2FA();

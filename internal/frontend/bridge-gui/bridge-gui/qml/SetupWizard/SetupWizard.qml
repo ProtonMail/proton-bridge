@@ -37,6 +37,12 @@ Item {
     function closeWizard() {
         root.visible = false;
     }
+    function showOutlookSelector() {
+        console.error("showOutlookSelector()");
+        root.visible = true;
+        leftContent.showOutlookSelector();
+        rightContent.currentIndex = 3;
+    }
     function start() {
         root.visible = true;
         leftContent.showOnboarding();
@@ -55,6 +61,13 @@ Item {
         leftContent.showLogin();
         rightContent.currentIndex = 1;
         loginRightPane.reset(true);
+    }
+
+    function showClientWarning() {
+        console.error("showClientWarning()");
+        root.visible = true;
+        //leftContent.showWarning();
+        rightContent.currentIndex = 4
     }
 
     Connections {
@@ -137,6 +150,20 @@ Item {
                 // stack index 2
                 ClientConfigSelector {
                     id: clientConfigSelector
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    wizard: root
+                }
+                // stack index 3
+                ClientConfigOutlookSelector {
+                    id: clientConfigOutlookSelector
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    wizard: root
+                }
+                // stack index 4
+                ClientConfigWarning {
+                    id: clientConfigWarning
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     wizard: root
