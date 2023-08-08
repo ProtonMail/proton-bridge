@@ -28,6 +28,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry/mocks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/tests"
@@ -155,7 +156,8 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 	manager.EXPECT().IsTelemetryAvailable(context.Background()).AnyTimes()
 
 	nullEventSubscription := events.NewNullSubscription()
-	nullServerManager := imapservice.NewNullIMAPServerManager()
+	nullIMAPServerManager := imapservice.NewNullIMAPServerManager()
+	nullSMTPServerManager := smtp.NewNullServerManager()
 
 	user, err := New(
 		ctx,
@@ -168,7 +170,8 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 		vault.DefaultMaxSyncMemory,
 		tb.TempDir(),
 		manager,
-		nullServerManager,
+		nullIMAPServerManager,
+		nullSMTPServerManager,
 		nullEventSubscription,
 	)
 	require.NoError(tb, err)

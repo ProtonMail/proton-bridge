@@ -97,7 +97,8 @@ func New(
 	maxSyncMemory uint64,
 	statsDir string,
 	telemetryManager telemetry.Availability,
-	serverManager imapservice.IMAPServerManager,
+	imapServerManager imapservice.IMAPServerManager,
+	smtpServerManager smtp.ServerManager,
 	eventSubscription events.Subscription,
 ) (*User, error) {
 	user, err := newImpl(
@@ -111,7 +112,8 @@ func New(
 		maxSyncMemory,
 		statsDir,
 		telemetryManager,
-		serverManager,
+		imapServerManager,
+		smtpServerManager,
 		eventSubscription,
 	)
 	if err != nil {
@@ -138,7 +140,8 @@ func newImpl(
 	maxSyncMemory uint64,
 	statsDir string,
 	telemetryManager telemetry.Availability,
-	serverManager imapservice.IMAPServerManager,
+	imapServerManager imapservice.IMAPServerManager,
+	smtpServerManager smtp.ServerManager,
 	eventSubscription events.Subscription,
 ) (*User, error) {
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
@@ -223,6 +226,7 @@ func newImpl(
 		user.eventService,
 		addressMode,
 		identityState.Clone(),
+		smtpServerManager,
 	)
 
 	user.imapService = imapservice.NewService(
@@ -231,7 +235,7 @@ func newImpl(
 		user,
 		encVault,
 		user.eventService,
-		serverManager,
+		imapServerManager,
 		user,
 		encVault,
 		encVault,
@@ -282,7 +286,9 @@ func newImpl(
 	user.identityService.Start(ctx, user.serviceGroup)
 
 	// Start SMTP Service
-	user.smtpService.Start(ctx, user.serviceGroup)
+	if err := user.smtpService.Start(ctx, user.serviceGroup); err != nil {
+		return user, fmt.Errorf("failed to start smtp service: %w", err)
+	}
 
 	// Start IMAP Service
 	if err := user.imapService.Start(ctx, user.serviceGroup); err != nil {
@@ -548,8 +554,12 @@ func (user *User) Logout(ctx context.Context, withAPI bool) error {
 
 	user.log.Debug("Canceling ongoing tasks")
 
+	if err := user.smtpService.OnLogout(ctx); err != nil {
+		return fmt.Errorf("failed to remove user from smtp server: %w", err)
+	}
+
 	if err := user.imapService.OnLogout(ctx); err != nil {
-		return fmt.Errorf("failed to remove user from server: %w", err)
+		return fmt.Errorf("failed to remove user from imap server: %w", err)
 	}
 
 	// Stop Services

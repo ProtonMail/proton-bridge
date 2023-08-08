@@ -62,7 +62,8 @@ type Service struct {
 	addressSubscriber *userevents.AddressChanneledSubscriber
 	userSubscriber    *userevents.UserChanneledSubscriber
 
-	addressMode usertypes.AddressMode
+	addressMode   usertypes.AddressMode
+	serverManager ServerManager
 }
 
 func NewService(
@@ -77,6 +78,7 @@ func NewService(
 	eventService userevents.Subscribable,
 	mode usertypes.AddressMode,
 	identityState *useridentity.State,
+	serverManager ServerManager,
 ) *Service {
 	subscriberName := fmt.Sprintf("smpt-%v", userID)
 
@@ -102,7 +104,8 @@ func NewService(
 		userSubscriber:    userevents.NewUserSubscriber(subscriberName),
 		addressSubscriber: userevents.NewAddressSubscriber(subscriberName),
 
-		addressMode: mode,
+		addressMode:   mode,
+		serverManager: serverManager,
 	}
 }
 
@@ -129,6 +132,12 @@ func (s *Service) Resync(ctx context.Context) error {
 	return err
 }
 
+func (s *Service) OnLogout(ctx context.Context) error {
+	_, err := s.cpc.Send(ctx, &onLogoutReq{})
+
+	return err
+}
+
 func (s *Service) checkAuth(ctx context.Context, email string, password []byte) (string, error) {
 	return cpc.SendTyped[string](ctx, s.cpc, &checkAuthReq{
 		email:    email,
@@ -136,8 +145,13 @@ func (s *Service) checkAuth(ctx context.Context, email string, password []byte) 
 	})
 }
 
-func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGroup) {
+func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGroup) error {
 	s.log.Debug("Starting service")
+
+	if err := s.serverManager.AddSMTPAccount(ctx, s); err != nil {
+		return fmt.Errorf("failed to add SMTP account to server: %w", err)
+	}
+
 	group.Go(ctx, s.userID, "smtp-service", func(ctx context.Context) {
 		logging.DoAnnotated(ctx, func(ctx context.Context) {
 			s.run(ctx)
@@ -146,6 +160,8 @@ func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGr
 			"service": "smtp",
 		})
 	})
+
+	return nil
 }
 
 func (s *Service) UserID() string {
@@ -194,6 +210,10 @@ func (s *Service) run(ctx context.Context) {
 
 			case *resyncReq:
 				err := s.identityState.OnRefreshEvent(ctx)
+				request.Reply(ctx, nil, err)
+
+			case *onLogoutReq:
+				err := s.serverManager.RemoveSMTPAccount(ctx, s)
 				request.Reply(ctx, nil, err)
 
 			default:
@@ -262,3 +282,5 @@ type checkAuthReq struct {
 }
 
 type resyncReq struct{}
+
+type onLogoutReq struct{}

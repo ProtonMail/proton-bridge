@@ -522,14 +522,11 @@ func (bridge *Bridge) addUserWithVault(
 		statsPath,
 		bridge,
 		bridge.serverManager,
+		bridge.serverManager,
 		&bridgeEventSubscription{b: bridge},
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
-	}
-
-	if err := bridge.addSMTPUser(ctx, user); err != nil {
-		return fmt.Errorf("failed to add SMTP user: %w", err)
 	}
 
 	// Handle events coming from the user before forwarding them to the bridge.
@@ -592,10 +589,6 @@ func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, 
 		"withAPI":  withAPI,
 		"withData": withData,
 	}).Debug("Logging out user")
-
-	if err := bridge.removeSMTPUser(ctx, user); err != nil {
-		logrus.WithError(err).Error("Failed to remove SMTP user")
-	}
 
 	if err := user.Logout(ctx, withAPI); err != nil {
 		logrus.WithError(err).Error("Failed to logout user")

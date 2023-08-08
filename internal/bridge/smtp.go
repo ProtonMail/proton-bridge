@@ -22,21 +22,10 @@ import (
 	"crypto/tls"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/identifier"
-	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 )
 
 func (bridge *Bridge) restartSMTP(ctx context.Context) error {
 	return bridge.serverManager.RestartSMTP(ctx)
-}
-
-// addSMTPUser connects the given user to the smtp server.
-func (bridge *Bridge) addSMTPUser(ctx context.Context, user *user.User) error {
-	return bridge.serverManager.AddSMTPAccount(ctx, user.GetSMTPService())
-}
-
-// removeSMTPUser disconnects the given user from the smtp server.
-func (bridge *Bridge) removeSMTPUser(ctx context.Context, user *user.User) error {
-	return bridge.serverManager.RemoveSMTPAccount(ctx, user.GetSMTPService())
 }
 
 type bridgeSMTPSettings struct {
