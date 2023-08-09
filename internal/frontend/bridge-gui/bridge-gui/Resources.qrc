@@ -110,6 +110,7 @@
         <file>qml/SetupWizard/ClientListItem.qml</file>
         <file>qml/SetupWizard/LeftPane.qml</file>
         <file>qml/SetupWizard/ClientConfigOutlookSelector.qml</file>
+        <file>qml/SetupWizard/ClientConfigParameters.qml</file>
         <file>qml/SetupWizard/ClientConfigSelector.qml</file>
         <file>qml/SetupWizard/ClientConfigWarning.qml</file>
         <file>qml/SetupWizard/SetupWizard.qml</file>

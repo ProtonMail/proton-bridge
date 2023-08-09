@@ -54,7 +54,7 @@ Item {
         }
         Button {
             Layout.alignment: Qt.AlignHCenter
-            Layout.preferredWidth: 320
+            Layout.fillWidth: true
             colorScheme: root.colorScheme
             text: qsTr("Let's start")
 

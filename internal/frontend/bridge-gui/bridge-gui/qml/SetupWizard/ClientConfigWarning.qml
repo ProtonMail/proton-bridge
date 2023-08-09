@@ -65,7 +65,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             colorScheme: root.colorScheme
             text: qsTr("Do not enter your Proton account password in you email application.")
-            type: Label.LabelType.Body_bold
+            type: Label.LabelType.Body
             wrapMode: Text.WordWrap
         }
         Item {
@@ -89,7 +89,7 @@ Item {
             text: qsTr("I understand")
 
             onClicked: {
-                root.wizard.closeWizard();
+                root.wizard.showClientParams();
             }
         }
         Item {

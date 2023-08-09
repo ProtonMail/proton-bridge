@@ -69,23 +69,31 @@ Item {
     function closeWizard() {
         root.visible = false;
     }
+
     function showOutlookSelector() {
         root.visible = true;
+        rootStackLayout.currentIndex = 0;
         leftContent.showOutlookSelector();
         rightContent.currentIndex = 3;
     }
+
     function start() {
         root.visible = true;
+        rootStackLayout.currentIndex = 0;
         leftContent.showOnboarding();
         rightContent.currentIndex = 0;
     }
+
     function startClientConfig() {
         root.visible = true;
+        rootStackLayout.currentIndex = 0;
         leftContent.showClientSelector();
         rightContent.currentIndex = 2;
     }
+
     function startLogin(wasSignedOut = false) {
         root.visible = true;
+        rootStackLayout.currentIndex = 0;
         root.userID = "";
         root.address = "";
         root.wasSignedOut = wasSignedOut;
@@ -96,8 +104,15 @@ Item {
 
     function showClientWarning() {
         root.visible = true;
+        rootStackLayout.currentIndex = 0;
         leftContent.showClientConfigWarning();
         rightContent.currentIndex = 4
+    }
+
+    function showClientParams() {
+        root.visible = true;
+        rootStackLayout.currentIndex = 1;
+
     }
 
     Connections {
@@ -107,114 +122,130 @@ Item {
 
         target: Backend
     }
-    RowLayout {
+
+    StackLayout {
+        id: rootStackLayout
         anchors.fill: parent
-        spacing: 0
 
-        Rectangle {
-            id: leftHalf
+        // rootStackLayout index 0
+        RowLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            color: root.colorScheme.background_norm
+            spacing: 0
 
-            LeftPane {
-                id: leftContent
+            Rectangle {
+                id: leftHalf
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                color: root.colorScheme.background_norm
 
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 96
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: parent.top
-                anchors.topMargin: 96
-                clip: true
-                colorScheme: root.colorScheme
-                width: 444
-                wizard: root
-            }
-            Image {
-                id: mailLogoWithWordmark
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 48
-                anchors.horizontalCenter: parent.horizontalCenter
-                fillMode: Image.PreserveAspectFit
-                height: 24
-                mipmap: true
-                source: root.colorScheme.mail_logo_with_wordmark
-            }
-        }
-        Rectangle {
-            id: rightHalf
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            color: root.colorScheme.background_weak
+                LeftPane {
+                    id: leftContent
 
-            StackLayout {
-                id: rightContent
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 96
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: parent.top
-                anchors.topMargin: 96
-                clip: true
-                currentIndex: 0
-                width: 444
-
-                // stack index 0
-                Onboarding {
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 96
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: 96
+                    clip: true
                     colorScheme: root.colorScheme
-
-                    onOnboardingAccepted: root.startLogin()
+                    width: 444
+                    wizard: root
                 }
+                Image {
+                    id: mailLogoWithWordmark
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 48
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    fillMode: Image.PreserveAspectFit
+                    height: 24
+                    mipmap: true
+                    source: root.colorScheme.mail_logo_with_wordmark
+                }
+            }
+            Rectangle {
+                id: rightHalf
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                color: root.colorScheme.background_weak
 
-                // stack index 1
-                Login {
-                    id: login
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    colorScheme: root.colorScheme
+                StackLayout {
+                    id: rightContent
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 96
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.top: parent.top
+                    anchors.topMargin: 96
+                    clip: true
+                    currentIndex: 0
+                    width: 444
 
-                    onLoginAbort: {
-                        root.closeWizard();
+                    // stack index 0
+                    Onboarding {
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        colorScheme: root.colorScheme
+
+                        onOnboardingAccepted: root.startLogin()
+                    }
+
+                    // stack index 1
+                    Login {
+                        id: login
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        colorScheme: root.colorScheme
+
+                        onLoginAbort: {
+                            root.closeWizard();
+                        }
+                    }
+
+                    // stack index 2
+                    ClientConfigSelector {
+                        id: clientConfigSelector
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        wizard: root
+                    }
+                    // stack index 3
+                    ClientConfigOutlookSelector {
+                        id: clientConfigOutlookSelector
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        wizard: root
+                    }
+                    // stack index 4
+                    ClientConfigWarning {
+                        id: clientConfigWarning
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        wizard: root
                     }
                 }
+                LinkLabel {
+                    id: reportProblemLink
+                    anchors.bottom: parent.bottom
+                    anchors.bottomMargin: 48
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    colorScheme: root.colorScheme
+                    horizontalAlignment: Text.AlignRight
+                    text: link("#", qsTr("Report problem"))
+                    width: 444
 
-                // stack index 2
-                ClientConfigSelector {
-                    id: clientConfigSelector
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    wizard: root
-                }
-                // stack index 3
-                ClientConfigOutlookSelector {
-                    id: clientConfigOutlookSelector
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    wizard: root
-                }
-                // stack index 4
-                ClientConfigWarning {
-                    id: clientConfigWarning
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    wizard: root
+                    onLinkActivated: {
+                        root.visible = false;
+                    }
                 }
             }
-            LinkLabel {
-                id: reportProblemLink
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 48
-                anchors.horizontalCenter: parent.horizontalCenter
-                colorScheme: root.colorScheme
-                horizontalAlignment: Text.AlignRight
-                text: link("#", qsTr("Report problem"))
-                width: 444
+        }
 
-                onLinkActivated: {
-                    root.visible = false;
-                }
-            }
+        // rootStackLayout index 1
+        ClientConfigParameters {
+            id: clientConfigParameters
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            wizard: root
         }
     }
 }
