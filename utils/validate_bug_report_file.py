@@ -181,10 +181,37 @@ class BugReportJson:
                 unique_list.append(question)
         return True
 
+    def preview(self):
+        for category in self.categories:
+            self.preview_category(category)
+
+    def preview_category(self, category):
+        print(" > %s" % category["name"])
+        if "hint" in category and category["hint"]:
+            print("(%s)" % category["hint"])
+        for question in category["questions"]:
+            self.preview_question(self.questions[question])
+        print("\n\r")
+        return 0
+
+    def preview_question(self, question):
+        # ["id", "text", "tips", "type", "mandatory", "maxChar", "answerList"]
+        mandatory = ("mandatory" in question and question["mandatory"])
+        mandatory_sym = " *"
+        if not mandatory:
+            mandatory_sym = ""
+        print("\t - %s%s" % (question["text"], mandatory_sym))
+        if "tips" in question and question["tips"]:
+            print("\t (%s)" % question["tips"])
+        if "answerList" in question:
+            for answer in question["answerList"]:
+                print("\t\t - %s" % answer)
+        return 0
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Validate Bug Report File.')
     parser.add_argument('--file', required=True, help='JSON file to validate.')
+    parser.add_argument('--preview', action='store_true', help='Output a preview of the parsed file.')
     return parser.parse_args()
 
 
@@ -196,6 +223,8 @@ def main():
         print("Validation FAILED for %s. Error: %s" %(report.filepath, report.error))
         exit(1)
     print("Validation SUCCEED for %s." % report.filepath)
+    if args.preview:
+        report.preview()
     exit(0)
 
 

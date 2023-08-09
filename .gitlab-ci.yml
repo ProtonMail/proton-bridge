@@ -118,6 +118,15 @@ lint:
   tags:
     - medium
 
+bug-report-preview:
+  stage: test
+  extends:
+    - .rules-branch-and-MR-manual
+  script:
+    - make lint-bug-report-preview
+  tags:
+    - medium
+
 .script-test:
   stage: test
   extends:

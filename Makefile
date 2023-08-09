@@ -310,6 +310,9 @@ lint-golang:
 lint-bug-report:
 	python3 utils/validate_bug_report_file.py --file "internal/frontend/bridge-gui/bridge-gui/qml/Resources/bug_report_flow.json"
 
+lint-bug-report-preview:
+	python3 utils/validate_bug_report_file.py --file "internal/frontend/bridge-gui/bridge-gui/qml/Resources/bug_report_flow.json" --preview
+
 gobinsec: gobinsec-cache.yml build
 	gobinsec -wait -cache -config utils/gobinsec_conf.yml ${EXE_TARGET} ${DEPLOY_DIR}/${TARGET_OS}/${LAUNCHER_EXE}
 
