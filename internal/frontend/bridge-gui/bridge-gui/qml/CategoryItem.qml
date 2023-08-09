@@ -66,7 +66,7 @@ Item {
                 id: toolTipinfo
                 text: root.hint
                 visible: imageArea.containsMouse
-                implicitWidth: 400
+                implicitWidth: Math.min(400, tooltipText.implicitWidth)
                 background: Rectangle {
                     radius: 4
                     border.color: root.colorScheme.border_weak
