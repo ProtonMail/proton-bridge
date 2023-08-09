@@ -58,7 +58,16 @@ func TestServiceHandleEvent_CheckEventCategoriesHandledInOrder(t *testing.T) {
 	secondRefreshHandler := NewMockRefreshSubscriber(mockCtrl)
 	secondRefreshHandler.EXPECT().handle(gomock.Any(), gomock.Any()).After(userSpaceCall).Times(1).Return(nil)
 
-	service := NewService("foo", &NullEventSource{}, eventIDStore, eventPublisher, 100*time.Millisecond, time.Second, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		&NullEventSource{},
+		eventIDStore,
+		eventPublisher,
+		100*time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
 
 	service.addSubscription(Subscription{
 		User:          userHandler,
@@ -106,7 +115,16 @@ func TestServiceHandleEvent_CheckEventFailureCausesError(t *testing.T) {
 
 	messageHandler := NewMockMessageSubscriber(mockCtrl)
 
-	service := NewService("foo", &NullEventSource{}, eventIDStore, eventPublisher, 100*time.Millisecond, time.Second, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		&NullEventSource{},
+		eventIDStore,
+		eventPublisher,
+		100*time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
 
 	service.addSubscription(Subscription{
 		Address:  addressHandler,
@@ -133,7 +151,16 @@ func TestServiceHandleEvent_CheckEventFailureCausesErrorParallel(t *testing.T) {
 	addressHandler2 := NewMockAddressSubscriber(mockCtrl)
 	addressHandler2.EXPECT().handle(gomock.Any(), gomock.Any()).MaxTimes(1).Return(nil)
 
-	service := NewService("foo", &NullEventSource{}, eventIDStore, eventPublisher, 100*time.Millisecond, time.Second, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		&NullEventSource{},
+		eventIDStore,
+		eventPublisher,
+		100*time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
 
 	service.addSubscription(Subscription{
 		Address: addressHandler,
@@ -173,7 +200,16 @@ func TestServiceHandleEvent_SubscriberTimeout(t *testing.T) {
 		}
 	}).MaxTimes(1)
 
-	service := NewService("foo", &NullEventSource{}, eventIDStore, eventPublisher, 100*time.Millisecond, 500*time.Millisecond, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		&NullEventSource{},
+		eventIDStore,
+		eventPublisher,
+		100*time.Millisecond,
+		time.Millisecond,
+		500*time.Millisecond,
+		async.NoopPanicHandler{},
+	)
 
 	service.addSubscription(Subscription{
 		Address: addressHandler,

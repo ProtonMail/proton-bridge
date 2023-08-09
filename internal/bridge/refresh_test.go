@@ -84,6 +84,11 @@ func TestBridge_Refresh(t *testing.T) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
 			mocks.Reporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Any()).AnyTimes()
 
+			// Wait for refresh event first
+			refreshCh, refreshChDone := chToType[events.Event, events.UserRefreshed](b.GetEvents(events.UserRefreshed{}))
+			defer refreshChDone()
+			require.Equal(t, userID, (<-refreshCh).UserID)
+			// Then sync event
 			syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
 			defer done()
 

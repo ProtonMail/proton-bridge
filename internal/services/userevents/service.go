@@ -52,7 +52,7 @@ type Service struct {
 	eventIDStore   EventIDStore
 	log            *logrus.Entry
 	eventPublisher events.EventPublisher
-	timer          *time.Ticker
+	timer          *proton.Ticker
 	eventTimeout   time.Duration
 	paused         uint32
 	panicHandler   async.PanicHandler
@@ -74,6 +74,7 @@ func NewService(
 	store EventIDStore,
 	eventPublisher events.EventPublisher,
 	pollPeriod time.Duration,
+	jitter time.Duration,
 	eventTimeout time.Duration,
 	panicHandler async.PanicHandler,
 ) *Service {
@@ -86,7 +87,7 @@ func NewService(
 			"user":    userID,
 		}),
 		eventPublisher: eventPublisher,
-		timer:          time.NewTicker(pollPeriod),
+		timer:          proton.NewTicker(pollPeriod, jitter, panicHandler),
 		paused:         1,
 		eventTimeout:   eventTimeout,
 		panicHandler:   panicHandler,
@@ -209,7 +210,7 @@ func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGr
 
 func (s *Service) run(ctx context.Context, lastEventID string) {
 	s.log.Infof("Starting service Last EventID=%v", lastEventID)
-	defer s.close()
+	defer s.timer.Stop()
 	defer s.log.Info("Exiting service")
 	defer s.Close()
 
@@ -486,10 +487,6 @@ func (s *Service) removeSubscription(subscription Subscription) {
 	if subscription.UserUsedSpace != nil {
 		s.userUsedSpaceSubscriber.Remove(subscription.UserUsedSpace)
 	}
-}
-
-func (s *Service) close() {
-	s.timer.Stop()
 }
 
 type pendingOp int

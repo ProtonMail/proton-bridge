@@ -66,7 +66,16 @@ func TestService_EventIDLoadStore(t *testing.T) {
 	eventSource.EXPECT().GetLatestEventID(gomock.Any()).Times(1).Return(firstEventID, nil)
 	eventSource.EXPECT().GetEvent(gomock.Any(), gomock.Eq(firstEventID)).MinTimes(1).Return(secondEvent, false, nil)
 
-	service := NewService("foo", eventSource, eventIDStore, eventPublisher, 1*time.Millisecond, time.Second, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		eventSource,
+		eventIDStore,
+		eventPublisher,
+		time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
 	group.Wait()
@@ -110,7 +119,16 @@ func TestService_RetryEventOnNonCatastrophicFailure(t *testing.T) {
 		subscriber.EXPECT().handle(gomock.Any(), gomock.Eq(messageEvents)).After(firstCall).Times(1).Return(nil)
 	}
 
-	service := NewService("foo", eventSource, eventIDStore, eventPublisher, 1*time.Millisecond, time.Second, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		eventSource,
+		eventIDStore,
+		eventPublisher,
+		time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
 	service.Subscribe(Subscription{Messages: subscriber})
 
 	require.NoError(t, service.Start(context.Background(), group))
@@ -149,7 +167,16 @@ func TestService_OnBadEventServiceIsPaused(t *testing.T) {
 	subscriber.EXPECT().name().AnyTimes().Return("Foo")
 	subscriber.EXPECT().handle(gomock.Any(), gomock.Eq(messageEvents)).Times(1).Return(badEventErr)
 
-	service := NewService("foo", eventSource, eventIDStore, eventPublisher, 1*time.Millisecond, time.Second, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		eventSource,
+		eventIDStore,
+		eventPublisher,
+		time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
 
 	// Event publisher expectations.
 	eventPublisher.EXPECT().PublishEvent(gomock.Any(), events.UserBadEvent{
@@ -203,7 +230,16 @@ func TestService_UnsubscribeDuringEventHandlingDoesNotCauseDeadlock(t *testing.T
 	// Event Source expectations.
 	eventSource.EXPECT().GetEvent(gomock.Any(), gomock.Eq(firstEventID)).MinTimes(1).Return(secondEvent, false, nil)
 
-	service := NewService("foo", eventSource, eventIDStore, eventPublisher, 1*time.Millisecond, time.Second, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		eventSource,
+		eventIDStore,
+		eventPublisher,
+		time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
 
 	// Subscriber expectations.
 	subscriber.EXPECT().name().AnyTimes().Return("Foo")
@@ -252,7 +288,16 @@ func TestService_UnsubscribeBeforeHandlingEventIsNotConsideredError(t *testing.T
 	eventSource.EXPECT().GetEvent(gomock.Any(), gomock.Eq(firstEventID)).MinTimes(1).Return(secondEvent, false, nil)
 	eventSource.EXPECT().GetEvent(gomock.Any(), gomock.Eq(secondEventID)).AnyTimes().Return(secondEvent, false, nil)
 
-	service := NewService("foo", eventSource, eventIDStore, eventPublisher, 1*time.Millisecond, time.Second, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		eventSource,
+		eventIDStore,
+		eventPublisher,
+		time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
 
 	// start subscriber
 	group.Go(context.Background(), "", "", func(_ context.Context) {

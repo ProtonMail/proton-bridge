@@ -39,7 +39,16 @@ func TestServiceHandleEventError_SubscriberEventUnwrapping(t *testing.T) {
 	eventPublisher := mocks.NewMockEventPublisher(mockCtrl)
 	eventIDStore := NewInMemoryEventIDStore()
 
-	service := NewService("foo", &NullEventSource{}, eventIDStore, eventPublisher, 100*time.Millisecond, time.Second, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		&NullEventSource{},
+		eventIDStore,
+		eventPublisher,
+		100*time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
 
 	lastEventID := "PrevEvent"
 	event := proton.Event{EventID: "MyEvent"}
@@ -67,7 +76,16 @@ func TestServiceHandleEventError_BadEventPutsServiceOnPause(t *testing.T) {
 	eventPublisher := mocks.NewMockEventPublisher(mockCtrl)
 	eventIDStore := NewInMemoryEventIDStore()
 
-	service := NewService("foo", &NullEventSource{}, eventIDStore, eventPublisher, 100*time.Millisecond, time.Second, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		&NullEventSource{},
+		eventIDStore,
+		eventPublisher,
+		100*time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
 	service.Resume()
 	lastEventID := "PrevEvent"
 	event := proton.Event{EventID: "MyEvent"}
@@ -91,7 +109,16 @@ func TestServiceHandleEventError_BadEventFromPublishTimeout(t *testing.T) {
 	eventPublisher := mocks.NewMockEventPublisher(mockCtrl)
 	eventIDStore := NewInMemoryEventIDStore()
 
-	service := NewService("foo", &NullEventSource{}, eventIDStore, eventPublisher, 100*time.Millisecond, time.Second, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		&NullEventSource{},
+		eventIDStore,
+		eventPublisher,
+		100*time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
 	lastEventID := "PrevEvent"
 	event := proton.Event{EventID: "MyEvent"}
 	err := ErrPublishTimeoutExceeded
@@ -112,7 +139,16 @@ func TestServiceHandleEventError_NoBadEventCheck(t *testing.T) {
 	eventPublisher := mocks.NewMockEventPublisher(mockCtrl)
 	eventIDStore := NewInMemoryEventIDStore()
 
-	service := NewService("foo", &NullEventSource{}, eventIDStore, eventPublisher, 100*time.Millisecond, time.Second, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		&NullEventSource{},
+		eventIDStore,
+		eventPublisher,
+		100*time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
 	lastEventID := "PrevEvent"
 	event := proton.Event{EventID: "MyEvent"}
 	_, _ = service.handleEventError(context.Background(), lastEventID, event, context.Canceled)
@@ -128,7 +164,16 @@ func TestServiceHandleEventError_JsonUnmarshalEventProducesUncategorizedErrorEve
 	eventPublisher := mocks.NewMockEventPublisher(mockCtrl)
 	eventIDStore := NewInMemoryEventIDStore()
 
-	service := NewService("foo", &NullEventSource{}, eventIDStore, eventPublisher, 100*time.Millisecond, time.Second, async.NoopPanicHandler{})
+	service := NewService(
+		"foo",
+		&NullEventSource{},
+		eventIDStore,
+		eventPublisher,
+		100*time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
 	lastEventID := "PrevEvent"
 	event := proton.Event{EventID: "MyEvent"}
 	err := &json.UnmarshalTypeError{}

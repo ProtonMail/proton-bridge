@@ -206,6 +206,7 @@ func newImpl(
 		userevents.NewVaultEventIDStore(encVault),
 		user,
 		EventPeriod,
+		EventJitter,
 		5*time.Minute,
 		crashHandler,
 	)
