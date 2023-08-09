@@ -52,9 +52,9 @@ func TestServiceHandleEventError_SubscriberEventUnwrapping(t *testing.T) {
 
 	lastEventID := "PrevEvent"
 	event := proton.Event{EventID: "MyEvent"}
-	subscriber := &noOpSubscriber[proton.AddressEvent]{}
+	subscriber := &noOpSubscriber[proton.Event]{}
 
-	err := &addressPublishError{
+	err := &eventPublishError{
 		subscriber: subscriber,
 		error:      &proton.NetError{},
 	}
@@ -192,7 +192,7 @@ func (n noOpSubscriber[T]) name() string { //nolint:unused
 	return "NoopSubscriber"
 }
 
-func (n noOpSubscriber[T]) handle(_ context.Context, _ []T) error { //nolint:unused
+func (n noOpSubscriber[T]) handle(_ context.Context, _ T) error { //nolint:unused
 	return nil
 }
 

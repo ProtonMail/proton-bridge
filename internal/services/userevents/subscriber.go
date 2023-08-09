@@ -31,43 +31,13 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type AddressChanneledSubscriber = ChanneledSubscriber[[]proton.AddressEvent]
-type LabelChanneledSubscriber = ChanneledSubscriber[[]proton.LabelEvent]
-type MessageChanneledSubscriber = ChanneledSubscriber[[]proton.MessageEvent]
-type UserChanneledSubscriber = ChanneledSubscriber[proton.User]
-type RefreshChanneledSubscriber = ChanneledSubscriber[proton.RefreshFlag]
-type UserUsedSpaceChanneledSubscriber = ChanneledSubscriber[int]
+type EventChanneledSubscriber = ChanneledSubscriber[proton.Event]
 
-func NewMessageSubscriber(name string) *MessageChanneledSubscriber {
-	return newChanneledSubscriber[[]proton.MessageEvent](name)
+func newSubscriber(name string) *EventChanneledSubscriber {
+	return newChanneledSubscriber[proton.Event](name)
 }
 
-func NewAddressSubscriber(name string) *AddressChanneledSubscriber {
-	return newChanneledSubscriber[[]proton.AddressEvent](name)
-}
-
-func NewLabelSubscriber(name string) *LabelChanneledSubscriber {
-	return newChanneledSubscriber[[]proton.LabelEvent](name)
-}
-
-func NewRefreshSubscriber(name string) *RefreshChanneledSubscriber {
-	return newChanneledSubscriber[proton.RefreshFlag](name)
-}
-
-func NewUserSubscriber(name string) *UserChanneledSubscriber {
-	return newChanneledSubscriber[proton.User](name)
-}
-
-func NewUserUsedSpaceSubscriber(name string) *UserUsedSpaceChanneledSubscriber {
-	return newChanneledSubscriber[int](name)
-}
-
-type AddressSubscriber = subscriber[[]proton.AddressEvent]
-type LabelSubscriber = subscriber[[]proton.LabelEvent]
-type MessageSubscriber = subscriber[[]proton.MessageEvent]
-type RefreshSubscriber = subscriber[proton.RefreshFlag]
-type UserSubscriber = subscriber[proton.User]
-type UserUsedSpaceSubscriber = subscriber[int]
+type EventSubscriber = subscriber[proton.Event]
 
 // Subscriber is the main entry point of interacting with user generated events.
 type subscriber[T any] interface {
@@ -87,12 +57,7 @@ type subscriberList[T any] struct {
 	subscribers []subscriber[T]
 }
 
-type addressSubscriberList = subscriberList[[]proton.AddressEvent]
-type labelSubscriberList = subscriberList[[]proton.LabelEvent]
-type messageSubscriberList = subscriberList[[]proton.MessageEvent]
-type refreshSubscriberList = subscriberList[proton.RefreshFlag]
-type userSubscriberList = subscriberList[proton.User]
-type userUsedSpaceSubscriberList = subscriberList[int]
+type eventSubscriberList = subscriberList[proton.Event]
 
 func (s *subscriberList[T]) Add(subscriber subscriber[T]) {
 	if !slices.Contains(s.subscribers, subscriber) {
@@ -117,12 +82,7 @@ type publishError[T any] struct {
 
 var ErrPublishTimeoutExceeded = errors.New("event publish timed out")
 
-type addressPublishError = publishError[[]proton.AddressEvent]
-type labelPublishError = publishError[[]proton.LabelEvent]
-type messagePublishError = publishError[[]proton.MessageEvent]
-type refreshPublishError = publishError[proton.RefreshFlag]
-type userPublishError = publishError[proton.User]
-type userUsedEventPublishError = publishError[int]
+type eventPublishError = publishError[proton.Event]
 
 func (p publishError[T]) Error() string {
 	return fmt.Sprintf("Event publish failed on (%v): %v", p.subscriber.name(), p.error.Error())

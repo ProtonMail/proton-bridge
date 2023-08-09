@@ -39,7 +39,7 @@ func TestService_OnUserEvent(t *testing.T) {
 
 	eventPublisher.EXPECT().PublishEvent(gomock.Any(), gomock.Eq(events.UserChanged{UserID: TestUserID})).Times(1)
 
-	service.onUserEvent(context.Background(), newTestUser())
+	require.NoError(t, service.HandleUserEvent(context.Background(), newTestUser()))
 }
 
 func TestService_OnUserSpaceChanged(t *testing.T) {
@@ -50,10 +50,10 @@ func TestService_OnUserSpaceChanged(t *testing.T) {
 	eventPublisher.EXPECT().PublishEvent(gomock.Any(), gomock.Eq(events.UsedSpaceChanged{UserID: TestUserID, UsedSpace: 1024})).Times(1)
 
 	// Original value, no changes.
-	service.onUserSpaceChanged(context.Background(), 0)
+	require.NoError(t, service.HandleUsedSpaceEvent(context.Background(), 0))
 
 	// New value, event should be published.
-	service.onUserSpaceChanged(context.Background(), 1024)
+	require.NoError(t, service.HandleUsedSpaceEvent(context.Background(), 1024))
 	require.Equal(t, 1024, service.identity.User.UsedSpace)
 }
 
@@ -68,14 +68,14 @@ func TestService_OnRefreshEvent(t *testing.T) {
 	newAddresses := newTestAddressesRefreshed()
 
 	{
-		getUserCall := provider.EXPECT().GetUser(gomock.Any()).Times(1).Return(newUser, nil)
+		getUserCall := provider.EXPECT().GetUser(gomock.Any()).Times(1).Return(*newUser, nil)
 		provider.EXPECT().GetAddresses(gomock.Any()).After(getUserCall).Times(1).Return(newAddresses, nil)
 	}
 
 	// Original value, no changes.
-	require.NoError(t, service.onRefreshEvent(context.Background()))
+	require.NoError(t, service.HandleRefreshEvent(context.Background(), 0))
 
-	require.Equal(t, newUser, service.identity.User)
+	require.Equal(t, *newUser, service.identity.User)
 	require.Equal(t, newAddresses, service.identity.AddressesSorted)
 }
 
@@ -96,7 +96,7 @@ func TestService_OnAddressCreated(t *testing.T) {
 		Email:     newAddress.Email,
 	})).Times(1)
 
-	err := service.onAddressEvent(context.Background(), []proton.AddressEvent{
+	err := service.HandleAddressEvents(context.Background(), []proton.AddressEvent{
 		{
 			EventItem: proton.EventItem{
 				ID:     "",
@@ -121,7 +121,7 @@ func TestService_OnAddressCreatedDisabledDoesNotProduceEvent(t *testing.T) {
 		Status: proton.AddressStatusEnabled,
 	}
 
-	err := service.onAddressEvent(context.Background(), []proton.AddressEvent{
+	err := service.HandleAddressEvents(context.Background(), []proton.AddressEvent{
 		{
 			EventItem: proton.EventItem{
 				ID:     "",
@@ -146,7 +146,7 @@ func TestService_OnAddressCreatedDuplicateDoesNotProduceEvent(t *testing.T) {
 		Status: proton.AddressStatusDisabled,
 	}
 
-	err := service.onAddressEvent(context.Background(), []proton.AddressEvent{
+	err := service.HandleAddressEvents(context.Background(), []proton.AddressEvent{
 		{
 			EventItem: proton.EventItem{
 				ID:     "",
@@ -177,7 +177,7 @@ func TestService_OnAddressUpdated(t *testing.T) {
 		Email:     newAddress.Email,
 	})).Times(1)
 
-	err := service.onAddressEvent(context.Background(), []proton.AddressEvent{
+	err := service.HandleAddressEvents(context.Background(), []proton.AddressEvent{
 		{
 			EventItem: proton.EventItem{
 				ID:     "",
@@ -221,7 +221,7 @@ func TestService_OnAddressUpdatedDisableFollowedByEnable(t *testing.T) {
 		})).Times(1).After(disabledCall)
 	}
 
-	err := service.onAddressEvent(context.Background(), []proton.AddressEvent{
+	err := service.HandleAddressEvents(context.Background(), []proton.AddressEvent{
 		{
 			EventItem: proton.EventItem{
 				ID:     "",
@@ -234,7 +234,7 @@ func TestService_OnAddressUpdatedDisableFollowedByEnable(t *testing.T) {
 
 	require.Equal(t, newAddressDisabled, service.identity.Addresses[newAddressEnabled.ID])
 
-	err = service.onAddressEvent(context.Background(), []proton.AddressEvent{
+	err = service.HandleAddressEvents(context.Background(), []proton.AddressEvent{
 		{
 			EventItem: proton.EventItem{
 				ID:     "",
@@ -265,7 +265,7 @@ func TestService_OnAddressUpdateCreatedIfNotExists(t *testing.T) {
 		Email:     newAddress.Email,
 	})).Times(1)
 
-	err := service.onAddressEvent(context.Background(), []proton.AddressEvent{
+	err := service.HandleAddressEvents(context.Background(), []proton.AddressEvent{
 		{
 			EventItem: proton.EventItem{
 				ID:     "",
@@ -296,7 +296,7 @@ func TestService_OnAddressDeleted(t *testing.T) {
 		Email:     address.Email,
 	})).Times(1)
 
-	err := service.onAddressEvent(context.Background(), []proton.AddressEvent{
+	err := service.HandleAddressEvents(context.Background(), []proton.AddressEvent{
 		{
 			EventItem: proton.EventItem{
 				ID:     address.ID,
@@ -320,7 +320,7 @@ func TestService_OnAddressDeleteDisabledDoesNotProduceEvent(t *testing.T) {
 		Status: proton.AddressStatusDisabled,
 	}
 
-	err := service.onAddressEvent(context.Background(), []proton.AddressEvent{
+	err := service.HandleAddressEvents(context.Background(), []proton.AddressEvent{
 		{
 			EventItem: proton.EventItem{
 				ID:     address.ID,
@@ -344,7 +344,7 @@ func TestService_OnAddressDeletedUnknownDoesNotProduceEvent(t *testing.T) {
 		Status: proton.AddressStatusEnabled,
 	}
 
-	err := service.onAddressEvent(context.Background(), []proton.AddressEvent{
+	err := service.HandleAddressEvents(context.Background(), []proton.AddressEvent{
 		{
 			EventItem: proton.EventItem{
 				ID:     address.ID,
@@ -364,12 +364,12 @@ func newTestService(_ *testing.T, mockCtrl *gomock.Controller) (*Service, *mocks
 	telemetry := mocks.NewMockTelemetry(mockCtrl)
 	bridgePassProvider := NewFixedBridgePassProvider([]byte("hello"))
 
-	service := NewService(subscribable, eventPublisher, NewState(user, newTestAddresses(), provider), bridgePassProvider, telemetry)
+	service := NewService(subscribable, eventPublisher, NewState(*user, newTestAddresses(), provider), bridgePassProvider, telemetry)
 	return service, eventPublisher, provider
 }
 
-func newTestUser() proton.User {
-	return proton.User{
+func newTestUser() *proton.User {
+	return &proton.User{
 		ID:          TestUserID,
 		Name:        "Foo",
 		DisplayName: "Foo",
@@ -383,8 +383,8 @@ func newTestUser() proton.User {
 	}
 }
 
-func newTestUserRefreshed() proton.User {
-	return proton.User{
+func newTestUserRefreshed() *proton.User {
+	return &proton.User{
 		ID:          TestUserID,
 		Name:        "Alternate",
 		DisplayName: "Universe",

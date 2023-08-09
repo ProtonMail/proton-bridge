@@ -19,16 +19,16 @@ package userevents
 
 // Subscribable represents a type that allows the registration of event subscribers.
 type Subscribable interface {
-	Subscribe(subscription Subscription)
-	Unsubscribe(subscription Subscription)
+	Subscribe(subscription EventSubscriber)
+	Unsubscribe(subscription EventSubscriber)
 }
 
 type NoOpSubscribable struct{}
 
-func (n NoOpSubscribable) Subscribe(_ Subscription) {
+func (n NoOpSubscribable) Subscribe(_ EventSubscriber) {
 	// Does nothing
 }
 
-func (n NoOpSubscribable) Unsubscribe(_ Subscription) {
+func (n NoOpSubscribable) Unsubscribe(_ EventSubscriber) {
 	// Does nothing
 }

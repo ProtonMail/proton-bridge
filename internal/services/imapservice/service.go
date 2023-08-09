@@ -73,11 +73,7 @@ type Service struct {
 	labels        *rwLabels
 	addressMode   usertypes.AddressMode
 
-	refreshSubscriber *userevents.RefreshChanneledSubscriber
-	addressSubscriber *userevents.AddressChanneledSubscriber
-	userSubscriber    *userevents.UserChanneledSubscriber
-	messageSubscriber *userevents.MessageChanneledSubscriber
-	labelSubscriber   *userevents.LabelChanneledSubscriber
+	subscription *userevents.EventChanneledSubscriber
 
 	gluonIDProvider   GluonIDProvider
 	syncStateProvider SyncStateProvider
@@ -95,6 +91,7 @@ type Service struct {
 	connectors        map[string]*Connector
 	maxSyncMemory     uint64
 	showAllMail       bool
+	syncHandler       *syncHandler
 }
 
 func NewService(
@@ -135,11 +132,7 @@ func NewService(
 		eventProvider:     eventProvider,
 		eventPublisher:    eventPublisher,
 
-		refreshSubscriber: userevents.NewRefreshSubscriber(subscriberName),
-		addressSubscriber: userevents.NewAddressSubscriber(subscriberName),
-		userSubscriber:    userevents.NewUserSubscriber(subscriberName),
-		messageSubscriber: userevents.NewMessageSubscriber(subscriberName),
-		labelSubscriber:   userevents.NewLabelSubscriber(subscriberName),
+		subscription: userevents.NewEventSubscriber(subscriberName),
 
 		panicHandler: panicHandler,
 		sendRecorder: sendRecorder,
@@ -241,6 +234,44 @@ func (s *Service) Close() {
 	s.connectors = make(map[string]*Connector)
 }
 
+func (s *Service) HandleRefreshEvent(ctx context.Context, _ proton.RefreshFlag) error {
+	s.log.Debug("handling refresh event")
+
+	if err := s.identityState.Write(func(identity *useridentity.State) error {
+		return identity.OnRefreshEvent(ctx)
+	}); err != nil {
+		s.log.WithError(err).Error("Failed to apply refresh event to identity state")
+		return err
+	}
+
+	s.syncHandler.CancelAndWait()
+
+	if err := s.removeConnectorsFromServer(ctx, s.connectors, true); err != nil {
+		return err
+	}
+
+	if err := s.syncStateProvider.ClearSyncStatus(); err != nil {
+		return fmt.Errorf("failed to clear sync status:%w", err)
+	}
+
+	if err := s.addConnectorsToServer(ctx, s.connectors); err != nil {
+		return err
+	}
+
+	s.syncHandler.launch(s)
+
+	return nil
+}
+
+func (s *Service) HandleUserEvent(_ context.Context, user *proton.User) error {
+	s.log.Debug("handling user event")
+
+	return s.identityState.Write(func(identity *useridentity.State) error {
+		identity.OnUserEvent(*user)
+		return nil
+	})
+}
+
 func (s *Service) run(ctx context.Context) { //nolint gocyclo
 	s.log.Info("Starting IMAP Service")
 	defer s.log.Info("Exiting IMAP Service")
@@ -248,21 +279,21 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 	defer s.cpc.Close()
 	defer s.eventSubscription.Remove(s.eventWatcher)
 
-	syncHandler := newSyncHandler(ctx, s.panicHandler)
-	defer syncHandler.Close()
+	s.syncHandler = newSyncHandler(ctx, s.panicHandler)
+	defer s.syncHandler.Close()
 
-	syncHandler.launch(s)
+	s.syncHandler.launch(s)
 
-	subscription := userevents.Subscription{
-		User:     s.userSubscriber,
-		Refresh:  s.refreshSubscriber,
-		Address:  s.addressSubscriber,
-		Labels:   s.labelSubscriber,
-		Messages: s.messageSubscriber,
+	eventHandler := userevents.EventHandler{
+		UserHandler:    s,
+		AddressHandler: s,
+		RefreshHandler: s,
+		LabelHandler:   s,
+		MessageHandler: s,
 	}
 
-	s.eventProvider.Subscribe(subscription)
-	defer s.eventProvider.Unsubscribe(subscription)
+	s.eventProvider.Subscribe(s.subscription)
+	defer s.eventProvider.Unsubscribe(s.subscription)
 
 	for {
 		select {
@@ -275,25 +306,25 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 			}
 			switch r := req.Value().(type) {
 			case *setAddressModeReq:
-				err := s.setAddressMode(ctx, syncHandler, r.mode)
+				err := s.setAddressMode(ctx, s.syncHandler, r.mode)
 				req.Reply(ctx, nil, err)
 
 			case *resyncReq:
 				s.log.Info("Received resync request, handling as refresh event")
-				err := s.onRefreshEvent(ctx, syncHandler)
+				err := s.HandleRefreshEvent(ctx, 0)
 				req.Reply(ctx, nil, err)
 				s.log.Info("Resync reply sent, handling as refresh event")
 
 			case *cancelSyncReq:
 				s.log.Info("Cancelling sync")
-				syncHandler.Cancel()
+				s.syncHandler.Cancel()
 				req.Reply(ctx, nil, nil)
 
 			case *resumeSyncReq:
 				s.log.Info("Resuming sync")
 				// Cancel previous run, if any, just in case.
-				syncHandler.CancelAndWait()
-				syncHandler.launch(s)
+				s.syncHandler.CancelAndWait()
+				s.syncHandler.launch(s)
 				req.Reply(ctx, nil, nil)
 			case *getLabelsReq:
 				labels := s.labels.GetLabelMap()
@@ -319,7 +350,7 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 				s.log.Error("Received unknown request")
 			}
 
-		case err, ok := <-syncHandler.OnSyncFinishedCH():
+		case err, ok := <-s.syncHandler.OnSyncFinishedCH():
 			{
 				if !ok {
 					continue
@@ -334,46 +365,18 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 				s.eventProvider.Resume()
 			}
 
-		case update, ok := <-syncHandler.updater.ch:
+		case update, ok := <-s.syncHandler.updater.ch:
 			if !ok {
 				continue
 			}
 			s.onSyncUpdate(ctx, update)
 
-		case e, ok := <-s.userSubscriber.OnEventCh():
+		case e, ok := <-s.subscription.OnEventCh():
 			if !ok {
 				continue
 			}
-			e.Consume(func(user proton.User) error {
-				return s.onUserEvent(user)
-			})
-		case e, ok := <-s.addressSubscriber.OnEventCh():
-			if !ok {
-				continue
-			}
-			e.Consume(func(events []proton.AddressEvent) error {
-				return s.onAddressEvent(ctx, events)
-			})
-		case e, ok := <-s.labelSubscriber.OnEventCh():
-			if !ok {
-				continue
-			}
-			e.Consume(func(events []proton.LabelEvent) error {
-				return s.onLabelEvent(ctx, events)
-			})
-		case e, ok := <-s.messageSubscriber.OnEventCh():
-			if !ok {
-				continue
-			}
-			e.Consume(func(events []proton.MessageEvent) error {
-				return s.onMessageEvent(ctx, events)
-			})
-		case e, ok := <-s.refreshSubscriber.OnEventCh():
-			if !ok {
-				continue
-			}
-			e.Consume(func(_ proton.RefreshFlag) error {
-				return s.onRefreshEvent(ctx, syncHandler)
+			e.Consume(func(event proton.Event) error {
+				return eventHandler.OnEvent(ctx, event)
 			})
 		case e, ok := <-s.eventWatcher.GetChannel():
 			if !ok {
@@ -387,43 +390,6 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 			}
 		}
 	}
-}
-
-func (s *Service) onRefreshEvent(ctx context.Context, handler *syncHandler) error {
-	s.log.Debug("handling refresh event")
-
-	if err := s.identityState.Write(func(identity *useridentity.State) error {
-		return identity.OnRefreshEvent(ctx)
-	}); err != nil {
-		s.log.WithError(err).Error("Failed to apply refresh event to identity state")
-		return err
-	}
-
-	handler.CancelAndWait()
-
-	if err := s.removeConnectorsFromServer(ctx, s.connectors, true); err != nil {
-		return err
-	}
-
-	if err := s.syncStateProvider.ClearSyncStatus(); err != nil {
-		return fmt.Errorf("failed to clear sync status:%w", err)
-	}
-
-	if err := s.addConnectorsToServer(ctx, s.connectors); err != nil {
-		return err
-	}
-
-	handler.launch(s)
-
-	return nil
-}
-
-func (s *Service) onUserEvent(user proton.User) error {
-	s.log.Debug("handling user event")
-	return s.identityState.Write(func(identity *useridentity.State) error {
-		identity.OnUserEvent(user)
-		return nil
-	})
 }
 
 func (s *Service) buildConnectors() (map[string]*Connector, error) {

@@ -37,26 +37,26 @@ func TestServiceHandleEvent_CheckEventCategoriesHandledInOrder(t *testing.T) {
 	eventPublisher := mocks.NewMockEventPublisher(mockCtrl)
 	eventIDStore := NewInMemoryEventIDStore()
 
-	refreshHandler := NewMockRefreshSubscriber(mockCtrl)
-	refreshHandler.EXPECT().handle(gomock.Any(), gomock.Any()).Times(2).Return(nil)
+	refreshHandler := NewMockRefreshEventHandler(mockCtrl)
+	refreshHandler.EXPECT().HandleRefreshEvent(gomock.Any(), gomock.Any()).Times(2).Return(nil)
 
-	userHandler := NewMockUserSubscriber(mockCtrl)
-	userCall := userHandler.EXPECT().handle(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+	userHandler := NewMockUserEventHandler(mockCtrl)
+	userCall := userHandler.EXPECT().HandleUserEvent(gomock.Any(), gomock.Any()).Times(1).Return(nil)
 
-	addressHandler := NewMockAddressSubscriber(mockCtrl)
-	addressCall := addressHandler.EXPECT().handle(gomock.Any(), gomock.Any()).After(userCall).Times(1).Return(nil)
+	addressHandler := NewMockAddressEventHandler(mockCtrl)
+	addressCall := addressHandler.EXPECT().HandleAddressEvents(gomock.Any(), gomock.Any()).After(userCall).Times(1).Return(nil)
 
-	labelHandler := NewMockLabelSubscriber(mockCtrl)
-	labelCall := labelHandler.EXPECT().handle(gomock.Any(), gomock.Any()).After(addressCall).Times(1).Return(nil)
+	labelHandler := NewMockLabelEventHandler(mockCtrl)
+	labelCall := labelHandler.EXPECT().HandleLabelEvents(gomock.Any(), gomock.Any()).After(addressCall).Times(1).Return(nil)
 
-	messageHandler := NewMockMessageSubscriber(mockCtrl)
-	messageCall := messageHandler.EXPECT().handle(gomock.Any(), gomock.Any()).After(labelCall).Times(1).Return(nil)
+	messageHandler := NewMockMessageEventHandler(mockCtrl)
+	messageCall := messageHandler.EXPECT().HandleMessageEvents(gomock.Any(), gomock.Any()).After(labelCall).Times(1).Return(nil)
 
-	userSpaceHandler := NewMockUserUsedSpaceSubscriber(mockCtrl)
-	userSpaceCall := userSpaceHandler.EXPECT().handle(gomock.Any(), gomock.Any()).After(messageCall).Times(1).Return(nil)
+	userSpaceHandler := NewMockUserUsedSpaceEventHandler(mockCtrl)
+	userSpaceCall := userSpaceHandler.EXPECT().HandleUsedSpaceEvent(gomock.Any(), gomock.Any()).After(messageCall).Times(1).Return(nil)
 
-	secondRefreshHandler := NewMockRefreshSubscriber(mockCtrl)
-	secondRefreshHandler.EXPECT().handle(gomock.Any(), gomock.Any()).After(userSpaceCall).Times(1).Return(nil)
+	secondRefreshHandler := NewMockRefreshEventHandler(mockCtrl)
+	secondRefreshHandler.EXPECT().HandleRefreshEvent(gomock.Any(), gomock.Any()).After(userSpaceCall).Times(1).Return(nil)
 
 	service := NewService(
 		"foo",
@@ -65,18 +65,20 @@ func TestServiceHandleEvent_CheckEventCategoriesHandledInOrder(t *testing.T) {
 		eventPublisher,
 		100*time.Millisecond,
 		time.Millisecond,
-		time.Second,
+		10*time.Second,
 		async.NoopPanicHandler{},
 	)
 
-	service.addSubscription(Subscription{
-		User:          userHandler,
-		Refresh:       refreshHandler,
-		Address:       addressHandler,
-		Labels:        labelHandler,
-		Messages:      messageHandler,
-		UserUsedSpace: userSpaceHandler,
+	subscription := NewCallbackSubscriber("test", EventHandler{
+		UserHandler:      userHandler,
+		RefreshHandler:   refreshHandler,
+		AddressHandler:   addressHandler,
+		LabelHandler:     labelHandler,
+		MessageHandler:   messageHandler,
+		UsedSpaceHandler: userSpaceHandler,
 	})
+
+	service.addSubscription(subscription)
 
 	// Simulate 1st refresh.
 	require.NoError(t, service.handleEvent(context.Background(), "", proton.Event{Refresh: proton.RefreshMail}))
@@ -84,8 +86,10 @@ func TestServiceHandleEvent_CheckEventCategoriesHandledInOrder(t *testing.T) {
 	// Simulate Regular event.
 	usedSpace := 20
 	require.NoError(t, service.handleEvent(context.Background(), "", proton.Event{
-		User:      new(proton.User),
-		Addresses: []proton.AddressEvent{},
+		User: new(proton.User),
+		Addresses: []proton.AddressEvent{
+			{},
+		},
 		Labels: []proton.LabelEvent{
 			{},
 		},
@@ -95,9 +99,9 @@ func TestServiceHandleEvent_CheckEventCategoriesHandledInOrder(t *testing.T) {
 		UsedSpace: &usedSpace,
 	}))
 
-	service.addSubscription(Subscription{
-		Refresh: secondRefreshHandler,
-	})
+	service.addSubscription(NewCallbackSubscriber("test", EventHandler{
+		RefreshHandler: secondRefreshHandler,
+	}))
 
 	// Simulate 2nd refresh.
 	require.NoError(t, service.handleEvent(context.Background(), "", proton.Event{Refresh: proton.RefreshMail}))
@@ -109,11 +113,10 @@ func TestServiceHandleEvent_CheckEventFailureCausesError(t *testing.T) {
 	eventPublisher := mocks.NewMockEventPublisher(mockCtrl)
 	eventIDStore := NewInMemoryEventIDStore()
 
-	addressHandler := NewMockAddressSubscriber(mockCtrl)
-	addressHandler.EXPECT().name().MinTimes(1).Return("Hello")
-	addressHandler.EXPECT().handle(gomock.Any(), gomock.Any()).Times(1).Return(fmt.Errorf("failed"))
+	addressHandler := NewMockAddressEventHandler(mockCtrl)
+	addressHandler.EXPECT().HandleAddressEvents(gomock.Any(), gomock.Any()).Times(1).Return(fmt.Errorf("failed"))
 
-	messageHandler := NewMockMessageSubscriber(mockCtrl)
+	messageHandler := NewMockMessageEventHandler(mockCtrl)
 
 	service := NewService(
 		"foo",
@@ -126,16 +129,18 @@ func TestServiceHandleEvent_CheckEventFailureCausesError(t *testing.T) {
 		async.NoopPanicHandler{},
 	)
 
-	service.addSubscription(Subscription{
-		Address:  addressHandler,
-		Messages: messageHandler,
+	subscription := NewCallbackSubscriber("test", EventHandler{
+		AddressHandler: addressHandler,
+		MessageHandler: messageHandler,
 	})
+
+	service.addSubscription(subscription)
 
 	err := service.handleEvent(context.Background(), "", proton.Event{Addresses: []proton.AddressEvent{{}}})
 	require.Error(t, err)
-	publisherErr := new(addressPublishError)
+	publisherErr := new(eventPublishError)
 	require.True(t, errors.As(err, &publisherErr))
-	require.Equal(t, publisherErr.subscriber, addressHandler)
+	require.Equal(t, publisherErr.subscriber, subscription)
 }
 
 func TestServiceHandleEvent_CheckEventFailureCausesErrorParallel(t *testing.T) {
@@ -144,12 +149,11 @@ func TestServiceHandleEvent_CheckEventFailureCausesErrorParallel(t *testing.T) {
 	eventPublisher := mocks.NewMockEventPublisher(mockCtrl)
 	eventIDStore := NewInMemoryEventIDStore()
 
-	addressHandler := NewMockAddressSubscriber(mockCtrl)
-	addressHandler.EXPECT().name().MinTimes(1).Return("Hello")
-	addressHandler.EXPECT().handle(gomock.Any(), gomock.Any()).Times(1).Return(fmt.Errorf("failed"))
+	addressHandler := NewMockAddressEventHandler(mockCtrl)
+	addressHandler.EXPECT().HandleAddressEvents(gomock.Any(), gomock.Any()).Times(1).Return(fmt.Errorf("failed"))
 
-	addressHandler2 := NewMockAddressSubscriber(mockCtrl)
-	addressHandler2.EXPECT().handle(gomock.Any(), gomock.Any()).MaxTimes(1).Return(nil)
+	addressHandler2 := NewMockAddressEventHandler(mockCtrl)
+	addressHandler2.EXPECT().HandleAddressEvents(gomock.Any(), gomock.Any()).MaxTimes(1).Return(nil)
 
 	service := NewService(
 		"foo",
@@ -162,19 +166,21 @@ func TestServiceHandleEvent_CheckEventFailureCausesErrorParallel(t *testing.T) {
 		async.NoopPanicHandler{},
 	)
 
-	service.addSubscription(Subscription{
-		Address: addressHandler,
+	subscription := NewCallbackSubscriber("test", EventHandler{
+		AddressHandler: addressHandler,
 	})
 
-	service.addSubscription(Subscription{
-		Address: addressHandler2,
-	})
+	service.addSubscription(subscription)
+
+	service.addSubscription(NewCallbackSubscriber("test2", EventHandler{
+		AddressHandler: addressHandler2,
+	}))
 
 	err := service.handleEvent(context.Background(), "", proton.Event{Addresses: []proton.AddressEvent{{}}})
 	require.Error(t, err)
-	publisherErr := new(addressPublishError)
+	publisherErr := new(eventPublishError)
 	require.True(t, errors.As(err, &publisherErr))
-	require.Equal(t, publisherErr.subscriber, addressHandler)
+	require.Equal(t, publisherErr.subscriber, subscription)
 }
 
 func TestServiceHandleEvent_SubscriberTimeout(t *testing.T) {
@@ -183,13 +189,11 @@ func TestServiceHandleEvent_SubscriberTimeout(t *testing.T) {
 	eventPublisher := mocks.NewMockEventPublisher(mockCtrl)
 	eventIDStore := NewInMemoryEventIDStore()
 
-	addressHandler := NewMockAddressSubscriber(mockCtrl)
-	addressHandler.EXPECT().name().AnyTimes().Return("Ok")
-	addressHandler.EXPECT().handle(gomock.Any(), gomock.Any()).MaxTimes(1).Return(nil)
+	addressHandler := NewMockAddressEventHandler(mockCtrl)
+	addressHandler.EXPECT().HandleAddressEvents(gomock.Any(), gomock.Any()).MaxTimes(1).Return(nil)
 
-	addressHandler2 := NewMockAddressSubscriber(mockCtrl)
-	addressHandler2.EXPECT().name().AnyTimes().Return("Timeout")
-	addressHandler2.EXPECT().handle(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, _ []proton.AddressEvent) error {
+	addressHandler2 := NewMockAddressEventHandler(mockCtrl)
+	addressHandler2.EXPECT().HandleAddressEvents(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, _ []proton.AddressEvent) error {
 		timer := time.NewTimer(time.Second)
 
 		select {
@@ -211,19 +215,21 @@ func TestServiceHandleEvent_SubscriberTimeout(t *testing.T) {
 		async.NoopPanicHandler{},
 	)
 
-	service.addSubscription(Subscription{
-		Address: addressHandler,
+	subscription := NewCallbackSubscriber("test", EventHandler{
+		AddressHandler: addressHandler2,
 	})
 
-	service.addSubscription(Subscription{
-		Address: addressHandler2,
-	})
+	service.addSubscription(subscription)
+
+	service.addSubscription(NewCallbackSubscriber("test2", EventHandler{
+		AddressHandler: addressHandler,
+	}))
 
 	// Simulate 1st refresh.
 	err := service.handleEvent(context.Background(), "", proton.Event{Addresses: []proton.AddressEvent{{}}})
 	require.Error(t, err)
-	if publisherErr := new(addressPublishError); errors.As(err, &publisherErr) {
-		require.Equal(t, publisherErr.subscriber, addressHandler)
+	if publisherErr := new(eventPublishError); errors.As(err, &publisherErr) {
+		require.Equal(t, publisherErr.subscriber, subscription)
 		require.True(t, errors.Is(publisherErr.error, ErrPublishTimeoutExceeded))
 	} else {
 		require.True(t, errors.Is(err, ErrPublishTimeoutExceeded))

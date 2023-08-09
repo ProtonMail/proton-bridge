@@ -47,10 +47,7 @@ type Service struct {
 	log            *logrus.Entry
 	identity       State
 
-	userSubscriber      *userevents.UserChanneledSubscriber
-	addressSubscriber   *userevents.AddressChanneledSubscriber
-	usedSpaceSubscriber *userevents.UserUsedSpaceChanneledSubscriber
-	refreshSubscriber   *userevents.RefreshChanneledSubscriber
+	subscription *userevents.EventChanneledSubscriber
 
 	bridgePassProvider BridgePassProvider
 	telemetry          Telemetry
@@ -74,12 +71,9 @@ func NewService(
 			"service": "user-identity",
 			"user":    state.User.ID,
 		}),
-		userSubscriber:      userevents.NewUserSubscriber(subscriberName),
-		refreshSubscriber:   userevents.NewRefreshSubscriber(subscriberName),
-		addressSubscriber:   userevents.NewAddressSubscriber(subscriberName),
-		usedSpaceSubscriber: userevents.NewUserUsedSpaceSubscriber(subscriberName),
-		bridgePassProvider:  bridgePassProvider,
-		telemetry:           telemetry,
+		subscription:       userevents.NewEventSubscriber(subscriberName),
+		bridgePassProvider: bridgePassProvider,
+		telemetry:          telemetry,
 	}
 }
 
@@ -108,134 +102,30 @@ func (s *Service) CheckAuth(ctx context.Context, email string, password []byte) 
 	})
 }
 
-func (s *Service) run(ctx context.Context) {
-	s.log.WithFields(logrus.Fields{
-		"numAddr": len(s.identity.Addresses),
-	}).Info("Starting user identity service")
-	defer s.log.Info("Exiting Service")
+func (s *Service) HandleUsedSpaceEvent(ctx context.Context, newSpace int) error {
+	s.log.Info("Handling User Space Changed event")
 
-	s.registerSubscription()
-	defer s.unregisterSubscription()
-
-	defer s.cpc.Close()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case r, ok := <-s.cpc.ReceiveCh():
-			if !ok {
-				continue
-			}
-			switch req := r.Value().(type) {
-			case *resyncReq:
-				err := s.identity.OnRefreshEvent(ctx)
-				r.Reply(ctx, nil, err)
-
-			case *getUserReq:
-				r.Reply(ctx, s.identity.User, nil)
-
-			case *getAddressesReq:
-				r.Reply(ctx, maps.Clone(s.identity.Addresses), nil)
-
-			case *checkAuthReq:
-				id, err := s.identity.CheckAuth(req.email, req.password, s.bridgePassProvider, s.telemetry)
-				r.Reply(ctx, id, err)
-
-			default:
-				s.log.Error("Invalid request")
-			}
-
-		case evt, ok := <-s.userSubscriber.OnEventCh():
-			if !ok {
-				continue
-			}
-			evt.Consume(func(user proton.User) error {
-				s.onUserEvent(ctx, user)
-				return nil
-			})
-		case evt, ok := <-s.refreshSubscriber.OnEventCh():
-			if !ok {
-				continue
-			}
-			evt.Consume(func(_ proton.RefreshFlag) error {
-				return s.onRefreshEvent(ctx)
-			})
-		case evt, ok := <-s.usedSpaceSubscriber.OnEventCh():
-			if !ok {
-				continue
-			}
-			evt.Consume(func(usedSpace int) error {
-				s.onUserSpaceChanged(ctx, usedSpace)
-
-				return nil
-			})
-		case evt, ok := <-s.addressSubscriber.OnEventCh():
-			if !ok {
-				continue
-			}
-			evt.Consume(func(events []proton.AddressEvent) error {
-				return s.onAddressEvent(ctx, events)
-			})
-		}
+	if s.identity.OnUserSpaceChanged(newSpace) {
+		s.eventPublisher.PublishEvent(ctx, events.UsedSpaceChanged{
+			UserID:    s.identity.User.ID,
+			UsedSpace: newSpace,
+		})
 	}
+
+	return nil
 }
 
-func (s *Service) registerSubscription() {
-	s.eventService.Subscribe(userevents.Subscription{
-		Refresh:       s.refreshSubscriber,
-		User:          s.userSubscriber,
-		Address:       s.addressSubscriber,
-		UserUsedSpace: s.usedSpaceSubscriber,
-	})
-}
-
-func (s *Service) unregisterSubscription() {
-	s.eventService.Unsubscribe(userevents.Subscription{
-		Refresh:       s.refreshSubscriber,
-		User:          s.userSubscriber,
-		Address:       s.addressSubscriber,
-		UserUsedSpace: s.usedSpaceSubscriber,
-	})
-}
-
-func (s *Service) onUserEvent(ctx context.Context, user proton.User) {
+func (s *Service) HandleUserEvent(ctx context.Context, user *proton.User) error {
 	s.log.WithField("username", logging.Sensitive(user.Name)).Info("Handling user event")
-	s.identity.OnUserEvent(user)
+	s.identity.OnUserEvent(*user)
 	s.eventPublisher.PublishEvent(ctx, events.UserChanged{
 		UserID: user.ID,
-	})
-}
-
-func (s *Service) onRefreshEvent(ctx context.Context) error {
-	s.log.Info("Handling refresh event")
-
-	if err := s.identity.OnRefreshEvent(ctx); err != nil {
-		s.log.WithError(err).Error("Failed to handle refresh event")
-		return err
-	}
-
-	s.eventPublisher.PublishEvent(ctx, events.UserRefreshed{
-		UserID:          s.identity.User.ID,
-		CancelEventPool: false,
 	})
 
 	return nil
 }
 
-func (s *Service) onUserSpaceChanged(ctx context.Context, value int) {
-	s.log.Info("Handling User Space Changed event")
-	if !s.identity.OnUserSpaceChanged(value) {
-		return
-	}
-
-	s.eventPublisher.PublishEvent(ctx, events.UsedSpaceChanged{
-		UserID:    s.identity.User.ID,
-		UsedSpace: value,
-	})
-}
-
-func (s *Service) onAddressEvent(ctx context.Context, addressEvents []proton.AddressEvent) error {
+func (s *Service) HandleAddressEvents(ctx context.Context, addressEvents []proton.AddressEvent) error {
 	s.log.Infof("Handling Address Events (%v)", len(addressEvents))
 
 	for idx, event := range addressEvents {
@@ -303,6 +193,86 @@ func (s *Service) onAddressEvent(ctx context.Context, addressEvents []proton.Add
 		}
 	}
 	return nil
+}
+
+func (s *Service) HandleRefreshEvent(ctx context.Context, _ proton.RefreshFlag) error {
+	s.log.Info("Handling refresh event")
+
+	if err := s.identity.OnRefreshEvent(ctx); err != nil {
+		s.log.WithError(err).Error("Failed to handle refresh event")
+		return err
+	}
+
+	s.eventPublisher.PublishEvent(ctx, events.UserRefreshed{
+		UserID:          s.identity.User.ID,
+		CancelEventPool: false,
+	})
+
+	return nil
+}
+
+func (s *Service) run(ctx context.Context) {
+	s.log.WithFields(logrus.Fields{
+		"numAddr": len(s.identity.Addresses),
+	}).Info("Starting user identity service")
+	defer s.log.Info("Exiting Service")
+
+	eventHandler := userevents.EventHandler{
+		UserHandler:      s,
+		AddressHandler:   s,
+		UsedSpaceHandler: s,
+		RefreshHandler:   s,
+	}
+
+	s.registerSubscription()
+	defer s.unregisterSubscription()
+
+	defer s.cpc.Close()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case r, ok := <-s.cpc.ReceiveCh():
+			if !ok {
+				continue
+			}
+			switch req := r.Value().(type) {
+			case *resyncReq:
+				err := s.identity.OnRefreshEvent(ctx)
+				r.Reply(ctx, nil, err)
+
+			case *getUserReq:
+				r.Reply(ctx, s.identity.User, nil)
+
+			case *getAddressesReq:
+				r.Reply(ctx, maps.Clone(s.identity.Addresses), nil)
+
+			case *checkAuthReq:
+				id, err := s.identity.CheckAuth(req.email, req.password, s.bridgePassProvider, s.telemetry)
+				r.Reply(ctx, id, err)
+
+			default:
+				s.log.Error("Invalid request")
+			}
+
+		case evt, ok := <-s.subscription.OnEventCh():
+			if !ok {
+				continue
+			}
+			evt.Consume(func(event proton.Event) error {
+				return eventHandler.OnEvent(ctx, event)
+			})
+		}
+	}
+}
+
+func (s *Service) registerSubscription() {
+	s.eventService.Subscribe(s.subscription)
+}
+
+func (s *Service) unregisterSubscription() {
+	s.eventService.Unsubscribe(s.subscription)
 }
 
 func sortAddresses(addr []proton.Address) []proton.Address {

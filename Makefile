@@ -284,7 +284,7 @@ mocks:
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/services/userevents \
 EventSource,EventIDStore  > internal/services/userevents/mocks/mocks.go
 	mockgen --package userevents github.com/ProtonMail/proton-bridge/v3/internal/services/userevents \
-MessageSubscriber,LabelSubscriber,AddressSubscriber,RefreshSubscriber,UserSubscriber,UserUsedSpaceSubscriber > tmp
+EventSubscriber,MessageEventHandler,LabelEventHandler,AddressEventHandler,RefreshEventHandler,UserEventHandler,UserUsedSpaceEventHandler > tmp
 	mv tmp internal/services/userevents/mocks_test.go
 	mockgen --package mocks github.com/ProtonMail/proton-bridge/v3/internal/events EventPublisher \
 > internal/events/mocks/mocks.go

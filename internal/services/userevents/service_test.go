@@ -87,7 +87,7 @@ func TestService_RetryEventOnNonCatastrophicFailure(t *testing.T) {
 	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
 	eventIDStore := mocks.NewMockEventIDStore(mockCtrl)
 	eventSource := mocks.NewMockEventSource(mockCtrl)
-	subscriber := NewMockMessageSubscriber(mockCtrl)
+	subscriber := NewMockMessageEventHandler(mockCtrl)
 
 	firstEventID := "EVENT01"
 	secondEventID := "EVENT02"
@@ -113,10 +113,9 @@ func TestService_RetryEventOnNonCatastrophicFailure(t *testing.T) {
 	eventSource.EXPECT().GetEvent(gomock.Any(), gomock.Eq(firstEventID)).MinTimes(1).Return(secondEvent, false, nil)
 
 	// Subscriber expectations.
-	subscriber.EXPECT().name().AnyTimes().Return("Foo")
 	{
-		firstCall := subscriber.EXPECT().handle(gomock.Any(), gomock.Eq(messageEvents)).Times(1).Return(io.ErrUnexpectedEOF)
-		subscriber.EXPECT().handle(gomock.Any(), gomock.Eq(messageEvents)).After(firstCall).Times(1).Return(nil)
+		firstCall := subscriber.EXPECT().HandleMessageEvents(gomock.Any(), gomock.Eq(messageEvents)).Times(1).Return(io.ErrUnexpectedEOF)
+		subscriber.EXPECT().HandleMessageEvents(gomock.Any(), gomock.Eq(messageEvents)).After(firstCall).Times(1).Return(nil)
 	}
 
 	service := NewService(
@@ -129,7 +128,7 @@ func TestService_RetryEventOnNonCatastrophicFailure(t *testing.T) {
 		time.Second,
 		async.NoopPanicHandler{},
 	)
-	service.Subscribe(Subscription{Messages: subscriber})
+	service.Subscribe(NewCallbackSubscriber("foo", EventHandler{MessageHandler: subscriber}))
 
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
@@ -142,7 +141,7 @@ func TestService_OnBadEventServiceIsPaused(t *testing.T) {
 	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
 	eventIDStore := mocks.NewMockEventIDStore(mockCtrl)
 	eventSource := mocks.NewMockEventSource(mockCtrl)
-	subscriber := NewMockMessageSubscriber(mockCtrl)
+	subscriber := NewMockMessageEventHandler(mockCtrl)
 
 	firstEventID := "EVENT01"
 	secondEventID := "EVENT02"
@@ -164,8 +163,7 @@ func TestService_OnBadEventServiceIsPaused(t *testing.T) {
 
 	// Subscriber expectations.
 	badEventErr := fmt.Errorf("I will cause bad event")
-	subscriber.EXPECT().name().AnyTimes().Return("Foo")
-	subscriber.EXPECT().handle(gomock.Any(), gomock.Eq(messageEvents)).Times(1).Return(badEventErr)
+	subscriber.EXPECT().HandleMessageEvents(gomock.Any(), gomock.Eq(messageEvents)).Times(1).Return(badEventErr)
 
 	service := NewService(
 		"foo",
@@ -184,7 +182,7 @@ func TestService_OnBadEventServiceIsPaused(t *testing.T) {
 		OldEventID: firstEventID,
 		NewEventID: secondEventID,
 		EventInfo:  secondEvent[0].String(),
-		Error:      badEventErr,
+		Error:      fmt.Errorf("failed to apply message events: %w", badEventErr),
 	}).Do(func(_ context.Context, event events.Event) {
 		group.Go(context.Background(), "", "", func(_ context.Context) {
 			// Use background context to avoid having the request cancelled
@@ -193,7 +191,7 @@ func TestService_OnBadEventServiceIsPaused(t *testing.T) {
 		})
 	})
 
-	service.Subscribe(Subscription{Messages: subscriber})
+	service.Subscribe(NewCallbackSubscriber("foo", EventHandler{MessageHandler: subscriber}))
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
 	group.Wait()
@@ -205,7 +203,7 @@ func TestService_UnsubscribeDuringEventHandlingDoesNotCauseDeadlock(t *testing.T
 	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
 	eventIDStore := mocks.NewMockEventIDStore(mockCtrl)
 	eventSource := mocks.NewMockEventSource(mockCtrl)
-	subscriber := NewMockMessageSubscriber(mockCtrl)
+	subscriber := NewMockMessageEventHandler(mockCtrl)
 
 	firstEventID := "EVENT01"
 	secondEventID := "EVENT02"
@@ -241,16 +239,15 @@ func TestService_UnsubscribeDuringEventHandlingDoesNotCauseDeadlock(t *testing.T
 		async.NoopPanicHandler{},
 	)
 
+	subscription := NewCallbackSubscriber("foo", EventHandler{MessageHandler: subscriber})
+
 	// Subscriber expectations.
-	subscriber.EXPECT().name().AnyTimes().Return("Foo")
-	subscriber.EXPECT().cancel().Times(1)
-	subscriber.EXPECT().close().Times(1)
-	subscriber.EXPECT().handle(gomock.Any(), gomock.Eq(messageEvents)).Times(1).DoAndReturn(func(_ context.Context, _ []proton.MessageEvent) error {
-		service.Unsubscribe(Subscription{Messages: subscriber})
+	subscriber.EXPECT().HandleMessageEvents(gomock.Any(), gomock.Eq(messageEvents)).Times(1).DoAndReturn(func(_ context.Context, _ []proton.MessageEvent) error {
+		service.Unsubscribe(subscription)
 		return nil
 	})
 
-	service.Subscribe(Subscription{Messages: subscriber})
+	service.Subscribe(subscription)
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
 	group.Wait()
@@ -262,7 +259,6 @@ func TestService_UnsubscribeBeforeHandlingEventIsNotConsideredError(t *testing.T
 	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
 	eventIDStore := mocks.NewMockEventIDStore(mockCtrl)
 	eventSource := mocks.NewMockEventSource(mockCtrl)
-	subscriber := NewMessageSubscriber("My subscriber")
 
 	firstEventID := "EVENT01"
 	secondEventID := "EVENT02"
@@ -299,16 +295,42 @@ func TestService_UnsubscribeBeforeHandlingEventIsNotConsideredError(t *testing.T
 		async.NoopPanicHandler{},
 	)
 
+	subscription := NewEventSubscriber("Foo")
+
 	// start subscriber
 	group.Go(context.Background(), "", "", func(_ context.Context) {
-		defer service.Unsubscribe(Subscription{Messages: subscriber})
+		defer service.Unsubscribe(subscription)
 
 		// Simulate the reception of an event, but it is never handled due to unexpected exit
 		<-time.NewTicker(500 * time.Millisecond).C
 	})
 
-	service.Subscribe(Subscription{Messages: subscriber})
+	service.Subscribe(subscription)
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
 	group.Wait()
+}
+
+type CallbackSubscriber struct {
+	handler EventHandler
+	n       string
+}
+
+func NewCallbackSubscriber(name string, handler EventHandler) *CallbackSubscriber {
+	return &CallbackSubscriber{handler: handler, n: name}
+}
+
+func (c CallbackSubscriber) name() string { //nolint: unused
+	return c.n
+}
+func (c CallbackSubscriber) handle(ctx context.Context, t proton.Event) error { //nolint: unused
+	return c.handler.OnEvent(ctx, t)
+}
+
+func (c CallbackSubscriber) cancel() { //nolint: unused
+	// Nothing to do.
+}
+
+func (c CallbackSubscriber) close() { //nolint: unused
+	// Nothing to do.
 }

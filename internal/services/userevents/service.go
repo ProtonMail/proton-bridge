@@ -57,12 +57,7 @@ type Service struct {
 	paused         uint32
 	panicHandler   async.PanicHandler
 
-	userSubscriberList      userSubscriberList
-	addressSubscribers      addressSubscriberList
-	labelSubscribers        labelSubscriberList
-	messageSubscribers      messageSubscriberList
-	refreshSubscribers      refreshSubscriberList
-	userUsedSpaceSubscriber userUsedSpaceSubscriberList
+	subscriberList eventSubscriberList
 
 	pendingSubscriptionsLock sync.Mutex
 	pendingSubscriptions     []pendingSubscription
@@ -94,61 +89,9 @@ func NewService(
 	}
 }
 
-type Subscription struct {
-	User          UserSubscriber
-	Refresh       RefreshSubscriber
-	Address       AddressSubscriber
-	Labels        LabelSubscriber
-	Messages      MessageSubscriber
-	UserUsedSpace UserUsedSpaceSubscriber
-}
-
-// cancel subscription subscribers if applicable, see `subscriber.cancel` for more information.
-func (s Subscription) cancel() {
-	if s.User != nil {
-		s.User.cancel()
-	}
-	if s.Refresh != nil {
-		s.Refresh.cancel()
-	}
-	if s.Address != nil {
-		s.Address.cancel()
-	}
-	if s.Labels != nil {
-		s.Labels.cancel()
-	}
-	if s.Messages != nil {
-		s.Messages.cancel()
-	}
-	if s.UserUsedSpace != nil {
-		s.UserUsedSpace.cancel()
-	}
-}
-
-func (s Subscription) close() {
-	if s.User != nil {
-		s.User.close()
-	}
-	if s.Refresh != nil {
-		s.Refresh.close()
-	}
-	if s.Address != nil {
-		s.Address.close()
-	}
-	if s.Labels != nil {
-		s.Labels.close()
-	}
-	if s.Messages != nil {
-		s.Messages.close()
-	}
-	if s.UserUsedSpace != nil {
-		s.UserUsedSpace.close()
-	}
-}
-
 // Subscribe adds new subscribers to the service.
 // This method can safely be called during event handling.
-func (s *Service) Subscribe(subscription Subscription) {
+func (s *Service) Subscribe(subscription EventSubscriber) {
 	s.pendingSubscriptionsLock.Lock()
 	defer s.pendingSubscriptionsLock.Unlock()
 
@@ -157,7 +100,7 @@ func (s *Service) Subscribe(subscription Subscription) {
 
 // Unsubscribe removes subscribers from the service.
 // This method can safely be called during event handling.
-func (s *Service) Unsubscribe(subscription Subscription) {
+func (s *Service) Unsubscribe(subscription EventSubscriber) {
 	subscription.cancel()
 
 	s.pendingSubscriptionsLock.Lock()
@@ -288,7 +231,7 @@ func (s *Service) Close() {
 	s.pendingSubscriptionsLock.Lock()
 	defer s.pendingSubscriptionsLock.Unlock()
 
-	processed := xmaps.Set[Subscription]{}
+	processed := xmaps.Set[EventSubscriber]{}
 
 	// Cleanup pending removes.
 	for _, s := range s.pendingSubscriptions {
@@ -313,70 +256,20 @@ func (s *Service) handleEvent(ctx context.Context, lastEventID string, event pro
 	}).Info("Received new API event")
 
 	if event.Refresh&proton.RefreshMail != 0 {
-		s.log.Info("Handling refresh event")
-		if err := s.refreshSubscribers.Publish(ctx, event.Refresh, s.eventTimeout); err != nil {
-			return fmt.Errorf("failed to apply refresh event: %w", err)
-		}
-
-		return nil
+		s.log.Info("Received refresh event")
 	}
 
-	// Start with user events.
-	if event.User != nil {
-		if err := s.userSubscriberList.PublishParallel(ctx, *event.User, s.panicHandler, s.eventTimeout); err != nil {
-			return fmt.Errorf("failed to apply user event: %w", err)
-		}
-	}
-
-	// Next Address events
-	if err := s.addressSubscribers.PublishParallel(ctx, event.Addresses, s.panicHandler, s.eventTimeout); err != nil {
-		return fmt.Errorf("failed to apply address events: %w", err)
-	}
-
-	// Next label events
-	if err := s.labelSubscribers.PublishParallel(ctx, event.Labels, s.panicHandler, s.eventTimeout); err != nil {
-		return fmt.Errorf("failed to apply label events: %w", err)
-	}
-
-	// Next message events
-	if err := s.messageSubscribers.PublishParallel(ctx, event.Messages, s.panicHandler, s.eventTimeout); err != nil {
-		return fmt.Errorf("failed to apply message events: %w", err)
-	}
-
-	// Finally user used space events
-	if event.UsedSpace != nil {
-		if err := s.userUsedSpaceSubscriber.PublishParallel(ctx, *event.UsedSpace, s.panicHandler, s.eventTimeout); err != nil {
-			return fmt.Errorf("failed to apply message events: %w", err)
-		}
-	}
-
-	return nil
+	return s.subscriberList.PublishParallel(ctx, event, s.panicHandler, s.eventTimeout)
 }
 
 func unpackPublisherError(err error) (string, error) {
-	var addressErr *addressPublishError
-	var labelErr *labelPublishError
-	var messageErr *messagePublishError
-	var refreshErr *refreshPublishError
-	var userErr *userPublishError
-	var usedSpaceErr *userUsedEventPublishError
+	var publishErr *eventPublishError
 
-	switch {
-	case errors.As(err, &userErr):
-		return userErr.subscriber.name(), userErr.error
-	case errors.As(err, &addressErr):
-		return addressErr.subscriber.name(), addressErr.error
-	case errors.As(err, &labelErr):
-		return labelErr.subscriber.name(), labelErr.error
-	case errors.As(err, &messageErr):
-		return messageErr.subscriber.name(), messageErr.error
-	case errors.As(err, &refreshErr):
-		return refreshErr.subscriber.name(), refreshErr.error
-	case errors.As(err, &usedSpaceErr):
-		return usedSpaceErr.subscriber.name(), usedSpaceErr.error
-	default:
-		return "", err
+	if errors.As(err, &publishErr) {
+		return publishErr.subscriber.name(), publishErr.error
 	}
+
+	return "", err
 }
 
 func (s *Service) handleEventError(ctx context.Context, lastEventID string, event proton.Event, err error) (string, error) {
@@ -437,56 +330,12 @@ func (s *Service) onBadEvent(ctx context.Context, event events.UserBadEvent) {
 	s.eventPublisher.PublishEvent(ctx, event)
 }
 
-func (s *Service) addSubscription(subscription Subscription) {
-	if subscription.User != nil {
-		s.userSubscriberList.Add(subscription.User)
-	}
-
-	if subscription.Refresh != nil {
-		s.refreshSubscribers.Add(subscription.Refresh)
-	}
-
-	if subscription.Address != nil {
-		s.addressSubscribers.Add(subscription.Address)
-	}
-
-	if subscription.Labels != nil {
-		s.labelSubscribers.Add(subscription.Labels)
-	}
-
-	if subscription.Messages != nil {
-		s.messageSubscribers.Add(subscription.Messages)
-	}
-
-	if subscription.UserUsedSpace != nil {
-		s.userUsedSpaceSubscriber.Add(subscription.UserUsedSpace)
-	}
+func (s *Service) addSubscription(subscription EventSubscriber) {
+	s.subscriberList.Add(subscription)
 }
 
-func (s *Service) removeSubscription(subscription Subscription) {
-	if subscription.User != nil {
-		s.userSubscriberList.Remove(subscription.User)
-	}
-
-	if subscription.Refresh != nil {
-		s.refreshSubscribers.Remove(subscription.Refresh)
-	}
-
-	if subscription.Address != nil {
-		s.addressSubscribers.Remove(subscription.Address)
-	}
-
-	if subscription.Labels != nil {
-		s.labelSubscribers.Remove(subscription.Labels)
-	}
-
-	if subscription.Messages != nil {
-		s.messageSubscribers.Remove(subscription.Messages)
-	}
-
-	if subscription.UserUsedSpace != nil {
-		s.userUsedSpaceSubscriber.Remove(subscription.UserUsedSpace)
-	}
+func (s *Service) removeSubscription(subscription EventSubscriber) {
+	s.subscriberList.Remove(subscription)
 }
 
 type pendingOp int
@@ -498,5 +347,5 @@ const (
 
 type pendingSubscription struct {
 	op  pendingOp
-	sub Subscription
+	sub EventSubscriber
 }

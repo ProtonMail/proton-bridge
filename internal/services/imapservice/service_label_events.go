@@ -32,7 +32,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-func (s *Service) onLabelEvent(ctx context.Context, events []proton.LabelEvent) error {
+func (s *Service) HandleLabelEvents(ctx context.Context, events []proton.LabelEvent) error {
 	s.log.Debug("handling label event")
 
 	for _, event := range events {

@@ -26,7 +26,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 )
 
-func (s *Service) onAddressEvent(ctx context.Context, events []proton.AddressEvent) error {
+func (s *Service) HandleAddressEvents(ctx context.Context, events []proton.AddressEvent) error {
 	s.log.Debug("handling address event")
 
 	if s.addressMode == usertypes.AddressModeCombined {

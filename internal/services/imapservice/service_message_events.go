@@ -36,7 +36,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-func (s *Service) onMessageEvent(ctx context.Context, events []proton.MessageEvent) error {
+func (s *Service) HandleMessageEvents(ctx context.Context, events []proton.MessageEvent) error {
 	s.log.Debug("handling message event")
 
 	for _, event := range events {

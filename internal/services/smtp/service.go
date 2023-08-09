@@ -57,10 +57,8 @@ type Service struct {
 	identityState      *useridentity.State
 	telemetry          Telemetry
 
-	eventService      userevents.Subscribable
-	refreshSubscriber *userevents.RefreshChanneledSubscriber
-	addressSubscriber *userevents.AddressChanneledSubscriber
-	userSubscriber    *userevents.UserChanneledSubscriber
+	eventService userevents.Subscribable
+	subscription *userevents.EventChanneledSubscriber
 
 	addressMode   usertypes.AddressMode
 	serverManager ServerManager
@@ -100,9 +98,7 @@ func NewService(
 		identityState:      identityState,
 		eventService:       eventService,
 
-		refreshSubscriber: userevents.NewRefreshSubscriber(subscriberName),
-		userSubscriber:    userevents.NewUserSubscriber(subscriberName),
-		addressSubscriber: userevents.NewAddressSubscriber(subscriberName),
+		subscription: userevents.NewEventSubscriber(subscriberName),
 
 		addressMode:   mode,
 		serverManager: serverManager,
@@ -168,19 +164,38 @@ func (s *Service) UserID() string {
 	return s.userID
 }
 
+func (s *Service) HandleRefreshEvent(ctx context.Context, _ proton.RefreshFlag) error {
+	s.log.Debug("Handling refresh event")
+	return s.identityState.OnRefreshEvent(ctx)
+}
+
+func (s *Service) HandleAddressEvents(_ context.Context, events []proton.AddressEvent) error {
+	s.log.Debug("Handling Address Event")
+	s.identityState.OnAddressEvents(events)
+
+	return nil
+}
+
+func (s *Service) HandleUserEvent(_ context.Context, user *proton.User) error {
+	s.log.Debug("Handling user event")
+	s.identityState.OnUserEvent(*user)
+
+	return nil
+}
+
 func (s *Service) run(ctx context.Context) {
 	s.log.Info("Starting service main loop")
 	defer s.log.Info("Exiting service main loop")
 	defer s.cpc.Close()
 
-	subscription := userevents.Subscription{
-		User:    s.userSubscriber,
-		Refresh: s.refreshSubscriber,
-		Address: s.addressSubscriber,
+	eventHandler := userevents.EventHandler{
+		AddressHandler: s,
+		RefreshHandler: s,
+		UserHandler:    s,
 	}
 
-	s.eventService.Subscribe(subscription)
-	defer s.eventService.Unsubscribe(subscription)
+	s.eventService.Subscribe(s.subscription)
+	defer s.eventService.Unsubscribe(s.subscription)
 
 	for {
 		select {
@@ -219,34 +234,12 @@ func (s *Service) run(ctx context.Context) {
 			default:
 				s.log.Error("Received unknown request")
 			}
-		case e, ok := <-s.userSubscriber.OnEventCh():
+		case e, ok := <-s.subscription.OnEventCh():
 			if !ok {
 				continue
 			}
-
-			s.log.Debug("Handling user event")
-			e.Consume(func(user proton.User) error {
-				s.identityState.OnUserEvent(user)
-				return nil
-			})
-		case e, ok := <-s.refreshSubscriber.OnEventCh():
-			if !ok {
-				continue
-			}
-
-			s.log.Debug("Handling refresh event")
-			e.Consume(func(_ proton.RefreshFlag) error {
-				return s.identityState.OnRefreshEvent(ctx)
-			})
-		case e, ok := <-s.addressSubscriber.OnEventCh():
-			if !ok {
-				continue
-			}
-
-			s.log.Debug("Handling Address Event")
-			e.Consume(func(evt []proton.AddressEvent) error {
-				s.identityState.OnAddressEvents(evt)
-				return nil
+			e.Consume(func(event proton.Event) error {
+				return eventHandler.OnEvent(ctx, event)
 			})
 		}
 	}
