@@ -33,6 +33,8 @@ Item {
     property var user
     property string address
 
+    signal wizardEnded()
+
     function clientIconSource() {
         switch (client) {
             case SetupWizard.Client.AppleMail:
@@ -66,7 +68,7 @@ Item {
     }
 
     function closeWizard() {
-        root.visible = false;
+        wizardEnded()
     }
 
     function showOutlookSelector() {
@@ -92,13 +94,14 @@ Item {
         rightContent.currentIndex = 2;
     }
 
-    function startLogin() {
+    function startLogin(username = "") {
         root.visible = true;
         rootStackLayout.currentIndex = 0;
         root.address = "";
         leftContent.showLogin();
         rightContent.currentIndex = 1;
         login.reset(true);
+        login.username = username;
     }
 
     function showClientWarning() {

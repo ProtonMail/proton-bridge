@@ -46,19 +46,36 @@ ApplicationWindow {
         contentWrapper.showSettings();
     }
     function showSetup(user, address) {
-        setupGuide.user = user;
-        setupGuide.address = address;
-        setupGuide.reset();
-        contentLayout._showSetup = !!setupGuide.user;
+        contentLayout.currentIndex = 1;
+        setupWizard.startClientCOnfig(user, address)
     }
     function showSignIn(username) {
-        if (contentLayout.currentIndex === 1)
-            return;
-        contentWrapper.showSignIn(username);
+        contentLayout.currentIndex = 1;
+        setupWizard.startLogin(username)
     }
+
     function showWebViewOverlay(url) {
         webViewOverlay.visible = true;
         webViewOverlay.url = url;
+    }
+
+    function layoutForUserCount(userCount) {
+        if (userCount === 0) {
+            showSignIn("");
+            return;
+        }
+
+        const u = Backend.users.get(0);
+        if (!u) {
+            console.trace();
+            console.log("empty user");
+            setupWizard.start();
+            return;
+        }
+
+        if ((userCount === 1) && (u.state === EUserState.SignedOut)) {
+            setupWizard.startLogin(u.primaryEmailOrUsername());
+        }
     }
 
     colorScheme: ProtonStyle.currentStyle
@@ -72,10 +89,8 @@ ApplicationWindow {
         function onRowsAboutToBeRemoved(parent, first, last) {
             for (let i = first; i <= last; i++) {
                 const user = Backend.users.get(i);
-                if (setupGuide.user === user) {
-                    setupGuide.user = null;
-                    contentLayout._showSetup = false;
-                    return;
+                if (setupWizard.user === user) {
+                    setupWizard.closeWizard();
                 }
             }
         }
@@ -94,13 +109,6 @@ ApplicationWindow {
         target: Backend.users
     }
     Connections {
-        function onLoginFinished(index, wasSignedOut) {
-            // const user = Backend.users.get(index);
-            // if (user && !wasSignedOut) {
-            //    root.showSetup(user, user.addresses[0]);
-            // }
-            // console.debug("Login finished", index);
-        }
         function onSelectUser(userID, forceShowWindow) {
             contentWrapper.selectUser(userID);
             if (forceShowWindow) {
@@ -121,33 +129,19 @@ ApplicationWindow {
 
         target: Backend
     }
+
+    Connections {
+        function onCountChanged(count) {
+            layoutForUserCount(count)
+        }
+
+        target: Backend.users
+    }
     StackLayout {
         id: contentLayout
 
-        property bool _showSetup: false
-
         anchors.fill: parent
-        currentIndex: {
-            // show welcome when there are no users
-            if (Backend.users.count === 0) {
-                setupWizard.start();
-                return 0;
-            }
-            const u = Backend.users.get(0);
-            if (!u) {
-                console.trace();
-                console.log("empty user");
-                return 1;
-            }
-            if ((Backend.users.count === 1) && (u.state === EUserState.SignedOut)) {
-                showSignIn(u.primaryEmailOrUsername());
-                return 0;
-            }
-            if (contentLayout._showSetup) {
-                return 2;
-            }
-            return 0;
-        }
+        currentIndex: 0
 
         ContentWrapper {
             // 0
@@ -169,45 +163,29 @@ ApplicationWindow {
             onShowSetupGuide: function (user, address) {
                 setupWizard.startClientConfig(user, address);
             }
-            onShowSetupWizard: {
-                setupWizard.start();
+            onShowSignIn: function(username) {
+                root.showSignIn(username)
             }
         }
-        WelcomeGuide {
-            Layout.fillHeight: true
-            Layout.fillWidth: true // 1
-            colorScheme: root.colorScheme
-        }
-        SetupGuide {
-            // 2
-            id: setupGuide
-            Layout.fillHeight: true
-            Layout.fillWidth: true
+
+        SetupWizard {
+            id: setupWizard
+            Layout.fillWidth: true;
+            Layout.fillHeight: true;
             colorScheme: root.colorScheme
 
-            onDismissed: {
-                root.showSetup(null, "");
-            }
-            onFinished: {
-                // TODO: Do not close window. Trigger Backend to check that
-                // there is a successfully connected client. Then Backend
-                // should send another signal to close the setup guide.
-                root.showSetup(null, "");
+            onWizardEnded: {
+                contentLayout.currentIndex = 0
             }
         }
     }
+
     WebView {
         id: webViewOverlay
         anchors.fill: parent
         colorScheme: root.colorScheme
         overlay: true
         url: ""
-        visible: false
-    }
-    SetupWizard {
-        id: setupWizard
-        anchors.fill: parent
-        colorScheme: root.colorScheme
         visible: false
     }
     NotificationPopups {
@@ -218,5 +196,9 @@ ApplicationWindow {
     SplashScreen {
         id: splashScreen
         colorScheme: root.colorScheme
+    }
+
+    Component.onCompleted: {
+        layoutForUserCount(Backend.users.count)
     }
 }

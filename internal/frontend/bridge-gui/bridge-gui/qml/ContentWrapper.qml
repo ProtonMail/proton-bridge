@@ -25,7 +25,8 @@ Item {
     signal closeWindow
     signal quitBridge
     signal showSetupGuide(var user, string address)
-    signal showSetupWizard
+    signal showSignIn(var username)
+    signal showSetupWizard()
 
     function selectUser(userID) {
         const users = Backend.users;
@@ -49,10 +50,6 @@ Item {
     }
     function showSettings() {
         rightContent.showGeneralSettings();
-    }
-    function showSignIn(username) {
-        signIn.username = username;
-        rightContent.showSignIn();
     }
 
     RowLayout {
@@ -234,8 +231,7 @@ Item {
                                 if (user.state !== EUserState.SignedOut) {
                                     rightContent.showAccount();
                                 } else {
-                                    signIn.username = user.primaryEmailOrUsername();
-                                    rightContent.showSignIn();
+                                    showSignIn(user.primaryEmailOrUsername());
                                 }
                             }
                         }
@@ -283,8 +279,7 @@ Item {
                         width: 36
 
                         onClicked: {
-                            signIn.username = "";
-                            root.showSetupWizard();
+                            root.showSignIn("")
                         }
                     }
                 }
@@ -324,10 +319,6 @@ Item {
                 function showPortSettings() {
                     rightContent.currentIndex = 4;
                 }
-                function showSignIn() {
-                    rightContent.currentIndex = 1;
-                    signIn.focus = true;
-                }
 
                 anchors.fill: parent
 
@@ -346,42 +337,14 @@ Item {
                     onShowSetupGuide: function (user, address) {
                         root.showSetupGuide(user, address);
                     }
-                    onShowSignIn: {
-                        const user = this.user;
-                        signIn.username = user ? user.primaryEmailOrUsername() : "";
-                        rightContent.showSignIn();
+                    onShowSignIn: function (username) {
+                        root.showSignIn(username)
                     }
                 }
-                GridLayout {
-                    // 1 Sign In
-                    columns: 2
-
-                    Button {
-                        id: backButton
-                        Layout.alignment: Qt.AlignTop
-                        Layout.leftMargin: 18
-                        Layout.topMargin: 10
-                        colorScheme: root.colorScheme
-                        horizontalPadding: 8
-                        icon.source: "/qml/icons/ic-arrow-left.svg"
-                        secondary: true
-
-                        onClicked: {
-                            signIn.abort();
-                            rightContent.showAccount();
-                        }
-                    }
-                    SignIn {
-                        id: signIn
-                        Layout.bottomMargin: 68
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
-                        Layout.leftMargin: 80 - backButton.width - 18
-                        Layout.preferredWidth: 320
-                        Layout.rightMargin: 80
-                        Layout.topMargin: 68
-                        colorScheme: root.colorScheme
-                    }
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    color: "#ff9900"
                 }
                 GeneralSettings {
                     // 2

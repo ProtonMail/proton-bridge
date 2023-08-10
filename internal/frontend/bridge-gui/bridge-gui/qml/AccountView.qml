@@ -29,7 +29,7 @@ Item {
     property var user
 
     signal showSetupGuide(var user, string address)
-    signal showSignIn
+    signal showSignIn(var username)
 
     Rectangle {
         anchors.fill: parent
@@ -92,9 +92,9 @@ Item {
                                 visible: root.user ? (root.user.state === EUserState.SignedOut) : false
 
                                 onClicked: {
-                                    if (!root.user)
-                                        return;
-                                    root.showSignIn();
+                                    if (user) {
+                                        root.showSignIn(user.primaryEmailOrUsername());
+                                    }
                                 }
                             }
                             Button {
@@ -124,7 +124,7 @@ Item {
                             showSeparator: splitMode.visible
                             text: qsTr("Email clients")
                             type: SettingsItem.Button
-                            visible: _connected && (!root.user.splitMode) || (root.user.addresses.length === 1)
+                            visible: _connected && ((!root.user.splitMode) || (root.user.addresses.length === 1))
 
                             onClicked: {
                                 if (!root.user)

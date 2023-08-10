@@ -106,7 +106,6 @@
         <file>qml/Resources/bug_report_flow.json</file>
         <file>qml/SettingsItem.qml</file>
         <file>qml/SettingsView.qml</file>
-        <file>qml/SetupGuide.qml</file>
         <file>qml/SetupWizard/ClientListItem.qml</file>
         <file>qml/SetupWizard/LeftPane.qml</file>
         <file>qml/SetupWizard/ClientConfigOutlookSelector.qml</file>
@@ -117,11 +116,9 @@
         <file>qml/SetupWizard/Login.qml</file>
         <file>qml/SetupWizard/Onboarding.qml</file>
         <file>qml/SetupWizard/StepDescriptionBox.qml</file>
-        <file>qml/SignIn.qml</file>
         <file>qml/ConnectionModeSettings.qml</file>
         <file>qml/SplashScreen.qml</file>
         <file>qml/Status.qml</file>
-        <file>qml/WelcomeGuide.qml</file>
         <file>qml/WebViewWindow.qml</file>
     </qresource>
 </RCC>
