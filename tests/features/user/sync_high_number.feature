@@ -1,3 +1,4 @@
+@regression
 Feature: Bridge can fully synchronize an account with high number of messages, and correct number of messages is shown in client
   Background:
     Given there exists an account with username "[user:user]" and password "password"

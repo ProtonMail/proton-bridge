@@ -258,6 +258,15 @@ test-integration-debug: gofiles
 test-integration-race: gofiles
 	go test -v -timeout=60m -p=1 -count=1 -race -failfast github.com/ProtonMail/proton-bridge/v3/tests
 
+test-integration-nightly: gofiles
+	mkdir -p coverage/integration
+	go test \
+		-v -timeout=90m -p=1 -count=1 \
+		${GOCOVERAGE} \
+		github.com/ProtonMail/proton-bridge/v3/tests \
+		${GOCOVERDIR}/integration \
+		nightly
+
 fuzz: gofiles
 	go test -fuzz=FuzzUnmarshal 	 -parallel=4 -fuzztime=60s $(PWD)/internal/legacy/credentials
 	go test -fuzz=FuzzNewParser 	 -parallel=4 -fuzztime=60s $(PWD)/pkg/message/parser

@@ -47,6 +47,16 @@ stages:
       allow_failure: true
     - when: never
 
+.rules-branch-manual-scheduled-and-test-branch-always:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_COMMIT_BRANCH =~ /(test\/)/
+      when: always
+      allow_failure: false
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+      allow_failure: true
+    - when: never
+
 # ENV
 .env-windows:
   before_script:
@@ -171,6 +181,13 @@ test-integration-race:
     - .rules-branch-and-MR-manual
   script:
     - make test-integration-race
+
+test-integration-nightly:
+  extends:
+    - test-integration
+    - .rules-branch-manual-scheduled-and-test-branch-always
+  script:
+    - make test-integration-nightly
 
 test-windows:
   extends:

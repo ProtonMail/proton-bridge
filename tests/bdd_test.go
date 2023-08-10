@@ -267,6 +267,7 @@ func TestFeatures(testingT *testing.T) {
 			Format:   "pretty",
 			Paths:    getFeaturePaths(),
 			TestingT: testingT,
+			Tags:     getFeatureTags(),
 		},
 	}
 
@@ -285,4 +286,19 @@ func getFeaturePaths() []string {
 	}
 
 	return paths
+}
+
+func getFeatureTags() string {
+	var tags string
+
+	switch arguments := os.Args; arguments[len(arguments)-1] {
+	case "nightly":
+		tags = ""
+	case "smoke": // Currently this is just a placeholder, as there are no scenarios tagged with @smoke
+		tags = "@smoke"
+	default:
+		tags = "~@regression && ~@smoke" // To exclude more add `&& ~@tag`
+	}
+
+	return tags
 }
