@@ -524,8 +524,8 @@ func (bridge *Bridge) addUserWithVault(
 		return fmt.Errorf("failed to get Statistics directory: %w", err)
 	}
 
-	// re-set SyncStatus if database need to be re-sync for migration.
-	bridge.TryMigrate(vault)
+	// re-set SyncStatus if database need to be re-synced for migration.
+	bridge.migrateUser(vault)
 
 	user, err := user.New(
 		ctx,

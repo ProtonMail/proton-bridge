@@ -37,7 +37,7 @@ func (bridge *Bridge) databaseResyncNeeded() bool {
 	return false
 }
 
-func (bridge *Bridge) TryMigrate(vault *vault.User) {
+func (bridge *Bridge) migrateUser(vault *vault.User) {
 	if bridge.databaseResyncNeeded() {
 		if err := bridge.reporter.ReportMessage("Database need to be re-sync for migration."); err != nil {
 			logrus.WithError(err).Error("Failed to report database re-sync for migration.")
