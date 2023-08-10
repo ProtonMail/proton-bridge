@@ -39,7 +39,6 @@ Item {
             colorScheme: root.colorScheme
             text: root.text
             type: Label.Body
-            Layout.fillHeight: true
             Layout.alignment: Qt.AlignVCenter
             Layout.bottomMargin: root._bottomMargin
             wrapMode: Text.WordWrap
@@ -47,15 +46,14 @@ Item {
 
         ColorImage {
             id: infoImage
-            Layout.preferredHeight: 21
-            Layout.preferredWidth: 21
             Layout.alignment: Qt.AlignVCenter
+            Layout.bottomMargin: root._bottomMargin
             color: root.colorScheme.interaction_norm
             height: 21
+            width: 21
             source: "/qml/icons/ic-info-circle.svg"
             sourceSize.height: 21
             sourceSize.width: 21
-            width: 21
             visible: root.hint !== ""
             MouseArea {
                 id: imageArea
