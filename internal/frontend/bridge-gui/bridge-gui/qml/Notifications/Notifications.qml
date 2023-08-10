@@ -76,7 +76,7 @@ QtObject {
             target: Backend
         }
     }
-    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.cacheUnavailable, root.cacheCantMove, root.accountChanged, root.diskFull, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.noActiveKeyForRecipient, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion]
+    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.bugReportSendFallback, root.cacheUnavailable, root.cacheCantMove, root.accountChanged, root.diskFull, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.noActiveKeyForRecipient, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion]
     property Notification alreadyLoggedIn: Notification {
         brief: qsTr("Already signed in")
         description: qsTr("This account is already signed in.")
@@ -147,6 +147,30 @@ QtObject {
         Connections {
             function onBugReportSendError() {
                 root.bugReportSendError.active = true;
+            }
+
+            target: Backend
+        }
+    }
+
+    property Notification bugReportSendFallback: Notification {
+        brief: qsTr("Error sharing debug data")
+        description: qsTr("Report was sent but debug data could not be shared. Please consider sharing it using "+ "<a href=\"https://proton.me/support/send-large-files-proton-drive\">Proton Drive</a>.")
+        group: Notifications.Group.Configuration
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Info
+
+        action: Action {
+            text: qsTr("OK")
+
+            onTriggered: {
+                root.bugReportSendFallback.active = false;
+            }
+        }
+
+        Connections {
+            function onBugReportSendFallback() {
+                root.bugReportSendFallback.active = true;
             }
 
             target: Backend

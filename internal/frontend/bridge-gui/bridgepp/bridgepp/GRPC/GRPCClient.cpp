@@ -1130,6 +1130,10 @@ void GRPCClient::processAppEvent(AppEvent const &event) {
         this->logTrace("App event received: ShowMainWindow.");
         emit showMainWindow();
         break;
+    case AppEvent::kReportBugFallback:
+        this->logTrace("App event received: ReportBugFallback.");
+        emit reportBugFallback();
+        break;
     default:
         this->logError("Unknown App event received.");
     }

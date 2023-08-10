@@ -261,6 +261,7 @@ message AppEvent {
     ReportBugSuccessEvent reportBugSuccess = 5;
     ReportBugErrorEvent reportBugError = 6;
     ShowMainWindowEvent showMainWindow = 7;
+    ReportBugFallbackEvent reportBugFallback = 8;
   }
 }
 
@@ -274,6 +275,7 @@ message ReportBugFinishedEvent {}
 message ReportBugSuccessEvent {}
 message ReportBugErrorEvent {}
 message ShowMainWindowEvent {}
+message ReportBugFallbackEvent {}
 
 //**********************************************************
 // Login related events

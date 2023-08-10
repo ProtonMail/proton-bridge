@@ -266,6 +266,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void resetFinished(); ///< Signal for the 'resetFinished' gRPC stream event.
     void reportBugFinished(); ///< Signal for the 'reportBugFinished' gRPC stream event.
     void bugReportSendSuccess(); ///< Signal for the 'bugReportSendSuccess' gRPC stream event.
+    void bugReportSendFallback(); ///< Signal for the 'bugReportSendFallback' gRPC stream event.
     void bugReportSendError(); ///< Signal for the 'bugReportSendError' gRPC stream event.
     void showMainWindow(); ///< Signal for the 'showMainWindow' gRPC stream event.
     void hideMainWindow(); ///< Signal for the 'hideMainWindow' gRPC stream event.

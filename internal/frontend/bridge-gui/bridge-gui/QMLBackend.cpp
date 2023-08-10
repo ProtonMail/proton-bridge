@@ -1265,6 +1265,7 @@ void QMLBackend::connectGrpcEvents() {
     connect(client, &GRPCClient::resetFinished, this, &QMLBackend::onResetFinished);
     connect(client, &GRPCClient::reportBugFinished, this, &QMLBackend::reportBugFinished);
     connect(client, &GRPCClient::reportBugSuccess, this, &QMLBackend::bugReportSendSuccess);
+    connect(client, &GRPCClient::reportBugFallback, this, &QMLBackend::bugReportSendFallback);
     connect(client, &GRPCClient::reportBugError, this, &QMLBackend::bugReportSendError);
     connect(client, &GRPCClient::showMainWindow, [&]() { this->showMainWindow("gRPC showMainWindow event"); });
 

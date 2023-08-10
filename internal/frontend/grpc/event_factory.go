@@ -41,6 +41,10 @@ func NewReportBugErrorEvent() *StreamEvent {
 	return appEvent(&AppEvent{Event: &AppEvent_ReportBugError{ReportBugError: &ReportBugErrorEvent{}}})
 }
 
+func NewReportBugFallbackEvent() *StreamEvent {
+	return appEvent(&AppEvent{Event: &AppEvent_ReportBugFallback{ReportBugFallback: &ReportBugFallbackEvent{}}})
+}
+
 func NewShowMainWindowEvent() *StreamEvent {
 	return appEvent(&AppEvent{Event: &AppEvent_ShowMainWindow{ShowMainWindow: &ShowMainWindowEvent{}}})
 }

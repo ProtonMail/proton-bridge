@@ -102,6 +102,7 @@ signals: // app related signals
     void reportBugFinished();
     void reportBugSuccess();
     void reportBugError();
+    void reportBugFallback();
     void showMainWindow();
 
     // cache related calls
