@@ -18,10 +18,11 @@
 package bridge
 
 import (
+	"strings"
+
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/sirupsen/logrus"
-	"strings"
 )
 
 func (bridge *Bridge) databaseResyncNeeded() bool {
