@@ -27,12 +27,11 @@ Item {
         Generic
     }
 
-    property string address
     property int client
     property string clientVersion
     property ColorScheme colorScheme
-    property string userID
-    property bool wasSignedOut
+    property var user
+    property string address
 
     function clientIconSource() {
         switch (client) {
@@ -84,19 +83,19 @@ Item {
         rightContent.currentIndex = 0;
     }
 
-    function startClientConfig() {
+    function startClientConfig(user, address) {
+        root.user = user
+        root.address = address
         root.visible = true;
         rootStackLayout.currentIndex = 0;
         leftContent.showClientSelector();
         rightContent.currentIndex = 2;
     }
 
-    function startLogin(wasSignedOut = false) {
+    function startLogin() {
         root.visible = true;
         rootStackLayout.currentIndex = 0;
-        root.userID = "";
         root.address = "";
-        root.wasSignedOut = wasSignedOut;
         leftContent.showLogin();
         rightContent.currentIndex = 1;
         login.reset(true);
@@ -116,8 +115,14 @@ Item {
     }
 
     Connections {
-        function onLoginFinished() {
-            startClientConfig();
+        function onLoginFinished(userIndex, wasSignedOut) {
+            if (wasSignedOut) {
+                closeWizard();
+                return;
+            }
+            let user = Backend.users.get(userIndex)
+            let address = user ? user.addresses[0] : ""
+            startClientConfig(user, address);
         }
 
         target: Backend

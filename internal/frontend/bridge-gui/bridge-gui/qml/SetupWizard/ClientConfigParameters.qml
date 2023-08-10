@@ -64,8 +64,6 @@ Rectangle {
             RowLayout {
                 id: configuration
 
-                property string currentAddress: wizard.user ? wizard.user.address : ""
-
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.topMargin: 32
@@ -78,7 +76,7 @@ Rectangle {
                     port: Backend.imapPort.toString()
                     security: Backend.useSSLForIMAP ? "SSL" : "STARTTLS"
                     title: qsTr("IMAP")
-                    username: configuration.currentAddress
+                    username: wizard.address
                 }
                 Configuration {
                     Layout.fillWidth: true
@@ -88,7 +86,7 @@ Rectangle {
                     port: Backend.smtpPort.toString()
                     security: Backend.useSSLForSMTP ? "SSL" : "STARTTLS"
                     title: qsTr("SMTP")
-                    username: configuration.currentAddress
+                    username: wizard.address
                 }
             }
 
@@ -107,7 +105,7 @@ Rectangle {
                 Layout.topMargin: 32
                 colorScheme: root.colorScheme
                 text: qsTr("Done")
-                onClicked: root.wizard.closeWizard()
+                onClicked: wizard.closeWizard()
             }
         }
 
