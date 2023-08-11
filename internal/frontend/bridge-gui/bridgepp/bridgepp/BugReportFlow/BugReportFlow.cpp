@@ -131,8 +131,9 @@ QString BugReportFlow::collectAnswers(quint8 categoryId) const {
         const QString& answer = getAnswer(var.toInt());
         if (answer.isEmpty())
             continue;
-        answers += " > " + questions_[var.toInt()].toMap()["text"].toString() + "\n\r";
-        answers += answer + "\n\r";
+        answers += "#### " + questions_[var.toInt()].toMap()["text"].toString() + "\n\r";
+        for (const QString& line : answer.split("\n"))
+            answers += "> " + line + "\n\r";
     }
     return answers;
 }

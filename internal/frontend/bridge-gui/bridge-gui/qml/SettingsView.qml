@@ -37,6 +37,7 @@ Item {
         anchors.fill: parent
         clip: true
 
+        ScrollBar.vertical.policy: ScrollBar.vertical.size < 1.0 ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff;
         Component.onCompleted: contentItem.boundsBehavior = Flickable.StopAtBounds // Disable the springy effect when scroll reaches top/bottom.
 
         Item {

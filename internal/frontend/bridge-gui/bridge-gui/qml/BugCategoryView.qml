@@ -27,7 +27,7 @@ SettingsView {
     Label {
         Layout.fillWidth: true
         colorScheme: root.colorScheme
-        text: qsTr("What's the issue?")
+        text: qsTr("What do you want to report?")
         type: Label.Heading
     }
 

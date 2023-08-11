@@ -65,6 +65,7 @@ SettingsView {
         Layout.fillWidth: true
         Layout.minimumHeight: heightForLinesVisible(4)
         colorScheme: root.colorScheme
+        textFormat: Text.MarkdownText
 
         // set implicitHeight to explicit height because se don't
         // want TextArea implicitHeight (which is height of all text)

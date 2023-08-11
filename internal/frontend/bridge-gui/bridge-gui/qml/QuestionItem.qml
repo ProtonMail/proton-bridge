@@ -133,7 +133,7 @@ Item {
                 property string text: {
                     return checkedButton ? checkedButton.text : "";
                 }
-                property bool error: root.mandatory
+                property bool error: false
 
                 function setDefaultValue(defaultValue) {
                     const values = root.type === root._typeChoice ? defaultValue : [];
@@ -176,7 +176,7 @@ Item {
                     }
                     return str.slice(0, -delimitor.length);
                 }
-                property bool error: root.mandatory
+                property bool error: false
 
                 function setDefaultValue(defaultValue) {
                     const values = root.type === root._typeMutlichoice ? defaultValue.split(delimitor) : [];
@@ -207,13 +207,43 @@ Item {
                     visible: root.type === root._typeMutlichoice
                 }
             }
+
+            RowLayout {
+                id: footerLayout
+                Layout.fillWidth: true
+                spacing: 0
+
+                visible: {
+                    if (root.type === root._typeOpen)
+                        return false
+                    return root.error
+                }
+
+                ColorImage {
+                    id: errorIcon
+                    Layout.rightMargin: 4
+                    color: root.colorScheme.signal_danger
+                    height: errorChoice.height
+                    source: "/qml/icons/ic-exclamation-circle-filled.svg"
+                    sourceSize.height: errorChoice.height
+                }
+                Label {
+                    id: errorChoice
+                    Layout.fillWidth: true
+                    color: root.colorScheme.signal_danger
+                    colorScheme: root.colorScheme
+                    text: "Field is mandatory"
+                    type: Label.LabelType.Caption_semibold
+                }
+            }
         }
     }
+
     Rectangle {
         anchors.bottom: root.bottom
         anchors.left: root.left
         anchors.right: root.right
-        color: colorScheme.border_weak
+        color: root.colorScheme.border_weak
         height: root._lineHeight
         visible: root.showSeparator
     }

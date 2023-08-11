@@ -7,7 +7,7 @@
       {
         "name": "I cannot find emails in my email client",
         "questions": [0,5,6,4],
-        "hint": "e.g., missing old emails or not receiving new emails"
+        "hint": "For example, missing old emails or not receiving new emails"
       },
       {
         "name": "I am not able to send emails",
@@ -17,12 +17,12 @@
       {
         "name": "Bridge is not starting correctly",
         "questions": [0,2,3,4],
-        "hint": "e.g., Bridge does not autostart or shows an error at startup"
+        "hint": "For example, Bridge does not autostart or shows an error at startup"
       },
       {
         "name": "Bridge is running slow",
         "questions": [0,2,7,4],
-        "hint": "e.g., delay in receiving email or high resource consumption"
+        "hint": "For example, delay in receiving email or high resource consumption"
       },
       {
         "name": "Something else",
@@ -33,7 +33,7 @@
     "questions": [
       {
         "id": 0,
-        "text": "What happened? Please also let us know if you received any error messages.",
+        "text": "Please describe what happened and include any error messages.",
         "tips": "Type your answer here",
         "type": "open",
         "mandatory": true,
@@ -81,7 +81,7 @@
       },
       {
         "id": 7,
-        "text": "Which of these issues are you facing?",
+        "text": "Which of these issues are you experiencing?",
         "type": "multichoice",
         "answerList": ["Emails arrive with a delay", "Emails are sending slowly", "Bridge is slow to launch", "Bridge is slowing down my computer"]
       }

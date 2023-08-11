@@ -140,7 +140,7 @@ TEST_F(BugReportFlowFixture, validFile) {
     EXPECT_TRUE(flow_.setAnswer(0, "pwet"));
     EXPECT_FALSE(flow_.setAnswer(1, "pwet"));
 
-    EXPECT_EQ(flow_.collectAnswers(0), " > What happened?\n\rpwet\n\r");
+    EXPECT_EQ(flow_.collectAnswers(0), "#### What happened?\n\r> pwet\n\r");
     EXPECT_EQ(flow_.collectAnswers(1), "");
     EXPECT_EQ(flow_.getAnswer(0), "pwet");
     EXPECT_EQ(flow_.getAnswer(1), "");

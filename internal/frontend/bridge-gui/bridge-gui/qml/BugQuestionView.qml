@@ -40,7 +40,7 @@ SettingsView {
     Label {
         Layout.fillWidth: true
         colorScheme: root.colorScheme
-        text: qsTr("Describe the issue")
+        text: qsTr("Provide more details")
         type: Label.Heading
     }
 
@@ -58,6 +58,7 @@ SettingsView {
         font.letterSpacing: ProtonStyle.caption_letter_spacing
         font.pixelSize: ProtonStyle.caption_font_size
         font.weight: ProtonStyle.fontWeight_400
+        textFormat: Text.MarkdownText
         readOnly: true
         selectByMouse: true
         selectedTextColor: root.colorScheme.text_invert
@@ -86,8 +87,6 @@ SettingsView {
 
         QuestionItem {
             Layout.fillWidth: true
-
-            implicitWidth: parent.implicitWidth
 
             colorScheme: root.colorScheme
             showSeparator: index < (root.questionSet.length - 1)
