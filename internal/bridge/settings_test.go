@@ -25,6 +25,7 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,6 +36,45 @@ func TestBridge_Settings_GluonDir(t *testing.T) {
 			_, err := bridge.LoginFull(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
 
+			// Create a new location for the Gluon data.
+			newGluonDir := t.TempDir()
+
+			// Move the gluon dir; it should also move the user's data.
+			require.NoError(t, bridge.SetGluonDir(context.Background(), newGluonDir))
+
+			// Check that the new directory is not empty.
+			entries, err := os.ReadDir(newGluonDir)
+			require.NoError(t, err)
+
+			// There should be at least one entry.
+			require.NotEmpty(t, entries)
+		})
+	})
+}
+
+func TestBridge_Settings_GluonDirWithOnGoingEvents(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		userID, addrID, err := s.CreateUser("imap", password)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+			defer done()
+
+			_, err := bridge.LoginFull(context.Background(), "imap", password, nil, nil)
+			require.NoError(t, err)
+
+			<-syncCh
+		})
+
+		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
+		require.NoError(t, err)
+
+		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *proton.Client) {
+			createNumMessages(ctx, t, c, addrID, labelID, 200)
+		})
+
+		withBridgeWaitForServers(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// Create a new location for the Gluon data.
 			newGluonDir := t.TempDir()
 

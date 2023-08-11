@@ -116,6 +116,7 @@ func (s *Service) Unsubscribe(subscription EventSubscriber) {
 
 // Pause pauses the event polling.
 func (s *Service) Pause() {
+	s.log.Info("Pausing")
 	atomic.StoreUint32(&s.paused, 1)
 }
 
@@ -142,6 +143,7 @@ func (s *Service) PauseWithWaiter() *EventPollWaiter {
 
 // Resume resumes the event polling.
 func (s *Service) Resume() {
+	s.log.Info("Resuming")
 	atomic.StoreUint32(&s.paused, 0)
 }
 

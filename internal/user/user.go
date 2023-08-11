@@ -675,3 +675,15 @@ func (user *User) GetSMTPService() *smtp.Service {
 func (user *User) PublishEvent(_ context.Context, event events.Event) {
 	user.eventCh.Enqueue(event)
 }
+
+func (user *User) PauseEventLoop() {
+	user.eventService.Pause()
+}
+
+func (user *User) PauseEventLoopWithWaiter() *userevents.EventPollWaiter {
+	return user.eventService.PauseWithWaiter()
+}
+
+func (user *User) ResumeEventLoop() {
+	user.eventService.Resume()
+}

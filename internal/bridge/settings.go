@@ -19,9 +19,11 @@ package bridge
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/sirupsen/logrus"
@@ -128,6 +130,38 @@ func (bridge *Bridge) GetGluonDataDir() (string, error) {
 }
 
 func (bridge *Bridge) SetGluonDir(ctx context.Context, newGluonDir string) error {
+	bridge.usersLock.RLock()
+
+	defer func() {
+		logrus.Info("Restarting user event loops")
+		for _, u := range bridge.users {
+			u.ResumeEventLoop()
+		}
+
+		bridge.usersLock.RUnlock()
+	}()
+
+	type waiter struct {
+		w  *userevents.EventPollWaiter
+		id string
+	}
+
+	waiters := make([]waiter, 0, len(bridge.users))
+
+	logrus.Info("Pausing user event loops for gluon dir change")
+	for id, u := range bridge.users {
+		waiters = append(waiters, waiter{w: u.PauseEventLoopWithWaiter(), id: id})
+	}
+
+	logrus.Info("Waiting on user event loop completion")
+	for _, waiter := range waiters {
+		if err := waiter.w.WaitPollFinished(ctx); err != nil {
+			logrus.WithError(err).Errorf("Failed to wait on event loop pause for user %v", waiter.id)
+			return fmt.Errorf("failed on event loop pause: %w", err)
+		}
+	}
+
+	logrus.Info("Changing gluon directory")
 	return bridge.serverManager.SetGluonDir(ctx, newGluonDir)
 }
 

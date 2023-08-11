@@ -60,6 +60,8 @@ type Connector struct {
 	labels      sharedLabels
 	updateCh    *async.QueuedChannel[imap.Update]
 	log         *logrus.Entry
+
+	sharedCache *SharedCache
 }
 
 func NewConnector(
@@ -101,12 +103,19 @@ func NewConnector(
 			"addr-id":         addrID,
 			"user-id":         userID,
 		}),
+
+		sharedCache: NewSharedCached(),
 	}
 }
 
 func (s *Connector) StateClose() {
 	s.log.Debug("Closing state")
 	s.updateCh.CloseAndDiscardQueued()
+}
+
+func (s *Connector) Init(_ context.Context, cache connector.IMAPState) error {
+	s.sharedCache.Set(cache)
+	return nil
 }
 
 func (s *Connector) Authorize(ctx context.Context, username string, password []byte) bool {
@@ -124,7 +133,7 @@ func (s *Connector) Authorize(ctx context.Context, username string, password []b
 	return true
 }
 
-func (s *Connector) CreateMailbox(ctx context.Context, name []string) (imap.Mailbox, error) {
+func (s *Connector) CreateMailbox(ctx context.Context, _ connector.IMAPStateWrite, name []string) (imap.Mailbox, error) {
 	if len(name) < 2 {
 		return imap.Mailbox{}, fmt.Errorf("invalid mailbox name %q: %w", name, connector.ErrOperationNotAllowed)
 	}
@@ -177,7 +186,7 @@ func (s *Connector) GetMailboxVisibility(_ context.Context, mboxID imap.MailboxI
 	}
 }
 
-func (s *Connector) UpdateMailboxName(ctx context.Context, mboxID imap.MailboxID, name []string) error {
+func (s *Connector) UpdateMailboxName(ctx context.Context, _ connector.IMAPStateWrite, mboxID imap.MailboxID, name []string) error {
 	if len(name) < 2 {
 		return fmt.Errorf("invalid mailbox name %q: %w", name, connector.ErrOperationNotAllowed)
 	}
@@ -194,7 +203,7 @@ func (s *Connector) UpdateMailboxName(ctx context.Context, mboxID imap.MailboxID
 	}
 }
 
-func (s *Connector) DeleteMailbox(ctx context.Context, mboxID imap.MailboxID) error {
+func (s *Connector) DeleteMailbox(ctx context.Context, _ connector.IMAPStateWrite, mboxID imap.MailboxID) error {
 	if err := s.client.DeleteLabel(ctx, string(mboxID)); err != nil {
 		return err
 	}
@@ -207,7 +216,7 @@ func (s *Connector) DeleteMailbox(ctx context.Context, mboxID imap.MailboxID) er
 	return nil
 }
 
-func (s *Connector) CreateMessage(ctx context.Context, mailboxID imap.MailboxID, literal []byte, flags imap.FlagSet, _ time.Time) (imap.Message, []byte, error) {
+func (s *Connector) CreateMessage(ctx context.Context, _ connector.IMAPStateWrite, mailboxID imap.MailboxID, literal []byte, flags imap.FlagSet, _ time.Time) (imap.Message, []byte, error) {
 	if mailboxID == proton.AllMailLabel {
 		return imap.Message{}, nil, connector.ErrOperationNotAllowed
 	}
@@ -305,7 +314,7 @@ func (s *Connector) CreateMessage(ctx context.Context, mailboxID imap.MailboxID,
 	return msg, literal, err
 }
 
-func (s *Connector) AddMessagesToMailbox(ctx context.Context, messageIDs []imap.MessageID, mboxID imap.MailboxID) error {
+func (s *Connector) AddMessagesToMailbox(ctx context.Context, _ connector.IMAPStateWrite, messageIDs []imap.MessageID, mboxID imap.MailboxID) error {
 	if isAllMailOrScheduled(mboxID) {
 		return connector.ErrOperationNotAllowed
 	}
@@ -313,7 +322,7 @@ func (s *Connector) AddMessagesToMailbox(ctx context.Context, messageIDs []imap.
 	return s.client.LabelMessages(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs), string(mboxID))
 }
 
-func (s *Connector) RemoveMessagesFromMailbox(ctx context.Context, messageIDs []imap.MessageID, mboxID imap.MailboxID) error {
+func (s *Connector) RemoveMessagesFromMailbox(ctx context.Context, _ connector.IMAPStateWrite, messageIDs []imap.MessageID, mboxID imap.MailboxID) error {
 	if isAllMailOrScheduled(mboxID) {
 		return connector.ErrOperationNotAllowed
 	}
@@ -332,7 +341,7 @@ func (s *Connector) RemoveMessagesFromMailbox(ctx context.Context, messageIDs []
 	return nil
 }
 
-func (s *Connector) MoveMessages(ctx context.Context, messageIDs []imap.MessageID, mboxFromID, mboxToID imap.MailboxID) (bool, error) {
+func (s *Connector) MoveMessages(ctx context.Context, _ connector.IMAPStateWrite, messageIDs []imap.MessageID, mboxFromID, mboxToID imap.MailboxID) (bool, error) {
 	if (mboxFromID == proton.InboxLabel && mboxToID == proton.SentLabel) ||
 		(mboxFromID == proton.SentLabel && mboxToID == proton.InboxLabel) ||
 		isAllMailOrScheduled(mboxFromID) ||
@@ -370,7 +379,7 @@ func (s *Connector) MoveMessages(ctx context.Context, messageIDs []imap.MessageI
 	return shouldExpungeOldLocation, nil
 }
 
-func (s *Connector) MarkMessagesSeen(ctx context.Context, messageIDs []imap.MessageID, seen bool) error {
+func (s *Connector) MarkMessagesSeen(ctx context.Context, _ connector.IMAPStateWrite, messageIDs []imap.MessageID, seen bool) error {
 	if seen {
 		return s.client.MarkMessagesRead(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs)...)
 	}
@@ -378,7 +387,7 @@ func (s *Connector) MarkMessagesSeen(ctx context.Context, messageIDs []imap.Mess
 	return s.client.MarkMessagesUnread(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs)...)
 }
 
-func (s *Connector) MarkMessagesFlagged(ctx context.Context, messageIDs []imap.MessageID, flagged bool) error {
+func (s *Connector) MarkMessagesFlagged(ctx context.Context, _ connector.IMAPStateWrite, messageIDs []imap.MessageID, flagged bool) error {
 	if flagged {
 		return s.client.LabelMessages(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs), proton.StarredLabel)
 	}
@@ -392,6 +401,7 @@ func (s *Connector) GetUpdates() <-chan imap.Update {
 
 func (s *Connector) Close(_ context.Context) error {
 	// Nothing to do
+	s.sharedCache.Close()
 	return nil
 }
 
