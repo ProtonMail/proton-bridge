@@ -35,6 +35,7 @@ Item {
     }
     function showBugQuestion() {
         bugQuestion.setCategoryId(root.categoryId);
+        bugQuestion.positionViewAtBegining();
         bugReportFlow.currentIndex = 1;
     }
     function showBugReport() {
