@@ -38,7 +38,8 @@ import (
 
 type EventProvider interface {
 	userevents.Subscribable
-	userevents.EventController
+	PauseIMAP()
+	ResumeIMAP()
 }
 
 type Telemetry interface {
@@ -362,7 +363,7 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 				}
 
 				s.log.Info("Sync complete, starting API event stream")
-				s.eventProvider.Resume()
+				s.eventProvider.ResumeIMAP()
 			}
 
 		case update, ok := <-s.syncHandler.updater.ch:

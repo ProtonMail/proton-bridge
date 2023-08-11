@@ -93,7 +93,7 @@ func (s *syncHandler) OnSyncFinishedCH() <-chan error {
 }
 
 func (s *syncHandler) launch(service *Service) {
-	service.eventProvider.Pause()
+	service.eventProvider.PauseIMAP()
 
 	labels := service.labels.GetLabelMap()
 

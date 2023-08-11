@@ -55,6 +55,7 @@ type Service struct {
 	timer          *proton.Ticker
 	eventTimeout   time.Duration
 	paused         uint32
+	pausedIMAP     uint32
 	panicHandler   async.PanicHandler
 
 	subscriberList eventSubscriberList
@@ -87,6 +88,7 @@ func NewService(
 		eventPublisher: eventPublisher,
 		timer:          proton.NewTicker(pollPeriod, jitter, panicHandler),
 		paused:         1,
+		pausedIMAP:     1,
 		eventTimeout:   eventTimeout,
 		panicHandler:   panicHandler,
 	}
@@ -117,6 +119,12 @@ func (s *Service) Pause() {
 	atomic.StoreUint32(&s.paused, 1)
 }
 
+// PauseIMAP special handler for the IMAP Service - Do Not Use.
+func (s *Service) PauseIMAP() {
+	s.log.Info("Pausing from IMAP")
+	atomic.StoreUint32(&s.pausedIMAP, 1)
+}
+
 // PauseWithWaiter pauses the event polling and returns a waiter to notify when the last event has been published
 // after the pause request.
 func (s *Service) PauseWithWaiter() *EventPollWaiter {
@@ -137,9 +145,18 @@ func (s *Service) Resume() {
 	atomic.StoreUint32(&s.paused, 0)
 }
 
+// ResumeIMAP special handler for the IMAP Service - Do Not Use.
+func (s *Service) ResumeIMAP() {
+	s.log.Info("Resuming from IMAP")
+	atomic.StoreUint32(&s.pausedIMAP, 0)
+}
+
 // IsPaused return true if the service is paused.
 func (s *Service) IsPaused() bool {
-	return atomic.LoadUint32(&s.paused) == 1
+	// We need to check both IMAP and service paused conditions here to determine if the service is
+	// paused. There can be instances where the sync from IMAP can overwrite a previous request to pause the loop once
+	// it is finished. To be addressed as part of GODT-2848.
+	return atomic.LoadUint32(&s.paused) == 1 || atomic.LoadUint32(&s.pausedIMAP) == 1
 }
 
 func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGroup) error {

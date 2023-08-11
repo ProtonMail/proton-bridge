@@ -296,6 +296,8 @@ func newImpl(
 		return user, fmt.Errorf("failed to start imap service: %w", err)
 	}
 
+	user.eventService.Resume()
+
 	return user, nil
 }
 
@@ -410,6 +412,8 @@ func (user *User) BadEventFeedbackResync(ctx context.Context) error {
 	if err := user.imapService.Resync(ctx); err != nil {
 		return fmt.Errorf("failed to resync imap service: %w", err)
 	}
+
+	user.eventService.Resume()
 
 	return nil
 }
@@ -533,6 +537,8 @@ func (user *User) CheckAuth(email string, password []byte) (string, error) {
 // OnStatusUp is called when the connection goes up.
 func (user *User) OnStatusUp(ctx context.Context) {
 	user.log.Info("Connection is up")
+
+	user.eventService.Resume()
 
 	if err := user.imapService.ResumeSync(ctx); err != nil {
 		user.log.WithError(err).Error("Failed to resume sync")

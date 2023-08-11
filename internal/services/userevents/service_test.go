@@ -78,6 +78,7 @@ func TestService_EventIDLoadStore(t *testing.T) {
 	)
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
+	service.ResumeIMAP()
 	group.Wait()
 }
 
@@ -132,6 +133,7 @@ func TestService_RetryEventOnNonCatastrophicFailure(t *testing.T) {
 
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
+	service.ResumeIMAP()
 	group.Wait()
 }
 
@@ -194,6 +196,7 @@ func TestService_OnBadEventServiceIsPaused(t *testing.T) {
 	service.Subscribe(NewCallbackSubscriber("foo", EventHandler{MessageHandler: subscriber}))
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
+	service.ResumeIMAP()
 	group.Wait()
 }
 
@@ -250,6 +253,7 @@ func TestService_UnsubscribeDuringEventHandlingDoesNotCauseDeadlock(t *testing.T
 	service.Subscribe(subscription)
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
+	service.ResumeIMAP()
 	group.Wait()
 }
 
@@ -308,6 +312,7 @@ func TestService_UnsubscribeBeforeHandlingEventIsNotConsideredError(t *testing.T
 	service.Subscribe(subscription)
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
+	service.ResumeIMAP()
 	group.Wait()
 }
 
@@ -370,6 +375,7 @@ func TestService_WaitOnEventPublishAfterPause(t *testing.T) {
 	service.Subscribe(NewCallbackSubscriber("foo", EventHandler{MessageHandler: subscriber}))
 	require.NoError(t, service.Start(context.Background(), group))
 	service.Resume()
+	service.ResumeIMAP()
 	group.Wait()
 }
 
