@@ -26,85 +26,75 @@ Item {
         MozillaThunderbird,
         Generic
     }
-
-    enum RootStack {
-        TwoPanesView = 0,
-        ClientConfigParameters = 1
-    }
-
     enum ContentStack {
-        Onboarding = 0,
-        Login = 1,
-        ClientConfigSelector = 2,
-        ClientConfigOutlookSelector = 3,
-        ClientConfigWarning = 4
+        Onboarding,
+        Login,
+        ClientConfigSelector,
+        ClientConfigOutlookSelector,
+        ClientConfigWarning
+    }
+    enum RootStack {
+        TwoPanesView,
+        ClientConfigParameters
     }
 
+    property string address
     property int client
     property string clientVersion
     property ColorScheme colorScheme
     property var user
-    property string address
 
-    signal wizardEnded()
-    signal showBugReport()
+    signal showBugReport
+    signal wizardEnded
 
     function clientIconSource() {
         switch (client) {
-            case SetupWizard.Client.AppleMail:
-                return "/qml/icons/ic-apple-mail.svg";
-            case SetupWizard.Client.MicrosoftOutlook:
-                return "/qml/icons/ic-microsoft-outlook.svg";
-            case SetupWizard.Client.MozillaThunderbird:
-                return "/qml/icons/ic-mozilla-thunderbird.svg";
-            case SetupWizard.Client.Generic:
-                return "/qml/icons/ic-other-mail-clients.svg";
-            default:
-                console.error("Unknown mail client " + client)
-                return "/qml/icons/ic-other-mail-clients.svg";
+        case SetupWizard.Client.AppleMail:
+            return "/qml/icons/ic-apple-mail.svg";
+        case SetupWizard.Client.MicrosoftOutlook:
+            return "/qml/icons/ic-microsoft-outlook.svg";
+        case SetupWizard.Client.MozillaThunderbird:
+            return "/qml/icons/ic-mozilla-thunderbird.svg";
+        case SetupWizard.Client.Generic:
+            return "/qml/icons/ic-other-mail-clients.svg";
+        default:
+            console.error("Unknown mail client " + client);
+            return "/qml/icons/ic-other-mail-clients.svg";
         }
     }
-
     function clientName() {
         switch (client) {
-            case SetupWizard.Client.AppleMail:
-                return "Apple Mail";
-            case SetupWizard.Client.MicrosoftOutlook:
-                return "Outlook";
-            case SetupWizard.Client.MozillaThunderbird:
-                return "Thunderbird";
-            case SetupWizard.Client.Generic:
-                return "your email client";
-            default:
-                console.error("Unknown mail client " + client)
-                return "your email client";
+        case SetupWizard.Client.AppleMail:
+            return "Apple Mail";
+        case SetupWizard.Client.MicrosoftOutlook:
+            return "Outlook";
+        case SetupWizard.Client.MozillaThunderbird:
+            return "Thunderbird";
+        case SetupWizard.Client.Generic:
+            return "your email client";
+        default:
+            console.error("Unknown mail client " + client);
+            return "your email client";
         }
     }
-
     function closeWizard() {
-        wizardEnded()
+        wizardEnded();
     }
-
-    function showOutlookSelector() {
-        rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
-        leftContent.showOutlookSelector();
-        rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigOutlookSelector;
-    }
-
-    function showOnboarding() {
-        rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
-        leftContent.showOnboarding();
-        rightContent.currentIndex = SetupWizard.ContentStack.Onboarding;
-    }
-
     function showClientConfig(user, address) {
-        root.user = user
-        root.address = address
+        root.user = user;
+        root.address = address;
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
         leftContent.showClientSelector();
         rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigSelector;
     }
-
+    function showClientParams() {
+        rootStackLayout.currentIndex = SetupWizard.RootStack.ClientConfigParameters;
+    }
+    function showClientWarning() {
+        rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
+        leftContent.showClientConfigWarning();
+        rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigWarning;
+    }
     function showLogin(username = "") {
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
         root.address = "";
@@ -113,16 +103,15 @@ Item {
         login.reset(true);
         login.username = username;
     }
-
-    function showClientWarning() {
+    function showOnboarding() {
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
-        leftContent.showClientConfigWarning();
-        rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigWarning
+        leftContent.showOnboarding();
+        rightContent.currentIndex = SetupWizard.ContentStack.Onboarding;
     }
-
-    function showClientParams() {
-        rootStackLayout.currentIndex = SetupWizard.RootStack.ClientConfigParameters;
-
+    function showOutlookSelector() {
+        rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
+        leftContent.showOutlookSelector();
+        rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigOutlookSelector;
     }
 
     Connections {
@@ -131,14 +120,13 @@ Item {
                 closeWizard();
                 return;
             }
-            let user = Backend.users.get(userIndex)
-            let address = user ? user.addresses[0] : ""
+            let user = Backend.users.get(userIndex);
+            let address = user ? user.addresses[0] : "";
             showClientConfig(user, address);
         }
 
         target: Backend
     }
-
     StackLayout {
         id: rootStackLayout
         anchors.fill: parent
@@ -157,7 +145,6 @@ Item {
 
                 LeftPane {
                     id: leftContent
-
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 96
                     anchors.horizontalCenter: parent.horizontalCenter

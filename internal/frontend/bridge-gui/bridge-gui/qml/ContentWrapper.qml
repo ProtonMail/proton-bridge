@@ -24,9 +24,8 @@ Item {
 
     signal closeWindow
     signal quitBridge
-    signal showSetupGuide(var user, string address)
-    signal showSignIn(var username)
-    signal showSetupWizard()
+    signal showClientConfigurator(var user, string address)
+    signal showLogin(var username)
 
     function selectUser(userID) {
         const users = Backend.users;
@@ -37,7 +36,7 @@ Item {
             }
             accounts.currentIndex = i;
             if (user.state === EUserState.SignedOut)
-                showSignIn(user.primaryEmailOrUsername());
+                showLogin(user.primaryEmailOrUsername());
             return;
         }
         console.error("User with ID ", userID, " was not found in the account list");
@@ -54,7 +53,6 @@ Item {
     function showSettings() {
         rightContent.showGeneralSettings();
     }
-
 
     RowLayout {
         anchors.fill: parent
@@ -235,7 +233,7 @@ Item {
                                 if (user.state !== EUserState.SignedOut) {
                                     rightContent.showAccount();
                                 } else {
-                                    showSignIn(user.primaryEmailOrUsername());
+                                    showLogin(user.primaryEmailOrUsername());
                                 }
                             }
                         }
@@ -283,7 +281,7 @@ Item {
                         width: 36
 
                         onClicked: {
-                            root.showSignIn("")
+                            root.showLogin("");
                         }
                     }
                 }
@@ -338,16 +336,16 @@ Item {
                         return Backend.users.get(accounts.currentIndex);
                     }
 
-                    onShowSetupGuide: function (user, address) {
-                        root.showSetupGuide(user, address);
+                    onShowClientConfigurator: function (user, address) {
+                        root.showClientConfigurator(user, address);
                     }
-                    onShowSignIn: function (username) {
-                        root.showSignIn(username)
+                    onShowLogin: function (username) {
+                        root.showLogin(username);
                     }
                 }
                 Rectangle {
-                    Layout.fillWidth: true
                     Layout.fillHeight: true
+                    Layout.fillWidth: true
                     color: "#ff9900"
                 }
                 GeneralSettings {

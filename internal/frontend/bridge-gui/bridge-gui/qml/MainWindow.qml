@@ -26,6 +26,22 @@ ApplicationWindow {
     property int _defaultWidth: 1080
     property var notifications
 
+    function layoutForUserCount(userCount) {
+        if (userCount === 0) {
+            showLogin();
+            return;
+        }
+        const u = Backend.users.get(0);
+        if (!u) {
+            console.trace();
+            console.log("empty user");
+            setupWizard.showOnboarding();
+            return;
+        }
+        if ((userCount === 1) && (u.state === EUserState.SignedOut)) {
+            setupWizard.showLogin(u.primaryEmailOrUsername());
+        }
+    }
     function selectUser(userID) {
         contentWrapper.selectUser(userID);
     }
@@ -36,46 +52,26 @@ ApplicationWindow {
             root.requestActivate();
         }
     }
+    function showClientConfigurator(user, address) {
+        contentLayout.currentIndex = 1;
+        setupWizard.showClientConfig(user, address);
+    }
     function showHelp() {
         showWebViewOverlay("https://proton.me/support/bridge");
     }
     function showLocalCacheSettings() {
         contentWrapper.showLocalCacheSettings();
     }
+    function showLogin(username = "") {
+        contentLayout.currentIndex = 1;
+        setupWizard.showLogin(username);
+    }
     function showSettings() {
         contentWrapper.showSettings();
     }
-    function showSetup(user, address) {
-        contentLayout.currentIndex = 1;
-        setupWizard.showClientConfig(user, address)
-    }
-    function showSignIn(username) {
-        contentLayout.currentIndex = 1;
-        setupWizard.showLogin(username)
-    }
-
     function showWebViewOverlay(url) {
         webViewOverlay.visible = true;
         webViewOverlay.url = url;
-    }
-
-    function layoutForUserCount(userCount) {
-        if (userCount === 0) {
-            showSignIn("");
-            return;
-        }
-
-        const u = Backend.users.get(0);
-        if (!u) {
-            console.trace();
-            console.log("empty user");
-            setupWizard.showOnboarding();
-            return;
-        }
-
-        if ((userCount === 1) && (u.state === EUserState.SignedOut)) {
-            setupWizard.showLogin(u.primaryEmailOrUsername());
-        }
     }
 
     colorScheme: ProtonStyle.currentStyle
@@ -83,6 +79,10 @@ ApplicationWindow {
     minimumWidth: _defaultWidth
     visible: true
     width: _defaultWidth
+
+    Component.onCompleted: {
+        layoutForUserCount(Backend.users.count);
+    }
 
     // show Setup Guide on every new user
     Connections {
@@ -103,7 +103,7 @@ ApplicationWindow {
             if (user.setupGuideSeen) {
                 return;
             }
-            root.showSetup(user, user.addresses[0]);
+            root.showClientConfigurator(user, user.addresses[0]);
         }
 
         target: Backend.users
@@ -129,17 +129,15 @@ ApplicationWindow {
 
         target: Backend
     }
-
     Connections {
         function onCountChanged(count) {
-            layoutForUserCount(count)
+            layoutForUserCount(count);
         }
 
         target: Backend.users
     }
     StackLayout {
         id: contentLayout
-
         anchors.fill: parent
         currentIndex: 0
 
@@ -160,29 +158,27 @@ ApplicationWindow {
                 root.close();
                 Backend.quit();
             }
-            onShowSetupGuide: function (user, address) {
-                root.showSetup(user, address);
+            onShowClientConfigurator: function (user, address) {
+                root.showClientConfigurator(user, address);
             }
-            onShowSignIn: function(username) {
-                root.showSignIn(username)
+            onShowLogin: function (username) {
+                root.showLogin(username);
             }
         }
-
         SetupWizard {
             id: setupWizard
-            Layout.fillWidth: true;
-            Layout.fillHeight: true;
+            Layout.fillHeight: true
+            Layout.fillWidth: true
             colorScheme: root.colorScheme
 
-            onWizardEnded: {
-                contentLayout.currentIndex = 0
-            }
             onShowBugReport: {
                 contentWrapper.showBugReport();
             }
+            onWizardEnded: {
+                contentLayout.currentIndex = 0;
+            }
         }
     }
-
     WebView {
         id: webViewOverlay
         anchors.fill: parent
@@ -199,9 +195,5 @@ ApplicationWindow {
     SplashScreen {
         id: splashScreen
         colorScheme: root.colorScheme
-    }
-
-    Component.onCompleted: {
-        layoutForUserCount(Backend.users.count)
     }
 }

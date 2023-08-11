@@ -19,10 +19,15 @@ import Proton
 
 FocusScope {
     id: root
+    enum RootStack {
+        Login,
+        TOTP,
+        MailboxPassword
+    }
 
-    property var wizard
     property alias currentIndex: stackLayout.currentIndex
     property alias username: usernameTextField.text
+    property var wizard
 
     signal loginAbort(string username, bool wasSignedOut)
 
@@ -32,10 +37,10 @@ FocusScope {
         Backend.loginAbort(usernameTextField.text);
     }
     function reset(clearUsername = false) {
-        stackLayout.currentIndex = 0;
-        loginNormalLayout.reset(clearUsername);
-        login2FALayout.reset();
-        login2PasswordLayout.reset();
+        stackLayout.currentIndex = Login.RootStack.Login;
+        loginLayout.reset(clearUsername);
+        totpLayout.reset();
+        mailboxPasswordLayout.reset();
     }
 
     implicitHeight: children[0].implicitHeight
@@ -55,7 +60,7 @@ FocusScope {
 
         Connections {
             function onLogin2FAError(_) {
-                console.assert(stackLayout.currentIndex === 1, "Unexpected login2FAError");
+                console.assert(stackLayout.currentIndex === Login.RootStack.TOTP, "Unexpected login2FAError");
                 twoFAButton.loading = false;
                 twoFactorPasswordTextField.enabled = true;
                 twoFactorPasswordTextField.error = true;
@@ -63,18 +68,18 @@ FocusScope {
                 twoFactorPasswordTextField.focus = true;
             }
             function onLogin2FAErrorAbort(_) {
-                console.assert(stackLayout.currentIndex === 1, "Unexpected login2FAErrorAbort");
+                console.assert(stackLayout.currentIndex === Login.RootStack.TOTP, "Unexpected login2FAErrorAbort");
                 root.reset();
                 errorLabel.text = qsTr("Incorrect login credentials. Please try again.");
             }
             function onLogin2FARequested(username) {
-                console.assert(stackLayout.currentIndex === 0, "Unexpected login2FARequested");
+                console.assert(stackLayout.currentIndex === Login.RootStack.Login, "Unexpected login2FARequested");
                 twoFactorUsernameLabel.text = username;
-                stackLayout.currentIndex = 1;
+                stackLayout.currentIndex = Login.RootStack.TOTP;
                 twoFactorPasswordTextField.focus = true;
             }
             function onLogin2PasswordError(_) {
-                console.assert(stackLayout.currentIndex === 2, "Unexpected login2PasswordError");
+                console.assert(stackLayout.currentIndex === Login.RootStack.MailboxPassword, "Unexpected login2PasswordError");
                 secondPasswordButton.loading = false;
                 secondPasswordTextField.enabled = true;
                 secondPasswordTextField.error = true;
@@ -82,34 +87,34 @@ FocusScope {
                 secondPasswordTextField.focus = true;
             }
             function onLogin2PasswordErrorAbort(_) {
-                console.assert(stackLayout.currentIndex === 2, "Unexpected login2PasswordErrorAbort");
+                console.assert(stackLayout.currentIndex === Login.RootStack.MailboxPassword, "Unexpected login2PasswordErrorAbort");
                 root.reset();
                 errorLabel.text = qsTr("Incorrect login credentials. Please try again.");
             }
             function onLogin2PasswordRequested() {
-                console.assert(stackLayout.currentIndex === 0 || stackLayout.currentIndex === 1, "Unexpected login2PasswordRequested");
-                stackLayout.currentIndex = 2;
+                console.assert(stackLayout.currentIndex === Login.RootStack.Login || stackLayout.currentIndex === Login.RootStack.TOTP, "Unexpected login2PasswordRequested");
+                stackLayout.currentIndex = Login.RootStack.MailboxPassword;
                 secondPasswordTextField.focus = true;
             }
             function onLoginAlreadyLoggedIn(_) {
-                stackLayout.currentIndex = 0;
+                stackLayout.currentIndex = Login.RootStack.Login;
                 root.reset();
             }
             function onLoginConnectionError(_) {
-                if (stackLayout.currentIndex === 0) {
+                if (stackLayout.currentIndex === Login.RootStack.Login) {
                     stackLayout.loginFailed();
                 }
             }
             function onLoginFinished(_) {
-                stackLayout.currentIndex = 0;
+                stackLayout.currentIndex = Login.RootStack.Login;
                 root.reset();
             }
             function onLoginFreeUserError() {
-                console.assert(stackLayout.currentIndex === 0, "Unexpected loginFreeUserError");
+                console.assert(stackLayout.currentIndex === Login.RootStack.Login, "Unexpected loginFreeUserError");
                 stackLayout.loginFailed();
             }
             function onLoginUsernamePasswordError(errorMsg) {
-                console.assert(stackLayout.currentIndex === 0, "Unexpected loginUsernamePasswordError");
+                console.assert(stackLayout.currentIndex === Login.RootStack.Login, "Unexpected loginUsernamePasswordError");
                 stackLayout.loginFailed();
                 if (errorMsg !== "")
                     errorLabel.text = errorMsg;
@@ -120,7 +125,7 @@ FocusScope {
             target: Backend
         }
         ColumnLayout {
-            id: loginNormalLayout
+            id: loginLayout
             function reset(clearUsername = false) {
                 signInButton.loading = false;
                 errorLabel.text = "";
@@ -262,7 +267,7 @@ FocusScope {
             }
         }
         ColumnLayout {
-            id: login2FALayout
+            id: totpLayout
             function reset() {
                 twoFAButton.loading = false;
                 twoFactorPasswordTextField.enabled = true;
@@ -342,7 +347,7 @@ FocusScope {
             }
         }
         ColumnLayout {
-            id: login2PasswordLayout
+            id: mailboxPasswordLayout
             function reset() {
                 secondPasswordButton.loading = false;
                 secondPasswordTextField.enabled = true;

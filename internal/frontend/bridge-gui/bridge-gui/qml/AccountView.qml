@@ -28,8 +28,8 @@ Item {
     property var notifications
     property var user
 
-    signal showSetupGuide(var user, string address)
-    signal showSignIn(var username)
+    signal showClientConfigurator(var user, string address)
+    signal showLogin(var username)
 
     Rectangle {
         anchors.fill: parent
@@ -93,7 +93,7 @@ Item {
 
                                 onClicked: {
                                     if (user) {
-                                        root.showSignIn(user.primaryEmailOrUsername());
+                                        root.showLogin(user.primaryEmailOrUsername());
                                     }
                                 }
                             }
@@ -129,7 +129,7 @@ Item {
                             onClicked: {
                                 if (!root.user)
                                     return;
-                                root.showSetupGuide(root.user, user.addresses[0]);
+                                root.showClientConfigurator(root.user, user.addresses[0]);
                             }
                         }
                         SettingsItem {
@@ -171,7 +171,7 @@ Item {
                                 onClicked: {
                                     if (!root.user)
                                         return;
-                                    root.showSetupGuide(root.user, addressSelector.displayText);
+                                    root.showClientConfigurator(root.user, addressSelector.displayText);
                                 }
                             }
                         }

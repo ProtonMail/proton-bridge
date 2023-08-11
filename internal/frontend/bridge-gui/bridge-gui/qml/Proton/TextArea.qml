@@ -238,12 +238,12 @@ FocusScope {
                 bottomPadding: 8
                 color: {
                     if (!control.enabled) {
-                        return root.colorScheme.text_disabled
+                        return root.colorScheme.text_disabled;
                     }
                     if (control.readOnly) {
-                        return root.colorScheme.text_hint
+                        return root.colorScheme.text_hint;
                     }
-                    return root.colorScheme.text_norm
+                    return root.colorScheme.text_norm;
                 }
 
                 // enforcing default focus here within component

@@ -19,6 +19,7 @@ import "." as Proton
 
 Item {
     id: root
+
     property var wizard
 
     ColumnLayout {
@@ -55,7 +56,7 @@ Item {
             colorScheme: wizard.colorScheme
             text: qsTr("Let's start")
 
-            onClicked: wizard.showLogin();
+            onClicked: wizard.showLogin()
         }
     }
 }

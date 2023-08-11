@@ -20,24 +20,27 @@ import ".."
 
 Rectangle {
     id: root
-    property var wizard
-    color: colorScheme.background_weak
+
     readonly property bool genericClient: SetupWizard.Client.Generic === wizard.client
+    property var wizard
+
+    color: colorScheme.background_weak
 
     Item {
         id: centeredContainer
+        anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.bottom: parent.bottom
         width: 800
 
         ColumnLayout {
+            anchors.bottomMargin: 96
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
-            anchors.bottomMargin: 96
             anchors.topMargin: 32
             spacing: 0
+
             Label {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillWidth: true
@@ -55,18 +58,17 @@ Rectangle {
                 color: colorScheme.text_weak
                 colorScheme: wizard.colorScheme
                 horizontalAlignment: Text.AlignHCenter
-                text: genericClient ? qsTr("Here are the IMAP and SMTP configuration parameters for your email client") :
-                    qsTr("Here are your email configuration parameters for %1. \nWe have prepared an easy to follow configuration guide to help you setup your account in %1.").arg(wizard.clientName())
+                text: genericClient ? qsTr("Here are the IMAP and SMTP configuration parameters for your email client") : qsTr("Here are your email configuration parameters for %1. \nWe have prepared an easy to follow configuration guide to help you setup your account in %1.").arg(wizard.clientName())
                 type: Label.LabelType.Body
                 wrapMode: Text.WordWrap
             }
             RowLayout {
                 id: configuration
-
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.topMargin: 32
                 spacing: 64
+
                 Configuration {
                     Layout.fillWidth: true
                     colorScheme: wizard.colorScheme
@@ -88,7 +90,6 @@ Rectangle {
                     username: wizard.address
                 }
             }
-
             Button {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.preferredWidth: 444
@@ -97,17 +98,16 @@ Rectangle {
                 text: qsTr("Open configuration guide")
                 visible: !genericClient
             }
-
             Button {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.preferredWidth: 444
                 Layout.topMargin: 32
                 colorScheme: wizard.colorScheme
                 text: qsTr("Done")
+
                 onClicked: wizard.closeWizard()
             }
         }
-
         LinkLabel {
             id: reportProblemLink
             anchors.bottom: parent.bottom

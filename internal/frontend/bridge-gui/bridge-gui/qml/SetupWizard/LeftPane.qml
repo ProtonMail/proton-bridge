@@ -20,15 +20,8 @@ import ".."
 
 Item {
     id: root
-    property var wizard
 
-    function showClientSelector() {
-        titleLabel.text = qsTr("Configure your email client");
-        descriptionLabel.text = qsTr("Bridge is now connected to Proton, and has already started downloading your messages. Let’s now connect your email client to Bridge.");
-        linkLabel1.clear();
-        linkLabel2.clear();
-        icon.source = "/qml/icons/img-mail-clients.svg";
-    }
+    property var wizard
 
     function showClientConfigCommon() {
         const clientName = wizard.clientName();
@@ -40,26 +33,29 @@ Item {
         Layout.preferredHeight = 72;
         Layout.preferredWidth = 72;
     }
-
     function showClientConfigWarning() {
         showClientConfigCommon();
         linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why can't I use my Proton password in my email client?"));
     }
-
+    function showClientSelector() {
+        titleLabel.text = qsTr("Configure your email client");
+        descriptionLabel.text = qsTr("Bridge is now connected to Proton, and has already started downloading your messages. Let’s now connect your email client to Bridge.");
+        linkLabel1.clear();
+        linkLabel2.clear();
+        icon.source = "/qml/icons/img-mail-clients.svg";
+    }
     function showLogin() {
         descriptionLabel.text = qsTr("Let's start by signing in to your Proton account.");
         linkLabel1.setLink("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"));
         linkLabel2.clear();
         showLoginCommon();
     }
-
     function showLogin2FA() {
         descriptionLabel.text = qsTr("You have enabled two-factor authentication. Please enter the 6-digit code provided by your authenticator application.");
         linkLabel1.clear();
         linkLabel2.clear();
         showLoginCommon();
     }
-
     function showLoginCommon() {
         titleLabel.text = qsTr("Sign in to your Proton Account");
         icon.Layout.preferredHeight = 72;
@@ -68,14 +64,12 @@ Item {
         icon.sourceSize.height = 128;
         icon.sourceSize.width = 128;
     }
-
     function showLoginMailboxPassword() {
         descriptionLabel.text = qsTr("You have secured your account with a separate mailbox password.");
         linkLabel1.clear();
         linkLabel2.clear();
         showLoginCommon();
     }
-
     function showOnboarding() {
         titleLabel.text = qsTr("Welcome to\nProton Mail Bridge");
         descriptionLabel.text = qsTr("Bridge is the gateway between your Proton account and your email client. It runs in the background and encrypts and decrypts your messages seamlessly. ");
@@ -87,7 +81,6 @@ Item {
         icon.sourceSize.height = 148;
         icon.sourceSize.width = 265;
     }
-
     function showOutlookSelector() {
         showClientConfigCommon();
         linkLabel1.setLink("https://proton.me/support/bridge", qsTr("My version of Outlook is not listed"));
@@ -98,7 +91,6 @@ Item {
         function onLogin2FARequested() {
             showLogin2FA();
         }
-
         function onLogin2PasswordRequested() {
             showLoginMailboxPassword();
         }

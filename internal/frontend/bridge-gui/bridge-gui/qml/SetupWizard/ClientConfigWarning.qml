@@ -61,8 +61,8 @@ Item {
         Label {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
             colorScheme: wizard.colorScheme
+            horizontalAlignment: Text.AlignHCenter
             text: qsTr("Do not enter your Proton account password in you email application.")
             type: Label.LabelType.Body
             wrapMode: Text.WordWrap
