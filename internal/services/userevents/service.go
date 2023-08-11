@@ -61,6 +61,9 @@ type Service struct {
 
 	pendingSubscriptionsLock sync.Mutex
 	pendingSubscriptions     []pendingSubscription
+
+	eventPollWaiters     []*EventPollWaiter
+	eventPollWaitersLock sync.Mutex
 }
 
 func NewService(
@@ -114,6 +117,21 @@ func (s *Service) Pause() {
 	atomic.StoreUint32(&s.paused, 1)
 }
 
+// PauseWithWaiter pauses the event polling and returns a waiter to notify when the last event has been published
+// after the pause request.
+func (s *Service) PauseWithWaiter() *EventPollWaiter {
+	s.log.Info("Pausing")
+	atomic.StoreUint32(&s.paused, 1)
+
+	waiter := newEventPollWaiter()
+
+	s.eventPollWaitersLock.Lock()
+	s.eventPollWaiters = append(s.eventPollWaiters, waiter)
+	s.eventPollWaitersLock.Unlock()
+
+	return waiter
+}
+
 // Resume resumes the event polling.
 func (s *Service) Resume() {
 	atomic.StoreUint32(&s.paused, 0)
@@ -163,6 +181,7 @@ func (s *Service) run(ctx context.Context, lastEventID string) {
 			return
 		case <-s.timer.C:
 			if s.IsPaused() {
+				s.closePollWaiters()
 				continue
 			}
 		}
@@ -223,6 +242,10 @@ func (s *Service) run(ctx context.Context, lastEventID string) {
 		}
 
 		lastEventID = newEventID
+
+		if s.IsPaused() {
+			s.closePollWaiters()
+		}
 	}
 }
 
@@ -247,6 +270,17 @@ func (s *Service) Close() {
 	}
 
 	s.pendingSubscriptions = nil
+}
+
+func (s *Service) closePollWaiters() {
+	s.eventPollWaitersLock.Lock()
+	defer s.eventPollWaitersLock.Unlock()
+
+	for _, v := range s.eventPollWaiters {
+		v.close()
+	}
+
+	s.eventPollWaiters = nil
 }
 
 func (s *Service) handleEvent(ctx context.Context, lastEventID string, event proton.Event) error {

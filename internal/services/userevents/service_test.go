@@ -311,6 +311,68 @@ func TestService_UnsubscribeBeforeHandlingEventIsNotConsideredError(t *testing.T
 	group.Wait()
 }
 
+func TestService_WaitOnEventPublishAfterPause(t *testing.T) {
+	group := orderedtasks.NewOrderedCancelGroup(async.NoopPanicHandler{})
+	mockCtrl := gomock.NewController(t)
+	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
+	eventIDStore := mocks.NewMockEventIDStore(mockCtrl)
+	eventSource := mocks.NewMockEventSource(mockCtrl)
+	subscriber := NewMockMessageEventHandler(mockCtrl)
+
+	firstEventID := "EVENT01"
+	secondEventID := "EVENT02"
+	messageEvents := []proton.MessageEvent{
+		{
+			EventItem: proton.EventItem{ID: "Message"},
+		},
+	}
+	secondEvent := []proton.Event{{
+		EventID:  secondEventID,
+		Messages: messageEvents,
+	}}
+
+	// Event id store expectations.
+	eventIDStore.EXPECT().Load(gomock.Any()).Times(1).Return(firstEventID, nil)
+	eventIDStore.EXPECT().Store(gomock.Any(), gomock.Eq(secondEventID)).Times(1).Return(nil)
+
+	// Event Source expectations.
+	eventSource.EXPECT().GetEvent(gomock.Any(), gomock.Eq(firstEventID)).MinTimes(1).Return(secondEvent, false, nil)
+
+	// Subscriber expectations.
+
+	service := NewService(
+		"foo",
+		eventSource,
+		eventIDStore,
+		eventPublisher,
+		time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
+
+	subscriber.EXPECT().HandleMessageEvents(gomock.Any(), gomock.Eq(messageEvents)).Times(1).DoAndReturn(func(_ context.Context, _ []proton.MessageEvent) error {
+		waiter := service.PauseWithWaiter()
+
+		go func() {
+			ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(5*time.Second))
+			defer cancel()
+
+			err := waiter.WaitPollFinished(ctx)
+			require.NoError(t, err)
+
+			group.Cancel()
+		}()
+
+		return nil
+	})
+
+	service.Subscribe(NewCallbackSubscriber("foo", EventHandler{MessageHandler: subscriber}))
+	require.NoError(t, service.Start(context.Background(), group))
+	service.Resume()
+	group.Wait()
+}
+
 type CallbackSubscriber struct {
 	handler EventHandler
 	n       string
