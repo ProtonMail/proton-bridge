@@ -27,6 +27,19 @@ Item {
         Generic
     }
 
+    enum RootStack {
+        TwoPanesView = 0,
+        ClientConfigParameters = 1
+    }
+
+    enum ContentStack {
+        Onboarding = 0,
+        Login = 1,
+        ClientConfigSelector = 2,
+        ClientConfigOutlookSelector = 3,
+        ClientConfigWarning = 4
+    }
+
     property int client
     property string clientVersion
     property ColorScheme colorScheme
@@ -34,6 +47,7 @@ Item {
     property string address
 
     signal wizardEnded()
+    signal showBugReport()
 
     function clientIconSource() {
         switch (client) {
@@ -72,48 +86,42 @@ Item {
     }
 
     function showOutlookSelector() {
-        root.visible = true;
-        rootStackLayout.currentIndex = 0;
+        rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
         leftContent.showOutlookSelector();
-        rightContent.currentIndex = 3;
+        rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigOutlookSelector;
     }
 
     function start() {
-        root.visible = true;
-        rootStackLayout.currentIndex = 0;
+        rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
         leftContent.showOnboarding();
-        rightContent.currentIndex = 0;
+        rightContent.currentIndex = SetupWizard.ContentStack.Onboarding;
     }
 
     function startClientConfig(user, address) {
         root.user = user
         root.address = address
-        root.visible = true;
-        rootStackLayout.currentIndex = 0;
+        rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
         leftContent.showClientSelector();
-        rightContent.currentIndex = 2;
+        rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigSelector;
     }
 
     function startLogin(username = "") {
-        root.visible = true;
-        rootStackLayout.currentIndex = 0;
+        rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
         root.address = "";
         leftContent.showLogin();
-        rightContent.currentIndex = 1;
+        rightContent.currentIndex = SetupWizard.ContentStack.Login;
         login.reset(true);
         login.username = username;
     }
 
     function showClientWarning() {
-        root.visible = true;
-        rootStackLayout.currentIndex = 0;
+        rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
         leftContent.showClientConfigWarning();
-        rightContent.currentIndex = 4
+        rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigWarning
     }
 
     function showClientParams() {
-        root.visible = true;
-        rootStackLayout.currentIndex = 1;
+        rootStackLayout.currentIndex = SetupWizard.RootStack.ClientConfigParameters;
 
     }
 
@@ -135,7 +143,7 @@ Item {
         id: rootStackLayout
         anchors.fill: parent
 
-        // rootStackLayout index 0
+        // rootStackLayout index 0 SetupWizard.RootStack.TwoPanesView
         RowLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -242,13 +250,14 @@ Item {
                     width: 444
 
                     onLinkActivated: {
-                        root.visible = false;
+                        closeWizard();
+                        showBugReport();
                     }
                 }
             }
         }
 
-        // rootStackLayout index 1
+        // rootStackLayout index 1 SetupWizard.RootStack.ClientConfigParameters
         ClientConfigParameters {
             id: clientConfigParameters
             Layout.fillHeight: true

@@ -42,6 +42,9 @@ Item {
         }
         console.error("User with ID ", userID, " was not found in the account list");
     }
+    function showBugReport() {
+        rightContent.showBugReport();
+    }
     function showHelp() {
         rightContent.showHelpView();
     }
@@ -51,6 +54,7 @@ Item {
     function showSettings() {
         rightContent.showGeneralSettings();
     }
+
 
     RowLayout {
         anchors.fill: parent

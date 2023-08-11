@@ -47,7 +47,7 @@ ApplicationWindow {
     }
     function showSetup(user, address) {
         contentLayout.currentIndex = 1;
-        setupWizard.startClientCOnfig(user, address)
+        setupWizard.startClientConfig(user, address)
     }
     function showSignIn(username) {
         contentLayout.currentIndex = 1;
@@ -161,7 +161,7 @@ ApplicationWindow {
                 Backend.quit();
             }
             onShowSetupGuide: function (user, address) {
-                setupWizard.startClientConfig(user, address);
+                root.showSetup(user, address);
             }
             onShowSignIn: function(username) {
                 root.showSignIn(username)
@@ -176,6 +176,9 @@ ApplicationWindow {
 
             onWizardEnded: {
                 contentLayout.currentIndex = 0
+            }
+            onShowBugReport: {
+                contentWrapper.showBugReport();
             }
         }
     }

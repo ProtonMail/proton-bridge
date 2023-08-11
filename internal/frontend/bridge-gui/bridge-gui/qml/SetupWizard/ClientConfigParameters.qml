@@ -120,6 +120,7 @@ Rectangle {
 
             onLinkActivated: {
                 wizard.closeWizard();
+                wizard.showBugReport();
             }
         }
     }
