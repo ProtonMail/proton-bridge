@@ -20,7 +20,7 @@ import Proton
 FocusScope {
     id: root
 
-    property ColorScheme colorScheme
+    property var wizard
     property alias currentIndex: stackLayout.currentIndex
     property alias username: usernameTextField.text
 
@@ -141,7 +141,7 @@ FocusScope {
 
             Label {
                 Layout.alignment: Qt.AlignHCenter
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 text: qsTr("Sign in")
                 type: Label.LabelType.Heading
             }
@@ -149,8 +149,8 @@ FocusScope {
                 id: subTitle
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 8
-                color: root.colorScheme.text_weak
-                colorScheme: root.colorScheme
+                color: wizard.colorScheme.text_weak
+                colorScheme: wizard.colorScheme
                 text: qsTr("Enter your Proton Account details.")
                 type: Label.LabelType.Lead
             }
@@ -161,7 +161,7 @@ FocusScope {
                 visible: errorLabel.text.length > 0
 
                 ColorImage {
-                    color: root.colorScheme.signal_danger
+                    color: wizard.colorScheme.signal_danger
                     height: errorLabel.lineHeight
                     source: "/qml/icons/ic-exclamation-circle-filled.svg"
                     sourceSize.height: errorLabel.lineHeight
@@ -170,8 +170,8 @@ FocusScope {
                     id: errorLabel
                     Layout.fillWidth: true
                     Layout.leftMargin: 4
-                    color: root.colorScheme.signal_danger
-                    colorScheme: root.colorScheme
+                    color: wizard.colorScheme.signal_danger
+                    colorScheme: wizard.colorScheme
                     type: root.error ? Label.LabelType.Caption_semibold : Label.LabelType.Caption
                     wrapMode: Text.WordWrap
                 }
@@ -180,7 +180,7 @@ FocusScope {
                 id: usernameTextField
                 Layout.fillWidth: true
                 Layout.topMargin: 48
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 focus: true
                 label: qsTr("Email or username")
                 validateOnEditingFinished: false
@@ -204,7 +204,7 @@ FocusScope {
                 id: passwordTextField
                 Layout.fillWidth: true
                 Layout.topMargin: 48
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 echoMode: TextInput.Password
                 label: qsTr("Password")
                 validateOnEditingFinished: false
@@ -240,7 +240,7 @@ FocusScope {
 
                 Layout.fillWidth: true
                 Layout.topMargin: 48
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 enabled: !loading
                 text: loading ? qsTr("Signing in") : qsTr("Sign in")
 
@@ -251,7 +251,7 @@ FocusScope {
             Button {
                 Layout.fillWidth: true
                 Layout.topMargin: 32
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 enabled: !signInButton.loading
                 secondary: true
                 text: qsTr("Cancel")
@@ -275,7 +275,7 @@ FocusScope {
 
             Label {
                 Layout.alignment: Qt.AlignCenter
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 text: qsTr("Two-factor authentication")
                 type: Label.LabelType.Heading
             }
@@ -283,8 +283,8 @@ FocusScope {
                 id: twoFactorUsernameLabel
                 Layout.alignment: Qt.AlignCenter
                 Layout.topMargin: 8
-                color: root.colorScheme.text_weak
-                colorScheme: root.colorScheme
+                color: wizard.colorScheme.text_weak
+                colorScheme: wizard.colorScheme
                 type: Label.LabelType.Lead
             }
             TextField {
@@ -292,7 +292,7 @@ FocusScope {
                 Layout.fillWidth: true
                 Layout.topMargin: 32
                 assistiveText: qsTr("Enter the 6-digit code")
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 label: qsTr("Two-factor code")
                 validateOnEditingFinished: false
                 validator: function (str) {
@@ -314,7 +314,7 @@ FocusScope {
                 id: twoFAButton
                 Layout.fillWidth: true
                 Layout.topMargin: 48
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 enabled: !loading
                 text: loading ? qsTr("Authenticating") : qsTr("Authenticate")
 
@@ -331,7 +331,7 @@ FocusScope {
             Button {
                 Layout.fillWidth: true
                 Layout.topMargin: 32
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 enabled: !twoFAButton.loading
                 secondary: true
                 text: qsTr("Cancel")
@@ -355,22 +355,22 @@ FocusScope {
 
             Label {
                 Layout.alignment: Qt.AlignCenter
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 text: qsTr("Unlock your mailbox")
                 type: Label.LabelType.Heading
             }
             Label {
                 Layout.alignment: Qt.AlignCenter
                 Layout.topMargin: 8
-                color: root.colorScheme.text_weak
-                colorScheme: root.colorScheme
+                color: wizard.colorScheme.text_weak
+                colorScheme: wizard.colorScheme
                 type: Label.LabelType.Lead
             }
             TextField {
                 id: secondPasswordTextField
                 Layout.fillWidth: true
                 Layout.topMargin: 48
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 echoMode: TextInput.Password
                 label: qsTr("Mailbox password")
                 validateOnEditingFinished: false
@@ -388,7 +388,7 @@ FocusScope {
                 id: secondPasswordButton
                 Layout.fillWidth: true
                 Layout.topMargin: 48
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 enabled: !loading
                 text: loading ? qsTr("Unlocking") : qsTr("Unlock")
 
@@ -405,7 +405,7 @@ FocusScope {
             Button {
                 Layout.fillWidth: true
                 Layout.topMargin: 32
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 enabled: !secondPasswordButton.loading
                 secondary: true
                 text: qsTr("Cancel")

@@ -20,7 +20,6 @@ import Proton
 Item {
     id: root
 
-    property ColorScheme colorScheme: wizard.colorScheme
     readonly property bool onMacOS: (Backend.goos === "darwin")
     readonly property bool onWindows: (Backend.goos === "windows")
     property var wizard
@@ -34,7 +33,7 @@ Item {
         Label {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             text: qsTr("Pick your version of Outlook")
             type: Label.LabelType.Heading
         }
@@ -43,7 +42,7 @@ Item {
         }
         ClientListItem {
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             iconSource: "/qml/icons/ic-microsoft-outlook.svg"
             text: "Outlook from Microsoft 365"
 
@@ -54,7 +53,7 @@ Item {
         }
         ClientListItem {
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             iconSource: "/qml/icons/ic-microsoft-outlook.svg"
             text: "Outlook 2019"
 
@@ -65,7 +64,7 @@ Item {
         }
         ClientListItem {
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             iconSource: "/qml/icons/ic-microsoft-outlook.svg"
             text: "Outlook 2016"
 
@@ -79,7 +78,7 @@ Item {
         }
         Button {
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             secondary: true
             text: qsTr("Cancel")
 

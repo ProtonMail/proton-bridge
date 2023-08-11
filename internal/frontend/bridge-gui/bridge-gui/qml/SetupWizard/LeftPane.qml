@@ -21,7 +21,6 @@ import ".."
 Item {
     id: root
     property var wizard
-    property ColorScheme colorScheme
 
     function showClientSelector() {
         titleLabel.text = qsTr("Configure your email client");
@@ -71,7 +70,7 @@ Item {
     }
 
     function showLoginMailboxPassword() {
-        root.description = qsTr("You have secured your account with a separate mailbox password.");
+        descriptionLabel.text = qsTr("You have secured your account with a separate mailbox password.");
         linkLabel1.clear();
         linkLabel2.clear();
         showLoginCommon();
@@ -127,7 +126,7 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
             Layout.topMargin: 16
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             horizontalAlignment: Text.AlignHCenter
             text: ""
             type: Label.LabelType.Heading
@@ -138,7 +137,7 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
             Layout.topMargin: 96
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             horizontalAlignment: Text.AlignHCenter
             text: ""
             type: Label.LabelType.Body
@@ -148,14 +147,14 @@ Item {
             id: linkLabel1
             Layout.alignment: Qt.AlignHCenter
             Layout.topMargin: 96
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             visible: (text !== "")
         }
         LinkLabel {
             id: linkLabel2
             Layout.alignment: Qt.AlignHCenter
             Layout.topMargin: 16
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             visible: (text !== "")
         }
     }

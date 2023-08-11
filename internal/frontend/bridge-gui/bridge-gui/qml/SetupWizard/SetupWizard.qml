@@ -91,13 +91,13 @@ Item {
         rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigOutlookSelector;
     }
 
-    function start() {
+    function showOnboarding() {
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
         leftContent.showOnboarding();
         rightContent.currentIndex = SetupWizard.ContentStack.Onboarding;
     }
 
-    function startClientConfig(user, address) {
+    function showClientConfig(user, address) {
         root.user = user
         root.address = address
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
@@ -105,7 +105,7 @@ Item {
         rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigSelector;
     }
 
-    function startLogin(username = "") {
+    function showLogin(username = "") {
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
         root.address = "";
         leftContent.showLogin();
@@ -133,7 +133,7 @@ Item {
             }
             let user = Backend.users.get(userIndex)
             let address = user ? user.addresses[0] : ""
-            startClientConfig(user, address);
+            showClientConfig(user, address);
         }
 
         target: Backend
@@ -143,7 +143,7 @@ Item {
         id: rootStackLayout
         anchors.fill: parent
 
-        // rootStackLayout index 0 SetupWizard.RootStack.TwoPanesView
+        // rootStackLayout index 0
         RowLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -164,7 +164,6 @@ Item {
                     anchors.top: parent.top
                     anchors.topMargin: 96
                     clip: true
-                    colorScheme: root.colorScheme
                     width: 444
                     wizard: root
                 }
@@ -196,42 +195,40 @@ Item {
                     currentIndex: 0
                     width: 444
 
-                    // stack index 0
+                    // rightContent stack index 0
                     Onboarding {
                         Layout.fillHeight: true
                         Layout.fillWidth: true
-                        colorScheme: root.colorScheme
-
-                        onOnboardingAccepted: root.startLogin()
+                        wizard: root
                     }
 
-                    // stack index 1
+                    // rightContent tack index 1
                     Login {
                         id: login
                         Layout.fillHeight: true
                         Layout.fillWidth: true
-                        colorScheme: root.colorScheme
+                        wizard: root
 
                         onLoginAbort: {
                             root.closeWizard();
                         }
                     }
 
-                    // stack index 2
+                    // rightContent stack index 2
                     ClientConfigSelector {
                         id: clientConfigSelector
                         Layout.fillHeight: true
                         Layout.fillWidth: true
                         wizard: root
                     }
-                    // stack index 3
+                    // rightContent stack index 3
                     ClientConfigOutlookSelector {
                         id: clientConfigOutlookSelector
                         Layout.fillHeight: true
                         Layout.fillWidth: true
                         wizard: root
                     }
-                    // stack index 4
+                    // rightContent stack index 4
                     ClientConfigWarning {
                         id: clientConfigWarning
                         Layout.fillHeight: true
@@ -257,7 +254,7 @@ Item {
             }
         }
 
-        // rootStackLayout index 1 SetupWizard.RootStack.ClientConfigParameters
+        // rootStackLayout index 1
         ClientConfigParameters {
             id: clientConfigParameters
             Layout.fillHeight: true

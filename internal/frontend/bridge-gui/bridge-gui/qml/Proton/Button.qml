@@ -128,7 +128,7 @@ T.Button {
                     return control.colorScheme.text_norm;
                 }
             }
-            colorScheme: root.colorScheme
+            colorScheme: control.colorScheme
             elide: Text.ElideRight
             horizontalAlignment: Qt.AlignHCenter
             opacity: control.enabled || control.loading ? 1.0 : 0.5

@@ -19,10 +19,7 @@ import "." as Proton
 
 Item {
     id: root
-
-    property ColorScheme colorScheme
-
-    signal onboardingAccepted
+    property var wizard
 
     ColumnLayout {
         anchors.left: parent.left
@@ -33,20 +30,20 @@ Item {
         Label {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             horizontalAlignment: Text.AlignHCenter
             text: qsTr("Two-step process")
             type: Label.LabelType.Heading
         }
         StepDescriptionBox {
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             description: qsTr("Connect Bridge to your Proton account")
             icon: "/qml/icons/ic-bridge.svg"
             iconSize: 48
             title: qsTr("Step 1")
         }
         StepDescriptionBox {
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             description: qsTr("Connect your email client to Bridge")
             icon: "/qml/icons/img-mail-clients.svg"
             iconSize: 64
@@ -55,10 +52,10 @@ Item {
         Button {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             text: qsTr("Let's start")
 
-            onClicked: root.onboardingAccepted();
+            onClicked: wizard.showLogin();
         }
     }
 }

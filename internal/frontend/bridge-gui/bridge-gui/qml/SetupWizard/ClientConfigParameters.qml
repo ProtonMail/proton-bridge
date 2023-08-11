@@ -21,7 +21,6 @@ import ".."
 Rectangle {
     id: root
     property var wizard
-    property ColorScheme colorScheme: wizard.colorScheme
     color: colorScheme.background_weak
     readonly property bool genericClient: SetupWizard.Client.Generic === wizard.client
 
@@ -42,7 +41,7 @@ Rectangle {
             Label {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillWidth: true
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 horizontalAlignment: Text.AlignHCenter
                 text: qsTr("Configure %1").arg(wizard.clientName())
                 type: Label.LabelType.Heading
@@ -54,7 +53,7 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.topMargin: 8
                 color: colorScheme.text_weak
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 horizontalAlignment: Text.AlignHCenter
                 text: genericClient ? qsTr("Here are the IMAP and SMTP configuration parameters for your email client") :
                     qsTr("Here are your email configuration parameters for %1. \nWe have prepared an easy to follow configuration guide to help you setup your account in %1.").arg(wizard.clientName())
@@ -70,7 +69,7 @@ Rectangle {
                 spacing: 64
                 Configuration {
                     Layout.fillWidth: true
-                    colorScheme: root.colorScheme
+                    colorScheme: wizard.colorScheme
                     hostname: Backend.hostname
                     password: wizard.user ? wizard.user.password : ""
                     port: Backend.imapPort.toString()
@@ -80,7 +79,7 @@ Rectangle {
                 }
                 Configuration {
                     Layout.fillWidth: true
-                    colorScheme: root.colorScheme
+                    colorScheme: wizard.colorScheme
                     hostname: Backend.hostname
                     password: wizard.user ? wizard.user.password : ""
                     port: Backend.smtpPort.toString()
@@ -94,7 +93,7 @@ Rectangle {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.preferredWidth: 444
                 Layout.topMargin: 32
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 text: qsTr("Open configuration guide")
                 visible: !genericClient
             }
@@ -103,7 +102,7 @@ Rectangle {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.preferredWidth: 444
                 Layout.topMargin: 32
-                colorScheme: root.colorScheme
+                colorScheme: wizard.colorScheme
                 text: qsTr("Done")
                 onClicked: wizard.closeWizard()
             }
@@ -114,7 +113,7 @@ Rectangle {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 48
             anchors.right: parent.right
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             horizontalAlignment: Text.AlignRight
             text: link("#", qsTr("Report problem"))
 

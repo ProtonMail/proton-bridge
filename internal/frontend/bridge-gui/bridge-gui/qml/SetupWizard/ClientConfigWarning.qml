@@ -39,7 +39,6 @@ import Proton
 Item {
     id: root
 
-    property ColorScheme colorScheme: wizard.colorScheme
     property var wizard
 
     ColumnLayout {
@@ -50,7 +49,7 @@ Item {
 
         Label {
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             horizontalAlignment: Text.AlignHCenter
             text: qsTr("A word of warning")
             type: Label.LabelType.Heading
@@ -63,7 +62,7 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             text: qsTr("Do not enter your Proton account password in you email application.")
             type: Label.LabelType.Body
             wrapMode: Text.WordWrap
@@ -74,7 +73,7 @@ Item {
         Label {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             horizontalAlignment: Text.AlignHCenter
             text: qsTr("We have generated a new password for you. It will work only on this computer, and can safely be entered in your email client.")
             type: Label.LabelType.Body
@@ -85,7 +84,7 @@ Item {
         }
         Button {
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             text: qsTr("I understand")
 
             onClicked: {
@@ -97,7 +96,7 @@ Item {
         }
         Button {
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             secondary: true
             text: qsTr("Cancel")
 

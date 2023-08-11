@@ -37,7 +37,6 @@ Item {
             Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             Layout.preferredHeight: iconSize
             Layout.preferredWidth: iconSize
-            antialiasing: true
             mipmap: true
             source: root.icon
         }

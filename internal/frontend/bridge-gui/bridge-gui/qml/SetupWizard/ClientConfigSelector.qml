@@ -20,7 +20,6 @@ import Proton
 Item {
     id: root
 
-    property ColorScheme colorScheme: wizard.colorScheme
     readonly property bool onMacOS: (Backend.goos === "darwin")
     readonly property bool onWindows: (Backend.goos === "windows")
     property var wizard
@@ -34,7 +33,7 @@ Item {
         Label {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             text: qsTr("Select your email application")
             type: Label.LabelType.Heading
         }
@@ -43,7 +42,7 @@ Item {
         }
         ClientListItem {
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             iconSource: "/qml/icons/ic-apple-mail.svg"
             text: "Apple Mail"
             visible: root.onMacOS
@@ -54,7 +53,7 @@ Item {
         }
         ClientListItem {
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             iconSource: "/qml/icons/ic-microsoft-outlook.svg"
             text: "Microsoft Outlook"
             visible: root.onMacOS || root.onWindows
@@ -66,7 +65,7 @@ Item {
         }
         ClientListItem {
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             iconSource: "/qml/icons/ic-mozilla-thunderbird.svg"
             text: "Mozilla Thunderbird"
 
@@ -77,7 +76,7 @@ Item {
         }
         ClientListItem {
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             iconSource: "/qml/icons/ic-other-mail-clients.svg"
             text: "Other"
 
@@ -91,7 +90,7 @@ Item {
         }
         Button {
             Layout.fillWidth: true
-            colorScheme: root.colorScheme
+            colorScheme: wizard.colorScheme
             secondary: true
             text: qsTr("Cancel")
 

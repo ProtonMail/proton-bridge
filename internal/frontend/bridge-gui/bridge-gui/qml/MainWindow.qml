@@ -47,11 +47,11 @@ ApplicationWindow {
     }
     function showSetup(user, address) {
         contentLayout.currentIndex = 1;
-        setupWizard.startClientConfig(user, address)
+        setupWizard.showClientConfig(user, address)
     }
     function showSignIn(username) {
         contentLayout.currentIndex = 1;
-        setupWizard.startLogin(username)
+        setupWizard.showLogin(username)
     }
 
     function showWebViewOverlay(url) {
@@ -69,12 +69,12 @@ ApplicationWindow {
         if (!u) {
             console.trace();
             console.log("empty user");
-            setupWizard.start();
+            setupWizard.showOnboarding();
             return;
         }
 
         if ((userCount === 1) && (u.state === EUserState.SignedOut)) {
-            setupWizard.startLogin(u.primaryEmailOrUsername());
+            setupWizard.showLogin(u.primaryEmailOrUsername());
         }
     }
 
