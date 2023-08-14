@@ -117,6 +117,7 @@ func (s *syncHandler) launch(service *Service) {
 		panicHandler:  service.panicHandler,
 		reporter:      service.reporter,
 		maxSyncMemory: service.maxSyncMemory,
+		keyProvider:   service.identityState.keyPassProvider,
 	}
 
 	s.group.Once(func(ctx context.Context) {

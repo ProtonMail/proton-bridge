@@ -50,6 +50,7 @@ type syncJob struct {
 	identityState  *useridentity.State
 	panicHandler   async.PanicHandler
 	reporter       reporter.Reporter
+	keyProvider    useridentity.KeyPassProvider
 	maxSyncMemory  uint64
 }
 

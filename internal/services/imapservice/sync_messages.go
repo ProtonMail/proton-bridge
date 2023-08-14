@@ -381,7 +381,7 @@ func startMessageBuilder(ctx context.Context, s *syncJob, buildCh <-chan downloa
 			logrus.Debugf("sync builder exit")
 		}()
 
-		if err := s.identityState.WithAddrKRs(nil, func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
+		if err := s.identityState.WithAddrKRs(s.keyProvider.KeyPass(), func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
 			maxMessagesInParallel := runtime.NumCPU()
 
 			for buildBatch := range buildCh {
