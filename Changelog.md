@@ -6,6 +6,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## Trift Bridge 3.4.1
 
 ### Fixed
+* GODT-2859: Trigger user resync while updating from 3.4.0 to 3.4.1.
 * GODT-2833: Fix migration of message flags.
 * GODT-2759: Use examine rather than select for fetching.
 
