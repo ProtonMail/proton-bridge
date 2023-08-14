@@ -283,8 +283,6 @@ func (sm *Service) handleLoadedUserCountChange(ctx context.Context) {
 }
 
 func (sm *Service) handleClose(ctx context.Context) {
-	sm.tasks.Cancel()
-
 	// Close the IMAP server.
 	if err := sm.closeIMAPServer(ctx); err != nil {
 		logrus.WithError(err).Error("Failed to close IMAP server")
@@ -294,6 +292,10 @@ func (sm *Service) handleClose(ctx context.Context) {
 	if err := sm.closeSMTPServer(ctx); err != nil {
 		logrus.WithError(err).Error("Failed to close SMTP server")
 	}
+
+	// Cancel and wait needs to be called here since the SMTP server does not have a way to exit
+	// the task on context cancellation. Therefor we need to wait here after we issued a close request.
+	sm.tasks.CancelAndWait()
 }
 
 func (sm *Service) handleAddIMAPUser(ctx context.Context,
