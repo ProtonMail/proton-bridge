@@ -53,12 +53,14 @@ func WithAddrKRs(apiUser proton.User, apiAddr map[string]proton.Address, keyPass
 	for addrID, apiAddr := range apiAddr {
 		addrKR, err := apiAddr.Keys.Unlock(keyPass, userKR)
 		if err != nil {
-			return fmt.Errorf("failed to unlock address keys: %w", err)
+			logrus.WithField("addressID", addrID).WithError(err).Warn("Failed to unlock address keys")
+			continue
 		}
 		defer addrKR.ClearPrivateParams()
 
 		if addrKR.CountDecryptionEntities() == 0 {
 			logrus.WithField("addressID", addrID).Warn("Address keyring has no decryption entities")
+			continue
 		}
 
 		addrKRs[addrID] = addrKR
