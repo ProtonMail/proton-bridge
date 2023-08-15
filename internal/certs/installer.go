@@ -30,3 +30,7 @@ func (installer *Installer) InstallCert(certPEM []byte) error {
 func (installer *Installer) UninstallCert(certPEM []byte) error {
 	return uninstallCert(certPEM)
 }
+
+func (installer *Installer) IsCertInstalled(certPEM []byte) bool {
+	return isCertInstalled(certPEM)
+}
