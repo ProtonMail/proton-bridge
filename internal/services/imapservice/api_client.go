@@ -37,7 +37,7 @@ type APIClient interface {
 
 	GetMessage(ctx context.Context, messageID string) (proton.Message, error)
 	GetMessageMetadataPage(ctx context.Context, page, pageSize int, filter proton.MessageFilter) ([]proton.MessageMetadata, error)
-	GetMessageIDs(ctx context.Context, afterID string) ([]string, error)
+	GetAllMessageIDs(ctx context.Context, afterID string) ([]string, error)
 	CreateDraft(ctx context.Context, addrKR *crypto.KeyRing, req proton.CreateDraftReq) (proton.Message, error)
 	UploadAttachment(ctx context.Context, addrKR *crypto.KeyRing, req proton.CreateAttachmentReq) (proton.Attachment, error)
 	ImportMessages(ctx context.Context, addrKR *crypto.KeyRing, workers, buffer int, req ...proton.ImportReq) (stream.Stream[proton.ImportRes], error)

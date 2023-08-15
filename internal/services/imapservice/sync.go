@@ -162,7 +162,7 @@ func (s *syncJob) sync(ctx context.Context) error {
 		s.log.Info("Syncing messages")
 
 		// Determine which messages to sync.
-		messageIDs, err := s.client.GetMessageIDs(ctx, "")
+		messageIDs, err := s.client.GetAllMessageIDs(ctx, "")
 		if err != nil {
 			return fmt.Errorf("failed to get message IDs to sync: %w", err)
 		}
