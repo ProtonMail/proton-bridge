@@ -49,7 +49,10 @@ stages:
 
 .rules-branch-manual-scheduled-and-test-branch-always:
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_COMMIT_BRANCH =~ /(test\/)/
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+      allow_failure: false
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME=~ /^test/
       when: always
       allow_failure: false
     - if: $CI_COMMIT_BRANCH
@@ -186,6 +189,8 @@ test-integration-nightly:
   extends:
     - test-integration
     - .rules-branch-manual-scheduled-and-test-branch-always
+  needs:
+    - test-integration
   script:
     - make test-integration-nightly
 
@@ -202,7 +207,7 @@ test-darwin:
 test-coverage:
   stage: test
   extends:
-    - .rules-branch-manual-MR-and-devel-always
+    - .rules-branch-manual-scheduled-and-test-branch-always
   script:
     - ./utils/coverage.sh
   coverage: '/total:.*\(statements\).*\d+\.\d+%/'
@@ -211,6 +216,7 @@ test-coverage:
     - test-windows
     - test-darwin
     - test-integration
+    - test-integration-nightly
   tags:
     - small
   artifacts:
