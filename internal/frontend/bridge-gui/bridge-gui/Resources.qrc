@@ -74,7 +74,6 @@
         <file alias="bridgeMacOS.svg">../../../../dist/bridgeMacOS.svg</file>
         <file>qml/KeychainSettings.qml</file>
         <file>qml/LocalCacheSettings.qml</file>
-        <file>qml/LinkLabel.qml</file>
         <file>qml/MainWindow.qml</file>
         <file>qml/NotificationDialog.qml</file>
         <file>qml/NotificationPopups.qml</file>
@@ -91,6 +90,7 @@
         <file>qml/Proton/ComboBox.qml</file>
         <file>qml/Proton/Dialog.qml</file>
         <file>qml/Proton/Label.qml</file>
+        <file>qml/Proton/LinkLabel.qml</file>
         <file>qml/Proton/Menu.qml</file>
         <file>qml/Proton/MenuItem.qml</file>
         <file>qml/Proton/Popup.qml</file>
