@@ -3,6 +3,61 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Under Bridge 3.5.0
+
+### Added
+* Test: oss-fuzz support for fuzzing.
+* GODT-2799: SMTP Service.
+* GODT-2800: User Event Service.
+* GODT-2801: Identity Service.
+* GODT-2802: IMAP Serivce.
+* GODT-2788: Add preview to bug report validation and JSON file validator.
+* GODT-2803: Bridge Database access.
+
+### Changed
+* Test(GODT-2873): Wait for Gluon Watcher to finish.
+* Test(GODT-2744): Add integration tests for moving messages (with MOVE support).
+* Test(GODT-2872): Fix nightly job.
+* Test(GODT-2742): Add more integration tests regarding drafts.
+* GODT-2787: Force Scrollview to top when re-opening questions set.
+* GODT-2787: Tweaking Bug Report form with last Review.
+* Ci(GODT-2717): Create a job that will run on schedule.
+* GODT-2787: Fix vertical alignement on CategoryItem.
+* GODT-2842: Implement Bug Report Fallback notification.
+* Chore(GODT-2848): Simplify User Event Service.
+* GODT-2808: Apply comment from Bug Report content review.
+* Test(GODT-2743): Sync high number of messages.
+* GODT-2814: Standalone Server Manager.
+* GODT-2808: Initial list of categories and questions.
+* GODT-2787: Replace the PathTracker by a more visual NavigationIndicator.
+* GODT-2816: Wait until mandatory fields are filled then fill body and title.
+* GODT-2794: Clear cached answers when report is sent.
+* GODT-2793: Feed the bug report body with the answered questions.
+* GODT-2791: Parse the Bug Report Flow description file and ensure forward compatibility (GODT-2789).
+* GODT-2821: Display questions in one page.
+* GODT-2786: Init bug report flow description file.
+* GODT-2792: Implement display of question set for bug report.
+* Use qmlformat on qml files, and removed deprecated tests.
+
+### Fixed
+* Test: Verify leaks at end of WithEnv.
+* Test: Fix event registration in TestBridge_SyncWithOngoingEvents.
+* Test: Fix deadlock in chToType.
+* GODT-2865: Add error on failed unlock.
+* GODT-2857: Do not check changed values in clear recent flag.
+* GODT-2827: Restore ticker to event poller.
+* Test: TestBridge_SendAddTextBodyPartIfNotExists eventually fix.
+* GODT-2813: Write new vault to temporary file first.
+* GODT-2807: Fix issue where sessionID would not be removed from command-line on restart by bridge-gui.
+* GODT-2687: Tabs after header field colon.
+* GODT-2764: Allow perma-delete for messages which still have labels.
+* GODT-2693: Fix message appearing twice after sent.
+* GODT-2781: Try to remove stale lock file before failing in checkSingleInstance.
+* GODT-2780: Fix 'QSystemTrayIcon::setVisible: No Icon set' warning in bridge-gui log on startup.
+* GODT-2778: Fix login screen being disabled after an 'already logged in' error.
+* Fix typos found by codespell.
+
+
 ## Trift Bridge 3.4.1
 
 ### Fixed
@@ -49,7 +104,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2578: Refresh literals appended to Sent folder.
 * GODT-2753: Vault test now check that value auto-assigned is first available port.
 * GODT-2522: Handle migration with unreferenced db values.
-* GODT-2693: Allow missing whitespace after header field colon.
+* GODT-2670: Allow missing whitespace after header field colon.
 * GODT-2653: Only log when err is not nil.
 * GODT-2680: Fix for C++ debugger not working on ARM64 because of OpenSSL 3.1.
 * GODT-2675: Update GPA to applye togin-gonic/gin patch + update COPYING_NOTES.
