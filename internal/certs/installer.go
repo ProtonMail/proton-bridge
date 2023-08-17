@@ -17,6 +17,12 @@
 
 package certs
 
+import "errors"
+
+var (
+	ErrUserCanceledCertificateInstall = errors.New("the user cancelled the authorization dialog")
+)
+
 type Installer struct{}
 
 func NewInstaller() *Installer {

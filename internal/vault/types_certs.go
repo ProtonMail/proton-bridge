@@ -20,8 +20,7 @@ package vault
 import "github.com/ProtonMail/proton-bridge/v3/internal/certs"
 
 type Certs struct {
-	Bridge    Cert
-	Installed bool
+	Bridge Cert
 
 	// If non-empty, the path to the PEM-encoded certificate file.
 	CustomCertPath string

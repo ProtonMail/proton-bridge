@@ -25,6 +25,6 @@ func uninstallCert([]byte) error {
 	return nil // NOTE(GODT-986): Uninstall certs from root cert store?
 }
 
-func isCertInstalled([]byte) error {
+func isCertInstalled([]byte) bool {
 	return false
 }

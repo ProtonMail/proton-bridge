@@ -31,13 +31,4 @@ func TestVault_TLSCerts(t *testing.T) {
 	cert, key := s.GetBridgeTLSCert()
 	require.NotEmpty(t, cert)
 	require.NotEmpty(t, key)
-
-	// Check the certificates are not installed.
-	require.False(t, s.GetCertsInstalled())
-
-	// Install the certificates.
-	require.NoError(t, s.SetCertsInstalled(true))
-
-	// Check the certificates are installed.
-	require.True(t, s.GetCertsInstalled())
 }

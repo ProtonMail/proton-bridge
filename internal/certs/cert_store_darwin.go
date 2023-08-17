@@ -234,10 +234,6 @@ const (
 	errAuthorizationCanceled = -60006
 )
 
-var (
-	ErrUserCanceledCertificateInstall = errors.New("the user cancelled the authorization dialog")
-)
-
 // certPEMToDER converts a certificate in PEM format to DER format, which is the format required by Apple's Security framework.
 func certPEMToDER(certPEM []byte) ([]byte, error) {
 	block, left := pem.Decode(certPEM)
