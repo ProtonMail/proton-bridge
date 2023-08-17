@@ -34,6 +34,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/orderedtasks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
+	telemetryservice "github.com/ProtonMail/proton-bridge/v3/internal/services/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/useridentity"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
@@ -78,10 +79,11 @@ type User struct {
 	// goStatusProgress triggers a check/sending if progress is needed.
 	goStatusProgress func()
 
-	eventService    *userevents.Service
-	identityService *useridentity.Service
-	smtpService     *smtp.Service
-	imapService     *imapservice.Service
+	eventService     *userevents.Service
+	identityService  *useridentity.Service
+	smtpService      *smtp.Service
+	imapService      *imapservice.Service
+	telemetryService *telemetryservice.Service
 
 	serviceGroup *orderedtasks.OrderedCancelGroup
 }
@@ -215,6 +217,8 @@ func newImpl(
 
 	user.identityService = useridentity.NewService(user.eventService, user, identityState, encVault, user)
 
+	user.telemetryService = telemetryservice.NewService(apiUser.ID, client, user.eventService)
+
 	user.smtpService = smtp.NewService(
 		apiUser.ID,
 		client,
@@ -282,6 +286,9 @@ func newImpl(
 	if err := user.eventService.Start(ctx, user.serviceGroup); err != nil {
 		return user, fmt.Errorf("failed to start event service: %w", err)
 	}
+
+	// Start Telemetry Service
+	user.telemetryService.Start(ctx, user.serviceGroup)
 
 	// Start Identity Service
 	user.identityService.Start(ctx, user.serviceGroup)
@@ -627,12 +634,7 @@ func (user *User) Close() {
 
 // IsTelemetryEnabled check if the telemetry is enabled or disabled for this user.
 func (user *User) IsTelemetryEnabled(ctx context.Context) bool {
-	settings, err := user.client.GetUserSettings(ctx)
-	if err != nil {
-		user.log.WithError(err).Error("Failed to retrieve API user Settings")
-		return false
-	}
-	return settings.Telemetry == proton.SettingEnabled
+	return user.telemetryService.IsTelemetryEnabled(ctx)
 }
 
 // SendTelemetry send telemetry request.

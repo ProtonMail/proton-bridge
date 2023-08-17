@@ -31,12 +31,13 @@ func NewEventSubscriber(name string) *EventChanneledSubscriber {
 }
 
 type EventHandler struct {
-	RefreshHandler   RefreshEventHandler
-	AddressHandler   AddressEventHandler
-	UserHandler      UserEventHandler
-	LabelHandler     LabelEventHandler
-	MessageHandler   MessageEventHandler
-	UsedSpaceHandler UserUsedSpaceEventHandler
+	RefreshHandler      RefreshEventHandler
+	AddressHandler      AddressEventHandler
+	UserHandler         UserEventHandler
+	LabelHandler        LabelEventHandler
+	MessageHandler      MessageEventHandler
+	UsedSpaceHandler    UserUsedSpaceEventHandler
+	UserSettingsHandler UserSettingsHandler
 }
 
 func (e EventHandler) OnEvent(ctx context.Context, event proton.Event) error {
@@ -44,7 +45,14 @@ func (e EventHandler) OnEvent(ctx context.Context, event proton.Event) error {
 		return e.RefreshHandler.HandleRefreshEvent(ctx, event.Refresh)
 	}
 
-	// Start with user events.
+	// Start with user settings because of telemetry.
+	if event.UserSettings != nil {
+		if err := e.UserSettingsHandler.HandleUserSettingsEvent(ctx, event.UserSettings); err != nil {
+			return fmt.Errorf("failed to apply user event: %w", err)
+		}
+	}
+
+	// Continue with user events.
 	if event.User != nil && e.UserHandler != nil {
 		if err := e.UserHandler.HandleUserEvent(ctx, event.User); err != nil {
 			return fmt.Errorf("failed to apply user event: %w", err)
@@ -91,6 +99,10 @@ type UserEventHandler interface {
 
 type UserUsedSpaceEventHandler interface {
 	HandleUsedSpaceEvent(ctx context.Context, newSpace int) error
+}
+
+type UserSettingsHandler interface {
+	HandleUserSettingsEvent(ctx context.Context, settings *proton.UserSettings) error
 }
 
 type AddressEventHandler interface {
