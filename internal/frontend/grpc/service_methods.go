@@ -21,8 +21,6 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
-	"os"
-	"path/filepath"
 	"runtime"
 
 	"github.com/Masterminds/semver/v3"
@@ -359,26 +357,6 @@ func (s *Service) ReportBug(_ context.Context, report *ReportBugRequest) (*empty
 		}
 
 		_ = s.SendEvent(NewReportBugSuccessEvent())
-	}()
-
-	return &emptypb.Empty{}, nil
-}
-
-func (s *Service) ExportTLSCertificates(_ context.Context, folderPath *wrapperspb.StringValue) (*emptypb.Empty, error) {
-	s.log.WithField("folderPath", folderPath).Info("ExportTLSCertificates")
-
-	go func() {
-		defer async.HandlePanic(s.panicHandler)
-
-		cert, key := s.bridge.GetBridgeTLSCert()
-
-		if err := os.WriteFile(filepath.Join(folderPath.Value, "cert.pem"), cert, 0o600); err != nil {
-			_ = s.SendEvent(NewGenericErrorEvent(ErrorCode_TLS_CERT_EXPORT_ERROR))
-		}
-
-		if err := os.WriteFile(filepath.Join(folderPath.Value, "key.pem"), key, 0o600); err != nil {
-			_ = s.SendEvent(NewGenericErrorEvent(ErrorCode_TLS_KEY_EXPORT_ERROR))
-		}
 	}()
 
 	return &emptypb.Empty{}, nil

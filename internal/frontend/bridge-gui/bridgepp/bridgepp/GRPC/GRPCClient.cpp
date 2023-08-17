@@ -374,14 +374,6 @@ grpc::Status GRPCClient::reportBug(QString const &category, QString const &descr
 
 
 //****************************************************************************************************************************************************
-/// \param[in] folderPath of the folder where the TLS files should be stored.
-//****************************************************************************************************************************************************
-grpc::Status GRPCClient::exportTLSCertificates(QString const &folderPath) {
-    return this->logGRPCCallStatus(this->setString(&Bridge::Stub::ExportTLSCertificates, folderPath), __FUNCTION__);
-}
-
-
-//****************************************************************************************************************************************************
 /// \param[out] outIMAPPort The IMAP port.
 /// \param[out] outSMTPPort The SMTP port.
 /// \param[out] outUseSSLForIMAP The IMAP connection mode.
@@ -812,6 +804,32 @@ grpc::Status GRPCClient::setCurrentKeychain(QString const &keychain) {
 
 
 //****************************************************************************************************************************************************
+/// \param[out] isInstalled is The Bridge certificate installed in the keychain.
+/// \return The status for the call
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::isTLSCertificateInstalled(bool isInstalled) {
+    return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::IsTLSCertificateInstalled, isInstalled), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::installTLSCertificate() {
+    return this->logGRPCCallStatus(this->simpleMethod(&Bridge::Stub::InstallTLSCertificate), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] folderPath of the folder where the TLS files should be stored.
+/// \return The status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::exportTLSCertificates(QString const &folderPath) {
+    return this->logGRPCCallStatus(this->setString(&Bridge::Stub::ExportTLSCertificates, folderPath), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
 /// \return true iff the event stream is active.
 //****************************************************************************************************************************************************
 bool GRPCClient::isEventStreamActive() const {
@@ -1133,6 +1151,18 @@ void GRPCClient::processAppEvent(AppEvent const &event) {
     case AppEvent::kReportBugFallback:
         this->logTrace("App event received: ReportBugFallback.");
         emit reportBugFallback();
+        break;
+    case AppEvent::kCertificateInstallSuccess:
+        this->logTrace("App event received: CertificateInstallSuccess.");
+        emit certificateInstallSuccess();
+        break;
+    case AppEvent::kCertificateInstallCanceled:
+        this->logTrace("App event received: CertificateInstallCanceled.");
+        emit certificateInstallCanceled();
+        break;
+    case AppEvent::kCertificateInstallFailed:
+        this->logTrace("App event received: CertificateInstallFailed.");
+        emit certificateInstallFailed();
         break;
     default:
         this->logError("Unknown App event received.");
@@ -1516,5 +1546,6 @@ grpc::Status GRPCClient::KBArticleClicked(QString const &article) {
     s.set_value(article.toStdString());
     return this->logGRPCCallStatus(stub_->KBArticleClicked(this->clientContext().get(), s, &empty), __FUNCTION__);
 }
+
 
 } // namespace bridgepp

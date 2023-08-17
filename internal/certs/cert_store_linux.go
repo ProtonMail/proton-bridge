@@ -24,3 +24,7 @@ func installCert([]byte) error {
 func uninstallCert([]byte) error {
 	return nil // Linux doesn't have a root cert store.
 }
+
+func isCertInstalled([]byte) error {
+	return false
+}

@@ -279,6 +279,28 @@ void QMLBackend::clearAnswers() {
 
 
 //****************************************************************************************************************************************************
+/// \return true iff the Bridge TLS certificate is installed.
+//****************************************************************************************************************************************************
+bool QMLBackend::isTLSCertificateInstalled() {
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        bool v = false;
+        app().grpc().isTLSCertificateInstalled(v);
+        return v;
+    )
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void QMLBackend::installTLSCertificate() {
+    HANDLE_EXCEPTION(
+        app().grpc().installTLSCertificate();
+    )
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The value for the 'showOnStartup' property.
 //****************************************************************************************************************************************************
 bool QMLBackend::showOnStartup() const {
@@ -1267,6 +1289,9 @@ void QMLBackend::connectGrpcEvents() {
     connect(client, &GRPCClient::reportBugSuccess, this, &QMLBackend::bugReportSendSuccess);
     connect(client, &GRPCClient::reportBugFallback, this, &QMLBackend::bugReportSendFallback);
     connect(client, &GRPCClient::reportBugError, this, &QMLBackend::bugReportSendError);
+    connect(client, &GRPCClient::certificateInstallSuccess, this, &QMLBackend::certificateInstallSuccess);
+    connect(client, &GRPCClient::certificateInstallCanceled, this, &QMLBackend::certificateInstallCanceled);
+    connect(client, &GRPCClient::certificateInstallFailed, this, &QMLBackend::certificateInstallFailed);
     connect(client, &GRPCClient::showMainWindow, [&]() { this->showMainWindow("gRPC showMainWindow event"); });
 
     // cache events

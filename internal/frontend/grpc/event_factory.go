@@ -45,6 +45,18 @@ func NewReportBugFallbackEvent() *StreamEvent {
 	return appEvent(&AppEvent{Event: &AppEvent_ReportBugFallback{ReportBugFallback: &ReportBugFallbackEvent{}}})
 }
 
+func NewCertInstallSuccessEvent() *StreamEvent {
+	return appEvent(&AppEvent{Event: &AppEvent_CertificateInstallSuccess{CertificateInstallSuccess: &CertificateInstallSuccessEvent{}}})
+}
+
+func NewCertInstallCanceledEvent() *StreamEvent {
+	return appEvent(&AppEvent{Event: &AppEvent_CertificateInstallCanceled{CertificateInstallCanceled: &CertificateInstallCanceledEvent{}}})
+}
+
+func NewCertInstallFailedEvent() *StreamEvent {
+	return appEvent(&AppEvent{Event: &AppEvent_CertificateInstallFailed{CertificateInstallFailed: &CertificateInstallFailedEvent{}}})
+}
+
 func NewShowMainWindowEvent() *StreamEvent {
 	return appEvent(&AppEvent{Event: &AppEvent_ShowMainWindow{ShowMainWindow: &ShowMainWindowEvent{}}})
 }

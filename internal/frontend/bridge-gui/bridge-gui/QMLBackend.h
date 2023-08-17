@@ -64,6 +64,8 @@ public: // member functions.
     Q_INVOKABLE QString getQuestionAnswer(quint8 questionId) const; ///< Get the answer for a given question.
     Q_INVOKABLE QString collectAnswers(quint8 categoryId) const; ///< Collect answer for a given set of questions.
     Q_INVOKABLE void clearAnswers(); ///< Clear all collected answers.
+    Q_INVOKABLE bool isTLSCertificateInstalled(); ///< Check if the bridge certificate is installed in the OS keychain.
+    Q_INVOKABLE void installTLSCertificate(); ///< Installs the Bridge TLS certificate in the Keychain.
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
     Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)
@@ -268,6 +270,9 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void bugReportSendSuccess(); ///< Signal for the 'bugReportSendSuccess' gRPC stream event.
     void bugReportSendFallback(); ///< Signal for the 'bugReportSendFallback' gRPC stream event.
     void bugReportSendError(); ///< Signal for the 'bugReportSendError' gRPC stream event.
+    void certificateInstallSuccess(); ///< Signal for the 'certificateInstallSuccess' gRPC stream event.
+    void certificateInstallCanceled(); ///< Signal for the 'certificateInstallCanceled' gRPC stream event.
+    void certificateInstallFailed(); /// Signal for the 'certificateInstallFailed' gRPC stream event.
     void showMainWindow(); ///< Signal for the 'showMainWindow' gRPC stream event.
     void hideMainWindow(); ///< Signal for the 'hideMainWindow' gRPC stream event.
     void showHelp(); ///< Signal for the 'showHelp' event (from the context menu).

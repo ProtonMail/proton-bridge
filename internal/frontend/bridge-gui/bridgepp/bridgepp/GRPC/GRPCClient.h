@@ -78,7 +78,6 @@ public: // member functions.
     grpc::Status setColorSchemeName(QString const &name); ///< Performs the "setColorSchemeName' gRPC call.
     grpc::Status currentEmailClient(QString &outName); ///< Performs the 'currentEmailClient' gRPC call.
     grpc::Status reportBug(QString const &category, QString const &description, QString const &address, QString const &emailClient, bool includeLogs); ///< Performs the 'ReportBug' gRPC call.
-    grpc::Status exportTLSCertificates(QString const &folderPath); ///< Performs the 'ExportTLSCertificates' gRPC call.
     grpc::Status quit(); ///< Perform the "Quit" gRPC call.
     grpc::Status restart(); ///< Performs the Restart gRPC call.
     grpc::Status triggerReset(); ///< Performs the triggerReset gRPC call.
@@ -103,6 +102,9 @@ signals: // app related signals
     void reportBugSuccess();
     void reportBugError();
     void reportBugFallback();
+    void certificateInstallSuccess();
+    void certificateInstallCanceled();
+    void certificateInstallFailed();
     void showMainWindow();
 
     // cache related calls
@@ -200,6 +202,11 @@ public: // keychain related calls
     grpc::Status availableKeychains(QStringList &outKeychains);
     grpc::Status currentKeychain(QString &outKeychain);
     grpc::Status setCurrentKeychain(QString const &keychain);
+
+public: // cert related calls
+    grpc::Status isTLSCertificateInstalled(bool isInstalled); ///< Perform the 'IsTLSCertificateInstalled' gRPC call.
+    grpc::Status installTLSCertificate(); ///< Perform the 'InstallTLSCertificate' gRPC call.
+    grpc::Status exportTLSCertificates(QString const &folderPath); ///< Performs the 'ExportTLSCertificates' gRPC call.
 
 signals:
     void changeKeychainFinished();
