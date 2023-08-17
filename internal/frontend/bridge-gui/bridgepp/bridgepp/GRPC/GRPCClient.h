@@ -204,7 +204,7 @@ public: // keychain related calls
     grpc::Status setCurrentKeychain(QString const &keychain);
 
 public: // cert related calls
-    grpc::Status isTLSCertificateInstalled(bool isInstalled); ///< Perform the 'IsTLSCertificateInstalled' gRPC call.
+    grpc::Status isTLSCertificateInstalled(bool &outIsInstalled); ///< Perform the 'IsTLSCertificateInstalled' gRPC call.
     grpc::Status installTLSCertificate(); ///< Perform the 'InstallTLSCertificate' gRPC call.
     grpc::Status exportTLSCertificates(QString const &folderPath); ///< Performs the 'ExportTLSCertificates' gRPC call.
 

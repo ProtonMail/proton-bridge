@@ -31,7 +31,8 @@ Item {
         Login,
         ClientConfigSelector,
         ClientConfigOutlookSelector,
-        ClientConfigWarning
+        ClientConfigWarning,
+        ClientConfigAppleMail
     }
     enum RootStack {
         TwoPanesView,
@@ -79,6 +80,12 @@ Item {
     }
     function closeWizard() {
         wizardEnded();
+    }
+    function showAppleMailAutoConfig() {
+        rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
+        leftContent.showClientSelector();
+        rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigAppleMail;
+        clientConfigAppleMail.showAutoConfig();
     }
     function showClientConfig(user, address) {
         root.user = user;
@@ -218,6 +225,13 @@ Item {
                     // rightContent stack index 4
                     ClientConfigWarning {
                         id: clientConfigWarning
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        wizard: root
+                    }
+                    // rightContent stack index 5
+                    ClientConfigAppleMail {
+                        id: clientConfigAppleMail
                         Layout.fillHeight: true
                         Layout.fillWidth: true
                         wizard: root

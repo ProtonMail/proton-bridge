@@ -49,6 +49,7 @@ Item {
 
             onClicked: {
                 wizard.client = SetupWizard.Client.AppleMail;
+                wizard.showAppleMailAutoConfig();
             }
         }
         ClientListItem {

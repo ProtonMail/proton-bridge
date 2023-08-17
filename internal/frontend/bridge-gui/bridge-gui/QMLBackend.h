@@ -65,7 +65,6 @@ public: // member functions.
     Q_INVOKABLE QString collectAnswers(quint8 categoryId) const; ///< Collect answer for a given set of questions.
     Q_INVOKABLE void clearAnswers(); ///< Clear all collected answers.
     Q_INVOKABLE bool isTLSCertificateInstalled(); ///< Check if the bridge certificate is installed in the OS keychain.
-    Q_INVOKABLE void installTLSCertificate(); ///< Installs the Bridge TLS certificate in the Keychain.
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
     Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)
@@ -197,6 +196,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void installUpdate() const; ///< Slot for the update install.
     void triggerReset() const; ///< Slot for the triggering of reset.
     void reportBug(QString const &category, QString const &description, QString const &address, QString const &emailClient, bool includeLogs) const; ///< Slot for the bug report.
+    void installTLSCertificate(); ///< Installs the Bridge TLS certificate in the Keychain.
     void exportTLSCertificates() const; ///< Slot for the export of the TLS certificates.
     void onResetFinished(); ///< Slot for the reset finish signal.
     void onVersionChanged(); ///< Slot for the version change signal.

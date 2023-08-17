@@ -370,7 +370,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupCache_2">
+        <widget class="QGroupBox" name="groupCert">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -380,33 +380,80 @@
          <property name="title">
           <string>TLS Certficates</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_9">
-          <item>
-           <widget class="QLabel" name="labeLastTLSCertsExport">
+         <layout class="QGridLayout" name="gridLayout_4" columnstretch="1,1">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="checkTLSCertIsInstalled">
             <property name="text">
-             <string>Last Export: Never</string>
+             <string>Certificate is installed</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="0" column="1">
            <widget class="QCheckBox" name="checkTLSCertExportWillSucceed">
             <property name="text">
-             <string>TLS certificate export will succeed</string>
+             <string>Certificate  export will succeed</string>
             </property>
             <property name="checked">
              <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="1" column="1">
            <widget class="QCheckBox" name="checkTLSKeyExportWillSucceed">
             <property name="text">
-             <string>TLS private key export will succeed</string>
+             <string>Key export will succeed</string>
             </property>
             <property name="checked">
              <bool>true</bool>
             </property>
            </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="labeLastTLSCertExport">
+            <property name="text">
+             <string>Last Export: never</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="labelLastTLSCertInstall">
+            <property name="text">
+             <string>Last install: never</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="0,1">
+            <item>
+             <widget class="QLabel" name="labelNextInstall">
+              <property name="text">
+               <string>Next install will</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboNextTLSCertInstallResult">
+              <item>
+               <property name="text">
+                <string>Succeed</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Be Canceled</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Fail</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>

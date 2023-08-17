@@ -108,6 +108,7 @@
         <file>qml/SettingsView.qml</file>
         <file>qml/SetupWizard/ClientListItem.qml</file>
         <file>qml/SetupWizard/LeftPane.qml</file>
+        <file>qml/SetupWizard/ClientConfigAppleMail.qml</file>
         <file>qml/SetupWizard/ClientConfigOutlookSelector.qml</file>
         <file>qml/SetupWizard/ClientConfigParameters.qml</file>
         <file>qml/SetupWizard/ClientConfigSelector.qml</file>

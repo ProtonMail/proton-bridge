@@ -804,11 +804,11 @@ grpc::Status GRPCClient::setCurrentKeychain(QString const &keychain) {
 
 
 //****************************************************************************************************************************************************
-/// \param[out] isInstalled is The Bridge certificate installed in the keychain.
+/// \param[out] outIsInstalled is The Bridge certificate installed in the keychain.
 /// \return The status for the call
 //****************************************************************************************************************************************************
-grpc::Status GRPCClient::isTLSCertificateInstalled(bool isInstalled) {
-    return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::IsTLSCertificateInstalled, isInstalled), __FUNCTION__);
+grpc::Status GRPCClient::isTLSCertificateInstalled(bool &outIsInstalled) {
+    return this->logGRPCCallStatus(this->getBool(&Bridge::Stub::IsTLSCertificateInstalled, outIsInstalled), __FUNCTION__);
 }
 
 

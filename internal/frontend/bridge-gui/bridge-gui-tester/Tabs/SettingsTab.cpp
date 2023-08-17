@@ -286,10 +286,19 @@ void SettingsTab::setBugReport(QString const &osType, QString const &osVersion, 
 
 
 //****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void SettingsTab::installTLSCertificate() {
+    ui_.labelLastTLSCertInstall->setText(QString("Last install: %1").arg(QDateTime::currentDateTime().toString(Qt::ISODateWithMs)));
+    ui_.checkTLSCertIsInstalled->setChecked(this->nextTLSCertIntallResult() == TLSCertInstallResult::Success);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] folderPath The folder path.
 //****************************************************************************************************************************************************
 void SettingsTab::exportTLSCertificates(QString const &folderPath) {
-    ui_.labeLastTLSCertsExport->setText(QString("%1 Export to %2")
+    ui_.labeLastTLSCertExport->setText(QString("%1 Export to %2")
         .arg(QDateTime::currentDateTime().toString(Qt::ISODateWithMs))
         .arg(folderPath));
 }
@@ -300,6 +309,22 @@ void SettingsTab::exportTLSCertificates(QString const &folderPath) {
 //****************************************************************************************************************************************************
 bool SettingsTab::nextBugReportWillSucceed() const {
     return ui_.checkNextBugReportWillSucceed->isChecked();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return the state of the 'TLS Certificate is installed' check box.
+//****************************************************************************************************************************************************
+bool SettingsTab::isTLSCertificateInstalled() const {
+    return ui_.checkTLSCertIsInstalled->isChecked();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The value for the 'Next TLS cert install result'.
+//****************************************************************************************************************************************************
+SettingsTab::TLSCertInstallResult SettingsTab::nextTLSCertIntallResult() const {
+    return TLSCertInstallResult(ui_.comboNextTLSCertInstallResult->currentIndex());
 }
 
 
@@ -505,4 +530,11 @@ void SettingsTab::resetUI() {
     ui_.comboCacheError->setCurrentIndex(0);
 
     ui_.checkAutomaticUpdate->setChecked(true);
+
+    ui_.checkTLSCertIsInstalled->setChecked(false);
+    ui_.comboNextTLSCertInstallResult->setCurrentIndex(0);
+    ui_.checkTLSCertExportWillSucceed->setChecked(true);
+    ui_.checkTLSKeyExportWillSucceed->setChecked(true);
+    ui_.labeLastTLSCertExport->setText("Last export: never");
+    ui_.labelLastTLSCertInstall->setText("Last install: never");
 }

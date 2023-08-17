@@ -45,6 +45,7 @@ public: // member functions.
     void setColorSchemeName(QString const &name); ///< Forward a SetColorSchemeName call via a Qt Signal
     void reportBug(QString const &osType, QString const &osVersion, QString const &emailClient, QString const &address,
         QString const &description, bool includeLogs); ///< Forwards a ReportBug call via a Qt signal.
+    void installTLSCertificate(); ///< Forwards a InstallTLScertificate call via a Qt signal.
     void exportTLSCertificates(QString const &folderPath); //< Forward an 'ExportTLSCertificates' call via a Qt signal.
     void setIsStreaming(bool isStreaming); ///< Forward a isStreaming internal messages via a Qt signal.
     void setClientPlatform(QString const &clientPlatform); ///< Forward a setClientPlatform call via a Qt signal.
@@ -67,6 +68,7 @@ signals:
     void setColorSchemeNameReceived(QString const &name); ///< Forward a SetColorScheme call via a Qt Signal
     void reportBugReceived(QString const &osType, QString const &osVersion, QString const &emailClient, QString const &address,
         QString const &description, bool includeLogs); ///< Signal for the ReportBug gRPC call
+    void installTLSCertificateReceived(); ///< Signal for the InstallTLSCertificate gRPC call.
     void exportTLSCertificatesReceived(QString const &folderPath); ///< Signal for the ExportTLSCertificates gRPC call.
     void setIsStreamingReceived(bool isStreaming); ///< Signal for the IsStreaming internal message.
     void setClientPlatformReceived(QString const &clientPlatform); ///< Signal for the SetClientPlatform gRPC call.
