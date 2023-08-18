@@ -216,21 +216,6 @@ Item {
                         wizard: root
                     }
                 }
-                LinkLabel {
-                    id: reportProblemLink
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 48
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    colorScheme: root.colorScheme
-                    horizontalAlignment: Text.AlignRight
-                    text: link("#", qsTr("Report problem"))
-                    width: 444
-
-                    onLinkActivated: {
-                        closeWizard();
-                        showBugReport();
-                    }
-                }
             }
         }
 
@@ -241,6 +226,9 @@ Item {
             Layout.fillWidth: true
             wizard: root
         }
+    }
+    HelpButton {
+        wizard: root
     }
 }
 

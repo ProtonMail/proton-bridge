@@ -108,19 +108,5 @@ Rectangle {
                 onClicked: wizard.closeWizard()
             }
         }
-        LinkLabel {
-            id: reportProblemLink
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 48
-            anchors.right: parent.right
-            colorScheme: wizard.colorScheme
-            horizontalAlignment: Text.AlignRight
-            text: link("#", qsTr("Report problem"))
-
-            onLinkActivated: {
-                wizard.closeWizard();
-                wizard.showBugReport();
-            }
-        }
     }
 }
