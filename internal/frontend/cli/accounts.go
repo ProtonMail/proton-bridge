@@ -23,6 +23,7 @@ import (
 
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/abiosoft/ishell"
@@ -295,6 +296,17 @@ func (f *frontendCLI) configureAppleMail(c *ishell.Context) {
 
 	if !f.yesNoQuestion("Are you sure you want to configure Apple Mail for " + bold(user.Username) + " with address " + bold(user.Addresses[0])) {
 		return
+	}
+
+	cert, _ := f.bridge.GetBridgeTLSCert()
+	installer := certs.NewInstaller()
+	if !installer.IsCertInstalled(cert) {
+		f.Println("Apple Mail requires that a TLS certificate for bridge IMAP and SMTP server is installed in your system keychain.")
+		f.Println("Please provide your credentials in the system popup dialog in order to continue.")
+		if err := installer.InstallCert(cert); err != nil {
+			f.printAndLogError(err)
+			return
+		}
 	}
 
 	if err := f.bridge.ConfigureAppleMail(context.Background(), user.UserID, user.Addresses[0]); err != nil {

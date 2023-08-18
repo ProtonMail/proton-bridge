@@ -21,6 +21,7 @@ package cli
 import (
 	"errors"
 	"os"
+	"runtime"
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
@@ -145,25 +146,52 @@ func New(
 	})
 	fe.AddCmd(dohCmd)
 
-	// Apple Mail commands.
-	configureCmd := &ishell.Cmd{
-		Name: "configure-apple-mail",
-		Help: "Configures Apple Mail to use ProtonMail Bridge",
-		Func: fe.configureAppleMail,
+	//goland:noinspection GoBoolExpressions
+	if runtime.GOOS == "darwin" {
+		// Apple Mail commands.
+		configureCmd := &ishell.Cmd{
+			Name: "configure-apple-mail",
+			Help: "Configures Apple Mail to use ProtonMail Bridge",
+			Func: fe.configureAppleMail,
+		}
+		fe.AddCmd(configureCmd)
 	}
-	fe.AddCmd(configureCmd)
 
 	// TLS commands.
-	fe.AddCmd(&ishell.Cmd{
-		Name: "export-tls-cert",
-		Help: "Export the TLS certificate used by the Bridge",
+	certCmd := &ishell.Cmd{
+		Name: "cert",
+		Help: "Manage the TLS certificate used by Bridge",
+	}
+
+	//goland:noinspection GoBoolExpressions
+	if runtime.GOOS == "darwin" {
+		certCmd.AddCmd(&ishell.Cmd{
+			Name: "status",
+			Help: "Check if the TLS certificate used by Bridge is installed in the OS keychain",
+			Func: fe.tlsCertStatus,
+		})
+		certCmd.AddCmd(&ishell.Cmd{
+			Name: "install",
+			Help: "Install TLS certificate used by Bridge in the OS keychain",
+			Func: fe.installTLSCert,
+		})
+		certCmd.AddCmd(&ishell.Cmd{
+			Name: "uninstall",
+			Help: "Uninstall the TLS certificate used by Bridge from the OS keychain",
+			Func: fe.uninstallTLSCert,
+		})
+	}
+	certCmd.AddCmd(&ishell.Cmd{
+		Name: "export",
+		Help: "Export the TLS certificate used by Bridge",
 		Func: fe.exportTLSCerts,
 	})
-	fe.AddCmd(&ishell.Cmd{
-		Name: "import-tls-cert",
-		Help: "Import a TLS certificate to be used by the Bridge",
+	certCmd.AddCmd(&ishell.Cmd{
+		Name: "import",
+		Help: "Import a TLS certificate to be used by Bridge",
 		Func: fe.importTLSCerts,
 	})
+	fe.AddCmd(certCmd)
 
 	// All mail visibility commands.
 	allMailCmd := &ishell.Cmd{

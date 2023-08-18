@@ -40,7 +40,7 @@ func TestCertInKeychain(t *testing.T) {
 }
 
 // This test require human interaction (macOS security prompts), and is disabled by default.
-func _TestCertificateTrust(t *testing.T) {
+func _TestCertificateTrust(t *testing.T) { //nolint:unused
 	certPEM := generatePEMCertificate(t)
 	require.False(t, isCertTrusted(certPEM))
 	require.NoError(t, addCertToKeychain(certPEM))
@@ -52,7 +52,7 @@ func _TestCertificateTrust(t *testing.T) {
 }
 
 // This test require human interaction (macOS security prompts), and is disabled by default.
-func _TestInstallAndRemove(t *testing.T) {
+func _TestInstallAndRemove(t *testing.T) { //nolint:unused
 	certPEM := generatePEMCertificate(t)
 
 	// fresh install

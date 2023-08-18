@@ -17,24 +17,48 @@
 
 package certs
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/sirupsen/logrus"
+)
 
 var (
 	ErrUserCanceledCertificateInstall = errors.New("the user cancelled the authorization dialog")
 )
 
-type Installer struct{}
+type Installer struct {
+	log *logrus.Entry
+}
 
 func NewInstaller() *Installer {
-	return &Installer{}
+	return &Installer{
+		log: logrus.WithField("pkg", "certs"),
+	}
 }
 
 func (installer *Installer) InstallCert(certPEM []byte) error {
-	return installCert(certPEM)
+	installer.log.Info("Installing the Bridge TLS certificate in the OS keychain")
+
+	if err := installCert(certPEM); err != nil {
+		installer.log.WithError(err).Error("The Bridge TLS certificate could not be installed in the OS keychain")
+		return err
+	}
+
+	installer.log.Info("The Bridge TLS certificate was successfully installed in the OS keychain")
+	return nil
 }
 
 func (installer *Installer) UninstallCert(certPEM []byte) error {
-	return uninstallCert(certPEM)
+	installer.log.Info("Uninstalling the Bridge TLS certificate from the OS keychain")
+
+	if err := uninstallCert(certPEM); err != nil {
+		installer.log.WithError(err).Error("The Bridge TLS certificate could not be uninstalled from the OS keychain")
+		return err
+	}
+
+	installer.log.Info("The Bridge TLS certificate was successfully uninstalled from the OS keychain")
+	return nil
 }
 
 func (installer *Installer) IsCertInstalled(certPEM []byte) bool {
