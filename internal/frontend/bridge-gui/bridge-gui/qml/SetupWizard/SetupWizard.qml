@@ -30,8 +30,6 @@ Item {
         Onboarding,
         Login,
         ClientConfigSelector,
-        ClientConfigOutlookSelector,
-        ClientConfigWarning,
         ClientConfigAppleMail
     }
     enum RootStack {
@@ -96,11 +94,6 @@ Item {
     }
     function showClientParams() {
         rootStackLayout.currentIndex = SetupWizard.RootStack.ClientConfigParameters;
-    }
-    function showClientWarning() {
-        rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
-        leftContent.showClientConfigWarning();
-        rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigWarning;
     }
     function showLogin(username = "") {
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
@@ -216,20 +209,6 @@ Item {
                         wizard: root
                     }
                     // rightContent stack index 3
-                    ClientConfigOutlookSelector {
-                        id: clientConfigOutlookSelector
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
-                        wizard: root
-                    }
-                    // rightContent stack index 4
-                    ClientConfigWarning {
-                        id: clientConfigWarning
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
-                        wizard: root
-                    }
-                    // rightContent stack index 5
                     ClientConfigAppleMail {
                         id: clientConfigAppleMail
                         Layout.fillHeight: true

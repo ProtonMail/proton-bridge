@@ -58,7 +58,7 @@ Item {
                 }
                 function onCertificateInstallSuccess() {
                     certInstallButton.loading = false;
-                    console.error("Certification installed successfully");
+                    console.error("Certificate installed successfully");
                     stack.currentIndex = ClientConfigAppleMail.Screen.ProfileInstall;
                 }
 
