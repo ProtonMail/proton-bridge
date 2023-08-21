@@ -42,7 +42,7 @@ SPStreamEvent newShowMainWindowEvent(); ///< Create a new ShowMainWindowEvent ev
 // Login events
 SPStreamEvent newLoginError(grpc::LoginErrorType error, QString const &message); ///< Create a new LoginError event.
 SPStreamEvent newLoginTfaRequestedEvent(QString const &username); ///< Create a new LoginTfaRequestedEvent event.
-SPStreamEvent newLoginTwoPasswordsRequestedEvent(); ///< Create a new LoginTwoPasswordsRequestedEvent event.
+SPStreamEvent newLoginTwoPasswordsRequestedEvent(QString const &username); ///< Create a new LoginTwoPasswordsRequestedEvent event.
 SPStreamEvent newLoginFinishedEvent(QString const &userID, bool wasSignedOut); ///< Create a new LoginFinishedEvent event.
 SPStreamEvent newLoginAlreadyLoggedInEvent(QString const &userID); ///< Create a new LoginAlreadyLoggedInEvent event.
 

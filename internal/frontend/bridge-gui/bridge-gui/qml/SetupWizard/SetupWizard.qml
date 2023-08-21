@@ -110,11 +110,6 @@ Item {
         leftContent.showOnboarding();
         rightContent.currentIndex = SetupWizard.ContentStack.Onboarding;
     }
-    function showOutlookSelector() {
-        rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
-        leftContent.showOutlookSelector();
-        rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigOutlookSelector;
-    }
 
     Connections {
         function onLoginFinished(userIndex, wasSignedOut) {

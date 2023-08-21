@@ -424,7 +424,7 @@ func (s *Service) Login(_ context.Context, login *LoginRequest) (*emptypb.Empty,
 			_ = s.SendEvent(NewLoginTfaRequestedEvent(login.Username))
 
 		case auth.PasswordMode == proton.TwoPasswordMode:
-			_ = s.SendEvent(NewLoginTwoPasswordsRequestedEvent())
+			_ = s.SendEvent(NewLoginTwoPasswordsRequestedEvent(login.Username))
 
 		default:
 			s.finishLogin()
@@ -469,7 +469,7 @@ func (s *Service) Login2FA(_ context.Context, login *LoginRequest) (*emptypb.Emp
 		}
 
 		if s.auth.PasswordMode == proton.TwoPasswordMode {
-			_ = s.SendEvent(NewLoginTwoPasswordsRequestedEvent())
+			_ = s.SendEvent(NewLoginTwoPasswordsRequestedEvent(login.Username))
 			return
 		}
 

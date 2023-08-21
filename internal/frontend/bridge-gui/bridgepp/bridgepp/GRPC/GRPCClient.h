@@ -146,10 +146,10 @@ signals:
     void loginUsernamePasswordError(QString const &errMsg);
     void loginFreeUserError();
     void loginConnectionError(QString const &errMsg);
-    void login2FARequested(QString const &userName);
+    void login2FARequested(QString const &username);
     void login2FAError(QString const &errMsg);
     void login2FAErrorAbort(QString const &errMsg);
-    void login2PasswordRequested();
+    void login2PasswordRequested(QString const &username);
     void login2PasswordError(QString const &errMsg);
     void login2PasswordErrorAbort(QString const &errMsg);
     void loginFinished(QString const &userID, bool wasSignedOut);

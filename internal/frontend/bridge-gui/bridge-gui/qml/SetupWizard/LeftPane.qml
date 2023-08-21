@@ -45,33 +45,16 @@ Item {
         icon.source = "/qml/icons/img-mail-clients.svg";
     }
     function showLogin() {
-        descriptionLabel.text = qsTr("Let's start by signing in to your Proton account.");
-        linkLabel1.setLink("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"));
-        linkLabel2.clear();
-        showLoginCommon();
-    }
+        showOnboarding()
+     }
     function showLogin2FA() {
-        descriptionLabel.text = qsTr("You have enabled two-factor authentication. Please enter the 6-digit code provided by your authenticator application.");
-        linkLabel1.clear();
-        linkLabel2.clear();
-        showLoginCommon();
-    }
-    function showLoginCommon() {
-        titleLabel.text = qsTr("Sign in to your Proton Account");
-        icon.Layout.preferredHeight = 72;
-        icon.Layout.preferredWidth = 72;
-        icon.source = "/qml/icons/ic-bridge.svg";
-        icon.sourceSize.height = 128;
-        icon.sourceSize.width = 128;
+        showOnboarding()
     }
     function showLoginMailboxPassword() {
-        descriptionLabel.text = qsTr("You have secured your account with a separate mailbox password.");
-        linkLabel1.clear();
-        linkLabel2.clear();
-        showLoginCommon();
+        showOnboarding()
     }
     function showOnboarding() {
-        titleLabel.text = qsTr("Welcome to\nProton Mail Bridge");
+        titleLabel.text = (Backend.users.count === 0) ? qsTr("Welcome to\nProton Mail Bridge") : qsTr("Add a Proton Mail account");
         descriptionLabel.text = qsTr("Bridge is the gateway between your Proton account and your email client. It runs in the background and encrypts and decrypts your messages seamlessly. ");
         linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why do I need Bridge?"));
         linkLabel2.clear();
@@ -80,11 +63,6 @@ Item {
         icon.source = "/qml/icons/img-welcome.svg";
         icon.sourceSize.height = 148;
         icon.sourceSize.width = 265;
-    }
-    function showOutlookSelector() {
-        showClientConfigCommon();
-        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("My version of Outlook is not listed"));
-        linkLabel2.clear();
     }
 
     Connections {

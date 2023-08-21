@@ -43,9 +43,6 @@ FocusScope {
         mailboxPasswordLayout.reset();
     }
 
-    implicitHeight: children[0].implicitHeight
-    implicitWidth: children[0].implicitWidth
-
     StackLayout {
         id: stackLayout
         function loginFailed() {
@@ -91,9 +88,10 @@ FocusScope {
                 root.reset();
                 errorLabel.text = qsTr("Incorrect login credentials. Please try again.");
             }
-            function onLogin2PasswordRequested() {
+            function onLogin2PasswordRequested(username) {
                 console.assert(stackLayout.currentIndex === Login.RootStack.Login || stackLayout.currentIndex === Login.RootStack.TOTP, "Unexpected login2PasswordRequested");
                 stackLayout.currentIndex = Login.RootStack.MailboxPassword;
+                mailboxPasswordUsernameLabel.text = username;
                 secondPasswordTextField.focus = true;
             }
             function onLoginAlreadyLoggedIn(_) {
@@ -124,299 +122,353 @@ FocusScope {
 
             target: Backend
         }
-        ColumnLayout {
-            id: loginLayout
-            function reset(clearUsername = false) {
-                signInButton.loading = false;
-                errorLabel.text = "";
-                usernameTextField.enabled = true;
-                usernameTextField.error = false;
-                usernameTextField.errorString = "";
-                usernameTextField.focus = true;
-                if (clearUsername) {
-                    usernameTextField.text = "";
+        Item {
+            ColumnLayout {
+                id: loginLayout
+                function reset(clearUsername = false) {
+                    signInButton.loading = false;
+                    errorLabel.text = "";
+                    usernameTextField.enabled = true;
+                    usernameTextField.error = false;
+                    usernameTextField.errorString = "";
+                    usernameTextField.focus = true;
+                    if (clearUsername) {
+                        usernameTextField.text = "";
+                    }
+                    passwordTextField.enabled = true;
+                    passwordTextField.error = false;
+                    passwordTextField.errorString = "";
+                    passwordTextField.text = "";
                 }
-                passwordTextField.enabled = true;
-                passwordTextField.error = false;
-                passwordTextField.errorString = "";
-                passwordTextField.text = "";
-            }
 
-            spacing: 0
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 16
 
-            Label {
-                Layout.alignment: Qt.AlignHCenter
-                colorScheme: wizard.colorScheme
-                text: qsTr("Sign in")
-                type: Label.LabelType.Heading
-            }
-            Label {
-                id: subTitle
-                Layout.alignment: Qt.AlignHCenter
-                Layout.topMargin: 8
-                color: wizard.colorScheme.text_weak
-                colorScheme: wizard.colorScheme
-                text: qsTr("Enter your Proton Account details.")
-                type: Label.LabelType.Lead
-            }
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.topMargin: 48
-                spacing: 0
-                visible: errorLabel.text.length > 0
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
 
-                ColorImage {
-                    color: wizard.colorScheme.signal_danger
-                    height: errorLabel.lineHeight
-                    source: "/qml/icons/ic-exclamation-circle-filled.svg"
-                    sourceSize.height: errorLabel.lineHeight
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        horizontalAlignment: Text.AlignHCenter
+                        text: qsTr("Sign in")
+                        type: Label.LabelType.Title
+                    }
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        color: wizard.colorScheme.text_weak
+                        colorScheme: wizard.colorScheme
+                        horizontalAlignment: Text.AlignHCenter
+                        text: qsTr("Enter your Proton Account details.")
+                        type: Label.LabelType.Body
+                    }
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 0
+                    visible: errorLabel.text.length > 0
+
+                    ColorImage {
+                        color: wizard.colorScheme.signal_danger
+                        height: errorLabel.lineHeight
+                        source: "/qml/icons/ic-exclamation-circle-filled.svg"
+                        sourceSize.height: errorLabel.lineHeight
+                    }
+                    Label {
+                        id: errorLabel
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 4
+                        color: wizard.colorScheme.signal_danger
+                        colorScheme: wizard.colorScheme
+                        type: root.error ? Label.LabelType.Caption_semibold : Label.LabelType.Caption
+                        wrapMode: Text.WordWrap
+                    }
+                }
+                TextField {
+                    id: usernameTextField
+                    Layout.fillWidth: true
+                    colorScheme: wizard.colorScheme
+                    focus: true
+                    label: qsTr("Email or username")
+                    validateOnEditingFinished: false
+                    validator: function (str) {
+                        if (str.length === 0) {
+                            return qsTr("Enter email or username");
+                        }
+                    }
+
+                    onAccepted: passwordTextField.forceActiveFocus()
+                    onTextChanged: {
+                        // remove "invalid username / password error"
+                        if (error || errorLabel.text.length > 0) {
+                            errorLabel.text = "";
+                            usernameTextField.error = false;
+                            passwordTextField.error = false;
+                        }
+                    }
+                }
+                TextField {
+                    id: passwordTextField
+                    Layout.fillWidth: true
+                    colorScheme: wizard.colorScheme
+                    echoMode: TextInput.Password
+                    label: qsTr("Password")
+                    validateOnEditingFinished: false
+                    validator: function (str) {
+                        if (str.length === 0) {
+                            return qsTr("Enter password");
+                        }
+                    }
+
+                    onAccepted: signInButton.checkAndSignIn()
+                    onTextChanged: {
+                        // remove "invalid username / password error"
+                        if (error || errorLabel.text.length > 0) {
+                            errorLabel.text = "";
+                            usernameTextField.error = false;
+                            passwordTextField.error = false;
+                        }
+                    }
+                }
+                Button {
+                    id: signInButton
+                    function checkAndSignIn() {
+                        usernameTextField.validate();
+                        passwordTextField.validate();
+                        if (usernameTextField.error || passwordTextField.error) {
+                            return;
+                        }
+                        usernameTextField.enabled = false;
+                        passwordTextField.enabled = false;
+                        loading = true;
+                        Backend.login(usernameTextField.text, Qt.btoa(passwordTextField.text));
+                    }
+
+                    Layout.fillWidth: true
+                    colorScheme: wizard.colorScheme
+                    enabled: !loading
+                    text: loading ? qsTr("Signing in") : qsTr("Sign in")
+
+                    onClicked: {
+                        checkAndSignIn();
+                    }
+                }
+                Button {
+                    Layout.fillWidth: true
+                    colorScheme: wizard.colorScheme
+                    enabled: !signInButton.loading
+                    secondary: true
+                    text: qsTr("Cancel")
+
+                    onClicked: {
+                        root.abort();
+                    }
+                }
+                LinkLabel {
+                    id: linkLabel
+                    Layout.alignment: Qt.AlignHCenter
+                    colorScheme: wizard.colorScheme
+                    text: linkLabel.link("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"))
+                }
+            }
+        }
+        Item {
+            ColumnLayout {
+                id: totpLayout
+                function reset() {
+                    twoFAButton.loading = false;
+                    twoFactorPasswordTextField.enabled = true;
+                    twoFactorPasswordTextField.error = false;
+                    twoFactorPasswordTextField.errorString = "";
+                    twoFactorPasswordTextField.text = "";
+                }
+
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 16
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        horizontalAlignment: Text.AlignHCenter
+                        text: qsTr("Two-factor authentication")
+                        type: Label.LabelType.Title
+                    }
+                    Label {
+                        id: twoFactorUsernameLabel
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        color: wizard.colorScheme.text_weak
+                        colorScheme: wizard.colorScheme
+                        horizontalAlignment: Text.AlignHCenter
+                        text: ""
+                        type: Label.LabelType.Body
+                    }
                 }
                 Label {
-                    id: errorLabel
+                    id: descriptionLabel
+                    Layout.alignment: Qt.AlignHCenter
                     Layout.fillWidth: true
-                    Layout.leftMargin: 4
-                    color: wizard.colorScheme.signal_danger
                     colorScheme: wizard.colorScheme
-                    type: root.error ? Label.LabelType.Caption_semibold : Label.LabelType.Caption
+                    horizontalAlignment: Text.AlignHCenter
+                    text: qsTr("You have enabled two-factor authentication. Please enter the 6-digit code provided by your authenticator application.")
+                    type: Label.LabelType.Body
                     wrapMode: Text.WordWrap
                 }
-            }
-            TextField {
-                id: usernameTextField
-                Layout.fillWidth: true
-                Layout.topMargin: 48
-                colorScheme: wizard.colorScheme
-                focus: true
-                label: qsTr("Email or username")
-                validateOnEditingFinished: false
-                validator: function (str) {
-                    if (str.length === 0) {
-                        return qsTr("Enter email or username");
+                TextField {
+                    id: twoFactorPasswordTextField
+                    Layout.fillWidth: true
+                    colorScheme: wizard.colorScheme
+                    label: qsTr("Two-factor code")
+                    validateOnEditingFinished: false
+                    validator: function (str) {
+                        if (str.length === 0) {
+                            return qsTr("Enter the 6-digit code");
+                        }
                     }
-                }
 
-                onAccepted: passwordTextField.forceActiveFocus()
-                onTextChanged: {
-                    // remove "invalid username / password error"
-                    if (error || errorLabel.text.length > 0) {
-                        errorLabel.text = "";
-                        usernameTextField.error = false;
-                        passwordTextField.error = false;
-                    }
-                }
-            }
-            TextField {
-                id: passwordTextField
-                Layout.fillWidth: true
-                Layout.topMargin: 48
-                colorScheme: wizard.colorScheme
-                echoMode: TextInput.Password
-                label: qsTr("Password")
-                validateOnEditingFinished: false
-                validator: function (str) {
-                    if (str.length === 0) {
-                        return qsTr("Enter password");
-                    }
-                }
-
-                onAccepted: signInButton.checkAndSignIn()
-                onTextChanged: {
-                    // remove "invalid username / password error"
-                    if (error || errorLabel.text.length > 0) {
-                        errorLabel.text = "";
-                        usernameTextField.error = false;
-                        passwordTextField.error = false;
-                    }
-                }
-            }
-            Button {
-                id: signInButton
-                function checkAndSignIn() {
-                    usernameTextField.validate();
-                    passwordTextField.validate();
-                    if (usernameTextField.error || passwordTextField.error) {
-                        return;
-                    }
-                    usernameTextField.enabled = false;
-                    passwordTextField.enabled = false;
-                    loading = true;
-                    Backend.login(usernameTextField.text, Qt.btoa(passwordTextField.text));
-                }
-
-                Layout.fillWidth: true
-                Layout.topMargin: 48
-                colorScheme: wizard.colorScheme
-                enabled: !loading
-                text: loading ? qsTr("Signing in") : qsTr("Sign in")
-
-                onClicked: {
-                    checkAndSignIn();
-                }
-            }
-            Button {
-                Layout.fillWidth: true
-                Layout.topMargin: 32
-                colorScheme: wizard.colorScheme
-                enabled: !signInButton.loading
-                secondary: true
-                text: qsTr("Cancel")
-
-                onClicked: {
-                    root.abort();
-                }
-            }
-        }
-        ColumnLayout {
-            id: totpLayout
-            function reset() {
-                twoFAButton.loading = false;
-                twoFactorPasswordTextField.enabled = true;
-                twoFactorPasswordTextField.error = false;
-                twoFactorPasswordTextField.errorString = "";
-                twoFactorPasswordTextField.text = "";
-            }
-
-            spacing: 0
-
-            Label {
-                Layout.alignment: Qt.AlignCenter
-                colorScheme: wizard.colorScheme
-                text: qsTr("Two-factor authentication")
-                type: Label.LabelType.Heading
-            }
-            Label {
-                id: twoFactorUsernameLabel
-                Layout.alignment: Qt.AlignCenter
-                Layout.topMargin: 8
-                color: wizard.colorScheme.text_weak
-                colorScheme: wizard.colorScheme
-                type: Label.LabelType.Lead
-            }
-            TextField {
-                id: twoFactorPasswordTextField
-                Layout.fillWidth: true
-                Layout.topMargin: 32
-                assistiveText: qsTr("Enter the 6-digit code")
-                colorScheme: wizard.colorScheme
-                label: qsTr("Two-factor code")
-                validateOnEditingFinished: false
-                validator: function (str) {
-                    if (str.length === 0) {
-                        return qsTr("Enter the 6-digit code");
-                    }
-                }
-
-                onAccepted: {
-                    twoFAButton.onClicked();
-                }
-                onTextChanged: {
-                    if (text.length >= 6) {
+                    onAccepted: {
                         twoFAButton.onClicked();
                     }
-                }
-            }
-            Button {
-                id: twoFAButton
-                Layout.fillWidth: true
-                Layout.topMargin: 48
-                colorScheme: wizard.colorScheme
-                enabled: !loading
-                text: loading ? qsTr("Authenticating") : qsTr("Authenticate")
-
-                onClicked: {
-                    twoFactorPasswordTextField.validate();
-                    if (twoFactorPasswordTextField.error) {
-                        return;
+                    onTextChanged: {
+                        if (text.length >= 6) {
+                            twoFAButton.onClicked();
+                        }
                     }
-                    twoFactorPasswordTextField.enabled = false;
-                    loading = true;
-                    Backend.login2FA(usernameTextField.text, Qt.btoa(twoFactorPasswordTextField.text));
                 }
-            }
-            Button {
-                Layout.fillWidth: true
-                Layout.topMargin: 32
-                colorScheme: wizard.colorScheme
-                enabled: !twoFAButton.loading
-                secondary: true
-                text: qsTr("Cancel")
+                Button {
+                    id: twoFAButton
+                    Layout.fillWidth: true
+                    colorScheme: wizard.colorScheme
+                    enabled: !loading
+                    text: loading ? qsTr("Authenticating") : qsTr("Authenticate")
 
-                onClicked: {
-                    root.abort();
+                    onClicked: {
+                        twoFactorPasswordTextField.validate();
+                        if (twoFactorPasswordTextField.error) {
+                            return;
+                        }
+                        twoFactorPasswordTextField.enabled = false;
+                        loading = true;
+                        Backend.login2FA(usernameTextField.text, Qt.btoa(twoFactorPasswordTextField.text));
+                    }
+                }
+                Button {
+                    Layout.fillWidth: true
+                    colorScheme: wizard.colorScheme
+                    enabled: !twoFAButton.loading
+                    secondary: true
+                    text: qsTr("Cancel")
+
+                    onClicked: {
+                        root.abort();
+                    }
                 }
             }
         }
-        ColumnLayout {
-            id: mailboxPasswordLayout
-            function reset() {
-                secondPasswordButton.loading = false;
-                secondPasswordTextField.enabled = true;
-                secondPasswordTextField.error = false;
-                secondPasswordTextField.errorString = "";
-                secondPasswordTextField.text = "";
-            }
+        Item {
+            ColumnLayout {
+                id: mailboxPasswordLayout
+                function reset() {
+                    secondPasswordButton.loading = false;
+                    secondPasswordTextField.enabled = true;
+                    secondPasswordTextField.error = false;
+                    secondPasswordTextField.errorString = "";
+                    secondPasswordTextField.text = "";
+                }
 
-            spacing: 0
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 16
 
-            Label {
-                Layout.alignment: Qt.AlignCenter
-                colorScheme: wizard.colorScheme
-                text: qsTr("Unlock your mailbox")
-                type: Label.LabelType.Heading
-            }
-            Label {
-                Layout.alignment: Qt.AlignCenter
-                Layout.topMargin: 8
-                color: wizard.colorScheme.text_weak
-                colorScheme: wizard.colorScheme
-                type: Label.LabelType.Lead
-            }
-            TextField {
-                id: secondPasswordTextField
-                Layout.fillWidth: true
-                Layout.topMargin: 48
-                colorScheme: wizard.colorScheme
-                echoMode: TextInput.Password
-                label: qsTr("Mailbox password")
-                validateOnEditingFinished: false
-                validator: function (str) {
-                    if (str.length === 0) {
-                        return qsTr("Enter password");
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        horizontalAlignment: Text.AlignHCenter
+                        text: qsTr("Unlock your mailbox")
+                        type: Label.LabelType.Title
+                    }
+                    Label {
+                        id: mailboxPasswordUsernameLabel
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        color: wizard.colorScheme.text_weak
+                        colorScheme: wizard.colorScheme
+                        horizontalAlignment: Text.AlignHCenter
+                        text: ""
+                        type: Label.LabelType.Body
                     }
                 }
-
-                onAccepted: {
-                    secondPasswordButton.onClicked();
+                Label {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.fillWidth: true
+                    colorScheme: wizard.colorScheme
+                    horizontalAlignment: Text.AlignHCenter
+                    text: qsTr("You have secured your account with a separate mailbox password.")
+                    type: Label.LabelType.Body
+                    wrapMode: Text.WordWrap
                 }
-            }
-            Button {
-                id: secondPasswordButton
-                Layout.fillWidth: true
-                Layout.topMargin: 48
-                colorScheme: wizard.colorScheme
-                enabled: !loading
-                text: loading ? qsTr("Unlocking") : qsTr("Unlock")
-
-                onClicked: {
-                    secondPasswordTextField.validate();
-                    if (secondPasswordTextField.error) {
-                        return;
+                TextField {
+                    id: secondPasswordTextField
+                    Layout.fillWidth: true
+                    colorScheme: wizard.colorScheme
+                    echoMode: TextInput.Password
+                    label: qsTr("Mailbox password")
+                    validateOnEditingFinished: false
+                    validator: function (str) {
+                        if (str.length === 0) {
+                            return qsTr("Enter password");
+                        }
                     }
-                    secondPasswordTextField.enabled = false;
-                    loading = true;
-                    Backend.login2Password(usernameTextField.text, Qt.btoa(secondPasswordTextField.text));
-                }
-            }
-            Button {
-                Layout.fillWidth: true
-                Layout.topMargin: 32
-                colorScheme: wizard.colorScheme
-                enabled: !secondPasswordButton.loading
-                secondary: true
-                text: qsTr("Cancel")
 
-                onClicked: {
-                    root.abort();
+                    onAccepted: {
+                        secondPasswordButton.onClicked();
+                    }
+                }
+                Button {
+                    id: secondPasswordButton
+                    Layout.fillWidth: true
+                    colorScheme: wizard.colorScheme
+                    enabled: !loading
+                    text: loading ? qsTr("Unlocking") : qsTr("Unlock")
+
+                    onClicked: {
+                        secondPasswordTextField.validate();
+                        if (secondPasswordTextField.error) {
+                            return;
+                        }
+                        secondPasswordTextField.enabled = false;
+                        loading = true;
+                        Backend.login2Password(usernameTextField.text, Qt.btoa(secondPasswordTextField.text));
+                    }
+                }
+                Button {
+                    Layout.fillWidth: true
+                    colorScheme: wizard.colorScheme
+                    enabled: !secondPasswordButton.loading
+                    secondary: true
+                    text: qsTr("Cancel")
+
+                    onClicked: {
+                        root.abort();
+                    }
                 }
             }
         }

@@ -69,8 +69,8 @@ func NewLoginTfaRequestedEvent(username string) *StreamEvent {
 	return loginEvent(&LoginEvent{Event: &LoginEvent_TfaRequested{TfaRequested: &LoginTfaRequestedEvent{Username: username}}})
 }
 
-func NewLoginTwoPasswordsRequestedEvent() *StreamEvent {
-	return loginEvent(&LoginEvent{Event: &LoginEvent_TwoPasswordRequested{}})
+func NewLoginTwoPasswordsRequestedEvent(username string) *StreamEvent {
+	return loginEvent(&LoginEvent{Event: &LoginEvent_TwoPasswordRequested{TwoPasswordRequested: &LoginTwoPasswordsRequestedEvent{Username: username}}})
 }
 
 func NewLoginFinishedEvent(userID string, wasSignedOut bool) *StreamEvent {

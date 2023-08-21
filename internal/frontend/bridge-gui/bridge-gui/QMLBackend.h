@@ -233,7 +233,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void login2FARequested(QString const &username); ///< Signal for the 'login2FARequested' gRPC stream event.
     void login2FAError(QString const &errorMsg); ///< Signal for the 'login2FAError' gRPC stream event.
     void login2FAErrorAbort(QString const &errorMsg); ///< Signal for the 'login2FAErrorAbort' gRPC stream event.
-    void login2PasswordRequested(); ///< Signal for the 'login2PasswordRequested' gRPC stream event.
+    void login2PasswordRequested(QString const &username); ///< Signal for the 'login2PasswordRequested' gRPC stream event.
     void login2PasswordError(QString const &errorMsg); ///< Signal for the 'login2PasswordError' gRPC stream event.
     void login2PasswordErrorAbort(QString const &errorMsg); ///< Signal for the 'login2PasswordErrorAbort' gRPC stream event.
     void loginFinished(int index, bool wasSignedOut); ///< Signal for the 'loginFinished' gRPC stream event.

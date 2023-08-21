@@ -319,7 +319,9 @@ message LoginTfaRequestedEvent {
   string username = 1;
 }
 
-message LoginTwoPasswordsRequestedEvent {}
+message LoginTwoPasswordsRequestedEvent {
+  string username = 1;
+}
 
 message LoginFinishedEvent {
   string userID = 1;

@@ -1212,7 +1212,7 @@ void GRPCClient::processLoginEvent(LoginEvent const &event) {
         break;
     case LoginEvent::kTwoPasswordRequested:
         this->logTrace("Login event received: TwoPasswordRequested.");
-        emit login2PasswordRequested();
+        emit login2PasswordRequested(QString::fromStdString(event.twopasswordrequested().username()));
         break;
     case LoginEvent::kFinished: {
         this->logTrace("Login event received: Finished.");

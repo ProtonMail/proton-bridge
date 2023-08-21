@@ -278,8 +278,9 @@ SPStreamEvent newLoginTfaRequestedEvent(QString const &username) {
 /// \param[in] username The username.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newLoginTwoPasswordsRequestedEvent() {
+SPStreamEvent newLoginTwoPasswordsRequestedEvent(QString const &username) {
     auto event = new ::grpc::LoginTwoPasswordsRequestedEvent;
+    event->set_username(username.toStdString());
     auto loginEvent = new grpc::LoginEvent;
     loginEvent->set_allocated_twopasswordrequested(event);
     return wrapLoginEvent(loginEvent);

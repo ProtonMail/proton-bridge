@@ -400,7 +400,7 @@ Status GRPCService::Login(ServerContext *, LoginRequest const *request, Empty *)
         return Status::OK;
     }
     if (usersTab.nextUserTwoPasswordsRequired()) {
-        qtProxy_.sendDelayedEvent(newLoginTwoPasswordsRequestedEvent());
+        qtProxy_.sendDelayedEvent(newLoginTwoPasswordsRequestedEvent(loginUsername_));
         return Status::OK;
     }
 
@@ -425,7 +425,7 @@ Status GRPCService::Login2FA(ServerContext *, LoginRequest const *request, Empty
         return Status::OK;
     }
     if (usersTab.nextUserTwoPasswordsRequired()) {
-        qtProxy_.sendDelayedEvent(newLoginTwoPasswordsRequestedEvent());
+        qtProxy_.sendDelayedEvent(newLoginTwoPasswordsRequestedEvent(loginUsername_));
         return Status::OK;
     }
 
