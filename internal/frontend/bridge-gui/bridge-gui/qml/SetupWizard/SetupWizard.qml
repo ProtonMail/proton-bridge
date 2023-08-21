@@ -105,6 +105,8 @@ Item {
     }
     function showOnboarding() {
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
+        root.address = ""
+        root.user = null
         leftContent.showOnboarding();
         rightContent.currentIndex = SetupWizard.ContentStack.Onboarding;
     }
@@ -146,23 +148,23 @@ Item {
                 LeftPane {
                     id: leftContent
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 96
+                    anchors.bottomMargin: 92
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top: parent.top
-                    anchors.topMargin: 96
+                    anchors.topMargin: 40
                     clip: true
-                    width: 444
+                    width: 364
                     wizard: root
                 }
                 Image {
                     id: mailLogoWithWordmark
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 48
+                    anchors.bottomMargin: 40
                     anchors.horizontalCenter: parent.horizontalCenter
-                    height: 24
-                    width: 136
-                    sourceSize.height: 24
-                    sourceSize.width: 136
+                    height: 36
+                    width: 134
+                    sourceSize.height: 36
+                    sourceSize.width: 134
                     source: root.colorScheme.mail_logo_with_wordmark
                 }
             }
@@ -175,13 +177,13 @@ Item {
                 StackLayout {
                     id: rightContent
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 96
+                    anchors.bottomMargin: 92
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top: parent.top
-                    anchors.topMargin: 96
+                    anchors.topMargin: 40
                     clip: true
                     currentIndex: 0
-                    width: 444
+                    width: 364
 
                     // rightContent stack index 0
                     Onboarding {

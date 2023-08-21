@@ -59,6 +59,7 @@ Item {
                 Layout.fillWidth: true
                 colorScheme: root.colorScheme
                 text: root.description
+                color: root.colorScheme.text_weak
                 type: Label.LabelType.Body
                 verticalAlignment: Text.AlignTop
             }

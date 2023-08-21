@@ -28,17 +28,17 @@ ApplicationWindow {
 
     function layoutForUserCount(userCount) {
         if (userCount === 0) {
-            showLogin();
+            contentLayout.currentIndex = 1;
+            setupWizard.showOnboarding();
             return;
         }
         const u = Backend.users.get(0);
         if (!u) {
             console.trace();
-            console.log("empty user");
-            setupWizard.showOnboarding();
             return;
         }
         if ((userCount === 1) && (u.state === EUserState.SignedOut)) {
+            contentLayout.currentIndex = 1;
             setupWizard.showLogin(u.primaryEmailOrUsername());
         }
     }

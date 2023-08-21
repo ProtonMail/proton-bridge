@@ -19,23 +19,14 @@ import "." as Proton
 
 Item {
     id: root
-
     property var wizard
 
     ColumnLayout {
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.top: parent.top
-        spacing: 96
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 24
 
-        Label {
-            Layout.alignment: Qt.AlignHCenter
-            Layout.fillWidth: true
-            colorScheme: wizard.colorScheme
-            horizontalAlignment: Text.AlignHCenter
-            text: qsTr("Two-step process")
-            type: Label.LabelType.Heading
-        }
         StepDescriptionBox {
             colorScheme: wizard.colorScheme
             description: qsTr("Connect Bridge to your Proton account")
@@ -47,14 +38,14 @@ Item {
             colorScheme: wizard.colorScheme
             description: qsTr("Connect your email client to Bridge")
             icon: "/qml/icons/img-mail-clients.svg"
-            iconSize: 64
+            iconSize: 48
             title: qsTr("Step 2")
         }
         Button {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
             colorScheme: wizard.colorScheme
-            text: qsTr("Let's start")
+            text: qsTr("Start setup")
 
             onClicked: wizard.showLogin()
         }

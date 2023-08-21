@@ -100,8 +100,8 @@ Item {
     ColumnLayout {
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.top: parent.top
-        spacing: 0
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 16
 
         Image {
             id: icon
@@ -117,7 +117,6 @@ Item {
             id: titleLabel
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
-            Layout.topMargin: 16
             colorScheme: wizard.colorScheme
             horizontalAlignment: Text.AlignHCenter
             text: ""
@@ -128,7 +127,6 @@ Item {
             id: descriptionLabel
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
-            Layout.topMargin: 96
             colorScheme: wizard.colorScheme
             horizontalAlignment: Text.AlignHCenter
             text: ""
@@ -138,14 +136,12 @@ Item {
         LinkLabel {
             id: linkLabel1
             Layout.alignment: Qt.AlignHCenter
-            Layout.topMargin: 96
             colorScheme: wizard.colorScheme
             visible: (text !== "")
         }
         LinkLabel {
             id: linkLabel2
             Layout.alignment: Qt.AlignHCenter
-            Layout.topMargin: 16
             colorScheme: wizard.colorScheme
             visible: (text !== "")
         }

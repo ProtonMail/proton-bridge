@@ -23,14 +23,15 @@ Button {
     property var wizard
 
     anchors.bottom: parent.bottom
-    anchors.bottomMargin: 24
+    anchors.bottomMargin: 32
     anchors.right: parent.right
-    anchors.rightMargin: 24
+    anchors.rightMargin: 32
     colorScheme: wizard.colorScheme
-    height: 36
     horizontalPadding: 0
     icon.source: "/qml/icons/ic-question-circle.svg"
-    width: 36
+    icon.height: 24
+    icon.width: 24
+    verticalPadding: 0
 
     onClicked: {
         menu.popup(-menu.width + root.width, -menu.height);
