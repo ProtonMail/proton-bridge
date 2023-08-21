@@ -159,9 +159,10 @@ Item {
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 48
                     anchors.horizontalCenter: parent.horizontalCenter
-                    fillMode: Image.PreserveAspectFit
                     height: 24
-                    mipmap: true
+                    width: 136
+                    sourceSize.height: 24
+                    sourceSize.width: 136
                     source: root.colorScheme.mail_logo_with_wordmark
                 }
             }
