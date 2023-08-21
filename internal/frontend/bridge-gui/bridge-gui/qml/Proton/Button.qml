@@ -30,6 +30,7 @@ T.Button {
     property alias secondary: control.flat
     property alias textHorizontalAlignment: label.horizontalAlignment
     property alias textVerticalAlignment: label.verticalAlignment
+    property bool secondaryIsOpaque: false;
 
     font: label.font
     horizontalPadding: 16
@@ -77,7 +78,7 @@ T.Button {
                     if (control.loading) {
                         return control.colorScheme.interaction_default_hover;
                     }
-                    return control.colorScheme.interaction_default;
+                    return secondaryIsOpaque ? control.colorScheme.background_norm:  control.colorScheme.interaction_default;
                 }
             } else {
                 if (primary) {
@@ -103,7 +104,7 @@ T.Button {
                     if (control.loading) {
                         return control.colorScheme.interaction_default_hover;
                     }
-                    return control.colorScheme.interaction_default;
+                    return secondaryIsOpaque ? control.colorScheme.background_norm : control.colorScheme.interaction_default;
                 }
             }
         }

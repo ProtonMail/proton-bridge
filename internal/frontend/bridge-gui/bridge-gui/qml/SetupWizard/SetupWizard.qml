@@ -182,16 +182,12 @@ Item {
 
                     // rightContent stack index 0
                     Onboarding {
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
                         wizard: root
                     }
 
                     // rightContent tack index 1
                     Login {
                         id: login
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
                         wizard: root
 
                         onLoginAbort: {
@@ -202,15 +198,11 @@ Item {
                     // rightContent stack index 2
                     ClientConfigSelector {
                         id: clientConfigSelector
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
                         wizard: root
                     }
                     // rightContent stack index 3
                     ClientConfigAppleMail {
                         id: clientConfigAppleMail
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
                         wizard: root
                     }
                 }

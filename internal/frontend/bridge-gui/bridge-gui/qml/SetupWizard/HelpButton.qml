@@ -31,6 +31,7 @@ Button {
     icon.source: "/qml/icons/ic-question-circle.svg"
     icon.height: 24
     icon.width: 24
+    icon.color: wizard.colorScheme.text_weak
     verticalPadding: 0
 
     onClicked: {

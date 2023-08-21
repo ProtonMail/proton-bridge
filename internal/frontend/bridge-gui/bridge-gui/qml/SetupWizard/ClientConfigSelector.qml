@@ -27,18 +27,18 @@ Item {
     ColumnLayout {
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.top: parent.top
-        spacing: 0
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 16
 
         Label {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
+            Layout.topMargin: 16
             colorScheme: wizard.colorScheme
-            text: qsTr("Select your email application")
-            type: Label.LabelType.Heading
-        }
-        Item {
-            Layout.preferredHeight: 72
+            horizontalAlignment: Qt.AlignHCenter
+            text: qsTr("Select your email client")
+            type: Label.LabelType.Title
+            wrapMode: Text.WordWrap
         }
         ClientListItem {
             Layout.fillWidth: true
@@ -86,14 +86,13 @@ Item {
                 wizard.showClientParams();
             }
         }
-        Item {
-            Layout.preferredHeight: 72
-        }
         Button {
             Layout.fillWidth: true
+            Layout.topMargin: 20
             colorScheme: wizard.colorScheme
             secondary: true
-            text: qsTr("Cancel")
+            secondaryIsOpaque: true
+            text: qsTr("Setup later")
 
             onClicked: {
                 root.wizard.closeWizard();

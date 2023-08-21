@@ -22,27 +22,28 @@ Item {
     id: root
 
     property var wizard
+    property int iconHeight
+    property int iconWidth
+    property string iconSource
 
     function showClientConfigCommon() {
         const clientName = wizard.clientName();
         titleLabel.text = qsTr("Configure %1").arg(clientName);
         descriptionLabel.text = qsTr("We will now guide you through the process of setting up your Proton account in %1.").arg(clientName);
         icon.source = wizard.clientIconSource();
-        icon.sourceSize.height = 128;
-        icon.sourceSize.width = 128;
+        icon.sourceSize.height = 264;
+        icon.sourceSize.width = 263;
         Layout.preferredHeight = 72;
         Layout.preferredWidth = 72;
     }
-    function showClientConfigWarning() {
-        showClientConfigCommon();
-        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why can't I use my Proton password in my email client?"));
-    }
     function showClientSelector() {
-        titleLabel.text = qsTr("Configure your email client");
+        titleLabel.text = "";
         descriptionLabel.text = qsTr("Bridge is now connected to Proton, and has already started downloading your messages. Let’s now connect your email client to Bridge.");
         linkLabel1.clear();
         linkLabel2.clear();
-        icon.source = "/qml/icons/img-mail-clients.svg";
+        iconSource = "/qml/icons/img-client-config-selector.svg";
+        iconHeight = 222;
+        iconWidth = 264;
     }
     function showLogin() {
         showOnboarding()
@@ -58,11 +59,9 @@ Item {
         descriptionLabel.text = qsTr("Bridge is the gateway between your Proton account and your email client. It runs in the background and encrypts and decrypts your messages seamlessly. ");
         linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why do I need Bridge?"));
         linkLabel2.clear();
-        icon.Layout.preferredHeight = 148;
-        icon.Layout.preferredWidth = 265;
-        icon.source = "/qml/icons/img-welcome.svg";
-        icon.sourceSize.height = 148;
-        icon.sourceSize.width = 265;
+        iconSource = "/qml/icons/img-welcome.svg"
+        iconHeight= 148;
+        iconWidth = 265;
     }
 
     Connections {
@@ -84,12 +83,11 @@ Item {
         Image {
             id: icon
             Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-            Layout.preferredHeight: 72
-            Layout.preferredWidth: 72
-            fillMode: Image.PreserveAspectFit
-            source: ""
-            sourceSize.height: 72
-            sourceSize.width: 72
+            Layout.preferredHeight: iconHeight
+            Layout.preferredWidth: iconWidth
+            source: iconSource
+            sourceSize.height: iconHeight
+            sourceSize.width: iconWidth
         }
         Label {
             id: titleLabel
@@ -100,6 +98,7 @@ Item {
             text: ""
             type: Label.LabelType.Heading
             wrapMode: Text.WordWrap
+            visible: text.length !== 0
         }
         Label {
             id: descriptionLabel

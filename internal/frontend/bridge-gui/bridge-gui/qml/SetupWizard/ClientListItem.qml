@@ -17,7 +17,7 @@ import QtQuick.Controls
 import QtQuick.Controls.impl
 import Proton
 
-Item {
+Rectangle {
     id: root
 
     property ColorScheme colorScheme
@@ -26,41 +26,44 @@ Item {
 
     signal clicked
 
-    implicitHeight: clientRow.height
-
-    ColumnLayout {
-        id: clientRow
-        anchors.left: parent.left
-        anchors.right: parent.right
-        spacing: 0
-
-        RowLayout {
-            Layout.bottomMargin: 12
-            Layout.leftMargin: 16
-            Layout.rightMargin: 16
-            Layout.topMargin: 12
-
-            ColorImage {
-                height: 36
-                source: iconSource
-                sourceSize.height: 36
-            }
-            Label {
-                Layout.leftMargin: 12
-                colorScheme: root.colorScheme
-                text: root.text
-                type: Label.LabelType.Body
-            }
+    border.color: colorScheme.border_norm
+    border.width: 1
+    color: {
+        if (mouseArea.pressed) {
+            return colorScheme.interaction_default_active;
         }
-        Rectangle {
+        if (mouseArea.containsMouse) {
+            return colorScheme.interaction_default_hover
+        }
+        return colorScheme.background_norm;
+    }
+    height: 68
+    radius: 12
+
+    RowLayout {
+        anchors.fill: parent
+        anchors.margins: 16
+
+        ColorImage {
+            height: 36
+            source: iconSource
+            sourceSize.height: 36
+        }
+        Label {
             Layout.fillWidth: true
-            Layout.preferredHeight: 1
-            color: root.colorScheme.border_weak
+            Layout.leftMargin: 12
+            colorScheme: root.colorScheme
+            horizontalAlignment: Text.AlignLeft
+            text: root.text
+            type: Label.LabelType.Body
+            verticalAlignment: Text.AlignVCenter
         }
     }
     MouseArea {
+        id: mouseArea
+        acceptedButtons: Qt.LeftButton
         anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
+        hoverEnabled: true
 
         onClicked: {
             root.clicked();

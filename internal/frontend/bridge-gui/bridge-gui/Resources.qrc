@@ -49,6 +49,7 @@
         <file>qml/icons/ic-success.svg</file>
         <file>qml/icons/ic-three-dots-vertical.svg</file>
         <file>qml/icons/ic-trash.svg</file>
+        <file>qml/icons/img-client-config-selector.svg</file>
         <file>qml/icons/img-mail-clients.svg</file>
         <file>qml/icons/img-mail-logo-wordmark-dark.svg</file>
         <file>qml/icons/img-mail-logo-wordmark.svg</file>
