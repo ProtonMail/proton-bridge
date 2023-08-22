@@ -21,9 +21,11 @@ import ".."
 Rectangle {
     id: root
 
+    property ColorScheme colorScheme: wizard.colorScheme
     readonly property bool genericClient: SetupWizard.Client.Generic === wizard.client
     property var wizard
 
+    clip: true
     color: colorScheme.background_weak
 
     Item {
@@ -31,15 +33,13 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        width: 800
+        width: 640
 
         ColumnLayout {
-            anchors.bottomMargin: 96
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.topMargin: 32
-            spacing: 0
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 16
 
             Label {
                 Layout.alignment: Qt.AlignHCenter
@@ -47,31 +47,84 @@ Rectangle {
                 colorScheme: wizard.colorScheme
                 horizontalAlignment: Text.AlignHCenter
                 text: qsTr("Configure %1").arg(wizard.clientName())
-                type: Label.LabelType.Heading
+                type: Label.LabelType.Title
                 wrapMode: Text.WordWrap
             }
-            Label {
-                id: descriptionLabel
-                Layout.alignment: Qt.AlignHCenter
+            Rectangle {
                 Layout.fillWidth: true
-                Layout.topMargin: 8
-                color: colorScheme.text_weak
-                colorScheme: wizard.colorScheme
-                horizontalAlignment: Text.AlignHCenter
-                text: genericClient ? qsTr("Here are the IMAP and SMTP configuration parameters for your email client") : qsTr("Here are your email configuration parameters for %1. \nWe have prepared an easy to follow configuration guide to help you setup your account in %1.").arg(wizard.clientName())
-                type: Label.LabelType.Body
-                wrapMode: Text.WordWrap
+                border.color: colorScheme.border_norm
+                border.width: 1
+                color: "transparent"
+                height: childrenRect.height + 2 * 16
+                radius: 12
+
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.margins: 16
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    spacing: 16
+
+                    Label {
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        horizontalAlignment: Text.AlignLeft
+                        text: (SetupWizard.Client.MicrosoftOutlook === wizard.client) ? qsTr("Are you unsure about your Outlook version or do you need assistance in configuring Outlook?") : qsTr("Do you need assistant is configuring %1?".arg(wizard.clientName()))
+                        type: Label.LabelType.Body
+                        verticalAlignment: Text.AlignVCenter
+                        wrapMode: Text.WordWrap
+                    }
+                    Button {
+                        colorScheme: root.colorScheme
+                        text: qsTr("Open Guide")
+                    }
+                }
+            }
+            Rectangle {
+                Layout.fillWidth: true
+                border.color: colorScheme.signal_warning
+                border.width: 1
+                color: "transparent"
+                height: childrenRect.height + 2 * 16
+                radius: 12
+
+                RowLayout {
+                    anchors.left: parent.left
+                    anchors.margins: 16
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    spacing: 16
+
+                    ColorImage {
+                        id: image
+                        height: 36
+                        source: "/qml/icons/ic-warning-orange.svg"
+                        sourceSize.height: height
+                        sourceSize.width: width
+                        width: height
+                    }
+                    Label {
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        horizontalAlignment: Text.AlignLeft
+                        text: qsTr("Copy paste the provided configuration parameters. Use the password below (not your Proton password), when adding your Proton account to %1.".arg(wizard.clientName()))
+                        type: Label.LabelType.Body
+                        verticalAlignment: Text.AlignVCenter
+                        wrapMode: Text.WordWrap
+                    }
+                }
             }
             RowLayout {
                 id: configuration
-                Layout.fillHeight: true
                 Layout.fillWidth: true
-                Layout.topMargin: 32
-                spacing: 64
+                spacing: 32
 
                 Configuration {
                     Layout.fillWidth: true
                     colorScheme: wizard.colorScheme
+                    highlightPassword: true
                     hostname: Backend.hostname
                     password: wizard.user ? wizard.user.password : ""
                     port: Backend.imapPort.toString()
@@ -82,6 +135,7 @@ Rectangle {
                 Configuration {
                     Layout.fillWidth: true
                     colorScheme: wizard.colorScheme
+                    highlightPassword: true
                     hostname: Backend.hostname
                     password: wizard.user ? wizard.user.password : ""
                     port: Backend.smtpPort.toString()
@@ -92,21 +146,15 @@ Rectangle {
             }
             Button {
                 Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: 444
-                Layout.topMargin: 32
-                colorScheme: wizard.colorScheme
-                text: qsTr("Open configuration guide")
-                visible: !genericClient
-            }
-            Button {
-                Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: 444
-                Layout.topMargin: 32
-                colorScheme: wizard.colorScheme
-                text: qsTr("Done")
+                Layout.preferredWidth: 304
+                colorScheme: root.colorScheme
+                secondary: true
+                secondaryIsOpaque: true
+                text: qsTr("Continue")
 
                 onClicked: wizard.closeWizard()
             }
         }
     }
 }
+

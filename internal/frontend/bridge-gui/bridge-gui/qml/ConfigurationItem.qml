@@ -21,6 +21,7 @@ Item {
 
     property var colorScheme
     property string label
+    property string labelColor: root.colorScheme.text_norm
     property string value
 
     Layout.fillWidth: true
@@ -35,9 +36,10 @@ Item {
 
             ColumnLayout {
                 Label {
+                    color: labelColor
                     colorScheme: root.colorScheme
                     text: root.label
-                    type: Label.Body
+                    type: Label.Body_semibold
                 }
                 TextEdit {
                     id: valueText
