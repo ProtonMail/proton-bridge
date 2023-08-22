@@ -136,6 +136,7 @@ T.Button {
             text: control.text
             type: labelType
             visible: !control.isIcon
+            verticalAlignment: Text.AlignVCenter
         }
         ColorImage {
             id: iconImage

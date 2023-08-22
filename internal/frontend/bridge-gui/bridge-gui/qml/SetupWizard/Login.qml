@@ -263,6 +263,7 @@ FocusScope {
                     colorScheme: wizard.colorScheme
                     enabled: !signInButton.loading
                     secondary: true
+                    secondaryIsOpaque: true
                     text: qsTr("Cancel")
 
                     onClicked: {
@@ -369,6 +370,7 @@ FocusScope {
                     colorScheme: wizard.colorScheme
                     enabled: !twoFAButton.loading
                     secondary: true
+                    secondaryIsOpaque: true
                     text: qsTr("Cancel")
 
                     onClicked: {
@@ -464,6 +466,7 @@ FocusScope {
                     colorScheme: wizard.colorScheme
                     enabled: !secondPasswordButton.loading
                     secondary: true
+                    secondaryIsOpaque: true
                     text: qsTr("Cancel")
 
                     onClicked: {

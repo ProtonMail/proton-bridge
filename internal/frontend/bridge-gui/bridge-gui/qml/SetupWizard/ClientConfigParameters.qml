@@ -63,7 +63,7 @@ Rectangle {
                     anchors.margins: 16
                     anchors.right: parent.right
                     anchors.top: parent.top
-                    spacing: 16
+                    spacing: 8
 
                     Label {
                         Layout.fillHeight: true
@@ -77,6 +77,7 @@ Rectangle {
                     }
                     Button {
                         colorScheme: root.colorScheme
+                        icon.source: "/qml/icons/ic-external-link.svg"
                         text: qsTr("Open Guide")
                     }
                 }
@@ -152,7 +153,7 @@ Rectangle {
                 secondaryIsOpaque: true
                 text: qsTr("Continue")
 
-                onClicked: wizard.closeWizard()
+                onClicked: wizard.showClientConfigEnd()
             }
         }
     }

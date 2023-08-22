@@ -34,7 +34,8 @@ Item {
     }
     enum RootStack {
         TwoPanesView,
-        ClientConfigParameters
+        ClientConfigParameters,
+        ClientConfigEnd
     }
 
     property string address
@@ -94,6 +95,9 @@ Item {
     }
     function showClientParams() {
         rootStackLayout.currentIndex = SetupWizard.RootStack.ClientConfigParameters;
+    }
+    function showClientConfigEnd() {
+        rootStackLayout.currentIndex = SetupWizard.RootStack.ClientConfigEnd;
     }
     function showLogin(username = "") {
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
@@ -212,6 +216,14 @@ Item {
         // rootStackLayout index 1
         ClientConfigParameters {
             id: clientConfigParameters
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            wizard: root
+        }
+
+        // rootStackLayout index 2
+        ClientConfigEnd {
+            id: clientConfigEnd
             Layout.fillHeight: true
             Layout.fillWidth: true
             wizard: root
