@@ -51,7 +51,7 @@ func NewService(
 	settingsGetter SettingsGetter,
 	eventService userevents.Subscribable,
 ) *Service {
-	s := &Service{
+	return &Service{
 		cpc: cpc.NewCPC(),
 		log: logrus.WithFields(logrus.Fields{
 			"user":    userID,
@@ -66,14 +66,10 @@ func NewService(
 		userID:         userID,
 		settingsGetter: settingsGetter,
 	}
-
-	s.initialise()
-
-	return s
 }
 
-func (s *Service) initialise() {
-	settings, err := s.settingsGetter.GetUserSettings(context.Background())
+func (s *Service) initialise(ctx context.Context) {
+	settings, err := s.settingsGetter.GetUserSettings(ctx)
 	if err != nil {
 		logrus.WithError(err).Error("Cannot get telemetry settings, asuming off")
 		s.isInitialised = false
@@ -88,6 +84,8 @@ func (s *Service) initialise() {
 }
 
 func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGroup) {
+	s.initialise(ctx)
+
 	group.Go(ctx, s.userID, "telemetry-service", s.run)
 }
 
@@ -118,7 +116,7 @@ func (s *Service) run(ctx context.Context) {
 			case *isTelemetryEnabledReq:
 				s.log.Debug("Received is telemetry enabled request")
 				if !s.isInitialised {
-					s.initialise()
+					s.initialise(ctx)
 				}
 
 				request.Reply(ctx, s.isTelemetryEnabled, nil)
@@ -137,8 +135,8 @@ func (s *Service) run(ctx context.Context) {
 	}
 }
 
-func (s *Service) HandleRefreshEvent(_ context.Context, _ proton.RefreshFlag) error {
-	s.initialise()
+func (s *Service) HandleRefreshEvent(ctx context.Context, _ proton.RefreshFlag) error {
+	s.initialise(ctx)
 	return nil
 }
 

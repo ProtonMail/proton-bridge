@@ -26,7 +26,13 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	if level := os.Getenv("FEATURE_TEST_LOG_LEVEL"); level != "" {
+	level := os.Getenv("FEATURE_TEST_LOG_LEVEL")
+
+	if os.Getenv("BRIDGE_API_DEBUG") != "" {
+		level = "trace"
+	}
+
+	if level != "" {
 		if parsed, err := logrus.ParseLevel(level); err == nil {
 			logrus.SetLevel(parsed)
 		}

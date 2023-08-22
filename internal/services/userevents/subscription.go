@@ -46,7 +46,7 @@ func (e EventHandler) OnEvent(ctx context.Context, event proton.Event) error {
 	}
 
 	// Start with user settings because of telemetry.
-	if event.UserSettings != nil {
+	if event.UserSettings != nil && e.UserSettingsHandler != nil {
 		if err := e.UserSettingsHandler.HandleUserSettingsEvent(ctx, event.UserSettings); err != nil {
 			return fmt.Errorf("failed to apply user event: %w", err)
 		}

@@ -246,7 +246,7 @@ test-race: gofiles
 test-integration: gofiles
 	mkdir -p coverage/integration
 	go test \
-		-v -timeout=60m -p=1 -count=1 \
+		-v -timeout=60m -p=1 -count=1 -tags=test_integration \
 		${GOCOVERAGE} \
 		github.com/ProtonMail/proton-bridge/v3/tests \
 		${GOCOVERDIR}/integration
@@ -261,7 +261,7 @@ test-integration-race: gofiles
 test-integration-nightly: gofiles
 	mkdir -p coverage/integration
 	go test \
-		-v -timeout=90m -p=1 -count=1 \
+		-v -timeout=90m -p=1 -count=1 -tags=test_integration \
 		${GOCOVERAGE} \
 		github.com/ProtonMail/proton-bridge/v3/tests \
 		${GOCOVERDIR}/integration \

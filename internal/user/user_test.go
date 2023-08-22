@@ -85,23 +85,6 @@ func TestUser_AddressMode(t *testing.T) {
 	})
 }
 
-func TestUser_Telemetry(t *testing.T) {
-	withAPI(t, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
-		withAccount(t, s, "username", "password", []string{}, func(string, []string) {
-			withUser(t, ctx, s, m, "username", "password", func(user *User) {
-				// By default, user should have Telemetry enabled.
-				telemetry := user.IsTelemetryEnabled(ctx)
-				require.Equal(t, true, telemetry)
-
-				user.client.Close()
-				// If telemetry cannot be retrieved it is disabled.
-				telemetry = user.IsTelemetryEnabled(ctx)
-				require.Equal(t, false, telemetry)
-			})
-		})
-	})
-}
-
 func withAPI(_ testing.TB, ctx context.Context, fn func(context.Context, *server.Server, *proton.Manager)) { //nolint:revive
 	server := server.New()
 	defer server.Close()

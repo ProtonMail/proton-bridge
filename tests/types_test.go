@@ -214,6 +214,7 @@ func matchMailboxes(have, want []Mailbox) error {
 
 func eventually(condition func() error) error {
 	ch := make(chan error, 1)
+	var lastErr error
 
 	var timerDuration = 30 * time.Second
 	// Extend to 5min for live API.
@@ -230,7 +231,7 @@ func eventually(condition func() error) error {
 	for tick := ticker.C; ; {
 		select {
 		case <-timer.C:
-			return fmt.Errorf("timed out")
+			return fmt.Errorf("timed out: %w", lastErr)
 
 		case <-tick:
 			tick = nil
@@ -242,6 +243,7 @@ func eventually(condition func() error) error {
 				return nil
 			}
 
+			lastErr = err
 			tick = ticker.C
 		}
 	}

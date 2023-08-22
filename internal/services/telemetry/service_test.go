@@ -78,14 +78,14 @@ func TestService_OnUserSettingsEvent(t *testing.T) {
 		mockSettingsGetter,
 		&userevents.NoOpSubscribable{},
 	)
-
-	require.True(t, service.isInitialised)
+	require.False(t, service.isInitialised)
 
 	ctx := context.Background()
 	group := orderedtasks.NewOrderedCancelGroup(async.NoopPanicHandler{})
 	defer group.CancelAndWait()
 
 	service.Start(ctx, group)
+	require.True(t, service.isInitialised)
 	require.False(t, service.IsTelemetryEnabled(ctx))
 
 	require.NoError(t, service.HandleUserSettingsEvent(context.Background(), &proton.UserSettings{Telemetry: proton.SettingEnabled}))
