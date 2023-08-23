@@ -14,8 +14,6 @@ import QtQml
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import QtQuick.Controls.impl
-import Proton
 
 Rectangle {
     id: root
@@ -33,7 +31,7 @@ Rectangle {
             return colorScheme.interaction_default_active;
         }
         if (mouseArea.containsMouse) {
-            return colorScheme.interaction_default_hover
+            return colorScheme.interaction_default_hover;
         }
         return colorScheme.background_norm;
     }

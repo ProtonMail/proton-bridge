@@ -14,8 +14,6 @@ import QtQml
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import QtQuick.Controls.impl
-import "." as Proton
 
 Item {
     id: root
@@ -57,9 +55,9 @@ Item {
                 Layout.alignment: Qt.AlignLeft | Qt.AlignTop
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+                color: root.colorScheme.text_weak
                 colorScheme: root.colorScheme
                 text: root.description
-                color: root.colorScheme.text_weak
                 type: Label.LabelType.Body
                 verticalAlignment: Text.AlignTop
             }

@@ -14,8 +14,6 @@ import QtQml
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import QtQuick.Controls.impl
-import Proton
 
 FocusScope {
     id: root
@@ -41,6 +39,11 @@ FocusScope {
         loginLayout.reset(clearUsername);
         totpLayout.reset();
         mailboxPasswordLayout.reset();
+        if (username.length === 0) {
+            usernameTextField.forceActiveFocus();
+        } else {
+            passwordTextField.forceActiveFocus();
+        }
     }
 
     StackLayout {

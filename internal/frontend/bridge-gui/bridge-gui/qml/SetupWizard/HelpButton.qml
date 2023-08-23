@@ -14,8 +14,6 @@ import QtQml
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import QtQuick.Controls.impl
-import Proton
 
 Button {
     id: root
@@ -28,10 +26,10 @@ Button {
     anchors.rightMargin: 32
     colorScheme: wizard.colorScheme
     horizontalPadding: 0
-    icon.source: "/qml/icons/ic-question-circle.svg"
-    icon.height: 24
-    icon.width: 24
     icon.color: wizard.colorScheme.text_weak
+    icon.height: 24
+    icon.source: "/qml/icons/ic-question-circle.svg"
+    icon.width: 24
     verticalPadding: 0
 
     onClicked: {

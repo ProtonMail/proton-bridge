@@ -14,9 +14,6 @@ import QtQml
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import QtQuick.Controls.impl
-import "." as Proton
-import ".."
 
 Item {
     id: root
@@ -102,8 +99,8 @@ Item {
         root.address = "";
         leftContent.showLogin();
         rightContent.currentIndex = SetupWizard.ContentStack.Login;
-        login.reset(true);
         login.username = username;
+        login.reset(false);
     }
     function showOnboarding() {
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
@@ -152,6 +149,7 @@ Item {
                     clip: true
                     width: 364
                     wizard: root
+
                     Connections {
                         function onAppleMailAutoconfigCertificateInstallPageShown() {
                             leftContent.showAppleMailAutoconfigCertificateInstall();
