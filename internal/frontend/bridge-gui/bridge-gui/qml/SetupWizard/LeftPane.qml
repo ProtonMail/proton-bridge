@@ -26,28 +26,24 @@ Item {
     property int iconWidth
     property var wizard
 
-    function showAppleMailAutoconfig() {
-        titleLabel.text = "";
+    function showAppleMailAutoconfigCertificateInstall() {
+        showAppleMailAutoconfigCommon();
         descriptionLabel.text = qsTr("Apple Mail configuration is mostly automated, but in order to work, Bridge needs to install a certificate in your keychain.");
+        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why is this certificate needed?"));
+    }
+    function showAppleMailAutoconfigCommon() {
+        titleLabel.text = "";
         linkLabel1.clear();
         linkLabel2.clear();
         iconSource = wizard.clientIconSource();
         iconHeight = 80;
         iconWidth = 80;
     }
-
-    function showAppleMailAutoconfigCertificateInstall() {
-        console.error("showAppleMailAutoconfigCertificateInstall");
-        showAppleMailAutoconfig();
-        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why is this certificate needed?"));
-    }
-
     function showAppleMailAutoconfigProfileInstall() {
-        console.error("showAppleMailAutoconfigProfileInstall");
-        showAppleMailAutoconfig();
-        linkLabel1.setLink("", qsTr("")); // We are not clearing to keep occupying the vertical space.
+        showAppleMailAutoconfigCommon();
+        descriptionLabel.text = qsTr("The final step before you can start using Apple Mail is to install the Bridge server profile in the system preferences.\n\nAdding a server profile is necessary to ensure that your Mac can receive and send Proton Mails.");
+        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why is there a yellow warning sign?"));
     }
-
     function showClientSelector() {
         titleLabel.text = "";
         descriptionLabel.text = qsTr("Bridge is now connected to Proton, and has already started downloading your messages. Let’s now connect your email client to Bridge.");

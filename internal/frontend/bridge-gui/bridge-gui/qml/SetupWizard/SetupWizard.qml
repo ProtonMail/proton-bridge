@@ -81,9 +81,8 @@ Item {
     }
     function showAppleMailAutoConfig() {
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
-        leftContent.showAppleMailAutoconfig();
         rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigAppleMail;
-        clientConfigAppleMail.showAutoconfig();
+        clientConfigAppleMail.showAutoconfig(); // This will trigger signals that will display the appropriate left content.
     }
     function showClientConfig(user, address) {
         root.user = user;

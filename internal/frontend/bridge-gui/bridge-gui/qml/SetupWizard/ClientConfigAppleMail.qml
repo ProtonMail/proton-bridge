@@ -103,7 +103,6 @@ Item {
                     }
                 }
                 Image {
-                    id: certScreenshot
                     Layout.alignment: Qt.AlignHCenter
                     height: 182
                     opacity: certificateInstall.waitingForCert ? 0.3 : 1.0
@@ -115,7 +114,6 @@ Item {
                     spacing: 16
 
                     Button {
-                        id: certInstallButton
                         Layout.fillWidth: true
                         colorScheme: wizard.colorScheme
                         enabled: !certificateInstall.waitingForCert
@@ -142,42 +140,104 @@ Item {
             }
         }
         // stack index 1
-        ColumnLayout {
+        Item {
             id: profileInstall
             Layout.fillHeight: true
             Layout.fillWidth: true
 
-            Label {
-                Layout.alignment: Qt.AlignHCenter
-                Layout.fillWidth: true
-                colorScheme: wizard.colorScheme
-                horizontalAlignment: Text.AlignHCenter
-                text: "Profile install placeholder"
-                type: Label.LabelType.Heading
-                wrapMode: Text.WordWrap
-            }
-            Button {
-                Layout.fillWidth: true
-                Layout.topMargin: 48
-                colorScheme: wizard.colorScheme
-                text: "Install Profile Placeholder"
+            ColumnLayout {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 24
 
-                onClicked: {
-                    wizard.user.configureAppleMail(wizard.address);
-                    wizard.closeWizard();
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 16
+
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        horizontalAlignment: Text.AlignHCenter
+                        text: "Install the profile"
+                        type: Label.LabelType.Title
+                        wrapMode: Text.WordWrap
+                    }
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        color: colorScheme.text_weak
+                        colorScheme: wizard.colorScheme
+                        horizontalAlignment: Text.AlignHCenter
+                        text: qsTr("A system pop-up will appear. Double click on the entry with your email, and click ’Install’ in the dialog that appears.")
+                        type: Label.LabelType.Body
+                        wrapMode: Text.WordWrap
+                    }
                 }
-            }
-            Button {
-                Layout.fillWidth: true
-                Layout.topMargin: 32
-                colorScheme: wizard.colorScheme
-                secondary: true
-                text: qsTr("Cancel")
+                Image {
+                    Layout.alignment: Qt.AlignHCenter
+                    height: 102
+                    opacity: certificateInstall.waitingForCert ? 0.3 : 1.0
+                    source: "/qml/icons/img-macos-profile-screenshot.png"
+                    width: 364
+                }
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 16
 
-                onClicked: {
-                    wizard.closeWizard();
+                    Button {
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        text: "Install the profile"
+
+                        onClicked: {
+                            wizard.user.configureAppleMail(wizard.address);
+                            wizard.showClientConfigEnd();
+                        }
+                    }
+                    Button {
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        secondary: true
+                        text: qsTr("Cancel")
+
+                        onClicked: {
+                            wizard.closeWizard();
+                        }
+                    }
                 }
             }
         }
     }
 }
+
+// Label {
+//     Layout.alignment: Qt.AlignHCenter
+//     Layout.fillWidth: true
+//     colorScheme: wizard.colorScheme
+//     horizontalAlignment: Text.AlignHCenter
+//     text: "Profile install placeholder"
+//     type: Label.LabelType.Heading
+//     wrapMode: Text.WordWrap
+// }
+// Button {
+//     Layout.fillWidth: true
+//     Layout.topMargin: 48
+//     colorScheme: wizard.colorScheme
+//     text: "Install Profile Placeholder"
+//     onClicked: {
+//         wizard.user.configureAppleMail(wizard.address);
+//         wizard.closeWizard();
+//     }
+// }
+// Button {
+//     Layout.fillWidth: true
+//     Layout.topMargin: 32
+//     colorScheme: wizard.colorScheme
+//     secondary: true
+//     text: qsTr("Cancel")
+//     onClicked: {
+//         wizard.closeWizard();
+//     }
+// }
