@@ -128,7 +128,7 @@ Rectangle {
                     password: wizard.user ? wizard.user.password : ""
                     port: Backend.imapPort.toString()
                     security: Backend.useSSLForIMAP ? "SSL" : "STARTTLS"
-                    title: qsTr("IMAP")
+                    title: "IMAP"
                     username: wizard.address
                 }
                 Configuration {
@@ -139,7 +139,7 @@ Rectangle {
                     password: wizard.user ? wizard.user.password : ""
                     port: Backend.smtpPort.toString()
                     security: Backend.useSSLForSMTP ? "SSL" : "STARTTLS"
-                    title: qsTr("SMTP")
+                    title: "SMTP"
                     username: wizard.address
                 }
             }

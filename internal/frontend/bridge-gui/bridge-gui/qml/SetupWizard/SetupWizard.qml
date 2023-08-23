@@ -67,10 +67,10 @@ Item {
         case SetupWizard.Client.MozillaThunderbird:
             return "Thunderbird";
         case SetupWizard.Client.Generic:
-            return "your email client";
+            return qsTr("your email client");
         default:
             console.error("Unknown mail client " + client);
-            return "your email client";
+            return qsTr("your email client");
         }
     }
     function closeWizard() {

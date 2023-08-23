@@ -77,7 +77,7 @@ Item {
             Layout.fillWidth: true
             colorScheme: wizard.colorScheme
             iconSource: "/qml/icons/ic-other-mail-clients.svg"
-            text: "Other"
+            text: qsTr("Other")
 
             onClicked: {
                 wizard.client = SetupWizard.Client.Generic;

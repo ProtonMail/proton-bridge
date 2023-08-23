@@ -90,7 +90,7 @@ Item {
                         Layout.fillWidth: true
                         colorScheme: wizard.colorScheme
                         horizontalAlignment: Text.AlignHCenter
-                        text: "Install the bridge certificate"
+                        text: qsTr("Install the bridge certificate")
                         type: Label.LabelType.Title
                         wrapMode: Text.WordWrap
                     }
@@ -100,7 +100,7 @@ Item {
                         color: colorScheme.text_weak
                         colorScheme: wizard.colorScheme
                         horizontalAlignment: Text.AlignHCenter
-                        text: "After clicking on the button below, a system pop-up will ask you for your credential, please enter your macOS user credentials (not your Proton account’s) and validate."
+                        text: qsTr("After clicking on the button below, a system pop-up will ask you for your credentials, please enter your macOS user credentials (not your Proton account’s) and validate.")
                         type: Label.LabelType.Body
                         wrapMode: Text.WordWrap
                     }
@@ -121,7 +121,7 @@ Item {
                         colorScheme: wizard.colorScheme
                         enabled: !certificateInstall.waitingForCert
                         loading: certificateInstall.waitingForCert
-                        text: "Install the certificate"
+                        text: qsTr("Install the certificate")
 
                         onClicked: {
                             certificateInstall.waitingForCert = true;
@@ -163,7 +163,7 @@ Item {
                         Layout.fillWidth: true
                         colorScheme: wizard.colorScheme
                         horizontalAlignment: Text.AlignHCenter
-                        text: "Install the profile"
+                        text: qsTr("Install the profile")
                         type: Label.LabelType.Title
                         wrapMode: Text.WordWrap
                     }
@@ -192,7 +192,7 @@ Item {
                     Button {
                         Layout.fillWidth: true
                         colorScheme: wizard.colorScheme
-                        text: "Install the profile"
+                        text: qsTr("Install the profile")
 
                         onClicked: {
                             wizard.user.configureAppleMail(wizard.address);
