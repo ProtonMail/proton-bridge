@@ -20,18 +20,23 @@ import Proton
 Item {
     id: root
     enum Screen {
-        CertificateInstall = 0,
-        ProfileInstall = 1
+        CertificateInstall,
+        ProfileInstall
     }
 
     property var wizard
 
-    function showAutoConfig() {
-        certInstallButton.loading = false;
+    signal appleMailAutoconfigCertificateInstallPageShown
+    signal appleMailAutoconfigProfileInstallPageShow
+
+    function showAutoconfig() {
+        certificateInstall.waitingForCert = false;
         if (Backend.isTLSCertificateInstalled()) {
             stack.currentIndex = ClientConfigAppleMail.Screen.ProfileInstall;
+            appleMailAutoconfigProfileInstallPageShow();
         } else {
             stack.currentIndex = ClientConfigAppleMail.Screen.CertificateInstall;
+            appleMailAutoconfigCertificateInstallPageShown();
         }
     }
 
@@ -40,67 +45,102 @@ Item {
         anchors.fill: parent
 
         // stack index 0
-        ColumnLayout {
+        Item {
             id: certificateInstall
+
+            property bool waitingForCert: false
+
             Layout.fillHeight: true
             Layout.fillWidth: true
 
-            Connections {
-                function onCertificateInstallCanceled() {
-                    // Note: this will lead to an error message in the final version.
-                    certInstallButton.loading = false;
-                    console.error("Certificate installation was canceled");
-                }
-                function onCertificateInstallFailed() {
-                    // Note: this will lead to an error page later.
-                    certInstallButton.loading = false;
-                    console.error("Certificate installation failed");
-                }
-                function onCertificateInstallSuccess() {
-                    certInstallButton.loading = false;
-                    console.error("Certificate installed successfully");
-                    stack.currentIndex = ClientConfigAppleMail.Screen.ProfileInstall;
-                }
+            ColumnLayout {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 24
 
-                target: Backend
-            }
-            Label {
-                Layout.alignment: Qt.AlignHCenter
-                Layout.fillWidth: true
-                colorScheme: wizard.colorScheme
-                horizontalAlignment: Text.AlignHCenter
-                text: "Certificate install placeholder"
-                type: Label.LabelType.Heading
-                wrapMode: Text.WordWrap
-            }
-            Button {
-                id: certInstallButton
-                Layout.fillWidth: true
-                Layout.topMargin: 48
-                colorScheme: wizard.colorScheme
-                enabled: !loading
-                loading: false
-                text: "Install Certificate Placeholder"
+                Connections {
+                    function onCertificateInstallCanceled() {
+                        // Note: this will lead to an error message in the final version.
+                        certificateInstall.waitingForCert = false;
+                        console.error("Certificate installation was canceled");
+                    }
+                    function onCertificateInstallFailed() {
+                        // Note: this will lead to an error page later.
+                        certificateInstall.waitingForCert = false;
+                        console.error("Certificate installation failed");
+                    }
+                    function onCertificateInstallSuccess() {
+                        certificateInstall.waitingForCert = false;
+                        console.error("Certificate installed successfully");
+                        root.showAutoconfig();
+                    }
 
-                onClicked: {
-                    certInstallButton.loading = true;
-                    Backend.installTLSCertificate();
+                    target: Backend
                 }
-            }
-            Button {
-                Layout.fillWidth: true
-                Layout.topMargin: 32
-                colorScheme: wizard.colorScheme
-                enabled: !certInstallButton.loading
-                secondary: true
-                text: qsTr("Cancel")
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 16
 
-                onClicked: {
-                    wizard.closeWizard();
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        horizontalAlignment: Text.AlignHCenter
+                        text: "Install the bridge certificate"
+                        type: Label.LabelType.Title
+                        wrapMode: Text.WordWrap
+                    }
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        color: colorScheme.text_weak
+                        colorScheme: wizard.colorScheme
+                        horizontalAlignment: Text.AlignHCenter
+                        text: "After clicking on the button below, a system pop-up will ask you for your credential, please enter your macOS user credentials (not your Proton account’s) and validate."
+                        type: Label.LabelType.Body
+                        wrapMode: Text.WordWrap
+                    }
+                }
+                Image {
+                    id: certScreenshot
+                    Layout.alignment: Qt.AlignHCenter
+                    height: 182
+                    opacity: certificateInstall.waitingForCert ? 0.3 : 1.0
+                    source: "/qml/icons/img-macos-cert-screenshot.png"
+                    width: 140
+                }
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 16
+
+                    Button {
+                        id: certInstallButton
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        enabled: !certificateInstall.waitingForCert
+                        loading: certificateInstall.waitingForCert
+                        text: "Install the certificate"
+
+                        onClicked: {
+                            certificateInstall.waitingForCert = true;
+                            Backend.installTLSCertificate();
+                        }
+                    }
+                    Button {
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        enabled: !certificateInstall.waitingForCert
+                        secondary: true
+                        text: qsTr("Cancel")
+
+                        onClicked: {
+                            wizard.closeWizard();
+                        }
+                    }
                 }
             }
         }
-
         // stack index 1
         ColumnLayout {
             id: profileInstall

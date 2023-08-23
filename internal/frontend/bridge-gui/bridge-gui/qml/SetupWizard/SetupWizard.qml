@@ -40,7 +40,6 @@ Item {
 
     property string address
     property int client
-    property string clientVersion
     property ColorScheme colorScheme
     property var user
 
@@ -82,9 +81,9 @@ Item {
     }
     function showAppleMailAutoConfig() {
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
-        leftContent.showClientSelector();
+        leftContent.showAppleMailAutoconfig();
         rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigAppleMail;
-        clientConfigAppleMail.showAutoConfig();
+        clientConfigAppleMail.showAutoconfig();
     }
     function showClientConfig(user, address) {
         root.user = user;
@@ -93,11 +92,11 @@ Item {
         leftContent.showClientSelector();
         rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigSelector;
     }
-    function showClientParams() {
-        rootStackLayout.currentIndex = SetupWizard.RootStack.ClientConfigParameters;
-    }
     function showClientConfigEnd() {
         rootStackLayout.currentIndex = SetupWizard.RootStack.ClientConfigEnd;
+    }
+    function showClientParams() {
+        rootStackLayout.currentIndex = SetupWizard.RootStack.ClientConfigParameters;
     }
     function showLogin(username = "") {
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
@@ -109,8 +108,8 @@ Item {
     }
     function showOnboarding() {
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
-        root.address = ""
-        root.user = null
+        root.address = "";
+        root.user = null;
         leftContent.showOnboarding();
         rightContent.currentIndex = SetupWizard.ContentStack.Onboarding;
     }
@@ -154,6 +153,16 @@ Item {
                     clip: true
                     width: 364
                     wizard: root
+                    Connections {
+                        function onAppleMailAutoconfigCertificateInstallPageShown() {
+                            leftContent.showAppleMailAutoconfigCertificateInstall();
+                        }
+                        function onAppleMailAutoconfigProfileInstallPageShow() {
+                            leftContent.showAppleMailAutoconfigProfileInstall();
+                        }
+
+                        target: clientConfigAppleMail
+                    }
                 }
                 Image {
                     id: mailLogoWithWordmark
@@ -161,10 +170,10 @@ Item {
                     anchors.bottomMargin: 40
                     anchors.horizontalCenter: parent.horizontalCenter
                     height: 36
-                    width: 134
+                    source: root.colorScheme.mail_logo_with_wordmark
                     sourceSize.height: 36
                     sourceSize.width: 134
-                    source: root.colorScheme.mail_logo_with_wordmark
+                    width: 134
                 }
             }
             Rectangle {

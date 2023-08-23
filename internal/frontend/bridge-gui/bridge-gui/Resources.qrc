@@ -52,6 +52,7 @@
         <file>qml/icons/ic-warning-orange.svg</file>
         <file>qml/icons/img-client-config-selector.svg</file>
         <file>qml/icons/img-client-config-success.svg</file>
+        <file>qml/icons/img-macos-cert-screenshot.png</file>
         <file>qml/icons/img-mail-clients.svg</file>
         <file>qml/icons/img-mail-logo-wordmark-dark.svg</file>
         <file>qml/icons/img-mail-logo-wordmark.svg</file>

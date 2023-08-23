@@ -70,7 +70,7 @@ Rectangle {
                         Layout.fillWidth: true
                         colorScheme: wizard.colorScheme
                         horizontalAlignment: Text.AlignLeft
-                        text: (SetupWizard.Client.MicrosoftOutlook === wizard.client) ? qsTr("Are you unsure about your Outlook version or do you need assistance in configuring Outlook?") : qsTr("Do you need assistant is configuring %1?".arg(wizard.clientName()))
+                        text: (SetupWizard.Client.MicrosoftOutlook === wizard.client) ? qsTr("Are you unsure about your Outlook version or do you need assistance in configuring Outlook?") : qsTr("Do you need assistance in configuring %1?".arg(wizard.clientName()))
                         type: Label.LabelType.Body
                         verticalAlignment: Text.AlignVCenter
                         wrapMode: Text.WordWrap

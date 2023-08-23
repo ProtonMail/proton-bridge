@@ -21,21 +21,33 @@ import ".."
 Item {
     id: root
 
-    property var wizard
     property int iconHeight
-    property int iconWidth
     property string iconSource
+    property int iconWidth
+    property var wizard
 
-    function showClientConfigCommon() {
-        const clientName = wizard.clientName();
-        titleLabel.text = qsTr("Configure %1").arg(clientName);
-        descriptionLabel.text = qsTr("We will now guide you through the process of setting up your Proton account in %1.").arg(clientName);
-        icon.source = wizard.clientIconSource();
-        icon.sourceSize.height = 264;
-        icon.sourceSize.width = 263;
-        Layout.preferredHeight = 72;
-        Layout.preferredWidth = 72;
+    function showAppleMailAutoconfig() {
+        titleLabel.text = "";
+        descriptionLabel.text = qsTr("Apple Mail configuration is mostly automated, but in order to work, Bridge needs to install a certificate in your keychain.");
+        linkLabel1.clear();
+        linkLabel2.clear();
+        iconSource = wizard.clientIconSource();
+        iconHeight = 80;
+        iconWidth = 80;
     }
+
+    function showAppleMailAutoconfigCertificateInstall() {
+        console.error("showAppleMailAutoconfigCertificateInstall");
+        showAppleMailAutoconfig();
+        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why is this certificate needed?"));
+    }
+
+    function showAppleMailAutoconfigProfileInstall() {
+        console.error("showAppleMailAutoconfigProfileInstall");
+        showAppleMailAutoconfig();
+        linkLabel1.setLink("", qsTr("")); // We are not clearing to keep occupying the vertical space.
+    }
+
     function showClientSelector() {
         titleLabel.text = "";
         descriptionLabel.text = qsTr("Bridge is now connected to Proton, and has already started downloading your messages. Let’s now connect your email client to Bridge.");
@@ -46,22 +58,22 @@ Item {
         iconWidth = 264;
     }
     function showLogin() {
-        showOnboarding()
-     }
+        showOnboarding();
+    }
     function showLogin2FA() {
-        showOnboarding()
+        showOnboarding();
     }
     function showLoginMailboxPassword() {
-        showOnboarding()
+        showOnboarding();
     }
     function showOnboarding() {
         titleLabel.text = (Backend.users.count === 0) ? qsTr("Welcome to\nProton Mail Bridge") : qsTr("Add a Proton Mail account");
         descriptionLabel.text = qsTr("Bridge is the gateway between your Proton account and your email client. It runs in the background and encrypts and decrypts your messages seamlessly. ");
         linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why do I need Bridge?"));
         linkLabel2.clear();
-        iconSource = "/qml/icons/img-welcome.svg"
-        iconHeight= 148;
-        iconWidth = 265;
+        root.iconSource = "/qml/icons/img-welcome.svg";
+        root.iconHeight = 148;
+        root.iconWidth = 265;
     }
 
     Connections {
@@ -83,11 +95,11 @@ Item {
         Image {
             id: icon
             Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-            Layout.preferredHeight: iconHeight
-            Layout.preferredWidth: iconWidth
-            source: iconSource
-            sourceSize.height: iconHeight
-            sourceSize.width: iconWidth
+            Layout.preferredHeight: root.iconHeight
+            Layout.preferredWidth: root.iconWidth
+            source: root.iconSource
+            sourceSize.height: root.iconHeight
+            sourceSize.width: root.iconWidth
         }
         Label {
             id: titleLabel
@@ -97,8 +109,8 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             text: ""
             type: Label.LabelType.Heading
-            wrapMode: Text.WordWrap
             visible: text.length !== 0
+            wrapMode: Text.WordWrap
         }
         Label {
             id: descriptionLabel
