@@ -15,19 +15,30 @@ import QtQuick.Controls
 
 Label {
     id: root
+
+    property var callback: null
+
     function clear() {
+        callback = null;
         text = "";
     }
+    function setCallback(callback, linkText) {
+        root.callback = callback;
+        text = link("#", linkText);
+    }
     function setLink(linkURL, linkText) {
+        callback = null;
         text = link(linkURL, linkText);
     }
 
     type: Label.LabelType.Body
 
     onLinkActivated: function (link) {
-        // if the link is "#", the user is indicating he will provide its own link activation handler.
         if (link !== "#") {
             Qt.openUrlExternally(link);
+        }
+        if (callback) {
+            callback();
         }
     }
 

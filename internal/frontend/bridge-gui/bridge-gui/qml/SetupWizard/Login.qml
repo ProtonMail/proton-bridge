@@ -274,10 +274,9 @@ FocusScope {
                     }
                 }
                 LinkLabel {
-                    id: linkLabel
                     Layout.alignment: Qt.AlignHCenter
                     colorScheme: wizard.colorScheme
-                    text: linkLabel.link("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"))
+                    text: link("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"))
                 }
             }
         }

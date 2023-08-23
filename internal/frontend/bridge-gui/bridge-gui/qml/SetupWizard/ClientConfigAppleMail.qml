@@ -30,12 +30,18 @@ Item {
     function showAutoconfig() {
         certificateInstall.waitingForCert = false;
         if (Backend.isTLSCertificateInstalled()) {
-            stack.currentIndex = ClientConfigAppleMail.Screen.ProfileInstall;
-            appleMailAutoconfigProfileInstallPageShow();
+            showCertificateInstall();
         } else {
-            stack.currentIndex = ClientConfigAppleMail.Screen.CertificateInstall;
-            appleMailAutoconfigCertificateInstallPageShown();
+            showProfileInstall();
         }
+    }
+    function showCertificateInstall() {
+        stack.currentIndex = ClientConfigAppleMail.Screen.ProfileInstall;
+        appleMailAutoconfigProfileInstallPageShow();
+    }
+    function showProfileInstall() {
+        stack.currentIndex = ClientConfigAppleMail.Screen.CertificateInstall;
+        appleMailAutoconfigCertificateInstallPageShown();
     }
 
     StackLayout {
@@ -59,18 +65,17 @@ Item {
 
                 Connections {
                     function onCertificateInstallCanceled() {
-                        // Note: this will lead to an error message in the final version.
+                        // Note: this will lead to a warning message in the final version.
                         certificateInstall.waitingForCert = false;
                         console.error("Certificate installation was canceled");
                     }
                     function onCertificateInstallFailed() {
-                        // Note: this will lead to an error page later.
+                        // Note: this will lead to an error message in the final version.
                         certificateInstall.waitingForCert = false;
                         console.error("Certificate installation failed");
                     }
                     function onCertificateInstallSuccess() {
                         certificateInstall.waitingForCert = false;
-                        console.error("Certificate installed successfully");
                         root.showAutoconfig();
                     }
 
@@ -209,33 +214,3 @@ Item {
         }
     }
 }
-
-// Label {
-//     Layout.alignment: Qt.AlignHCenter
-//     Layout.fillWidth: true
-//     colorScheme: wizard.colorScheme
-//     horizontalAlignment: Text.AlignHCenter
-//     text: "Profile install placeholder"
-//     type: Label.LabelType.Heading
-//     wrapMode: Text.WordWrap
-// }
-// Button {
-//     Layout.fillWidth: true
-//     Layout.topMargin: 48
-//     colorScheme: wizard.colorScheme
-//     text: "Install Profile Placeholder"
-//     onClicked: {
-//         wizard.user.configureAppleMail(wizard.address);
-//         wizard.closeWizard();
-//     }
-// }
-// Button {
-//     Layout.fillWidth: true
-//     Layout.topMargin: 32
-//     colorScheme: wizard.colorScheme
-//     secondary: true
-//     text: qsTr("Cancel")
-//     onClicked: {
-//         wizard.closeWizard();
-//     }
-// }

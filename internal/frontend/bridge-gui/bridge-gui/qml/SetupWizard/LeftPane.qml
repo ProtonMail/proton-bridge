@@ -40,6 +40,7 @@ Item {
         showAppleMailAutoconfigCommon();
         descriptionLabel.text = qsTr("The final step before you can start using Apple Mail is to install the Bridge server profile in the system preferences.\n\nAdding a server profile is necessary to ensure that your Mac can receive and send Proton Mails.");
         linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why is there a yellow warning sign?"));
+        linkLabel2.setCallback(wizard.showClientParams, qsTr("Configure Apple Mail manually"));
     }
     function showClientSelector() {
         titleLabel.text = "";
