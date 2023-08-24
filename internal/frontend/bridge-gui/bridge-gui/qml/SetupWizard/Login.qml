@@ -128,20 +128,24 @@ FocusScope {
         Item {
             ColumnLayout {
                 id: loginLayout
+                function clearErrors() {
+                    usernameTextField.error = false;
+                    usernameTextField.errorString = "";
+                    passwordTextField.error = false;
+                    passwordTextField.errorString = "";
+                    errorLabel.text = ""
+                }
                 function reset(clearUsername = false) {
                     signInButton.loading = false;
                     errorLabel.text = "";
                     usernameTextField.enabled = true;
-                    usernameTextField.error = false;
-                    usernameTextField.errorString = "";
                     usernameTextField.focus = true;
                     if (clearUsername) {
                         usernameTextField.text = "";
                     }
                     passwordTextField.enabled = true;
-                    passwordTextField.error = false;
-                    passwordTextField.errorString = "";
                     passwordTextField.text = "";
+                    clearErrors();
                 }
 
                 anchors.left: parent.left
@@ -174,13 +178,12 @@ FocusScope {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 0
-                    visible: errorLabel.text.length > 0
-
                     ColorImage {
                         color: wizard.colorScheme.signal_danger
                         height: errorLabel.lineHeight
                         source: "/qml/icons/ic-exclamation-circle-filled.svg"
                         sourceSize.height: errorLabel.lineHeight
+                        visible: errorLabel.text.length > 0
                     }
                     Label {
                         id: errorLabel
@@ -188,7 +191,7 @@ FocusScope {
                         Layout.leftMargin: 4
                         color: wizard.colorScheme.signal_danger
                         colorScheme: wizard.colorScheme
-                        type: root.error ? Label.LabelType.Caption_semibold : Label.LabelType.Caption
+                        type: Label.LabelType.Caption_semibold
                         wrapMode: Text.WordWrap
                     }
                 }
@@ -207,12 +210,7 @@ FocusScope {
 
                     onAccepted: passwordTextField.forceActiveFocus()
                     onTextChanged: {
-                        // remove "invalid username / password error"
-                        if (error || errorLabel.text.length > 0) {
-                            errorLabel.text = "";
-                            usernameTextField.error = false;
-                            passwordTextField.error = false;
-                        }
+                        loginLayout.clearErrors();
                     }
                 }
                 TextField {
@@ -230,12 +228,7 @@ FocusScope {
 
                     onAccepted: signInButton.checkAndSignIn()
                     onTextChanged: {
-                        // remove "invalid username / password error"
-                        if (error || errorLabel.text.length > 0) {
-                            errorLabel.text = "";
-                            usernameTextField.error = false;
-                            passwordTextField.error = false;
-                        }
+                        loginLayout.clearErrors();
                     }
                 }
                 Button {
