@@ -36,6 +36,7 @@ Item {
     }
 
     property string address
+    property var backAction: null
     property int client
     property ColorScheme colorScheme
     property var user
@@ -43,6 +44,9 @@ Item {
     signal showBugReport
     signal wizardEnded
 
+    function _showClientConfig() {
+        showClientConfig(root.user, root.address);
+    }
     function clientIconSource() {
         switch (client) {
         case SetupWizard.Client.AppleMail:
@@ -77,11 +81,13 @@ Item {
         wizardEnded();
     }
     function showAppleMailAutoConfig() {
+        backAction = _showClientConfig;
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
         rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigAppleMail;
         clientConfigAppleMail.showAutoconfig(); // This will trigger signals that will display the appropriate left content.
     }
     function showClientConfig(user, address) {
+        backAction = null;
         root.user = user;
         root.address = address;
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
@@ -89,12 +95,15 @@ Item {
         rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigSelector;
     }
     function showClientConfigEnd() {
+        backAction = null;
         rootStackLayout.currentIndex = SetupWizard.RootStack.ClientConfigEnd;
     }
     function showClientParams() {
+        backAction = _showClientConfig;
         rootStackLayout.currentIndex = SetupWizard.RootStack.ClientConfigParameters;
     }
     function showLogin(username = "") {
+        backAction = null;
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
         root.address = "";
         leftContent.showLogin();
@@ -103,6 +112,7 @@ Item {
         login.reset(false);
     }
     function showOnboarding() {
+        backAction = null;
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
         root.address = "";
         root.user = null;
@@ -237,6 +247,27 @@ Item {
     }
     HelpButton {
         wizard: root
+    }
+    Button {
+        id: backButton
+        anchors.left: parent.left
+        anchors.leftMargin: 40
+        anchors.top: parent.top
+        anchors.topMargin: 40
+        colorScheme: root.colorScheme
+        icon.source: "/qml/icons/ic-chevron-left.svg"
+        iconOnTheLeft: true
+        secondary: true
+        secondaryIsOpaque: true
+        spacing: 8
+        text: qsTr("Back")
+        visible: backAction != null
+
+        onClicked: {
+            if (backAction) {
+                backAction();
+            }
+        }
     }
 }
 
