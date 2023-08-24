@@ -30,18 +30,19 @@ Item {
     function showAutoconfig() {
         certificateInstall.waitingForCert = false;
         if (Backend.isTLSCertificateInstalled()) {
-            showCertificateInstall();
-        } else {
             showProfileInstall();
+        } else {
+            showCertificateInstall();
         }
     }
     function showCertificateInstall() {
-        stack.currentIndex = ClientConfigAppleMail.Screen.ProfileInstall;
-        appleMailAutoconfigProfileInstallPageShow();
-    }
-    function showProfileInstall() {
+        certificateInstall.reset();
         stack.currentIndex = ClientConfigAppleMail.Screen.CertificateInstall;
         appleMailAutoconfigCertificateInstallPageShown();
+    }
+    function showProfileInstall() {
+        stack.currentIndex = ClientConfigAppleMail.Screen.ProfileInstall;
+        appleMailAutoconfigProfileInstallPageShow();
     }
 
     StackLayout {
@@ -52,7 +53,18 @@ Item {
         Item {
             id: certificateInstall
 
+            property string errorString: ""
+            property bool showBugReportLink: false
             property bool waitingForCert: false
+
+            function clearError() {
+                errorString = "";
+                showBugReportLink = false;
+            }
+            function reset() {
+                waitingForCert = false;
+                clearError();
+            }
 
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -65,17 +77,17 @@ Item {
 
                 Connections {
                     function onCertificateInstallCanceled() {
-                        // Note: this will lead to a warning message in the final version.
                         certificateInstall.waitingForCert = false;
-                        console.error("Certificate installation was canceled");
+                        certificateInstall.errorString = qsTr("Apple Mail cannot be configured if you do not install the certificate.Please retry.");
+                        certificateInstall.showBugReportLink = false;
                     }
                     function onCertificateInstallFailed() {
-                        // Note: this will lead to an error message in the final version.
                         certificateInstall.waitingForCert = false;
-                        console.error("Certificate installation failed");
+                        certificateInstall.errorString = qsTr("An error occurred while installing the certificate.");
+                        certificateInstall.showBugReportLink = true;
                     }
                     function onCertificateInstallSuccess() {
-                        certificateInstall.waitingForCert = false;
+                        certificateInstall.reset();
                         root.showAutoconfig();
                     }
 
@@ -124,6 +136,7 @@ Item {
                         text: qsTr("Install the certificate")
 
                         onClicked: {
+                            certificateInstall.clearError();
                             certificateInstall.waitingForCert = true;
                             Backend.installTLSCertificate();
                         }
@@ -137,6 +150,40 @@ Item {
 
                         onClicked: {
                             wizard.closeWizard();
+                        }
+                    }
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+
+                            ColorImage {
+                                color: wizard.colorScheme.signal_danger
+                                height: errorLabel.lineHeight
+                                source: "/qml/icons/ic-exclamation-circle-filled.svg"
+                                sourceSize.height: errorLabel.lineHeight
+                                visible: certificateInstall.errorString.length > 0
+                            }
+                            Label {
+                                id: errorLabel
+                                Layout.fillWidth: true
+                                color: wizard.colorScheme.signal_danger
+                                colorScheme: wizard.colorScheme
+                                horizontalAlignment: Text.AlignHCenter
+                                text: certificateInstall.errorString
+                                type: Label.LabelType.Body_semibold
+                                wrapMode: Text.WordWrap
+                            }
+                        }
+                        LinkLabel {
+                            Layout.alignment: Qt.AlignHCenter
+                            colorScheme: wizard.colorScheme
+                            callback: wizard.showBugReport
+                            text: link("#", qsTr("Report the problem"))
+                            visible: certificateInstall.showBugReportLink
                         }
                     }
                 }

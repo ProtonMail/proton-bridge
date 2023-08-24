@@ -171,7 +171,7 @@ ApplicationWindow {
             Layout.fillWidth: true
             colorScheme: root.colorScheme
 
-            onShowBugReport: {
+            onBugReportRequested: {
                 contentWrapper.showBugReport();
             }
             onWizardEnded: {

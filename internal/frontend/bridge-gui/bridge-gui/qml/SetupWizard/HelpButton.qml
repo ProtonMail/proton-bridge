@@ -47,7 +47,8 @@ Button {
             text: qsTr("Get help")
 
             onClicked: {
-                console.error("Get help");
+                Backend.notifyKBArticleClicked("https://proton.me/support/bridge");
+                Backend.showHelp();
             }
         }
         MenuItem {
@@ -56,7 +57,7 @@ Button {
             text: qsTr("Report a problem")
 
             onClicked: {
-                console.error("Report a problem");
+                wizard.showBugReport();
             }
         }
     }

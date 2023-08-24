@@ -41,8 +41,13 @@ Item {
     property ColorScheme colorScheme
     property var user
 
-    signal showBugReport
+    signal bugReportRequested
     signal wizardEnded
+
+    function showBugReport() {
+        closeWizard()
+        bugReportRequested()
+    }
 
     function _showClientConfig() {
         showClientConfig(root.user, root.address);

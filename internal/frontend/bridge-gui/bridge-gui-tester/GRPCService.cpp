@@ -794,7 +794,7 @@ Status GRPCService::InstallTLSCertificate(ServerContext *, Empty const *, Empty 
         event = newCertificateInstallCanceledEvent();
         break;
     default:
-        event = newCertificateInstallCanceledEvent();
+        event = newCertificateInstallFailedEvent();
         break;
     }
     qtProxy_.sendDelayedEvent(event);
