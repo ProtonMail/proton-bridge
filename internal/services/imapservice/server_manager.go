@@ -21,6 +21,7 @@ import (
 	"context"
 
 	"github.com/ProtonMail/gluon/connector"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
 )
 
 type IMAPServerManager interface {
@@ -29,7 +30,7 @@ type IMAPServerManager interface {
 		connector connector.Connector,
 		addrID string,
 		idProvider GluonIDProvider,
-		syncStateProvider SyncStateProvider,
+		syncStateProvider syncservice.StateProvider,
 	) error
 
 	RemoveIMAPUser(ctx context.Context, deleteData bool, provider GluonIDProvider, addrID ...string) error
@@ -42,7 +43,7 @@ func (n NullIMAPServerManager) AddIMAPUser(
 	_ connector.Connector,
 	_ string,
 	_ GluonIDProvider,
-	_ SyncStateProvider,
+	_ syncservice.StateProvider,
 ) error {
 	return nil
 }

@@ -198,6 +198,14 @@ func (l *Locations) ProvideStatsPath() (string, error) {
 	return l.getStatsPath(), nil
 }
 
+func (l *Locations) ProvideIMAPSyncConfigPath() (string, error) {
+	if err := os.MkdirAll(l.getIMAPSyncConfigPath(), 0o700); err != nil {
+		return "", err
+	}
+
+	return l.getIMAPSyncConfigPath(), nil
+}
+
 func (l *Locations) getGluonCachePath() string {
 	return filepath.Join(l.userData, "gluon")
 }
@@ -212,6 +220,10 @@ func (l *Locations) getGUICertPath() string {
 
 func (l *Locations) getSettingsPath() string {
 	return l.userConfig
+}
+
+func (l *Locations) getIMAPSyncConfigPath() string {
+	return filepath.Join(l.userConfig, "imap-sync")
 }
 
 func (l *Locations) getLogsPath() string {

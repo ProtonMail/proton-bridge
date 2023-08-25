@@ -32,6 +32,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
 	bridgesmtp "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
@@ -134,7 +135,7 @@ func (sm *Service) AddIMAPUser(
 	connector connector.Connector,
 	addrID string,
 	idProvider imapservice.GluonIDProvider,
-	syncStateProvider imapservice.SyncStateProvider,
+	syncStateProvider syncservice.StateProvider,
 ) error {
 	_, err := sm.requests.Send(ctx, &smRequestAddIMAPUser{
 		connector:         connector,
@@ -302,7 +303,7 @@ func (sm *Service) handleAddIMAPUser(ctx context.Context,
 	connector connector.Connector,
 	addrID string,
 	idProvider imapservice.GluonIDProvider,
-	syncStateProvider imapservice.SyncStateProvider,
+	syncStateProvider syncservice.StateProvider,
 ) error {
 	// Due to the many different error exits, performer user count change at this stage rather we split the incrementing
 	// of users from the logic.
@@ -318,7 +319,7 @@ func (sm *Service) handleAddIMAPUserImpl(ctx context.Context,
 	connector connector.Connector,
 	addrID string,
 	idProvider imapservice.GluonIDProvider,
-	syncStateProvider imapservice.SyncStateProvider,
+	syncStateProvider syncservice.StateProvider,
 ) error {
 	if sm.imapServer == nil {
 		return fmt.Errorf("no imap server instance running")
@@ -348,7 +349,7 @@ func (sm *Service) handleAddIMAPUserImpl(ctx context.Context,
 			}
 
 			// Clear the sync status -- we need to resync all messages.
-			if err := syncStateProvider.ClearSyncStatus(); err != nil {
+			if err := syncStateProvider.ClearSyncStatus(ctx); err != nil {
 				return fmt.Errorf("failed to clear sync status: %w", err)
 			}
 
@@ -358,7 +359,14 @@ func (sm *Service) handleAddIMAPUserImpl(ctx context.Context,
 			} else if isNew {
 				panic("IMAP user should already have a database")
 			}
-		} else if status := syncStateProvider.GetSyncStatus(); !status.HasLabels {
+		}
+
+		status, err := syncStateProvider.GetSyncStatus(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get sync status: %w", err)
+		}
+
+		if !status.HasLabels {
 			// Otherwise, the DB already exists -- if the labels are not yet synced, we need to re-create the DB.
 			if err := sm.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
 				return fmt.Errorf("failed to remove old IMAP user: %w", err)
@@ -710,7 +718,7 @@ type smRequestAddIMAPUser struct {
 	connector         connector.Connector
 	addrID            string
 	idProvider        imapservice.GluonIDProvider
-	syncStateProvider imapservice.SyncStateProvider
+	syncStateProvider syncservice.StateProvider
 }
 
 type smRequestRemoveIMAPUser struct {

@@ -18,7 +18,6 @@
 package imapservice
 
 import (
-	"context"
 	"fmt"
 	"net/mail"
 	"time"
@@ -180,12 +179,4 @@ func wantLabels(apiLabels map[string]proton.Label, labelIDs []string) []string {
 
 		return WantLabel(apiLabel)
 	})
-}
-
-// sleepCtx sleeps for the given duration, or until the context is canceled.
-func sleepCtx(ctx context.Context, d time.Duration) {
-	select {
-	case <-ctx.Done():
-	case <-time.After(d):
-	}
 }

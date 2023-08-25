@@ -156,6 +156,8 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 		nullIMAPServerManager,
 		nullSMTPServerManager,
 		nullEventSubscription,
+		nil,
+		"",
 	)
 	require.NoError(tb, err)
 	defer user.Close()

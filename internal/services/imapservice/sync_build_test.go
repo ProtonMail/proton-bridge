@@ -24,8 +24,6 @@ import (
 
 	"github.com/ProtonMail/gluon/imap"
 	"github.com/ProtonMail/gluon/rfc822"
-	"github.com/ProtonMail/go-proton-api"
-	"github.com/bradenaw/juniper/xslices"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,33 +46,4 @@ func TestNewFailedMessageLiteral(t *testing.T) {
 	require.Equal(t, `("29 Nov 73 21:33 UTC" "Message failed to build" NIL NIL NIL NIL NIL NIL NIL NIL)`, parsed.Envelope)
 	require.Equal(t, `("text" "plain" () NIL NIL "base64" 114 2)`, parsed.Body)
 	require.Equal(t, `("text" "plain" () NIL NIL "base64" 114 2 NIL NIL NIL NIL)`, parsed.Structure)
-}
-
-func TestSyncChunkSyncBuilderBatch(t *testing.T) {
-	// GODT-2424 - Some messages were not fully built due to a bug in the chunking if the total memory used by the
-	// message would be higher than the maximum we allowed.
-	const totalMessageCount = 100
-
-	msg := proton.FullMessage{
-		Message: proton.Message{
-			Attachments: []proton.Attachment{
-				{
-					Size: int64(8 * Megabyte),
-				},
-			},
-		},
-		AttData: nil,
-	}
-
-	messages := xslices.Repeat(msg, totalMessageCount)
-
-	chunks := chunkSyncBuilderBatch(messages, 16*Megabyte)
-
-	var totalMessagesInChunks int
-
-	for _, v := range chunks {
-		totalMessagesInChunks += len(v)
-	}
-
-	require.Equal(t, totalMessagesInChunks, totalMessageCount)
 }

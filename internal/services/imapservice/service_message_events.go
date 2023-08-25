@@ -148,7 +148,7 @@ func onMessageCreated(ctx context.Context, s *Service, message proton.MessageMet
 		if res.err != nil {
 			s.log.WithError(err).Error("Failed to build RFC822 message")
 
-			if err := s.syncStateProvider.AddFailedMessageID(message.ID); err != nil {
+			if err := s.syncStateProvider.AddFailedMessageID(ctx, message.ID); err != nil {
 				s.log.WithError(err).Error("Failed to add failed message ID to vault")
 			}
 
@@ -157,7 +157,7 @@ func onMessageCreated(ctx context.Context, s *Service, message proton.MessageMet
 			return nil
 		}
 
-		if err := s.syncStateProvider.RemFailedMessageID(message.ID); err != nil {
+		if err := s.syncStateProvider.RemFailedMessageID(ctx, message.ID); err != nil {
 			s.log.WithError(err).Error("Failed to remove failed message ID from vault")
 		}
 
@@ -211,7 +211,7 @@ func onMessageUpdateDraftOrSent(ctx context.Context, s *Service, event proton.Me
 		if res.err != nil {
 			logrus.WithError(err).Error("Failed to build RFC822 message")
 
-			if err := s.syncStateProvider.AddFailedMessageID(event.ID); err != nil {
+			if err := s.syncStateProvider.AddFailedMessageID(ctx, event.ID); err != nil {
 				s.log.WithError(err).Error("Failed to add failed message ID to vault")
 			}
 
@@ -220,7 +220,7 @@ func onMessageUpdateDraftOrSent(ctx context.Context, s *Service, event proton.Me
 			return nil
 		}
 
-		if err := s.syncStateProvider.RemFailedMessageID(event.ID); err != nil {
+		if err := s.syncStateProvider.RemFailedMessageID(ctx, event.ID); err != nil {
 			s.log.WithError(err).Error("Failed to remove failed message ID from vault")
 		}
 

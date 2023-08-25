@@ -29,25 +29,32 @@ type syncReporter struct {
 	eventPublisher events.EventPublisher
 
 	start time.Time
-	total int
-	count int
+	total int64
+	count int64
 
 	last time.Time
 	freq time.Duration
 }
 
-func newSyncReporter(userID string, eventsPublisher events.EventPublisher, total int, freq time.Duration) *syncReporter {
-	return &syncReporter{
-		userID:         userID,
-		eventPublisher: eventsPublisher,
-
-		start: time.Now(),
-		total: total,
-		freq:  freq,
-	}
+func (rep *syncReporter) OnStart(ctx context.Context) {
+	rep.start = time.Now()
+	rep.eventPublisher.PublishEvent(ctx, events.SyncStarted{UserID: rep.userID})
 }
 
-func (rep *syncReporter) add(ctx context.Context, delta int) {
+func (rep *syncReporter) OnFinished(ctx context.Context) {
+	rep.eventPublisher.PublishEvent(ctx, events.SyncFinished{
+		UserID: rep.userID,
+	})
+}
+
+func (rep *syncReporter) OnError(ctx context.Context, err error) {
+	rep.eventPublisher.PublishEvent(ctx, events.SyncFailed{
+		UserID: rep.userID,
+		Error:  err,
+	})
+}
+
+func (rep *syncReporter) OnProgress(ctx context.Context, delta int64) {
 	rep.count += delta
 
 	if time.Since(rep.last) > rep.freq {
@@ -62,11 +69,17 @@ func (rep *syncReporter) add(ctx context.Context, delta int) {
 	}
 }
 
-func (rep *syncReporter) done(ctx context.Context) {
-	rep.eventPublisher.PublishEvent(ctx, events.SyncProgress{
-		UserID:    rep.userID,
-		Progress:  1,
-		Elapsed:   time.Since(rep.start),
-		Remaining: 0,
-	})
+func (rep *syncReporter) InitializeProgressCounter(_ context.Context, current int64, total int64) {
+	rep.count = current
+	rep.total = total
+}
+
+func newSyncReporter(userID string, eventsPublisher events.EventPublisher, freq time.Duration) *syncReporter {
+	return &syncReporter{
+		userID:         userID,
+		eventPublisher: eventsPublisher,
+
+		start: time.Now(),
+		freq:  freq,
+	}
 }

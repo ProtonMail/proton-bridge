@@ -136,7 +136,12 @@ func addNewAddressSplitMode(ctx context.Context, s *Service, addrID string) erro
 
 	s.connectors[connector.addrID] = connector
 
-	if err := syncLabels(ctx, s.labels.GetLabelMap(), connector); err != nil {
+	updates, err := syncLabels(ctx, s.labels.GetLabelMap(), []*Connector{connector})
+	if err != nil {
+		return fmt.Errorf("failed to create labels updates for new address: %w", err)
+	}
+
+	if err := waitOnIMAPUpdates(ctx, updates); err != nil {
 		return fmt.Errorf("failed to sync labels for new address: %w", err)
 	}
 

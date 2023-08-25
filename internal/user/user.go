@@ -34,6 +34,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/orderedtasks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
 	telemetryservice "github.com/ProtonMail/proton-bridge/v3/internal/services/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/useridentity"
@@ -102,6 +103,8 @@ func New(
 	imapServerManager imapservice.IMAPServerManager,
 	smtpServerManager smtp.ServerManager,
 	eventSubscription events.Subscription,
+	syncService syncservice.Regulator,
+	syncConfigDir string,
 ) (*User, error) {
 	user, err := newImpl(
 		ctx,
@@ -117,6 +120,8 @@ func New(
 		imapServerManager,
 		smtpServerManager,
 		eventSubscription,
+		syncService,
+		syncConfigDir,
 	)
 	if err != nil {
 		// Cleanup any pending resources on error
@@ -145,8 +150,26 @@ func newImpl(
 	imapServerManager imapservice.IMAPServerManager,
 	smtpServerManager smtp.ServerManager,
 	eventSubscription events.Subscription,
+	syncService syncservice.Regulator,
+	syncConfigDir string,
 ) (*User, error) {
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
+
+	// Migrate Sync Status from Vault.
+	{
+		syncStatus := encVault.SyncStatus()
+
+		migrated, err := imapservice.MigrateVaultSettings(syncConfigDir, apiUser.ID, syncStatus.HasLabels, syncStatus.HasMessages, syncStatus.FailedMessageIDs)
+		if err != nil {
+			return nil, fmt.Errorf("failed to migrate user sync settings: %w", err)
+		}
+
+		if migrated {
+			if err := encVault.ClearSyncStatus(); err != nil {
+				return nil, fmt.Errorf("failed to clear sync settings from vault: %w", err)
+			}
+		}
+	}
 
 	// Get the user's API addresses.
 	apiAddrs, err := client.GetAddresses(ctx)
@@ -238,7 +261,6 @@ func newImpl(
 		client,
 		identityState.Clone(),
 		user,
-		encVault,
 		user.eventService,
 		imapServerManager,
 		user,
@@ -250,6 +272,7 @@ func newImpl(
 		reporter,
 		addressMode,
 		eventSubscription,
+		syncConfigDir,
 		user.maxSyncMemory,
 		showAllMail,
 	)
@@ -299,7 +322,7 @@ func newImpl(
 	}
 
 	// Start IMAP Service
-	if err := user.imapService.Start(ctx, user.serviceGroup); err != nil {
+	if err := user.imapService.Start(ctx, user.serviceGroup, syncService); err != nil {
 		return user, fmt.Errorf("failed to start imap service: %w", err)
 	}
 

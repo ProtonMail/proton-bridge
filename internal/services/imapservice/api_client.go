@@ -35,6 +35,7 @@ type APIClient interface {
 	UnlabelMessages(ctx context.Context, messageIDs []string, labelID string) error
 	GetLabels(ctx context.Context, labelTypes ...proton.LabelType) ([]proton.Label, error)
 
+	GetGroupedMessageCount(ctx context.Context) ([]proton.MessageGroupCount, error)
 	GetMessage(ctx context.Context, messageID string) (proton.Message, error)
 	GetMessageMetadataPage(ctx context.Context, page, pageSize int, filter proton.MessageFilter) ([]proton.MessageMetadata, error)
 	GetAllMessageIDs(ctx context.Context, afterID string) ([]string, error)

@@ -41,6 +41,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapsmtpserver"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
@@ -127,6 +128,7 @@ type Bridge struct {
 	goHeartbeat func()
 
 	serverManager *imapsmtpserver.Service
+	syncService   *syncservice.Service
 }
 
 // New creates a new bridge.
@@ -268,7 +270,8 @@ func newBridge(
 		firstStart:  firstStart,
 		lastVersion: lastVersion,
 
-		tasks: tasks,
+		tasks:       tasks,
+		syncService: syncservice.NewService(reporter, panicHandler),
 	}
 
 	bridge.serverManager = imapsmtpserver.NewService(context.Background(),
@@ -284,6 +287,8 @@ func newBridge(
 	if err := bridge.serverManager.Init(context.Background(), bridge.tasks, &bridgeEventSubscription{b: bridge}); err != nil {
 		return nil, err
 	}
+
+	bridge.syncService.Run(bridge.tasks)
 
 	return bridge, nil
 }

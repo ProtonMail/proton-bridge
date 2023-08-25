@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/try"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
@@ -243,6 +244,11 @@ func (bridge *Bridge) LogoutUser(ctx context.Context, userID string) error {
 func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
 	logrus.WithField("userID", userID).Info("Deleting user")
 
+	syncConfigDir, err := bridge.locator.ProvideIMAPSyncConfigPath()
+	if err != nil {
+		return fmt.Errorf("failed to get sync config path")
+	}
+
 	return safe.LockRet(func() error {
 		if !bridge.vault.HasUser(userID) {
 			return ErrNoSuchUser
@@ -250,6 +256,10 @@ func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
 
 		if user, ok := bridge.users[userID]; ok {
 			bridge.logoutUser(ctx, user, true, true, !bridge.GetTelemetryDisabled())
+		}
+
+		if err := imapservice.DeleteSyncState(syncConfigDir, userID); err != nil {
+			return fmt.Errorf("failed to delete use sync config")
 		}
 
 		if err := bridge.vault.DeleteUser(userID); err != nil {
@@ -510,6 +520,11 @@ func (bridge *Bridge) addUserWithVault(
 		return fmt.Errorf("failed to get Statistics directory: %w", err)
 	}
 
+	syncSettingsPath, err := bridge.locator.ProvideIMAPSyncConfigPath()
+	if err != nil {
+		return fmt.Errorf("failed to get IMAP sync config path: %w", err)
+	}
+
 	user, err := user.New(
 		ctx,
 		vault,
@@ -524,6 +539,8 @@ func (bridge *Bridge) addUserWithVault(
 		bridge.serverManager,
 		bridge.serverManager,
 		&bridgeEventSubscription{b: bridge},
+		bridge.syncService,
+		syncSettingsPath,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)

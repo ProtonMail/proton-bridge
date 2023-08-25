@@ -19,7 +19,10 @@ package imapservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"path/filepath"
+	"time"
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/reporter"
@@ -28,12 +31,13 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/orderedtasks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/useridentity"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
-	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/maps"
 )
 
 type EventProvider interface {
@@ -55,16 +59,6 @@ type GluonIDProvider interface {
 	GluonKey() []byte
 }
 
-type SyncStateProvider interface {
-	AddFailedMessageID(messageID string) error
-	RemFailedMessageID(messageID string) error
-	GetSyncStatus() vault.SyncStatus
-	ClearSyncStatus() error
-	SetHasLabels(bool) error
-	SetHasMessages(bool) error
-	SetLastMessageID(messageID string) error
-}
-
 type Service struct {
 	log *logrus.Entry
 	cpc *cpc.CPC
@@ -76,11 +70,10 @@ type Service struct {
 
 	subscription *userevents.EventChanneledSubscriber
 
-	gluonIDProvider   GluonIDProvider
-	syncStateProvider SyncStateProvider
-	eventProvider     EventProvider
-	serverManager     IMAPServerManager
-	eventPublisher    events.EventPublisher
+	gluonIDProvider GluonIDProvider
+	eventProvider   EventProvider
+	serverManager   IMAPServerManager
+	eventPublisher  events.EventPublisher
 
 	telemetry    Telemetry
 	panicHandler async.PanicHandler
@@ -92,14 +85,20 @@ type Service struct {
 	connectors        map[string]*Connector
 	maxSyncMemory     uint64
 	showAllMail       bool
-	syncHandler       *syncHandler
+
+	syncHandler        *syncservice.Handler
+	syncUpdateApplier  *SyncUpdateApplier
+	syncMessageBuilder *SyncMessageBuilder
+	syncStateProvider  *SyncState
+	syncReporter       *syncReporter
+
+	syncConfigPath string
 }
 
 func NewService(
 	client APIClient,
 	identityState *useridentity.State,
 	gluonIDProvider GluonIDProvider,
-	syncStateProvider SyncStateProvider,
 	eventProvider EventProvider,
 	serverManager IMAPServerManager,
 	eventPublisher events.EventPublisher,
@@ -111,27 +110,34 @@ func NewService(
 	reporter reporter.Reporter,
 	addressMode usertypes.AddressMode,
 	subscription events.Subscription,
+	syncConfigDir string,
 	maxSyncMemory uint64,
 	showAllMail bool,
 ) *Service {
 	subscriberName := fmt.Sprintf("imap-%v", identityState.User.ID)
 
+	log := logrus.WithFields(logrus.Fields{
+		"user":    identityState.User.ID,
+		"service": "imap",
+	})
+	rwIdentity := newRWIdentity(identityState, bridgePassProvider, keyPassProvider)
+
+	syncUpdateApplier := NewSyncUpdateApplier()
+	syncMessageBuilder := NewSyncMessageBuilder(rwIdentity)
+	syncReporter := newSyncReporter(identityState.User.ID, eventPublisher, time.Second)
+
 	return &Service{
-		cpc: cpc.NewCPC(),
-		log: logrus.WithFields(logrus.Fields{
-			"user":    identityState.User.ID,
-			"service": "imap",
-		}),
+		cpc:           cpc.NewCPC(),
 		client:        client,
-		identityState: newRWIdentity(identityState, bridgePassProvider, keyPassProvider),
+		log:           log,
+		identityState: rwIdentity,
 		labels:        newRWLabels(),
 		addressMode:   addressMode,
 
-		gluonIDProvider:   gluonIDProvider,
-		serverManager:     serverManager,
-		syncStateProvider: syncStateProvider,
-		eventProvider:     eventProvider,
-		eventPublisher:    eventPublisher,
+		gluonIDProvider: gluonIDProvider,
+		serverManager:   serverManager,
+		eventProvider:   eventProvider,
+		eventPublisher:  eventPublisher,
 
 		subscription: userevents.NewEventSubscriber(subscriberName),
 
@@ -146,10 +152,31 @@ func NewService(
 		eventWatcher:      subscription.Add(events.IMAPServerCreated{}),
 		eventSubscription: subscription,
 		showAllMail:       showAllMail,
+
+		syncUpdateApplier:  syncUpdateApplier,
+		syncMessageBuilder: syncMessageBuilder,
+		syncReporter:       syncReporter,
+		syncConfigPath:     getSyncConfigPath(syncConfigDir, identityState.User.ID),
 	}
 }
 
-func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGroup) error {
+func (s *Service) Start(
+	ctx context.Context,
+	group *orderedtasks.OrderedCancelGroup,
+	syncRegulator syncservice.Regulator,
+
+) error {
+	{
+		syncStateProvider, err := NewSyncState(s.syncConfigPath)
+		if err != nil {
+			return fmt.Errorf("failed to load sync state: %w", err)
+		}
+
+		s.syncStateProvider = syncStateProvider
+	}
+
+	s.syncHandler = syncservice.NewHandler(syncRegulator, s.client, s.identityState.UserID(), s.syncStateProvider, s.log, s.panicHandler)
+
 	// Get user labels
 	apiLabels, err := s.client.GetLabels(ctx, proton.LabelTypeSystem, proton.LabelTypeFolder, proton.LabelTypeLabel)
 	if err != nil {
@@ -227,6 +254,10 @@ func (s *Service) GetLabels(ctx context.Context) (map[string]proton.Label, error
 	return cpc.SendTyped[map[string]proton.Label](ctx, s.cpc, &getLabelsReq{})
 }
 
+func (s *Service) GetSyncFailedMessageIDs(ctx context.Context) ([]string, error) {
+	return cpc.SendTyped[[]string](ctx, s.cpc, &getSyncFailedMessagesReq{})
+}
+
 func (s *Service) Close() {
 	for _, c := range s.connectors {
 		c.StateClose()
@@ -251,7 +282,7 @@ func (s *Service) HandleRefreshEvent(ctx context.Context, _ proton.RefreshFlag) 
 		return err
 	}
 
-	if err := s.syncStateProvider.ClearSyncStatus(); err != nil {
+	if err := s.syncStateProvider.ClearSyncStatus(ctx); err != nil {
 		return fmt.Errorf("failed to clear sync status:%w", err)
 	}
 
@@ -259,7 +290,7 @@ func (s *Service) HandleRefreshEvent(ctx context.Context, _ proton.RefreshFlag) 
 		return err
 	}
 
-	s.syncHandler.launch(s)
+	s.startSyncing()
 
 	return nil
 }
@@ -279,11 +310,9 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 
 	defer s.cpc.Close()
 	defer s.eventSubscription.Remove(s.eventWatcher)
-
-	s.syncHandler = newSyncHandler(ctx, s.panicHandler)
 	defer s.syncHandler.Close()
 
-	s.syncHandler.launch(s)
+	s.startSyncing()
 
 	eventHandler := userevents.EventHandler{
 		UserHandler:    s,
@@ -307,7 +336,7 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 			}
 			switch r := req.Value().(type) {
 			case *setAddressModeReq:
-				err := s.setAddressMode(ctx, s.syncHandler, r.mode)
+				err := s.setAddressMode(ctx, r.mode)
 				req.Reply(ctx, nil, err)
 
 			case *resyncReq:
@@ -325,7 +354,7 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 				s.log.Info("Resuming sync")
 				// Cancel previous run, if any, just in case.
 				s.syncHandler.CancelAndWait()
-				s.syncHandler.launch(s)
+				s.startSyncing()
 				req.Reply(ctx, nil, nil)
 			case *getLabelsReq:
 				labels := s.labels.GetLabelMap()
@@ -347,6 +376,15 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 				req.Reply(ctx, nil, nil)
 				s.setShowAllMail(r.v)
 
+			case *getSyncFailedMessagesReq:
+				status, err := s.syncStateProvider.GetSyncStatus(ctx)
+				if err != nil {
+					req.Reply(ctx, nil, fmt.Errorf("failed to get sync status: %w", err))
+					continue
+				}
+
+				req.Reply(ctx, maps.Keys(status.FailedMessages), nil)
+
 			default:
 				s.log.Error("Received unknown request")
 			}
@@ -366,11 +404,19 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 				s.eventProvider.ResumeIMAP()
 			}
 
-		case update, ok := <-s.syncHandler.updater.ch:
+		case request, ok := <-s.syncUpdateApplier.requestCh:
 			if !ok {
 				continue
 			}
-			s.onSyncUpdate(ctx, update)
+
+			updates, err := request(ctx, s.addressMode, s.connectors)
+
+			if err := s.syncUpdateApplier.reply(ctx, updates, err); err != nil {
+				if !errors.Is(err, context.Canceled) {
+					s.log.WithError(err).Error("unexpected error during sync update reply")
+				}
+				return
+			}
 
 		case e, ok := <-s.subscription.OnEventCh():
 			if !ok {
@@ -449,17 +495,6 @@ func (s *Service) rebuildConnectors() error {
 	return nil
 }
 
-func (s *Service) onSyncUpdate(ctx context.Context, syncUpdate syncUpdate) {
-	c, ok := s.connectors[syncUpdate.addrID]
-	if !ok {
-		s.log.Warningf("Received syncUpdate for unknown addr (%v), connector may have been removed", syncUpdate.addrID)
-		syncUpdate.update.Done(fmt.Errorf("undeliverable"))
-		return
-	}
-
-	c.publishUpdate(ctx, syncUpdate.update)
-}
-
 func (s *Service) addConnectorsToServer(ctx context.Context, connectors map[string]*Connector) error {
 	addedConnectors := make([]string, 0, len(connectors))
 	for _, c := range connectors {
@@ -490,7 +525,7 @@ func (s *Service) removeConnectorsFromServer(ctx context.Context, connectors map
 	return nil
 }
 
-func (s *Service) setAddressMode(ctx context.Context, handler *syncHandler, mode usertypes.AddressMode) error {
+func (s *Service) setAddressMode(ctx context.Context, mode usertypes.AddressMode) error {
 	if s.addressMode == mode {
 		return nil
 	}
@@ -502,13 +537,13 @@ func (s *Service) setAddressMode(ctx context.Context, handler *syncHandler, mode
 		s.log.Info("Setting Combined Address Mode")
 	}
 
-	handler.CancelAndWait()
+	s.syncHandler.CancelAndWait()
 
 	if err := s.removeConnectorsFromServer(ctx, s.connectors, true); err != nil {
 		return err
 	}
 
-	if err := s.syncStateProvider.ClearSyncStatus(); err != nil {
+	if err := s.syncStateProvider.ClearSyncStatus(ctx); err != nil {
 		return fmt.Errorf("failed to clear sync status:%w", err)
 	}
 
@@ -520,7 +555,7 @@ func (s *Service) setAddressMode(ctx context.Context, handler *syncHandler, mode
 		return err
 	}
 
-	handler.launch(s)
+	s.startSyncing()
 
 	return nil
 }
@@ -535,6 +570,10 @@ func (s *Service) setShowAllMail(v bool) {
 	for _, c := range s.connectors {
 		c.ShowAllMail(v)
 	}
+}
+
+func (s *Service) startSyncing() {
+	s.syncHandler.Execute(s.syncReporter, s.labels.GetLabelMap(), s.syncUpdateApplier, s.syncMessageBuilder, syncservice.DefaultRetryCoolDown)
 }
 
 type resyncReq struct{}
@@ -555,4 +594,10 @@ type showAllMailReq struct{ v bool }
 
 type setAddressModeReq struct {
 	mode usertypes.AddressMode
+}
+
+type getSyncFailedMessagesReq struct{}
+
+func getSyncConfigPath(path string, userID string) string {
+	return filepath.Join(path, fmt.Sprintf("sync-%v", userID))
 }

@@ -95,6 +95,13 @@ func (r *rwIdentity) WithAddrKR(addrID string, fn func(userKR *crypto.KeyRing, a
 	return r.identity.WithAddrKR(addrID, r.keyPassProvider.KeyPass(), fn)
 }
 
+func (r *rwIdentity) WithAddrKRs(fn func(*crypto.KeyRing, map[string]*crypto.KeyRing) error) error {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	return r.identity.WithAddrKRs(r.keyPassProvider.KeyPass(), fn)
+}
+
 func (r *rwIdentity) CheckAuth(email string, password []byte, telemetry Telemetry) (string, error) {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
