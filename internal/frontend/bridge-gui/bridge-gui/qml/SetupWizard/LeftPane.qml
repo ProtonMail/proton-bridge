@@ -26,7 +26,7 @@ Item {
     function showAppleMailAutoconfigCertificateInstall() {
         showAppleMailAutoconfigCommon();
         descriptionLabel.text = qsTr("Apple Mail configuration is mostly automated, but in order to work, Bridge needs to install a certificate in your keychain.");
-        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why is this certificate needed?"));
+        linkLabel1.setCallback(showUnderConstruction, qsTr("Why is this certificate needed?"));
     }
     function showAppleMailAutoconfigCommon() {
         titleLabel.text = "";
@@ -39,7 +39,7 @@ Item {
     function showAppleMailAutoconfigProfileInstall() {
         showAppleMailAutoconfigCommon();
         descriptionLabel.text = qsTr("The final step before you can start using Apple Mail is to install the Bridge server profile in the system preferences.\n\nAdding a server profile is necessary to ensure that your Mac can receive and send Proton Mails.");
-        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why is there a yellow warning sign?"));
+        linkLabel1.setCallback(showUnderConstruction, qsTr("Why is there a yellow warning sign?"));
         linkLabel2.setCallback(wizard.showClientParams, qsTr("Configure Apple Mail manually"));
     }
     function showClientSelector() {
@@ -63,11 +63,14 @@ Item {
     function showOnboarding() {
         titleLabel.text = (Backend.users.count === 0) ? qsTr("Welcome to\nProton Mail Bridge") : qsTr("Add a Proton Mail account");
         descriptionLabel.text = qsTr("Bridge is the gateway between your Proton account and your email client. It runs in the background and encrypts and decrypts your messages seamlessly. ");
-        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why do I need Bridge?"));
+        linkLabel1.setCallback(showUnderConstruction, qsTr("Why do I need Bridge?"));
         linkLabel2.clear();
         root.iconSource = "/qml/icons/img-welcome.svg";
         root.iconHeight = 148;
         root.iconWidth = 265;
+    }
+    function showUnderConstruction() {
+        Backend.showWebFrameOverlay("qrc:/qml/Resources/ComingSoon.html");
     }
 
     Connections {

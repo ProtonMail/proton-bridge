@@ -43,6 +43,28 @@ QtObject {
 
             target: Backend
         }
+        WebFrameWindow {
+            id: webFrameWindow
+            colorScheme: ProtonStyle.currentStyle
+            flags: Qt.Tool
+            transientParent: mainWindow
+
+            Connections {
+                function onShowWebFrameOverlay(url) {
+                    mainWindow.showWebFrameOverlay(url);
+                }
+                function onShowWebFrameWindow(url) {
+                    webFrameWindow.url = url;
+                    webFrameWindow.show();
+                    webFrameWindow.raise();
+                    if (!webFrameWindow.active) {
+                        webFrameWindow.requestActivate();
+                    }
+                }
+
+                target: Backend
+            }
+        }
     }
     property Notifications _notifications: Notifications {
         id: notifications
@@ -67,24 +89,6 @@ QtObject {
                 }
             }
             Backend.setNormalTrayIcon();
-        }
-    }
-    property WebFrameWindow _webFrameWindow: WebFrameWindow {
-        id: webFrameWindow
-        colorScheme: ProtonStyle.currentStyle
-        transientParent: mainWindow
-        flags: Qt.Tool
-
-        Connections {
-            function onShowWebFrameWindow(url) {
-                webFrameWindow.url = url;
-                webFrameWindow.showNormal();
-            }
-            function onShowWebFrameOverlay(url) {
-                mainWindow.showWebFrameOverlay(url)
-            }
-
-            target: Backend
         }
     }
     property var title: Backend.appname

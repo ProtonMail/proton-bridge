@@ -44,11 +44,6 @@ Item {
     signal bugReportRequested
     signal wizardEnded
 
-    function showBugReport() {
-        closeWizard()
-        bugReportRequested()
-    }
-
     function _showClientConfig() {
         showClientConfig(root.user, root.address);
     }
@@ -85,11 +80,27 @@ Item {
     function closeWizard() {
         wizardEnded();
     }
+    function setupGuideLink() {
+        switch (client) {
+        case SetupWizard.Client.AppleMail:
+            return "https://proton.me/support/protonmail-bridge-clients-apple-mail";
+        case SetupWizard.Client.MicrosoftOutlook:
+            return (Backend.goos === "darwin") ? "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019" : "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019";
+        case SetupWizard.Client.MozillaThunderbird:
+            return "https://proton.me/support/protonmail-bridge-clients-windows-thunderbird";
+        default:
+            return "https://proton.me/support/protonmail-bridge-configure-client";
+        }
+    }
     function showAppleMailAutoConfig() {
         backAction = _showClientConfig;
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
         rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigAppleMail;
         clientConfigAppleMail.showAutoconfig(); // This will trigger signals that will display the appropriate left content.
+    }
+    function showBugReport() {
+        closeWizard();
+        bugReportRequested();
     }
     function showClientConfig(user, address) {
         backAction = null;

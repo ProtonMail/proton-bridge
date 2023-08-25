@@ -77,6 +77,10 @@ Rectangle {
                         colorScheme: root.colorScheme
                         icon.source: "/qml/icons/ic-external-link.svg"
                         text: qsTr("Open Guide")
+
+                        onClicked: function () {
+                            Backend.showWebFrameWindow(wizard.setupGuideLink());
+                        }
                     }
                 }
             }
