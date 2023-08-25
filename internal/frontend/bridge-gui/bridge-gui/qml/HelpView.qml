@@ -104,7 +104,7 @@ SettingsView {
         type: Label.Caption
 
         onLinkActivated: function (link) {
-            Backend.showWebViewWindow(link)
+            Backend.showWebFrameOverlay(link)
         }
     }
 }

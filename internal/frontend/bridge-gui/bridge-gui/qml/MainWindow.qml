@@ -57,7 +57,7 @@ ApplicationWindow {
         setupWizard.showClientConfig(user, address);
     }
     function showHelp() {
-        showWebViewOverlay("https://proton.me/support/bridge");
+        Backend.showWebFrameWindow("https://proton.me/support/bridge");
     }
     function showLocalCacheSettings() {
         contentWrapper.showLocalCacheSettings();
@@ -69,9 +69,9 @@ ApplicationWindow {
     function showSettings() {
         contentWrapper.showSettings();
     }
-    function showWebViewOverlay(url) {
-        webViewOverlay.visible = true;
-        webViewOverlay.url = url;
+    function showWebFrameOverlay(url) {
+        webFrameOverlay.visible = true;
+        webFrameOverlay.url = url;
     }
 
     colorScheme: ProtonStyle.currentStyle
@@ -179,8 +179,8 @@ ApplicationWindow {
             }
         }
     }
-    WebView {
-        id: webViewOverlay
+    WebFrame {
+        id: webFrameOverlay
         anchors.fill: parent
         colorScheme: root.colorScheme
         overlay: true

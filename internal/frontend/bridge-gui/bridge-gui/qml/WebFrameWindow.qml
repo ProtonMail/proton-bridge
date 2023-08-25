@@ -17,13 +17,18 @@ import Proton
 
 Window {
     id: root
-    height: 600
-    width: 800
-    minimumWidth: 600
+
     property string url
-    WebView {
+    property ColorScheme colorScheme
+
+    height: 600
+    minimumWidth: 600
+    width: 800
+
+    WebFrame {
+        id: frame
         anchors.fill: parent
-        colorScheme: ProtonStyle.currentStyle
+        colorScheme: root.colorScheme
         overlay: false
         url: root.url
     }

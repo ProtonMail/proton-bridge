@@ -277,7 +277,8 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void hideMainWindow(); ///< Signal for the 'hideMainWindow' gRPC stream event.
     void showHelp(); ///< Signal for the 'showHelp' event (from the context menu).
     void showSettings(); ///< Signal for the 'showHelp' event (from the context menu).
-    void showWebViewWindow(QString const &url); ///< Signal the the 'showWebViewWindow' event
+    void showWebFrameWindow(QString const &url); ///< Signal the the 'showWebFrameWindow' event
+    void showWebFrameOverlay(QString const &url); ////< Signal for the 'showWebFrameOverlay' event.
     void selectUser(QString const& userID, bool forceShowWindow); ///< Signal emitted in order to selected a user with a given ID in the list.
     void genericError(QString const &title, QString const &description); ///< Signal for the 'genericError' gRPC stream event.
     void imapLoginWhileSignedOut(QString const& username); ///< Signal for the notification of IMAP login attempt on a signed out account.

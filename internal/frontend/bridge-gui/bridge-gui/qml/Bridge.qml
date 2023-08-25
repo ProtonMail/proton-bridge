@@ -69,16 +69,19 @@ QtObject {
             Backend.setNormalTrayIcon();
         }
     }
-    property WebViewWindow _webviewWindow: WebViewWindow {
-        id: webViewWindow
-        flags: Qt.Tool
+    property WebFrameWindow _webFrameWindow: WebFrameWindow {
+        id: webFrameWindow
+        colorScheme: ProtonStyle.currentStyle
         transientParent: mainWindow
-        visible: false
+        flags: Qt.Tool
 
         Connections {
-            function onShowWebViewWindow(url) {
-                webViewWindow.url = url;
-                webViewWindow.show();
+            function onShowWebFrameWindow(url) {
+                webFrameWindow.url = url;
+                webFrameWindow.showNormal();
+            }
+            function onShowWebFrameOverlay(url) {
+                mainWindow.showWebFrameOverlay(url)
             }
 
             target: Backend

@@ -107,7 +107,7 @@
         <file>qml/Proton/TextArea.qml</file>
         <file>qml/Proton/TextField.qml</file>
         <file>qml/Proton/Toggle.qml</file>
-        <file>qml/Proton/WebView.qml</file>
+        <file>qml/Proton/WebFrame.qml</file>
         <file>qml/QuestionItem.qml</file>
         <file>qml/Resources/bug_report_flow.json</file>
         <file>qml/SettingsItem.qml</file>
@@ -126,6 +126,6 @@
         <file>qml/ConnectionModeSettings.qml</file>
         <file>qml/SplashScreen.qml</file>
         <file>qml/Status.qml</file>
-        <file>qml/WebViewWindow.qml</file>
+        <file>qml/WebFrameWindow.qml</file>
     </qresource>
 </RCC>
