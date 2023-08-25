@@ -42,9 +42,9 @@ Item {
         linkLabel1.setCallback(showUnderConstruction, qsTr("Why is there a yellow warning sign?"));
         linkLabel2.setCallback(wizard.showClientParams, qsTr("Configure Apple Mail manually"));
     }
-    function showClientSelector() {
+    function showClientSelector(newAccount = true) {
         titleLabel.text = "";
-        descriptionLabel.text = qsTr("Bridge is now connected to Proton, and has already started downloading your messages. Let’s now connect your email client to Bridge.");
+        descriptionLabel.text = newAccount ? qsTr("Bridge is now connected to Proton, and has already started downloading your messages. Let’s now connect your email client to Bridge.") : qsTr("Let’s connect your email client to Bridge.");
         linkLabel1.clear();
         linkLabel2.clear();
         iconSource = "/qml/icons/img-client-config-selector.svg";

@@ -28,7 +28,7 @@ Item {
     property var notifications
     property var user
 
-    signal showClientConfigurator(var user, string address)
+    signal showClientConfigurator(var user, string address, bool justLoggedIn)
     signal showLogin(var username)
 
     Rectangle {
@@ -129,7 +129,7 @@ Item {
                             onClicked: {
                                 if (!root.user)
                                     return;
-                                root.showClientConfigurator(root.user, user.addresses[0]);
+                                root.showClientConfigurator(root.user, user.addresses[0], false);
                             }
                         }
                         SettingsItem {
@@ -171,7 +171,7 @@ Item {
                                 onClicked: {
                                     if (!root.user)
                                         return;
-                                    root.showClientConfigurator(root.user, addressSelector.displayText);
+                                    root.showClientConfigurator(root.user, addressSelector.displayText, false);
                                 }
                             }
                         }

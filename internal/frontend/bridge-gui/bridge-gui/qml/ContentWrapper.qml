@@ -24,7 +24,7 @@ Item {
 
     signal closeWindow
     signal quitBridge
-    signal showClientConfigurator(var user, string address)
+    signal showClientConfigurator(var user, string address, bool justLoggedIn)
     signal showLogin(var username)
 
     function selectUser(userID) {
@@ -336,8 +336,8 @@ Item {
                         return Backend.users.get(accounts.currentIndex);
                     }
 
-                    onShowClientConfigurator: function (user, address) {
-                        root.showClientConfigurator(user, address);
+                    onShowClientConfigurator: function (user, address, justLoggedIn) {
+                        root.showClientConfigurator(user, address, justLoggedIn);
                     }
                     onShowLogin: function (username) {
                         root.showLogin(username);

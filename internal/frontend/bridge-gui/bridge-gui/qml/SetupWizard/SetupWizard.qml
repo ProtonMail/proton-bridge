@@ -45,7 +45,7 @@ Item {
     signal wizardEnded
 
     function _showClientConfig() {
-        showClientConfig(root.user, root.address);
+        showClientConfig(root.user, root.address, false);
     }
     function clientIconSource() {
         switch (client) {
@@ -102,12 +102,12 @@ Item {
         closeWizard();
         bugReportRequested();
     }
-    function showClientConfig(user, address) {
+    function showClientConfig(user, address, justLoggedIn) {
         backAction = null;
         root.user = user;
         root.address = address;
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
-        leftContent.showClientSelector();
+        leftContent.showClientSelector(justLoggedIn);
         rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigSelector;
     }
     function showClientConfigEnd() {
@@ -144,7 +144,7 @@ Item {
             }
             let user = Backend.users.get(userIndex);
             let address = user ? user.addresses[0] : "";
-            showClientConfig(user, address);
+            showClientConfig(user, address, true);
         }
 
         target: Backend

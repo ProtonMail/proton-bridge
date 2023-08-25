@@ -52,9 +52,9 @@ ApplicationWindow {
             root.requestActivate();
         }
     }
-    function showClientConfigurator(user, address) {
+    function showClientConfigurator(user, address, justLoggedIn) {
         contentLayout.currentIndex = 1;
-        setupWizard.showClientConfig(user, address);
+        setupWizard.showClientConfig(user, address, justLoggedIn);
     }
     function showHelp() {
         Backend.showWebFrameWindow("https://proton.me/support/bridge");
@@ -103,7 +103,7 @@ ApplicationWindow {
             if (user.setupGuideSeen) {
                 return;
             }
-            root.showClientConfigurator(user, user.addresses[0]);
+            root.showClientConfigurator(user, user.addresses[0], false);
         }
 
         target: Backend.users
@@ -158,8 +158,8 @@ ApplicationWindow {
                 root.close();
                 Backend.quit();
             }
-            onShowClientConfigurator: function (user, address) {
-                root.showClientConfigurator(user, address);
+            onShowClientConfigurator: function (user, address, justLoggedIn) {
+                root.showClientConfigurator(user, address, justLoggedIn);
             }
             onShowLogin: function (username) {
                 root.showLogin(username);

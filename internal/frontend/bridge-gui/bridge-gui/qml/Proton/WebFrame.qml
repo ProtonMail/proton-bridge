@@ -15,8 +15,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Controls.impl
-import QtWebEngine
-
+import QtWebView
 
 Item {
     id: root
@@ -55,15 +54,11 @@ Item {
                 border.color: root.colorScheme.border_norm
                 border.width: overlay ? ProtonStyle.web_view_overley_border_width : 0
 
-                WebEngineView {
+                WebView {
                     id: webView
                     anchors.fill: parent
                     anchors.margins: ProtonStyle.web_view_overley_border_width
                     url: root.url
-
-                    onContextMenuRequested: function (request) {
-                        request.accepted = true; // This prevent the default context menu from being presented.
-                    }
                 }
             }
             Button {
