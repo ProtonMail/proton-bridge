@@ -333,8 +333,7 @@ func TestDownloadStage_JobAbortsOnAttachmentDownloadError(t *testing.T) {
 	tj := newTestJob(jobCtx, mockCtrl, "", map[string]proton.Label{})
 	tj.client.EXPECT().GetMessage(gomock.Any(), gomock.Any()).Return(proton.Message{
 		MessageMetadata: proton.MessageMetadata{
-			ID:             "msg",
-			NumAttachments: 1,
+			ID: "msg",
 		},
 		Header:        "",
 		ParsedHeaders: nil,
@@ -436,7 +435,7 @@ func buildDownloadStageAttachments(msg *proton.FullMessage, index int) {
 func genDownloadStageAttachmentInfo(msg *proton.FullMessage, msgIdx int, count int) {
 	msg.Attachments = make([]proton.Attachment, count)
 	msg.AttData = make([][]byte, count)
-	msg.NumAttachments = count
+
 	for i := 0; i < count; i++ {
 		data := fmt.Sprintf("msg-%v-att-%v", msgIdx, i)
 		msg.Attachments[i] = proton.Attachment{

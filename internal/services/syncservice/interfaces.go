@@ -28,8 +28,8 @@ import (
 )
 
 type StateProvider interface {
-	AddFailedMessageID(context.Context, string) error
-	RemFailedMessageID(context.Context, string) error
+	AddFailedMessageID(context.Context, ...string) error
+	RemFailedMessageID(context.Context, ...string) error
 	GetSyncStatus(context.Context) (Status, error)
 	ClearSyncStatus(context.Context) error
 	SetHasLabels(context.Context, bool) error
@@ -85,4 +85,5 @@ type Reporter interface {
 	OnFinished(ctx context.Context)
 	OnError(ctx context.Context, err error)
 	OnProgress(ctx context.Context, delta int64)
+	InitializeProgressCounter(ctx context.Context, current int64, total int64)
 }

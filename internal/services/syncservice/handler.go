@@ -117,7 +117,11 @@ func (t *Handler) Execute(
 		}
 
 		t.log.WithField("duration", time.Since(start)).Info("Finished user sync")
-		t.syncFinishedCh <- err
+		select {
+		case <-ctx.Done():
+			return
+		case t.syncFinishedCh <- err:
+		}
 	})
 }
 
@@ -179,7 +183,11 @@ func (t *Handler) run(ctx context.Context,
 		if err := t.syncState.SetMessageCount(ctx, totalMessageCount); err != nil {
 			return fmt.Errorf("failed to store message count: %w", err)
 		}
+
+		syncStatus.TotalMessageCount = totalMessageCount
 	}
+
+	syncReporter.InitializeProgressCounter(ctx, syncStatus.NumSyncedMessages, syncStatus.TotalMessageCount)
 
 	if !syncStatus.HasMessages {
 		t.log.Info("Syncing messages")
@@ -197,6 +205,11 @@ func (t *Handler) run(ctx context.Context,
 			t.downloadCache,
 			t.log,
 		)
+
+		stageContext.metadataFetched = syncStatus.NumSyncedMessages
+		stageContext.totalMessageCount = syncStatus.TotalMessageCount
+
+		defer stageContext.Close()
 
 		t.regulator.Sync(ctx, stageContext)
 

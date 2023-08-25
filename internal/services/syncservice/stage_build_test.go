@@ -153,7 +153,7 @@ func TestBuildStage_BuildFailureIsReportedButDoesNotCancelJob(t *testing.T) {
 	buildError := errors.New("it failed")
 
 	tj.messageBuilder.EXPECT().BuildMessage(gomock.Eq(labels), gomock.Eq(msg), gomock.Any(), gomock.Any()).Return(BuildResult{}, buildError)
-	tj.state.EXPECT().AddFailedMessageID(gomock.Any(), gomock.Eq("MSG"))
+	tj.state.EXPECT().AddFailedMessageID(gomock.Any(), gomock.Eq([]string{"MSG"}))
 	mockReporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Eq(reporter.Context{
 		"userID":    "u",
 		"messageID": "MSG",
@@ -204,7 +204,7 @@ func TestBuildStage_FailedToLocateKeyRingIsReportedButDoesNotFailBuild(t *testin
 	childJob := tj.job.newChildJob("f", 10)
 	tj.job.end()
 
-	tj.state.EXPECT().AddFailedMessageID(gomock.Any(), gomock.Eq("MSG"))
+	tj.state.EXPECT().AddFailedMessageID(gomock.Any(), gomock.Eq([]string{"MSG"}))
 	mockReporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Eq(reporter.Context{
 		"userID":    "u",
 		"messageID": "MSG",

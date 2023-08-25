@@ -24,6 +24,7 @@ import (
 	"runtime"
 
 	"github.com/ProtonMail/gluon/async"
+	"github.com/ProtonMail/gluon/logging"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -70,7 +71,15 @@ func NewBuildStage(
 }
 
 func (b *BuildStage) Run(group *async.Group) {
-	group.Once(b.run)
+	group.Once(func(ctx context.Context) {
+		logging.DoAnnotated(
+			ctx,
+			func(ctx context.Context) {
+				b.run(ctx)
+			},
+			logging.Labels{"sync-stage": "build"},
+		)
+	})
 }
 
 func (b *BuildStage) run(ctx context.Context) {
@@ -94,7 +103,21 @@ func (b *BuildStage) run(ctx context.Context) {
 		err = req.job.messageBuilder.WithKeys(func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
 			chunks := chunkSyncBuilderBatch(req.batch, b.maxBuildMem)
 
-			for _, chunk := range chunks {
+			// This stage will split our existing job into many smaller bits. We need to update the Parent Job so
+			// that it correctly tracks the lifetime of extra jobs. Additionally, we also need to make sure
+			// that only the last chunk contains the metadata to clear the cache.
+			chunkedJobs := req.chunkDivide(chunks)
+
+			for idx, chunk := range chunks {
+				if chunkedJobs[idx].checkCancelled() {
+					// Cancel all other chunks.
+					for i := idx + 1; i < len(chunkedJobs); i++ {
+						chunkedJobs[i].checkCancelled()
+					}
+
+					return nil
+				}
+
 				result, err := parallel.MapContext(ctx, maxMessagesInParallel, chunk, func(ctx context.Context, msg proton.FullMessage) (BuildResult, error) {
 					defer async.HandlePanic(b.panicHandler)
 
@@ -135,21 +158,29 @@ func (b *BuildStage) run(ctx context.Context) {
 						return BuildResult{}, nil
 					}
 
-					if err := req.job.state.RemFailedMessageID(req.getContext(), res.MessageID); err != nil {
-						req.job.log.WithError(err).Error("Failed to remove failed message ID")
-					}
-
 					return res, nil
 				})
 				if err != nil {
 					return err
 				}
 
+				success := xslices.Filter(result, func(t BuildResult) bool {
+					return t.Update != nil
+				})
+
+				if len(success) > 0 {
+					successIDs := xslices.Map(success, func(t BuildResult) string {
+						return t.MessageID
+					})
+
+					if err := req.job.state.RemFailedMessageID(req.getContext(), successIDs...); err != nil {
+						req.job.log.WithError(err).Error("Failed to remove failed message ID")
+					}
+				}
+
 				b.output.Produce(ctx, ApplyRequest{
-					childJob: req.childJob,
-					messages: xslices.Filter(result, func(t BuildResult) bool {
-						return t.Update != nil
-					}),
+					childJob: chunkedJobs[idx],
+					messages: success,
 				})
 			}
 

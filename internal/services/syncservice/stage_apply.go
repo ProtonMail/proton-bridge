@@ -22,6 +22,7 @@ import (
 	"errors"
 
 	"github.com/ProtonMail/gluon/async"
+	"github.com/ProtonMail/gluon/logging"
 	"github.com/sirupsen/logrus"
 )
 
@@ -44,7 +45,15 @@ func NewApplyStage(input ApplyStageInput) *ApplyStage {
 }
 
 func (a *ApplyStage) Run(group *async.Group) {
-	group.Once(a.run)
+	group.Once(func(ctx context.Context) {
+		logging.DoAnnotated(
+			ctx,
+			func(ctx context.Context) {
+				a.run(ctx)
+			},
+			logging.Labels{"sync-stage": "apply"},
+		)
+	})
 }
 
 func (a *ApplyStage) run(ctx context.Context) {

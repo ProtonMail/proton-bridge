@@ -19,11 +19,12 @@ package syncservice
 
 import (
 	"context"
+	"errors"
 
 	"github.com/ProtonMail/gluon/async"
+	"github.com/ProtonMail/gluon/logging"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/network"
-	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
 )
 
@@ -37,80 +38,91 @@ type MetadataStage struct {
 	output         MetadataStageOutput
 	input          MetadataStageInput
 	maxDownloadMem uint64
-	jobs           []*metadataIterator
 	log            *logrus.Entry
+	panicHandler   async.PanicHandler
 }
 
-func NewMetadataStage(input MetadataStageInput, output MetadataStageOutput, maxDownloadMem uint64) *MetadataStage {
-	return &MetadataStage{input: input, output: output, maxDownloadMem: maxDownloadMem, log: logrus.WithField("sync-stage", "metadata")}
+func NewMetadataStage(
+	input MetadataStageInput,
+	output MetadataStageOutput,
+	maxDownloadMem uint64,
+	panicHandler async.PanicHandler,
+) *MetadataStage {
+	return &MetadataStage{
+		input:          input,
+		output:         output,
+		maxDownloadMem: maxDownloadMem,
+		log:            logrus.WithField("sync-stage", "metadata"),
+		panicHandler:   panicHandler,
+	}
 }
 
 const MetadataPageSize = 150
 const MetadataMaxMessages = 250
 
-func (m MetadataStage) Run(group *async.Group) {
+func (m *MetadataStage) Run(group *async.Group) {
 	group.Once(func(ctx context.Context) {
-		m.run(ctx, MetadataPageSize, MetadataMaxMessages, &network.ExpCoolDown{})
+		logging.DoAnnotated(
+			ctx,
+			func(ctx context.Context) {
+				m.run(ctx, MetadataPageSize, MetadataMaxMessages, &network.ExpCoolDown{})
+			},
+			logging.Labels{"sync-stage": "metadata"},
+		)
 	})
 }
 
-func (m MetadataStage) run(ctx context.Context, metadataPageSize int, maxMessages int, coolDown network.CoolDownProvider) {
+func (m *MetadataStage) run(ctx context.Context, metadataPageSize int, maxMessages int, coolDown network.CoolDownProvider) {
 	defer m.output.Close()
 
+	group := async.NewGroup(ctx, m.panicHandler)
+	defer group.CancelAndWait()
+
 	for {
-		if ctx.Err() != nil {
-			return
-		}
-
-		// Check if new job has been submitted
-		job, ok, err := m.input.TryConsume(ctx)
+		job, err := m.input.Consume(ctx)
 		if err != nil {
-			m.log.WithError(err).Error("Error trying to retrieve more work")
+			if !(errors.Is(err, context.Canceled) || errors.Is(err, ErrNoMoreInput)) {
+				m.log.WithError(err).Error("Error trying to retrieve more work")
+			}
 			return
 		}
-		if ok {
-			job.begin()
-			state, err := newMetadataIterator(job.ctx, job, metadataPageSize, coolDown)
-			if err != nil {
-				job.onError(err)
-				continue
-			}
-			m.jobs = append(m.jobs, state)
+
+		job.begin()
+		state, err := newMetadataIterator(job.ctx, job, metadataPageSize, coolDown)
+		if err != nil {
+			job.onError(err)
+			continue
 		}
 
-		// Iterate over all jobs and produce work.
-		for i := 0; i < len(m.jobs); {
-			job := m.jobs[i]
+		group.Once(func(ctx context.Context) {
+			for {
+				if state.stage.ctx.Err() != nil {
+					state.stage.end()
+					return
+				}
 
-			// If the job's context has been cancelled, remove from the list.
-			if job.stage.ctx.Err() != nil {
-				m.jobs = xslices.RemoveUnordered(m.jobs, i, 1)
-				job.stage.end()
-				continue
+				// Check for more work.
+				output, hasMore, err := state.Next(m.maxDownloadMem, metadataPageSize, maxMessages)
+				if err != nil {
+					state.stage.onError(err)
+					return
+				}
+
+				// If there is actually more work, push it down the pipeline.
+				if len(output.ids) != 0 {
+					state.stage.metadataFetched += int64(len(output.ids))
+					job.log.Debugf("Metada collected: %v/%v", state.stage.metadataFetched, state.stage.totalMessageCount)
+
+					m.output.Produce(ctx, output)
+				}
+
+				// If this job has no more work left, signal completion.
+				if !hasMore {
+					state.stage.end()
+					return
+				}
 			}
-
-			// Check for more work.
-			output, hasMore, err := job.Next(m.maxDownloadMem, metadataPageSize, maxMessages)
-			if err != nil {
-				job.stage.onError(err)
-				m.jobs = xslices.RemoveUnordered(m.jobs, i, 1)
-				continue
-			}
-
-			// If there is actually more work, push it down the pipeline.
-			if len(output.ids) != 0 {
-				m.output.Produce(ctx, output)
-			}
-
-			// If this job has no more work left, signal completion.
-			if !hasMore {
-				m.jobs = xslices.RemoveUnordered(m.jobs, i, 1)
-				job.stage.end()
-				continue
-			}
-
-			i++
-		}
+		})
 	}
 }
 

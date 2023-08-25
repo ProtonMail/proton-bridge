@@ -48,7 +48,7 @@ func TestMetadataStage_RunFinishesWith429(t *testing.T) {
 	output := NewChannelConsumerProducer[DownloadRequest]()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	metadata := NewMetadataStage(input, output, TestMaxDownloadMem)
+	metadata := NewMetadataStage(input, output, TestMaxDownloadMem, &async.NoopPanicHandler{})
 
 	numMessages := 50
 	messageSize := 100
@@ -86,7 +86,7 @@ func TestMetadataStage_JobCorrectlyFinishesAfterCancel(t *testing.T) {
 	output := NewChannelConsumerProducer[DownloadRequest]()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	metadata := NewMetadataStage(input, output, TestMaxDownloadMem)
+	metadata := NewMetadataStage(input, output, TestMaxDownloadMem, &async.NoopPanicHandler{})
 
 	go func() {
 		metadata.run(ctx, TestMetadataPageSize, TestMaxMessages, &network.NoCoolDown{})
@@ -135,7 +135,7 @@ func TestMetadataStage_RunInterleaved(t *testing.T) {
 	output := NewChannelConsumerProducer[DownloadRequest]()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	metadata := NewMetadataStage(input, output, TestMaxDownloadMem)
+	metadata := NewMetadataStage(input, output, TestMaxDownloadMem, &async.NoopPanicHandler{})
 
 	numMessages := 50
 	messageSize := 100

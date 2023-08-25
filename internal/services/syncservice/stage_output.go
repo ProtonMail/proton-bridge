@@ -31,7 +31,6 @@ var ErrNoMoreInput = errors.New("no more input")
 
 type StageInputConsumer[T any] interface {
 	Consume(ctx context.Context) (T, error)
-	TryConsume(ctx context.Context) (T, bool, error)
 }
 
 type ChannelConsumerProducer[T any] struct {
@@ -64,22 +63,5 @@ func (c ChannelConsumerProducer[T]) Consume(ctx context.Context) (T, error) {
 		}
 
 		return t, nil
-	}
-}
-
-func (c ChannelConsumerProducer[T]) TryConsume(ctx context.Context) (T, bool, error) {
-	select {
-	case <-ctx.Done():
-		var t T
-		return t, false, ctx.Err()
-	case t, ok := <-c.ch:
-		if !ok {
-			return t, false, ErrNoMoreInput
-		}
-
-		return t, true, nil
-	default:
-		var t T
-		return t, false, nil
 	}
 }

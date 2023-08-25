@@ -24,6 +24,7 @@ import (
 	"sync"
 
 	"github.com/ProtonMail/gluon/async"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/sirupsen/logrus"
 )
 
@@ -54,6 +55,9 @@ type Job struct {
 
 	panicHandler  async.PanicHandler
 	downloadCache *DownloadCache
+
+	metadataFetched   int64
+	totalMessageCount int64
 }
 
 func NewJob(ctx context.Context,
@@ -176,6 +180,36 @@ func (s *childJob) onError(err error) {
 
 func (s *childJob) userID() string {
 	return s.job.userID
+}
+
+func (s *childJob) chunkDivide(chunks [][]proton.FullMessage) []childJob {
+	numChunks := len(chunks)
+
+	if numChunks == 1 {
+		return []childJob{*s}
+	}
+
+	result := make([]childJob, numChunks)
+	for i := 0; i < numChunks-1; i++ {
+		result[i] = s.job.newChildJob(chunks[i][len(chunks[i])-1].ID, int64(len(chunks[i])))
+		collectIDs(&result[i], chunks[i])
+	}
+
+	result[numChunks-1] = *s
+	collectIDs(&result[numChunks-1], chunks[numChunks-1])
+
+	return result
+}
+
+func collectIDs(j *childJob, msgs []proton.FullMessage) {
+	j.cachedAttachmentIDs = make([]string, 0, len(msgs))
+	j.cachedMessageIDs = make([]string, 0, len(msgs))
+	for _, msg := range msgs {
+		j.cachedMessageIDs = append(j.cachedMessageIDs, msg.ID)
+		for _, attach := range msg.Attachments {
+			j.cachedAttachmentIDs = append(j.cachedAttachmentIDs, attach.ID)
+		}
+	}
 }
 
 func (s *childJob) onFinished(ctx context.Context) {

@@ -48,7 +48,7 @@ func NewService(reporter reporter.Reporter,
 
 	return &Service{
 		limits:        limits,
-		metadataStage: NewMetadataStage(metaCh, downloadCh, limits.DownloadRequestMem),
+		metadataStage: NewMetadataStage(metaCh, downloadCh, limits.DownloadRequestMem, panicHandler),
 		downloadStage: NewDownloadStage(downloadCh, buildCh, 20, panicHandler),
 		buildStage:    NewBuildStage(buildCh, applyCh, limits.MessageBuildMem, panicHandler, reporter),
 		applyStage:    NewApplyStage(applyCh),

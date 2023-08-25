@@ -112,8 +112,11 @@ func (d *DownloadStage) run(ctx context.Context) {
 				}
 
 				var attData [][]byte
-				if msg.NumAttachments > 0 {
-					attData = make([][]byte, msg.NumAttachments)
+
+				numAttachments := len(msg.Attachments)
+
+				if numAttachments > 0 {
+					attData = make([][]byte, numAttachments)
 				}
 
 				return proton.FullMessage{Message: msg, AttData: attData}, nil
@@ -139,7 +142,8 @@ func (d *DownloadStage) run(ctx context.Context) {
 		attachmentIDs := make([]string, 0, len(result))
 
 		for msgIdx, v := range result {
-			for attIdx := 0; attIdx < v.NumAttachments; attIdx++ {
+			numAttachments := len(v.Attachments)
+			for attIdx := 0; attIdx < numAttachments; attIdx++ {
 				attachmentIndices = append(attachmentIndices, attachmentMeta{
 					msgIdx: msgIdx,
 					attIdx: attIdx,
