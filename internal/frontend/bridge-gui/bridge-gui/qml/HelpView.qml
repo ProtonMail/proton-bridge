@@ -45,7 +45,7 @@ SettingsView {
         Layout.fillWidth: true
         actionText: qsTr("Check now")
         colorScheme: root.colorScheme
-        description: qsTr("Check that you're using the latest version of Bridge. To stay up to date, enable auto-updates in settings.")
+        description: qsTr("Check that you're using the latest version of Bridge.\nTo stay up to date, enable auto-updates in settings.")
         text: qsTr("Updates")
         type: SettingsItem.Button
 
