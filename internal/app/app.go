@@ -52,6 +52,9 @@ const (
 	flagCPUProfile      = "cpu-prof"
 	flagCPUProfileShort = "p"
 
+	flagTraceProfile      = "trace-prof"
+	flagTraceProfileShort = "t"
+
 	flagMemProfile      = "mem-prof"
 	flagMemProfileShort = "m"
 
@@ -95,6 +98,11 @@ func New() *cli.App {
 			Name:    flagCPUProfile,
 			Aliases: []string{flagCPUProfileShort},
 			Usage:   "Generate CPU profile",
+		},
+		&cli.BoolFlag{
+			Name:    flagTraceProfile,
+			Aliases: []string{flagTraceProfileShort},
+			Usage:   "Generate Trace profile",
 		},
 		&cli.BoolFlag{
 			Name:    flagMemProfile,
@@ -377,6 +385,11 @@ func withProfiler(c *cli.Context, fn func() error) error {
 	if c.Bool(flagCPUProfile) {
 		logrus.Debug("Running with CPU profiling")
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath(".")).Stop()
+	}
+
+	if c.Bool(flagTraceProfile) {
+		logrus.Debug("Running with Trace profiling")
+		defer profile.Start(profile.TraceProfile, profile.ProfilePath(".")).Stop()
 	}
 
 	if c.Bool(flagMemProfile) {
