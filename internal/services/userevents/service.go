@@ -32,6 +32,7 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/network"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/orderedtasks"
 	"github.com/bradenaw/juniper/xmaps"
 	"github.com/sirupsen/logrus"
@@ -169,7 +170,11 @@ func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGr
 
 	if lastEventID == "" {
 		s.log.Debugf("No event ID present in storage, retrieving latest")
-		eventID, err := s.eventSource.GetLatestEventID(ctx)
+		client := network.NewClientRetryWrapper(s.eventSource, &network.ExpCoolDown{})
+
+		eventID, err := network.RetryWithClient(ctx, client, func(ctx context.Context, eventSource EventSource) (string, error) {
+			return eventSource.GetLatestEventID(ctx)
+		})
 		if err != nil {
 			return fmt.Errorf("failed to get latest event id: %w", err)
 		}
@@ -193,6 +198,8 @@ func (s *Service) run(ctx context.Context, lastEventID string) {
 	defer s.timer.Stop()
 	defer s.log.Info("Exiting service")
 	defer s.Close()
+
+	client := network.NewClientRetryWrapper(s.eventSource, &network.ExpCoolDown{})
 
 	for {
 		select {
@@ -221,7 +228,11 @@ func (s *Service) run(ctx context.Context, lastEventID string) {
 			s.pendingSubscriptions = nil
 		}()
 
-		newEvents, _, err := s.eventSource.GetEvent(ctx, lastEventID)
+		newEvents, err := network.RetryWithClient(ctx, client, func(ctx context.Context, eventSource EventSource) ([]proton.Event, error) {
+			newEvents, _, err := eventSource.GetEvent(ctx, lastEventID)
+
+			return newEvents, err
+		})
 		if err != nil {
 			s.log.WithError(err).Errorf("Failed to get event (caused by %T)", internal.ErrCause(err))
 			continue
