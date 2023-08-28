@@ -18,6 +18,7 @@
 package syncservice
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -61,9 +62,9 @@ func TestDownloadAttachment_NotInCache(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	client := NewMockAPIClient(mockCtrl)
 	cache := newDownloadCache()
-	client.EXPECT().GetAttachment(gomock.Any(), gomock.Any()).Return(nil, nil)
+	client.EXPECT().GetAttachmentInto(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
-	_, err := downloadAttachment(context.Background(), cache, client, "id")
+	_, err := downloadAttachment(context.Background(), cache, client, "id", 1024)
 	require.NoError(t, err)
 }
 
@@ -74,7 +75,7 @@ func TestDownloadAttachment_InCache(t *testing.T) {
 	attachment := []byte("hello world")
 	cache.StoreAttachment("id", attachment)
 
-	downloaded, err := downloadAttachment(context.Background(), cache, client, "id")
+	downloaded, err := downloadAttachment(context.Background(), cache, client, "id", 1024)
 	require.NoError(t, err)
 	require.Equal(t, attachment, downloaded)
 }
@@ -343,7 +344,7 @@ func TestDownloadStage_JobAbortsOnAttachmentDownloadError(t *testing.T) {
 			ID: "attach",
 		}},
 	}, nil)
-	tj.client.EXPECT().GetAttachment(gomock.Any(), gomock.Eq("attach")).Return(nil, expectedErr)
+	tj.client.EXPECT().GetAttachmentInto(gomock.Any(), gomock.Eq("attach"), gomock.Any()).Return(expectedErr)
 
 	tj.job.begin()
 	childJob := tj.job.newChildJob("f", 10)
@@ -403,7 +404,13 @@ func buildDownloadStageData(tj *tjob, numMessages int, with422 bool) ([]string, 
 		tj.client.EXPECT().GetMessage(gomock.Any(), gomock.Eq(m.ID)).Return(m.Message, nil)
 
 		for idx, a := range m.Attachments {
-			tj.client.EXPECT().GetAttachment(gomock.Any(), gomock.Eq(a.ID)).Return(m.AttData[idx], nil)
+			attData := m.AttData[idx]
+			tj.client.EXPECT().GetAttachmentInto(gomock.Any(), gomock.Eq(a.ID), gomock.Any()).DoAndReturn(
+				func(_ context.Context, _ string, b *bytes.Buffer) error {
+					_, err := b.Write(attData)
+					return err
+				},
+			)
 		}
 	}
 

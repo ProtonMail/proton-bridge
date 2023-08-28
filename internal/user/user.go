@@ -156,19 +156,8 @@ func newImpl(
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
 
 	// Migrate Sync Status from Vault.
-	{
-		syncStatus := encVault.SyncStatus()
-
-		migrated, err := imapservice.MigrateVaultSettings(syncConfigDir, apiUser.ID, syncStatus.HasLabels, syncStatus.HasMessages, syncStatus.FailedMessageIDs)
-		if err != nil {
-			return nil, fmt.Errorf("failed to migrate user sync settings: %w", err)
-		}
-
-		if migrated {
-			if err := encVault.ClearSyncStatus(); err != nil {
-				return nil, fmt.Errorf("failed to clear sync settings from vault: %w", err)
-			}
-		}
+	if err := migrateSyncStatusFromVault(encVault, syncConfigDir, apiUser.ID); err != nil {
+		return nil, err
 	}
 
 	// Get the user's API addresses.

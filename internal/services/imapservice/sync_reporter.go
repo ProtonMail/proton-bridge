@@ -57,10 +57,20 @@ func (rep *syncReporter) OnError(ctx context.Context, err error) {
 func (rep *syncReporter) OnProgress(ctx context.Context, delta int64) {
 	rep.count += delta
 
+	var progress float64
+
+	// It's possible for count to be bigger or smaller than total depending on when the sync begins and whether new
+	// messages are added/removed during this period. When this happens just limited the progress to 100%.
+	if rep.count > rep.total {
+		progress = 1
+	} else {
+		progress = float64(rep.count) / float64(rep.total)
+	}
+
 	if time.Since(rep.last) > rep.freq {
 		rep.eventPublisher.PublishEvent(ctx, events.SyncProgress{
 			UserID:    rep.userID,
-			Progress:  float64(rep.count) / float64(rep.total),
+			Progress:  progress,
 			Elapsed:   time.Since(rep.start),
 			Remaining: time.Since(rep.start) * time.Duration(rep.total-(rep.count+1)) / time.Duration(rep.count+1),
 		})

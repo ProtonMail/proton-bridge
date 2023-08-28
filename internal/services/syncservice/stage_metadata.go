@@ -57,8 +57,8 @@ func NewMetadataStage(
 	}
 }
 
-const MetadataPageSize = 150
-const MetadataMaxMessages = 250
+const MetadataPageSize = 128
+const MetadataMaxMessages = 64
 
 func (m *MetadataStage) Run(group *async.Group) {
 	group.Once(func(ctx context.Context) {

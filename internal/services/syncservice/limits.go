@@ -58,7 +58,7 @@ func newSyncLimits(maxSyncMemory uint64) syncLimits {
 		MinMessageBuildingMem: 64 * Megabyte,
 
 		// Maximum recommend value for parallel downloads by the API team.
-		MaxParallelDownloads: 20,
+		MaxParallelDownloads: 32,
 
 		MaxSyncMemory: maxSyncMemory,
 	}

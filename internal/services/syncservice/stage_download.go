@@ -18,6 +18,7 @@
 package syncservice
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"sync/atomic"
@@ -58,7 +59,7 @@ func NewDownloadStage(
 	return &DownloadStage{
 		input:                input,
 		output:               output,
-		maxParallelDownloads: maxParallelDownloads,
+		maxParallelDownloads: maxParallelDownloads * 2,
 		panicHandler:         panicHandler,
 		log:                  logrus.WithField("sync-stage", "download"),
 	}
@@ -94,7 +95,7 @@ func (d *DownloadStage) run(ctx context.Context) {
 
 		// Step 1: Download Messages.
 		result, err := autoDownloadRate(
-			ctx,
+			request.getContext(),
 			&DefaultDownloadRateModifier{},
 			request.job.client,
 			d.maxParallelDownloads,
@@ -155,14 +156,15 @@ func (d *DownloadStage) run(ctx context.Context) {
 
 		// Step 3: Download attachments data to the message.
 		attachments, err := autoDownloadRate(
-			ctx,
+			request.getContext(),
 			&DefaultDownloadRateModifier{},
 			request.job.client,
 			d.maxParallelDownloads,
 			attachmentIndices,
 			newCoolDown,
 			func(ctx context.Context, client APIClient, input attachmentMeta) ([]byte, error) {
-				return downloadAttachment(ctx, request.job.downloadCache, client, result[input.msgIdx].Attachments[input.attIdx].ID)
+				attachment := result[input.msgIdx].Attachments[input.attIdx]
+				return downloadAttachment(ctx, request.job.downloadCache, client, attachment.ID, attachment.Size)
 			},
 		)
 		if err != nil {
@@ -202,16 +204,21 @@ func downloadMessage(ctx context.Context, cache *DownloadCache, client APIClient
 	return msg, nil
 }
 
-func downloadAttachment(ctx context.Context, cache *DownloadCache, client APIClient, id string) ([]byte, error) {
+func downloadAttachment(ctx context.Context, cache *DownloadCache, client APIClient, id string, size int64) ([]byte, error) {
 	data, ok := cache.GetAttachment(id)
 	if ok {
 		return data, nil
 	}
 
-	data, err := client.GetAttachment(ctx, id)
-	if err != nil {
+	var buffer bytes.Buffer
+
+	buffer.Grow(int(size))
+
+	if err := client.GetAttachmentInto(ctx, id, &buffer); err != nil {
 		return nil, err
 	}
+
+	data = buffer.Bytes()
 
 	cache.StoreAttachment(id, data)
 
@@ -236,6 +243,10 @@ func autoDownloadRate[T any, R any](
 	proton429or5xxCounter := int32(0)
 	parallelTasks := maxParallelDownloads
 	for _, chunk := range xslices.Chunk(data, maxParallelDownloads) {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+
 		parallelTasks = modifier.Apply(atomic.LoadInt32(&proton429or5xxCounter) != 0, parallelTasks, maxParallelDownloads)
 
 		atomic.StoreInt32(&proton429or5xxCounter, 0)

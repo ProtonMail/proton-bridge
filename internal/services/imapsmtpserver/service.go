@@ -359,33 +359,33 @@ func (sm *Service) handleAddIMAPUserImpl(ctx context.Context,
 			} else if isNew {
 				panic("IMAP user should already have a database")
 			}
-		}
-
-		status, err := syncStateProvider.GetSyncStatus(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to get sync status: %w", err)
-		}
-
-		if !status.HasLabels {
-			// Otherwise, the DB already exists -- if the labels are not yet synced, we need to re-create the DB.
-			if err := sm.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
-				return fmt.Errorf("failed to remove old IMAP user: %w", err)
-			}
-
-			if err := idProvider.RemoveGluonID(addrID, gluonID); err != nil {
-				return fmt.Errorf("failed to remove old IMAP user ID: %w", err)
-			}
-
-			gluonID, err := sm.imapServer.AddUser(ctx, connector, idProvider.GluonKey())
+		} else {
+			status, err := syncStateProvider.GetSyncStatus(ctx)
 			if err != nil {
-				return fmt.Errorf("failed to add IMAP user: %w", err)
+				return fmt.Errorf("failed to get sync status: %w", err)
 			}
 
-			if err := idProvider.SetGluonID(addrID, gluonID); err != nil {
-				return fmt.Errorf("failed to set IMAP user ID: %w", err)
-			}
+			if !status.HasLabels {
+				// Otherwise, the DB already exists -- if the labels are not yet synced, we need to re-create the DB.
+				if err := sm.imapServer.RemoveUser(ctx, gluonID, true); err != nil {
+					return fmt.Errorf("failed to remove old IMAP user: %w", err)
+				}
 
-			log.WithField("gluonID", gluonID).Info("Re-created IMAP user")
+				if err := idProvider.RemoveGluonID(addrID, gluonID); err != nil {
+					return fmt.Errorf("failed to remove old IMAP user ID: %w", err)
+				}
+
+				gluonID, err := sm.imapServer.AddUser(ctx, connector, idProvider.GluonKey())
+				if err != nil {
+					return fmt.Errorf("failed to add IMAP user: %w", err)
+				}
+
+				if err := idProvider.SetGluonID(addrID, gluonID); err != nil {
+					return fmt.Errorf("failed to set IMAP user ID: %w", err)
+				}
+
+				log.WithField("gluonID", gluonID).Info("Re-created IMAP user")
+			}
 		}
 	} else {
 		log.Info("Creating new IMAP user")

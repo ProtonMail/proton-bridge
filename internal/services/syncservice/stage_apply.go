@@ -76,7 +76,7 @@ func (a *ApplyStage) run(ctx context.Context) {
 			continue
 		}
 
-		if err := req.job.updateApplier.ApplySyncUpdates(ctx, req.messages); err != nil {
+		if err := req.job.updateApplier.ApplySyncUpdates(req.getContext(), req.messages); err != nil {
 			a.log.WithError(err).Error("Failed to apply sync updates")
 			req.job.onError(err)
 			continue
