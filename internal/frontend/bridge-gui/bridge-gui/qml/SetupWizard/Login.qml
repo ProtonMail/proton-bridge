@@ -151,11 +151,11 @@ FocusScope {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 16
+                spacing: ProtonStyle.wizard_spacing_medium
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: ProtonStyle.wizard_spacing_small
 
                     Label {
                         Layout.alignment: Qt.AlignHCenter
@@ -287,11 +287,11 @@ FocusScope {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 16
+                spacing: ProtonStyle.wizard_spacing_medium
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: ProtonStyle.wizard_spacing_small
 
                     Label {
                         Layout.alignment: Qt.AlignHCenter
@@ -388,11 +388,11 @@ FocusScope {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 16
+                spacing: ProtonStyle.wizard_spacing_medium
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: ProtonStyle.wizard_spacing_small
 
                     Label {
                         Layout.alignment: Qt.AlignHCenter

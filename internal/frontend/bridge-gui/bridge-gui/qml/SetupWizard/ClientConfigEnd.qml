@@ -32,13 +32,13 @@ Rectangle {
         anchors.top: parent.top
         anchors.topMargin: 32
         clip: true
-        width: 364
+        width: ProtonStyle.wizard_pane_width
 
         ColumnLayout {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 16
+            spacing: ProtonStyle.wizard_spacing_medium
 
             Image {
                 Layout.alignment: Qt.AlignHCenter

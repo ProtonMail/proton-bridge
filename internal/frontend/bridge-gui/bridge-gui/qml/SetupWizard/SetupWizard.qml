@@ -168,12 +168,12 @@ Item {
                 LeftPane {
                     id: leftContent
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 92
+                    anchors.bottomMargin: ProtonStyle.wizard_pane_bottomMargin
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top: parent.top
-                    anchors.topMargin: 40
+                    anchors.topMargin: ProtonStyle.wizard_window_margin
                     clip: true
-                    width: 364
+                    width: ProtonStyle.wizard_pane_width
                     wizard: root
 
                     Connections {
@@ -190,13 +190,13 @@ Item {
                 Image {
                     id: mailLogoWithWordmark
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 40
+                    anchors.bottomMargin: ProtonStyle.wizard_window_margin
                     anchors.horizontalCenter: parent.horizontalCenter
-                    height: 36
+                    height: sourceSize.height
                     source: root.colorScheme.mail_logo_with_wordmark
                     sourceSize.height: 36
                     sourceSize.width: 134
-                    width: 134
+                    width: sourceSize.width
                 }
             }
             Rectangle {
@@ -208,13 +208,13 @@ Item {
                 StackLayout {
                     id: rightContent
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 92
+                    anchors.bottomMargin: ProtonStyle.wizard_pane_bottomMargin
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top: parent.top
-                    anchors.topMargin: 40
+                    anchors.topMargin: ProtonStyle.wizard_window_margin
                     clip: true
                     currentIndex: 0
-                    width: 364
+                    width: ProtonStyle.wizard_pane_width
 
                     // rightContent stack index 0
                     Onboarding {
@@ -267,15 +267,15 @@ Item {
     Button {
         id: backButton
         anchors.left: parent.left
-        anchors.leftMargin: 40
+        anchors.leftMargin: ProtonStyle.wizard_window_margin
         anchors.top: parent.top
-        anchors.topMargin: 40
+        anchors.topMargin: ProtonStyle.wizard_window_margin
         colorScheme: root.colorScheme
         icon.source: "/qml/icons/ic-chevron-left.svg"
         iconOnTheLeft: true
         secondary: true
         secondaryIsOpaque: true
-        spacing: 8
+        spacing: ProtonStyle.wizard_spacing_small
         text: qsTr("Back")
         visible: backAction != null
 

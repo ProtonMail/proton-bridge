@@ -19,17 +19,19 @@ Button {
     id: root
 
     property var wizard
+    readonly property int _iconPadding: 8 // The SVG image we use has internal padding that we need to compensate for alignment.
+    readonly property int _iconSize: 24
 
     anchors.bottom: parent.bottom
-    anchors.bottomMargin: 32
+    anchors.bottomMargin: ProtonStyle.wizard_window_margin - _iconPadding
     anchors.right: parent.right
-    anchors.rightMargin: 32
+    anchors.rightMargin: ProtonStyle.wizard_window_margin - _iconPadding
     colorScheme: wizard.colorScheme
     horizontalPadding: 0
     icon.color: wizard.colorScheme.text_weak
-    icon.height: 24
+    icon.height: _iconSize
     icon.source: "/qml/icons/ic-question-circle.svg"
-    icon.width: 24
+    icon.width: _iconSize
     verticalPadding: 0
 
     onClicked: {

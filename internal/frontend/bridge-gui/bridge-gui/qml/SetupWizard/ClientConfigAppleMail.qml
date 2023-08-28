@@ -73,7 +73,7 @@ Item {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 24
+                spacing: ProtonStyle.wizard_spacing_large
 
                 Connections {
                     function onCertificateInstallCanceled() {
@@ -95,7 +95,7 @@ Item {
                 }
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 16
+                    spacing: ProtonStyle.wizard_spacing_medium
 
                     Label {
                         Layout.alignment: Qt.AlignHCenter
@@ -126,7 +126,7 @@ Item {
                 }
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 16
+                    spacing: ProtonStyle.wizard_spacing_medium
 
                     Button {
                         Layout.fillWidth: true
@@ -154,11 +154,11 @@ Item {
                     }
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 8
+                        spacing: ProtonStyle.wizard_spacing_small
 
                         RowLayout {
                             Layout.fillWidth: true
-                            spacing: 4
+                            spacing: ProtonStyle.wizard_spacing_extra_small
 
                             ColorImage {
                                 color: wizard.colorScheme.signal_danger
@@ -199,11 +199,11 @@ Item {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 24
+                spacing: ProtonStyle.wizard_spacing_large
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 16
+                    spacing: ProtonStyle.wizard_spacing_medium
 
                     Label {
                         Layout.alignment: Qt.AlignHCenter
@@ -228,13 +228,12 @@ Item {
                 Image {
                     Layout.alignment: Qt.AlignHCenter
                     height: 102
-                    opacity: certificateInstall.waitingForCert ? 0.3 : 1.0
                     source: "/qml/icons/img-macos-profile-screenshot.png"
                     width: 364
                 }
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 16
+                    spacing: ProtonStyle.wizard_spacing_medium
 
                     Button {
                         Layout.fillWidth: true

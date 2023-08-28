@@ -26,12 +26,12 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 16
+        spacing: ProtonStyle.wizard_spacing_medium
 
         Label {
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
-            Layout.topMargin: 16
+            Layout.topMargin: ProtonStyle.wizard_spacing_medium
             colorScheme: wizard.colorScheme
             horizontalAlignment: Qt.AlignHCenter
             text: qsTr("Select your email client")

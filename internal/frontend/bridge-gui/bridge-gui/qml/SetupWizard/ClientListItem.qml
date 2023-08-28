@@ -36,14 +36,14 @@ Rectangle {
         return colorScheme.background_norm;
     }
     height: 68
-    radius: 12
+    radius: ProtonStyle.banner_radius
 
     RowLayout {
         anchors.fill: parent
-        anchors.margins: 16
+        anchors.margins: ProtonStyle.wizard_spacing_medium
 
         ColorImage {
-            height: 36
+            height: sourceSize.height
             source: iconSource
             sourceSize.height: 36
         }

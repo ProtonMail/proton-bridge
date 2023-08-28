@@ -24,7 +24,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 24
+        spacing: ProtonStyle.wizard_spacing_large
 
         StepDescriptionBox {
             colorScheme: wizard.colorScheme

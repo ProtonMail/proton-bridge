@@ -87,7 +87,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 16
+        spacing: ProtonStyle.wizard_spacing_medium
 
         Image {
             id: icon

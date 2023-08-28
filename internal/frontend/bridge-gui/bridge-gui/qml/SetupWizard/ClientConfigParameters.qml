@@ -37,7 +37,7 @@ Rectangle {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 16
+            spacing: ProtonStyle.wizard_spacing_medium
 
             Label {
                 Layout.alignment: Qt.AlignHCenter
@@ -53,15 +53,15 @@ Rectangle {
                 border.color: colorScheme.border_norm
                 border.width: 1
                 color: "transparent"
-                height: childrenRect.height + 2 * 16
+                height: childrenRect.height + 2 * ProtonStyle.wizard_spacing_medium
                 radius: 12
 
                 RowLayout {
                     anchors.left: parent.left
-                    anchors.margins: 16
+                    anchors.margins: ProtonStyle.wizard_spacing_medium
                     anchors.right: parent.right
                     anchors.top: parent.top
-                    spacing: 8
+                    spacing: ProtonStyle.wizard_spacing_small
 
                     Label {
                         Layout.fillHeight: true
@@ -89,15 +89,15 @@ Rectangle {
                 border.color: colorScheme.signal_warning
                 border.width: 1
                 color: "transparent"
-                height: childrenRect.height + 2 * 16
-                radius: 12
+                height: childrenRect.height + 2 * ProtonStyle.wizard_spacing_medium
+                radius: ProtonStyle.banner_radius
 
                 RowLayout {
                     anchors.left: parent.left
-                    anchors.margins: 16
+                    anchors.margins: ProtonStyle.wizard_spacing_medium
                     anchors.right: parent.right
                     anchors.top: parent.top
-                    spacing: 16
+                    spacing: ProtonStyle.wizard_spacing_medium
 
                     ColorImage {
                         id: image
@@ -122,7 +122,7 @@ Rectangle {
             RowLayout {
                 id: configuration
                 Layout.fillWidth: true
-                spacing: 32
+                spacing: ProtonStyle.wizard_spacing_extra_large
 
                 Configuration {
                     Layout.fillWidth: true

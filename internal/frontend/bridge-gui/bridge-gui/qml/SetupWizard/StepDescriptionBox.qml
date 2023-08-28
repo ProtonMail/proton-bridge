@@ -15,7 +15,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
-Item {
+RowLayout {
     id: root
 
     property ColorScheme colorScheme
@@ -24,43 +24,36 @@ Item {
     property int iconSize: 64
     property string title
 
-    implicitHeight: children[0].implicitHeight
-    implicitWidth: children[0].implicitWidth
+    spacing: ProtonStyle.wizard_spacing_large
 
-    RowLayout {
-        anchors.fill: parent
-        spacing: 24
+    Image {
+        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+        Layout.preferredHeight: iconSize
+        Layout.preferredWidth: iconSize
+        mipmap: true
+        source: root.icon
+    }
+    ColumnLayout {
+        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+        Layout.fillWidth: true
+        spacing: ProtonStyle.wizard_spacing_small
 
-        Image {
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-            Layout.preferredHeight: iconSize
-            Layout.preferredWidth: iconSize
-            mipmap: true
-            source: root.icon
-        }
-        ColumnLayout {
-            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+        Label {
+            Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+            Layout.fillHeight: false
             Layout.fillWidth: true
-            spacing: 8
-
-            Label {
-                Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                Layout.fillHeight: false
-                Layout.fillWidth: true
-                colorScheme: root.colorScheme
-                text: root.title
-                type: Label.LabelType.Body_bold
-            }
-            Label {
-                Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                color: root.colorScheme.text_weak
-                colorScheme: root.colorScheme
-                text: root.description
-                type: Label.LabelType.Body
-                verticalAlignment: Text.AlignTop
-            }
+            colorScheme: root.colorScheme
+            text: root.title
+            type: Label.LabelType.Body_bold
+        }
+        Label {
+            Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            colorScheme: root.colorScheme
+            text: root.description
+            type: Label.LabelType.Body
+            verticalAlignment: Text.AlignTop
         }
     }
 }

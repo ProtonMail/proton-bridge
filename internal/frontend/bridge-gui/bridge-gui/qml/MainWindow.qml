@@ -22,8 +22,6 @@ import "SetupWizard"
 ApplicationWindow {
     id: root
 
-    property int _defaultHeight: 780
-    property int _defaultWidth: 1080
     property var notifications
 
     function layoutForUserCount(userCount) {
@@ -75,10 +73,11 @@ ApplicationWindow {
     }
 
     colorScheme: ProtonStyle.currentStyle
-    height: _defaultHeight
-    minimumWidth: _defaultWidth
+    height: ProtonStyle.window_default_height
+    minimumHeight:ProtonStyle.window_minimum_height
+    minimumWidth: ProtonStyle.window_minimum_width
     visible: true
-    width: _defaultWidth
+    width: ProtonStyle.window_default_width
 
     Component.onCompleted: {
         layoutForUserCount(Backend.users.count);
