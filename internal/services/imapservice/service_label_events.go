@@ -38,6 +38,10 @@ func (s *Service) HandleLabelEvents(ctx context.Context, events []proton.LabelEv
 	for _, event := range events {
 		switch event.Action {
 		case proton.EventCreate:
+			if !WantLabel(event.Label) {
+				continue
+			}
+
 			updates := onLabelCreated(ctx, s, event)
 
 			if err := waitOnIMAPUpdates(ctx, updates); err != nil {
@@ -45,6 +49,10 @@ func (s *Service) HandleLabelEvents(ctx context.Context, events []proton.LabelEv
 			}
 
 		case proton.EventUpdateFlags, proton.EventUpdate:
+			if !WantLabel(event.Label) {
+				continue
+			}
+
 			updates, err := onLabelUpdated(ctx, s, event)
 			if err != nil {
 				return fmt.Errorf("failed to handle update label event: %w", err)

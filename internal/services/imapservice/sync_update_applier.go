@@ -191,7 +191,8 @@ func syncLabels(ctx context.Context, labels map[string]proton.Label, connectors 
 			}
 
 		default:
-			return nil, fmt.Errorf("unknown label type: %d", label.Type)
+			logrus.Errorf("Unknown label type: %d", label.Type)
+			continue
 		}
 	}
 

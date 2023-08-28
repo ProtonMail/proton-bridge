@@ -133,7 +133,7 @@ func toIMAPMessage(message proton.MessageMetadata) imap.Message {
 
 func WantLabel(label proton.Label) bool {
 	if label.Type != proton.LabelTypeSystem {
-		return true
+		return label.Type != proton.LabelTypeContactGroup
 	}
 
 	// nolint:exhaustive
