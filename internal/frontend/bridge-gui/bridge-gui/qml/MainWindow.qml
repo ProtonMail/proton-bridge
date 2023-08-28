@@ -176,6 +176,9 @@ ApplicationWindow {
             onWizardEnded: {
                 contentLayout.currentIndex = 0;
             }
+            onShowUnderConstruction: {
+                webFrameOverlay.showUnderConstruction();
+            }
         }
     }
     WebFrame {

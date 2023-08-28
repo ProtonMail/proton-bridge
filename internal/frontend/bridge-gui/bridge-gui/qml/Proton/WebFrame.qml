@@ -25,7 +25,17 @@ Item {
     property string url: ""
 
     function showBlankPage() {
-        webView.loadHtml("<!doctype html><meta charset=utf-8><title>blank</title>", "blank.html");
+        webView.loadHtml("<!doctype html><meta charset=utf-8><title>blank</title>", "");
+    }
+
+    function showUnderConstruction() {
+        webView.loadHtml(`
+        <!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Coming soon</title><style> body { background-color: #888; font-family: sans-serif; } p { font-weight: bold; margin-top: 100px; text-align: center; }</style></head>
+<body><p>The content of this page is under construction.</p></body></html>
+        `, "")
+        root.visible = true;
     }
 
     Rectangle {

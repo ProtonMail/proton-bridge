@@ -70,7 +70,7 @@ Item {
         root.iconWidth = 265;
     }
     function showUnderConstruction() {
-        Backend.showWebFrameOverlay("qrc:/qml/Resources/ComingSoon.html");
+        wizard.showUnderConstruction();
     }
 
     Connections {

@@ -43,6 +43,7 @@ Item {
 
     signal bugReportRequested
     signal wizardEnded
+    signal showUnderConstruction
 
     function _showClientConfig() {
         showClientConfig(root.user, root.address, false);

@@ -110,7 +110,6 @@
         <file>qml/Proton/WebFrame.qml</file>
         <file>qml/QuestionItem.qml</file>
         <file>qml/Resources/bug_report_flow.json</file>
-        <file>qml/Resources/ComingSoon.html</file>
         <file>qml/SettingsItem.qml</file>
         <file>qml/SettingsView.qml</file>
         <file>qml/SetupWizard/ClientListItem.qml</file>
