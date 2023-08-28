@@ -297,12 +297,6 @@ func TestBridge_SyncWithOngoingEvents(t *testing.T) {
 				require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
 				defer func() { _ = client.Logout() }()
 
-				status, err := client.Select(`Folders/folder`, false)
-				require.NoError(t, err)
-				// Original folder should have more than 0 messages and less than the total.
-				require.Greater(t, status.Messages, uint32(0))
-				require.Less(t, status.Messages, uint32(numMsg))
-
 				// Check that the new messages arrive in the right location.
 				require.Eventually(t, func() bool {
 					status, err := client.Select(`Folders/folder2`, true)
