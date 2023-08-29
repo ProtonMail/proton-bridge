@@ -3,9 +3,11 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
-## Under Bridge 3.5.0
+## Umshiang Bridge 3.5.0
 
 ### Added
+* Add trace profiling option.
+* GODT-2829: New Sync Service.
 * Test: oss-fuzz support for fuzzing.
 * GODT-2799: SMTP Service.
 * GODT-2800: User Event Service.
@@ -15,6 +17,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2803: Bridge Database access.
 
 ### Changed
+* GODT-2828: Increase sync progress report frequency.
+* Test: Fix TestBridge_SyncWithOnGoingEvents.
+* GODT-2871: Is telemetry enabled as service.
 * Test(GODT-2873): Wait for Gluon Watcher to finish.
 * Test(GODT-2744): Add integration tests for moving messages (with MOVE support).
 * Test(GODT-2872): Fix nightly job.
@@ -40,6 +45,11 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Use qmlformat on qml files, and removed deprecated tests.
 
 ### Fixed
+* GODT-2693: Duplicate messages in sent folder.
+* GODT-2867: Get attachment returns API error on network problem.
+* GODT-2805: Ignore Contact Group Labels.
+* GODT-2866: Add 429/5xx Retry to Event Service.
+* GODT-2855: Fix for text overlapping in settings view.
 * Test: Verify leaks at end of WithEnv.
 * Test: Fix event registration in TestBridge_SyncWithOngoingEvents.
 * Test: Fix deadlock in chToType.
