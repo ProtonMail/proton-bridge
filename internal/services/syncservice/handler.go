@@ -29,6 +29,7 @@ import (
 )
 
 const DefaultRetryCoolDown = 20 * time.Second
+const NumSyncStages = 4
 
 type LabelMap = map[string]proton.Label
 
@@ -187,7 +188,7 @@ func (t *Handler) run(ctx context.Context,
 		syncStatus.TotalMessageCount = totalMessageCount
 	}
 
-	syncReporter.InitializeProgressCounter(ctx, syncStatus.NumSyncedMessages, syncStatus.TotalMessageCount)
+	syncReporter.InitializeProgressCounter(ctx, syncStatus.NumSyncedMessages, syncStatus.TotalMessageCount*NumSyncStages)
 
 	if !syncStatus.HasMessages {
 		t.log.Info("Syncing messages")

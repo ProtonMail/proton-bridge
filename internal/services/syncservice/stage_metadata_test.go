@@ -62,6 +62,7 @@ func TestMetadataStage_RunFinishesWith429(t *testing.T) {
 	input.Produce(ctx, tj.job)
 
 	for _, chunk := range xslices.Chunk(msgs, TestMaxMessages) {
+		tj.syncReporter.EXPECT().OnProgress(gomock.Any(), gomock.Eq(int64(len(chunk))))
 		req, err := output.Consume(ctx)
 		require.NoError(t, err)
 		require.Equal(t, req.ids, xslices.Map(chunk, func(m proton.MessageMetadata) string {

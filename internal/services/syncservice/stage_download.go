@@ -181,6 +181,8 @@ func (d *DownloadStage) run(ctx context.Context) {
 		request.cachedMessageIDs = request.ids
 
 		// Step 5: Publish result.
+		request.onStageCompleted(ctx)
+
 		d.output.Produce(ctx, BuildRequest{
 			batch:    result,
 			childJob: request.childJob,

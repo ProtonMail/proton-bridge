@@ -178,8 +178,12 @@ func (b *BuildStage) run(ctx context.Context) {
 					}
 				}
 
+				outJob := chunkedJobs[idx]
+
+				outJob.onStageCompleted(ctx)
+
 				b.output.Produce(ctx, ApplyRequest{
-					childJob: chunkedJobs[idx],
+					childJob: outJob,
 					messages: success,
 				})
 			}

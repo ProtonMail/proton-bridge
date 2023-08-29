@@ -108,6 +108,10 @@ func (j *Job) onError(err error) {
 	j.cancel()
 }
 
+func (j *Job) onStageCompleted(ctx context.Context, count int64) {
+	j.syncReporter.OnProgress(ctx, count)
+}
+
 func (j *Job) onJobFinished(ctx context.Context, lastMessageID string, count int64) {
 	defer j.wg.Done()
 
@@ -217,6 +221,10 @@ func (s *childJob) onFinished(ctx context.Context) {
 	s.job.onJobFinished(ctx, s.lastMessageID, s.messageCount)
 	s.job.downloadCache.DeleteMessages(s.cachedMessageIDs...)
 	s.job.downloadCache.DeleteAttachments(s.cachedAttachmentIDs...)
+}
+
+func (s *childJob) onStageCompleted(ctx context.Context) {
+	s.job.onStageCompleted(ctx, s.messageCount)
 }
 
 func (s *childJob) checkCancelled() bool {

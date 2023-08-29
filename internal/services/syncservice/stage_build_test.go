@@ -90,6 +90,8 @@ func TestBuildStage_SuccessRemovesFailedMessage(t *testing.T) {
 		return nil
 	})
 
+	tj.syncReporter.EXPECT().OnProgress(gomock.Any(), gomock.Eq(int64(10)))
+
 	tj.job.begin()
 	childJob := tj.job.newChildJob("f", 10)
 	tj.job.end()
@@ -160,6 +162,8 @@ func TestBuildStage_BuildFailureIsReportedButDoesNotCancelJob(t *testing.T) {
 		"error":     buildError,
 	})).Return(nil)
 
+	tj.syncReporter.EXPECT().OnProgress(gomock.Any(), gomock.Eq(int64(10)))
+
 	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, mockReporter)
 
 	go func() {
@@ -209,6 +213,8 @@ func TestBuildStage_FailedToLocateKeyRingIsReportedButDoesNotFailBuild(t *testin
 		"userID":    "u",
 		"messageID": "MSG",
 	})).Return(nil)
+
+	tj.syncReporter.EXPECT().OnProgress(gomock.Any(), gomock.Eq(int64(10)))
 
 	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, mockReporter)
 

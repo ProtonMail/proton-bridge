@@ -113,6 +113,8 @@ func (m *MetadataStage) run(ctx context.Context, metadataPageSize int, maxMessag
 					state.stage.metadataFetched += int64(len(output.ids))
 					job.log.Debugf("Metada collected: %v/%v", state.stage.metadataFetched, state.stage.totalMessageCount)
 
+					output.onStageCompleted(ctx)
+
 					m.output.Produce(ctx, output)
 				}
 

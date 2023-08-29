@@ -175,6 +175,8 @@ func TestDownloadStage_Run(t *testing.T) {
 	tj.syncReporter.EXPECT().OnProgress(gomock.Any(), gomock.Any())
 	tj.state.EXPECT().SetLastMessageID(gomock.Any(), gomock.Eq("f"), gomock.Eq(int64(10))).Return(nil)
 
+	tj.syncReporter.EXPECT().OnProgress(gomock.Any(), gomock.Eq(int64(10)))
+
 	tj.job.begin()
 	defer tj.job.end()
 	childJob := tj.job.newChildJob("f", 10)
@@ -215,6 +217,8 @@ func TestDownloadStage_RunWith422(t *testing.T) {
 
 	tj.syncReporter.EXPECT().OnProgress(gomock.Any(), gomock.Any())
 	tj.state.EXPECT().SetLastMessageID(gomock.Any(), gomock.Eq("f"), gomock.Eq(int64(10))).Return(nil)
+
+	tj.syncReporter.EXPECT().OnProgress(gomock.Any(), gomock.Eq(int64(10)))
 
 	tj.job.begin()
 	defer tj.job.end()
