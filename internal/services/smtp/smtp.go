@@ -75,6 +75,7 @@ func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, 
 	}
 
 	// Check if we already tried to send this message recently.
+	s.log.Debug("Checking for duplicate message")
 	srID, ok, err := s.recorder.TryInsertWait(ctx, hash, to, time.Now().Add(90*time.Second))
 	if err != nil {
 		return fmt.Errorf("failed to check send hash: %w", err)
@@ -83,12 +84,11 @@ func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, 
 		return nil
 	}
 
-	// If we fail to send this message, we should remove the hash from the send recorder.
-	defer s.recorder.RemoveOnFail(hash, srID)
-
 	// Create a new message parser from the reader.
 	parser, err := parser.New(bytes.NewReader(b))
 	if err != nil {
+		s.log.Debug("Message failed to send, removing from send recorder")
+		s.recorder.RemoveOnFail(hash, srID)
 		return fmt.Errorf("failed to create parser: %w", err)
 	}
 
@@ -100,10 +100,12 @@ func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, 
 	// Load the user's mail settings.
 	settings, err := s.client.GetMailSettings(ctx)
 	if err != nil {
+		s.log.Debug("Message failed to send, removing from send recorder")
+		s.recorder.RemoveOnFail(hash, srID)
 		return fmt.Errorf("failed to get mail settings: %w", err)
 	}
 
-	return usertypes.WithAddrKR(s.identityState.User, fromAddr, s.keyPassProvider.KeyPass(), func(userKR, addrKR *crypto.KeyRing) error {
+	if err := usertypes.WithAddrKR(s.identityState.User, fromAddr, s.keyPassProvider.KeyPass(), func(userKR, addrKR *crypto.KeyRing) error {
 		// Use the first key for encrypting the message.
 		addrKR, err := addrKR.FirstKey()
 		if err != nil {
@@ -150,10 +152,17 @@ func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, 
 		}
 
 		// If the message was successfully sent, we can update the message ID in the record.
+		s.log.Debug("Message sent successfully, signaling recorder")
 		s.recorder.SignalMessageSent(hash, srID, sent.ID)
 
 		return nil
-	})
+	}); err != nil {
+		s.log.Debug("Message failed to send, removing from send recorder")
+		s.recorder.RemoveOnFail(hash, srID)
+		return err
+	}
+
+	return nil
 }
 
 // sendWithKey sends the message with the given address key.

@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/logging"
@@ -254,6 +255,13 @@ type sendMailReq struct {
 
 func (s *Service) sendMail(ctx context.Context, req *sendMailReq) error {
 	defer async.HandlePanic(s.panicHandler)
+	start := time.Now()
+	s.log.Debug("Received send mail request")
+	defer func() {
+		end := time.Now()
+		s.log.Debugf("Send mail request finished in %v", end.Sub(start))
+	}()
+
 	if err := s.smtpSendMail(ctx, req.authID, req.from, req.to, req.r); err != nil {
 		if apiErr := new(proton.APIError); errors.As(err, &apiErr) {
 			s.log.WithError(apiErr).WithField("Details", apiErr.DetailsToString()).Error("failed to send message")
