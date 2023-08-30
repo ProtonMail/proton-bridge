@@ -23,6 +23,7 @@ Item {
     property int _detailsMargin: 25
     property int _lineThickness: 1
     property int _spacing: 20
+    property int _buttonSpacing: 8
     property int _topMargin: 32
     property ColorScheme colorScheme
     property var notifications
@@ -63,7 +64,7 @@ Item {
                             // account delegate with action buttons
                             Layout.fillWidth: true
                             Layout.topMargin: _topMargin
-
+                            spacing: _buttonSpacing
                             AccountDelegate {
                                 Layout.fillWidth: true
                                 colorScheme: root.colorScheme
@@ -118,12 +119,12 @@ Item {
                         }
                         SettingsItem {
                             Layout.fillWidth: true
-                            actionText: qsTr("Configure")
+                            actionText: qsTr("Configure email client")
                             colorScheme: root.colorScheme
                             description: qsTr("Using the mailbox details below (re)configure your client.")
                             showSeparator: splitMode.visible
                             text: qsTr("Email clients")
-                            type: SettingsItem.Button
+                            type: SettingsItem.PrimaryButton
                             visible: _connected && ((!root.user.splitMode) || (root.user.addresses.length === 1))
 
                             onClicked: {
@@ -165,8 +166,8 @@ Item {
                             }
                             Button {
                                 colorScheme: root.colorScheme
-                                secondary: true
-                                text: qsTr("Configure")
+                                secondary: false
+                                text: qsTr("Configure email client")
 
                                 onClicked: {
                                     if (!root.user)

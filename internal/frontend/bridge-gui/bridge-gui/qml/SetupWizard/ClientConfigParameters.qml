@@ -76,7 +76,7 @@ Rectangle {
                     Button {
                         colorScheme: root.colorScheme
                         icon.source: "/qml/icons/ic-external-link.svg"
-                        text: qsTr("Open Guide")
+                        text: qsTr("Open guide")
 
                         onClicked: function () {
                             Backend.showWebFrameWindow(wizard.setupGuideLink());
