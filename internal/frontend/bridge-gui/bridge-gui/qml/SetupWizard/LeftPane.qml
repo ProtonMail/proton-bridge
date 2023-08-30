@@ -48,8 +48,8 @@ Item {
         linkLabel1.clear();
         linkLabel2.clear();
         iconSource = "/qml/icons/img-client-config-selector.svg";
-        iconHeight = 222;
-        iconWidth = 264;
+        iconHeight = 104;
+        iconWidth = 266;
     }
     function showLogin() {
         showOnboarding();
