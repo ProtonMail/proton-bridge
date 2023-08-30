@@ -42,8 +42,7 @@ import (
 
 type EventProvider interface {
 	userevents.Subscribable
-	PauseIMAP()
-	ResumeIMAP()
+	RewindEventID(ctx context.Context, eventID string) error
 }
 
 type Telemetry interface {
@@ -92,7 +91,9 @@ type Service struct {
 	syncStateProvider  *SyncState
 	syncReporter       *syncReporter
 
-	syncConfigPath string
+	syncConfigPath     string
+	lastHandledEventID string
+	isSyncing          bool
 }
 
 func NewService(
@@ -164,8 +165,9 @@ func (s *Service) Start(
 	ctx context.Context,
 	group *orderedtasks.OrderedCancelGroup,
 	syncRegulator syncservice.Regulator,
-
+	lastEventID string,
 ) error {
+	s.lastHandledEventID = lastEventID
 	{
 		syncStateProvider, err := NewSyncState(s.syncConfigPath)
 		if err != nil {
@@ -276,7 +278,7 @@ func (s *Service) HandleRefreshEvent(ctx context.Context, _ proton.RefreshFlag) 
 		return err
 	}
 
-	s.syncHandler.CancelAndWait()
+	s.cancelSync()
 
 	if err := s.removeConnectorsFromServer(ctx, s.connectors, true); err != nil {
 		return err
@@ -353,7 +355,7 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 			case *resumeSyncReq:
 				s.log.Info("Resuming sync")
 				// Cancel previous run, if any, just in case.
-				s.syncHandler.CancelAndWait()
+				s.cancelSync()
 				s.startSyncing()
 				req.Reply(ctx, nil, nil)
 			case *getLabelsReq:
@@ -401,7 +403,22 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 				}
 
 				s.log.Info("Sync complete, starting API event stream")
-				s.eventProvider.ResumeIMAP()
+				if err := s.eventProvider.RewindEventID(ctx, s.lastHandledEventID); err != nil {
+					if errors.Is(err, context.Canceled) {
+						continue
+					}
+
+					s.log.WithError(err).Error("Failed to rewind event service")
+					s.eventPublisher.PublishEvent(ctx, events.UserBadEvent{
+						UserID:     s.identityState.UserID(),
+						OldEventID: "",
+						NewEventID: "",
+						EventInfo:  "",
+						Error:      fmt.Errorf("failed to rewind event loop: %w", err),
+					})
+				}
+
+				s.isSyncing = false
 			}
 
 		case request, ok := <-s.syncUpdateApplier.requestCh:
@@ -423,7 +440,26 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 				continue
 			}
 			e.Consume(func(event proton.Event) error {
-				return eventHandler.OnEvent(ctx, event)
+				if s.isSyncing {
+					// We need to reset the sync if we receive a refresh event during a sync and update
+					// the last event id to avoid problems.
+					if event.Refresh&proton.RefreshMail != 0 {
+						if err := s.HandleRefreshEvent(ctx, 0); err != nil {
+							return err
+						}
+						s.lastHandledEventID = event.EventID
+					}
+
+					return nil
+				}
+
+				if err := eventHandler.OnEvent(ctx, event); err != nil {
+					return err
+				}
+
+				s.lastHandledEventID = event.EventID
+
+				return nil
 			})
 		case e, ok := <-s.eventWatcher.GetChannel():
 			if !ok {
@@ -537,7 +573,7 @@ func (s *Service) setAddressMode(ctx context.Context, mode usertypes.AddressMode
 		s.log.Info("Setting Combined Address Mode")
 	}
 
-	s.syncHandler.CancelAndWait()
+	s.cancelSync()
 
 	if err := s.removeConnectorsFromServer(ctx, s.connectors, true); err != nil {
 		return err
@@ -573,7 +609,13 @@ func (s *Service) setShowAllMail(v bool) {
 }
 
 func (s *Service) startSyncing() {
+	s.isSyncing = true
 	s.syncHandler.Execute(s.syncReporter, s.labels.GetLabelMap(), s.syncUpdateApplier, s.syncMessageBuilder, syncservice.DefaultRetryCoolDown)
+}
+
+func (s *Service) cancelSync() {
+	s.syncHandler.CancelAndWait()
+	s.isSyncing = false
 }
 
 type resyncReq struct{}

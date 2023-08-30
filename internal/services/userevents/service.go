@@ -34,6 +34,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/network"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/orderedtasks"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
 	"github.com/bradenaw/juniper/xmaps"
 	"github.com/sirupsen/logrus"
 )
@@ -48,6 +49,7 @@ import (
 // * UserUsedSpace
 // By default this service starts paused, you need to call `Service.Resume` at least one time to begin event polling.
 type Service struct {
+	cpc            *cpc.CPC
 	userID         string
 	eventSource    EventSource
 	eventIDStore   EventIDStore
@@ -56,7 +58,6 @@ type Service struct {
 	timer          *proton.Ticker
 	eventTimeout   time.Duration
 	paused         uint32
-	pausedIMAP     uint32
 	panicHandler   async.PanicHandler
 
 	subscriberList eventSubscriberList
@@ -79,6 +80,7 @@ func NewService(
 	panicHandler async.PanicHandler,
 ) *Service {
 	return &Service{
+		cpc:          cpc.NewCPC(),
 		userID:       userID,
 		eventSource:  eventSource,
 		eventIDStore: store,
@@ -89,7 +91,6 @@ func NewService(
 		eventPublisher: eventPublisher,
 		timer:          proton.NewTicker(pollPeriod, jitter, panicHandler),
 		paused:         1,
-		pausedIMAP:     1,
 		eventTimeout:   eventTimeout,
 		panicHandler:   panicHandler,
 	}
@@ -121,12 +122,6 @@ func (s *Service) Pause() {
 	atomic.StoreUint32(&s.paused, 1)
 }
 
-// PauseIMAP special handler for the IMAP Service - Do Not Use.
-func (s *Service) PauseIMAP() {
-	s.log.Info("Pausing from IMAP")
-	atomic.StoreUint32(&s.pausedIMAP, 1)
-}
-
 // PauseWithWaiter pauses the event polling and returns a waiter to notify when the last event has been published
 // after the pause request.
 func (s *Service) PauseWithWaiter() *EventPollWaiter {
@@ -148,24 +143,23 @@ func (s *Service) Resume() {
 	atomic.StoreUint32(&s.paused, 0)
 }
 
-// ResumeIMAP special handler for the IMAP Service - Do Not Use.
-func (s *Service) ResumeIMAP() {
-	s.log.Info("Resuming from IMAP")
-	atomic.StoreUint32(&s.pausedIMAP, 0)
-}
-
 // IsPaused return true if the service is paused.
 func (s *Service) IsPaused() bool {
-	// We need to check both IMAP and service paused conditions here to determine if the service is
-	// paused. There can be instances where the sync from IMAP can overwrite a previous request to pause the loop once
-	// it is finished. To be addressed as part of GODT-2848.
-	return atomic.LoadUint32(&s.paused) == 1 || atomic.LoadUint32(&s.pausedIMAP) == 1
+	return atomic.LoadUint32(&s.paused) == 1
 }
 
-func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGroup) error {
+// RewindEventID sets the event id as the next event to be polled.
+func (s *Service) RewindEventID(ctx context.Context, id string) error {
+	_, err := s.cpc.Send(ctx, &rewindEventIDReq{eventID: id})
+
+	return err
+}
+
+// Start the event service and return the last EventID that was processed.
+func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGroup) (string, error) {
 	lastEventID, err := s.eventIDStore.Load(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to load last event id: %w", err)
+		return "", fmt.Errorf("failed to load last event id: %w", err)
 	}
 
 	if lastEventID == "" {
@@ -176,11 +170,11 @@ func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGr
 			return eventSource.GetLatestEventID(ctx)
 		})
 		if err != nil {
-			return fmt.Errorf("failed to get latest event id: %w", err)
+			return "", fmt.Errorf("failed to get latest event id: %w", err)
 		}
 
 		if err := s.eventIDStore.Store(ctx, eventID); err != nil {
-			return fmt.Errorf("failed to store event in event id store: %v", err)
+			return "", fmt.Errorf("failed to store event in event id store: %v", err)
 		}
 
 		lastEventID = eventID
@@ -190,11 +184,12 @@ func (s *Service) Start(ctx context.Context, group *orderedtasks.OrderedCancelGr
 		s.run(ctx, lastEventID)
 	})
 
-	return nil
+	return lastEventID, nil
 }
 
 func (s *Service) run(ctx context.Context, lastEventID string) {
 	s.log.Infof("Starting service Last EventID=%v", lastEventID)
+	defer s.cpc.Close()
 	defer s.timer.Stop()
 	defer s.log.Info("Exiting service")
 	defer s.Close()
@@ -210,6 +205,26 @@ func (s *Service) run(ctx context.Context, lastEventID string) {
 				s.closePollWaiters()
 				continue
 			}
+
+		case r, ok := <-s.cpc.ReceiveCh():
+			if !ok {
+				return
+			}
+
+			rewind, ok := r.Value().(*rewindEventIDReq)
+			if !ok {
+				s.log.Errorf("Received unknown request")
+				continue
+			}
+
+			err := s.rewindEventLoop(ctx, rewind.eventID)
+			r.Reply(ctx, nil, err)
+
+			if err == nil {
+				lastEventID = rewind.eventID
+			}
+
+			continue
 		}
 
 		// Apply any pending subscription changes.
@@ -402,6 +417,11 @@ func (s *Service) removeSubscription(subscription EventSubscriber) {
 	s.subscriberList.Remove(subscription)
 }
 
+func (s *Service) rewindEventLoop(ctx context.Context, id string) error {
+	s.log.WithField("eventID", id).Info("Event loop reset")
+	return s.eventIDStore.Store(ctx, id)
+}
+
 type pendingOp int
 
 const (
@@ -412,4 +432,8 @@ const (
 type pendingSubscription struct {
 	op  pendingOp
 	sub EventSubscriber
+}
+
+type rewindEventIDReq struct {
+	eventID string
 }

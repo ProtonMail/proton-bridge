@@ -295,7 +295,8 @@ func newImpl(
 	})
 
 	// Start Event Service
-	if err := user.eventService.Start(ctx, user.serviceGroup); err != nil {
+	lastEventID, err := user.eventService.Start(ctx, user.serviceGroup)
+	if err != nil {
 		return user, fmt.Errorf("failed to start event service: %w", err)
 	}
 
@@ -311,7 +312,7 @@ func newImpl(
 	}
 
 	// Start IMAP Service
-	if err := user.imapService.Start(ctx, user.serviceGroup, syncService); err != nil {
+	if err := user.imapService.Start(ctx, user.serviceGroup, syncService, lastEventID); err != nil {
 		return user, fmt.Errorf("failed to start imap service: %w", err)
 	}
 

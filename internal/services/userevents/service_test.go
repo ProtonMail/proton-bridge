@@ -76,9 +76,11 @@ func TestService_EventIDLoadStore(t *testing.T) {
 		time.Second,
 		async.NoopPanicHandler{},
 	)
-	require.NoError(t, service.Start(context.Background(), group))
+
+	_, err := service.Start(context.Background(), group)
+	require.NoError(t, err)
+
 	service.Resume()
-	service.ResumeIMAP()
 	group.Wait()
 }
 
@@ -131,9 +133,10 @@ func TestService_RetryEventOnNonCatastrophicFailure(t *testing.T) {
 	)
 	service.Subscribe(NewCallbackSubscriber("foo", EventHandler{MessageHandler: subscriber}))
 
-	require.NoError(t, service.Start(context.Background(), group))
+	_, err := service.Start(context.Background(), group)
+	require.NoError(t, err)
+
 	service.Resume()
-	service.ResumeIMAP()
 	group.Wait()
 }
 
@@ -194,9 +197,11 @@ func TestService_OnBadEventServiceIsPaused(t *testing.T) {
 	})
 
 	service.Subscribe(NewCallbackSubscriber("foo", EventHandler{MessageHandler: subscriber}))
-	require.NoError(t, service.Start(context.Background(), group))
+
+	_, err := service.Start(context.Background(), group)
+	require.NoError(t, err)
+
 	service.Resume()
-	service.ResumeIMAP()
 	group.Wait()
 }
 
@@ -251,9 +256,11 @@ func TestService_UnsubscribeDuringEventHandlingDoesNotCauseDeadlock(t *testing.T
 	})
 
 	service.Subscribe(subscription)
-	require.NoError(t, service.Start(context.Background(), group))
+
+	_, err := service.Start(context.Background(), group)
+	require.NoError(t, err)
+
 	service.Resume()
-	service.ResumeIMAP()
 	group.Wait()
 }
 
@@ -310,9 +317,11 @@ func TestService_UnsubscribeBeforeHandlingEventIsNotConsideredError(t *testing.T
 	})
 
 	service.Subscribe(subscription)
-	require.NoError(t, service.Start(context.Background(), group))
+
+	_, err := service.Start(context.Background(), group)
+	require.NoError(t, err)
+
 	service.Resume()
-	service.ResumeIMAP()
 	group.Wait()
 }
 
@@ -373,9 +382,69 @@ func TestService_WaitOnEventPublishAfterPause(t *testing.T) {
 	})
 
 	service.Subscribe(NewCallbackSubscriber("foo", EventHandler{MessageHandler: subscriber}))
-	require.NoError(t, service.Start(context.Background(), group))
+
+	_, err := service.Start(context.Background(), group)
+	require.NoError(t, err)
+
 	service.Resume()
-	service.ResumeIMAP()
+	group.Wait()
+}
+
+func TestService_EventRewind(t *testing.T) {
+	group := orderedtasks.NewOrderedCancelGroup(async.NoopPanicHandler{})
+	mockCtrl := gomock.NewController(t)
+	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
+	eventIDStore := mocks.NewMockEventIDStore(mockCtrl)
+	eventSource := mocks.NewMockEventSource(mockCtrl)
+
+	firstEventID := "EVENT01"
+	secondEventID := "EVENT02"
+	messageEvents := []proton.MessageEvent{
+		{
+			EventItem: proton.EventItem{ID: "Message"},
+		},
+	}
+	secondEvent := []proton.Event{{
+		EventID:  secondEventID,
+		Messages: messageEvents,
+	}}
+
+	// Return Second Event from id store, but then reset to event 1
+
+	// Event id store expectations.
+	store1 := eventIDStore.EXPECT().Load(gomock.Any()).Times(1).Return(secondEventID, nil)
+	eventIDStore.EXPECT().Store(gomock.Any(), gomock.Eq(firstEventID)).Times(1).Return(nil).After(store1)
+	eventIDStore.EXPECT().Store(gomock.Any(), gomock.Eq(secondEventID)).Times(1).Return(nil)
+
+	// Event Source expectations.
+	eventSource.EXPECT().GetEvent(gomock.Any(), gomock.Eq(firstEventID)).MinTimes(1).DoAndReturn(
+		func(_ context.Context, _ string) ([]proton.Event, bool, error) {
+			group.Cancel()
+			return secondEvent, false, nil
+		},
+	)
+
+	// Subscriber expectations.
+
+	service := NewService(
+		"foo",
+		eventSource,
+		eventIDStore,
+		eventPublisher,
+		time.Millisecond,
+		time.Millisecond,
+		time.Second,
+		async.NoopPanicHandler{},
+	)
+
+	_, err := service.Start(context.Background(), group)
+	require.NoError(t, err)
+
+	go func() {
+		require.NoError(t, service.RewindEventID(context.Background(), firstEventID))
+	}()
+
+	service.Resume()
 	group.Wait()
 }
 
