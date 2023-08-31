@@ -16,7 +16,8 @@ Feature: The user reports a problem
   Scenario: User sends a problem report while signed out of Bridge
     When user "[user:user]" logs out
     And the user reports a bug with field "Email" set to "[user:user]@[domain]"
-    Then the header in the "POST" multipart request to "/core/v4/reports/bug" has "Username" set to "[user:user]"
+    Then it succeeds
+    And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Username" set to "[user:user]"
     And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Email" set to "[user:user]@[domain]"
     
   Scenario: User sends a problem report with changed Title
