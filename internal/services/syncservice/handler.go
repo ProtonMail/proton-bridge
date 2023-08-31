@@ -188,7 +188,7 @@ func (t *Handler) run(ctx context.Context,
 		syncStatus.TotalMessageCount = totalMessageCount
 	}
 
-	syncReporter.InitializeProgressCounter(ctx, syncStatus.NumSyncedMessages, syncStatus.TotalMessageCount*NumSyncStages)
+	syncReporter.InitializeProgressCounter(ctx, syncStatus.NumSyncedMessages*NumSyncStages, syncStatus.TotalMessageCount*NumSyncStages)
 
 	if !syncStatus.HasMessages {
 		t.log.Info("Syncing messages")
