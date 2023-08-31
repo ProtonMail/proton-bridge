@@ -324,6 +324,8 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 		MessageHandler: s,
 	}
 
+	syncEventHandler := s.newSyncEventHandler()
+
 	s.eventProvider.Subscribe(s.subscription)
 	defer s.eventProvider.Unsubscribe(s.subscription)
 
@@ -441,12 +443,13 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 			}
 			e.Consume(func(event proton.Event) error {
 				if s.isSyncing {
+					if err := syncEventHandler.OnEvent(ctx, event); err != nil {
+						return err
+					}
+
 					// We need to reset the sync if we receive a refresh event during a sync and update
 					// the last event id to avoid problems.
 					if event.Refresh&proton.RefreshMail != 0 {
-						if err := s.HandleRefreshEvent(ctx, 0); err != nil {
-							return err
-						}
 						s.lastHandledEventID = event.EventID
 					}
 

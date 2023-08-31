@@ -504,6 +504,81 @@ func TestBridge_EventReplayAfterSyncHasFinished(t *testing.T) {
 	}, server.WithTLS(false))
 }
 
+func TestBridge_MessageCreateDuringSync(t *testing.T) {
+	numMsg := 1 << 8
+
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		userID, addrID, err := s.CreateUser("imap", password)
+		require.NoError(t, err)
+
+		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
+		require.NoError(t, err)
+
+		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *proton.Client) {
+			createNumMessages(ctx, t, c, addrID, labelID, numMsg)
+		})
+
+		var allowSyncToProgress atomic.Bool
+		allowSyncToProgress.Store(false)
+
+		// Simulate 429 to prevent sync from progressing.
+		s.AddStatusHook(func(request *http.Request) (int, bool) {
+			if request.Method == "GET" && strings.Contains(request.URL.Path, "/mail/v4/messages/") {
+				if !allowSyncToProgress.Load() {
+					return http.StatusTooManyRequests, true
+				}
+			}
+
+			return 0, false
+		})
+
+		// The initial user should be fully synced.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			syncStartedCh, syncStartedDone := chToType[events.Event, events.SyncStarted](bridge.GetEvents(events.SyncStarted{}))
+			defer syncStartedDone()
+
+			addressCreatedCh, addressCreatedDone := chToType[events.Event, events.UserAddressCreated](bridge.GetEvents(events.UserAddressCreated{}))
+			defer addressCreatedDone()
+
+			userID, err := bridge.LoginFull(ctx, "imap", password, nil, nil)
+			require.NoError(t, err)
+
+			require.Equal(t, userID, (<-syncStartedCh).UserID)
+
+			// create 20 more messages and move them to inbox
+			withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *proton.Client) {
+				createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 20)
+			})
+
+			// User AddrID2 event as a check point to see when the new address was created.
+			addrID, err := s.CreateAddress(userID, "bar@proton.ch", password)
+			require.NoError(t, err)
+
+			// At most two events can be published, one for the first address, then for the second.
+			// if the second event is not `addrID` then something went wrong.
+			event := <-addressCreatedCh
+			require.Equal(t, addrID, event.AddressID)
+			allowSyncToProgress.Store(true)
+
+			info, err := bridge.GetUserInfo(userID)
+			require.NoError(t, err)
+
+			client, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
+			require.NoError(t, err)
+			require.NoError(t, client.Login(info.Addresses[0], string(info.BridgePass)))
+			defer func() { _ = client.Logout() }()
+
+			require.Eventually(t, func() bool {
+				// Finally check if the 20 messages are in INBOX.
+				status, err := client.Status("INBOX", []imap.StatusItem{imap.StatusMessages})
+				require.NoError(t, err)
+
+				return uint32(20) == status.Messages
+			}, 10*time.Second, time.Second)
+		})
+	}, server.WithTLS(false))
+}
+
 func withClient(ctx context.Context, t *testing.T, s *server.Server, username string, password []byte, fn func(context.Context, *proton.Client)) { //nolint:unparam
 	m := proton.New(
 		proton.WithHostURL(s.GetHostURL()),

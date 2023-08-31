@@ -44,7 +44,7 @@ func (s *Service) HandleMessageEvents(ctx context.Context, events []proton.Messa
 
 		switch event.Action {
 		case proton.EventCreate:
-			updates, err := onMessageCreated(logging.WithLogrusField(ctx, "action", "create message"), s, event.Message)
+			updates, err := onMessageCreated(logging.WithLogrusField(ctx, "action", "create message"), s, event.Message, false)
 			if err != nil {
 				reportError(s.reporter, s.log, "Failed to apply create message event", err)
 				return fmt.Errorf("failed to handle create message event: %w", err)
@@ -93,7 +93,7 @@ func (s *Service) HandleMessageEvents(ctx context.Context, events []proton.Messa
 			if err := waitOnIMAPUpdates(ctx, updates); gluon.IsNoSuchMessage(err) {
 				s.log.WithError(err).Error("Failed to handle update message event in gluon, will try creating it")
 
-				updates, err := onMessageCreated(ctx, s, event.Message)
+				updates, err := onMessageCreated(ctx, s, event.Message, false)
 				if err != nil {
 					return fmt.Errorf("failed to handle update message event as create: %w", err)
 				}
@@ -121,7 +121,12 @@ func (s *Service) HandleMessageEvents(ctx context.Context, events []proton.Messa
 	return nil
 }
 
-func onMessageCreated(ctx context.Context, s *Service, message proton.MessageMetadata) ([]imap.Update, error) {
+func onMessageCreated(
+	ctx context.Context,
+	s *Service,
+	message proton.MessageMetadata,
+	allowUnknownLabels bool,
+) ([]imap.Update, error) {
 	s.log.WithFields(logrus.Fields{
 		"messageID": message.ID,
 		"subject":   logging.Sensitive(message.Subject),
@@ -161,7 +166,7 @@ func onMessageCreated(ctx context.Context, s *Service, message proton.MessageMet
 			s.log.WithError(err).Error("Failed to remove failed message ID from vault")
 		}
 
-		update = imap.NewMessagesCreated(false, res.update)
+		update = imap.NewMessagesCreated(allowUnknownLabels, res.update)
 		didPublish, err := safePublishMessageUpdate(ctx, s, full.AddressID, update)
 		if err != nil {
 			return err
