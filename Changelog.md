@@ -6,6 +6,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## Umshiang Bridge 3.5.0
 
 ### Added
+* GODT-2891: Allow message create & delete during sync.
+* GODT-2848: Decouple IMAP service from Event Loop.
 * Add trace profiling option.
 * GODT-2829: New Sync Service.
 * Test: oss-fuzz support for fuzzing.
@@ -45,6 +47,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Use qmlformat on qml files, and removed deprecated tests.
 
 ### Fixed
+* GODT-2828: Fix negative report time.
+* GODT-2828: Fix sync progress report after restart.
+* GODT-2867: Do not crash on timeout or context cancel.
 * GODT-2693: Duplicate messages in sent folder.
 * GODT-2867: Get attachment returns API error on network problem.
 * GODT-2805: Ignore Contact Group Labels.
