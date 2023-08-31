@@ -83,8 +83,8 @@ func (s *scenario) theHeaderInTheRequestToHasSetTo(method, path, key, value stri
 		return err
 	}
 
-	if haveKey := call.RequestHeader.Get(key); haveKey != value {
-		return fmt.Errorf("have header %q, want %q", haveKey, value)
+	if haveValue := call.RequestHeader.Get(key); haveValue != value {
+		return fmt.Errorf("header field %q have %q, want %q", key, haveValue, value)
 	}
 
 	return nil
@@ -124,8 +124,8 @@ func (s *scenario) theHeaderInTheMultipartRequestToHasSetTo(method, path, key, v
 		return fmt.Errorf("failed to parse multipart form: %w", err)
 	}
 
-	if haveKey := req.FormValue(key); haveKey != value {
-		return fmt.Errorf("have header %q, want %q", haveKey, value)
+	if haveValue := req.FormValue(key); haveValue != value {
+		return fmt.Errorf("header field %q have %q, want %q", key, haveValue, value)
 	}
 
 	return nil

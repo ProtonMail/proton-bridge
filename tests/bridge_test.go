@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/cucumber/godog"
@@ -153,56 +154,79 @@ func (s *scenario) theUserSetSMTPModeToSSL() error {
 	return s.t.bridge.SetSMTPSSL(context.Background(), true)
 }
 
+type testBugReport struct {
+	OSType      string `json:"OS"`
+	OSVersion   string `json:"OSVersion"`
+	Title       string `json:"Title"`
+	Description string `json:"Description"`
+	Username    string `json:"Username"`
+	Email       string `json:"Email"`
+	Client      string `json:"Client"`
+	Attachment  bool   `json:"Attachment"`
+
+	bridge *bridge.Bridge
+}
+
+func newTestBugReport(bridge *bridge.Bridge) *testBugReport {
+	return &testBugReport{
+		OSType:      "osType",
+		OSVersion:   "osVersion",
+		Title:       "title",
+		Description: "description",
+		Username:    "username",
+		Email:       "email",
+		Client:      "client",
+		Attachment:  false,
+		bridge:      bridge,
+	}
+}
+
+func (r *testBugReport) report() error {
+	return r.bridge.ReportBug(context.Background(), r.OSType, r.OSVersion, r.Title, r.Description, r.Username, r.Email, r.Client, r.Attachment)
+}
+
 func (s *scenario) theUserReportsABug() error {
-	return s.t.bridge.ReportBug(context.Background(), "osType", "osVersion", "title", "description", "username", "email", "client", false)
+	return newTestBugReport(s.t.bridge).report()
 }
 
 func (s *scenario) theUserReportsABugWithSingleHeaderChange(key, value string) error {
-	switch keyValue := key; keyValue {
+	bugReport := newTestBugReport(s.t.bridge)
+
+	switch key {
 	case "osType":
-		return s.t.bridge.ReportBug(context.Background(), value, "osVersion", "title", "description", "username", "email", "client", false)
+		bugReport.OSType = value
 	case "osVersion":
-		return s.t.bridge.ReportBug(context.Background(), "osType", value, "title", "description", "username", "email", "client", false)
+		bugReport.OSVersion = value
 	case "Title":
-		return s.t.bridge.ReportBug(context.Background(), "osType", "osVersion", value, "description", "username", "email", "client", false)
+		bugReport.Title = value
 	case "Description":
-		return s.t.bridge.ReportBug(context.Background(), "osType", "osVersion", "title", value, "username", "email", "client", false)
+		bugReport.Description = value
 	case "Username":
-		return s.t.bridge.ReportBug(context.Background(), "osType", "osVersion", "title", "description", value, "email", "client", false)
+		bugReport.Username = value
 	case "Email":
-		return s.t.bridge.ReportBug(context.Background(), "osType", "osVersion", "title", "description", "username", value, "client", false)
+		bugReport.Email = value
 	case "Client":
-		return s.t.bridge.ReportBug(context.Background(), "osType", "osVersion", "title", "description", "username", "email", value, false)
+		bugReport.Client = value
 	case "Attachment":
-		att, _ := strconv.ParseBool(value)
-		return s.t.bridge.ReportBug(context.Background(), "osType", "osVersion", "title", "description", "username", "email", "client", att)
+		att, err := strconv.ParseBool(value)
+		if err != nil {
+			return fmt.Errorf("failed to parse bug report attachment preferences: %w", err)
+		}
+		bugReport.Attachment = att
 	default:
 		return fmt.Errorf("Wrong header (\"%s\") is being checked", key)
 	}
+
+	return bugReport.report()
 }
 
 func (s *scenario) theUserReportsABugWithDetails(value *godog.DocString) error {
-	type BugReportTest struct {
-		OSType      string `json:"OS"`
-		OSVersion   string `json:"OSVersion"`
-		Title       string `json:"Title"`
-		Description string `json:"Description"`
-		Username    string `json:"Username"`
-		Email       string `json:"Email"`
-		Client      string `json:"Client"`
-		Attachment  bool   `json:"Attachment"`
+	bugReport := newTestBugReport(s.t.bridge)
+	if err := json.Unmarshal([]byte(value.Content), &bugReport); err != nil {
+		return fmt.Errorf("cannot parse bug report details: %w", err)
 	}
 
-	bugReport := BugReportTest{OSType: "osType", OSVersion: "osVersion", Title: "title", Description: "description", Username: "username", Email: "email", Client: "client", Attachment: false}
-
-	jsonString := value
-
-	err := json.Unmarshal([]byte(jsonString.Content), &bugReport)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	return s.t.bridge.ReportBug(context.Background(), bugReport.OSType, bugReport.OSVersion, bugReport.Title, bugReport.Description, bugReport.Username, bugReport.Email, bugReport.Client, bugReport.Attachment)
+	return bugReport.report()
 }
 
 func (s *scenario) bridgeSendsAConnectionUpEvent() error {
