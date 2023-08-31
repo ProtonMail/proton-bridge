@@ -453,7 +453,7 @@ QtObject {
         brief: title
         description: qsTr("Changing between split and combined address mode will require you to delete your account(s) from your email client and begin the setup process from scratch.")
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
-        icon: "/qml/icons/ic-question-circle.svg"
+        icon: "./icons/ic-question-circle.svg"
         title: qsTr("Enable split mode?")
         type: Notification.NotificationType.Warning
 

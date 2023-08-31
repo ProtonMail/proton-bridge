@@ -133,7 +133,7 @@ FocusScope {
                     usernameTextField.errorString = "";
                     passwordTextField.error = false;
                     passwordTextField.errorString = "";
-                    errorLabel.text = ""
+                    errorLabel.text = "";
                 }
                 function reset(clearUsername = false) {
                     signInButton.loading = false;
@@ -178,6 +178,7 @@ FocusScope {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 0
+
                     ColorImage {
                         color: wizard.colorScheme.signal_danger
                         height: errorLabel.lineHeight
@@ -269,7 +270,9 @@ FocusScope {
                 LinkLabel {
                     Layout.alignment: Qt.AlignHCenter
                     colorScheme: wizard.colorScheme
-                    text: link("https://proton.me/mail/pricing", qsTr("Create or upgrade your account"))
+                    external: true
+                    link: "https://proton.me/mail/pricing"
+                    text: qsTr("Create or upgrade your account")
                 }
             }
         }

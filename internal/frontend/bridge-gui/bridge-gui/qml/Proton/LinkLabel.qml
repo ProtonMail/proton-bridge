@@ -12,36 +12,74 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
-Label {
+RowLayout {
     id: root
 
     property var callback: null
+    property ColorScheme colorScheme
+    property bool external: false
+    property string link: "#"
+    property string text: ""
 
     function clear() {
-        callback = null;
-        text = "";
+        root.callback = null;
+        root.text = "";
+        root.link = "";
+        root.external = false;
     }
-    function setCallback(callback, linkText) {
+    function link(url, text) {
+        return label.link(url, text);
+    }
+    function setCallback(callback, linkText, external) {
         root.callback = callback;
-        text = link("#", linkText);
+        root.text = linkText;
+        root.link = "#"; // Cannot be empty, otherwise the text is not an hyperlink.
+        root.external = external;
     }
-    function setLink(linkURL, linkText) {
-        callback = null;
-        text = link(linkURL, linkText);
+    function setLink(linkURL, linkText, external) {
+        root.callback = null;
+        root.text = linkText;
+        root.link = linkURL;
+        root.external = external;
     }
 
-    type: Label.LabelType.Body
+    Label {
+        id: label
+        Layout.alignment: Qt.AlignVCenter
+        colorScheme: root.colorScheme
+        text: label.link(root.link, root.text)
+        type: Label.LabelType.Body
 
-    onLinkActivated: function (link) {
-        if (link !== "#") {
-            Qt.openUrlExternally(link);
+        onLinkActivated: function (link) {
+            if ((link !== "#") && (link.length > 0)) {
+                Qt.openUrlExternally(link);
+            }
+            if (callback) {
+                callback();
+            }
         }
-        if (callback) {
-            callback();
+    }
+    ColorImage {
+        Layout.alignment: Qt.AlignVCenter
+        color: label.linkColor
+        height: sourceSize.height
+        source: "/qml/icons/ic-external-link.svg"
+        sourceSize.height: 16
+        sourceSize.width: 16
+        visible: external
+        width: sourceSize.width
+
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+
+            onClicked: {
+                label.onLinkActivated(root.link);
+            }
         }
     }
-
     HoverHandler {
         acceptedDevices: PointerDevice.Mouse
         cursorShape: Qt.PointingHandCursor

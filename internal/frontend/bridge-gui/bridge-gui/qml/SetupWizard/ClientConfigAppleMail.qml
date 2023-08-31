@@ -180,9 +180,10 @@ Item {
                         }
                         LinkLabel {
                             Layout.alignment: Qt.AlignHCenter
-                            colorScheme: wizard.colorScheme
                             callback: wizard.showBugReport
-                            text: link("#", qsTr("Report the problem"))
+                            colorScheme: wizard.colorScheme
+                            link: "#"
+                            text: qsTr("Report the problem")
                             visible: certificateInstall.showBugReportLink
                         }
                     }
