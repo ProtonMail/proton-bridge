@@ -282,4 +282,18 @@ build-windows-qa:
   variables:
     BUILD_TAGS: "build_qa"
 
+trigeer-qa-installer:
+  stage: build
+  needs: ["lint"]
+  extends:
+    - .rules-branch-and-MR-manual
+  variables:
+    APP: bridge
+    WORKFLOW: build-all
+    SRC_TAG: $CI_COMMIT_BRANCH
+    SRC_HASH: $CI_COMMIT_SHA
+  trigger:
+    project: "jcuth/bridge-release"
+    branch: master
+
 # TODO: PUT BACK ALL THE JOBS! JUST DID THIS FOR NOW TO GET CI WORKING AGAIN...
