@@ -40,33 +40,10 @@ QtObject {
             function onHideMainWindow() {
                 mainWindow.hide();
             }
-
-            target: Backend
-        }
-        WebFrameWindow {
-            id: webFrameWindow
-            colorScheme: ProtonStyle.currentStyle
-            flags: Qt.Tool
-            transientParent: mainWindow
-
-            Connections {
-                function onShowWebFrameOverlay(url) {
-                    mainWindow.showWebFrameOverlay(url);
-                }
-                function onShowWebFrameOverlayHTML(html) {
-                    mainWindow.showWebFrameOverlayHTML(html)
-                }
-                function onShowWebFrameWindow(url) {
-                    webFrameWindow.url = url;
-                    webFrameWindow.show();
-                    webFrameWindow.raise();
-                    if (!webFrameWindow.active) {
-                        webFrameWindow.requestActivate();
-                    }
-                }
-
-                target: Backend
+            function onShowWebFrameOverlayHTML(html) {
+                mainWindow.showWebFrameOverlayHTML(html)
             }
+            target: Backend
         }
     }
     property Notifications _notifications: Notifications {

@@ -24,9 +24,6 @@ Item {
     property bool overlay: true
     property string url: ""
 
-    function showBlankPage() {
-        webView.loadHtml("<!doctype html><meta charset=utf-8><title>blank</title>", "");
-    }
     function loadHTML(html) {
         webView.loadHtml(html)
     }

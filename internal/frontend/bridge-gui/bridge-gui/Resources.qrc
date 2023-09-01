@@ -130,6 +130,5 @@
         <file>qml/ConnectionModeSettings.qml</file>
         <file>qml/SplashScreen.qml</file>
         <file>qml/Status.qml</file>
-        <file>qml/WebFrameWindow.qml</file>
     </qresource>
 </RCC>

@@ -55,7 +55,7 @@ ApplicationWindow {
         setupWizard.showClientConfig(user, address, justLoggedIn);
     }
     function showHelp() {
-        Backend.showWebFrameWindow("https://proton.me/support/bridge");
+        Qt.openUrlExternally("https://proton.me/support/bridge");
     }
     function showLocalCacheSettings() {
         contentWrapper.showLocalCacheSettings();
@@ -67,11 +67,6 @@ ApplicationWindow {
     function showSettings() {
         contentWrapper.showSettings();
     }
-    function showWebFrameOverlay(url) {
-        webFrameOverlay.visible = true;
-        webFrameOverlay.url = url;
-    }
-
     function showWebFrameOverlayHTML(html) {
         webFrameOverlay.loadHTML(html);
         webFrameOverlay.visible = true;
