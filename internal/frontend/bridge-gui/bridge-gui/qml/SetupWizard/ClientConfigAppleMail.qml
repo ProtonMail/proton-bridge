@@ -28,7 +28,6 @@ Item {
     signal appleMailAutoconfigProfileInstallPageShow
 
     function showAutoconfig() {
-        certificateInstall.waitingForCert = false;
         if (Backend.isTLSCertificateInstalled()) {
             showProfileInstall();
         } else {
@@ -41,6 +40,7 @@ Item {
         appleMailAutoconfigCertificateInstallPageShown();
     }
     function showProfileInstall() {
+        profileInstall.reset();
         stack.currentIndex = ClientConfigAppleMail.Screen.ProfileInstall;
         appleMailAutoconfigProfileInstallPageShow();
     }
@@ -193,6 +193,13 @@ Item {
         // stack index 1
         Item {
             id: profileInstall
+
+            property bool profilePaneLaunched: false
+
+            function reset() {
+                profilePaneLaunched = false;
+            }
+
             Layout.fillHeight: true
             Layout.fillWidth: true
 
@@ -239,11 +246,15 @@ Item {
                     Button {
                         Layout.fillWidth: true
                         colorScheme: wizard.colorScheme
-                        text: qsTr("Install the profile")
+                        text: profileInstall.profilePaneLaunched ? qsTr("I have installed the profile") : qsTr("Install the profile")
 
                         onClicked: {
-                            wizard.user.configureAppleMail(wizard.address);
-                            wizard.showClientConfigEnd();
+                            if (profileInstall.profilePaneLaunched) {
+                                wizard.showClientConfigEnd();
+                            } else {
+                                wizard.user.configureAppleMail(wizard.address);
+                                profileInstall.profilePaneLaunched = true;
+                            }
                         }
                     }
                     Button {

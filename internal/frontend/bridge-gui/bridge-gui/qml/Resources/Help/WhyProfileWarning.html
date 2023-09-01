@@ -1,0 +1,21 @@
+<h1>Why is there a warning sign when installing the Bridge profile on macOS?</h1>
+<p class="standfirst">
+    This warning indicates that the certificate used to secure the communication channel between Bridge and your email client is not signed by a
+    trusted third party.
+</p>
+<p>
+    In order to communicate with Bridge, Apple Mail requires secure connections using SSL/TLS. This cryptographic protocol includes an identity
+    verification system using certificates. For publicly available servers, certificates are normally issued and digitally signed by a certificate
+    authority, such as Let's Encrypt. This is not possible for Bridge, as the IMAP and SMTP servers are running on your own computer, and are not
+    accessible from any network (local or internet).
+</p>
+<p>
+    The solution is to use a self-signed certificate. When setting up an email account where the server provides a self-signed certificate, most
+    email clients will issue a warning asking you whether you trust the server or not, because the certificate was not issued by a certificate
+    authority. The client has no way of verifying that the server is who it pretends to be.
+</p>
+<p>
+    You can safely ignore this warning. The check concerns only the communication between your email client and Bridge, which occurs within your
+    computer. On the other end, the communication between Bridge and the Proton servers uses the HTTPS protocol, and the identity of the remote
+    server is verified by Bridge.
+</p>

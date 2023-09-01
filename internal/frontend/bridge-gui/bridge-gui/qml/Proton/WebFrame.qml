@@ -27,15 +27,8 @@ Item {
     function showBlankPage() {
         webView.loadHtml("<!doctype html><meta charset=utf-8><title>blank</title>", "");
     }
-
-    function showUnderConstruction() {
-        webView.loadHtml(`
-        <!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"><title>Coming soon</title><style> body { background-color: #888; font-family: sans-serif; } p { font-weight: bold; margin-top: 100px; text-align: center; }</style></head>
-<body><p>The content of this page is under construction.</p></body></html>
-        `, "")
-        root.visible = true;
+    function loadHTML(html) {
+        webView.loadHtml(html)
     }
 
     Rectangle {
@@ -46,16 +39,19 @@ Item {
     }
     Rectangle {
         anchors.fill: parent
-        anchors.margins: overlay ? ProtonStyle.web_view_overlay_margin : 0
+        anchors.bottomMargin: overlay ? ProtonStyle.web_view_overlay_vertical_margin : 0
+        anchors.leftMargin: overlay ? ProtonStyle.web_view_overlay_horizontal_margin : 0
+        anchors.rightMargin: overlay ? ProtonStyle.web_view_overlay_horizontal_margin : 0
+        anchors.topMargin: overlay ? ProtonStyle.web_view_overlay_vertical_margin : 0
         color: root.colorScheme.background_norm
         radius: ProtonStyle.web_view_corner_radius
 
         ColumnLayout {
             anchors.bottomMargin: 0
             anchors.fill: parent
-            anchors.leftMargin: overlay ? ProtonStyle.web_view_overlay_horizontal_margin : 0
-            anchors.rightMargin: overlay ? ProtonStyle.web_view_overlay_horizontal_margin : 0
-            anchors.topMargin: overlay ? ProtonStyle.web_view_overlay_vertical_margin : 0
+            anchors.leftMargin: overlay ? ProtonStyle.web_view_overlay_horizontal_padding : 0
+            anchors.rightMargin: overlay ? ProtonStyle.web_view_overlay_horizontal_padding : 0
+            anchors.topMargin: overlay ? ProtonStyle.web_view_overlay_vertical_padding : 0
             spacing: 0
 
             Rectangle {

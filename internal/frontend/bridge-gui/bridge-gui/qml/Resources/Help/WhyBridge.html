@@ -1,0 +1,19 @@
+<h1>Why do I need bridge?</h1>
+<p class="standfirst">
+    Proton does not have access to the content of your messages, so it cannot share your unencrypted messages with your email client from the
+    Proton servers.
+</p>
+<p>
+    Email clients such as Microsoft Outlook, Mozilla Thunderbird and Apple Mail use standard protocols named IMAP and SMTP to receive and send emails.
+</p>
+<p>
+    Even though the IMAP and SMTP protocols can use secure channels (using SSL/TLS), they do not offer support for encrypted messages.
+    Because Proton does not have access to the content of your messages, it is not possible to configure your email client to connect directly to
+    Proton servers.
+</p>
+<p>
+    The key to solving this problem is Bridge. Once installed on your computer and connected to your Proton account, Bridge can access your
+    encrypted messages stored on the Proton servers. Bridge integrates an IMAP and a SMTP server that run on your computer and are accessible only
+    to applications executing on your machine. Your email client connects to these local servers and Bridge is responsible for seamlessly encrypting
+    and decrypting the messages that you send and receive.
+</p>

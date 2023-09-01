@@ -53,6 +53,9 @@ QtObject {
                 function onShowWebFrameOverlay(url) {
                     mainWindow.showWebFrameOverlay(url);
                 }
+                function onShowWebFrameOverlayHTML(html) {
+                    mainWindow.showWebFrameOverlayHTML(html)
+                }
                 function onShowWebFrameWindow(url) {
                     webFrameWindow.url = url;
                     webFrameWindow.show();

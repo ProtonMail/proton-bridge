@@ -72,6 +72,11 @@ ApplicationWindow {
         webFrameOverlay.url = url;
     }
 
+    function showWebFrameOverlayHTML(html) {
+        webFrameOverlay.loadHTML(html);
+        webFrameOverlay.visible = true;
+    }
+
     colorScheme: ProtonStyle.currentStyle
     height: ProtonStyle.window_default_height
     minimumHeight:ProtonStyle.window_minimum_height
@@ -175,9 +180,6 @@ ApplicationWindow {
             }
             onWizardEnded: {
                 contentLayout.currentIndex = 0;
-            }
-            onShowUnderConstruction: {
-                webFrameOverlay.showUnderConstruction();
             }
         }
     }

@@ -363,10 +363,11 @@ QtObject {
     property int web_view_button_width: 320
     property int web_view_corner_radius: 10
     property int web_view_overlay_button_vertical_margin: 10
-    property int web_view_overlay_horizontal_margin: 10
-    property int web_view_overlay_margin: 50
+    property int web_view_overlay_horizontal_padding: 10
+    property int web_view_overlay_horizontal_margin: 250
+    property int web_view_overlay_vertical_margin: 50
     property real web_view_overlay_opacity: 0.6
-    property int web_view_overlay_vertical_margin: web_view_corner_radius
+    property int web_view_overlay_vertical_padding: web_view_corner_radius
     property int web_view_overley_border_width: 1
 
     property int window_default_height: 780

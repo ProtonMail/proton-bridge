@@ -211,6 +211,7 @@ public slots: // slots for functions that need to be processed locally.
     void setErrorTrayIcon(QString const& stateString, QString const &statusIcon); ///< Set the tray icon to 'error' state.
     void setWarnTrayIcon(QString const& stateString, QString const &statusIcon); ///< Set the tray icon to 'warn' state.
     void setUpdateTrayIcon(QString const& stateString, QString const &statusIcon); ///< Set the tray icon to 'update' state.
+    void showHelpOverlay(QString const &helpFileName); ///< Slot triggering the display of help content as an overlay.
 
 public slots: // slot for signals received from gRPC that need transformation instead of simple forwarding
     void internetStatusChanged(bool isOn); ///< Check if bridge considers internet as on.
@@ -279,6 +280,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void showSettings(); ///< Signal for the 'showHelp' event (from the context menu).
     void showWebFrameWindow(QString const &url); ///< Signal the the 'showWebFrameWindow' event
     void showWebFrameOverlay(QString const &url); ////< Signal for the 'showWebFrameOverlay' event.
+    void showWebFrameOverlayHTML(QString const &html); ///< Signal to display HTML content in a web frame overlay.
     void selectUser(QString const& userID, bool forceShowWindow); ///< Signal emitted in order to selected a user with a given ID in the list.
     void genericError(QString const &title, QString const &description); ///< Signal for the 'genericError' gRPC stream event.
     void imapLoginWhileSignedOut(QString const& username); ///< Signal for the notification of IMAP login attempt on a signed out account.
