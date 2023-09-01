@@ -3,6 +3,12 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Trift Bridge 3.4.2
+
+### Fixed
+* GODT-2902: Do not check for changed values. Related to GODT-2857.
+
+
 ## Trift Bridge 3.4.1
 
 ### Fixed
