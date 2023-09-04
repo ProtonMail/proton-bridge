@@ -109,6 +109,12 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the bridge password of user "([^"]*)" is changed to "([^"]*)"`, s.bridgePasswordOfUserIsChangedTo)
 	ctx.Step(`^the bridge password of user "([^"]*)" is equal to "([^"]*)"`, s.bridgePasswordOfUserIsEqualTo)
 
+	// ==== ACCOUNT SETTINGS ====
+	ctx.Step(`^the account "([^"]*)" has public key attachment "([^"]*)"`, s.accountHasPublicKeyAttachment)
+	ctx.Step(`^the account "([^"]*)" has sign external messages "([^"]*)"`, s.accountHasSignExternalMessages)
+	ctx.Step(`^the account "([^"]*)" has default draft format "([^"]*)"`, s.accountHasDefaultDraftFormat)
+	ctx.Step(`^the account "([^"]*)" has default PGP schema "([^"]*)"`, s.accountHasDefaultPGPSchema)
+
 	// ==== IMAP ====
 	ctx.Step(`^user "([^"]*)" connects IMAP client "([^"]*)"$`, s.userConnectsIMAPClient)
 	ctx.Step(`^user "([^"]*)" connects IMAP client "([^"]*)" on port (\d+)$`, s.userConnectsIMAPClientOnPort)

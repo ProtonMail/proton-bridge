@@ -578,3 +578,68 @@ func (s *scenario) createUserAccount(username, password string, disabled bool) e
 		return nil
 	})
 }
+
+func (s *scenario) accountHasPublicKeyAttachment(account, enabled string) error {
+	value := true
+	switch {
+	case enabled == "enabled":
+		value = true
+	case enabled == "disabled":
+		value = false
+	default:
+		return errors.New("parameter should either be 'enabled' or 'disabled'")
+	}
+
+	return s.t.withClient(context.Background(), account, func(ctx context.Context, c *proton.Client) error {
+		_, err := c.SetAttachPublicKey(ctx, proton.SetAttachPublicKeyReq{AttachPublicKey: proton.Bool(value)})
+		return err
+	})
+}
+
+func (s *scenario) accountHasSignExternalMessages(account, enabled string) error {
+	value := proton.SignExternalMessagesDisabled
+	switch {
+	case enabled == "enabled":
+		value = proton.SignExternalMessagesEnabled
+	case enabled == "disabled":
+		value = proton.SignExternalMessagesDisabled
+	default:
+		return errors.New("parameter should either be 'enabled' or 'disabled'")
+	}
+	return s.t.withClient(context.Background(), account, func(ctx context.Context, c *proton.Client) error {
+		_, err := c.SetSignExternalMessages(ctx, proton.SetSignExternalMessagesReq{Sign: value})
+		return err
+	})
+}
+
+func (s *scenario) accountHasDefaultDraftFormat(account, format string) error {
+	value := rfc822.TextPlain
+	switch {
+	case format == "plain":
+		value = rfc822.TextPlain
+	case format == "HTML":
+		value = rfc822.TextHTML
+	default:
+		return errors.New("parameter should either be 'plain' or 'HTML'")
+	}
+	return s.t.withClient(context.Background(), account, func(ctx context.Context, c *proton.Client) error {
+		_, err := c.SetDraftMIMEType(ctx, proton.SetDraftMIMETypeReq{MIMEType: value})
+		return err
+	})
+}
+
+func (s *scenario) accountHasDefaultPGPSchema(account, schema string) error {
+	value := proton.PGPInlineScheme
+	switch {
+	case schema == "inline":
+		value = proton.PGPInlineScheme
+	case schema == "MIME":
+		value = proton.PGPMIMEScheme
+	default:
+		return errors.New("parameter should either be 'inline' or 'MIME'")
+	}
+	return s.t.withClient(context.Background(), account, func(ctx context.Context, c *proton.Client) error {
+		_, err := c.SetDefaultPGPScheme(ctx, proton.SetDefaultPGPSchemeReq{PGPScheme: value})
+		return err
+	})
+}
