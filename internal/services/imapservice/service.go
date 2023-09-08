@@ -48,6 +48,7 @@ type EventProvider interface {
 type Telemetry interface {
 	useridentity.Telemetry
 	SendConfigStatusSuccess(ctx context.Context)
+	ReportConfigStatusFailure(errDetails string)
 }
 
 type GluonIDProvider interface {

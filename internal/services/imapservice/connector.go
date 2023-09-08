@@ -119,8 +119,9 @@ func (s *Connector) Init(_ context.Context, cache connector.IMAPState) error {
 }
 
 func (s *Connector) Authorize(ctx context.Context, username string, password []byte) bool {
-	addrID, err := s.identityState.CheckAuth(username, password, s.telemetry)
+	addrID, err := s.identityState.CheckAuth(username, password)
 	if err != nil {
+		s.telemetry.ReportConfigStatusFailure("IMAP " + err.Error())
 		return false
 	}
 

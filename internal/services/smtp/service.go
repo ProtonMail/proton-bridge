@@ -221,7 +221,7 @@ func (s *Service) run(ctx context.Context) {
 
 			case *checkAuthReq:
 				s.log.WithField("email", bridgelogging.Sensitive(r.email)).Debug("Checking authentication")
-				addrID, err := s.identityState.CheckAuth(r.email, r.password, s.bridgePassProvider, s.telemetry)
+				addrID, err := s.identityState.CheckAuth(r.email, r.password, s.bridgePassProvider)
 				request.Reply(ctx, addrID, err)
 
 			case *resyncReq:

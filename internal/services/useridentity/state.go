@@ -226,7 +226,7 @@ func (s *State) Clone() *State {
 
 // CheckAuth returns whether the given email and password can be used to authenticate over IMAP or SMTP with this user.
 // It returns the address ID of the authenticated address.
-func (s *State) CheckAuth(email string, password []byte, bridgePassProvider BridgePassProvider, telemetry Telemetry) (string, error) {
+func (s *State) CheckAuth(email string, password []byte, bridgePassProvider BridgePassProvider) (string, error) {
 	if email == "crash@bandicoot" {
 		panic("your wish is my command.. I crash")
 	}
@@ -237,11 +237,7 @@ func (s *State) CheckAuth(email string, password []byte, bridgePassProvider Brid
 	}
 
 	if subtle.ConstantTimeCompare(bridgePassProvider.BridgePass(), dec) != 1 {
-		err := fmt.Errorf("invalid password")
-		if telemetry != nil {
-			telemetry.ReportConfigStatusFailure(err.Error())
-		}
-		return "", err
+		return "", fmt.Errorf("invalid password")
 	}
 
 	for _, addr := range s.AddressesSorted {

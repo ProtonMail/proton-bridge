@@ -32,7 +32,7 @@ type sharedIdentity interface {
 	GetPrimaryAddress() (proton.Address, error)
 	GetAddresses() []proton.Address
 	WithAddrKR(addrID string, fn func(userKR, addrKR *crypto.KeyRing) error) error
-	CheckAuth(email string, password []byte, telemetry Telemetry) (string, error)
+	CheckAuth(email string, password []byte) (string, error)
 }
 
 type rwIdentity struct {
@@ -102,11 +102,11 @@ func (r *rwIdentity) WithAddrKRs(fn func(*crypto.KeyRing, map[string]*crypto.Key
 	return r.identity.WithAddrKRs(r.keyPassProvider.KeyPass(), fn)
 }
 
-func (r *rwIdentity) CheckAuth(email string, password []byte, telemetry Telemetry) (string, error) {
+func (r *rwIdentity) CheckAuth(email string, password []byte) (string, error) {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
 
-	return r.identity.CheckAuth(email, password, r.bridgePassProvider, telemetry)
+	return r.identity.CheckAuth(email, password, r.bridgePassProvider)
 }
 
 func (r *rwIdentity) Write(f func(identity *useridentity.State) error) error {

@@ -674,7 +674,7 @@ func (user *User) ReportSMTPAuthFailed(username string) {
 	emails := user.Emails()
 	for _, mail := range emails {
 		if mail == username {
-			user.ReportConfigStatusFailure("invalid username or password")
+			user.ReportConfigStatusFailure("SMTP invalid username or password")
 		}
 	}
 }

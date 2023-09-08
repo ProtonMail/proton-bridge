@@ -249,7 +249,7 @@ func (s *Service) run(ctx context.Context) {
 				r.Reply(ctx, maps.Clone(s.identity.Addresses), nil)
 
 			case *checkAuthReq:
-				id, err := s.identity.CheckAuth(req.email, req.password, s.bridgePassProvider, s.telemetry)
+				id, err := s.identity.CheckAuth(req.email, req.password, s.bridgePassProvider)
 				r.Reply(ctx, id, err)
 
 			default:
