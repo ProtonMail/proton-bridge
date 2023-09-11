@@ -338,7 +338,7 @@ func (s *Service) handleEvent(ctx context.Context, lastEventID string, event pro
 		s.log.Info("Received refresh event")
 	}
 
-	return s.subscriberList.PublishParallel(ctx, event, s.panicHandler, s.eventTimeout)
+	return s.subscriberList.PublishParallel(ctx, event, s.panicHandler)
 }
 
 func unpackPublisherError(err error) (string, error) {

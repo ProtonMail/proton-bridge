@@ -22,7 +22,6 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
-	"time"
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
@@ -88,22 +87,19 @@ func (p publishError[T]) Error() string {
 	return fmt.Sprintf("Event publish failed on (%v): %v", p.subscriber.name(), p.error.Error())
 }
 
-func (s *subscriberList[T]) Publish(ctx context.Context, event T, timeout time.Duration) error {
-	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(timeout))
-	defer cancel()
-
+func (s *subscriberList[T]) Publish(ctx context.Context, event T) error {
 	for _, subscriber := range s.subscribers {
 		if err := subscriber.handle(ctx, event); err != nil {
 			return &publishError[T]{
 				subscriber: subscriber,
-				error:      mapContextTimeoutError(err),
+				error:      err,
 			}
 		}
 
 		if err := ctx.Err(); err != nil {
 			return &publishError[T]{
 				subscriber: subscriber,
-				error:      mapContextTimeoutError(err),
+				error:      err,
 			}
 		}
 	}
@@ -111,40 +107,28 @@ func (s *subscriberList[T]) Publish(ctx context.Context, event T, timeout time.D
 	return nil
 }
 
-func mapContextTimeoutError(err error) error {
-	if errors.Is(err, context.DeadlineExceeded) {
-		return ErrPublishTimeoutExceeded
-	}
-
-	return err
-}
-
 func (s *subscriberList[T]) PublishParallel(
 	ctx context.Context,
 	event T,
 	panicHandler async.PanicHandler,
-	timeout time.Duration,
 ) error {
 	if len(s.subscribers) <= 1 {
-		return s.Publish(ctx, event, timeout)
+		return s.Publish(ctx, event)
 	}
-
-	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(timeout))
-	defer cancel()
 
 	err := parallel.DoContext(ctx, runtime.NumCPU()/2, len(s.subscribers), func(ctx context.Context, index int) error {
 		defer async.HandlePanic(panicHandler)
 		if err := s.subscribers[index].handle(ctx, event); err != nil {
 			return &publishError[T]{
 				subscriber: s.subscribers[index],
-				error:      mapContextTimeoutError(err),
+				error:      err,
 			}
 		}
 
 		return nil
 	})
 
-	return mapContextTimeoutError(err)
+	return err
 }
 
 type ChanneledSubscriber[T any] struct {
