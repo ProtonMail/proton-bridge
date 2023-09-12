@@ -6,6 +6,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## Umshiang Bridge 3.5.0
 
 ### Added
+* GODT-2734: Add testing steps to modify account settings.
+* GODT-2746: Integration tests for reporting a problem.
 * GODT-2891: Allow message create & delete during sync.
 * GODT-2848: Decouple IMAP service from Event Loop.
 * Add trace profiling option.
@@ -19,6 +21,8 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2803: Bridge Database access.
 
 ### Changed
+* GODT-2909: Remove Timeout on event publish.
+* GODT-2913: Reduce the number of configuration failure detected.
 * GODT-2828: Increase sync progress report frequency.
 * Test: Fix TestBridge_SyncWithOnGoingEvents.
 * GODT-2871: Is telemetry enabled as service.
