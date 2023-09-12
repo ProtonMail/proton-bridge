@@ -1100,28 +1100,6 @@ void QMLBackend::setUpdateTrayIcon(QString const &stateString, QString const &st
 
 
 //****************************************************************************************************************************************************
-/// \param[in] helpFileName The name of the help file with extension (e.g. "WhyBridge.html").
-//****************************************************************************************************************************************************
-void QMLBackend::showHelpOverlay(QString const &helpFileName) {
-    QDir const basePath(":/qml/Resources/Help");
-    QString const templatePath = basePath.filePath("Template.html");
-    QFile templateFile(templatePath);
-    if (!templateFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        app().log().error("Could not load help overlay HTML template");
-        return;
-    }
-
-    QFile helpFile(basePath.filePath(helpFileName));
-    if (!helpFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        app().log().error(QString("Could not load help overlay HTML file %1").arg(helpFileName));
-        return;
-    }
-
-    emit showWebFrameOverlayHTML(QString::fromUtf8(templateFile.readAll()).arg(QString::fromUtf8(helpFile.readAll())));
-}
-
-
-//****************************************************************************************************************************************************
 /// \param[in] isOn Does bridge consider internet as on.
 //****************************************************************************************************************************************************
 void QMLBackend::internetStatusChanged(bool isOn) {

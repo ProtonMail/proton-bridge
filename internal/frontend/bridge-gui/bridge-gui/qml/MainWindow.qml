@@ -67,10 +67,6 @@ ApplicationWindow {
     function showSettings() {
         contentWrapper.showSettings();
     }
-    function showWebFrameOverlayHTML(html) {
-        webFrameOverlay.loadHTML(html);
-        webFrameOverlay.visible = true;
-    }
 
     colorScheme: ProtonStyle.currentStyle
     height: ProtonStyle.window_default_height
@@ -177,14 +173,6 @@ ApplicationWindow {
                 contentLayout.currentIndex = 0;
             }
         }
-    }
-    WebFrame {
-        id: webFrameOverlay
-        anchors.fill: parent
-        colorScheme: root.colorScheme
-        overlay: true
-        url: ""
-        visible: false
     }
     NotificationPopups {
         colorScheme: root.colorScheme

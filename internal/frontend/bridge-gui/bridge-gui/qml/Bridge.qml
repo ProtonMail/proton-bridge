@@ -40,9 +40,6 @@ QtObject {
             function onHideMainWindow() {
                 mainWindow.hide();
             }
-            function onShowWebFrameOverlayHTML(html) {
-                mainWindow.showWebFrameOverlayHTML(html)
-            }
             target: Backend
         }
     }

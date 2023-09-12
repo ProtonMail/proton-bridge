@@ -26,7 +26,8 @@ Item {
     function showAppleMailAutoconfigCertificateInstall() {
         showAppleMailAutoconfigCommon();
         descriptionLabel.text = qsTr("Apple Mail configuration is mostly automated, but in order to work, Bridge needs to install a certificate in your keychain.");
-        linkLabel1.setCallback(function() { Backend.showHelpOverlay("WhyCertificate.html"); }, qsTr("Why is this certificate needed?"), false);
+        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why is this certificate needed?"), true); ///< TODO GODT-2772: replace link with link to KB article.
+        linkLabel2.clear();
     }
     function showAppleMailAutoconfigCommon() {
         titleLabel.text = "";
@@ -39,7 +40,7 @@ Item {
     function showAppleMailAutoconfigProfileInstall() {
         showAppleMailAutoconfigCommon();
         descriptionLabel.text = qsTr("The final step before you can start using Apple Mail is to install the Bridge server profile in the system preferences.\n\nAdding a server profile is necessary to ensure that your Mac can receive and send Proton Mails.");
-        linkLabel1.setCallback(function() { Backend.showHelpOverlay("WhyProfileWarning.html"); }, qsTr("Why is there a yellow warning sign?"), false);
+        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why is there a yellow warning sign?"), true); ///< TODO GODT-2772: replace link with link to KB article.
         linkLabel2.setCallback(wizard.showClientParams, qsTr("Configure Apple Mail manually"), false);
     }
     function showClientSelector(newAccount = true) {
@@ -63,7 +64,7 @@ Item {
     function showOnboarding() {
         titleLabel.text = (Backend.users.count === 0) ? qsTr("Welcome to\nProton Mail Bridge") : qsTr("Add a Proton Mail account");
         descriptionLabel.text = qsTr("Bridge is the gateway between your Proton account and your email client. It runs in the background and encrypts and decrypts your messages seamlessly. ");
-        linkLabel1.setCallback(function() { Backend.showHelpOverlay("WhyBridge.html"); }, qsTr("Why do I need Bridge?"), false);
+        linkLabel1.setLink("https://proton.me/support/bridge", qsTr("Why do I need Bridge?"), true); ///< TODO GODT-2772: replace link with link to KB article.
         linkLabel2.clear();
         root.iconSource = "/qml/icons/img-welcome.svg";
         root.iconHeight = 148;

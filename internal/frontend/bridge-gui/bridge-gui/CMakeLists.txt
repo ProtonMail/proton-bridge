@@ -75,7 +75,7 @@ if(NOT UNIX)
     set(CMAKE_INSTALL_BINDIR ".")
 endif(NOT UNIX)
 
-find_package(Qt6 COMPONENTS Core Quick Qml QuickControls2 Widgets Svg WebView REQUIRED)
+find_package(Qt6 COMPONENTS Core Quick Qml QuickControls2 Widgets Svg REQUIRED)
 qt_standard_project_setup()
 set(CMAKE_AUTORCC ON)
 message(STATUS "Using Qt ${Qt6_VERSION}")
@@ -148,7 +148,6 @@ target_link_libraries(bridge-gui
     Qt6::Qml
     Qt6::QuickControls2
     Qt6::Svg
-    Qt6::WebView
     sentry::sentry
     bridgepp
     )

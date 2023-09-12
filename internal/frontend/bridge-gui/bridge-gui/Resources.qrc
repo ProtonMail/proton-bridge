@@ -107,7 +107,6 @@
         <file>qml/Proton/TextArea.qml</file>
         <file>qml/Proton/TextField.qml</file>
         <file>qml/Proton/Toggle.qml</file>
-        <file>qml/Proton/WebFrame.qml</file>
         <file>qml/QuestionItem.qml</file>
         <file>qml/Resources/bug_report_flow.json</file>
         <file>qml/Resources/Help/Template.html</file>
