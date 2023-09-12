@@ -22,11 +22,7 @@ cmake_minimum_required(VERSION 3.22)
 #*****************************************************************************************************************************************************
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_BINDIR}" "${CMAKE_INSTALL_LIBDIR}" "." "../lib")
-install(DIRECTORY
-        "${QT_DIR}/qml"
-        "${QT_DIR}/plugins"
-        "${QT_DIR}/translations"
-        "${QT_DIR}/resources"
+install(DIRECTORY "${QT_DIR}/qml" "${QT_DIR}/plugins"
         DESTINATION "${CMAKE_INSTALL_PREFIX}")
 
 macro( AppendLib LIB_NAME HINT_PATH)
@@ -72,13 +68,6 @@ AppendQt6Lib("libQt6PrintSupport.so.6")
 AppendQt6Lib("libQt6Xml.so.6")
 AppendQt6Lib("libQt6OpenGLWidgets.so.6")
 AppendQt6Lib("libQt6QuickWidgets.so.6")
-AppendQt6Lib("libQt6Positioning.so.6")
-AppendQt6Lib("libQt6WebChannel.so.6")
-AppendQt6Lib("libQt6WebView.so.6")
-AppendQt6Lib("libQt6WebViewQuick.so.6")
-AppendQt6Lib("libQt6WebEngineCore.so.6")
-AppendQt6Lib("libQt6WebEngineQuick.so.6")
-AppendQt6Lib("libQt6WebEngineQuickDelegatesQml.so.6")
 
 # QML dependencies
 AppendQt6Lib("libQt6QmlWorkerScript.so.6")
@@ -92,6 +81,3 @@ AppendQt6Lib("libQt6Svg.so.6")
 AppendQt6Lib("libQt6QmlCore.so.6")
 
 install(FILES ${DEPLOY_LIBS} DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
-
-# Install QtWebEngineProcess to be able to use WebView
-install(PROGRAMS "${QT_DIR}/libexec/QtWebEngineProcess" DESTINATION "${CMAKE_INSTALL_PREFIX}/libexec")

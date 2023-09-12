@@ -139,6 +139,9 @@ ${DEPLOY_DIR}/darwin: ${EXE_TARGET} build-launcher
 	perl -i -pe"s/>${BRIDGE_GUI_EXE_NAME}/>${LAUNCHER_EXE}/g" ${DARWINAPP_CONTENTS}/Info.plist
 	cp ./dist/${SRC_ICNS} ${DARWINAPP_CONTENTS}/Resources/${SRC_ICNS}
 	cp LICENSE ${DARWINAPP_CONTENTS}/Resources/
+	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngine.framework"
+	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebView.framework"
+	rm -rf "${DARWINAPP_CONTENTS}/Frameworks/QtWebEngineCore.framework"
 	mv ${LAUNCHER_EXE}  ${DARWINAPP_CONTENTS}/MacOS/${LAUNCHER_EXE}
 	./utils/remove_non_relative_links_darwin.sh "${EXE_TARGET_DARWIN}/${EXE_BINARY_DARWIN}"
 
