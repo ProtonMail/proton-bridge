@@ -75,6 +75,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2780: Fix 'QSystemTrayIcon::setVisible: No Icon set' warning in bridge-gui log on startup.
 * GODT-2778: Fix login screen being disabled after an 'already logged in' error.
 * Fix typos found by codespell.
+* GODT-2577: Answered flag should only be applied to replied messages.
 
 
 ## Trift Bridge 3.4.1
