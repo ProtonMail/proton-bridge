@@ -51,7 +51,7 @@ public: // member functions.
     void showSettings(QString const &reason); ///< Show the settings page.
     void selectUser(QString const &userID, bool forceShowWindow, QString const &reason); ///< Select the user and display its account details (or login screen).
 
-    // invokable methods can be called from QML. They generally return a value, which slots cannot do.
+    // invocable methods can be called from QML. They generally return a value, which slots cannot do.
     Q_INVOKABLE static QString buildYear(); ///< Return the application build year.
     Q_INVOKABLE QPoint getCursorPos() const; ///< Retrieve the cursor position.
     Q_INVOKABLE bool isPortFree(int port) const; ///< Check if a given network port is available.

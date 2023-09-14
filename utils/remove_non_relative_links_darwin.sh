@@ -20,10 +20,10 @@
 # The Qt libs are dynamically loaded with rules like: `@rpath/QtGui.framework/Versions/5/QtGui`
 # @rpath instructs the dynamic linker to search a list of paths in order to locate the framework
 # The rules can be listed using `otool -l "${path_to_binary}"`
-# The building process of therecipe/qt or qmake leaves the rules with additinal unwanted paths
+# The building process of therecipe/qt or qmake leaves the rules with additional unwanted paths
 #   + absolute path to build directory
 #   + dummy replacement `/break_the_rpath`
-# We need to manually remove those and add the path relative to exectuable: `@executable_path/../Frameworks`
+# We need to manually remove those and add the path relative to executable: `@executable_path/../Frameworks`
 
 path_to_binary=$1
 

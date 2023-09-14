@@ -24,7 +24,7 @@ import (
 
 var ErrInvalidReplyType = errors.New("reply type does not match")
 
-// Utilities to implement Chanel Procedure Calls. Similar in concept to RPC, but with between go-routines.
+// Utilities to implement Channel Procedure Calls. Similar in concept to RPC, but with between go-routines.
 
 // Request contains the data for a request as well as the means to reply to a request.
 type Request struct {

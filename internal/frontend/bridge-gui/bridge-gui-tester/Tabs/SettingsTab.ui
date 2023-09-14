@@ -378,7 +378,7 @@
           </size>
          </property>
          <property name="title">
-          <string>TLS Certficates</string>
+          <string>TLS Certificates</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_9">
           <item>

@@ -115,7 +115,7 @@ func (h *macOSHelper) Get(secretURL string) (string, string, error) {
 
 	results, err := keychain.QueryItem(query)
 	if err != nil {
-		l.WithError(err).Error("Querry item failed")
+		l.WithError(err).Error("Query item failed")
 		return "", "", parseError(err)
 	}
 

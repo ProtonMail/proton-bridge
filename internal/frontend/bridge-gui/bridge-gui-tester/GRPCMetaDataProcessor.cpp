@@ -50,7 +50,7 @@ Status GRPCMetadataProcessor::Process(AuthMetadataProcessor::InputMetadata const
     AuthMetadataProcessor::OutputMetadata *, AuthMetadataProcessor::OutputMetadata *) {
     try {
         AuthMetadataProcessor::InputMetadata::const_iterator pathIt = auth_metadata.find(":path");
-        QString const callName = (pathIt == auth_metadata.end()) ? ("unkown gRPC call") : QString::fromLocal8Bit(pathIt->second);
+        QString const callName = (pathIt == auth_metadata.end()) ? ("Unknown gRPC call") : QString::fromLocal8Bit(pathIt->second);
 
         AuthMetadataProcessor::InputMetadata::size_type const count = auth_metadata.count(grpcMetadataServerTokenKey);
         if (count == 0) {

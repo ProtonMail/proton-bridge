@@ -446,7 +446,7 @@ func TestEncodeReader(t *testing.T) {
 		}
 
 		if bytes.Equal(decoded, expected) {
-			// fmt.Println("Succesfull decoding of ", val.params, ":", string(decoded))
+			// fmt.Println("Successful decoding of ", val.params, ":", string(decoded))
 		} else {
 			t.Error("Wrong encoding of ", val.charset, ".Expected\n", expected, "\nbut have\n", decoded)
 		}

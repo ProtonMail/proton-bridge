@@ -122,7 +122,7 @@
      <item row="3" column="0">
       <widget class="QLabel" name="labelAddresses">
        <property name="text">
-        <string>Adresses</string>
+        <string>Addresses</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>

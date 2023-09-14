@@ -102,7 +102,7 @@ private: // member functions
 
 private: // data member
     mutable QMutex eventStreamMutex_; ///< Mutex used to access eventQueue_, isStreaming_ and shouldStopStreaming_;
-    QList<bridgepp::SPStreamEvent> eventQueue_; ///< The event queue. Acces protected by eventStreamMutex_;
+    QList<bridgepp::SPStreamEvent> eventQueue_; ///< The event queue. Access protected by eventStreamMutex_;
     bool isStreaming_; ///< Is the gRPC stream running. Access protected by eventStreamMutex_;
     bool eventStreamShouldStop_; ///< Should the stream be stopped? Access protected by eventStreamMutex
     QString loginUsername_; ///< The username used for the current login procedure.

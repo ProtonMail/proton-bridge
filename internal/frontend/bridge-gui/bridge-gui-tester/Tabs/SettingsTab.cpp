@@ -346,8 +346,8 @@ qint32 SettingsTab::smtpPort() {
 //****************************************************************************************************************************************************
 /// \param[in] imapPort The IMAP port.
 /// \param[in] smtpPort The SMTP port.
-/// \param[in] useSSLForIMAP The IMAP connexion mode.
-/// \param[in] useSSLForSMTP The IMAP connexion mode.
+/// \param[in] useSSLForIMAP The IMAP connection mode.
+/// \param[in] useSSLForSMTP The IMAP connection mode.
 //****************************************************************************************************************************************************
 void SettingsTab::setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) {
     ui_.spinPortIMAP->setValue(imapPort);

@@ -391,7 +391,7 @@ func (user *User) syncMessages(
 	case syncLimits.MaxSyncMemory == 2*Gigabyte:
 		// Increasing the max download capacity has very little effect on sync speed. We could increase the download
 		// memory but the user would see less sync notifications. A smaller value here leads to more frequent
-		// updates. Additionally, most of ot sync time is spent in the message building.
+		// updates. Additionally, most of sync time is spent in the message building.
 		syncMaxDownloadRequestMem = syncLimits.MaxDownloadRequestMem
 		// Currently limited so that if a user has multiple accounts active it also doesn't cause excessive memory usage.
 		syncMaxMessageBuildingMem = syncLimits.MaxMessageBuildingMem

@@ -2,13 +2,13 @@
 
 ## First login and sync
 
-When user logs in to the bridge for the first time, immediatelly starts the first sync.
+When user logs in to the bridge for the first time, immediately starts the first sync.
 First sync downloads all headers of all e-mails and creates database to have proper UIDs
 and indexes for IMAP. See [database](database.md) for more information.
 
 By default, whenever it's possible, sync downloads only all e-mails maiblox which already
 have list of labels so we can construct all mailboxes (inbox, sent, trash, custom folders
-and lables) without need to download each e-mail headers many times.
+and labels) without need to download each e-mail headers many times.
 
 Note that we need to download also bodies to calculate size of the e-mail and set proper
 content type (clients uses content type for guess if e-mail contains attachment)--but only
@@ -22,7 +22,7 @@ client right after adding account.
 
 When account is added to client, client start the sync. This sync will ask Bridge app
 for all headers (done quickly) and then starts to download all bodies and attachment.
-Unfortunatelly for some e-mail more than once if the same e-mail is in more mailboxes
+Unfortunately for some e-mail more than once if the same e-mail is in more mailboxes
 (e.g. inbox and all mail)--there is no way to tell over IMAP it's the same message.
 
 After successful login of client to IMAP, Bridge starts event loop. That periodicly ask
@@ -37,7 +37,7 @@ sequenceDiagram
     Note right of B: Set up PM account<br/>by user
 
     loop First sync
-        B ->> S: Fetch body and attachements
+        B ->> S: Fetch body and attachments
         Note right of B: Build local database<br/>(e-mail UIDs)
     end
 
@@ -58,8 +58,8 @@ sequenceDiagram
         C ->> B: IMAP SELECT directory
         C ->> B: IMAP SEARCH e-mails UIDs
         C ->> B: IMAP FETCH of e-mail UID
-        B ->> S: Fetch body and attachements
-        Note right of B: Decrypt message<br/>and attachement
+        B ->> S: Fetch body and attachments
+        Note right of B: Decrypt message<br/>and attachment
         B ->> C: IMAP response
     end
 ```
