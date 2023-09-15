@@ -194,4 +194,18 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^config status event "([^"]*)" is eventually send (\d+) time`, s.configStatusEventIsEventuallySendXTime)
 	ctx.Step(`^config status event "([^"]*)" is not send more than (\d+) time`, s.configStatusEventIsNotSendMoreThanXTime)
 	ctx.Step(`^force config status progress to be sent for user"([^"]*)"$`, s.forceConfigStatusProgressToBeSentForUser)
+
+	// ==== CONTACT ====
+	ctx.Step(`^user "([^"]*)" has contact "([^"]*)" with name "([^"]*)"$`, s.userHasContactWithName)
+	ctx.Step(`^user "([^"]*)" has contacts:$`, s.userHasContacts)
+	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has no message format$`, s.contactOfUserHasNoMessageFormat)
+	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has message format "([^"]*)"$`, s.contactOfUserHasMessageFormat)
+	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has no encryption scheme$`, s.contactOfUserHasNoEncryptionScheme)
+	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has encryption scheme "([^"]*)"$`, s.contactOfUserHasEncryptionScheme)
+	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has no signature$`, s.contactOfUserHasNoSignature)
+	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has signature "([^"]*)"$`, s.contactOfUserHasSignature)
+	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has no encryption$`, s.contactOfUserHasNoEncryption)
+	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has encryption "([^"]*)"$`, s.contactOfUserHasEncryption)
+	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has public key:$`, s.contactOfUserHasPubKey)
+	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has public key from file "([^"]*)"$`, s.contactOfUserHasPubKeyFromFile)
 }

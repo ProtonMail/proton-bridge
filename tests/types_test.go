@@ -327,3 +327,12 @@ func mustParseBool(s string) bool {
 
 	return v
 }
+
+type Contact struct {
+	Name    string `bdd:"name"`
+	Email   string `bdd:"email"`
+	Format  string `bdd:"format"`
+	Scheme  string `bdd:"scheme"`
+	Sign    string `bdd:"signature"`
+	Encrypt string `bdd:"encryption"`
+}

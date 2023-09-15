@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.0
 	github.com/ProtonMail/gluon v0.17.1-0.20230911134257-5eb2eeebbef5
 	github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a
-	github.com/ProtonMail/go-proton-api v0.4.1-0.20230831064234-0e3a549b3f36
+	github.com/ProtonMail/go-proton-api v0.4.1-0.20230915070741-3de73982c764
 	github.com/ProtonMail/gopenpgp/v2 v2.7.1-proton
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/abiosoft/ishell v2.0.0+incompatible
@@ -22,6 +22,7 @@ require (
 	github.com/emersion/go-message v0.16.0
 	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead
 	github.com/emersion/go-smtp v0.15.1-0.20221021114529-49b17434419d
+	github.com/emersion/go-vcard v0.0.0-20230331202150-f3d26859ccd3
 	github.com/fatih/color v1.13.0
 	github.com/getsentry/sentry-go v0.15.0
 	github.com/go-resty/resty/v2 v2.7.0
@@ -68,7 +69,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect
 	github.com/emersion/go-textwrapper v0.0.0-20200911093747-65d896831594 // indirect
-	github.com/emersion/go-vcard v0.0.0-20230331202150-f3d26859ccd3 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
