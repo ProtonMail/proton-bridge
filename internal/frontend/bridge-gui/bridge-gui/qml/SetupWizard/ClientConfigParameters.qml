@@ -79,7 +79,7 @@ Rectangle {
                         text: qsTr("Open guide")
 
                         onClicked: function () {
-                            Qt.openUrlExternally(wizard.setupGuideLink());
+                            Backend.openKBArticle(wizard.setupGuideLink());
                         }
                     }
                 }

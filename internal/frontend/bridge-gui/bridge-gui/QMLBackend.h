@@ -65,6 +65,7 @@ public: // member functions.
     Q_INVOKABLE QString collectAnswers(quint8 categoryId) const; ///< Collect answer for a given set of questions.
     Q_INVOKABLE void clearAnswers(); ///< Clear all collected answers.
     Q_INVOKABLE bool isTLSCertificateInstalled(); ///< Check if the bridge certificate is installed in the OS keychain.
+    Q_INVOKABLE void openKBArticle(QString const & url = QString()); ///< Open a knowledge base article.
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
     Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)
@@ -276,7 +277,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void showMainWindow(); ///< Signal for the 'showMainWindow' gRPC stream event.
     void hideMainWindow(); ///< Signal for the 'hideMainWindow' gRPC stream event.
     void showHelp(); ///< Signal for the 'showHelp' event (from the context menu).
-    void showSettings(); ///< Signal for the 'showHelp' event (from the context menu).
+    void showSettings(); ///< Signal for the 'showSettings' event (from the context menu).
     void selectUser(QString const& userID, bool forceShowWindow); ///< Signal emitted in order to selected a user with a given ID in the list.
     void genericError(QString const &title, QString const &description); ///< Signal for the 'genericError' gRPC stream event.
     void imapLoginWhileSignedOut(QString const& username); ///< Signal for the notification of IMAP login attempt on a signed out account.

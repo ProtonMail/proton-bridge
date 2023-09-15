@@ -36,8 +36,7 @@ SettingsView {
         type: SettingsItem.PrimaryButton
 
         onClicked: {
-            Backend.notifyKBArticleClicked("https://proton.me/support/bridge");
-            Backend.showHelp()
+            Backend.openKBArticle();
         }
     }
     SettingsItem {

@@ -40,7 +40,8 @@ using namespace bridgepp;
 namespace {
 
 
-    QString const bugReportFile = ":qml/Resources/bug_report_flow.json";
+QString const bugReportFile = ":qml/Resources/bug_report_flow.json";
+QString const bridgeKBUrl = "https://proton.me/support/bridge"; ///< The URL for the root of the bridge knowledge base.
 
 
 }
@@ -286,6 +287,18 @@ bool QMLBackend::isTLSCertificateInstalled() {
         bool v = false;
         app().grpc().isTLSCertificateInstalled(v);
         return v;
+    )
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] url The URL of the knowledge base article. If empty/invalid, the home page for the Bridge knowledge base is opened.
+//****************************************************************************************************************************************************
+void QMLBackend::openKBArticle(QString const &url) {
+    HANDLE_EXCEPTION(
+        QString const u = url.isEmpty() ? bridgeKBUrl : url;
+        QDesktopServices::openUrl(u);
+        emit notifyKBArticleClicked(u);
     )
 }
 

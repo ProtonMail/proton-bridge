@@ -803,6 +803,32 @@ Status GRPCService::InstallTLSCertificate(ServerContext *, Empty const *, Empty 
 
 
 //****************************************************************************************************************************************************
+/// \param[in] request The request.
+//****************************************************************************************************************************************************
+Status GRPCService::KBArticleClicked(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) {
+    app().log().debug(QString("%1 - URL = %2").arg(__FUNCTION__, QString::fromStdString(request->value())));
+    return Status::OK;
+}
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+Status GRPCService::ReportBugClicked(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::Empty *) {
+    app().log().debug(__FUNCTION__);
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] request The request.
+//****************************************************************************************************************************************************
+Status GRPCService::AutoconfigClicked(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *response) {
+    app().log().debug(QString("%1 - Client = %2").arg(__FUNCTION__, QString::fromStdString(request->value())));
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] request The request
 /// \param[in] writer The writer
 //****************************************************************************************************************************************************

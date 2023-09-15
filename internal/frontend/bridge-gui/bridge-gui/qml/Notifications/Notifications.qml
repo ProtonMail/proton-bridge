@@ -788,8 +788,6 @@ QtObject {
         }
     }
     property Notification rebuildKeychain: Notification {
-        property var supportLink: "https://proton.me/support/bridge"
-
         brief: title
         description: qsTr("Bridge is not able to access your macOS keychain. Please consult the instructions on our support page.")
         group: Notifications.Group.Dialogs | Notifications.Group.Configuration
@@ -802,8 +800,7 @@ QtObject {
                 text: qsTr("Open the support page")
 
                 onTriggered: {
-                    Backend.notifyKBArticleClicked(root.rebuildKeychain.supportLink);
-                    Qt.openUrlExternally(root.rebuildKeychain.supportLink);
+                    Backend.openKBArticle();
                     Backend.quit();
                 }
             }

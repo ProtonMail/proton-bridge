@@ -49,8 +49,7 @@ Button {
             text: qsTr("Get help")
 
             onClicked: {
-                Backend.notifyKBArticleClicked("https://proton.me/support/bridge");
-                Backend.showHelp();
+                Backend.openKBArticle();
             }
         }
         MenuItem {

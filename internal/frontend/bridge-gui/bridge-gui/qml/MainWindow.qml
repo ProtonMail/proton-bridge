@@ -55,7 +55,7 @@ ApplicationWindow {
         setupWizard.showClientConfig(user, address, justLoggedIn);
     }
     function showHelp() {
-        Qt.openUrlExternally("https://proton.me/support/bridge");
+        contentWrapper.showHelp();
     }
     function showLocalCacheSettings() {
         contentWrapper.showLocalCacheSettings();
