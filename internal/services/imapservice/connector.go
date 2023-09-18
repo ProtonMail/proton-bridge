@@ -159,7 +159,7 @@ func (s *Connector) GetMessageLiteral(ctx context.Context, id imap.MessageID) ([
 
 	var literal []byte
 	err = s.identityState.WithAddrKR(msg.AddressID, func(_, addrKR *crypto.KeyRing) error {
-		l, buildErr := message.BuildRFC822(addrKR, msg.Message, msg.AttData, defaultMessageJobOpts())
+		l, buildErr := message.DecryptAndBuildRFC822(addrKR, msg.Message, msg.AttData, defaultMessageJobOpts())
 		if buildErr != nil {
 			return buildErr
 		}
@@ -249,7 +249,7 @@ func (s *Connector) CreateMessage(ctx context.Context, _ connector.IMAPStateWrit
 		if err := s.identityState.WithAddrKR(full.AddressID, func(_, addrKR *crypto.KeyRing) error {
 			var err error
 
-			if literal, err = message.BuildRFC822(addrKR, full.Message, full.AttData, defaultMessageJobOpts()); err != nil {
+			if literal, err = message.DecryptAndBuildRFC822(addrKR, full.Message, full.AttData, defaultMessageJobOpts()); err != nil {
 				return err
 			}
 
@@ -611,7 +611,7 @@ func (s *Connector) importMessage(
 			return fmt.Errorf("failed to fetch message: %w", err)
 		}
 
-		if literal, err = message.BuildRFC822(addrKR, full.Message, full.AttData, defaultMessageJobOpts()); err != nil {
+		if literal, err = message.DecryptAndBuildRFC822(addrKR, full.Message, full.AttData, defaultMessageJobOpts()); err != nil {
 			return fmt.Errorf("failed to build message: %w", err)
 		}
 
