@@ -78,7 +78,7 @@ Item {
                 Connections {
                     function onCertificateInstallCanceled() {
                         certificateInstall.waitingForCert = false;
-                        certificateInstall.errorString = qsTr("Apple Mail cannot be configured if you do not install the certificate.Please retry.");
+                        certificateInstall.errorString = qsTr("Apple Mail cannot be configured if you do not install the certificate. Please retry.");
                         certificateInstall.showBugReportLink = false;
                     }
                     function onCertificateInstallFailed() {
