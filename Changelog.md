@@ -3,6 +3,26 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Vasco da Gama Bridge 3.6.0
+
+### Added
+* GODT-2762: Setup wizard.
+* GODT-2772: Setup wizard content.
+* GODT-2769: Setup Wizard architecture.
+* GODT-2767: Setup Wizard foundations.
+
+### Changed
+* GODT-2771: Cert related tools for macOS.
+* GODT-2770: Proof of concept for web view as a tool window and overlay (not used).
+* GODT-2916: Split Decryption from Message Building.
+* GODT-2597: Implement contact specific settings in integration tests.
+* GODT-2664: Trigger QA installer.
+
+### Fixed
+* Fixed missing GoOs gRPC call in bridge-gui-tester.
+* GODT-2929: Message dedup with different text transfer encoding.
+
+
 ## Umshiang Bridge 3.5.0
 
 ### Added
