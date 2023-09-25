@@ -54,7 +54,8 @@ func TestBuildPlainMessageWithLongKey(t *testing.T) {
 
 	kr := utils.MakeKeyRing(t)
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/plain", "body", time.Now())
-	msg.ParsedHeaders["ReallyVeryVeryVeryVeryVeryLongLongLongLongLongLongLongKeyThatWillHaveNotSoLongValue"] = []string{"value"}
+	msg.ParsedHeaders.Values["ReallyVeryVeryVeryVeryVeryLongLongLongLongLongLongLongKeyThatWillHaveNotSoLongValue"] = []string{"value"}
+	msg.ParsedHeaders.Order = append(msg.ParsedHeaders.Order, "ReallyVeryVeryVeryVeryVeryLongLongLongLongLongLongLongKeyThatWillHaveNotSoLongValue")
 
 	res, err := DecryptAndBuildRFC822(kr, msg, nil, JobOptions{})
 	require.NoError(t, err)
@@ -977,7 +978,8 @@ func TestBuildIncludeMessageIDReference(t *testing.T) {
 	msg := newTestMessage(t, kr, "messageID", "addressID", "text/plain", "body", time.Now())
 
 	// Add references.
-	msg.ParsedHeaders["References"] = []string{"<myreference@domain.com>"}
+	msg.ParsedHeaders.Values["References"] = []string{"<myreference@domain.com>"}
+	msg.ParsedHeaders.Order = append(msg.ParsedHeaders.Order, "References")
 
 	res, err := DecryptAndBuildRFC822(kr, msg, nil, JobOptions{})
 	require.NoError(t, err)

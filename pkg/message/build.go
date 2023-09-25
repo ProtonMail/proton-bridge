@@ -503,8 +503,8 @@ func getAttachmentPartHeader(att proton.Attachment) message.Header {
 func toMessageHeader(hdr proton.Headers) message.Header {
 	var res message.Header
 
-	for key, val := range hdr {
-		for _, val := range val {
+	for _, key := range hdr.Order {
+		for _, val := range hdr.Values[key] {
 			// Using AddRaw instead of Add to save key-value pair as byte buffer within Header.
 			// This buffer is used latter on in message writer to construct message and avoid crash
 			// when key length is more than 76 characters long.

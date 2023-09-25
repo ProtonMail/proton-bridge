@@ -123,6 +123,7 @@ Proton Mail Bridge includes the following 3rd party software:
 * [codec](https://github.com/ugorji/go/codec) available under [license](https://github.com/ugorji/go/codec/blob/master/LICENSE) 
 * [tagparser](https://github.com/vmihailenco/tagparser/v2) available under [license](https://github.com/vmihailenco/tagparser/v2/blob/master/LICENSE) 
 * [smetrics](https://github.com/xrash/smetrics) available under [license](https://github.com/xrash/smetrics/blob/master/LICENSE) 
+* [go-ordered-json](https://gitlab.com/c0b/go-ordered-json)
 * [arch](https://golang.org/x/arch) available under [license](https://cs.opensource.google/go/x/arch/+/master:LICENSE) 
 * [crypto](https://golang.org/x/crypto) available under [license](https://cs.opensource.google/go/x/crypto/+/master:LICENSE) 
 * [mod](https://golang.org/x/mod) available under [license](https://cs.opensource.google/go/x/mod/+/master:LICENSE) 
