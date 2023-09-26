@@ -113,13 +113,14 @@ func (j *Job) onStageCompleted(ctx context.Context, count int64) {
 }
 
 func (j *Job) onJobFinished(ctx context.Context, lastMessageID string, count int64) {
-	defer j.wg.Done()
-
 	if err := j.state.SetLastMessageID(ctx, lastMessageID, count); err != nil {
 		j.log.WithError(err).Error("Failed to store last synced message id")
 		j.onError(err)
 		return
 	}
+
+	// j.onError() also calls j.wg.Done().
+	j.wg.Done()
 	j.syncReporter.OnProgress(ctx, count)
 }
 
