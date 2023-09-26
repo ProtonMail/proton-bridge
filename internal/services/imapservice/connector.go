@@ -37,6 +37,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
 	"github.com/bradenaw/juniper/stream"
+	"github.com/bradenaw/juniper/xslices"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
 )
@@ -334,8 +335,69 @@ func (s *Connector) RemoveMessagesFromMailbox(ctx context.Context, _ connector.I
 	}
 
 	if mboxID == proton.TrashLabel || mboxID == proton.DraftsLabel {
-		if err := s.client.DeleteMessage(ctx, msgIDs...); err != nil {
-			return err
+		const ChunkSize = 150
+		var msgToPermaDelete []string
+
+		rdLabels := s.labels.Read()
+		defer rdLabels.Close()
+
+		// There's currently no limit on how many IDs we can filter on,
+		// but to be nice to API, let's chunk it by 150.
+		for _, messageIDs := range xslices.Chunk(messageIDs, ChunkSize) {
+			metadata, err := s.client.GetMessageMetadataPage(ctx, 0, ChunkSize, proton.MessageFilter{
+				ID: usertypes.MapTo[imap.MessageID, string](messageIDs),
+			})
+			if err != nil {
+				return err
+			}
+
+			// If a message is not preset in any other label other than AllMail, AllDrafts and AllSent, it can be
+			// permanently deleted.
+			for _, m := range metadata {
+				var remainingLabels []string
+
+				for _, id := range m.LabelIDs {
+					label, ok := rdLabels.GetLabel(id)
+					if !ok {
+						// Handle case where this label was newly introduced and we do not yet know about it.
+						logrus.WithField("labelID", id).Warnf("Unknown label found during expung from Trash, attempting to locate it")
+						label, err = s.client.GetLabel(ctx, id, proton.LabelTypeFolder, proton.LabelTypeSystem, proton.LabelTypeSystem)
+						if err != nil {
+							if errors.Is(err, proton.ErrNoSuchLabel) {
+								logrus.WithField("labelID", id).Warn("Label does not exist, ignoring")
+								continue
+							}
+
+							logrus.WithField("labelID", id).Errorf("Failed to resolve label: %v", err)
+							return fmt.Errorf("failed to resolve label: %w", err)
+						}
+					}
+					if !WantLabel(label) {
+						continue
+					}
+
+					if label.Type == proton.LabelTypeSystem && (id == proton.AllDraftsLabel ||
+						id == proton.AllMailLabel ||
+						id == proton.AllSentLabel ||
+						id == proton.AllScheduledLabel) {
+						continue
+					}
+
+					remainingLabels = append(remainingLabels, m.ID)
+				}
+
+				if len(remainingLabels) == 0 {
+					msgToPermaDelete = append(msgToPermaDelete, m.ID)
+				}
+			}
+		}
+
+		if len(msgToPermaDelete) != 0 {
+			logrus.Debugf("Following message(s) will be perma-deleted: %v", msgToPermaDelete)
+
+			if err := s.client.DeleteMessage(ctx, msgToPermaDelete...); err != nil {
+				return err
+			}
 		}
 	}
 

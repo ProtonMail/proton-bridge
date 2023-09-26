@@ -85,3 +85,18 @@ Feature: IMAP copy messages
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | foo     | false  |
 
+  Scenario: Move message to trash then copy to folder does not delete message
+    When IMAP client "1" moves the message with subject "foo" from "INBOX" to "Trash"
+    And it succeeds
+    Then IMAP client "1" eventually sees the following messages in "Trash":
+      | from              | to                   | subject | unread |
+      | john.doe@mail.com | [user:user]@[domain] | foo     | false  |
+    When IMAP client "1" copies the message with subject "foo" from "Trash" to "Folders/mbox"
+    And it succeeds
+    When IMAP client "1" marks the message with subject "foo" as deleted
+    Then it succeeds
+    When IMAP client "1" expunges
+    Then it succeeds
+    Then IMAP client "1" eventually sees the following messages in "Folders/mbox":
+      | from              | to                   | subject | unread |
+      | john.doe@mail.com | [user:user]@[domain] | foo     | false  |
