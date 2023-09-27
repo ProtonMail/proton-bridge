@@ -106,18 +106,28 @@ ApplicationWindow {
     Connections {
         function onSelectUser(userID, forceShowWindow) {
             contentWrapper.selectUser(userID);
+            if (setupWizard.visible) {
+                setupWizard.closeWizard()
+            }
             if (forceShowWindow) {
                 root.showAndRise();
             }
         }
         function onShowHelp() {
             root.showHelp();
+            if (setupWizard.visible) {
+                setupWizard.closeWizard()
+            }
+
             root.showAndRise();
         }
         function onShowMainWindow() {
             root.showAndRise();
         }
         function onShowSettings() {
+            if (setupWizard.visible) {
+                setupWizard.closeWizard()
+            }
             root.showSettings();
             root.showAndRise();
         }
