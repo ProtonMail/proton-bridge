@@ -558,7 +558,7 @@ func (s *scenario) createUserAccount(username, password string, disabled bool) e
 		if _, err := s.t.runQuarkCmd(
 			context.Background(),
 			"user:create:subscription",
-			"--planID", "plus",
+			"--planID", "visionary2022",
 			string(userDecID),
 		); err != nil {
 			return err

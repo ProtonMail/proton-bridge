@@ -56,6 +56,31 @@ type Message struct {
 	References string `bdd:"references"`
 }
 
+type MessageStruct struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	CC      string `json:"cc"`
+	BCC     string `json:"bcc"`
+	Subject string `json:"subject"`
+	Date    string `json:"date"`
+
+	Content MessageSection `json:"content"`
+}
+
+type MessageSection struct {
+	ContentType                string           `json:"content-type"`
+	ContentTypeBoundary        string           `json:"content-type-boundary"`
+	ContentTypeCharset         string           `json:"content-type-charset"`
+	ContentTypeName            string           `json:"content-type-name"`
+	ContentDisposition         string           `json:"content-disposition"`
+	ContentDispositionFilename string           `json:"content-disposition-filename"`
+	Sections                   []MessageSection `json:"sections"`
+
+	TransferEncoding string `json:"transfer-encoding"`
+	BodyContains     string `json:"body-contains"`
+	BodyIs           string `json:"body-is"`
+}
+
 func (msg Message) Build() []byte {
 	var b []byte
 
@@ -166,6 +191,116 @@ func newMessageFromIMAP(msg *imap.Message) Message {
 	return message
 }
 
+func newMessageStructFromIMAP(msg *imap.Message) MessageStruct {
+	section, err := imap.ParseBodySectionName("BODY[]")
+	if err != nil {
+		panic(err)
+	}
+
+	literal, err := io.ReadAll(msg.GetBody(section))
+	if err != nil {
+		panic(err)
+	}
+
+	m, err := message.Parse(bytes.NewReader(literal))
+	if err != nil {
+		panic(err)
+	}
+	var body string
+	if m.MIMEType == rfc822.TextPlain {
+		body = strings.TrimSpace(string(m.PlainBody))
+	} else {
+		body = strings.TrimSpace(string(m.RichBody))
+	}
+
+	message := MessageStruct{
+		Subject: msg.Envelope.Subject,
+		Date:    msg.Envelope.Date.Format(time.RFC822Z),
+		From:    formatAddressList(msg.Envelope.From),
+		To:      formatAddressList(msg.Envelope.To),
+		CC:      formatAddressList(msg.Envelope.Cc),
+		BCC:     formatAddressList(msg.Envelope.Bcc),
+
+		Content: parseMessageSection(literal, body),
+	}
+	return message
+}
+
+func formatAddressList(list []*imap.Address) string {
+	var res string
+	for idx, address := range list {
+		if address.PersonalName != "" {
+			res += address.PersonalName + " <" + address.Address() + ">"
+		} else {
+			res += address.Address()
+		}
+		if idx < len(list)-1 {
+			res += "; "
+		}
+	}
+	return res
+}
+
+func parseMessageSection(literal []byte, body string) MessageSection {
+	mimeType, boundary, charset, name := parseContentType(literal)
+
+	headers, err := rfc822.Parse(literal).ParseHeader()
+	if err != nil {
+		panic(err)
+	}
+
+	msgSect := MessageSection{
+		ContentType:         string(mimeType),
+		ContentTypeBoundary: boundary,
+		ContentTypeCharset:  charset,
+		ContentTypeName:     name,
+		TransferEncoding:    headers.Get("content-transfer-encoding"),
+		BodyIs:              body,
+	}
+
+	contentDisposition := bytes.Split([]byte(headers.Get("content-disposition")), []byte(";"))
+	for id, value := range contentDisposition {
+		if id == 0 {
+			msgSect.ContentDisposition = strings.TrimSpace(string(value))
+		}
+		param := bytes.Split(value, []byte("="))
+		if strings.TrimSpace(string(param[0])) == "filename" && len(param) >= 2 {
+			filename := strings.TrimPrefix(string(value), "filename=")
+			msgSect.ContentDispositionFilename = strings.TrimSpace(filename)
+		}
+	}
+
+	if msgSect.ContentTypeBoundary != "" {
+		sections := bytes.Split([]byte(msgSect.BodyIs), []byte("--"+msgSect.ContentTypeBoundary))
+		// Remove last element that will be the -- from finale boundary
+		sections = sections[:len(sections)-1]
+		for _, v := range sections {
+			msgSect.Sections = append(msgSect.Sections, parseMessageSection(v, string(v)))
+		}
+	}
+	return msgSect
+}
+
+func parseContentType(literal []byte) (rfc822.MIMEType, string, string, string) {
+	mimeType, params, err := rfc822.Parse(literal).ContentType()
+	if err != nil {
+		panic(err)
+	}
+	boundary, ok := params["boundary"]
+	if !ok {
+		boundary = ""
+	}
+	charset, ok := params["charset"]
+	if !ok {
+		charset = ""
+	}
+	name, ok := params["name"]
+	if !ok {
+		name = ""
+	}
+	return mimeType, boundary, charset, name
+}
+
 func matchMessages(have, want []Message) error {
 	slices.SortFunc(have, func(a, b Message) bool {
 		return a.Subject < b.Subject
@@ -180,6 +315,71 @@ func matchMessages(have, want []Message) error {
 	}
 
 	return nil
+}
+
+func matchStructure(have []MessageStruct, want MessageStruct) error {
+	for _, msg := range have {
+		if want.From != "" && msg.From != want.From {
+			continue
+		}
+		if want.To != "" && msg.To != want.To {
+			continue
+		}
+		if want.BCC != "" && msg.BCC != want.BCC {
+			continue
+		}
+		if want.CC != "" && msg.CC != want.CC {
+			continue
+		}
+		if want.Subject != "" && msg.Subject != want.Subject {
+			continue
+		}
+		if want.Date != "" && want.Date != msg.Date {
+			continue
+		}
+
+		if matchContent(msg.Content, want.Content) {
+			return nil
+		}
+	}
+	return fmt.Errorf("missing messages: have %#v, want %#v", have, want)
+}
+
+func matchContent(have MessageSection, want MessageSection) bool {
+	if want.ContentType != "" && want.ContentType != have.ContentType {
+		return false
+	}
+	if want.ContentTypeBoundary != "" && want.ContentTypeBoundary != have.ContentTypeBoundary {
+		return false
+	}
+	if want.ContentTypeCharset != "" && want.ContentTypeCharset != have.ContentTypeCharset {
+		return false
+	}
+	if want.ContentTypeName != "" && want.ContentTypeName != have.ContentTypeName {
+		return false
+	}
+	if want.ContentDisposition != "" && want.ContentDisposition != have.ContentDisposition {
+		return false
+	}
+	if want.ContentDispositionFilename != "" && want.ContentDispositionFilename != have.ContentDispositionFilename {
+		return false
+	}
+	if want.TransferEncoding != "" && want.TransferEncoding != have.TransferEncoding {
+		return false
+	}
+	if want.BodyContains != "" && strings.Contains(have.BodyIs, want.BodyContains) {
+		return false
+	}
+	if want.BodyIs != "" && want.BodyIs != have.BodyIs {
+		return false
+	}
+	for _, section := range want.Sections {
+		if !matchContent(have, section) {
+			return false
+		}
+	}
+
+	return true
 }
 
 type Mailbox struct {
@@ -335,4 +535,8 @@ type Contact struct {
 	Scheme  string `bdd:"scheme"`
 	Sign    string `bdd:"signature"`
 	Encrypt string `bdd:"encryption"`
+}
+
+func FullAddress(addr *imap.Address) string {
+	return addr.PersonalName + " <" + addr.MailboxName + "@" + addr.HostName + ">"
 }

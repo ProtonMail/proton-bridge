@@ -143,6 +143,7 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^IMAP client "([^"]*)" moves the message with subject "([^"]*)" from "([^"]*)" to "([^"]*)"$`, s.imapClientMovesTheMessageWithSubjectFromTo)
 	ctx.Step(`^IMAP client "([^"]*)" moves all messages from "([^"]*)" to "([^"]*)"$`, s.imapClientMovesAllMessagesFromTo)
 	ctx.Step(`^IMAP client "([^"]*)" eventually sees the following messages in "([^"]*)":$`, s.imapClientEventuallySeesTheFollowingMessagesInMailbox)
+	ctx.Step(`^IMAP client "([^"]*)" eventually sees the following message in "([^"]*)" with this structure:$`, s.imapClientSeesMessageInMailboxWithStructure)
 	ctx.Step(`^IMAP client "([^"]*)" eventually sees (\d+) messages in "([^"]*)"$`, s.imapClientEventuallySeesMessagesInMailbox)
 	ctx.Step(`^IMAP client "([^"]*)" marks message (\d+) as deleted$`, s.imapClientMarksMessageAsDeleted)
 	ctx.Step(`^IMAP client "([^"]*)" marks the message with subject "([^"]*)" as deleted$`, s.imapClientMarksTheMessageWithSubjectAsDeleted)

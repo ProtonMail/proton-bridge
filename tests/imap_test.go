@@ -19,6 +19,7 @@ package tests
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -339,6 +340,26 @@ func (s *scenario) imapClientEventuallySeesTheFollowingMessagesInMailbox(clientI
 		err := s.imapClientSeesTheFollowingMessagesInMailbox(clientID, mailbox, table)
 		logrus.WithError(err).Trace("Matching eventually")
 		return err
+	})
+}
+
+func (s *scenario) imapClientSeesMessageInMailboxWithStructure(clientID, mailbox string, message *godog.DocString) error {
+	return eventually(func() error {
+		_, client := s.t.getIMAPClient(clientID)
+
+		var msgStruct MessageStruct
+		if err := json.Unmarshal([]byte(message.Content), &msgStruct); err != nil {
+			return err
+		}
+
+		fetch, err := clientFetch(client, mailbox)
+		if err != nil {
+			return err
+		}
+
+		haveMessages := xslices.Map(fetch, newMessageStructFromIMAP)
+
+		return matchStructure(haveMessages, msgStruct)
 	})
 }
 
