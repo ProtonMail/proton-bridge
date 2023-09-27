@@ -6,6 +6,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## Umshiang Bridge 3.5.1
 
 ### Fixed
+* GODT-2963: Use multi error to report file removal errors.
 * GODT-2956: Restore old deletion rules.
 * GODT-2951: Negative WaitGroup Counter.
 * GODT-2590: Fix send on closed channel.
