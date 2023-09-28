@@ -192,7 +192,6 @@ func (s *Service) run(ctx context.Context, lastEventID string) {
 	defer s.cpc.Close()
 	defer s.timer.Stop()
 	defer s.log.Info("Exiting service")
-	defer s.Close()
 
 	client := network.NewClientRetryWrapper(s.eventSource, &network.ExpCoolDown{})
 
@@ -303,14 +302,15 @@ func (s *Service) Close() {
 
 	// Cleanup pending removes.
 	for _, s := range s.pendingSubscriptions {
-		if s.op == pendingOpRemove {
-			if !processed.Contains(s.sub) {
+		if !processed.Contains(s.sub) {
+			processed.Add(s.sub)
+
+			if s.op == pendingOpRemove {
+				s.sub.close()
+			} else {
+				s.sub.cancel()
 				s.sub.close()
 			}
-		} else {
-			s.sub.cancel()
-			s.sub.close()
-			processed.Add(s.sub)
 		}
 	}
 

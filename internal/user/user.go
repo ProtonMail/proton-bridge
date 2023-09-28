@@ -589,6 +589,8 @@ func (user *User) Logout(ctx context.Context, withAPI bool) error {
 		return fmt.Errorf("failed to remove user from imap server: %w", err)
 	}
 
+	user.tasks.CancelAndWait()
+
 	// Stop Services
 	user.serviceGroup.CancelAndWait()
 
@@ -597,8 +599,6 @@ func (user *User) Logout(ctx context.Context, withAPI bool) error {
 
 	// Close imap service.
 	user.imapService.Close()
-
-	user.tasks.CancelAndWait()
 
 	if withAPI {
 		user.log.Debug("Logging out from API")
@@ -621,6 +621,9 @@ func (user *User) Logout(ctx context.Context, withAPI bool) error {
 func (user *User) Close() {
 	user.log.Info("Closing user")
 
+	// Stop any ongoing background tasks.
+	user.tasks.CancelAndWait()
+
 	// Stop Services
 	user.serviceGroup.CancelAndWait()
 
@@ -629,9 +632,6 @@ func (user *User) Close() {
 
 	// Close imap service.
 	user.imapService.Close()
-
-	// Stop any ongoing background tasks.
-	user.tasks.CancelAndWait()
 
 	// Close the user's API client.
 	user.client.Close()

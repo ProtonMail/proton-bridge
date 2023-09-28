@@ -72,11 +72,12 @@ func remove(dir string, except ...string) error {
 
 	sort.Sort(sort.Reverse(sort.StringSlice(toRemove)))
 
+	var multiErr error
 	for _, target := range toRemove {
 		if err := os.RemoveAll(target); err != nil {
-			return err
+			multiErr = multierror.Append(multiErr, err)
 		}
 	}
 
-	return nil
+	return multiErr
 }
