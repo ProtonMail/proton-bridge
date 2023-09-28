@@ -325,6 +325,10 @@ float User::syncProgress() const {
 /// \param[in] progress The progress ratio.
 //****************************************************************************************************************************************************
 void User::setSyncProgress(float progress) {
+    // In some cases, we may have missed the syncStarted event because it was sent by bridge before the userChanged event,
+    // so we force the state to 'syncing' (GODT-2932).
+    this->setIsSyncing(true);
+
     if (qAbs(syncProgress_ - progress) < 0.00001) {
         return;
     }
