@@ -19,6 +19,7 @@ package tests
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -118,8 +119,8 @@ func (s *scenario) imapClientCannotAuthenticateWithIncorrectUsername(clientID st
 
 func (s *scenario) imapClientCannotAuthenticateWithIncorrectPassword(clientID string) error {
 	userID, client := s.t.getIMAPClient(clientID)
-
-	if err := client.Login(s.t.getUserByID(userID).getEmails()[0], s.t.getUserByID(userID).getBridgePass()+"bad"); err == nil {
+	badPass := base64.StdEncoding.EncodeToString([]byte("bad_password"))
+	if err := client.Login(s.t.getUserByID(userID).getEmails()[0], badPass); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 
