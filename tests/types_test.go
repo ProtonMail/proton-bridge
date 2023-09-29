@@ -207,9 +207,12 @@ func newMessageStructFromIMAP(msg *imap.Message) MessageStruct {
 		panic(err)
 	}
 	var body string
-	if m.MIMEType == rfc822.TextPlain {
+	switch {
+	case m.MIMEType == rfc822.TextPlain:
 		body = strings.TrimSpace(string(m.PlainBody))
-	} else {
+	case m.MIMEType == rfc822.MultipartMixed:
+		_, body, _ = strings.Cut(string(m.MIMEBody), "\r\n\r\n")
+	default:
 		body = strings.TrimSpace(string(m.RichBody))
 	}
 
@@ -221,7 +224,7 @@ func newMessageStructFromIMAP(msg *imap.Message) MessageStruct {
 		CC:      formatAddressList(msg.Envelope.Cc),
 		BCC:     formatAddressList(msg.Envelope.Bcc),
 
-		Content: parseMessageSection(literal, body),
+		Content: parseMessageSection([]byte(strings.TrimSpace(string(literal))), strings.TrimSpace(body)),
 	}
 	return message
 }
@@ -262,20 +265,30 @@ func parseMessageSection(literal []byte, body string) MessageSection {
 	for id, value := range contentDisposition {
 		if id == 0 {
 			msgSect.ContentDisposition = strings.TrimSpace(string(value))
+			continue
 		}
 		param := bytes.Split(value, []byte("="))
 		if strings.TrimSpace(string(param[0])) == "filename" && len(param) >= 2 {
-			filename := strings.TrimPrefix(string(value), "filename=")
+			_, filename, _ := strings.Cut(string(value), "filename=")
+			filename = strings.Trim(filename, "\"")
 			msgSect.ContentDispositionFilename = strings.TrimSpace(filename)
 		}
 	}
 
 	if msgSect.ContentTypeBoundary != "" {
-		sections := bytes.Split([]byte(msgSect.BodyIs), []byte("--"+msgSect.ContentTypeBoundary))
+		sections := bytes.Split(literal, []byte("--"+msgSect.ContentTypeBoundary))
 		// Remove last element that will be the -- from finale boundary
 		sections = sections[:len(sections)-1]
+		sections = sections[1:]
 		for _, v := range sections {
-			msgSect.Sections = append(msgSect.Sections, parseMessageSection(v, string(v)))
+			str := strings.TrimSpace(string(v))
+			_, sectionBody, found := strings.Cut(str, "\r\n\r\n")
+			if !found {
+				if _, sectionBody, found = strings.Cut(str, "\n\n"); !found {
+					sectionBody = str
+				}
+			}
+			msgSect.Sections = append(msgSect.Sections, parseMessageSection([]byte(str), strings.TrimSpace(sectionBody)))
 		}
 	}
 	return msgSect
@@ -367,18 +380,20 @@ func matchContent(have MessageSection, want MessageSection) bool {
 	if want.TransferEncoding != "" && want.TransferEncoding != have.TransferEncoding {
 		return false
 	}
-	if want.BodyContains != "" && strings.Contains(have.BodyIs, want.BodyContains) {
+	if want.BodyContains != "" && !strings.Contains(strings.TrimSpace(have.BodyIs), strings.TrimSpace(want.BodyContains)) {
 		return false
 	}
-	if want.BodyIs != "" && want.BodyIs != have.BodyIs {
+	if want.BodyIs != "" && strings.TrimSpace(have.BodyIs) != strings.TrimSpace(want.BodyIs) {
 		return false
 	}
-	for _, section := range want.Sections {
-		if !matchContent(have, section) {
+	if len(have.Sections) != len(want.Sections) {
+		return false
+	}
+	for i, section := range want.Sections {
+		if !matchContent(have.Sections[i], section) {
 			return false
 		}
 	}
-
 	return true
 }
 
@@ -535,8 +550,4 @@ type Contact struct {
 	Scheme  string `bdd:"scheme"`
 	Sign    string `bdd:"signature"`
 	Encrypt string `bdd:"encryption"`
-}
-
-func FullAddress(addr *imap.Address) string {
-	return addr.PersonalName + " <" + addr.MailboxName + "@" + addr.HostName + ">"
 }

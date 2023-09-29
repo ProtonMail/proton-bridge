@@ -322,11 +322,21 @@ Feature: IMAP import messages
       Content-Type: multipart/mixed; boundary="boundary"
       Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
+      --boundary
+
       This is a multi-part message in MIME format.
+
       --boundary
       Content-Type: text/plain; charset=utf-8
       Content-Transfer-Encoding: 7bit
 
+      Hello
+
+      --boundary
+      Content-Type: text/html; charset=utf-8
+      Content-Transfer-Encoding: 7bit
+
+      <h1> HELLO </h1>
 
       --boundary
       Content-Type: message/rfc822; name="embedded.eml"
@@ -345,33 +355,41 @@ Feature: IMAP import messages
 
       """
     Then it succeeds
-#    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
-#      """
-#      {
-#        "from": "Foo <foo@example.com>",
-#        "date": "01 Jan 80 00:00 +0000",
-#        "to": "Bridge Test <bridgetest@pm.test>",
-#        "subject": "Embedded message",
-#        "body-contains": "Hello",
-#        "content": {
-#          "content-type": "multipart/mixed",
-#          "body-contains": "This is a multi-part message in MIME format.",
-#          "sections":[
-#            {
-#              "content-type": "text/plain",
-#              "content-type-charset": "utf-8",
-#              "transfer-encoding": "7bit",
-#              "body-is": ""
-#            },
-#            {
-#              "content-type": "message/rfc822",
-#              "content-type-name": "embedded.eml",
-#              "transfer-encoding": "7bit",
-#              "content-disposition": "attachment",
-#              "content-disposition-filename": "embedded.eml",
-#              "body-is": "From: Bar <bar@example.com>\n\rTo: Bridge Test <bridgetest@pm.test>\n\rSubject: (No Subject)\n\rContent-Type: text/plain; charset=utf-8\n\rContent-Transfer-Encoding: quoted-printable\n\r\n\rhello"
-#            }
-#          ]
-#        }
-#      }
-#      """
+    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
+      """
+      {
+        "from": "Foo <foo@example.com>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Bridge Test <bridgetest@pm.test>",
+        "subject": "Embedded message",
+        "body-contains": "Hello",
+        "content": {
+          "content-type": "multipart/mixed",
+          "sections":[
+            {
+              "body-is": "This is a multi-part message in MIME format."
+            },
+            {
+              "content-type": "text/plain",
+              "content-type-charset": "utf-8",
+              "transfer-encoding": "7bit",
+              "body-is": "Hello"
+            },
+            {
+              "content-type": "text/html",
+              "content-type-charset": "utf-8",
+              "transfer-encoding": "7bit",
+              "body-contains": "HELLO"
+            },
+            {
+              "content-type": "message/rfc822",
+              "content-type-name": "embedded.eml",
+              "transfer-encoding": "7bit",
+              "content-disposition": "attachment",
+              "content-disposition-filename": "embedded.eml",
+              "body-is": "From: Bar <bar@example.com>\nTo: Bridge Test <bridgetest@pm.test>\nSubject: (No Subject)\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: quoted-printable\n\nhello"
+            }
+          ]
+        }
+      }
+      """
