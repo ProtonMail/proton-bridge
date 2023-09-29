@@ -22,6 +22,10 @@ Item {
     property string iconSource
     property int iconWidth
     property var wizard
+    property ColorScheme colorScheme
+    property var _colorScheme: wizard ? wizard.colorScheme : colorScheme
+    property var link1: linkLabel1
+    property var link2: linkLabel2
 
     function showAppleMailAutoconfigCertificateInstall() {
         showAppleMailAutoconfigCommon();
@@ -100,7 +104,7 @@ Item {
             id: titleLabel
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
-            colorScheme: wizard.colorScheme
+            colorScheme: _colorScheme
             horizontalAlignment: Text.AlignHCenter
             text: ""
             type: Label.LabelType.Heading
@@ -111,7 +115,7 @@ Item {
             id: descriptionLabel
             Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
-            colorScheme: wizard.colorScheme
+            colorScheme: _colorScheme
             horizontalAlignment: Text.AlignHCenter
             text: ""
             type: Label.LabelType.Body
@@ -120,13 +124,13 @@ Item {
         LinkLabel {
             id: linkLabel1
             Layout.alignment: Qt.AlignHCenter
-            colorScheme: wizard.colorScheme
+            colorScheme: _colorScheme
             visible: (text !== "")
         }
         LinkLabel {
             id: linkLabel2
             Layout.alignment: Qt.AlignHCenter
-            colorScheme: wizard.colorScheme
+            colorScheme: _colorScheme
             visible: (text !== "")
         }
     }

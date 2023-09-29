@@ -324,23 +324,32 @@ Item {
 
                 anchors.fill: parent
 
-                AccountView {
+                StackLayout {
                     // 0
-                    colorScheme: root.colorScheme
-                    notifications: root.notifications
-                    user: {
-                        if (accounts.currentIndex < 0)
-                            return undefined;
-                        if (Backend.users.count === 0)
-                            return undefined;
-                        return Backend.users.get(accounts.currentIndex);
+                    currentIndex: (Backend.users.count > 0 ? 1 : 0)
+                    NoAccountView {
+                        colorScheme: root.colorScheme
+                        onLinkClicked: function() {
+                            root.showLogin("")
+                        }
                     }
+                    AccountView {
+                        colorScheme: root.colorScheme
+                        notifications: root.notifications
+                        user: {
+                            if (accounts.currentIndex < 0)
+                                return undefined;
+                            if (Backend.users.count === 0)
+                                return undefined;
+                            return Backend.users.get(accounts.currentIndex);
+                        }
 
-                    onShowClientConfigurator: function (user, address, justLoggedIn) {
-                        root.showClientConfigurator(user, address, justLoggedIn);
-                    }
-                    onShowLogin: function (username) {
-                        root.showLogin(username);
+                        onShowClientConfigurator: function (user, address, justLoggedIn) {
+                            root.showClientConfigurator(user, address, justLoggedIn);
+                        }
+                        onShowLogin: function (username) {
+                            root.showLogin(username);
+                        }
                     }
                 }
                 Rectangle {

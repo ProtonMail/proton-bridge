@@ -81,6 +81,7 @@
         <file>qml/KeychainSettings.qml</file>
         <file>qml/LocalCacheSettings.qml</file>
         <file>qml/MainWindow.qml</file>
+        <file>qml/NoAccountView.qml</file>
         <file>qml/NotificationDialog.qml</file>
         <file>qml/NotificationPopups.qml</file>
         <file>qml/Notifications/Notification.qml</file>
