@@ -54,6 +54,10 @@ Item {
         rightContent.showGeneralSettings();
     }
 
+    function hasAccount() {
+        return Backend.users.count > 0
+    }
+
     RowLayout {
         anchors.fill: parent
         spacing: 0
@@ -190,6 +194,41 @@ Item {
                     Layout.minimumHeight: 1
                     color: leftBar.colorScheme.border_weak
                 }
+                Item {
+                    id: noAccountBox
+
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.topMargin: 24
+                    visible: !hasAccount()
+
+                    ColumnLayout {
+                        anchors.fill: parent
+                         spacing: 8
+
+                        Label {
+                            colorScheme: leftBar.colorScheme
+                            color: colorScheme.text_weak
+                            Layout.alignment: Qt.AlignHCenter
+                            text: qsTr("No accounts")
+                        }
+                        Button {
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 16
+                            Layout.rightMargin: 16
+                            colorScheme: leftBar.colorScheme
+                            text: qsTr("Add an account")
+                            secondary: true
+                            onClicked: root.showLogin("")
+                        }
+                        Item {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                        }
+                    }
+                }
+
+
                 ListView {
                     id: accounts
 
@@ -206,7 +245,7 @@ Item {
                     clip: true
                     model: Backend.users
                     spacing: 12
-
+                    visible: hasAccount()
                     delegate: Item {
                         implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
                         implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
@@ -326,7 +365,7 @@ Item {
 
                 StackLayout {
                     // 0
-                    currentIndex: (Backend.users.count > 0 ? 1 : 0)
+                    currentIndex: hasAccount() ? 1 : 0
                     NoAccountView {
                         colorScheme: root.colorScheme
                         onLinkClicked: function() {
