@@ -46,6 +46,8 @@ const (
 	Connected
 )
 
+var ErrFailedToUnlock = errors.New("failed to unlock user keys")
+
 type UserInfo struct {
 	// UserID is the user's API ID.
 	UserID string
@@ -157,11 +159,15 @@ func (bridge *Bridge) LoginUser(
 		func() (string, error) {
 			return bridge.loginUser(ctx, client, auth.UID, auth.RefreshToken, keyPass)
 		},
-		func() error {
-			return client.AuthDelete(ctx)
-		},
 	)
+
 	if err != nil {
+		// Failure to unlock will allow retries, so we do not delete auth.
+		if !errors.Is(err, ErrFailedToUnlock) {
+			if deleteErr := client.AuthDelete(ctx); deleteErr != nil {
+				logrus.WithError(deleteErr).Error("Failed to delete auth")
+			}
+		}
 		return "", fmt.Errorf("failed to login user: %w", err)
 	}
 
@@ -217,7 +223,16 @@ func (bridge *Bridge) LoginFull(
 		keyPass = password
 	}
 
-	return bridge.LoginUser(ctx, client, auth, keyPass)
+	userID, err := bridge.LoginUser(ctx, client, auth, keyPass)
+	if err != nil {
+		if deleteErr := client.AuthDelete(ctx); deleteErr != nil {
+			logrus.WithError(err).Error("Failed to delete auth")
+		}
+
+		return "", err
+	}
+
+	return userID, nil
 }
 
 // LogoutUser logs out the given user.
@@ -374,9 +389,9 @@ func (bridge *Bridge) loginUser(ctx context.Context, client *proton.Client, auth
 	}
 
 	if userKR, err := apiUser.Keys.Unlock(saltedKeyPass, nil); err != nil {
-		return "", fmt.Errorf("failed to unlock user keys: %w", err)
+		return "", fmt.Errorf("%w: %w", ErrFailedToUnlock, err)
 	} else if userKR.CountDecryptionEntities() == 0 {
-		return "", fmt.Errorf("failed to unlock user keys")
+		return "", ErrFailedToUnlock
 	}
 
 	if err := bridge.addUser(ctx, client, apiUser, authUID, authRef, saltedKeyPass, true); err != nil {

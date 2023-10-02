@@ -54,8 +54,9 @@ import (
 )
 
 const (
-	serverConfigFileName   = "grpcServerConfig.json"
-	serverTokenMetadataKey = "server-token"
+	serverConfigFileName        = "grpcServerConfig.json"
+	serverTokenMetadataKey      = "server-token"
+	twoPasswordsMaxAttemptCount = 3 // The number of attempts allowed for the mailbox password.
 )
 
 // Service is the RPC service struct.
@@ -82,9 +83,10 @@ type Service struct { // nolint:structcheck
 	target     updater.VersionInfo
 	targetLock safe.RWMutex
 
-	authClient *proton.Client
-	auth       proton.Auth
-	password   []byte
+	authClient              *proton.Client
+	auth                    proton.Auth
+	password                []byte
+	twoPasswordAttemptCount int
 
 	log                *logrus.Entry
 	initializing       sync.WaitGroup
@@ -408,7 +410,12 @@ func (s *Service) loginClean() {
 }
 
 func (s *Service) finishLogin() {
-	defer s.loginClean()
+	performCleanup := true
+	defer func() {
+		if performCleanup {
+			s.loginClean()
+		}
+	}()
 
 	wasSignedOut := s.bridge.HasUser(s.auth.UserID)
 
@@ -426,10 +433,24 @@ func (s *Service) finishLogin() {
 	eventCh, done := s.bridge.GetEvents(events.UserLoggedIn{})
 	defer done()
 
-	userID, err := s.bridge.LoginUser(context.Background(), s.authClient, s.auth, s.password)
+	ctx := context.Background()
+	userID, err := s.bridge.LoginUser(ctx, s.authClient, s.auth, s.password)
 	if err != nil {
 		s.log.WithError(err).Errorf("Finish login failed")
-		_ = s.SendEvent(NewLoginError(LoginErrorType_TWO_PASSWORDS_ABORT, err.Error()))
+		s.twoPasswordAttemptCount++
+		errType := LoginErrorType_TWO_PASSWORDS_ABORT
+		if errors.Is(err, bridge.ErrFailedToUnlock) {
+			if s.twoPasswordAttemptCount < twoPasswordsMaxAttemptCount {
+				performCleanup = false
+				errType = LoginErrorType_TWO_PASSWORDS_ERROR
+			} else {
+				if deleteErr := s.authClient.AuthDelete(ctx); deleteErr != nil {
+					s.log.WithError(deleteErr).Error("Failed to delete auth")
+				}
+			}
+		}
+
+		_ = s.SendEvent(NewLoginError(errType, err.Error()))
 		return
 	}
 

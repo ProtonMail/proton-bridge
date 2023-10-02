@@ -384,6 +384,7 @@ func (s *Service) Login(_ context.Context, login *LoginRequest) (*emptypb.Empty,
 	go func() {
 		defer async.HandlePanic(s.panicHandler)
 
+		s.twoPasswordAttemptCount = 0
 		password, err := base64Decode(login.Password)
 		if err != nil {
 			s.log.WithError(err).Error("Cannot decode password")
