@@ -2,7 +2,6 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
-
 ## Vasco da Gama Bridge 3.6.0
 
 ### Added
@@ -21,6 +20,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2664: Trigger QA installer.
 
 ### Fixed
+* GODT-2992: Fix link in 'no account view' in main window after 2FA or TOTP are cancelled.
 * GODT-2989: Allow to send bug report when no account connected.
 * GODT-2988: Fix setup wizard KB links.
 * GODT-2968: Use proper base64 encoded string even for bad password test.
