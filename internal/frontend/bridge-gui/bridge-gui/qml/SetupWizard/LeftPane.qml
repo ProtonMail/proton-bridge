@@ -75,16 +75,6 @@ Item {
         root.iconWidth = 265;
     }
 
-    Connections {
-        function onLogin2FARequested() {
-            showLogin2FA();
-        }
-        function onLogin2PasswordRequested() {
-            showLoginMailboxPassword();
-        }
-
-        target: Backend
-    }
     ColumnLayout {
         anchors.left: parent.left
         anchors.right: parent.right
