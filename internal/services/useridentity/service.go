@@ -102,13 +102,13 @@ func (s *Service) CheckAuth(ctx context.Context, email string, password []byte) 
 	})
 }
 
-func (s *Service) HandleUsedSpaceEvent(ctx context.Context, newSpace int) error {
+func (s *Service) HandleUsedSpaceEvent(ctx context.Context, newSpace int64) error {
 	s.log.Info("Handling User Space Changed event")
 
-	if s.identity.OnUserSpaceChanged(newSpace) {
+	if s.identity.OnUserSpaceChanged(uint64(newSpace)) {
 		s.eventPublisher.PublishEvent(ctx, events.UsedSpaceChanged{
 			UserID:    s.identity.User.ID,
-			UsedSpace: newSpace,
+			UsedSpace: uint64(newSpace),
 		})
 	}
 

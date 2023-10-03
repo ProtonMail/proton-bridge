@@ -515,7 +515,7 @@ func (user *User) BridgePass() []byte {
 }
 
 // UsedSpace returns the total space used by the user on the API.
-func (user *User) UsedSpace() int {
+func (user *User) UsedSpace() uint64 {
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute))
 	defer cancel()
 
@@ -528,7 +528,7 @@ func (user *User) UsedSpace() int {
 }
 
 // MaxSpace returns the amount of space the user can use on the API.
-func (user *User) MaxSpace() int {
+func (user *User) MaxSpace() uint64 {
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute))
 	defer cancel()
 

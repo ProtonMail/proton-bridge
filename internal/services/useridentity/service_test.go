@@ -54,7 +54,7 @@ func TestService_OnUserSpaceChanged(t *testing.T) {
 
 	// New value, event should be published.
 	require.NoError(t, service.HandleUsedSpaceEvent(context.Background(), 1024))
-	require.Equal(t, 1024, service.identity.User.UsedSpace)
+	require.Equal(t, uint64(1024), service.identity.User.UsedSpace)
 }
 
 func TestService_OnRefreshEvent(t *testing.T) {

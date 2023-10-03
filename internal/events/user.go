@@ -175,7 +175,7 @@ type UsedSpaceChanged struct {
 
 	UserID string
 
-	UsedSpace int
+	UsedSpace uint64
 }
 
 func (event UsedSpaceChanged) String() string {

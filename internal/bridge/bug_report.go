@@ -78,7 +78,7 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, title, d
 		}
 	}, bridge.usersLock)
 
-	return bridge.api.ReportBug(ctx, proton.ReportBugReq{
+	_, err := bridge.api.ReportBug(ctx, proton.ReportBugReq{
 		OS:        osType,
 		OSVersion: osVersion,
 
@@ -92,4 +92,6 @@ func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, title, d
 		Username: account,
 		Email:    email,
 	}, attachment...)
+
+	return err
 }

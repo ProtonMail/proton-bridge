@@ -119,7 +119,7 @@ func (s *State) OnRefreshEvent(ctx context.Context) error {
 	return nil
 }
 
-func (s *State) OnUserSpaceChanged(value int) bool {
+func (s *State) OnUserSpaceChanged(value uint64) bool {
 	if s.User.UsedSpace == value {
 		return false
 	}

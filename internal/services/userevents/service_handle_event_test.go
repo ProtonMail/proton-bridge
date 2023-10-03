@@ -84,7 +84,7 @@ func TestServiceHandleEvent_CheckEventCategoriesHandledInOrder(t *testing.T) {
 	require.NoError(t, service.handleEvent(context.Background(), "", proton.Event{Refresh: proton.RefreshMail}))
 
 	// Simulate Regular event.
-	usedSpace := 20
+	usedSpace := int64(20)
 	require.NoError(t, service.handleEvent(context.Background(), "", proton.Event{
 		User: new(proton.User),
 		Addresses: []proton.AddressEvent{

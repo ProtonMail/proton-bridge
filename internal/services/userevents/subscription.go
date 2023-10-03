@@ -98,7 +98,7 @@ type UserEventHandler interface {
 }
 
 type UserUsedSpaceEventHandler interface {
-	HandleUsedSpaceEvent(ctx context.Context, newSpace int) error
+	HandleUsedSpaceEvent(ctx context.Context, newSpace int64) error
 }
 
 type UserSettingsHandler interface {

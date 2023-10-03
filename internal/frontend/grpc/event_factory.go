@@ -193,7 +193,7 @@ func NewUserBadEvent(userID string, errorMessage string) *StreamEvent {
 	return userEvent(&UserEvent{Event: &UserEvent_UserBadEvent{UserBadEvent: &UserBadEvent{UserID: userID, ErrorMessage: errorMessage}}})
 }
 
-func NewUsedBytesChangedEvent(userID string, usedBytes int) *StreamEvent {
+func NewUsedBytesChangedEvent(userID string, usedBytes uint64) *StreamEvent {
 	return userEvent(&UserEvent{Event: &UserEvent_UsedBytesChangedEvent{UsedBytesChangedEvent: &UsedBytesChangedEvent{UserID: userID, UsedBytes: int64(usedBytes)}}})
 }
 

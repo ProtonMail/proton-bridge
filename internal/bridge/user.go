@@ -68,10 +68,10 @@ type UserInfo struct {
 	BridgePass []byte
 
 	// UsedSpace is the amount of space used by the user.
-	UsedSpace int
+	UsedSpace uint64
 
 	// MaxSpace is the total amount of space available to the user.
-	MaxSpace int
+	MaxSpace uint64
 }
 
 // GetUserIDs returns the IDs of all known users (authorized or not).
