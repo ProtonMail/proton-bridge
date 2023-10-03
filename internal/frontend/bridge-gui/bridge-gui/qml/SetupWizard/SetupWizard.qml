@@ -186,6 +186,17 @@ Item {
 
                         target: clientConfigAppleMail
                     }
+
+                    Connections {
+                        function onLogin2FARequested() {
+                            leftContent.showLogin2FA();
+                        }
+                        function onLogin2PasswordRequested() {
+                            leftContent.showLoginMailboxPassword();
+                        }
+
+                        target: Backend
+                    }
                 }
                 Image {
                     id: mailLogoWithWordmark
