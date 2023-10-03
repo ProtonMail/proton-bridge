@@ -18,6 +18,10 @@
 ---
 image: gitlab.protontech.ch:4567/go/bridge-internal:test-go1.20
 
+default:
+  tags:
+    - shared-small
+
 variables:
   GOPRIVATE: gitlab.protontech.ch
   GOMAXPROCS: $(( ${CI_TAG_CPU} / 2 ))
@@ -118,7 +122,7 @@ stages:
     - $(git config --global -l | grep -o 'url.*gitlab.protontech.ch.*insteadof' | xargs -L 1 git config --global --unset &> /dev/null) || echo "nothing to remove"
     - git config --global url.https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}.insteadOf https://${CI_SERVER_HOST}
   tags:
-    - large
+    - shared-large
 
 # Stage: TEST
 
@@ -129,7 +133,7 @@ lint:
   script:
     - make lint
   tags:
-    - medium
+    - shared-medium
 
 bug-report-preview:
   stage: test
@@ -138,7 +142,7 @@ bug-report-preview:
   script:
     - make lint-bug-report-preview
   tags:
-    - medium
+    - shared-medium
 
 .script-test:
   stage: test
@@ -154,7 +158,7 @@ test-linux:
   extends:
     - .script-test
   tags:
-    - large
+    - shared-large
 
 fuzz-linux:
   stage: test
@@ -163,7 +167,7 @@ fuzz-linux:
   script:
     - make fuzz
   tags:
-    - large
+    - shared-large
 
 test-linux-race:
   extends:
@@ -218,7 +222,7 @@ test-coverage:
     - test-integration
     - test-integration-nightly
   tags:
-    - small
+    - shared-small
   artifacts:
     paths:
       - coverage*
