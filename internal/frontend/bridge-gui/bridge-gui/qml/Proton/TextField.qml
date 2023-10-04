@@ -114,6 +114,9 @@ FocusScope {
     function getText(start, end) {
         control.getText(start, end);
     }
+    function hidePassword() {
+        eyeButton.checked = false;
+    }
     function insert(position, text) {
         control.insert(position, text);
     }
@@ -146,6 +149,9 @@ FocusScope {
     }
     function selectWord() {
         control.selectWord();
+    }
+    function showPassword() {
+        eyeButton.checked = true;
     }
     function undo() {
         control.undo();

@@ -44,6 +44,8 @@ FocusScope {
         } else {
             passwordTextField.forceActiveFocus();
         }
+        passwordTextField.hidePassword();
+        secondPasswordTextField.hidePassword();
     }
 
     StackLayout {
