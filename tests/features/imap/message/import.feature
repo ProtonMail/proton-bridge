@@ -67,58 +67,46 @@ Feature: IMAP import messages
       """
 
 
-  Scenario: Import message with attachment name encoded by RFC 2047 without quoting
-    When IMAP client "1" appends the following message to "INBOX":
-      """
-      From: Bridge Test <bridgetest@pm.test>
-      Date: 01 Jan 1980 00:00:00 +0000
-      To: Internal Bridge <bridgetest@protonmail.com>
-      Subject: Message with attachment name encoded by RFC 2047 without quoting
-      Content-type: multipart/mixed; boundary="boundary"
-      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
-
-      --boundary
-      Content-Type: text/plain
-
-      Hello
-
-      --boundary
-      Content-Type: application/pdf; name==?US-ASCII?Q?filename?=
-      Content-Disposition: attachment; filename==?US-ASCII?Q?filename?=
-
-      somebytes
-
-      --boundary--
-
-      """
+  Scenario Outline: Import multipart message with attachment <message>
+    When IMAP client "1" appends <message> to "INBOX"
     Then it succeeds
-#    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
-#      """
-#      {
-#        "from": "Bridge Test <bridgetest@pm.test>",
-#        "date": "01 Jan 80 00:00 +0000",
-#        "to": "Internal Bridge <bridgetest@protonmail.com>",
-#        "subject": "Message with attachment name encoded by RFC 2047 without quoting",
-#        "body-contains": "Hello",
-#        "content": {
-#          "content-type": "multipart/mixed; boundary=\"boundary\"",
-#          "sections":[
-#            {
-#              "content-type": "text/plain",
-#              "body-is": "Hello"
-#            },
-#            {
-#              "content-type": "application/pdf",
-#              "content-type-name": "=?US-ASCII?Q?filename?=",
-#              "content-disposition": "attachment",
-#              "content-disposition-filename": "=?US-ASCII?Q?filename?=",
-#              "body-is": "somebytes"
-#            }
-#          ]
-#        }
-#      }
-#      """
-
+    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
+      """
+      {
+        "from": "Bridge Test <bridgetest@pm.test>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Internal Bridge <bridgetest@protonmail.com>",
+        "subject": "Message with attachment name",
+        "body-contains": "Hello",
+        "content": {
+          "content-type": "multipart/mixed",
+          "sections":[
+            {
+              "content-type": "text/plain",
+              "body-is": "Hello"
+            },
+            {
+              "content-type": "text/html",
+              "content-type-charset": "utf-8",
+              "transfer-encoding": "7bit",
+              "body-contains": "HELLO"
+            },
+            {
+              "content-type": "application/pdf",
+              "content-type-name": <filename>,
+              "content-disposition": "attachment",
+              "content-disposition-filename": <filename>,
+              "body-is": "somebytes"
+            }
+          ]
+        }
+      }
+      """
+    Examples:
+      | message                                                | filename                  |
+      | "multipart/mixed_with_attachment_encoded.eml"          | "=?US-ASCII?Q?filename?=" |
+#      | "multipart/mixed_with_attachment_encoded_no_quote.eml" | =?US-ASCII?Q?filename?=   | @todo GODT-2966
+#      | "multipart/mixed_with_attachment_no_quote.eml"         | "filename"                | @todo GODT-2966
 
   # The message is imported as UTF-8 and the content type is determined at build time.
   Scenario: Import message as latin1 without content type
@@ -322,8 +310,6 @@ Feature: IMAP import messages
       Content-Type: multipart/mixed; boundary="boundary"
       Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
-      --boundary
-
       This is a multi-part message in MIME format.
 
       --boundary
@@ -366,9 +352,6 @@ Feature: IMAP import messages
         "content": {
           "content-type": "multipart/mixed",
           "sections":[
-            {
-              "body-is": "This is a multi-part message in MIME format."
-            },
             {
               "content-type": "text/plain",
               "content-type-charset": "utf-8",

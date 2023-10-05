@@ -141,3 +141,81 @@ Feature: SMTP sending with attachment
           }
       }
       """
+
+
+  Scenario Outline: Send message with attachment <UseCase>
+    When SMTP client "1" sends the following message from "[user:user1]@[domain]" to "[user:user2]@[domain]":
+      """
+      Subject: Message with attachment name
+      Content-type: multipart/mixed; boundary="boundary"
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
+
+      This is a multi-part message in MIME format.
+
+      --boundary
+      Content-Type: text/plain
+
+      Hello
+
+      --boundary
+      Content-Type: application/pdf; name=<filename>
+      Content-Disposition: attachment; filename=<filename>
+
+      somebytes
+
+      --boundary--
+      """
+    Then it succeeds
+    And IMAP client "1" eventually sees the following message in "Sent" with this structure:
+      """
+      {
+        "subject": "Message with attachment name",
+        "body-contains": "Hello",
+        "content": {
+          "content-type": "multipart/mixed",
+          "sections":[
+            {
+              "content-type": "text/plain",
+              "body-is": "Hello"
+            },
+            {
+              "content-type": "application/pdf",
+              "content-type-name": "filename",
+              "content-disposition": "attachment",
+              "content-disposition-filename": "filename",
+              "transfer-encoding":"base64",
+              "body-is": "c29tZWJ5dGVzDQo="
+            }
+          ]
+        }
+      }
+      """
+    Examples:
+      | UseCase            | filename                  |
+      | encoded quoted     | "=?US-ASCII?Q?filename?=" |
+#      | non quoted         | filename                  | @todo GODT-2974
+
+  Scenario: Send message with attachment with name unquoted containing special character
+    When SMTP client "1" sends the following message from "[user:user1]@[domain]" to "[user:user2]@[domain]":
+      """
+      Subject: Message with attachment name
+      Content-type: multipart/mixed; boundary="boundary"
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
+
+      This is a multi-part message in MIME format.
+
+      --boundary
+      Content-Type: text/plain
+
+      Hello
+
+      --boundary
+      Content-Type: application/pdf; name==?US-ASCII?Q?filename?=
+      Content-Disposition: attachment; filename==?US-ASCII?Q?filename?=
+
+      somebytes
+
+      --boundary--
+      """
+    Then it fails
+    And bridge reports a message with "failed to collect attachments: mime: invalid media parameter"

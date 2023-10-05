@@ -1,0 +1,27 @@
+From: Bridge Test <bridgetest@pm.test>
+Date: 01 Jan 1980 00:00:00 +0000
+To: Internal Bridge <bridgetest@protonmail.com>
+Subject: Message with attachment name
+Content-type: multipart/mixed; boundary="boundary"
+Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
+
+This is a multi-part message in MIME format.
+
+--boundary
+Content-Type: text/plain
+
+Hello
+
+--boundary
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+<h1> HELLO </h1>
+
+--boundary
+Content-Type: application/pdf; name="=?US-ASCII?Q?filename?="
+Content-Disposition: attachment; filename="=?US-ASCII?Q?filename?="
+
+somebytes
+
+--boundary--
