@@ -309,6 +309,8 @@ void User::setIsSyncing(bool syncing) {
     }
 
     isSyncing_ = syncing;
+    syncProgress_ = 0;
+
     emit isSyncingChanged(syncing);
 }
 

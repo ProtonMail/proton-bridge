@@ -340,6 +340,11 @@ func (s *Service) watchEvents() {
 		case events.SyncFinished:
 			_ = s.SendEvent(NewSyncFinishedEvent(event.UserID))
 
+		case events.SyncFailed:
+			if errors.Is(event.Error, context.Canceled) {
+				_ = s.SendEvent(NewSyncFinishedEvent(event.UserID))
+			}
+
 		case events.SyncProgress:
 			_ = s.SendEvent(NewSyncProgressEvent(event.UserID, event.Progress, event.Elapsed.Milliseconds(), event.Remaining.Milliseconds()))
 
