@@ -119,6 +119,10 @@ func (s *SyncUpdateApplier) SyncSystemLabelsOnly(ctx context.Context, labels map
 				continue
 			}
 
+			if label.Type != proton.LabelTypeSystem {
+				continue
+			}
+
 			for _, c := range connectors {
 				update := newSystemMailboxCreatedUpdate(imap.MailboxID(label.ID), label.Name)
 				updates = append(updates, update)
