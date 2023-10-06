@@ -304,6 +304,7 @@ ApplyStageInput,BuildStageInput,BuildStageOutput,DownloadStageInput,DownloadStag
 StateProvider,Regulator,UpdateApplier,MessageBuilder,APIClient,Reporter,DownloadRateModifier \
 > tmp
 	mv tmp internal/services/syncservice/mocks_test.go
+	mockgen --package mocks github.com/ProtonMail/gluon/connector IMAPStateWrite > internal/services/imapservice/mocks/mocks.go
 
 lint: gofiles lint-golang lint-license lint-dependencies lint-changelog lint-bug-report
 

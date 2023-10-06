@@ -220,7 +220,7 @@ func (s *SyncState) loadUnsafe() error {
 }
 
 func DeleteSyncState(configDir, userID string) error {
-	path := getSyncConfigPath(configDir, userID)
+	path := GetSyncConfigPath(configDir, userID)
 
 	if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
@@ -234,7 +234,7 @@ func MigrateVaultSettings(
 	hasLabels, hasMessages bool,
 	failedMessageIDs []string,
 ) (bool, error) {
-	filePath := getSyncConfigPath(configDir, userID)
+	filePath := GetSyncConfigPath(configDir, userID)
 
 	_, err := os.ReadFile(filePath) //nolint:gosec
 	if err == nil {

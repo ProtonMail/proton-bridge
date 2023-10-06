@@ -158,7 +158,7 @@ func NewService(
 		syncUpdateApplier:  syncUpdateApplier,
 		syncMessageBuilder: syncMessageBuilder,
 		syncReporter:       syncReporter,
-		syncConfigPath:     getSyncConfigPath(syncConfigDir, identityState.User.ID),
+		syncConfigPath:     GetSyncConfigPath(syncConfigDir, identityState.User.ID),
 	}
 }
 
@@ -498,6 +498,7 @@ func (s *Service) buildConnectors() (map[string]*Connector, error) {
 			s.panicHandler,
 			s.telemetry,
 			s.showAllMail,
+			s.syncStateProvider,
 		)
 
 		return connectors, nil
@@ -514,6 +515,7 @@ func (s *Service) buildConnectors() (map[string]*Connector, error) {
 			s.panicHandler,
 			s.telemetry,
 			s.showAllMail,
+			s.syncStateProvider,
 		)
 	}
 
@@ -644,6 +646,6 @@ type setAddressModeReq struct {
 
 type getSyncFailedMessagesReq struct{}
 
-func getSyncConfigPath(path string, userID string) string {
+func GetSyncConfigPath(path string, userID string) string {
 	return filepath.Join(path, fmt.Sprintf("sync-%v", userID))
 }

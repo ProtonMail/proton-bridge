@@ -37,6 +37,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
 	"github.com/bradenaw/juniper/iterator"
 	"github.com/bradenaw/juniper/stream"
 	"github.com/bradenaw/juniper/xslices"
@@ -577,6 +578,67 @@ func TestBridge_MessageCreateDuringSync(t *testing.T) {
 			}, 10*time.Second, time.Second)
 		})
 	}, server.WithTLS(false))
+}
+
+func TestBridge_CorruptedVaultClearsPreviousIMAPSyncState(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		userID, addrID, err := s.CreateUser("imap", password)
+		require.NoError(t, err)
+
+		labelID, err := s.CreateLabel(userID, "folder", "", proton.LabelTypeFolder)
+		require.NoError(t, err)
+
+		withClient(ctx, t, s, "imap", password, func(ctx context.Context, c *proton.Client) {
+			createNumMessages(ctx, t, c, addrID, labelID, 100)
+		})
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
+			defer done()
+
+			var err error
+
+			userID, err = bridge.LoginFull(context.Background(), "imap", password, nil, nil)
+			require.NoError(t, err)
+
+			// Wait for sync to finish
+			require.Equal(t, userID, (<-syncCh).UserID)
+		})
+
+		settingsPath, err := locator.ProvideSettingsPath()
+		require.NoError(t, err)
+
+		syncConfigPath, err := locator.ProvideIMAPSyncConfigPath()
+		require.NoError(t, err)
+
+		syncStatePath := imapservice.GetSyncConfigPath(syncConfigPath, userID)
+		// Check sync state is complete
+		{
+			state, err := imapservice.NewSyncState(syncStatePath)
+			require.NoError(t, err)
+			syncStatus, err := state.GetSyncStatus(context.Background())
+			require.NoError(t, err)
+			require.True(t, syncStatus.IsComplete())
+		}
+
+		// corrupt the vault
+		require.NoError(t, os.WriteFile(filepath.Join(settingsPath, "vault.enc"), []byte("Trash!"), 0o600))
+
+		// Bridge starts but can't find the gluon database dir; there should be no error.
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			_, err := bridge.LoginFull(context.Background(), "imap", password, nil, nil)
+			require.NoError(t, err)
+		})
+
+		// Check sync state is reset.
+		{
+			state, err := imapservice.NewSyncState(syncStatePath)
+			require.NoError(t, err)
+			syncStatus, err := state.GetSyncStatus(context.Background())
+			require.NoError(t, err)
+			require.False(t, syncStatus.IsComplete())
+		}
+	})
 }
 
 func withClient(ctx context.Context, t *testing.T, s *server.Server, username string, password []byte, fn func(context.Context, *proton.Client)) { //nolint:unparam

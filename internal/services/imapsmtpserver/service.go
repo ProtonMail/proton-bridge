@@ -390,6 +390,11 @@ func (sm *Service) handleAddIMAPUserImpl(ctx context.Context,
 	} else {
 		log.Info("Creating new IMAP user")
 
+		// GODT-3003: Ensure previous IMAP sync state is cleared if we run into code path after vault corruption.
+		if err := syncStateProvider.ClearSyncStatus(ctx); err != nil {
+			return fmt.Errorf("failed to reset sync status: %w", err)
+		}
+
 		gluonID, err := sm.imapServer.AddUser(ctx, connector, idProvider.GluonKey())
 		if err != nil {
 			return fmt.Errorf("failed to add IMAP user: %w", err)
