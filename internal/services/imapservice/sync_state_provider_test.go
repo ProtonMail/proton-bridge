@@ -29,7 +29,7 @@ import (
 
 func TestMigrateSyncSettings_AlreadyExists(t *testing.T) {
 	tmpDir := t.TempDir()
-	testFile := getSyncConfigPath(tmpDir, "test")
+	testFile := GetSyncConfigPath(tmpDir, "test")
 
 	expected, err := generateTestState(testFile)
 	require.NoError(t, err)
@@ -53,7 +53,7 @@ func TestMigrateSyncSettings_DoesNotExist(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, migrated)
 
-	state, err := NewSyncState(getSyncConfigPath(tmpDir, "test"))
+	state, err := NewSyncState(GetSyncConfigPath(tmpDir, "test"))
 	require.NoError(t, err)
 	status, err := state.GetSyncStatus(context.Background())
 	require.NoError(t, err)
