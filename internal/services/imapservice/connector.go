@@ -63,6 +63,7 @@ type Connector struct {
 	log         *logrus.Entry
 
 	sharedCache *SharedCache
+	syncState   *SyncState
 }
 
 func NewConnector(
@@ -75,6 +76,7 @@ func NewConnector(
 	panicHandler async.PanicHandler,
 	telemetry Telemetry,
 	showAllMail bool,
+	syncState *SyncState,
 ) *Connector {
 	userID := identityState.UserID()
 
@@ -106,6 +108,7 @@ func NewConnector(
 		}),
 
 		sharedCache: NewSharedCached(),
+		syncState:   syncState,
 	}
 }
 
@@ -114,9 +117,35 @@ func (s *Connector) StateClose() {
 	s.updateCh.CloseAndDiscardQueued()
 }
 
-func (s *Connector) Init(_ context.Context, cache connector.IMAPState) error {
+func (s *Connector) Init(ctx context.Context, cache connector.IMAPState) error {
 	s.sharedCache.Set(cache)
-	return nil
+
+	return cache.Write(ctx, func(ctx context.Context, write connector.IMAPStateWrite) error {
+		rd := s.labels.Read()
+		defer rd.Close()
+
+		mboxes, err := write.GetMailboxesWithoutAttrib(ctx)
+		if err != nil {
+			return err
+		}
+
+		// Attempt to fix bug when a vault got corrupted, but the sync state did not get reset leading to
+		// all labels being written to the root level. If we detect this happened, reset the sync state.
+		{
+			applied, err := fixGODT3003Labels(ctx, s.log, mboxes, rd, write)
+			if err != nil {
+				return err
+			}
+
+			if applied {
+				s.log.Debug("Patched folders/labels after GODT-3003 incident, resetting sync state.")
+				if err := s.syncState.ClearSyncStatus(ctx); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
 }
 
 func (s *Connector) Authorize(ctx context.Context, username string, password []byte) bool {
@@ -744,4 +773,42 @@ func (s *Connector) createDraft(ctx context.Context, literal []byte, addrKR *cry
 
 func (s *Connector) publishUpdate(_ context.Context, update imap.Update) {
 	s.updateCh.Enqueue(update)
+}
+
+func fixGODT3003Labels(
+	ctx context.Context,
+	log *logrus.Entry,
+	mboxes []imap.MailboxNoAttrib,
+	rd labelsRead,
+	write connector.IMAPStateWrite,
+) (bool, error) {
+	var applied bool
+	for _, mbox := range mboxes {
+		lbl, ok := rd.GetLabel(string(mbox.ID))
+		if !ok {
+			continue
+		}
+
+		if lbl.Type == proton.LabelTypeFolder {
+			if mbox.Name[0] != folderPrefix {
+				log.WithField("labelID", mbox.ID.ShortID()).Debug("Found folder without prefix, patching")
+				if err := write.PatchMailboxHierarchyWithoutTransforms(ctx, mbox.ID, xslices.Insert(mbox.Name, 0, folderPrefix)); err != nil {
+					return false, fmt.Errorf("failed to update mailbox name: %w", err)
+				}
+
+				applied = true
+			}
+		} else if lbl.Type == proton.LabelTypeLabel {
+			if mbox.Name[0] != labelPrefix {
+				log.WithField("labelID", mbox.ID.ShortID()).Debug("Found label without prefix, patching")
+				if err := write.PatchMailboxHierarchyWithoutTransforms(ctx, mbox.ID, xslices.Insert(mbox.Name, 0, labelPrefix)); err != nil {
+					return false, fmt.Errorf("failed to update mailbox name: %w", err)
+				}
+
+				applied = true
+			}
+		}
+	}
+
+	return applied, nil
 }
