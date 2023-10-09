@@ -29,6 +29,8 @@ import (
 
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
+	pmmime "github.com/ProtonMail/proton-bridge/v3/pkg/mime"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/cucumber/messages-go/v16"
 	"github.com/emersion/go-imap"
@@ -202,10 +204,16 @@ func newMessageStructFromIMAP(msg *imap.Message) MessageStruct {
 		panic(err)
 	}
 
-	m, err := message.Parse(bytes.NewReader(literal))
+	parser, err := parser.New(bytes.NewReader(literal))
 	if err != nil {
 		panic(err)
 	}
+
+	m, err := message.ParseWithParser(parser, true)
+	if err != nil {
+		panic(err)
+	}
+
 	var body string
 	switch {
 	case m.MIMEType == rfc822.TextPlain:
@@ -245,34 +253,23 @@ func formatAddressList(list []*imap.Address) string {
 }
 
 func parseMessageSection(literal []byte, body string) MessageSection {
-	mimeType, boundary, charset, name := parseContentType(literal)
-
 	headers, err := rfc822.Parse(literal).ParseHeader()
 	if err != nil {
 		panic(err)
 	}
 
-	msgSect := MessageSection{
-		ContentType:         string(mimeType),
-		ContentTypeBoundary: boundary,
-		ContentTypeCharset:  charset,
-		ContentTypeName:     name,
-		TransferEncoding:    headers.Get("content-transfer-encoding"),
-		BodyIs:              body,
-	}
+	mimeType, boundary, charset, name := parseContentType(headers.Get("Content-Type"))
+	disp, filename := parseContentDisposition(headers.Get("Content-Disposition"))
 
-	contentDisposition := bytes.Split([]byte(headers.Get("content-disposition")), []byte(";"))
-	for id, value := range contentDisposition {
-		if id == 0 {
-			msgSect.ContentDisposition = strings.TrimSpace(string(value))
-			continue
-		}
-		param := bytes.Split(value, []byte("="))
-		if strings.TrimSpace(string(param[0])) == "filename" && len(param) >= 2 {
-			_, filename, _ := strings.Cut(string(value), "filename=")
-			filename = strings.Trim(filename, "\"")
-			msgSect.ContentDispositionFilename = strings.TrimSpace(filename)
-		}
+	msgSect := MessageSection{
+		ContentType:                mimeType,
+		ContentTypeBoundary:        boundary,
+		ContentTypeCharset:         charset,
+		ContentTypeName:            name,
+		ContentDisposition:         disp,
+		ContentDispositionFilename: filename,
+		TransferEncoding:           headers.Get("content-transfer-encoding"),
+		BodyIs:                     body,
 	}
 
 	if msgSect.ContentTypeBoundary != "" {
@@ -294,8 +291,8 @@ func parseMessageSection(literal []byte, body string) MessageSection {
 	return msgSect
 }
 
-func parseContentType(literal []byte) (rfc822.MIMEType, string, string, string) {
-	mimeType, params, err := rfc822.Parse(literal).ContentType()
+func parseContentType(contentType string) (string, string, string, string) {
+	mimeType, params, err := pmmime.ParseMediaType(contentType)
 	if err != nil {
 		panic(err)
 	}
@@ -312,6 +309,15 @@ func parseContentType(literal []byte) (rfc822.MIMEType, string, string, string) 
 		name = ""
 	}
 	return mimeType, boundary, charset, name
+}
+
+func parseContentDisposition(contentDisp string) (string, string) {
+	disp, params, _ := pmmime.ParseMediaType(contentDisp)
+	name, ok := params["filename"]
+	if !ok {
+		name = ""
+	}
+	return disp, name
 }
 
 func matchMessages(have, want []Message) error {

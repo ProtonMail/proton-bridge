@@ -539,6 +539,18 @@ func TestParseMultipartAlternativeLatin1(t *testing.T) {
 	assert.Equal(t, "*aoeuaoeu*\n\n", string(m.PlainBody))
 }
 
+func TestParseMultipartAttachmentEncodedButUnquoted(t *testing.T) {
+	f := getFileReader("multipart_attachment_encoded_no_quote.eml")
+
+	p, err := parser.New(f)
+	require.NoError(t, err)
+
+	m, err := ParseWithParser(p, false)
+	require.NoError(t, err)
+	assert.Equal(t, `"Bridge Test" <bridgetest@pm.test>`, m.Sender.String())
+	assert.Equal(t, `"Internal Bridge" <bridgetest@protonmail.com>`, m.ToList[0].String())
+}
+
 func TestParseWithTrailingEndOfMailIndicator(t *testing.T) {
 	f := getFileReader("text_html_trailing_end_of_mail.eml")
 

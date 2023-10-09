@@ -256,6 +256,10 @@ func DecodeCharset(original []byte, contentType string) ([]byte, error) {
 
 // ParseMediaType from MIME doesn't support RFC2231 for non asci / utf8 encodings so we have to pre-parse it.
 func ParseMediaType(v string) (mediatype string, params map[string]string, err error) {
-	v, _ = changeEncodingAndKeepLastParamDefinition(v)
+	decoded, err := DecodeHeader(v)
+	if err != nil {
+		return "", nil, err
+	}
+	v, _ = changeEncodingAndKeepLastParamDefinition(decoded)
 	return mime.ParseMediaType(v)
 }

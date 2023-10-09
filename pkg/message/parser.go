@@ -547,8 +547,8 @@ func parseAttachment(h message.Header, body []byte) (Attachment, error) {
 		return Attachment{}, err
 	}
 	att.Header = mimeHeader
+	mimeType, mimeTypeParams, err := pmmime.ParseMediaType(h.Get("Content-Type"))
 
-	mimeType, mimeTypeParams, err := h.ContentType()
 	if err != nil {
 		return Attachment{}, err
 	}
@@ -558,7 +558,8 @@ func parseAttachment(h message.Header, body []byte) (Attachment, error) {
 	// Prefer attachment name from filename param in content disposition.
 	// If not available, try to get it from name param in content type.
 	// Otherwise fallback to attachment.bin.
-	if disp, dispParams, err := h.ContentDisposition(); err == nil {
+	disp, dispParams, err := pmmime.ParseMediaType(h.Get("Content-Disposition"))
+	if err == nil {
 		att.Disposition = proton.Disposition(disp)
 
 		if filename, ok := dispParams["filename"]; ok {
@@ -585,7 +586,7 @@ func parseAttachment(h message.Header, body []byte) (Attachment, error) {
 	// (This is necessary because some clients don't set Content-Disposition at all,
 	// so we need to rely on other information to deduce if it's inline or attachment.)
 	if h.Has("Content-Disposition") {
-		disp, _, err := h.ContentDisposition()
+		disp, _, err := pmmime.ParseMediaType(h.Get("Content-Disposition"))
 		if err != nil {
 			return Attachment{}, err
 		}

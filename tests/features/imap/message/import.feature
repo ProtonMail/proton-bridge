@@ -93,9 +93,9 @@ Feature: IMAP import messages
             },
             {
               "content-type": "application/pdf",
-              "content-type-name": <filename>,
+              "content-type-name": "filename",
               "content-disposition": "attachment",
-              "content-disposition-filename": <filename>,
+              "content-disposition-filename": "filename",
               "body-is": "somebytes"
             }
           ]
@@ -103,10 +103,11 @@ Feature: IMAP import messages
       }
       """
     Examples:
-      | message                                                | filename                  |
-      | "multipart/mixed_with_attachment_encoded.eml"          | "=?US-ASCII?Q?filename?=" |
-#      | "multipart/mixed_with_attachment_encoded_no_quote.eml" | =?US-ASCII?Q?filename?=   | @todo GODT-2966
-#      | "multipart/mixed_with_attachment_no_quote.eml"         | "filename"                | @todo GODT-2966
+      | message                                                |
+      | "multipart/mixed_with_attachment_encoded.eml"          |
+      | "multipart/mixed_with_attachment_encoded_no_quote.eml" |
+      | "multipart/mixed_with_attachment_no_quote.eml"         |
+
 
   # The message is imported as UTF-8 and the content type is determined at build time.
   Scenario: Import message as latin1 without content type
