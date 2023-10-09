@@ -386,9 +386,7 @@ func matchContent(have MessageSection, want MessageSection) bool {
 	if want.BodyIs != "" && strings.TrimSpace(have.BodyIs) != strings.TrimSpace(want.BodyIs) {
 		return false
 	}
-	if len(have.Sections) != len(want.Sections) {
-		return false
-	}
+
 	for i, section := range want.Sections {
 		if !matchContent(have.Sections[i], section) {
 			return false
