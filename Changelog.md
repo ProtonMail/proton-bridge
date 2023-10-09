@@ -3,6 +3,13 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Umshiang Bridge 3.5.2
+
+### Fixed
+* GODT-3003: Ensure IMAP State is reset after vault corruption.
+* GODT-3001: Only create system labels during system label sync.
+
+
 ## Umshiang Bridge 3.5.1
 
 ### Fixed
