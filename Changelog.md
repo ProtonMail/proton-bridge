@@ -2,6 +2,7 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+
 ## Vasco da Gama Bridge 3.6.0
 
 ### Added
