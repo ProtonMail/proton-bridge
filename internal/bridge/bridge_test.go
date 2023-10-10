@@ -585,7 +585,7 @@ func TestBridge_MissingGluonStore(t *testing.T) {
 		require.NoError(t, os.RemoveAll(gluonDir))
 
 		// Bridge starts but can't find the gluon store dir; there should be no error.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridgeWaitForServers(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
 			// ...
 		})
 	})
