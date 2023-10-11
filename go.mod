@@ -7,8 +7,8 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.0
 	github.com/ProtonMail/gluon v0.17.1-0.20231009084701-3af0474b0b3c
 	github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a
-	github.com/ProtonMail/go-proton-api v0.4.1-0.20230925123025-331ad8e6d5ee
-	github.com/ProtonMail/gopenpgp/v2 v2.7.1-proton
+	github.com/ProtonMail/go-proton-api v0.4.1-0.20231011132529-24b5b817ee1f
+	github.com/ProtonMail/gopenpgp/v2 v2.7.3-proton
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/allan-simon/go-singleinstance v0.0.0-20210120080615-d0997106ab37
@@ -53,7 +53,7 @@ require (
 
 require (
 	github.com/ProtonMail/bcrypt v0.0.0-20211005172633-e235017c1baf // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20230518184743-7afd39499903 // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20230717121622-edf196117233 // indirect
 	github.com/ProtonMail/go-mime v0.0.0-20230322103455-7d82a3887f2f // indirect
 	github.com/ProtonMail/go-srp v0.0.7 // indirect
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
