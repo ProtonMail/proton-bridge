@@ -75,6 +75,7 @@ func TestService_EventIDLoadStore(t *testing.T) {
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 
 	_, err := service.Start(context.Background(), group)
@@ -130,6 +131,7 @@ func TestService_RetryEventOnNonCatastrophicFailure(t *testing.T) {
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 	service.Subscribe(NewCallbackSubscriber("foo", EventHandler{MessageHandler: subscriber}))
 
@@ -179,6 +181,7 @@ func TestService_OnBadEventServiceIsPaused(t *testing.T) {
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 
 	// Event publisher expectations.
@@ -245,6 +248,7 @@ func TestService_UnsubscribeDuringEventHandlingDoesNotCauseDeadlock(t *testing.T
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 
 	subscription := NewCallbackSubscriber("foo", EventHandler{MessageHandler: subscriber})
@@ -304,6 +308,7 @@ func TestService_UnsubscribeBeforeHandlingEventIsNotConsideredError(t *testing.T
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 
 	subscription := NewEventSubscriber("Foo")
@@ -363,6 +368,7 @@ func TestService_WaitOnEventPublishAfterPause(t *testing.T) {
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 
 	subscriber.EXPECT().HandleMessageEvents(gomock.Any(), gomock.Eq(messageEvents)).Times(1).DoAndReturn(func(_ context.Context, _ []proton.MessageEvent) error {
@@ -435,6 +441,7 @@ func TestService_EventRewind(t *testing.T) {
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 
 	_, err := service.Start(context.Background(), group)

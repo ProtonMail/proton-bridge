@@ -49,7 +49,7 @@ func (bridge *Bridge) handleUserDeauth(ctx context.Context, user *user.User) {
 }
 
 func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User, event events.UserBadEvent) {
-	safe.Lock(func() {
+	safe.RLock(func() {
 		if rerr := bridge.reporter.ReportMessageWithContext("Failed to handle event", reporter.Context{
 			"user_id":      user.ID(),
 			"old_event_id": event.OldEventID,

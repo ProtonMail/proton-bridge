@@ -151,7 +151,7 @@ func NewService(
 		connectors:    make(map[string]*Connector),
 		maxSyncMemory: maxSyncMemory,
 
-		eventWatcher:      subscription.Add(events.IMAPServerCreated{}),
+		eventWatcher:      subscription.Add(events.IMAPServerCreated{}, events.ConnStatusUp{}, events.ConnStatusDown{}),
 		eventSubscription: subscription,
 		showAllMail:       showAllMail,
 
@@ -213,18 +213,6 @@ func (s *Service) SetAddressMode(ctx context.Context, mode usertypes.AddressMode
 
 func (s *Service) Resync(ctx context.Context) error {
 	_, err := s.cpc.Send(ctx, &resyncReq{})
-
-	return err
-}
-
-func (s *Service) CancelSync(ctx context.Context) error {
-	_, err := s.cpc.Send(ctx, &cancelSyncReq{})
-
-	return err
-}
-
-func (s *Service) ResumeSync(ctx context.Context) error {
-	_, err := s.cpc.Send(ctx, &resumeSyncReq{})
 
 	return err
 }
@@ -341,6 +329,7 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 			}
 			switch r := req.Value().(type) {
 			case *setAddressModeReq:
+				s.log.Debug("Set Address Mode Request")
 				err := s.setAddressMode(ctx, r.mode)
 				req.Reply(ctx, nil, err)
 
@@ -350,38 +339,33 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 				req.Reply(ctx, nil, err)
 				s.log.Info("Resync reply sent, handling as refresh event")
 
-			case *cancelSyncReq:
-				s.log.Info("Cancelling sync")
-				s.syncHandler.Cancel()
-				req.Reply(ctx, nil, nil)
-
-			case *resumeSyncReq:
-				s.log.Info("Resuming sync")
-				// Cancel previous run, if any, just in case.
-				s.cancelSync()
-				s.startSyncing()
-				req.Reply(ctx, nil, nil)
 			case *getLabelsReq:
+				s.log.Debug("Get labels Request")
 				labels := s.labels.GetLabelMap()
 				req.Reply(ctx, labels, nil)
 
 			case *onBadEventReq:
+				s.log.Debug("Bad Event Request")
 				err := s.removeConnectorsFromServer(ctx, s.connectors, false)
 				req.Reply(ctx, nil, err)
 
 			case *onBadEventResyncReq:
+				s.log.Debug("Bad Event Resync Request")
 				err := s.addConnectorsToServer(ctx, s.connectors)
 				req.Reply(ctx, nil, err)
 
 			case *onLogoutReq:
+				s.log.Debug("Logout Request")
 				err := s.removeConnectorsFromServer(ctx, s.connectors, false)
 				req.Reply(ctx, nil, err)
 
 			case *showAllMailReq:
+				s.log.Debug("Show all mail request")
 				req.Reply(ctx, nil, nil)
 				s.setShowAllMail(r.v)
 
 			case *getSyncFailedMessagesReq:
+				s.log.Debug("Get sync failed messages Request")
 				status, err := s.syncStateProvider.GetSyncStatus(ctx)
 				if err != nil {
 					req.Reply(ctx, nil, fmt.Errorf("failed to get sync status: %w", err))
@@ -470,10 +454,21 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 				continue
 			}
 
-			if _, ok := e.(events.IMAPServerCreated); ok {
+			switch e.(type) {
+			case events.IMAPServerCreated:
+				s.log.Debug("On IMAPServerCreated")
 				if err := s.addConnectorsToServer(ctx, s.connectors); err != nil {
 					s.log.WithError(err).Error("Failed to add connector to server after created")
 				}
+			case events.ConnStatusUp:
+				s.log.Info("Connection Restored Resuming Sync (if any)")
+				// Cancel previous run, if any, just in case.
+				s.cancelSync()
+				s.startSyncing()
+
+			case events.ConnStatusDown:
+				s.log.Info("Connection Lost cancelling sync")
+				s.cancelSync()
 			}
 		}
 	}
@@ -625,10 +620,6 @@ func (s *Service) cancelSync() {
 }
 
 type resyncReq struct{}
-
-type cancelSyncReq struct{}
-
-type resumeSyncReq struct{}
 
 type getLabelsReq struct{}
 

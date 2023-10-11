@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/async"
+	"github.com/ProtonMail/gluon/watcher"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
@@ -67,6 +68,8 @@ type Service struct {
 
 	eventPollWaiters     []*EventPollWaiter
 	eventPollWaitersLock sync.Mutex
+	eventSubscription    events.Subscription
+	eventWatcher         *watcher.Watcher[events.Event]
 }
 
 func NewService(
@@ -78,6 +81,7 @@ func NewService(
 	jitter time.Duration,
 	eventTimeout time.Duration,
 	panicHandler async.PanicHandler,
+	eventSubscription events.Subscription,
 ) *Service {
 	return &Service{
 		cpc:          cpc.NewCPC(),
@@ -88,11 +92,13 @@ func NewService(
 			"service": "user-events",
 			"user":    userID,
 		}),
-		eventPublisher: eventPublisher,
-		timer:          proton.NewTicker(pollPeriod, jitter, panicHandler),
-		paused:         1,
-		eventTimeout:   eventTimeout,
-		panicHandler:   panicHandler,
+		eventPublisher:    eventPublisher,
+		timer:             proton.NewTicker(pollPeriod, jitter, panicHandler),
+		paused:            1,
+		eventTimeout:      eventTimeout,
+		panicHandler:      panicHandler,
+		eventSubscription: eventSubscription,
+		eventWatcher:      eventSubscription.Add(events.ConnStatusDown{}, events.ConnStatusUp{}),
 	}
 }
 
@@ -224,6 +230,19 @@ func (s *Service) run(ctx context.Context, lastEventID string) {
 			}
 
 			continue
+		case e, ok := <-s.eventWatcher.GetChannel():
+			if !ok {
+				continue
+			}
+
+			switch e.(type) {
+			case events.ConnStatusDown:
+				s.log.Info("Connection Lost, pausing")
+				s.Pause()
+			case events.ConnStatusUp:
+				s.log.Info("Connection Restored, resuming")
+				s.Resume()
+			}
 		}
 
 		// Apply any pending subscription changes.
@@ -295,6 +314,11 @@ func (s *Service) run(ctx context.Context, lastEventID string) {
 
 // Close should be called after the service has been cancelled to clean up any remaining pending operations.
 func (s *Service) Close() {
+	if s.eventSubscription != nil {
+		s.eventSubscription.Remove(s.eventWatcher)
+		s.eventSubscription = nil
+	}
+
 	s.pendingSubscriptionsLock.Lock()
 	defer s.pendingSubscriptionsLock.Unlock()
 

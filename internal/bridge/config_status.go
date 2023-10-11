@@ -22,7 +22,7 @@ import (
 )
 
 func (bridge *Bridge) ReportBugClicked() {
-	safe.Lock(func() {
+	safe.RLock(func() {
 		for _, user := range bridge.users {
 			user.ReportBugClicked()
 		}
@@ -30,7 +30,7 @@ func (bridge *Bridge) ReportBugClicked() {
 }
 
 func (bridge *Bridge) AutoconfigUsed(client string) {
-	safe.Lock(func() {
+	safe.RLock(func() {
 		for _, user := range bridge.users {
 			user.AutoconfigUsed(client)
 		}
@@ -38,7 +38,7 @@ func (bridge *Bridge) AutoconfigUsed(client string) {
 }
 
 func (bridge *Bridge) KBArticleOpened(article string) {
-	safe.Lock(func() {
+	safe.RLock(func() {
 		for _, user := range bridge.users {
 			user.KBArticleOpened(article)
 		}

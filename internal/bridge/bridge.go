@@ -487,26 +487,14 @@ func (bridge *Bridge) remWatcher(watcher *watcher.Watcher[events.Event]) {
 	watcher.Close()
 }
 
-func (bridge *Bridge) onStatusUp(ctx context.Context) {
+func (bridge *Bridge) onStatusUp(_ context.Context) {
 	logrus.Info("Handling API status up")
-
-	safe.RLock(func() {
-		for _, user := range bridge.users {
-			user.OnStatusUp(ctx)
-		}
-	}, bridge.usersLock)
 
 	bridge.goLoad()
 }
 
 func (bridge *Bridge) onStatusDown(ctx context.Context) {
 	logrus.Info("Handling API status down")
-
-	safe.RLock(func() {
-		for _, user := range bridge.users {
-			user.OnStatusDown(ctx)
-		}
-	}, bridge.usersLock)
 
 	for backoff := time.Second; ; backoff = min(backoff*2, 30*time.Second) {
 		select {

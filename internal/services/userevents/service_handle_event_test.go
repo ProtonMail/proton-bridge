@@ -26,6 +26,7 @@ import (
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -67,6 +68,7 @@ func TestServiceHandleEvent_CheckEventCategoriesHandledInOrder(t *testing.T) {
 		time.Millisecond,
 		10*time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 
 	subscription := NewCallbackSubscriber("test", EventHandler{
@@ -127,6 +129,7 @@ func TestServiceHandleEvent_CheckEventFailureCausesError(t *testing.T) {
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 
 	subscription := NewCallbackSubscriber("test", EventHandler{
@@ -164,6 +167,7 @@ func TestServiceHandleEvent_CheckEventFailureCausesErrorParallel(t *testing.T) {
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 
 	subscription := NewCallbackSubscriber("test", EventHandler{

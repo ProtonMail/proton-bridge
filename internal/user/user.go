@@ -223,6 +223,7 @@ func newImpl(
 		EventJitter,
 		5*time.Minute,
 		crashHandler,
+		eventSubscription,
 	)
 
 	addressMode := usertypes.VaultToAddressMode(encVault.AddressMode())
@@ -552,27 +553,6 @@ func (user *User) CheckAuth(email string, password []byte) (string, error) {
 	defer cancel()
 
 	return user.identityService.CheckAuth(ctx, email, password)
-}
-
-// OnStatusUp is called when the connection goes up.
-func (user *User) OnStatusUp(ctx context.Context) {
-	user.log.Info("Connection is up")
-
-	user.eventService.Resume()
-
-	if err := user.imapService.ResumeSync(ctx); err != nil {
-		user.log.WithError(err).Error("Failed to resume sync")
-	}
-}
-
-// OnStatusDown is called when the connection goes down.
-func (user *User) OnStatusDown(ctx context.Context) {
-	user.log.Info("Connection is down")
-
-	user.eventService.Pause()
-	if err := user.imapService.CancelSync(ctx); err != nil {
-		user.log.WithError(err).Error("Failed to cancel sync")
-	}
 }
 
 // Logout logs the user out from the API.

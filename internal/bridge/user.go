@@ -329,7 +329,7 @@ func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode va
 func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string, doResync bool) error {
 	logrus.WithField("userID", userID).WithField("doResync", doResync).Info("Passing bad event feedback to user")
 
-	return safe.LockRet(func() error {
+	return safe.RLockRet(func() error {
 		ctx := context.Background()
 
 		user, ok := bridge.users[userID]

@@ -48,6 +48,7 @@ func TestServiceHandleEventError_SubscriberEventUnwrapping(t *testing.T) {
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 
 	lastEventID := "PrevEvent"
@@ -85,6 +86,7 @@ func TestServiceHandleEventError_BadEventPutsServiceOnPause(t *testing.T) {
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 	service.Resume()
 	lastEventID := "PrevEvent"
@@ -118,6 +120,7 @@ func TestServiceHandleEventError_BadEventFromPublishTimeout(t *testing.T) {
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 	lastEventID := "PrevEvent"
 	event := proton.Event{EventID: "MyEvent"}
@@ -148,6 +151,7 @@ func TestServiceHandleEventError_NoBadEventCheck(t *testing.T) {
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 	lastEventID := "PrevEvent"
 	event := proton.Event{EventID: "MyEvent"}
@@ -173,6 +177,7 @@ func TestServiceHandleEventError_JsonUnmarshalEventProducesUncategorizedErrorEve
 		time.Millisecond,
 		time.Second,
 		async.NoopPanicHandler{},
+		events.NewNullSubscription(),
 	)
 	lastEventID := "PrevEvent"
 	event := proton.Event{EventID: "MyEvent"}
