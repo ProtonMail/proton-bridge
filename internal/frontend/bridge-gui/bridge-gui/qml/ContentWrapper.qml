@@ -368,7 +368,7 @@ Item {
                     currentIndex: hasAccount() ? 1 : 0
                     NoAccountView {
                         colorScheme: root.colorScheme
-                        onLinkClicked: function() {
+                        onStartSetup: {
                             root.showLogin("")
                         }
                     }

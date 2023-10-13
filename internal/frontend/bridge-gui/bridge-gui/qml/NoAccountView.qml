@@ -23,7 +23,7 @@ Rectangle {
 
     color: root.colorScheme.background_norm
 
-    signal linkClicked()
+    signal startSetup()
 
     ColumnLayout {
         anchors.fill: parent
@@ -38,8 +38,10 @@ Rectangle {
             wizard: setupWizard
 
             Component.onCompleted: {
-                showOnboarding();
-                link1.setCallback(root.linkClicked, "Start setup", false)
+                showNoAccount();
+            }
+            onStartSetup: {
+                root.startSetup();
             }
         }
         Image {

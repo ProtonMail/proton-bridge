@@ -18,14 +18,21 @@ import QtQuick.Controls
 Item {
     id: root
 
+    readonly property string addAccountTitle: qsTr("Add a Proton Mail account")
+    readonly property string welcomeDescription: qsTr("Bridge is the gateway between your Proton account and your email client. It runs in the background and encrypts and decrypts your messages seamlessly. ");
+    readonly property string welcomeTitle: qsTr("Welcome to\nProton Mail Bridge")
+    readonly property string welcomeImage: "/qml/icons/img-welcome.svg"
+    readonly property int welcomeImageHeight: 148;
+    readonly property int welcomeImageWidth: 265;
+
     property int iconHeight
     property string iconSource
     property int iconWidth
     property var wizard
     property ColorScheme colorScheme
     property var _colorScheme: wizard ? wizard.colorScheme : colorScheme
-    property var link1: linkLabel1
-    property var link2: linkLabel2
+
+    signal startSetup()
 
     function showAppleMailAutoconfigCertificateInstall() {
         showAppleMailAutoconfigCommon();
@@ -65,14 +72,25 @@ Item {
     function showLoginMailboxPassword() {
         showOnboarding();
     }
+
+    function showNoAccount() {
+        titleLabel.text = welcomeTitle;
+        descriptionLabel.text = welcomeDescription;
+        linkLabel1.setCallback(startSetup, "Start setup", false);
+        linkLabel2.clear();
+        root.iconSource = welcomeImage;
+        root.iconHeight = welcomeImageHeight;
+        root.iconWidth = welcomeImageWidth;
+    }
+
     function showOnboarding() {
-        titleLabel.text = (Backend.users.count === 0) ? qsTr("Welcome to\nProton Mail Bridge") : qsTr("Add a Proton Mail account");
-        descriptionLabel.text = qsTr("Bridge is the gateway between your Proton account and your email client. It runs in the background and encrypts and decrypts your messages seamlessly. ");
+        titleLabel.text = (Backend.users.count === 0) ? welcomeTitle : addAccountTitle;
+        descriptionLabel.text = welcomeDescription
         linkLabel1.setCallback(function() { Backend.openKBArticle("https://proton.me/support/why-you-need-bridge"); }, qsTr("Why do I need Bridge?"), true);
         linkLabel2.clear();
-        root.iconSource = "/qml/icons/img-welcome.svg";
-        root.iconHeight = 148;
-        root.iconWidth = 265;
+        root.iconSource = welcomeImage;
+        root.iconHeight = welcomeImageHeight;
+        root.iconWidth = welcomeImageWidth;
     }
 
     ColumnLayout {
