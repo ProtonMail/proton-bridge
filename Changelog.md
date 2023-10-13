@@ -3,6 +3,12 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Umshiang Bridge 3.5.3
+
+### Changed
+* GODT-3004: Update gopenpgp and dependencies.
+
+
 ## Umshiang Bridge 3.5.2
 
 ### Fixed
