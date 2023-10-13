@@ -286,7 +286,7 @@ build-windows-qa:
   variables:
     BUILD_TAGS: "build_qa"
 
-trigeer-qa-installer:
+trigger-qa-installer:
   stage: build
   needs: ["lint"]
   extends:
