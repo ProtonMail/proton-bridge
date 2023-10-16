@@ -299,17 +299,16 @@ func (s *scenario) bridgeSendsSyncStartedAndFinishedEventsForUser(username strin
 
 		break
 	}
+	for {
+		finishEvent, ok := awaitType(s.t.events, events.SyncFinished{}, 30*time.Second)
+		if !ok {
+			return errors.New("expected sync finished event, got none")
+		}
 
-	finishEvent, ok := awaitType(s.t.events, events.SyncFinished{}, 30*time.Second)
-	if !ok {
-		return errors.New("expected sync finished event, got none")
+		if wantUserID := s.t.getUserByName(username).getUserID(); finishEvent.UserID == wantUserID {
+			return nil
+		}
 	}
-
-	if wantUserID := s.t.getUserByName(username).getUserID(); finishEvent.UserID != wantUserID {
-		return fmt.Errorf("expected sync finished event for user %s, got %s", wantUserID, finishEvent.UserID)
-	}
-
-	return nil
 }
 
 func (s *scenario) bridgeSendsAnUpdateNotAvailableEvent() error {
