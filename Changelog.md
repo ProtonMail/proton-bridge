@@ -2,6 +2,7 @@
 
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
+
 ## Vasco da Gama Bridge 3.6.0
 
 ### Added
@@ -31,6 +32,11 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Fixed missing GoOs gRPC call in bridge-gui-tester.
 * GODT-2929: Message dedup with different text transfer encoding.
 
+
+## Umshiang Bridge 3.5.3
+
+### Changed
+* GODT-3004: Update gopenpgp and dependencies.
 
 
 ## Umshiang Bridge 3.5.2
