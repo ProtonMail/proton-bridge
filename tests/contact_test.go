@@ -362,8 +362,8 @@ func createContact(ctx context.Context, c *proton.Client, contact, name string, 
 	if err != nil {
 		return err
 	}
-	if res[0].Response.APIError.Code != proton.SuccessCode {
-		return errors.New("APIError " + res[0].Response.APIError.Message + " while creating contact")
+	if res[0].Response.Response.Code != proton.SuccessCode {
+		return errors.New("APIError " + res[0].Response.Response.Message + " while creating contact")
 	}
 
 	if settings != nil {
