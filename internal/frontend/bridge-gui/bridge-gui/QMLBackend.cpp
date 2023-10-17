@@ -40,7 +40,8 @@ using namespace bridgepp;
 namespace {
 
 
-    QString const bugReportFile = ":qml/Resources/bug_report_flow.json";
+QString const bugReportFile = ":qml/Resources/bug_report_flow.json";
+QString const bridgeKBUrl = "https://proton.me/support/bridge"; ///< The URL for the root of the bridge knowledge base.
 
 
 }
@@ -275,6 +276,30 @@ QString QMLBackend::collectAnswers(quint8 categoryId) const {
 //****************************************************************************************************************************************************
 void QMLBackend::clearAnswers() {
     reportFlow_.clearAnswers();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return true iff the Bridge TLS certificate is installed.
+//****************************************************************************************************************************************************
+bool QMLBackend::isTLSCertificateInstalled() {
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        bool v = false;
+        app().grpc().isTLSCertificateInstalled(v);
+        return v;
+    )
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] url The URL of the knowledge base article. If empty/invalid, the home page for the Bridge knowledge base is opened.
+//****************************************************************************************************************************************************
+void QMLBackend::openKBArticle(QString const &url) {
+    HANDLE_EXCEPTION(
+        QString const u = url.isEmpty() ? bridgeKBUrl : url;
+        QDesktopServices::openUrl(u);
+        emit notifyKBArticleClicked(u);
+    )
 }
 
 
@@ -944,6 +969,15 @@ void QMLBackend::reportBug(QString const &category, QString const &description, 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
+void QMLBackend::installTLSCertificate() {
+    HANDLE_EXCEPTION(
+        app().grpc().installTLSCertificate();
+    )
+}
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
 void QMLBackend::exportTLSCertificates() const {
     HANDLE_EXCEPTION(
         QString const folderPath = QFileDialog::getExistingDirectory(nullptr, QObject::tr("Select directory"),
@@ -1267,6 +1301,9 @@ void QMLBackend::connectGrpcEvents() {
     connect(client, &GRPCClient::reportBugSuccess, this, &QMLBackend::bugReportSendSuccess);
     connect(client, &GRPCClient::reportBugFallback, this, &QMLBackend::bugReportSendFallback);
     connect(client, &GRPCClient::reportBugError, this, &QMLBackend::bugReportSendError);
+    connect(client, &GRPCClient::certificateInstallSuccess, this, &QMLBackend::certificateInstallSuccess);
+    connect(client, &GRPCClient::certificateInstallCanceled, this, &QMLBackend::certificateInstallCanceled);
+    connect(client, &GRPCClient::certificateInstallFailed, this, &QMLBackend::certificateInstallFailed);
     connect(client, &GRPCClient::showMainWindow, [&]() { this->showMainWindow("gRPC showMainWindow event"); });
 
     // cache events

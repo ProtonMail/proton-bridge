@@ -10,7 +10,7 @@
 * Windres (Windows)
 * libglvnd and libsecret development files (Linux)
 * pkg-config (Linux)
-* cmake, ninja-build and Qt 6 are required to build the graphical user interface. On Linux, 
+* cmake, ninja-build and Qt 6.4.3 are required to build the graphical user interface. On Linux, 
 the Mesa OpenGL development files are also needed.
 
 To enable the sending of crash reports using Sentry please set the
@@ -19,7 +19,7 @@ Otherwise, the sending of crash reports will be disabled.
 
 ## Build
 In order to build Bridge app with Qt interface we are using
-[Qt 6.3](https://doc.qt.io/qt-6/gettingstarted.html).
+[Qt 6.4.3](https://doc.qt.io/qt-6/gettingstarted.html).
 
 Please note that qmake path must be in your `PATH` to ensure Qt to be found.
 Also, before you start build **on Windows**, please unset the `MSYSTEM` variable

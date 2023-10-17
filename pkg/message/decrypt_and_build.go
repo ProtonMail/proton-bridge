@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Proton AG
+// Copyright (c) 2023 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -15,23 +15,26 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-import QmlProject 1.1
+package message
 
-Project {
-    mainFile: "./MainWindow.qml"
+import (
+	"bytes"
 
-    /* Include .qml, .js, and image files from current directory and subdirectories */
-    QmlFiles {
-        directory: "./"
-    }
-    JavaScriptFiles {
-        directory: "./"
-    }
-    ImageFiles {
-        directory: "./"
-    }
-    /* List of plugin directories passed to QML runtime */
-    importPaths: [
-        "./"
-    ]
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
+)
+
+func DecryptAndBuildRFC822(kr *crypto.KeyRing, msg proton.Message, attData [][]byte, opts JobOptions) ([]byte, error) {
+	buf := new(bytes.Buffer)
+	if err := DecryptAndBuildRFC822Into(kr, msg, attData, opts, buf); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func DecryptAndBuildRFC822Into(kr *crypto.KeyRing, msg proton.Message, attData [][]byte, opts JobOptions, buf *bytes.Buffer) error {
+	decrypted := DecryptMessage(kr, msg, attData)
+
+	return BuildRFC822Into(kr, &decrypted, opts, buf)
 }

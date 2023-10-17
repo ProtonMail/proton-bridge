@@ -126,7 +126,7 @@ func (s *Service) StartEventTest() error {
 		// login
 		NewLoginError(LoginErrorType_FREE_USER, "error"),
 		NewLoginTfaRequestedEvent(dummyAddress),
-		NewLoginTwoPasswordsRequestedEvent(),
+		NewLoginTwoPasswordsRequestedEvent(dummyAddress),
 		NewLoginFinishedEvent("userID", false),
 		NewLoginAlreadyLoggedInEvent("userID"),
 

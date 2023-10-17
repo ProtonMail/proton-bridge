@@ -57,7 +57,7 @@ func buildRFC822(apiLabels map[string]proton.Label, full proton.FullMessage, add
 
 	buffer.Grow(full.Size)
 
-	if buildErr := message.BuildRFC822Into(addrKR, full.Message, full.AttData, defaultMessageJobOpts(), buffer); buildErr != nil {
+	if buildErr := message.DecryptAndBuildRFC822Into(addrKR, full.Message, full.AttData, defaultMessageJobOpts(), buffer); buildErr != nil {
 		update = newMessageCreatedFailedUpdate(apiLabels, full.MessageMetadata, buildErr)
 		err = buildErr
 	} else if created, parseErr := newMessageCreatedUpdate(apiLabels, full.MessageMetadata, buffer.Bytes()); parseErr != nil {

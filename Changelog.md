@@ -3,6 +3,36 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Vasco da Gama Bridge 3.6.0
+
+### Added
+* GODT-2762: Setup wizard.
+* GODT-2772: Setup wizard content.
+* GODT-2769: Setup Wizard architecture.
+* GODT-2767: Setup Wizard foundations.
+* GODT-2725: Implement receive message step with expected structure exposed.
+
+### Changed
+* GODT-2960: Added content in empty view when there is no account.
+* GODT-2771: Cert related tools for macOS.
+* GODT-2770: Proof of concept for web view as a tool window and overlay (not used).
+* GODT-2916: Split Decryption from Message Building.
+* GODT-2597: Implement contact specific settings in integration tests.
+* GODT-2664: Trigger QA installer.
+
+### Fixed
+* GODT-2992: Fix link in 'no account view' in main window after 2FA or TOTP are cancelled.
+* GODT-2989: Allow to send bug report when no account connected.
+* GODT-2988: Fix setup wizard KB links.
+* GODT-2968: Use proper base64 encoded string even for bad password test.
+* GODT-2965: Fix multipart/mixed testdata + structure parsing steps related to this.
+* GODT-2932: Fix syncing not being reported in GUI.
+* GODT-2967: Tray menu entries close the setup wizard when needed.
+* GODT-2212: Preserver Header order in message building.
+* Fixed missing GoOs gRPC call in bridge-gui-tester.
+* GODT-2929: Message dedup with different text transfer encoding.
+
+
 ## Umshiang Bridge 3.5.3
 
 ### Changed

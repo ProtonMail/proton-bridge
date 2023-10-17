@@ -17,14 +17,29 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Proton
 import Notifications
+import "SetupWizard"
 
 ApplicationWindow {
     id: root
 
-    property int _defaultHeight: 780
-    property int _defaultWidth: 1080
     property var notifications
 
+    function layoutForUserCount(userCount) {
+        if (userCount === 0) {
+            contentLayout.currentIndex = 1;
+            setupWizard.showOnboarding();
+            return;
+        }
+        const u = Backend.users.get(0);
+        if (!u) {
+            console.trace();
+            return;
+        }
+        if ((userCount === 1) && (u.state === EUserState.SignedOut)) {
+            contentLayout.currentIndex = 1;
+            setupWizard.showLogin(u.primaryEmailOrUsername());
+        }
+    }
     function selectUser(userID) {
         contentWrapper.selectUser(userID);
     }
@@ -35,42 +50,42 @@ ApplicationWindow {
             root.requestActivate();
         }
     }
+    function showClientConfigurator(user, address, justLoggedIn) {
+        contentLayout.currentIndex = 1;
+        setupWizard.showClientConfig(user, address, justLoggedIn);
+    }
     function showHelp() {
         contentWrapper.showHelp();
     }
     function showLocalCacheSettings() {
         contentWrapper.showLocalCacheSettings();
     }
+    function showLogin(username = "") {
+        contentLayout.currentIndex = 1;
+        setupWizard.showLogin(username);
+    }
     function showSettings() {
         contentWrapper.showSettings();
     }
-    function showSetup(user, address) {
-        setupGuide.user = user;
-        setupGuide.address = address;
-        setupGuide.reset();
-        contentLayout._showSetup = !!setupGuide.user;
-    }
-    function showSignIn(username) {
-        if (contentLayout.currentIndex === 1)
-            return;
-        contentWrapper.showSignIn(username);
-    }
 
     colorScheme: ProtonStyle.currentStyle
-    height: _defaultHeight
-    minimumWidth: _defaultWidth
+    height: ProtonStyle.window_default_height
+    minimumHeight:ProtonStyle.window_minimum_height
+    minimumWidth: ProtonStyle.window_minimum_width
     visible: true
-    width: _defaultWidth
+    width: ProtonStyle.window_default_width
+
+    Component.onCompleted: {
+        layoutForUserCount(Backend.users.count);
+    }
 
     // show Setup Guide on every new user
     Connections {
         function onRowsAboutToBeRemoved(parent, first, last) {
             for (let i = first; i <= last; i++) {
                 const user = Backend.users.get(i);
-                if (setupGuide.user === user) {
-                    setupGuide.user = null;
-                    contentLayout._showSetup = false;
-                    return;
+                if (setupWizard.user === user) {
+                    setupWizard.closeWizard();
                 }
             }
         }
@@ -83,65 +98,53 @@ ApplicationWindow {
             if (user.setupGuideSeen) {
                 return;
             }
-            root.showSetup(user, user.addresses[0]);
+            root.showClientConfigurator(user, user.addresses[0], false);
         }
 
         target: Backend.users
     }
     Connections {
-        function onLoginFinished(index, wasSignedOut) {
-            const user = Backend.users.get(index);
-            if (user && !wasSignedOut) {
-                root.showSetup(user, user.addresses[0]);
-            }
-            console.debug("Login finished", index);
-        }
         function onSelectUser(userID, forceShowWindow) {
             contentWrapper.selectUser(userID);
+            if (setupWizard.visible) {
+                setupWizard.closeWizard()
+            }
             if (forceShowWindow) {
                 root.showAndRise();
             }
         }
         function onShowHelp() {
             root.showHelp();
+            if (setupWizard.visible) {
+                setupWizard.closeWizard()
+            }
+
             root.showAndRise();
         }
         function onShowMainWindow() {
             root.showAndRise();
         }
         function onShowSettings() {
+            if (setupWizard.visible) {
+                setupWizard.closeWizard()
+            }
             root.showSettings();
             root.showAndRise();
         }
 
         target: Backend
     }
+    Connections {
+        function onCountChanged(count) {
+            layoutForUserCount(count);
+        }
+
+        target: Backend.users
+    }
     StackLayout {
         id: contentLayout
-
-        property bool _showSetup: false
-
         anchors.fill: parent
-        currentIndex: {
-            // show welcome when there are no users
-            if (Backend.users.count === 0) {
-                return 1;
-            }
-            const u = Backend.users.get(0);
-            if (!u) {
-                console.trace();
-                console.log("empty user");
-                return 1;
-            }
-            if ((Backend.users.count === 1) && (u.state === EUserState.SignedOut)) {
-                showSignIn(u.primaryEmailOrUsername());
-                return 0;
-            }
-            if (contentLayout._showSetup) {
-                return 2;
-            }
-            return 0;
-        }
+        currentIndex: 0
 
         ContentWrapper {
             // 0
@@ -160,30 +163,24 @@ ApplicationWindow {
                 root.close();
                 Backend.quit();
             }
-            onShowSetupGuide: function (user, address) {
-                root.showSetup(user, address);
+            onShowClientConfigurator: function (user, address, justLoggedIn) {
+                root.showClientConfigurator(user, address, justLoggedIn);
+            }
+            onShowLogin: function (username) {
+                root.showLogin(username);
             }
         }
-        WelcomeGuide {
-            Layout.fillHeight: true
-            Layout.fillWidth: true // 1
-            colorScheme: root.colorScheme
-        }
-        SetupGuide {
-            // 2
-            id: setupGuide
+        SetupWizard {
+            id: setupWizard
             Layout.fillHeight: true
             Layout.fillWidth: true
             colorScheme: root.colorScheme
 
-            onDismissed: {
-                root.showSetup(null, "");
+            onBugReportRequested: {
+                contentWrapper.showBugReport();
             }
-            onFinished: {
-                // TODO: Do not close window. Trigger Backend to check that
-                // there is a successfully connected client. Then Backend
-                // should send another signal to close the setup guide.
-                root.showSetup(null, "");
+            onWizardEnded: {
+                contentLayout.currentIndex = 0;
             }
         }
     }

@@ -90,7 +90,7 @@ Item {
             icon.source: root.actionIcon
             loading: root.loading
             secondary: root.type !== SettingsItem.PrimaryButton
-            text: root.actionText + (root.actionIcon !== "" ? "  " : "")
+            text: root.actionText
             visible: root.type === SettingsItem.Button || root.type === SettingsItem.PrimaryButton
 
             onClicked: {

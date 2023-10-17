@@ -205,6 +205,39 @@ SPStreamEvent newReportBugErrorEvent() {
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
+SPStreamEvent newCertificateInstallSuccessEvent() {
+    auto event = new grpc::CertificateInstallSuccessEvent;
+    auto appEvent = new grpc::AppEvent;
+    appEvent->set_allocated_certificateinstallsuccess(event);
+    return wrapAppEvent(appEvent);
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The event.
+//****************************************************************************************************************************************************
+SPStreamEvent newCertificateInstallCanceledEvent() {
+    auto event = new grpc::CertificateInstallCanceledEvent;
+    auto appEvent = new grpc::AppEvent;
+    appEvent->set_allocated_certificateinstallcanceled(event);
+    return wrapAppEvent(appEvent);
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The event.
+//****************************************************************************************************************************************************
+SPStreamEvent newCertificateInstallFailedEvent() {
+    auto event = new grpc::CertificateInstallFailedEvent;
+    auto appEvent = new grpc::AppEvent;
+    appEvent->set_allocated_certificateinstallfailed(event);
+    return wrapAppEvent(appEvent);
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The event.
+//****************************************************************************************************************************************************
 SPStreamEvent newShowMainWindowEvent() {
     auto event = new grpc::ShowMainWindowEvent;
     auto appEvent = new grpc::AppEvent;
@@ -245,8 +278,9 @@ SPStreamEvent newLoginTfaRequestedEvent(QString const &username) {
 /// \param[in] username The username.
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newLoginTwoPasswordsRequestedEvent() {
+SPStreamEvent newLoginTwoPasswordsRequestedEvent(QString const &username) {
     auto event = new ::grpc::LoginTwoPasswordsRequestedEvent;
+    event->set_username(username.toStdString());
     auto loginEvent = new grpc::LoginEvent;
     loginEvent->set_allocated_twopasswordrequested(event);
     return wrapLoginEvent(loginEvent);

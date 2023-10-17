@@ -51,7 +51,6 @@ type BridgeClient interface {
 	ColorSchemeName(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	CurrentEmailClient(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.StringValue, error)
 	ReportBug(ctx context.Context, in *ReportBugRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	ExportTLSCertificates(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ForceLauncher(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SetMainExecutable(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// login
@@ -90,6 +89,10 @@ type BridgeClient interface {
 	ReportBugClicked(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	AutoconfigClicked(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	KBArticleClicked(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// TLS certificate related calls
+	IsTLSCertificateInstalled(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
+	InstallTLSCertificate(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ExportTLSCertificates(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Server -> Client event stream
 	RunEventStream(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (Bridge_RunEventStreamClient, error)
 	StopEventStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -331,15 +334,6 @@ func (c *bridgeClient) CurrentEmailClient(ctx context.Context, in *emptypb.Empty
 func (c *bridgeClient) ReportBug(ctx context.Context, in *ReportBugRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/grpc.Bridge/ReportBug", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) ExportTLSCertificates(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/grpc.Bridge/ExportTLSCertificates", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -625,6 +619,33 @@ func (c *bridgeClient) KBArticleClicked(ctx context.Context, in *wrapperspb.Stri
 	return out, nil
 }
 
+func (c *bridgeClient) IsTLSCertificateInstalled(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error) {
+	out := new(wrapperspb.BoolValue)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/IsTLSCertificateInstalled", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bridgeClient) InstallTLSCertificate(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/InstallTLSCertificate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bridgeClient) ExportTLSCertificates(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/grpc.Bridge/ExportTLSCertificates", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *bridgeClient) RunEventStream(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (Bridge_RunEventStreamClient, error) {
 	stream, err := c.cc.NewStream(ctx, &Bridge_ServiceDesc.Streams[0], "/grpc.Bridge/RunEventStream", opts...)
 	if err != nil {
@@ -697,7 +718,6 @@ type BridgeServer interface {
 	ColorSchemeName(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	CurrentEmailClient(context.Context, *emptypb.Empty) (*wrapperspb.StringValue, error)
 	ReportBug(context.Context, *ReportBugRequest) (*emptypb.Empty, error)
-	ExportTLSCertificates(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	ForceLauncher(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	SetMainExecutable(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	// login
@@ -736,6 +756,10 @@ type BridgeServer interface {
 	ReportBugClicked(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	AutoconfigClicked(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	KBArticleClicked(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
+	// TLS certificate related calls
+	IsTLSCertificateInstalled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
+	InstallTLSCertificate(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	ExportTLSCertificates(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	// Server -> Client event stream
 	RunEventStream(*EventStreamRequest, Bridge_RunEventStreamServer) error
 	StopEventStream(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
@@ -823,9 +847,6 @@ func (UnimplementedBridgeServer) CurrentEmailClient(context.Context, *emptypb.Em
 }
 func (UnimplementedBridgeServer) ReportBug(context.Context, *ReportBugRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportBug not implemented")
-}
-func (UnimplementedBridgeServer) ExportTLSCertificates(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ExportTLSCertificates not implemented")
 }
 func (UnimplementedBridgeServer) ForceLauncher(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForceLauncher not implemented")
@@ -919,6 +940,15 @@ func (UnimplementedBridgeServer) AutoconfigClicked(context.Context, *wrapperspb.
 }
 func (UnimplementedBridgeServer) KBArticleClicked(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method KBArticleClicked not implemented")
+}
+func (UnimplementedBridgeServer) IsTLSCertificateInstalled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsTLSCertificateInstalled not implemented")
+}
+func (UnimplementedBridgeServer) InstallTLSCertificate(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InstallTLSCertificate not implemented")
+}
+func (UnimplementedBridgeServer) ExportTLSCertificates(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExportTLSCertificates not implemented")
 }
 func (UnimplementedBridgeServer) RunEventStream(*EventStreamRequest, Bridge_RunEventStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method RunEventStream not implemented")
@@ -1403,24 +1433,6 @@ func _Bridge_ReportBug_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BridgeServer).ReportBug(ctx, req.(*ReportBugRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_ExportTLSCertificates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(wrapperspb.StringValue)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).ExportTLSCertificates(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/grpc.Bridge/ExportTLSCertificates",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).ExportTLSCertificates(ctx, req.(*wrapperspb.StringValue))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1983,6 +1995,60 @@ func _Bridge_KBArticleClicked_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Bridge_IsTLSCertificateInstalled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).IsTLSCertificateInstalled(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/IsTLSCertificateInstalled",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).IsTLSCertificateInstalled(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Bridge_InstallTLSCertificate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).InstallTLSCertificate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/InstallTLSCertificate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).InstallTLSCertificate(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Bridge_ExportTLSCertificates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrapperspb.StringValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).ExportTLSCertificates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpc.Bridge/ExportTLSCertificates",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).ExportTLSCertificates(ctx, req.(*wrapperspb.StringValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Bridge_RunEventStream_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(EventStreamRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -2134,10 +2200,6 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Bridge_ReportBug_Handler,
 		},
 		{
-			MethodName: "ExportTLSCertificates",
-			Handler:    _Bridge_ExportTLSCertificates_Handler,
-		},
-		{
 			MethodName: "ForceLauncher",
 			Handler:    _Bridge_ForceLauncher_Handler,
 		},
@@ -2260,6 +2322,18 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "KBArticleClicked",
 			Handler:    _Bridge_KBArticleClicked_Handler,
+		},
+		{
+			MethodName: "IsTLSCertificateInstalled",
+			Handler:    _Bridge_IsTLSCertificateInstalled_Handler,
+		},
+		{
+			MethodName: "InstallTLSCertificate",
+			Handler:    _Bridge_InstallTLSCertificate_Handler,
+		},
+		{
+			MethodName: "ExportTLSCertificates",
+			Handler:    _Bridge_ExportTLSCertificates_Handler,
 		},
 		{
 			MethodName: "StopEventStream",

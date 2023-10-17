@@ -23,13 +23,14 @@ Item {
     property int _detailsMargin: 25
     property int _lineThickness: 1
     property int _spacing: 20
+    property int _buttonSpacing: 8
     property int _topMargin: 32
     property ColorScheme colorScheme
     property var notifications
     property var user
 
-    signal showSetupGuide(var user, string address)
-    signal showSignIn
+    signal showClientConfigurator(var user, string address, bool justLoggedIn)
+    signal showLogin(var username)
 
     Rectangle {
         anchors.fill: parent
@@ -63,7 +64,7 @@ Item {
                             // account delegate with action buttons
                             Layout.fillWidth: true
                             Layout.topMargin: _topMargin
-
+                            spacing: _buttonSpacing
                             AccountDelegate {
                                 Layout.fillWidth: true
                                 colorScheme: root.colorScheme
@@ -92,9 +93,9 @@ Item {
                                 visible: root.user ? (root.user.state === EUserState.SignedOut) : false
 
                                 onClicked: {
-                                    if (!root.user)
-                                        return;
-                                    root.showSignIn();
+                                    if (user) {
+                                        root.showLogin(user.primaryEmailOrUsername());
+                                    }
                                 }
                             }
                             Button {
@@ -118,18 +119,18 @@ Item {
                         }
                         SettingsItem {
                             Layout.fillWidth: true
-                            actionText: qsTr("Configure")
+                            actionText: qsTr("Configure email client")
                             colorScheme: root.colorScheme
                             description: qsTr("Using the mailbox details below (re)configure your client.")
                             showSeparator: splitMode.visible
                             text: qsTr("Email clients")
-                            type: SettingsItem.Button
-                            visible: _connected && (!root.user.splitMode) || (root.user.addresses.length === 1)
+                            type: SettingsItem.PrimaryButton
+                            visible: _connected && ((!root.user.splitMode) || (root.user.addresses.length === 1))
 
                             onClicked: {
                                 if (!root.user)
                                     return;
-                                root.showSetupGuide(root.user, user.addresses[0]);
+                                root.showClientConfigurator(root.user, user.addresses[0], false);
                             }
                         }
                         SettingsItem {
@@ -165,13 +166,13 @@ Item {
                             }
                             Button {
                                 colorScheme: root.colorScheme
-                                secondary: true
-                                text: qsTr("Configure")
+                                secondary: false
+                                text: qsTr("Configure email client")
 
                                 onClicked: {
                                     if (!root.user)
                                         return;
-                                    root.showSetupGuide(root.user, addressSelector.displayText);
+                                    root.showClientConfigurator(root.user, addressSelector.displayText, false);
                                 }
                             }
                         }

@@ -56,7 +56,6 @@ service Bridge {
   rpc ColorSchemeName(google.protobuf.Empty) returns (google.protobuf.StringValue); // TODO Color scheme should probably entirely be managed by the client.
   rpc CurrentEmailClient(google.protobuf.Empty) returns (google.protobuf.StringValue);
   rpc ReportBug(ReportBugRequest) returns (google.protobuf.Empty);
-  rpc ExportTLSCertificates(google.protobuf.StringValue) returns (google.protobuf.Empty);
   rpc ForceLauncher(google.protobuf.StringValue) returns (google.protobuf.Empty);
   rpc SetMainExecutable(google.protobuf.StringValue) returns (google.protobuf.Empty);
 
@@ -102,6 +101,11 @@ service Bridge {
   rpc ReportBugClicked(google.protobuf.Empty) returns (google.protobuf.Empty);
   rpc AutoconfigClicked(google.protobuf.StringValue) returns (google.protobuf.Empty);
   rpc KBArticleClicked(google.protobuf.StringValue) returns (google.protobuf.Empty);
+
+  // TLS certificate related calls
+  rpc IsTLSCertificateInstalled(google.protobuf.Empty) returns (google.protobuf.BoolValue);
+  rpc InstallTLSCertificate(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc ExportTLSCertificates(google.protobuf.StringValue) returns (google.protobuf.Empty);
 
   // Server -> Client event stream
   rpc RunEventStream(EventStreamRequest) returns (stream StreamEvent); // Keep streaming until StopEventStream is called.
@@ -262,6 +266,9 @@ message AppEvent {
     ReportBugErrorEvent reportBugError = 6;
     ShowMainWindowEvent showMainWindow = 7;
     ReportBugFallbackEvent reportBugFallback = 8;
+    CertificateInstallSuccessEvent certificateInstallSuccess = 9;
+    CertificateInstallCanceledEvent certificateInstallCanceled = 10;
+    CertificateInstallFailedEvent certificateInstallFailed = 11;
   }
 }
 
@@ -276,6 +283,9 @@ message ReportBugSuccessEvent {}
 message ReportBugErrorEvent {}
 message ShowMainWindowEvent {}
 message ReportBugFallbackEvent {}
+message CertificateInstallSuccessEvent {}
+message CertificateInstallCanceledEvent {}
+message CertificateInstallFailedEvent {}
 
 //**********************************************************
 // Login related events
@@ -309,7 +319,9 @@ message LoginTfaRequestedEvent {
   string username = 1;
 }
 
-message LoginTwoPasswordsRequestedEvent {}
+message LoginTwoPasswordsRequestedEvent {
+  string username = 1;
+}
 
 message LoginFinishedEvent {
   string userID = 1;

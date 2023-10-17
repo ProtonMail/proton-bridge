@@ -262,7 +262,7 @@ void UserList::onUsedBytesChanged(QString const &userID, qint64 usedBytes) {
 void UserList::onSyncStarted(QString const &userID) {
     int const index = this->rowOfUserID(userID);
     if (index < 0) {
-        app().log().error(QString("Received onSyncStarted event for unknown userID %1").arg(userID));
+        app().log().error(QString("Received syncStarted event for unknown userID %1").arg(userID));
         return;
     }
     users_[index]->setIsSyncing(true);
@@ -275,7 +275,7 @@ void UserList::onSyncStarted(QString const &userID) {
 void UserList::onSyncFinished(QString const &userID) {
     int const index = this->rowOfUserID(userID);
     if (index < 0) {
-        app().log().error(QString("Received onSyncFinished event for unknown userID %1").arg(userID));
+        app().log().error(QString("Received syncFinished event for unknown userID %1").arg(userID));
         return;
     }
     users_[index]->setIsSyncing(false);
@@ -293,7 +293,7 @@ void UserList::onSyncProgress(QString const &userID, double progress, float elap
     Q_UNUSED(remainingMs)
     int const index = this->rowOfUserID(userID);
     if (index < 0) {
-        app().log().error(QString("Received onSyncFinished event for unknown userID %1").arg(userID));
+        app().log().error(QString("Received syncProgress event for unknown userID %1").arg(userID));
         return;
     }
     users_[index]->setSyncProgress(progress);

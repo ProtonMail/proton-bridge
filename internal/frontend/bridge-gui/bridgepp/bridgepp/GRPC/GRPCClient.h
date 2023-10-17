@@ -78,7 +78,6 @@ public: // member functions.
     grpc::Status setColorSchemeName(QString const &name); ///< Performs the "setColorSchemeName' gRPC call.
     grpc::Status currentEmailClient(QString &outName); ///< Performs the 'currentEmailClient' gRPC call.
     grpc::Status reportBug(QString const &category, QString const &description, QString const &address, QString const &emailClient, bool includeLogs); ///< Performs the 'ReportBug' gRPC call.
-    grpc::Status exportTLSCertificates(QString const &folderPath); ///< Performs the 'ExportTLSCertificates' gRPC call.
     grpc::Status quit(); ///< Perform the "Quit" gRPC call.
     grpc::Status restart(); ///< Performs the Restart gRPC call.
     grpc::Status triggerReset(); ///< Performs the triggerReset gRPC call.
@@ -103,6 +102,9 @@ signals: // app related signals
     void reportBugSuccess();
     void reportBugError();
     void reportBugFallback();
+    void certificateInstallSuccess();
+    void certificateInstallCanceled();
+    void certificateInstallFailed();
     void showMainWindow();
 
     // cache related calls
@@ -144,10 +146,10 @@ signals:
     void loginUsernamePasswordError(QString const &errMsg);
     void loginFreeUserError();
     void loginConnectionError(QString const &errMsg);
-    void login2FARequested(QString const &userName);
+    void login2FARequested(QString const &username);
     void login2FAError(QString const &errMsg);
     void login2FAErrorAbort(QString const &errMsg);
-    void login2PasswordRequested();
+    void login2PasswordRequested(QString const &username);
     void login2PasswordError(QString const &errMsg);
     void login2PasswordErrorAbort(QString const &errMsg);
     void loginFinished(QString const &userID, bool wasSignedOut);
@@ -200,6 +202,11 @@ public: // keychain related calls
     grpc::Status availableKeychains(QStringList &outKeychains);
     grpc::Status currentKeychain(QString &outKeychain);
     grpc::Status setCurrentKeychain(QString const &keychain);
+
+public: // cert related calls
+    grpc::Status isTLSCertificateInstalled(bool &outIsInstalled); ///< Perform the 'IsTLSCertificateInstalled' gRPC call.
+    grpc::Status installTLSCertificate(); ///< Perform the 'InstallTLSCertificate' gRPC call.
+    grpc::Status exportTLSCertificates(QString const &folderPath); ///< Performs the 'ExportTLSCertificates' gRPC call.
 
 signals:
     void changeKeychainFinished();

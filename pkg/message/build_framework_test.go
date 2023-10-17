@@ -64,12 +64,20 @@ func newTestMessageWithHeaders(
 
 func newRawTestMessageWithHeaders(messageID, addressID, mimeType, body string, date time.Time, headers map[string][]string) proton.Message {
 	msgHeaders := proton.Headers{
-		"Content-Type": {mimeType},
-		"Date":         {date.In(time.UTC).Format(time.RFC1123Z)},
+		Values: map[string][]string{
+			"Content-Type": {mimeType},
+			"Date":         {date.In(time.UTC).Format(time.RFC1123Z)},
+		},
+		Order: []string{"Content-Type", "Date"},
 	}
 
 	for k, v := range headers {
-		msgHeaders[k] = v
+		_, ok := msgHeaders.Values[k]
+		if !ok {
+			msgHeaders.Order = append(msgHeaders.Order, k)
+		}
+
+		msgHeaders.Values[k] = v
 	}
 
 	return proton.Message{
@@ -98,9 +106,12 @@ func addTestAttachment(
 		Name:     name,
 		MIMEType: rfc822.MIMEType(mimeType),
 		Headers: proton.Headers{
-			"Content-Type":              {mimeType},
-			"Content-Disposition":       {disposition},
-			"Content-Transfer-Encoding": {"base64"},
+			Values: map[string][]string{
+				"Content-Type":              {mimeType},
+				"Content-Disposition":       {disposition},
+				"Content-Transfer-Encoding": {"base64"},
+			},
+			Order: []string{"Content-Type", "Content-Disposition", "Content-Transfer-Encoding"},
 		},
 		Disposition: proton.Disposition(disposition),
 		KeyPackets:  base64.StdEncoding.EncodeToString(enc.GetBinaryKeyPacket()),

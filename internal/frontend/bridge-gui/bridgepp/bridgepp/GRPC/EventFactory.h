@@ -34,12 +34,15 @@ SPStreamEvent newResetFinishedEvent(); ///< Create a new ResetFinishedEvent even
 SPStreamEvent newReportBugFinishedEvent(); ///< Create a new ReportBugFinishedEvent event.
 SPStreamEvent newReportBugSuccessEvent(); ///< Create a new ReportBugSuccessEvent event.
 SPStreamEvent newReportBugErrorEvent(); ///< Create a new ReportBugErrorEvent event.
+SPStreamEvent newCertificateInstallSuccessEvent(); ///< Create a new CertificateInstallSuccessEvent event.
+SPStreamEvent newCertificateInstallCanceledEvent(); ///< Create a new CertificateInstallCanceledEvent event.
+SPStreamEvent newCertificateInstallFailedEvent(); ///< Create anew CertificateInstallFailedEvent event.
 SPStreamEvent newShowMainWindowEvent(); ///< Create a new ShowMainWindowEvent event.
 
 // Login events
 SPStreamEvent newLoginError(grpc::LoginErrorType error, QString const &message); ///< Create a new LoginError event.
 SPStreamEvent newLoginTfaRequestedEvent(QString const &username); ///< Create a new LoginTfaRequestedEvent event.
-SPStreamEvent newLoginTwoPasswordsRequestedEvent(); ///< Create a new LoginTwoPasswordsRequestedEvent event.
+SPStreamEvent newLoginTwoPasswordsRequestedEvent(QString const &username); ///< Create a new LoginTwoPasswordsRequestedEvent event.
 SPStreamEvent newLoginFinishedEvent(QString const &userID, bool wasSignedOut); ///< Create a new LoginFinishedEvent event.
 SPStreamEvent newLoginAlreadyLoggedInEvent(QString const &userID); ///< Create a new LoginAlreadyLoggedInEvent event.
 

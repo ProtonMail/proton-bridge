@@ -24,7 +24,8 @@ Item {
 
     signal closeWindow
     signal quitBridge
-    signal showSetupGuide(var user, string address)
+    signal showClientConfigurator(var user, string address, bool justLoggedIn)
+    signal showLogin(var username)
 
     function selectUser(userID) {
         const users = Backend.users;
@@ -35,10 +36,13 @@ Item {
             }
             accounts.currentIndex = i;
             if (user.state === EUserState.SignedOut)
-                showSignIn(user.primaryEmailOrUsername());
+                showLogin(user.primaryEmailOrUsername());
             return;
         }
         console.error("User with ID ", userID, " was not found in the account list");
+    }
+    function showBugReport() {
+        rightContent.showBugReport();
     }
     function showHelp() {
         rightContent.showHelpView();
@@ -49,9 +53,9 @@ Item {
     function showSettings() {
         rightContent.showGeneralSettings();
     }
-    function showSignIn(username) {
-        signIn.username = username;
-        rightContent.showSignIn();
+
+    function hasAccount() {
+        return Backend.users.count > 0
     }
 
     RowLayout {
@@ -190,6 +194,41 @@ Item {
                     Layout.minimumHeight: 1
                     color: leftBar.colorScheme.border_weak
                 }
+                Item {
+                    id: noAccountBox
+
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.topMargin: 24
+                    visible: !hasAccount()
+
+                    ColumnLayout {
+                        anchors.fill: parent
+                         spacing: 8
+
+                        Label {
+                            colorScheme: leftBar.colorScheme
+                            color: colorScheme.text_weak
+                            Layout.alignment: Qt.AlignHCenter
+                            text: qsTr("No accounts")
+                        }
+                        Button {
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 16
+                            Layout.rightMargin: 16
+                            colorScheme: leftBar.colorScheme
+                            text: qsTr("Add an account")
+                            secondary: true
+                            onClicked: root.showLogin("")
+                        }
+                        Item {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                        }
+                    }
+                }
+
+
                 ListView {
                     id: accounts
 
@@ -206,7 +245,7 @@ Item {
                     clip: true
                     model: Backend.users
                     spacing: 12
-
+                    visible: hasAccount()
                     delegate: Item {
                         implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
                         implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
@@ -233,8 +272,7 @@ Item {
                                 if (user.state !== EUserState.SignedOut) {
                                     rightContent.showAccount();
                                 } else {
-                                    signIn.username = user.primaryEmailOrUsername();
-                                    rightContent.showSignIn();
+                                    showLogin(user.primaryEmailOrUsername());
                                 }
                             }
                         }
@@ -282,8 +320,7 @@ Item {
                         width: 36
 
                         onClicked: {
-                            signIn.username = "";
-                            rightContent.showSignIn();
+                            root.showLogin("");
                         }
                     }
                 }
@@ -323,64 +360,41 @@ Item {
                 function showPortSettings() {
                     rightContent.currentIndex = 4;
                 }
-                function showSignIn() {
-                    rightContent.currentIndex = 1;
-                    signIn.focus = true;
-                }
 
                 anchors.fill: parent
 
-                AccountView {
+                StackLayout {
                     // 0
-                    colorScheme: root.colorScheme
-                    notifications: root.notifications
-                    user: {
-                        if (accounts.currentIndex < 0)
-                            return undefined;
-                        if (Backend.users.count === 0)
-                            return undefined;
-                        return Backend.users.get(accounts.currentIndex);
-                    }
-
-                    onShowSetupGuide: function (user, address) {
-                        root.showSetupGuide(user, address);
-                    }
-                    onShowSignIn: {
-                        const user = this.user;
-                        signIn.username = user ? user.primaryEmailOrUsername() : "";
-                        rightContent.showSignIn();
-                    }
-                }
-                GridLayout {
-                    // 1 Sign In
-                    columns: 2
-
-                    Button {
-                        id: backButton
-                        Layout.alignment: Qt.AlignTop
-                        Layout.leftMargin: 18
-                        Layout.topMargin: 10
+                    currentIndex: hasAccount() ? 1 : 0
+                    NoAccountView {
                         colorScheme: root.colorScheme
-                        horizontalPadding: 8
-                        icon.source: "/qml/icons/ic-arrow-left.svg"
-                        secondary: true
-
-                        onClicked: {
-                            signIn.abort();
-                            rightContent.showAccount();
+                        onLinkClicked: function() {
+                            root.showLogin("")
                         }
                     }
-                    SignIn {
-                        id: signIn
-                        Layout.bottomMargin: 68
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
-                        Layout.leftMargin: 80 - backButton.width - 18
-                        Layout.preferredWidth: 320
-                        Layout.rightMargin: 80
-                        Layout.topMargin: 68
+                    AccountView {
                         colorScheme: root.colorScheme
+                        notifications: root.notifications
+                        user: {
+                            if (accounts.currentIndex < 0)
+                                return undefined;
+                            if (Backend.users.count === 0)
+                                return undefined;
+                            return Backend.users.get(accounts.currentIndex);
+                        }
+
+                        onShowClientConfigurator: function (user, address, justLoggedIn) {
+                            root.showClientConfigurator(user, address, justLoggedIn);
+                        }
+                        onShowLogin: function (username) {
+                            root.showLogin(username);
+                        }
                     }
+                }
+                Rectangle {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    color: "#ff9900"
                 }
                 GeneralSettings {
                     // 2

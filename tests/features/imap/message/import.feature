@@ -21,9 +21,19 @@ Feature: IMAP import messages
       Hello
       """
     Then it succeeds
-    And IMAP client "1" eventually sees the following messages in "INBOX":
-      | from               | to                     | subject                  | body  |
-      | bridgetest@pm.test | bridgetest@example.com | Basic text/plain message | Hello |
+    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
+      """
+      {
+        "from": "Bridge Test <bridgetest@pm.test>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Internal Bridge <bridgetest@example.com>",
+        "subject": "Basic text/plain message",
+        "content": {
+          "content-type": "text/plain",
+          "body-is": "Hello"
+        }
+      }
+      """
 
   Scenario: Import message with double charset in content type
     When IMAP client "1" appends the following message to "INBOX":
@@ -39,9 +49,22 @@ Feature: IMAP import messages
       Hello
       """
     Then it succeeds
-    And IMAP client "1" eventually sees the following messages in "INBOX":
-      | from               | to                     | subject                                     | body  |
-      | bridgetest@pm.test | bridgetest@example.com | Message with double charset in content type | Hello |
+    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
+      """
+      {
+        "from": "Bridge Test <bridgetest@pm.test>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Internal Bridge <bridgetest@example.com>",
+        "subject": "Message with double charset in content type",
+        "content": {
+          "content-type": "text/plain",
+          "content-type-charset": "utf-8",
+          "content-disposition": "",
+          "transfer-encoding": "quoted-printable",
+          "body-is": "Hello"
+        }
+      }
+      """
 
 
   Scenario: Import message with attachment name encoded by RFC 2047 without quoting
@@ -69,31 +92,87 @@ Feature: IMAP import messages
 
       """
     Then it succeeds
+#    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
+#      """
+#      {
+#        "from": "Bridge Test <bridgetest@pm.test>",
+#        "date": "01 Jan 80 00:00 +0000",
+#        "to": "Internal Bridge <bridgetest@protonmail.com>",
+#        "subject": "Message with attachment name encoded by RFC 2047 without quoting",
+#        "body-contains": "Hello",
+#        "content": {
+#          "content-type": "multipart/mixed; boundary=\"boundary\"",
+#          "sections":[
+#            {
+#              "content-type": "text/plain",
+#              "body-is": "Hello"
+#            },
+#            {
+#              "content-type": "application/pdf",
+#              "content-type-name": "=?US-ASCII?Q?filename?=",
+#              "content-disposition": "attachment",
+#              "content-disposition-filename": "=?US-ASCII?Q?filename?=",
+#              "body-is": "somebytes"
+#            }
+#          ]
+#        }
+#      }
+#      """
 
 
   # The message is imported as UTF-8 and the content type is determined at build time.
   Scenario: Import message as latin1 without content type
     When IMAP client "1" appends "plain/text_plain_unknown_latin1.eml" to "INBOX"
     Then it succeeds
-    And IMAP client "1" eventually sees the following messages in "INBOX":
-      | from         | to             | body    |
-      | sender@pm.me | receiver@pm.me | ééééééé |
+    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
+      """
+      {
+        "from": "Sender <sender@pm.me>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Receiver <receiver@pm.me>",
+        "content": {
+          "content-type": "text/plain",
+          "body-is": "ééééééé"
+        }
+      }
+      """
 
   # The message is imported and the body is converted to UTF-8.
   Scenario: Import message as latin1 with content type
     When IMAP client "1" appends "plain/text_plain_latin1.eml" to "INBOX"
     Then it succeeds
-    And IMAP client "1" eventually sees the following messages in "INBOX":
-      | from         | to             | body    |
-      | sender@pm.me | receiver@pm.me | ééééééé |
+    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
+      """
+      {
+        "from": "Sender <sender@pm.me>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Receiver <receiver@pm.me>",
+        "content": {
+          "content-type": "text/plain",
+          "content-type-charset": "utf-8",
+          "body-is": "ééééééé"
+        }
+      }
+      """
+
 
   # The message is imported anad the body is wrongly converted (body is corrupted).
   Scenario: Import message as latin1 with wrong content type
     When IMAP client "1" appends "plain/text_plain_wrong_latin1.eml" to "INBOX"
     Then it succeeds
-    And IMAP client "1" eventually sees the following messages in "INBOX":
-      | from         | to             |
-      | sender@pm.me | receiver@pm.me |
+    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
+      """
+      {
+        "from": "Sender <sender@pm.me>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Receiver <receiver@pm.me>",
+        "content": {
+          "content-type": "text/plain",
+          "content-type-charset": "utf-8",
+          "body-is": ""
+        }
+      }
+      """
 
   Scenario: Import received message to Sent
     When IMAP client "1" appends the following message to "Sent":
@@ -107,9 +186,19 @@ Feature: IMAP import messages
       Hello
       """
     Then it succeeds
-    And IMAP client "1" eventually sees the following messages in "Sent":
-      | from            | to                 | subject | body  |
-      | foo@example.com | bridgetest@pm.test | Hello   | Hello |
+    And IMAP client "1" eventually sees the following message in "Sent" with this structure:
+      """
+      {
+        "from": "Foo <foo@example.com>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Bridge Test <bridgetest@pm.test>",
+        "subject": "Hello",
+        "content": {
+          "content-type": "text/plain",
+          "body-is": "Hello"
+        }
+      }
+      """
     And IMAP client "1" eventually sees 0 messages in "Inbox"
 
   Scenario: Import non-received message to Inbox
@@ -123,10 +212,21 @@ Feature: IMAP import messages
       Hello
       """
     Then it succeeds
-    And IMAP client "1" eventually sees the following messages in "INBOX":
-      | from            | to                 | subject | body  |
-      | foo@example.com | bridgetest@pm.test | Hello   | Hello |
+    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
+      """
+      {
+        "from": "Foo <foo@example.com>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Bridge Test <bridgetest@pm.test>",
+        "subject": "Hello",
+        "content": {
+          "content-type": "text/plain",
+          "body-is": "Hello"
+        }
+      }
+      """
     And IMAP client "1" eventually sees 0 messages in "Sent"
+
 
   Scenario: Import non-received message to Sent
     When IMAP client "1" appends the following message to "Sent":
@@ -139,10 +239,20 @@ Feature: IMAP import messages
       Hello
       """
     Then it succeeds
-    And IMAP client "1" eventually sees the following messages in "Sent":
-      | from            | to                 | subject | body  |
-      | foo@example.com | bridgetest@pm.test | Hello   | Hello |
     And IMAP client "1" eventually sees 0 messages in "Inbox"
+    And IMAP client "1" eventually sees the following message in "Sent" with this structure:
+      """
+      {
+        "from": "Foo <foo@example.com>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Bridge Test <bridgetest@pm.test>",
+        "subject": "Hello",
+        "content": {
+          "content-type": "text/plain",
+          "body-is": "Hello"
+        }
+      }
+      """
 
   Scenario Outline: Import message without sender to <mailbox>
     When IMAP client "1" appends the following message to "<mailbox>":
@@ -155,15 +265,52 @@ Feature: IMAP import messages
       Nope.
       """
     Then it succeeds
-    And IMAP client "1" eventually sees the following messages in "<mailbox>":
-      | to                | subject                              | body  |
-      | lionel@richie.com | RE: Hello, is it me you looking for? | Nope. |
-
+    And IMAP client "1" eventually sees the following message in "<mailbox>" with this structure:
+      """
+      {
+        "from": "Somebody@somewhere.org",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Lionel Richie <lionel@richie.com>",
+        "subject": "RE: Hello, is it me you looking for?",
+        "content": {
+          "content-type": "text/plain",
+          "content-type-charset":"utf-8",
+          "transfer-encoding":"quoted-printable",
+          "body-is": "Nope."
+        }
+      }
+      """
     Examples:
       | mailbox |
-      | Drafts  |
       | Archive |
       | Sent    |
+
+  Scenario: Import message without sender to Drafts
+    When IMAP client "1" appends the following message to "Drafts":
+      """
+      From: Somebody@somewhere.org
+      Date: 01 Jan 1980 00:00:00 +0000
+      To: Lionel Richie <lionel@richie.com>
+      Subject: RE: Hello, is it me you looking for?
+
+      Nope.
+      """
+    Then it succeeds
+    And IMAP client "1" eventually sees the following message in "Drafts" with this structure:
+      """
+      {
+        "date": "01 Jan 01 00:00 +0000",
+        "to": "Lionel Richie <lionel@richie.com>",
+        "subject": "RE: Hello, is it me you looking for?",
+        "content": {
+          "content-type": "text/plain",
+          "content-type-charset":"utf-8",
+          "transfer-encoding":"quoted-printable",
+          "body-is": "Nope."
+        }
+      }
+      """
+
 
   Scenario: Import embedded message
     When IMAP client "1" appends the following message to "INBOX":
@@ -175,11 +322,21 @@ Feature: IMAP import messages
       Content-Type: multipart/mixed; boundary="boundary"
       Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
 
+      --boundary
+
       This is a multi-part message in MIME format.
+
       --boundary
       Content-Type: text/plain; charset=utf-8
       Content-Transfer-Encoding: 7bit
 
+      Hello
+
+      --boundary
+      Content-Type: text/html; charset=utf-8
+      Content-Transfer-Encoding: 7bit
+
+      <h1> HELLO </h1>
 
       --boundary
       Content-Type: message/rfc822; name="embedded.eml"
@@ -198,3 +355,41 @@ Feature: IMAP import messages
 
       """
     Then it succeeds
+    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
+      """
+      {
+        "from": "Foo <foo@example.com>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Bridge Test <bridgetest@pm.test>",
+        "subject": "Embedded message",
+        "body-contains": "Hello",
+        "content": {
+          "content-type": "multipart/mixed",
+          "sections":[
+            {
+              "body-is": "This is a multi-part message in MIME format."
+            },
+            {
+              "content-type": "text/plain",
+              "content-type-charset": "utf-8",
+              "transfer-encoding": "7bit",
+              "body-is": "Hello"
+            },
+            {
+              "content-type": "text/html",
+              "content-type-charset": "utf-8",
+              "transfer-encoding": "7bit",
+              "body-contains": "HELLO"
+            },
+            {
+              "content-type": "message/rfc822",
+              "content-type-name": "embedded.eml",
+              "transfer-encoding": "7bit",
+              "content-disposition": "attachment",
+              "content-disposition-filename": "embedded.eml",
+              "body-is": "From: Bar <bar@example.com>\nTo: Bridge Test <bridgetest@pm.test>\nSubject: (No Subject)\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: quoted-printable\n\nhello"
+            }
+          ]
+        }
+      }
+      """

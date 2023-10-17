@@ -535,7 +535,7 @@ func getContactSettings(
 		return proton.ContactSettings{}, fmt.Errorf("failed to get contact: %w", err)
 	}
 
-	return contact.GetSettings(userKR, recipient)
+	return contact.GetSettings(userKR, recipient, proton.CardTypeSigned)
 }
 
 func getMessageSender(parser *parser.Parser) (string, bool) {

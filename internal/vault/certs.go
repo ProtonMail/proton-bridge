@@ -66,16 +66,6 @@ func (vault *Vault) SetBridgeTLSCertKey(cert, key []byte) error {
 	})
 }
 
-func (vault *Vault) GetCertsInstalled() bool {
-	return vault.getSafe().Certs.Installed
-}
-
-func (vault *Vault) SetCertsInstalled(installed bool) error {
-	return vault.modSafe(func(data *Data) {
-		data.Certs.Installed = installed
-	})
-}
-
 func readPEMCert(certPEMPath, keyPEMPath string) ([]byte, []byte, error) {
 	certPEM, err := os.ReadFile(filepath.Clean(certPEMPath))
 	if err != nil {

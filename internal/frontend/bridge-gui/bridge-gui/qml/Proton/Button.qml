@@ -23,11 +23,13 @@ T.Button {
     property bool borderless: false
     property ColorScheme colorScheme
     readonly property bool hasTextAndIcon: (control.text !== "") && (iconImage.source.toString().length > 0)
+    property bool iconOnTheLeft: false
     readonly property bool isIcon: control.text === ""
     property int labelType: Proton.Label.LabelType.Body
     property bool loading: false
     readonly property bool primary: !secondary
     property alias secondary: control.flat
+    property bool secondaryIsOpaque: false
     property alias textHorizontalAlignment: label.horizontalAlignment
     property alias textVerticalAlignment: label.verticalAlignment
 
@@ -77,7 +79,7 @@ T.Button {
                     if (control.loading) {
                         return control.colorScheme.interaction_default_hover;
                     }
-                    return control.colorScheme.interaction_default;
+                    return secondaryIsOpaque ? control.colorScheme.background_norm : control.colorScheme.interaction_default;
                 }
             } else {
                 if (primary) {
@@ -103,7 +105,7 @@ T.Button {
                     if (control.loading) {
                         return control.colorScheme.interaction_default_hover;
                     }
-                    return control.colorScheme.interaction_default;
+                    return secondaryIsOpaque ? control.colorScheme.background_norm : control.colorScheme.interaction_default;
                 }
             }
         }
@@ -115,6 +117,7 @@ T.Button {
     }
     contentItem: RowLayout {
         id: _contentItem
+        layoutDirection: iconOnTheLeft ? Qt.RightToLeft : Qt.LeftToRight
         spacing: control.hasTextAndIcon ? control.spacing : 0
 
         Proton.Label {
@@ -128,12 +131,13 @@ T.Button {
                     return control.colorScheme.text_norm;
                 }
             }
-            colorScheme: root.colorScheme
+            colorScheme: control.colorScheme
             elide: Text.ElideRight
             horizontalAlignment: Qt.AlignHCenter
             opacity: control.enabled || control.loading ? 1.0 : 0.5
             text: control.text
             type: labelType
+            verticalAlignment: Text.AlignVCenter
             visible: !control.isIcon
         }
         ColorImage {

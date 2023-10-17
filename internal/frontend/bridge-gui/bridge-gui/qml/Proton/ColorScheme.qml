@@ -48,6 +48,7 @@ QtObject {
     property color interaction_weak_active
     property color interaction_weak_hover
     property string logo_img
+    property string mail_logo_with_wordmark
 
     // Primary
     property color primary_norm
@@ -82,7 +83,4 @@ QtObject {
     // Text
     property color text_norm
     property color text_weak
-
-    // Images
-    property string welcome_img
 }

@@ -20,21 +20,21 @@ import "."
 QtObject {
     id: root
 
-    property real account_hover_radius: 12 * root.px // px
-    property real account_row_radius: 12 * root.px // px
-    property real avatar_radius: 8 * root.px // px
-    property real banner_radius: 12 * root.px // px
-    property real big_avatar_radius: 12 * root.px // px
+    property int account_hover_radius: 12
+    property int account_row_radius: 12
+    property int avatar_radius: 8
+    property int banner_radius: 12
+    property int big_avatar_radius: 12
     property int body_font_size: 14
-    property real body_letter_spacing: 0.2 * root.px
+    property real body_letter_spacing: 0.2
     property int body_line_height: 20
-    property real button_radius: 8 * root.px // px
+    property int button_radius: 8
     property int caption_font_size: 12
-    property real caption_letter_spacing: 0.4 * root.px
+    property real caption_letter_spacing: 0.4
     property int caption_line_height: 16
-    property real card_radius: 12 * root.px // px
-    property real checkbox_radius: 4 * root.px // px
-    property real context_item_radius: 8 * root.px // px
+    property int card_radius: 12
+    property int checkbox_radius: 4
+    property int context_item_radius: 8
     property ColorScheme currentStyle: lightStyle
     property ColorScheme darkProminentStyle: ColorScheme {
         id: _darkProminentStyle
@@ -72,6 +72,7 @@ QtObject {
         interaction_weak_active: "#6D697D"
         interaction_weak_hover: "#5B576B"
         logo_img: "/qml/icons/product_logos_dark.svg"
+        mail_logo_with_wordmark: "/qml/icons/img-mail-logo-wordmark-dark.svg"
 
         // Primary
         primary_norm: "#8A6EFF"
@@ -105,9 +106,6 @@ QtObject {
         // Text
         text_norm: "#FFFFFF"
         text_weak: "#A7A4B5"
-
-        // Images
-        welcome_img: "/qml/icons/img-welcome-dark.png"
     }
     property ColorScheme darkStyle: ColorScheme {
         id: _darkStyle
@@ -145,6 +143,7 @@ QtObject {
         interaction_weak_active: "#6D697D"
         interaction_weak_hover: "#5B576B"
         logo_img: "/qml/icons/product_logos_dark.svg"
+        mail_logo_with_wordmark: "/qml/icons/img-mail-logo-wordmark-dark.svg"
 
         // Primary
         primary_norm: "#8A6EFF"
@@ -178,11 +177,8 @@ QtObject {
         // Text
         text_norm: "#FFFFFF"
         text_weak: "#A7A4B5"
-
-        // Images
-        welcome_img: "/qml/icons/img-welcome-dark.png"
     }
-    property real dialog_radius: 12 * root.px // px
+    property int dialog_radius: 12
     property int fontWeight_100: Font.Thin
     property int fontWeight_200: Font.Light
     property int fontWeight_300: Font.ExtraLight
@@ -206,7 +202,7 @@ QtObject {
     }
     property int heading_font_size: 28
     property int heading_line_height: 36
-    property real input_radius: 8 * root.px // px
+    property int input_radius: 8
     property int lead_font_size: 18
     property int lead_line_height: 26
     property ColorScheme lightProminentStyle: ColorScheme {
@@ -245,6 +241,7 @@ QtObject {
         interaction_weak_active: "#8A6EFF"
         interaction_weak_hover: "#6D4AFF"
         logo_img: "/qml/icons/product_logos_dark.svg"
+        mail_logo_with_wordmark: "/qml/icons/img-mail-logo-wordmark-dark.svg"
 
         // Primary
         primary_norm: "#8A6EFF"
@@ -278,9 +275,6 @@ QtObject {
         // Text
         text_norm: "#FFFFFF"
         text_weak: "#9282D4"
-
-        // Images
-        welcome_img: "/qml/icons/img-welcome-dark.png"
     }
     // TODO: Once we will use Qt >=5.15 this should be refactored with inline components as follows:
     // https://doc.qt.io/qt-5/qtqml-documents-definetypes.html#inline-components
@@ -325,6 +319,7 @@ QtObject {
         interaction_weak_active: "#A8A6A3"
         interaction_weak_hover: "#C2BFBC"
         logo_img: "/qml/icons/product_logos.svg"
+        mail_logo_with_wordmark: "/qml/icons/img-mail-logo-wordmark.svg"
 
         // Primary
         primary_norm: "#6D4AFF"
@@ -358,13 +353,35 @@ QtObject {
         // Text
         text_norm: "#0C0C14"
         text_weak: "#706D6B"
-
-        // Images
-        welcome_img: "/qml/icons/img-welcome.png"
     }
-    property real progress_bar_radius: 3 * root.px // px
-    property real px: 1.00 // px
+    property int progress_bar_radius: 3
     property int title_font_size: 20
     property int title_line_height: 24
-    property real tooltip_radius: 8 * root.px // px
+    property int tooltip_radius: 8
+
+    // WebView overlay styling
+    property int web_view_button_width: 320
+    property int web_view_corner_radius: 10
+    property int web_view_overlay_button_vertical_margin: 10
+    property int web_view_overlay_horizontal_padding: 10
+    property int web_view_overlay_horizontal_margin: 250
+    property int web_view_overlay_vertical_margin: 50
+    property real web_view_overlay_opacity: 0.6
+    property int web_view_overlay_vertical_padding: web_view_corner_radius
+    property int web_view_overley_border_width: 1
+
+    property int window_default_height: 780
+    property int window_default_width: 1080
+    property int window_minimum_height: 650
+    property int window_minimum_width: window_default_width
+
+    // setup wizard  constant
+    property int wizard_pane_bottomMargin: 92
+    property int wizard_pane_width: 364
+    property int wizard_window_margin: 40
+    property int wizard_spacing_extra_large: 32
+    property int wizard_spacing_extra_small: 4
+    property int wizard_spacing_large: 24
+    property int wizard_spacing_medium: 16
+    property int wizard_spacing_small: 8
 }

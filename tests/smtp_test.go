@@ -18,6 +18,7 @@
 package tests
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/smtp"
 	"os"
@@ -84,8 +85,8 @@ func (s *scenario) smtpClientCannotAuthenticateWithIncorrectUsername(clientID st
 
 func (s *scenario) smtpClientCannotAuthenticateWithIncorrectPassword(clientID string) error {
 	userID, client := s.t.getSMTPClient(clientID)
-
-	if err := client.Auth(smtp.PlainAuth("", s.t.getUserByID(userID).getEmails()[0], s.t.getUserByID(userID).getBridgePass()+"bad", constants.Host)); err == nil {
+	badPass := base64.StdEncoding.EncodeToString([]byte("bad_password"))
+	if err := client.Auth(smtp.PlainAuth("", s.t.getUserByID(userID).getEmails()[0], badPass, constants.Host)); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 

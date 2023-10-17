@@ -40,7 +40,6 @@ QtObject {
             function onHideMainWindow() {
                 mainWindow.hide();
             }
-
             target: Backend
         }
     }

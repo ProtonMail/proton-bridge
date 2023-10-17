@@ -36,8 +36,7 @@ SettingsView {
         type: SettingsItem.PrimaryButton
 
         onClicked: {
-            Backend.notifyKBArticleClicked("https://proton.me/support/bridge");
-            Qt.openUrlExternally("https://proton.me/support/bridge");
+            Backend.openKBArticle();
         }
     }
     SettingsItem {
@@ -104,7 +103,7 @@ SettingsView {
         type: Label.Caption
 
         onLinkActivated: function (link) {
-            Qt.openUrlExternally(link);
+            Qt.openUrlExternally(link)
         }
     }
 }

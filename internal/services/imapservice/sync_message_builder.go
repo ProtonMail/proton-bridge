@@ -46,7 +46,7 @@ func (s SyncMessageBuilder) BuildMessage(
 ) (syncservice.BuildResult, error) {
 	buffer.Grow(full.Size)
 
-	if err := message.BuildRFC822Into(addrKR, full.Message, full.AttData, defaultMessageJobOpts(), buffer); err != nil {
+	if err := message.DecryptAndBuildRFC822Into(addrKR, full.Message, full.AttData, defaultMessageJobOpts(), buffer); err != nil {
 		return syncservice.BuildResult{}, err
 	}
 

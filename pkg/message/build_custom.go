@@ -30,10 +30,10 @@ import (
 // writeCustomTextPart writes an armored-PGP text part for a message body that couldn't be decrypted.
 func writeCustomTextPart(
 	w *message.Writer,
-	msg proton.Message,
+	decrypted *DecryptedMessage,
 	decError error,
 ) error {
-	enc, err := crypto.NewPGPMessageFromArmored(msg.Body)
+	enc, err := crypto.NewPGPMessageFromArmored(decrypted.Msg.Body)
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func writeCustomTextPart(
 
 	var hdr message.Header
 
-	hdr.SetContentType(string(msg.MIMEType), nil)
+	hdr.SetContentType(string(decrypted.Msg.MIMEType), nil)
 
 	part, err := w.CreatePart(hdr)
 	if err != nil {

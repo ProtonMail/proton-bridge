@@ -21,6 +21,7 @@ Rectangle {
 
     property int _margin: 24
     property ColorScheme colorScheme
+    property bool highlightPassword
     property string hostname
     property string password
     property string port
@@ -68,7 +69,8 @@ Rectangle {
         }
         ConfigurationItem {
             colorScheme: root.colorScheme
-            label: qsTr("Password")
+            label: highlightPassword ? qsTr("Use this password") : qsTr("Password")
+            labelColor: highlightPassword ? colorScheme.signal_warning_active : colorScheme.text_norm
             value: root.password
         }
         ConfigurationItem {

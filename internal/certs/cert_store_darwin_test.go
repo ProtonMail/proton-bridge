@@ -25,20 +25,73 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// This test implies human interactions to enter password and is disabled by default.
-func _TestTrustedCertsDarwin(t *testing.T) { //nolint:unused
+func TestCertInKeychain(t *testing.T) {
+	// no trust settings change is performed, so this test will not trigger an OS security prompt.
+	certPEM := generatePEMCertificate(t)
+	require.False(t, isCertInKeychain(certPEM))
+	require.NoError(t, addCertToKeychain(certPEM))
+	require.True(t, isCertInKeychain(certPEM))
+	require.Error(t, addCertToKeychain(certPEM))
+	require.True(t, isCertInKeychain(certPEM))
+	require.NoError(t, removeCertFromKeychain(certPEM))
+	require.False(t, isCertInKeychain(certPEM))
+	require.Error(t, removeCertFromKeychain(certPEM))
+	require.False(t, isCertInKeychain(certPEM))
+}
+
+// This test require human interaction (macOS security prompts), and is disabled by default.
+func _TestCertificateTrust(t *testing.T) { //nolint:unused
+	certPEM := generatePEMCertificate(t)
+	require.False(t, isCertTrusted(certPEM))
+	require.NoError(t, addCertToKeychain(certPEM))
+	require.NoError(t, setCertTrusted(certPEM))
+	require.True(t, isCertTrusted(certPEM))
+	require.NoError(t, removeCertTrust(certPEM))
+	require.False(t, isCertTrusted(certPEM))
+	require.NoError(t, removeCertFromKeychain(certPEM))
+}
+
+// This test require human interaction (macOS security prompts), and is disabled by default.
+func _TestInstallAndRemove(t *testing.T) { //nolint:unused
+	certPEM := generatePEMCertificate(t)
+
+	// fresh install
+	require.False(t, isCertInstalled(certPEM))
+	require.NoError(t, installCert(certPEM))
+	require.True(t, isCertInKeychain(certPEM))
+	require.True(t, isCertTrusted(certPEM))
+	require.True(t, isCertInstalled(certPEM))
+	require.NoError(t, uninstallCert(certPEM))
+	require.False(t, isCertInKeychain(certPEM))
+	require.False(t, isCertTrusted(certPEM))
+	require.False(t, isCertInstalled(certPEM))
+
+	// Install where certificate is already in Keychain, but not trusted.
+	require.NoError(t, addCertToKeychain(certPEM))
+	require.False(t, isCertInstalled(certPEM))
+	require.NoError(t, installCert(certPEM))
+	require.True(t, isCertInstalled(certPEM))
+
+	// Install where certificate is already installed
+	require.NoError(t, installCert(certPEM))
+
+	// Remove when certificate is not trusted.
+	require.NoError(t, removeCertTrust(certPEM))
+	require.NoError(t, uninstallCert(certPEM))
+	require.False(t, isCertInstalled(certPEM))
+
+	// Remove when certificate has already been removed.
+	require.NoError(t, uninstallCert(certPEM))
+	require.False(t, isCertTrusted(certPEM))
+	require.False(t, isCertInKeychain(certPEM))
+}
+
+func generatePEMCertificate(t *testing.T) []byte {
 	template, err := NewTLSTemplate()
 	require.NoError(t, err)
 
 	certPEM, _, err := GenerateCert(template)
 	require.NoError(t, err)
 
-	require.Error(t, installCert([]byte{0}))   // Cannot install an invalid cert.
-	require.Error(t, uninstallCert(certPEM))   // Cannot uninstall a cert that is not installed.
-	require.NoError(t, installCert(certPEM))   // Can install a valid cert.
-	require.NoError(t, installCert(certPEM))   // Can install an already installed cert.
-	require.NoError(t, uninstallCert(certPEM)) // Can uninstall an installed cert.
-	require.Error(t, uninstallCert(certPEM))   // Cannot uninstall an already uninstalled cert.
-	require.NoError(t, installCert(certPEM))   // Can reinstall an uninstalled cert.
-	require.NoError(t, uninstallCert(certPEM)) // Can uninstall a reinstalled cert.
+	return certPEM
 }

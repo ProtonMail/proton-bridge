@@ -215,6 +215,16 @@ grpc::Status GRPCService::IsTelemetryDisabled(::grpc::ServerContext *, ::google:
 
 
 //****************************************************************************************************************************************************
+/// \param[out] response The response.
+/// \return The status for the call.
+//****************************************************************************************************************************************************
+Status GRPCService::GoOs(ServerContext *, Empty const*, StringValue *response) {
+    response->set_value(app().mainWindow().settingsTab().os().toStdString());
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
 /// \return The status for the call.
 //****************************************************************************************************************************************************
 Status GRPCService::TriggerReset(ServerContext *, Empty const *, Empty *) {
@@ -362,22 +372,6 @@ Status GRPCService::ReportBug(ServerContext *, ReportBugRequest const *request, 
 
 
 //****************************************************************************************************************************************************
-/// \param[in] request The request
-//****************************************************************************************************************************************************
-Status GRPCService::ExportTLSCertificates(ServerContext *, StringValue const *request, Empty *response) {
-    SettingsTab &tab = app().mainWindow().settingsTab();
-    if (!tab.nextTLSCertExportWillSucceed()) {
-        qtProxy_.sendDelayedEvent(newGenericErrorEvent(grpc::TLS_CERT_EXPORT_ERROR));
-    }
-    if (!tab.nextTLSKeyExportWillSucceed()) {
-        qtProxy_.sendDelayedEvent(newGenericErrorEvent(grpc::TLS_KEY_EXPORT_ERROR));
-    }
-    qtProxy_.exportTLSCertificates(QString::fromStdString(request->value()));
-    return Status::OK;
-}
-
-
-//****************************************************************************************************************************************************
 /// \param[in] request The request.
 /// \return The status for the call.
 //****************************************************************************************************************************************************
@@ -406,7 +400,7 @@ Status GRPCService::Login(ServerContext *, LoginRequest const *request, Empty *)
         return Status::OK;
     }
     if (usersTab.nextUserTwoPasswordsRequired()) {
-        qtProxy_.sendDelayedEvent(newLoginTwoPasswordsRequestedEvent());
+        qtProxy_.sendDelayedEvent(newLoginTwoPasswordsRequestedEvent(loginUsername_));
         return Status::OK;
     }
 
@@ -431,7 +425,7 @@ Status GRPCService::Login2FA(ServerContext *, LoginRequest const *request, Empty
         return Status::OK;
     }
     if (usersTab.nextUserTwoPasswordsRequired()) {
-        qtProxy_.sendDelayedEvent(newLoginTwoPasswordsRequestedEvent());
+        qtProxy_.sendDelayedEvent(newLoginTwoPasswordsRequestedEvent(loginUsername_));
         return Status::OK;
     }
 
@@ -758,8 +752,85 @@ Status GRPCService::ConfigureUserAppleMail(ServerContext *, ConfigureAppleMailRe
 
 //****************************************************************************************************************************************************
 /// \param[in] request The request
-/// \param[in] writer The writer
 /// \return The status for the call.
+//****************************************************************************************************************************************************
+Status GRPCService::ExportTLSCertificates(ServerContext *, StringValue const *request, Empty *response) {
+    app().log().debug(__FUNCTION__);
+    SettingsTab &tab = app().mainWindow().settingsTab();
+    if (!tab.nextTLSCertExportWillSucceed()) {
+        qtProxy_.sendDelayedEvent(newGenericErrorEvent(grpc::TLS_CERT_EXPORT_ERROR));
+    }
+    if (!tab.nextTLSKeyExportWillSucceed()) {
+        qtProxy_.sendDelayedEvent(newGenericErrorEvent(grpc::TLS_KEY_EXPORT_ERROR));
+    }
+    qtProxy_.exportTLSCertificates(QString::fromStdString(request->value()));
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] response The reponse.
+/// \return The status for the call.
+//****************************************************************************************************************************************************
+Status GRPCService::IsTLSCertificateInstalled(ServerContext *, const Empty *request, BoolValue *response) {
+    app().log().debug(__FUNCTION__);
+    response->set_value(app().mainWindow().settingsTab().isTLSCertificateInstalled());
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+Status GRPCService::InstallTLSCertificate(ServerContext *, Empty const *, Empty *) {
+    app().log().debug(__FUNCTION__);
+    SPStreamEvent event;
+    qtProxy_.installTLSCertificate();
+    switch (app().mainWindow().settingsTab().nextTLSCertIntallResult()) {
+    case SettingsTab::TLSCertInstallResult::Success:
+        event = newCertificateInstallSuccessEvent();
+        break;
+    case SettingsTab::TLSCertInstallResult::Canceled:
+        event = newCertificateInstallCanceledEvent();
+        break;
+    default:
+        event = newCertificateInstallFailedEvent();
+        break;
+    }
+    qtProxy_.sendDelayedEvent(event);
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] request The request.
+//****************************************************************************************************************************************************
+Status GRPCService::KBArticleClicked(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) {
+    app().log().debug(QString("%1 - URL = %2").arg(__FUNCTION__, QString::fromStdString(request->value())));
+    return Status::OK;
+}
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+Status GRPCService::ReportBugClicked(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::Empty *) {
+    app().log().debug(__FUNCTION__);
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] request The request.
+//****************************************************************************************************************************************************
+Status GRPCService::AutoconfigClicked(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *response) {
+    app().log().debug(QString("%1 - Client = %2").arg(__FUNCTION__, QString::fromStdString(request->value())));
+    return Status::OK;
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] request The request
+/// \param[in] writer The writer
 //****************************************************************************************************************************************************
 Status GRPCService::RunEventStream(ServerContext *ctx, EventStreamRequest const *request, ServerWriter<StreamEvent> *writer) {
     app().log().debug(__FUNCTION__);
@@ -850,4 +921,3 @@ void GRPCService::finishLogin() {
 
     qtProxy_.sendDelayedEvent(newLoginFinishedEvent(user->id(), alreadyExist));
 }
-

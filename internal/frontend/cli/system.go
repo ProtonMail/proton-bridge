@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/ports"
 	"github.com/abiosoft/ishell"
 )
@@ -238,6 +239,50 @@ func (f *frontendCLI) setGluonLocation(c *ishell.Context) {
 			return
 		}
 	}
+}
+
+func (f *frontendCLI) tlsCertStatus(_ *ishell.Context) {
+	cert, _ := f.bridge.GetBridgeTLSCert()
+	installer := certs.NewInstaller()
+	if installer.IsCertInstalled(cert) {
+		f.Println("The Bridge TLS certificate is already installed in the OS keychain.")
+	} else {
+		f.Println("The Bridge TLS certificate is not installed in the OS keychain.")
+	}
+}
+
+func (f *frontendCLI) installTLSCert(_ *ishell.Context) {
+	cert, _ := f.bridge.GetBridgeTLSCert()
+	installer := certs.NewInstaller()
+	if installer.IsCertInstalled(cert) {
+		f.printAndLogError(errors.New("the Bridge TLS certificate is already installed in the OS keychain"))
+		return
+	}
+
+	f.Println("Please provide your credentials in the system popup dialog in order to continue.")
+	if err := installer.InstallCert(cert); err != nil {
+		f.printAndLogError(err)
+		return
+	}
+
+	f.Println("The Bridge TLS certificate was successfully installed in the OS keychain.")
+}
+
+func (f *frontendCLI) uninstallTLSCert(_ *ishell.Context) {
+	cert, _ := f.bridge.GetBridgeTLSCert()
+	installer := certs.NewInstaller()
+	if !installer.IsCertInstalled(cert) {
+		f.printAndLogError(errors.New("the Bridge TLS certificate is not installed in the OS keychain"))
+		return
+	}
+
+	f.Println("Please provide your credentials in the system popup dialog in order to continue.")
+	if err := installer.UninstallCert(cert); err != nil {
+		f.printAndLogError(err)
+		return
+	}
+
+	f.Println("The Bridge TLS certificate was successfully uninstalled from the OS keychain.")
 }
 
 func (f *frontendCLI) exportTLSCerts(c *ishell.Context) {

@@ -34,7 +34,7 @@ const (
 )
 
 func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, title, description, username, email, client string, attachLogs bool) error {
-	var account string
+	var account = username
 
 	if info, err := bridge.QueryUserInfo(username); err == nil {
 		account = info.Username

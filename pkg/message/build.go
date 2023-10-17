@@ -19,8 +19,6 @@ package message
 
 import (
 	"bytes"
-	"encoding/base64"
-	"io"
 	"mime"
 	"net/mail"
 	"strings"
@@ -47,48 +45,36 @@ var (
 // InternalIDDomain is used as a placeholder for reference/message ID headers to improve compatibility with various clients.
 const InternalIDDomain = `protonmail.internalid`
 
-func BuildRFC822(kr *crypto.KeyRing, msg proton.Message, attData [][]byte, opts JobOptions) ([]byte, error) {
-	buf := new(bytes.Buffer)
-	if err := BuildRFC822Into(kr, msg, attData, opts, buf); err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
-}
-
-func BuildRFC822Into(kr *crypto.KeyRing, msg proton.Message, attData [][]byte, opts JobOptions, buf *bytes.Buffer) error {
+func BuildRFC822Into(kr *crypto.KeyRing, decrypted *DecryptedMessage, opts JobOptions, buf *bytes.Buffer) error {
 	switch {
-	case len(msg.Attachments) > 0:
-		return buildMultipartRFC822(kr, msg, attData, opts, buf)
+	case len(decrypted.Msg.Attachments) > 0:
+		return buildMultipartRFC822(decrypted, opts, buf)
 
-	case msg.MIMEType == "multipart/mixed":
-		return buildPGPRFC822(kr, msg, opts, buf)
+	case decrypted.Msg.MIMEType == "multipart/mixed":
+		return buildPGPRFC822(kr, decrypted, opts, buf)
 
 	default:
-		return buildSimpleRFC822(kr, msg, opts, buf)
+		return buildSimpleRFC822(decrypted, opts, buf)
 	}
 }
 
-func buildSimpleRFC822(kr *crypto.KeyRing, msg proton.Message, opts JobOptions, buf *bytes.Buffer) error {
-	var decrypted bytes.Buffer
-	decrypted.Grow(len(msg.Body))
-
-	if err := msg.DecryptInto(kr, &decrypted); err != nil {
+func buildSimpleRFC822(decrypted *DecryptedMessage, opts JobOptions, buf *bytes.Buffer) error {
+	if decrypted.BodyErr != nil {
 		if !opts.IgnoreDecryptionErrors {
-			return errors.Wrap(ErrDecryptionFailed, err.Error())
+			return decrypted.BodyErr
 		}
 
-		return buildMultipartRFC822(kr, msg, nil, opts, buf)
+		return buildMultipartRFC822(decrypted, opts, buf)
 	}
 
-	hdr := getTextPartHeader(getMessageHeader(msg, opts), decrypted.Bytes(), msg.MIMEType)
+	hdr := getTextPartHeader(getMessageHeader(decrypted.Msg, opts), decrypted.Body.Bytes(), decrypted.Msg.MIMEType)
 
 	w, err := message.CreateWriter(buf, hdr)
 	if err != nil {
 		return err
 	}
 
-	if _, err := w.Write(decrypted.Bytes()); err != nil {
+	if _, err := w.Write(decrypted.Body.Bytes()); err != nil {
 		return err
 	}
 
@@ -96,15 +82,13 @@ func buildSimpleRFC822(kr *crypto.KeyRing, msg proton.Message, opts JobOptions, 
 }
 
 func buildMultipartRFC822(
-	kr *crypto.KeyRing,
-	msg proton.Message,
-	attData [][]byte,
+	decrypted *DecryptedMessage,
 	opts JobOptions,
 	buf *bytes.Buffer,
 ) error {
-	boundary := newBoundary(msg.ID)
+	boundary := newBoundary(decrypted.Msg.ID)
 
-	hdr := getMessageHeader(msg, opts)
+	hdr := getMessageHeader(decrypted.Msg, opts)
 
 	hdr.SetContentType("multipart/mixed", map[string]string{"boundary": boundary.gen()})
 
@@ -115,31 +99,31 @@ func buildMultipartRFC822(
 
 	var (
 		inlineAtts []proton.Attachment
-		inlineData [][]byte
+		inlineData []DecryptedAttachment
 		attachAtts []proton.Attachment
-		attachData [][]byte
+		attachData []DecryptedAttachment
 	)
 
-	for index, att := range msg.Attachments {
+	for index, att := range decrypted.Msg.Attachments {
 		if att.Disposition == proton.InlineDisposition {
 			inlineAtts = append(inlineAtts, att)
-			inlineData = append(inlineData, attData[index])
+			inlineData = append(inlineData, decrypted.Attachments[index])
 		} else {
 			attachAtts = append(attachAtts, att)
-			attachData = append(attachData, attData[index])
+			attachData = append(attachData, decrypted.Attachments[index])
 		}
 	}
 
 	if len(inlineAtts) > 0 {
-		if err := writeRelatedParts(w, kr, boundary, msg, inlineAtts, inlineData, opts); err != nil {
+		if err := writeRelatedParts(w, boundary, decrypted, inlineAtts, inlineData, opts); err != nil {
 			return err
 		}
-	} else if err := writeTextPart(w, kr, msg, opts); err != nil {
+	} else if err := writeTextPart(w, decrypted, opts); err != nil {
 		return err
 	}
 
 	for i, att := range attachAtts {
-		if err := writeAttachmentPart(w, kr, att, attachData[i], opts); err != nil {
+		if err := writeAttachmentPart(w, att, attachData[i], opts); err != nil {
 			return err
 		}
 	}
@@ -149,89 +133,53 @@ func buildMultipartRFC822(
 
 func writeTextPart(
 	w *message.Writer,
-	kr *crypto.KeyRing,
-	msg proton.Message,
+	decrypted *DecryptedMessage,
 	opts JobOptions,
 ) error {
-	var decrypted bytes.Buffer
-	decrypted.Grow(len(msg.Body))
-
-	if err := msg.DecryptInto(kr, &decrypted); err != nil {
+	if decrypted.BodyErr != nil {
 		if !opts.IgnoreDecryptionErrors {
-			return errors.Wrap(ErrDecryptionFailed, err.Error())
+			return decrypted.BodyErr
 		}
 
-		return writeCustomTextPart(w, msg, err)
+		return writeCustomTextPart(w, decrypted, decrypted.BodyErr)
 	}
 
-	return writePart(w, getTextPartHeader(message.Header{}, decrypted.Bytes(), msg.MIMEType), decrypted.Bytes())
+	return writePart(w, getTextPartHeader(message.Header{}, decrypted.Body.Bytes(), decrypted.Msg.MIMEType), decrypted.Body.Bytes())
 }
 
 func writeAttachmentPart(
 	w *message.Writer,
-	kr *crypto.KeyRing,
 	att proton.Attachment,
-	attData []byte,
+	decryptedAttachment DecryptedAttachment,
 	opts JobOptions,
 ) error {
-	kps, err := base64.StdEncoding.DecodeString(att.KeyPackets)
-	if err != nil {
-		return err
-	}
-
-	// Use io.Multi
-	attachmentReader := io.MultiReader(bytes.NewReader(kps), bytes.NewReader(attData))
-
-	stream, err := kr.DecryptStream(attachmentReader, nil, crypto.GetUnixTime())
-	if err != nil {
+	if decryptedAttachment.Err != nil {
 		if !opts.IgnoreDecryptionErrors {
-			return errors.Wrap(ErrDecryptionFailed, err.Error())
+			return decryptedAttachment.Err
 		}
 
 		log.
 			WithField("attID", att.ID).
-			WithError(err).
-			Warn("Attachment decryption failed - construct")
+			WithError(decryptedAttachment.Err).
+			Warn("Attachment decryption failed")
 
 		var pgpMessageBuffer bytes.Buffer
-		pgpMessageBuffer.Grow(len(kps) + len(attData))
-		pgpMessageBuffer.Write(kps)
-		pgpMessageBuffer.Write(attData)
+		pgpMessageBuffer.Grow(len(decryptedAttachment.Packet) + len(decryptedAttachment.Encrypted))
+		pgpMessageBuffer.Write(decryptedAttachment.Packet)
+		pgpMessageBuffer.Write(decryptedAttachment.Encrypted)
 
-		return writeCustomAttachmentPart(w, att, &crypto.PGPMessage{Data: pgpMessageBuffer.Bytes()}, err)
+		return writeCustomAttachmentPart(w, att, &crypto.PGPMessage{Data: pgpMessageBuffer.Bytes()}, decryptedAttachment.Err)
 	}
 
-	var decryptBuffer bytes.Buffer
-	decryptBuffer.Grow(len(kps) + len(attData))
-
-	if _, err := decryptBuffer.ReadFrom(stream); err != nil {
-		if !opts.IgnoreDecryptionErrors {
-			return errors.Wrap(ErrDecryptionFailed, err.Error())
-		}
-
-		log.
-			WithField("attID", att.ID).
-			WithError(err).
-			Warn("Attachment decryption failed - stream")
-
-		var pgpMessageBuffer bytes.Buffer
-		pgpMessageBuffer.Grow(len(kps) + len(attData))
-		pgpMessageBuffer.Write(kps)
-		pgpMessageBuffer.Write(attData)
-
-		return writeCustomAttachmentPart(w, att, &crypto.PGPMessage{Data: pgpMessageBuffer.Bytes()}, err)
-	}
-
-	return writePart(w, getAttachmentPartHeader(att), decryptBuffer.Bytes())
+	return writePart(w, getAttachmentPartHeader(att), decryptedAttachment.Data.Bytes())
 }
 
 func writeRelatedParts(
 	w *message.Writer,
-	kr *crypto.KeyRing,
 	boundary *boundary,
-	msg proton.Message,
+	decrypted *DecryptedMessage,
 	atts []proton.Attachment,
-	attData [][]byte,
+	attData []DecryptedAttachment,
 	opts JobOptions,
 ) error {
 	hdr := message.Header{}
@@ -239,12 +187,12 @@ func writeRelatedParts(
 	hdr.SetContentType("multipart/related", map[string]string{"boundary": boundary.gen()})
 
 	return createPart(w, hdr, func(rel *message.Writer) error {
-		if err := writeTextPart(rel, kr, msg, opts); err != nil {
+		if err := writeTextPart(rel, decrypted, opts); err != nil {
 			return err
 		}
 
 		for i, att := range atts {
-			if err := writeAttachmentPart(rel, kr, att, attData[i], opts); err != nil {
+			if err := writeAttachmentPart(rel, att, attData[i], opts); err != nil {
 				return err
 			}
 		}
@@ -253,37 +201,34 @@ func writeRelatedParts(
 	})
 }
 
-func buildPGPRFC822(kr *crypto.KeyRing, msg proton.Message, opts JobOptions, buf *bytes.Buffer) error {
-	var decrypted bytes.Buffer
-	decrypted.Grow(len(msg.Body))
-
-	if err := msg.DecryptInto(kr, &decrypted); err != nil {
+func buildPGPRFC822(kr *crypto.KeyRing, decrypted *DecryptedMessage, opts JobOptions, buf *bytes.Buffer) error {
+	if decrypted.BodyErr != nil {
 		if !opts.IgnoreDecryptionErrors {
-			return errors.Wrap(ErrDecryptionFailed, err.Error())
+			return decrypted.BodyErr
 		}
 
-		return buildPGPMIMEFallbackRFC822(msg, opts, buf)
+		return buildPGPMIMEFallbackRFC822(decrypted, opts, buf)
 	}
 
-	hdr := getMessageHeader(msg, opts)
+	hdr := getMessageHeader(decrypted.Msg, opts)
 
-	sigs, err := proton.ExtractSignatures(kr, msg.Body)
+	sigs, err := proton.ExtractSignatures(kr, decrypted.Msg.Body)
 	if err != nil {
-		log.WithError(err).WithField("id", msg.ID).Warn("Extract signature failed")
+		log.WithError(err).WithField("id", decrypted.Msg.ID).Warn("Extract signature failed")
 	}
 
 	if len(sigs) > 0 {
-		return writeMultipartSignedRFC822(hdr, decrypted.Bytes(), sigs[0], buf)
+		return writeMultipartSignedRFC822(hdr, decrypted.Body.Bytes(), sigs[0], buf)
 	}
 
-	return writeMultipartEncryptedRFC822(hdr, decrypted.Bytes(), buf)
+	return writeMultipartEncryptedRFC822(hdr, decrypted.Body.Bytes(), buf)
 }
 
-func buildPGPMIMEFallbackRFC822(msg proton.Message, opts JobOptions, buf *bytes.Buffer) error {
-	hdr := getMessageHeader(msg, opts)
+func buildPGPMIMEFallbackRFC822(decrypted *DecryptedMessage, opts JobOptions, buf *bytes.Buffer) error {
+	hdr := getMessageHeader(decrypted.Msg, opts)
 
 	hdr.SetContentType("multipart/encrypted", map[string]string{
-		"boundary": newBoundary(msg.ID).gen(),
+		"boundary": newBoundary(decrypted.Msg.ID).gen(),
 		"protocol": "application/pgp-encrypted",
 	})
 
@@ -307,7 +252,7 @@ func buildPGPMIMEFallbackRFC822(msg proton.Message, opts JobOptions, buf *bytes.
 	dataHdr.SetContentDisposition("inline", map[string]string{"filename": "encrypted.asc"})
 	dataHdr.Set("Content-Description", "OpenPGP encrypted message")
 
-	if err := writePart(w, dataHdr, []byte(msg.Body)); err != nil {
+	if err := writePart(w, dataHdr, []byte(decrypted.Msg.Body)); err != nil {
 		return err
 	}
 
@@ -558,8 +503,8 @@ func getAttachmentPartHeader(att proton.Attachment) message.Header {
 func toMessageHeader(hdr proton.Headers) message.Header {
 	var res message.Header
 
-	for key, val := range hdr {
-		for _, val := range val {
+	for _, key := range hdr.Order {
+		for _, val := range hdr.Values[key] {
 			// Using AddRaw instead of Add to save key-value pair as byte buffer within Header.
 			// This buffer is used latter on in message writer to construct message and avoid crash
 			// when key length is more than 76 characters long.

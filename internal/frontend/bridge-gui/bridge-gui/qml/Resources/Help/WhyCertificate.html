@@ -1,0 +1,19 @@
+<h1>Why do I need to install a certificate when configuring Apple Mail with Bridge?</h1>
+<p class="standfirst">
+    Apple Mail requires a secure channel for communications with email servers, and the server needs to be acknowledged as trusted.
+</p>
+<p>
+    In order to communicate with Bridge, Apple Mail requires secure connections using SSL/TLS. This cryptographic protocol includes an identity
+    verification system using certificates. For publicly available servers, certificates are normally issued and digitally signed by a certificate
+    authority, such as Let's Encrypt. This is not possible for Bridge, as the IMAP and SMTP servers are running on your own computer, and are not
+    accessible from any network (local or internet).
+</p>
+<p>
+    The solution is to use a self-signed certificate. When setting up an email account where the server provides a self-signed certificate, most
+    email clients will issue a warning asking you whether you trust the server or not, because the certificate was not issued by a certificate
+    authority.
+</p>
+<p>
+    Apple Mail requires an extra step. It will simply refuse to connect if the certificate is not set as trusted. Bridge solves this by storing this
+    certificate in the macOS keychain. This operation requires that you provide your macOS account password.
+</p>

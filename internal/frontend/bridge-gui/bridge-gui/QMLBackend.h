@@ -64,6 +64,8 @@ public: // member functions.
     Q_INVOKABLE QString getQuestionAnswer(quint8 questionId) const; ///< Get the answer for a given question.
     Q_INVOKABLE QString collectAnswers(quint8 categoryId) const; ///< Collect answer for a given set of questions.
     Q_INVOKABLE void clearAnswers(); ///< Clear all collected answers.
+    Q_INVOKABLE bool isTLSCertificateInstalled(); ///< Check if the bridge certificate is installed in the OS keychain.
+    Q_INVOKABLE void openKBArticle(QString const & url = QString()); ///< Open a knowledge base article.
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
     Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)
@@ -195,6 +197,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void installUpdate() const; ///< Slot for the update install.
     void triggerReset() const; ///< Slot for the triggering of reset.
     void reportBug(QString const &category, QString const &description, QString const &address, QString const &emailClient, bool includeLogs) const; ///< Slot for the bug report.
+    void installTLSCertificate(); ///< Installs the Bridge TLS certificate in the Keychain.
     void exportTLSCertificates() const; ///< Slot for the export of the TLS certificates.
     void onResetFinished(); ///< Slot for the reset finish signal.
     void onVersionChanged(); ///< Slot for the version change signal.
@@ -231,7 +234,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void login2FARequested(QString const &username); ///< Signal for the 'login2FARequested' gRPC stream event.
     void login2FAError(QString const &errorMsg); ///< Signal for the 'login2FAError' gRPC stream event.
     void login2FAErrorAbort(QString const &errorMsg); ///< Signal for the 'login2FAErrorAbort' gRPC stream event.
-    void login2PasswordRequested(); ///< Signal for the 'login2PasswordRequested' gRPC stream event.
+    void login2PasswordRequested(QString const &username); ///< Signal for the 'login2PasswordRequested' gRPC stream event.
     void login2PasswordError(QString const &errorMsg); ///< Signal for the 'login2PasswordError' gRPC stream event.
     void login2PasswordErrorAbort(QString const &errorMsg); ///< Signal for the 'login2PasswordErrorAbort' gRPC stream event.
     void loginFinished(int index, bool wasSignedOut); ///< Signal for the 'loginFinished' gRPC stream event.
@@ -268,10 +271,13 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void bugReportSendSuccess(); ///< Signal for the 'bugReportSendSuccess' gRPC stream event.
     void bugReportSendFallback(); ///< Signal for the 'bugReportSendFallback' gRPC stream event.
     void bugReportSendError(); ///< Signal for the 'bugReportSendError' gRPC stream event.
+    void certificateInstallSuccess(); ///< Signal for the 'certificateInstallSuccess' gRPC stream event.
+    void certificateInstallCanceled(); ///< Signal for the 'certificateInstallCanceled' gRPC stream event.
+    void certificateInstallFailed(); /// Signal for the 'certificateInstallFailed' gRPC stream event.
     void showMainWindow(); ///< Signal for the 'showMainWindow' gRPC stream event.
     void hideMainWindow(); ///< Signal for the 'hideMainWindow' gRPC stream event.
     void showHelp(); ///< Signal for the 'showHelp' event (from the context menu).
-    void showSettings(); ///< Signal for the 'showHelp' event (from the context menu).
+    void showSettings(); ///< Signal for the 'showSettings' event (from the context menu).
     void selectUser(QString const& userID, bool forceShowWindow); ///< Signal emitted in order to selected a user with a given ID in the list.
     void genericError(QString const &title, QString const &description); ///< Signal for the 'genericError' gRPC stream event.
     void imapLoginWhileSignedOut(QString const& username); ///< Signal for the notification of IMAP login attempt on a signed out account.

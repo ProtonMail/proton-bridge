@@ -22,7 +22,7 @@ Item {
         LargeView
     }
 
-    property var _spacing: 12 * ProtonStyle.px
+    property var _spacing: 12
     property ColorScheme colorScheme
     property color progressColor: {
         if (!root.enabled)
@@ -154,7 +154,7 @@ Item {
                 }
             }
             Item {
-                implicitHeight: root.type === AccountDelegate.LargeView ? 6 * ProtonStyle.px : 0
+                implicitHeight: root.type === AccountDelegate.LargeView ? 6 : 0
             }
             RowLayout {
                 spacing: 0
@@ -222,15 +222,15 @@ Item {
                 }
             }
             Item {
-                implicitHeight: root.type === AccountDelegate.LargeView ? 3 * ProtonStyle.px : 0
+                implicitHeight: root.type === AccountDelegate.LargeView ? 3 : 0
             }
             Rectangle {
                 id: progress_bar
                 color: root.colorScheme.border_weak
-                height: 4 * ProtonStyle.px
+                height: 4
                 radius: ProtonStyle.progress_bar_radius
                 visible: root.user ? root.type === AccountDelegate.LargeView : false
-                width: 140 * ProtonStyle.px
+                width: 140
 
                 Rectangle {
                     id: progress_bar_filled

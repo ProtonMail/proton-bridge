@@ -28,6 +28,13 @@
 //****************************************************************************************************************************************************
 class SettingsTab : public QWidget {
 Q_OBJECT
+public: // data types.
+    enum class TLSCertInstallResult {
+        Success = 0,
+        Canceled = 1,
+        Failure = 2
+    }; ///< Enumberation for the result of a TLS certificate installation.
+
 public: // member functions.
     explicit SettingsTab(QWidget *parent = nullptr); ///< Default constructor.
     SettingsTab(SettingsTab const &) = delete; ///< Disabled copy-constructor.
@@ -54,6 +61,8 @@ public: // member functions.
     QString dependencyLicenseLink() const; ///< Get the content of the 'Dependency License Link' edit.
     QString landingPageLink() const; ///< Get the content of the 'Landing Page Link' edit.
     bool nextBugReportWillSucceed() const; ///< Get the status of the 'Next Bug Report Will Fail' check box.
+    bool isTLSCertificateInstalled() const; ///< Get the status of the 'TLS Certificate is installed' check box.
+    TLSCertInstallResult nextTLSCertIntallResult() const; ///< Get the value of the 'Next TLS Certificate install result' combo box.
     bool nextTLSCertExportWillSucceed() const;  ///< Get the status of the 'Next TLS Cert export will succeed' check box.
     bool nextTLSKeyExportWillSucceed() const;  ///< Get the status of the 'Next TLS Key export will succeed' check box.
     QString hostname() const; ///< Get the value of the 'Hostname' edit.
@@ -79,6 +88,7 @@ public slots:
     void setColorSchemeName(QString const &name); ///< Set the value for the 'Use Dark Theme' check box.
     void setBugReport(QString const &osType, QString const &osVersion, QString const &emailClient, QString const &address, QString const &description,
         bool includeLogs); ///< Set the content of the bug report box.
+    void installTLSCertificate(); ///< Install the TLS certificate.
     void exportTLSCertificates(QString const &folderPath); ///< Export the TLS certificates.
     void setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Change the mail server settings.
     void setIsDoHEnabled(bool enabled); ///< Set the value for the 'DoH Enabled' check box.
