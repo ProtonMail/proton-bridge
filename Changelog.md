@@ -3,6 +3,12 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Umshiang Bridge 3.5.4
+
+### Fixed
+* GODT-3033: Unable to receive new mail.
+
+
 ## Umshiang Bridge 3.5.3
 
 ### Changed
