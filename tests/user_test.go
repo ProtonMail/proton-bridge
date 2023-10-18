@@ -643,3 +643,29 @@ func (s *scenario) accountHasDefaultPGPSchema(account, schema string) error {
 		return err
 	})
 }
+
+func (s *scenario) accountMatchesSettings(account string, table *godog.Table) error {
+	return s.t.withClient(context.Background(), account, func(ctx context.Context, c *proton.Client) error {
+		wantSettings, err := unmarshalTable[MailSettings](table)
+		if err != nil {
+			return err
+		}
+		settings, err := c.GetMailSettings(ctx)
+		if err != nil {
+			return err
+		}
+		if len(wantSettings) != 1 {
+			return errors.New("this step only supports one settings definition at a time")
+		}
+
+		return matchSettings(settings, wantSettings[0])
+	})
+}
+
+func matchSettings(have proton.MailSettings, want MailSettings) error {
+	if !IsSub(ToAny(have), ToAny(want)) {
+		return fmt.Errorf("missing mailsettings: have %#v, want %#v", have, want)
+	}
+
+	return nil
+}

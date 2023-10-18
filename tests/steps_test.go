@@ -114,6 +114,7 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the account "([^"]*)" has sign external messages "([^"]*)"`, s.accountHasSignExternalMessages)
 	ctx.Step(`^the account "([^"]*)" has default draft format "([^"]*)"`, s.accountHasDefaultDraftFormat)
 	ctx.Step(`^the account "([^"]*)" has default PGP schema "([^"]*)"`, s.accountHasDefaultPGPSchema)
+	ctx.Step(`^the account "([^"]*)" matches the following settings:$`, s.accountMatchesSettings)
 
 	// ==== IMAP ====
 	ctx.Step(`^user "([^"]*)" connects IMAP client "([^"]*)"$`, s.userConnectsIMAPClient)

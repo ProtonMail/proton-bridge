@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/rfc822"
+	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
 	pmmime "github.com/ProtonMail/proton-bridge/v3/pkg/mime"
@@ -554,4 +555,11 @@ type Contact struct {
 	Scheme  string `bdd:"scheme"`
 	Sign    string `bdd:"signature"`
 	Encrypt string `bdd:"encryption"`
+}
+
+type MailSettings struct {
+	DraftMIMEType   rfc822.MIMEType             `bdd:"DraftMIMEType"`
+	AttachPublicKey proton.Bool                 `bdd:"AttachPublicKey"`
+	Sign            proton.SignExternalMessages `bdd:"Sign"`
+	PGPScheme       proton.EncryptionScheme     `bdd:"PGPScheme"`
 }
