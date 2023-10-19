@@ -33,7 +33,7 @@ func TestConfigurationSuccess_default(t *testing.T) {
 	require.NoError(t, err)
 
 	var builder = configstatus.ConfigSuccessBuilder{}
-	req := builder.New(config.Data)
+	req := builder.New(config)
 
 	require.Equal(t, "bridge.any.configuration", req.MeasurementGroup)
 	require.Equal(t, "bridge_config_success", req.Event)
@@ -65,7 +65,7 @@ func TestConfigurationSuccess_fed(t *testing.T) {
 	require.NoError(t, err)
 
 	var builder = configstatus.ConfigSuccessBuilder{}
-	req := builder.New(config.Data)
+	req := builder.New(config)
 
 	require.Equal(t, "bridge.any.configuration", req.MeasurementGroup)
 	require.Equal(t, "bridge_config_success", req.Event)

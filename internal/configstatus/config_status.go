@@ -95,6 +95,13 @@ func (status *ConfigurationStatus) IsPending() bool {
 	return !status.Data.DataV1.PendingSince.IsZero()
 }
 
+func (status *ConfigurationStatus) isPendingSinceMin() int {
+	if min := int(time.Since(status.Data.DataV1.PendingSince).Minutes()); min > 0 {
+		return min
+	}
+	return 0
+}
+
 func (status *ConfigurationStatus) IsFromFailure() bool {
 	status.DataLock.RLock()
 	defer status.DataLock.RUnlock()

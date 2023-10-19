@@ -33,13 +33,16 @@ type ConfigProgressData struct {
 
 type ConfigProgressBuilder struct{}
 
-func (*ConfigProgressBuilder) New(data *ConfigurationStatusData) ConfigProgressData {
+func (*ConfigProgressBuilder) New(config *ConfigurationStatus) ConfigProgressData {
+	config.DataLock.RLock()
+	defer config.DataLock.RUnlock()
+
 	return ConfigProgressData{
 		MeasurementGroup: "bridge.any.configuration",
 		Event:            "bridge_config_progress",
 		Values: ConfigProgressValues{
-			NbDay:          numberOfDay(time.Now(), data.DataV1.PendingSince),
-			NbDaySinceLast: numberOfDay(time.Now(), data.DataV1.LastProgress),
+			NbDay:          numberOfDay(time.Now(), config.Data.DataV1.PendingSince),
+			NbDaySinceLast: numberOfDay(time.Now(), config.Data.DataV1.LastProgress),
 		},
 	}
 }

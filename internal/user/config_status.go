@@ -38,7 +38,7 @@ func (user *User) SendConfigStatusSuccess(ctx context.Context) {
 	}
 
 	var builder configstatus.ConfigSuccessBuilder
-	success := builder.New(user.configStatus.Data)
+	success := builder.New(user.configStatus)
 	data, err := json.Marshal(success)
 	if err != nil {
 		if err := user.reporter.ReportMessageWithContext("Cannot parse config_success data.", reporter.Context{
@@ -69,7 +69,7 @@ func (user *User) SendConfigStatusAbort(ctx context.Context, withTelemetry bool)
 		return
 	}
 	var builder configstatus.ConfigAbortBuilder
-	abort := builder.New(user.configStatus.Data)
+	abort := builder.New(user.configStatus)
 	data, err := json.Marshal(abort)
 	if err != nil {
 		if err := user.reporter.ReportMessageWithContext("Cannot parse config_abort data.", reporter.Context{
@@ -98,7 +98,7 @@ func (user *User) SendConfigStatusRecovery(ctx context.Context) {
 	}
 
 	var builder configstatus.ConfigRecoveryBuilder
-	success := builder.New(user.configStatus.Data)
+	success := builder.New(user.configStatus)
 	data, err := json.Marshal(success)
 	if err != nil {
 		if err := user.reporter.ReportMessageWithContext("Cannot parse config_recovery data.", reporter.Context{
@@ -125,7 +125,7 @@ func (user *User) SendConfigStatusProgress(ctx context.Context) {
 		return
 	}
 	var builder configstatus.ConfigProgressBuilder
-	progress := builder.New(user.configStatus.Data)
+	progress := builder.New(user.configStatus)
 	if progress.Values.NbDay == 0 {
 		return
 	}

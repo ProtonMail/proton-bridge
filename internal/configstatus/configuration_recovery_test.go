@@ -33,7 +33,7 @@ func TestConfigurationRecovery_default(t *testing.T) {
 	require.NoError(t, err)
 
 	var builder = configstatus.ConfigRecoveryBuilder{}
-	req := builder.New(config.Data)
+	req := builder.New(config)
 
 	require.Equal(t, "bridge.any.configuration", req.MeasurementGroup)
 	require.Equal(t, "bridge_config_recovery", req.Event)
@@ -66,7 +66,7 @@ func TestConfigurationRecovery_fed(t *testing.T) {
 	require.NoError(t, err)
 
 	var builder = configstatus.ConfigRecoveryBuilder{}
-	req := builder.New(config.Data)
+	req := builder.New(config)
 
 	require.Equal(t, "bridge.any.configuration", req.MeasurementGroup)
 	require.Equal(t, "bridge_config_recovery", req.Event)

@@ -19,7 +19,6 @@ package configstatus
 
 import (
 	"strconv"
-	"time"
 )
 
 type ConfigRecoveryValues struct {
@@ -43,19 +42,22 @@ type ConfigRecoveryData struct {
 
 type ConfigRecoveryBuilder struct{}
 
-func (*ConfigRecoveryBuilder) New(data *ConfigurationStatusData) ConfigRecoveryData {
+func (*ConfigRecoveryBuilder) New(config *ConfigurationStatus) ConfigRecoveryData {
+	config.DataLock.RLock()
+	defer config.DataLock.RUnlock()
+
 	return ConfigRecoveryData{
 		MeasurementGroup: "bridge.any.configuration",
 		Event:            "bridge_config_recovery",
 		Values: ConfigRecoveryValues{
-			Duration: int(time.Since(data.DataV1.PendingSince).Minutes()),
+			Duration: config.isPendingSinceMin(),
 		},
 		Dimensions: ConfigRecoveryDimensions{
-			Autoconf:       data.DataV1.Autoconf,
-			ReportClick:    strconv.FormatBool(data.DataV1.ReportClick),
-			ReportSent:     strconv.FormatBool(data.DataV1.ReportSent),
-			ClickedLink:    data.clickedLinkToString(),
-			FailureDetails: data.DataV1.FailureDetails,
+			Autoconf:       config.Data.DataV1.Autoconf,
+			ReportClick:    strconv.FormatBool(config.Data.DataV1.ReportClick),
+			ReportSent:     strconv.FormatBool(config.Data.DataV1.ReportSent),
+			ClickedLink:    config.Data.clickedLinkToString(),
+			FailureDetails: config.Data.DataV1.FailureDetails,
 		},
 	}
 }

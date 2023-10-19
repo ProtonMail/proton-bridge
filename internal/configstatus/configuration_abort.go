@@ -19,7 +19,6 @@ package configstatus
 
 import (
 	"strconv"
-	"time"
 )
 
 type ConfigAbortValues struct {
@@ -41,17 +40,20 @@ type ConfigAbortData struct {
 
 type ConfigAbortBuilder struct{}
 
-func (*ConfigAbortBuilder) New(data *ConfigurationStatusData) ConfigAbortData {
+func (*ConfigAbortBuilder) New(config *ConfigurationStatus) ConfigAbortData {
+	config.DataLock.RLock()
+	defer config.DataLock.RUnlock()
+
 	return ConfigAbortData{
 		MeasurementGroup: "bridge.any.configuration",
 		Event:            "bridge_config_abort",
 		Values: ConfigSuccessValues{
-			Duration: int(time.Since(data.DataV1.PendingSince).Minutes()),
+			Duration: config.isPendingSinceMin(),
 		},
 		Dimensions: ConfigSuccessDimensions{
-			ReportClick: strconv.FormatBool(data.DataV1.ReportClick),
-			ReportSent:  strconv.FormatBool(data.DataV1.ReportSent),
-			ClickedLink: data.clickedLinkToString(),
+			ReportClick: strconv.FormatBool(config.Data.DataV1.ReportClick),
+			ReportSent:  strconv.FormatBool(config.Data.DataV1.ReportSent),
+			ClickedLink: config.Data.clickedLinkToString(),
 		},
 	}
 }

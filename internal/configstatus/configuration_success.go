@@ -19,7 +19,6 @@ package configstatus
 
 import (
 	"strconv"
-	"time"
 )
 
 type ConfigSuccessValues struct {
@@ -42,18 +41,21 @@ type ConfigSuccessData struct {
 
 type ConfigSuccessBuilder struct{}
 
-func (*ConfigSuccessBuilder) New(data *ConfigurationStatusData) ConfigSuccessData {
+func (*ConfigSuccessBuilder) New(config *ConfigurationStatus) ConfigSuccessData {
+	config.DataLock.RLock()
+	defer config.DataLock.RUnlock()
+
 	return ConfigSuccessData{
 		MeasurementGroup: "bridge.any.configuration",
 		Event:            "bridge_config_success",
 		Values: ConfigSuccessValues{
-			Duration: int(time.Since(data.DataV1.PendingSince).Minutes()),
+			Duration: config.isPendingSinceMin(),
 		},
 		Dimensions: ConfigSuccessDimensions{
-			Autoconf:    data.DataV1.Autoconf,
-			ReportClick: strconv.FormatBool(data.DataV1.ReportClick),
-			ReportSent:  strconv.FormatBool(data.DataV1.ReportSent),
-			ClickedLink: data.clickedLinkToString(),
+			Autoconf:    config.Data.DataV1.Autoconf,
+			ReportClick: strconv.FormatBool(config.Data.DataV1.ReportClick),
+			ReportSent:  strconv.FormatBool(config.Data.DataV1.ReportSent),
+			ClickedLink: config.Data.clickedLinkToString(),
 		},
 	}
 }
