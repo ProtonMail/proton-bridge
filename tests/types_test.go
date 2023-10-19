@@ -338,68 +338,77 @@ func matchMessages(have, want []Message) error {
 }
 
 func matchStructure(have []MessageStruct, want MessageStruct) error {
+	mismatches := make([]string, 0)
 	for _, msg := range have {
 		if want.From != "" && msg.From != want.From {
+			mismatches = append(mismatches, "From")
 			continue
 		}
 		if want.To != "" && msg.To != want.To {
+			mismatches = append(mismatches, "To")
 			continue
 		}
 		if want.BCC != "" && msg.BCC != want.BCC {
+			mismatches = append(mismatches, "BCC")
 			continue
 		}
 		if want.CC != "" && msg.CC != want.CC {
+			mismatches = append(mismatches, "CC")
 			continue
 		}
 		if want.Subject != "" && msg.Subject != want.Subject {
+			mismatches = append(mismatches, "Subject")
 			continue
 		}
 		if want.Date != "" && want.Date != msg.Date {
+			mismatches = append(mismatches, "Date")
 			continue
 		}
 
-		if matchContent(msg.Content, want.Content) {
-			return nil
+		if ok, mismatch := matchContent(msg.Content, want.Content); !ok {
+			mismatches = append(mismatches, "Content: "+mismatch)
+			continue
 		}
+		return nil
 	}
-	return fmt.Errorf("missing messages: have %#v, want %#v", have, want)
+	return fmt.Errorf("missing messages: have %#v, want %#v with mismatch list %#v", have, want, mismatches)
 }
 
-func matchContent(have MessageSection, want MessageSection) bool {
+func matchContent(have MessageSection, want MessageSection) (bool, string) {
 	if want.ContentType != "" && want.ContentType != have.ContentType {
-		return false
+		return false, "ContentType"
 	}
 	if want.ContentTypeBoundary != "" && want.ContentTypeBoundary != have.ContentTypeBoundary {
-		return false
+		return false, "ContentTypeBoundary"
 	}
 	if want.ContentTypeCharset != "" && want.ContentTypeCharset != have.ContentTypeCharset {
-		return false
+		return false, "ContentTypeCharset"
 	}
 	if want.ContentTypeName != "" && want.ContentTypeName != have.ContentTypeName {
-		return false
+		return false, "ContentTypeName"
 	}
 	if want.ContentDisposition != "" && want.ContentDisposition != have.ContentDisposition {
-		return false
+		return false, "ContentDisposition"
 	}
 	if want.ContentDispositionFilename != "" && want.ContentDispositionFilename != have.ContentDispositionFilename {
-		return false
+		return false, "ContentDispositionFilename"
 	}
 	if want.TransferEncoding != "" && want.TransferEncoding != have.TransferEncoding {
-		return false
+		return false, "TransferEncoding"
 	}
 	if want.BodyContains != "" && !strings.Contains(strings.TrimSpace(have.BodyIs), strings.TrimSpace(want.BodyContains)) {
-		return false
+		return false, "BodyContains"
 	}
 	if want.BodyIs != "" && strings.TrimSpace(have.BodyIs) != strings.TrimSpace(want.BodyIs) {
-		return false
+		return false, "BodyIs"
 	}
 
 	for i, section := range want.Sections {
-		if !matchContent(have.Sections[i], section) {
-			return false
+		if ok, mismatch := matchContent(have.Sections[i], section); !ok {
+			return false, fmt.Sprintf("section %#v - %#v", i, mismatch)
 		}
 	}
-	return true
+	return true, ""
 }
 
 type Mailbox struct {
