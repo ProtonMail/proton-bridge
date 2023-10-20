@@ -339,18 +339,17 @@ func (s *Service) ReportBug(_ context.Context, report *ReportBugRequest) (*empty
 		defer async.HandlePanic(s.panicHandler)
 
 		defer func() { _ = s.SendEvent(NewReportBugFinishedEvent()) }()
-
-		if err := s.bridge.ReportBug(
-			context.Background(),
-			report.OsType,
-			report.OsVersion,
-			report.Title,
-			report.Description,
-			report.Address,
-			report.Address,
-			report.EmailClient,
-			report.IncludeLogs,
-		); err != nil {
+		reportReq := bridge.ReportBugReq{
+			OSType:      report.OsType,
+			OSVersion:   report.OsVersion,
+			Title:       report.Title,
+			Description: report.Description,
+			Username:    report.Address,
+			Email:       report.Address,
+			EmailClient: report.EmailClient,
+			IncludeLogs: report.IncludeLogs,
+		}
+		if err := s.bridge.ReportBug(context.Background(), &reportReq); err != nil {
 			s.log.WithError(err).Error("Failed to report bug")
 			_ = s.SendEvent(NewReportBugErrorEvent())
 			return

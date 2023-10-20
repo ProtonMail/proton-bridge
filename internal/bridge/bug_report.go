@@ -19,6 +19,7 @@ package bridge
 
 import (
 	"context"
+	"errors"
 	"io"
 
 	"github.com/ProtonMail/go-proton-api"
@@ -33,65 +34,133 @@ const (
 	DefaultMaxSessionCountForBugReport = 10
 )
 
-func (bridge *Bridge) ReportBug(ctx context.Context, osType, osVersion, title, description, username, email, client string, attachLogs bool) error {
-	var account = username
+type ReportBugReq struct {
+	OSType      string
+	OSVersion   string
+	Title       string
+	Description string
+	Username    string
+	Email       string
+	EmailClient string
+	IncludeLogs bool
+}
 
-	if info, err := bridge.QueryUserInfo(username); err == nil {
-		account = info.Username
+func (bridge *Bridge) ReportBug(ctx context.Context, report *ReportBugReq) error {
+	if info, err := bridge.QueryUserInfo(report.Username); err == nil {
+		report.Username = info.Username
 	} else if userIDs := bridge.GetUserIDs(); len(userIDs) > 0 {
 		if err := bridge.vault.GetUser(userIDs[0], func(user *vault.User) {
-			account = user.Username()
+			report.Username = user.Username()
 		}); err != nil {
 			return err
 		}
 	}
 
-	var attachment []proton.ReportBugAttachment
-
-	if attachLogs {
-		logsPath, err := bridge.locator.ProvideLogsPath()
+	var attachments []proton.ReportBugAttachment
+	if report.IncludeLogs {
+		logs, err := bridge.CollectLogs()
 		if err != nil {
 			return err
 		}
-
-		buffer, err := logging.ZipLogsForBugReport(logsPath, DefaultMaxSessionCountForBugReport, DefaultMaxBugReportZipSize)
-		if err != nil {
-			return err
-		}
-
-		body, err := io.ReadAll(buffer)
-		if err != nil {
-			return err
-		}
-
-		attachment = append(attachment, proton.ReportBugAttachment{
-			Name:     "logs.zip",
-			Filename: "logs.zip",
-			MIMEType: "application/zip",
-			Body:     body,
-		})
+		attachments = append(attachments, logs)
 	}
 
-	safe.Lock(func() {
+	var firstAtt proton.ReportBugAttachment
+	if len(attachments) > 0 && report.IncludeLogs {
+		firstAtt = attachments[0]
+	}
+
+	attachmentType := proton.AttachmentTypeSync
+	if len(attachments) > 1 {
+		attachmentType = proton.AttachmentTypeAsync
+	}
+
+	token, err := bridge.createTicket(ctx, report, attachmentType, firstAtt)
+	if err != nil || token == "" {
+		return err
+	}
+
+	safe.RLock(func() {
 		for _, user := range bridge.users {
 			user.ReportBugSent()
 		}
 	}, bridge.usersLock)
 
-	_, err := bridge.api.ReportBug(ctx, proton.ReportBugReq{
-		OS:        osType,
-		OSVersion: osVersion,
+	// if we have a token we can append more attachment to the bugReport
+	for i, att := range attachments {
+		if i == 0 && report.IncludeLogs {
+			continue
+		}
+		err := bridge.appendComment(ctx, token, att)
+		if err != nil {
+			return err
+		}
+	}
+	return err
+}
 
-		Title:       "[Bridge] Bug - " + title,
-		Description: description,
+func (bridge *Bridge) CollectLogs() (proton.ReportBugAttachment, error) {
+	logsPath, err := bridge.locator.ProvideLogsPath()
+	if err != nil {
+		return proton.ReportBugAttachment{}, err
+	}
 
-		Client:        client,
+	buffer, err := logging.ZipLogsForBugReport(logsPath, DefaultMaxSessionCountForBugReport, DefaultMaxBugReportZipSize)
+	if err != nil {
+		return proton.ReportBugAttachment{}, err
+	}
+
+	body, err := io.ReadAll(buffer)
+	if err != nil {
+		return proton.ReportBugAttachment{}, err
+	}
+
+	return proton.ReportBugAttachment{
+		Name:     "logs.zip",
+		Filename: "logs.zip",
+		MIMEType: "application/zip",
+		Body:     body,
+	}, nil
+}
+
+func (bridge *Bridge) createTicket(ctx context.Context, report *ReportBugReq,
+	asyncAttach proton.AttachmentType, att proton.ReportBugAttachment) (string, error) {
+	var attachments []proton.ReportBugAttachment
+	attachments = append(attachments, att)
+	res, err := bridge.api.ReportBug(ctx, proton.ReportBugReq{
+		OS:        report.OSType,
+		OSVersion: report.OSVersion,
+
+		Title:       "[Bridge] Bug - " + report.Title,
+		Description: report.Description,
+
+		Client:        report.EmailClient,
 		ClientType:    proton.ClientTypeEmail,
 		ClientVersion: constants.AppVersion(bridge.curVersion.Original()),
 
-		Username: account,
-		Email:    email,
-	}, attachment...)
+		Username: report.Username,
+		Email:    report.Email,
 
-	return err
+		AsyncAttachments: asyncAttach,
+	}, attachments...)
+
+	if err != nil || asyncAttach != proton.AttachmentTypeAsync {
+		return "", err
+	}
+
+	if asyncAttach == proton.AttachmentTypeAsync && res.Token == nil {
+		return "", errors.New("no token returns for AsyncAttachments")
+	}
+
+	return *res.Token, nil
+}
+
+func (bridge *Bridge) appendComment(ctx context.Context, token string, att proton.ReportBugAttachment) error {
+	var attachments []proton.ReportBugAttachment
+	attachments = append(attachments, att)
+	return bridge.api.ReportBugAttachement(ctx, proton.ReportBugAttachmentReq{
+		Product: proton.ClientTypeEmail,
+		Body:    "Comment adding attachment: " + att.Filename,
+		Token:   token,
+	}, attachments...)
 }

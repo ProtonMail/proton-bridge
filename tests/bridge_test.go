@@ -155,34 +155,29 @@ func (s *scenario) theUserSetSMTPModeToSSL() error {
 }
 
 type testBugReport struct {
-	OSType      string `json:"OS"`
-	OSVersion   string `json:"OSVersion"`
-	Title       string `json:"Title"`
-	Description string `json:"Description"`
-	Username    string `json:"Username"`
-	Email       string `json:"Email"`
-	Client      string `json:"Client"`
-	Attachment  bool   `json:"Attachment"`
-
-	bridge *bridge.Bridge
+	request bridge.ReportBugReq
+	bridge  *bridge.Bridge
 }
 
-func newTestBugReport(bridge *bridge.Bridge) *testBugReport {
-	return &testBugReport{
+func newTestBugReport(br *bridge.Bridge) *testBugReport {
+	request := bridge.ReportBugReq{
 		OSType:      "osType",
 		OSVersion:   "osVersion",
 		Title:       "title",
 		Description: "description",
 		Username:    "username",
 		Email:       "email",
-		Client:      "client",
-		Attachment:  false,
-		bridge:      bridge,
+		EmailClient: "client",
+		IncludeLogs: false,
+	}
+	return &testBugReport{
+		request: request,
+		bridge:  br,
 	}
 }
 
 func (r *testBugReport) report() error {
-	return r.bridge.ReportBug(context.Background(), r.OSType, r.OSVersion, r.Title, r.Description, r.Username, r.Email, r.Client, r.Attachment)
+	return r.bridge.ReportBug(context.Background(), &r.request)
 }
 
 func (s *scenario) theUserReportsABug() error {
@@ -194,25 +189,25 @@ func (s *scenario) theUserReportsABugWithSingleHeaderChange(key, value string) e
 
 	switch key {
 	case "osType":
-		bugReport.OSType = value
+		bugReport.request.OSType = value
 	case "osVersion":
-		bugReport.OSVersion = value
+		bugReport.request.OSVersion = value
 	case "Title":
-		bugReport.Title = value
+		bugReport.request.Title = value
 	case "Description":
-		bugReport.Description = value
+		bugReport.request.Description = value
 	case "Username":
-		bugReport.Username = value
+		bugReport.request.Username = value
 	case "Email":
-		bugReport.Email = value
+		bugReport.request.Email = value
 	case "Client":
-		bugReport.Client = value
+		bugReport.request.EmailClient = value
 	case "Attachment":
 		att, err := strconv.ParseBool(value)
 		if err != nil {
 			return fmt.Errorf("failed to parse bug report attachment preferences: %w", err)
 		}
-		bugReport.Attachment = att
+		bugReport.request.IncludeLogs = att
 	default:
 		return fmt.Errorf("Wrong header (\"%s\") is being checked", key)
 	}
@@ -222,10 +217,9 @@ func (s *scenario) theUserReportsABugWithSingleHeaderChange(key, value string) e
 
 func (s *scenario) theUserReportsABugWithDetails(value *godog.DocString) error {
 	bugReport := newTestBugReport(s.t.bridge)
-	if err := json.Unmarshal([]byte(value.Content), &bugReport); err != nil {
+	if err := json.Unmarshal([]byte(value.Content), &bugReport.request); err != nil {
 		return fmt.Errorf("cannot parse bug report details: %w", err)
 	}
-
 	return bugReport.report()
 }
 

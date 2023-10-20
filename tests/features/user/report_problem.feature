@@ -41,7 +41,7 @@ Feature: The user reports a problem
         "Description": "Testing Description",
         "Username": "[user:user]",
         "Email": "[user:user]@[domain]",
-        "Client": "Apple Mail"
+        "EmailClient": "Apple Mail"
       }
       """
     Then the header in the "POST" multipart request to "/core/v4/reports/bug" has "Title" set to "[Bridge] Bug - Testing Title"
