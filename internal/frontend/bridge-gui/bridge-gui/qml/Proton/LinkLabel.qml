@@ -22,6 +22,7 @@ RowLayout {
     property bool external: false
     property string link: "#"
     property string text: ""
+    property color color: colorScheme.interaction_norm
 
     function clear() {
         root.callback = null;
@@ -49,9 +50,9 @@ RowLayout {
         id: label
         Layout.alignment: Qt.AlignVCenter
         colorScheme: root.colorScheme
+        linkColor: root.color
         text: label.link(root.link, root.text)
         type: Label.LabelType.Body
-
         onLinkActivated: function (link) {
             if ((link !== "#") && (link.length > 0)) {
                 Qt.openUrlExternally(link);

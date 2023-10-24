@@ -716,7 +716,8 @@ QtObject {
         group: Notifications.Group.Connection
         icon: "./icons/ic-no-connection.svg"
         type: Notification.NotificationType.Danger
-
+        linkUrl: "https://proton.me/support/bridge"
+        linkText: qsTr("What happens with my messages when internet is down?")
         Connections {
             function onInternetOff() {
                 root.noInternet.active = true;

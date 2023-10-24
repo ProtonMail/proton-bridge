@@ -84,6 +84,7 @@ Popup {
                 anchors.topMargin: 14
                 spacing: 8
 
+
                 ColorImage {
                     Layout.preferredHeight: 24
                     Layout.preferredWidth: 24
@@ -108,14 +109,35 @@ Popup {
                     sourceSize.width: 24
                     width: 24
                 }
-                Label {
-                    Layout.alignment: Qt.AlignVCenter
+                ColumnLayout {
+                    Layout.alignment: Qt.AlignTop
                     Layout.fillWidth: true
                     Layout.leftMargin: 16
-                    color: root.colorScheme.text_invert
-                    colorScheme: root.colorScheme
-                    text: root.notification ? root.notification.description : ""
-                    wrapMode: Text.WordWrap
+                    Label {
+                        id: messageLabel
+                        Layout.alignment: Qt.AlignTop
+                        Layout.fillWidth: true
+                        color: root.colorScheme.text_invert
+                        colorScheme: root.colorScheme
+                        text: root.notification ? root.notification.description : ""
+                        wrapMode: Text.WordWrap
+                    }
+                    LinkLabel {
+                        Layout.alignment: Qt.AlignTop | Qt.AlignLeft
+                        Layout.fillWidth: true
+                        colorScheme: root.colorScheme
+                        color: messageLabel.color
+                        external: true
+                        link: root.notification ? root.notification.linkUrl : ""
+                        text: root.notification ? root.notification.linkText : ""
+                        visible: root.notification && root.notification.linkUrl.length > 0
+                    }
+                   //  Label {
+                   //      color: root.colorScheme.text_invert
+                   //      colorScheme: root.colorScheme
+                   //      text: "Youpi!"
+                   //      wrapMode: Text.WordWrap
+                   // }
                 }
             }
         }
