@@ -82,6 +82,17 @@ Dialog {
             implicitWidth: additionalChildrenContainer.childrenRect.width
             visible: children.length > 0
         }
+        LinkLabel {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.bottomMargin: 32
+            colorScheme: root.colorScheme
+            external: true
+            link: notification.linkUrl
+            text: notification.linkText
+            visible: notification.linkUrl.length > 0
+
+        }
+
         ColumnLayout {
             spacing: 8
 

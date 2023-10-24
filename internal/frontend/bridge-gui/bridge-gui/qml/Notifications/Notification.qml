@@ -24,19 +24,17 @@ QtObject {
 
     property list<Action> action
     property bool active: false
-    // brief is used in status view only
-    property string brief
+    property string brief // brief is used in status view only
     default property var children
     property var data
-    // description is used in banners and in dialogs as description
-    property string description
+    property string description // description is used in banners and in dialogs as description
     property bool dismissed: false
     property int group
     property string icon
+    property string linkUrl: ""
+    property string linkText: ""
     readonly property var occurred: active ? new Date() : undefined
-
-    // title is used in dialogs only
-    property string title
+    property string title // title is used in dialogs only
     property int type
 
     onActiveChanged: {

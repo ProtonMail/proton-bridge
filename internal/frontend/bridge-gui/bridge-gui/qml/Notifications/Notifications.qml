@@ -104,9 +104,11 @@ QtObject {
     }
     property Notification apiCertIssue: Notification {
         brief: qsTr("Cannot establish secure connection")
-        description: qsTr("Bridge cannot verify the authenticity of Proton servers on your current network due to a TLS certificate error. " + "Start Bridge again after ensuring your connection is secure and/or connecting to a VPN. Learn more about TLS pinning " + "<a href=\"https://proton.me/blog/tls-ssl-certificate#Extra-security-precautions-taken-by-ProtonMail\">here</a>.")
+        description: qsTr("Bridge cannot verify the authenticity of Proton servers on your current network due to a TLS certificate error. Start Bridge again after ensuring your connection is secure and/or connecting to a VPN.")
         group: Notifications.Group.Dialogs | Notifications.Group.Connection
         icon: "./icons/ic-exclamation-circle-filled.svg"
+        linkUrl: "https://proton.me/blog/tls-ssl-certificate#Extra-security-precautions-taken-by-ProtonMail"
+        linkText: qsTr("Learn mode about TLS pinning")
         title: qsTr("Unable to establish a \nsecure connection to \nProton servers")
         type: Notification.NotificationType.Danger
 
