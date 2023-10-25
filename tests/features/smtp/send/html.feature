@@ -1,10 +1,11 @@
 Feature: SMTP sending of plain messages
   Background:
     Given there exists an account with username "[user:user]" and password "password"
-    And there exists an account with username "[user:to]" and password "password"
+    And there exists an account with username "[user:user2]" and password "password"
     Then it succeeds
     When bridge starts
     And the user logs in with username "[user:user]" and password "password"
+    And user "[user:user]" finishes syncing
     And user "[user:user]" connects and authenticates SMTP client "1"
     Then it succeeds
 
@@ -125,10 +126,10 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: HTML message with alternative inline to internal account
-    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:user2]@[domain]":
       """
       From: Bridge Test <[user:user]@[domain]>
-      To: Internal Bridge <[user:to]@[domain]>
+      To: Internal Bridge <[user:user2]@[domain]>
       Subject: Html Inline Alternative Internal
       Content-Disposition: inline
       User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Thunderbird/60.5.0
@@ -192,7 +193,7 @@ Feature: SMTP sending of plain messages
     When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
       | from                 | to                 | subject                          |
-      | [user:user]@[domain] | [user:to]@[domain] | Html Inline Alternative Internal |
+      | [user:user]@[domain] | [user:user2]@[domain] | Html Inline Alternative Internal |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -203,7 +204,7 @@ Feature: SMTP sending of plain messages
           },
           "ToList": [
             {
-              "Address": "[user:to]@[domain]",
+              "Address": "[user:user2]@[domain]",
               "Name": "Internal Bridge"
             }
           ],
@@ -344,7 +345,7 @@ Feature: SMTP sending of plain messages
       }
       """
 
-  Scenario: HTML message with Foreign/Nonascii chars in Subject and Body
+  Scenario: HTML message with Foreign/Nonascii chars in Subject and Body to external
     When there exists an account with username "bridgetest" and password "password"
     And the user logs in with username "bridgetest" and password "password"
     And user "bridgetest" connects and authenticates SMTP client "1"
