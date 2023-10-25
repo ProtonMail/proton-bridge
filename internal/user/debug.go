@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -37,6 +38,7 @@ import (
 	imapservice "github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	bmessage "github.com/ProtonMail/proton-bridge/v3/pkg/message"
 	"github.com/bradenaw/juniper/xmaps"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/emersion/go-message"
@@ -224,6 +226,55 @@ func (user *User) DebugDownloadMessages(
 	return nil
 }
 
+func TryBuildDebugMessage(path string) error {
+	meta, err := loadDebugMetadata(path)
+	if err != nil {
+		return fmt.Errorf("failed to load metadata: %w", err)
+	}
+
+	body, bodyDecrypted, err := loadDebugBody(path)
+	if err != nil {
+		return fmt.Errorf("failed to load body: %w", err)
+	}
+
+	var da []bmessage.DecryptedAttachment
+	if len(meta.Attachments) != 0 {
+		d, err := loadAttachments(path, &meta)
+		if err != nil {
+			return err
+		}
+		da = d
+	}
+
+	decryptedMessage := bmessage.DecryptedMessage{
+		Msg: proton.Message{
+			MessageMetadata: meta.MessageMetadata,
+			Header:          meta.Header,
+			ParsedHeaders:   meta.ParsedHeaders,
+			Body:            "",
+			MIMEType:        meta.MIMEType,
+			Attachments:     nil,
+		},
+		Body:        bytes.Buffer{},
+		BodyErr:     nil,
+		Attachments: da,
+	}
+
+	if bodyDecrypted {
+		decryptedMessage.Body.Write(body)
+	} else {
+		decryptedMessage.Msg.Body = string(body)
+		decryptedMessage.BodyErr = fmt.Errorf("body did not decrypt")
+	}
+
+	var rfc822Message bytes.Buffer
+	if err := bmessage.BuildRFC822Into(nil, &decryptedMessage, defaultMessageJobOpts(), &rfc822Message); err != nil {
+		return fmt.Errorf("failed to build message: %w", err)
+	}
+
+	return nil
+}
+
 func getBodyName(path string) string {
 	return filepath.Join(path, "body.txt")
 }
@@ -297,16 +348,16 @@ func decodeSimpleMessage(outPath string, kr *crypto.KeyRing, msg proton.Message)
 	return nil
 }
 
-func writeMetadata(outPath string, msg proton.Message) error {
-	type CustomMetadata struct {
-		proton.MessageMetadata
-		Header        string
-		ParsedHeaders proton.Headers
-		MIMEType      rfc822.MIMEType
-		Attachments   []proton.Attachment
-	}
+type DebugMetadata struct {
+	proton.MessageMetadata
+	Header        string
+	ParsedHeaders proton.Headers
+	MIMEType      rfc822.MIMEType
+	Attachments   []proton.Attachment
+}
 
-	metadata := CustomMetadata{
+func writeMetadata(outPath string, msg proton.Message) error {
+	metadata := DebugMetadata{
 		MessageMetadata: msg.MessageMetadata,
 		Header:          msg.Header,
 		ParsedHeaders:   msg.ParsedHeaders,
@@ -432,4 +483,79 @@ func writeCustomAttachmentPart(
 	}
 
 	return nil
+}
+
+func loadDebugMetadata(dir string) (DebugMetadata, error) {
+	metadataPath := getMetadataPath(dir)
+	b, err := os.ReadFile(metadataPath) //nolint:gosec
+	if err != nil {
+		return DebugMetadata{}, err
+	}
+
+	var m DebugMetadata
+
+	if err := json.Unmarshal(b, &m); err != nil {
+		return DebugMetadata{}, err
+	}
+
+	return m, nil
+}
+
+func loadDebugBody(dir string) ([]byte, bool, error) {
+	if b, err := os.ReadFile(getBodyName(dir)); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return nil, false, err
+		}
+	} else {
+		return b, true, nil
+	}
+
+	if b, err := os.ReadFile(getBodyNameFailed(dir)); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return nil, false, err
+		}
+	} else {
+		return b, false, nil
+	}
+
+	return nil, false, fmt.Errorf("body is either pgp message, which we can't handle or is missing")
+}
+
+func loadAttachments(dir string, meta *DebugMetadata) ([]bmessage.DecryptedAttachment, error) {
+	attDecrypted := make([]bmessage.DecryptedAttachment, 0, len(meta.Attachments))
+
+	for _, a := range meta.Attachments {
+		data, err := os.ReadFile(getAttachmentPathSuccess(dir, a.ID, a.Name))
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				return nil, fmt.Errorf("attachment (%v,%v) must have failed to decrypt, we can't do anything since we need the user's keyring", a.ID, a.Name)
+			}
+
+			return nil, fmt.Errorf("failed to load attachment (%v,%v): %w", a.ID, a.Name, err)
+		}
+
+		da := bmessage.DecryptedAttachment{
+			Packet:    nil,
+			Encrypted: nil,
+			Data:      bytes.Buffer{},
+			Err:       nil,
+		}
+
+		da.Data.Write(data)
+
+		attDecrypted = append(attDecrypted, da)
+	}
+
+	return attDecrypted, nil
+}
+
+func defaultMessageJobOpts() bmessage.JobOptions {
+	return bmessage.JobOptions{
+		IgnoreDecryptionErrors: true, // Whether to ignore decryption errors and create a "custom message" instead.
+		SanitizeDate:           true, // Whether to replace all dates before 1970 with RFC822's birthdate.
+		AddInternalID:          true, // Whether to include MessageID as X-Pm-Internal-Id.
+		AddExternalID:          true, // Whether to include ExternalID as X-Pm-External-Id.
+		AddMessageDate:         true, // Whether to include message time as X-Pm-Date.
+		AddMessageIDReference:  true, // Whether to include the MessageID in References.
+	}
 }
