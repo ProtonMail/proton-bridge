@@ -315,7 +315,11 @@ func getParentID(
 		switch len(metadata) {
 		case 1:
 			// found exactly one parent
-			parentID = metadata[0].ID
+			// We can only reference messages that have been sent or received. If this message is a draft
+			// it needs to be ignored.
+			if metadata[0].Flags.Has(proton.MessageFlagSent) || metadata[0].Flags.Has(proton.MessageFlagReceived) {
+				parentID = metadata[0].ID
+			}
 		case 0:
 			// found no parents
 		default:
