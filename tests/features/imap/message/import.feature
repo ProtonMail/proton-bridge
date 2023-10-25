@@ -377,3 +377,84 @@ Feature: IMAP import messages
         }
       }
       """
+
+  @regression
+  Scenario: Import message with remote content
+    When IMAP client "1" appends the following message to "Inbox":
+    """
+    Date: 01 Jan 1980 00:00:00 +0000
+    To: Bridge Test <bridge@test.com>
+    From: Bridge Second Test <bridge_second@test.com>
+    Subject: MESSAGE WITH REMOTE CONTENT
+    Content-Type: multipart/alternative;
+      boundary="------------vUMV7TiM65KWBg30p6OgD3Vp"
+
+    This is a multi-part message in MIME format.
+    --------------vUMV7TiM65KWBg30p6OgD3Vp
+    Content-Type: text/plain; charset=utf-8; format=flowed
+    Content-Transfer-Encoding: 7bit
+
+    Remote content
+
+
+    Bridge
+
+
+    Remote content
+
+
+    --------------vUMV7TiM65KWBg30p6OgD3Vp
+    Content-Type: text/html; charset=utf-8
+    Content-Transfer-Encoding: 7bit
+
+    <!DOCTYPE html>
+    <html>
+      <head>
+
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+      </head>
+      <body>
+        <p><tt>Remote content</tt></p>
+        <p><tt><br>
+          </tt></p>
+        <p><img
+            src="https://bridgeteam.protontech.ch/bridgeteam/tmp/bridge.jpg"
+            alt="Bridge" width="180" height="180"></p>
+        <p><br>
+        </p>
+        <p><tt>Remote content</tt><br>
+        </p>
+        <br>
+      </body>
+    </html>
+
+    --------------vUMV7TiM65KWBg30p6OgD3Vp--
+
+    """
+    Then it succeeds
+    And IMAP client "1" eventually sees the following message in "Inbox" with this structure:
+    """
+    {
+      "date": "01 Jan 80 00:00 +0000",
+      "to": "Bridge Test <bridge@test.com>",
+      "from": "Bridge Second Test <bridge_second@test.com>",
+      "subject": "MESSAGE WITH REMOTE CONTENT",
+      "content": {
+        "content-type": "multipart/alternative",
+        "sections":[
+          {
+            "content-type": "text/plain",
+            "content-type-charset": "utf-8",
+            "transfer-encoding": "7bit",
+            "body-is": "Remote content\n\n\nBridge\n\n\nRemote content"
+          },
+          {
+            "content-type": "text/html",
+            "content-type-charset": "utf-8",
+            "transfer-encoding": "7bit",
+            "body-is": "<!DOCTYPE html>\n<html>\n  <head>\n\n    <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n  </head>\n  <body>\n    <p><tt>Remote content</tt></p>\n    <p><tt><br>\n      </tt></p>\n    <p><img\n        src=\"https://bridgeteam.protontech.ch/bridgeteam/tmp/bridge.jpg\"\n        alt=\"Bridge\" width=\"180\" height=\"180\"></p>\n    <p><br>\n    </p>\n    <p><tt>Remote content</tt><br>\n    </p>\n    <br>\n  </body>\n</html>"
+          }
+        ]
+      }
+    }
+    """
