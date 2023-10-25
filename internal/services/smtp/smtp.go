@@ -220,7 +220,7 @@ func (s *Service) sendWithKey(
 		ExternalID: message.ExternalID,
 	})
 	if err != nil {
-		return proton.Message{}, fmt.Errorf("failed to create attachments: %w", err)
+		return proton.Message{}, fmt.Errorf("failed to create draft: %w", err)
 	}
 
 	attKeys, err := s.createAttachments(ctx, s.client, addrKR, draft.ID, message.Attachments)
