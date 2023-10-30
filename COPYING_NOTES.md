@@ -133,5 +133,6 @@ Proton Mail Bridge includes the following 3rd party software:
 * [yaml](https://gopkg.in/yaml.v3) available under [license](https://github.com/go-yaml/yaml/blob/v3.0.1/LICENSE) 
 * [docker-credential-helpers](https://github.com/ProtonMail/docker-credential-helpers) available under [license](https://github.com/ProtonMail/docker-credential-helpers/blob/master/LICENSE) 
 * [go-message](https://github.com/ProtonMail/go-message) available under [license](https://github.com/ProtonMail/go-message/blob/master/LICENSE) 
+* [resty](https://github.com/LBeernaertProton/resty/v2) available under [license](https://github.com/LBeernaertProton/resty/v2/blob/master/LICENSE) 
 * [go-keychain](https://github.com/cuthix/go-keychain) available under [license](https://github.com/cuthix/go-keychain/blob/master/LICENSE) 
 <!-- END AUTOGEN -->
