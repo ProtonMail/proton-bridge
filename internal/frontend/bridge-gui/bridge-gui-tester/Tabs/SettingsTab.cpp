@@ -32,6 +32,18 @@ QString const colorSchemeLight = "light"; ///< THe light color scheme name.
 
 
 //****************************************************************************************************************************************************
+/// \brief Connect an address error button to the generation of an address error event.
+///
+/// \param[in] button The error button.
+/// \param[in] edit The edit containing the address.
+/// \param[in] eventGenerator The factory function creating the event.
+//****************************************************************************************************************************************************
+void connectAddressError(QPushButton *button, QLineEdit* edit, bridgepp::SPStreamEvent (*eventGenerator)(QString const &)) {
+    QObject::connect(button, &QPushButton::clicked, [edit, eventGenerator]() { app().grpc().sendEvent(eventGenerator(edit->text())); });
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] parent The parent widget of the tab.
 //****************************************************************************************************************************************************
 SettingsTab::SettingsTab(QWidget *parent)
@@ -50,10 +62,9 @@ SettingsTab::SettingsTab(QWidget *parent)
         app().grpc().sendEvent(
             newDiskCacheErrorEvent(grpc::DiskCacheErrorType::DISK_FULL_ERROR));
     });
-    connect(ui_.buttonNoActiveKeyForRecipient, &QPushButton::clicked, [&]() {
-        app().grpc().sendEvent(
-            newNoActiveKeyForRecipientEvent(ui_.editNoActiveKeyForRecipient->text()));
-    });
+    connectAddressError(ui_.buttonNoActiveKeyForRecipient, ui_.editAddressErrors, newNoActiveKeyForRecipientEvent);
+    connectAddressError(ui_.buttonAddressChanged, ui_.editAddressErrors, newAddressChangedEvent);
+    connectAddressError(ui_.buttonAddressChangedLogout, ui_.editAddressErrors, newAddressChangedLogoutEvent);
     connect(ui_.checkNextCacheChangeWillSucceed, &QCheckBox::toggled, this, &SettingsTab::updateGUIState);
     connect(ui_.buttonUpdateError, &QPushButton::clicked, [&]() {
         app().grpc().sendEvent(newUpdateErrorEvent(static_cast<grpc::UpdateErrorType>(ui_.comboUpdateError->currentIndex())));
@@ -154,7 +165,7 @@ bool SettingsTab::showSplashScreen() const {
 
 
 //****************************************************************************************************************************************************
-/// \return true iff autosart is on.
+/// \return true iff autostart is on.
 //****************************************************************************************************************************************************
 bool SettingsTab::isAutostartOn() const {
     return ui_.checkAutostart->isChecked();
@@ -305,7 +316,7 @@ void SettingsTab::setBugReport(QString const &osType, QString const &osVersion, 
 //****************************************************************************************************************************************************
 void SettingsTab::installTLSCertificate() {
     ui_.labelLastTLSCertInstall->setText(QString("Last install: %1").arg(QDateTime::currentDateTime().toString(Qt::ISODateWithMs)));
-    ui_.checkTLSCertIsInstalled->setChecked(this->nextTLSCertIntallResult() == TLSCertInstallResult::Success);
+    ui_.checkTLSCertIsInstalled->setChecked(this->nextTLSCertInstallResult() == TLSCertInstallResult::Success);
 }
 
 
@@ -313,9 +324,7 @@ void SettingsTab::installTLSCertificate() {
 /// \param[in] folderPath The folder path.
 //****************************************************************************************************************************************************
 void SettingsTab::exportTLSCertificates(QString const &folderPath) {
-    ui_.labeLastTLSCertExport->setText(QString("%1 Export to %2")
-        .arg(QDateTime::currentDateTime().toString(Qt::ISODateWithMs))
-        .arg(folderPath));
+    ui_.labeLastTLSCertExport->setText(QString("%1 Export to %2").arg(QDateTime::currentDateTime().toString(Qt::ISODateWithMs),folderPath));
 }
 
 
@@ -338,7 +347,7 @@ bool SettingsTab::isTLSCertificateInstalled() const {
 //****************************************************************************************************************************************************
 /// \return The value for the 'Next TLS cert install result'.
 //****************************************************************************************************************************************************
-SettingsTab::TLSCertInstallResult SettingsTab::nextTLSCertIntallResult() const {
+SettingsTab::TLSCertInstallResult SettingsTab::nextTLSCertInstallResult() const {
     return TLSCertInstallResult(ui_.comboNextTLSCertInstallResult->currentIndex());
 }
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1131</width>
-    <height>762</height>
+    <width>1212</width>
+    <height>857</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -778,6 +778,9 @@
               <property name="suffix">
                <string> ms</string>
               </property>
+              <property name="minimum">
+               <number>-1</number>
+              </property>
               <property name="maximum">
                <number>3600000</number>
               </property>
@@ -785,7 +788,7 @@
                <number>100</number>
               </property>
               <property name="value">
-               <number>1000</number>
+               <number>0</number>
               </property>
              </widget>
             </item>
@@ -868,22 +871,62 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_12">
-            <item>
-             <widget class="QPushButton" name="buttonNoActiveKeyForRecipient">
-              <property name="text">
-               <string>No Active Key For Recipient</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="editNoActiveKeyForRecipient">
-              <property name="text">
-               <string>dummy.user@proton.me</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QGroupBox" name="groupBox">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="title">
+             <string>Address related errors</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_9">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_12">
+               <item>
+                <widget class="QLabel" name="label">
+                 <property name="text">
+                  <string>Address</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="editAddressErrors">
+                 <property name="text">
+                  <string>dummy.user@proton.me</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_15">
+               <item>
+                <widget class="QPushButton" name="buttonAddressChanged">
+                 <property name="text">
+                  <string>Address Changed</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonAddressChangedLogout">
+                 <property name="text">
+                  <string>Address Changed Logout</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="buttonNoActiveKeyForRecipient">
+                 <property name="text">
+                  <string>No Active Key For Recipient</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
           </item>
           <item>
            <widget class="QCheckBox" name="checkIsPortFree">

@@ -786,7 +786,7 @@ Status GRPCService::InstallTLSCertificate(ServerContext *, Empty const *, Empty 
     app().log().debug(__FUNCTION__);
     SPStreamEvent event;
     qtProxy_.installTLSCertificate();
-    switch (app().mainWindow().settingsTab().nextTLSCertIntallResult()) {
+    switch (app().mainWindow().settingsTab().nextTLSCertInstallResult()) {
     case SettingsTab::TLSCertInstallResult::Success:
         event = newCertificateInstallSuccessEvent();
         break;

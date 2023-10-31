@@ -33,13 +33,13 @@ public: // data types.
         Success = 0,
         Canceled = 1,
         Failure = 2
-    }; ///< Enumberation for the result of a TLS certificate installation.
+    }; ///< Enumeration for the result of a TLS certificate installation.
 
 public: // member functions.
     explicit SettingsTab(QWidget *parent = nullptr); ///< Default constructor.
     SettingsTab(SettingsTab const &) = delete; ///< Disabled copy-constructor.
     SettingsTab(SettingsTab &&) = delete; ///< Disabled assignment copy-constructor.
-    ~SettingsTab() = default; ///< Destructor.
+    ~SettingsTab() override = default; ///< Destructor.
     SettingsTab &operator=(SettingsTab const &) = delete; ///< Disabled assignment operator.
     SettingsTab &operator=(SettingsTab &&) = delete; ///< Disabled move assignment operator.
 
@@ -62,7 +62,7 @@ public: // member functions.
     QString landingPageLink() const; ///< Get the content of the 'Landing Page Link' edit.
     bool nextBugReportWillSucceed() const; ///< Get the status of the 'Next Bug Report Will Fail' check box.
     bool isTLSCertificateInstalled() const; ///< Get the status of the 'TLS Certificate is installed' check box.
-    TLSCertInstallResult nextTLSCertIntallResult() const; ///< Get the value of the 'Next TLS Certificate install result' combo box.
+    TLSCertInstallResult nextTLSCertInstallResult() const; ///< Get the value of the 'Next TLS Certificate install result' combo box.
     bool nextTLSCertExportWillSucceed() const;  ///< Get the status of the 'Next TLS Cert export will succeed' check box.
     bool nextTLSKeyExportWillSucceed() const;  ///< Get the status of the 'Next TLS Key export will succeed' check box.
     QString hostname() const; ///< Get the value of the 'Hostname' edit.
@@ -99,7 +99,7 @@ private: // member functions.
     void resetUI(); ///< Reset the widget.
 
 private: // data members.
-    Ui::SettingsTab ui_; ///< The GUI for the tab
+    Ui::SettingsTab ui_ {}; ///< The GUI for the tab
 };
 
 
