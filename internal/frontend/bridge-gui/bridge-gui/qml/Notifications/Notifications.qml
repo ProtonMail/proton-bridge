@@ -28,23 +28,6 @@ QtObject {
         Dialogs = 64
     }
 
-    // Other
-    property Notification accountChanged: Notification {
-        brief: qsTr("Address list changed")
-        description: qsTr("The address list for .... account has changed. You need to reconfigure your email client.")
-        group: Notifications.Group.Configuration
-        icon: "./icons/ic-exclamation-circle-filled.svg"
-        type: Notification.NotificationType.Danger
-
-        action: Action {
-            text: qsTr("Reconfigure")
-
-            onTriggered:
-            // TODO: open configuration window here
-            {
-            }
-        }
-    }
     property Notification addressChanged: Notification {
         brief: title
         description: qsTr("The address list for your account has changed. You might need to reconfigure your email client.")
@@ -76,7 +59,7 @@ QtObject {
             target: Backend
         }
     }
-    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.bugReportSendFallback, root.cacheUnavailable, root.cacheCantMove, root.accountChanged, root.diskFull, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.noActiveKeyForRecipient, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion]
+    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.bugReportSendFallback, root.cacheUnavailable, root.cacheCantMove, root.diskFull, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.noActiveKeyForRecipient, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion]
     property Notification alreadyLoggedIn: Notification {
         brief: qsTr("Already signed in")
         description: qsTr("This account is already signed in.")
