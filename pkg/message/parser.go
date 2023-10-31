@@ -32,6 +32,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
 	pmmime "github.com/ProtonMail/proton-bridge/v3/pkg/mime"
 	"github.com/emersion/go-message"
+	"github.com/google/uuid"
 	"github.com/jaytaylor/html2text"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -114,6 +115,10 @@ func parse(p *parser.Parser, allowInvalidAddressLists bool) (Message, error) {
 
 	if err := convertForeignEncodings(p); err != nil {
 		return Message{}, errors.Wrap(err, "failed to convert foreign encodings")
+	}
+
+	if err := patchInlineImages(p); err != nil {
+		return Message{}, err
 	}
 
 	m, err := parseMessageHeader(p.Root().Header, allowInvalidAddressLists)
@@ -635,4 +640,169 @@ func forEachDecodedHeaderField(h message.Header, fn func(string, string) error) 
 	}
 
 	return nil
+}
+
+func patchInlineImages(p *parser.Parser) error {
+	// This code will only attempt to patch the root level children. I tested with different email clients and as soon
+	// as you reply/forward a message the entire content gets converted into HTML (Apple Mail/Thunderbird/Evolution).
+	// If you are forcing text formatting (Evolution), the inline images of the original email are stripped.
+	// The only reason we need to apply this modification is that Apple Mail can send out text + inline image parts
+	// if the text does not exceed the 76 char column limit.
+	// Based on this, it's unlikely we will see any other variations.
+	root := p.Root()
+
+	children := root.Children()
+
+	if len(children) < 2 {
+		return nil
+	}
+
+	result := make([]inlinePatchJob, len(children))
+
+	var (
+		transformationNeeded bool
+		prevPart             *parser.Part
+		prevContentType      string
+		prevContentTypeMap   map[string]string
+	)
+
+	for i := 0; i < len(children); i++ {
+		curPart := children[i]
+
+		contentType, contentTypeMap, err := curPart.ContentType()
+		if err != nil {
+			return fmt.Errorf("failed to get content type for for child %v:%w", i, err)
+		}
+
+		if rfc822.MIMEType(contentType) == rfc822.TextPlain {
+			result[i] = &inlinePatchBodyOnly{part: curPart, contentTypeMap: contentTypeMap}
+		} else if strings.HasPrefix(contentType, "image/") {
+			disposition, _, err := curPart.ContentDisposition()
+			if err != nil {
+				return fmt.Errorf("failted to get content disposition for child %v:%w", i, err)
+			}
+
+			if disposition == "inline" && !curPart.HasContentID() {
+				if rfc822.MIMEType(prevContentType) == rfc822.TextPlain {
+					result[i-1] = &inlinePatchBodyWithInlineImage{
+						textPart:           prevPart,
+						imagePart:          curPart,
+						textContentTypeMap: prevContentTypeMap,
+					}
+				} else {
+					result[i] = &inlinePatchInlineImageOnly{part: curPart, partIndex: i, root: root}
+				}
+				transformationNeeded = true
+			}
+		}
+		prevPart = curPart
+		prevContentType = contentType
+		prevContentTypeMap = contentTypeMap
+	}
+
+	if !transformationNeeded {
+		return nil
+	}
+
+	for _, t := range result {
+		if t != nil {
+			t.Patch()
+		}
+	}
+
+	return nil
+}
+
+type inlinePatchJob interface {
+	Patch()
+}
+
+// inlinePatchBodyOnly is meant to be used for standalone text parts that need to be converted to html once we applty
+// one of the changes.
+type inlinePatchBodyOnly struct {
+	part           *parser.Part
+	contentTypeMap map[string]string
+}
+
+func (i *inlinePatchBodyOnly) Patch() {
+	newBody := []byte(`<html><body><p>`)
+	newBody = append(newBody, patchNewLineWithHTMLBreaks(i.part.Body)...)
+	newBody = append(newBody, []byte(`</p></body></html>`)...)
+
+	i.part.Body = newBody
+	i.part.Header.SetContentType("text/html", i.contentTypeMap)
+}
+
+// inlinePatchBodyWithInlineImage patches a previous text part so that it refers to that inline image.
+type inlinePatchBodyWithInlineImage struct {
+	textPart           *parser.Part
+	textContentTypeMap map[string]string
+	imagePart          *parser.Part
+}
+
+// inlinePatchInlineImageOnly handle the case where the inline image is not proceeded by a text part. To avoid
+// having to parse any possible previous part, we just inject a new part that references this image.
+type inlinePatchInlineImageOnly struct {
+	part      *parser.Part
+	partIndex int
+	root      *parser.Part
+}
+
+func (i inlinePatchInlineImageOnly) Patch() {
+	contentID := uuid.NewString()
+	// Convert previous part to text/html && inject image.
+	newBody := []byte(fmt.Sprintf(`<html><body><img src="cid:%v"/></body></html>`, contentID))
+
+	i.part.Header.Set("content-id", contentID)
+
+	// create new text part
+	textPart := &parser.Part{
+		Header: message.Header{},
+		Body:   newBody,
+	}
+
+	textPart.Header.SetContentType("text/html", map[string]string{"charset": "UTF-8"})
+
+	i.root.InsertChild(i.partIndex, textPart)
+}
+
+func (i *inlinePatchBodyWithInlineImage) Patch() {
+	contentID := uuid.NewString()
+	// Convert previous part to text/html && inject image.
+	newBody := []byte(`<html><body><p>`)
+	newBody = append(newBody, patchNewLineWithHTMLBreaks(i.textPart.Body)...)
+	newBody = append(newBody, []byte(`</p>`)...)
+	newBody = append(newBody, []byte(fmt.Sprintf(`<img src="cid:%v"/>`, contentID))...)
+	newBody = append(newBody, []byte(`</body></html>`)...)
+
+	i.textPart.Body = newBody
+	i.textPart.Header.SetContentType("text/html", i.textContentTypeMap)
+
+	// Add content id to curPart
+	i.imagePart.Header.Set("content-id", contentID)
+}
+
+func patchNewLineWithHTMLBreaks(input []byte) []byte {
+	dst := make([]byte, 0, len(input))
+	index := 0
+	for {
+		slice := input[index:]
+		newLineIndex := bytes.IndexByte(slice, '\n')
+
+		if newLineIndex == -1 {
+			dst = append(dst, input[index:]...)
+			return dst
+		}
+
+		injectIndex := newLineIndex
+		if newLineIndex > 0 && slice[newLineIndex-1] == '\r' {
+			injectIndex--
+		}
+
+		dst = append(dst, slice[0:injectIndex]...)
+		dst = append(dst, '<', 'b', 'r', '/', '>')
+		dst = append(dst, slice[injectIndex:newLineIndex+1]...)
+
+		index += newLineIndex + 1
+	}
 }

@@ -27,6 +27,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/emersion/go-message"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
@@ -50,6 +51,14 @@ func (p *Part) ContentType() (string, map[string]string, error) {
 	}
 
 	return t, params, err
+}
+
+func (p *Part) ContentDisposition() (string, map[string]string, error) {
+	return p.Header.ContentDisposition()
+}
+
+func (p *Part) HasContentID() bool {
+	return len(p.Header.Get("content-id")) != 0
 }
 
 func (p *Part) Child(n int) (part *Part, err error) {
@@ -78,6 +87,14 @@ func (p *Part) AddChild(child *Part) {
 		p.children = Parts{root, child}
 		stripContentHeaders(&p.Header)
 		p.Header.Set("Content-Type", "multipart/mixed")
+	}
+}
+
+func (p *Part) InsertChild(index int, child *Part) {
+	if p.isMultipartMixedOrRelated() {
+		p.children = slices.Insert(p.children, index, child)
+	} else {
+		p.AddChild(child)
 	}
 }
 
@@ -181,6 +198,15 @@ func (p *Part) isMultipartMixed() bool {
 	}
 
 	return t == "multipart/mixed"
+}
+
+func (p *Part) isMultipartMixedOrRelated() bool {
+	t, _, err := p.ContentType()
+	if err != nil {
+		return false
+	}
+
+	return t == "multipart/mixed" || t == "multipart/related"
 }
 
 func getContentHeaders(header message.Header) message.Header {

@@ -19,6 +19,7 @@ package message
 
 import (
 	"bytes"
+	"fmt"
 	"image/png"
 	"io"
 	"os"
@@ -312,11 +313,13 @@ func TestParseTextPlainWithImageInline(t *testing.T) {
 	m, err := Parse(f)
 	require.NoError(t, err)
 
+	require.NotEmpty(t, m.Attachments[0].ContentID)
+
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
 
-	assert.Equal(t, "body", string(m.RichBody))
 	assert.Equal(t, "body", string(m.PlainBody))
+	assert.Equal(t, fmt.Sprintf(`<html><body><p>body</p><img src="cid:%v"/></body></html>`, m.Attachments[0].ContentID), string(m.RichBody))
 
 	// The inline image is an 8x8 mic-dropping gopher.
 	require.Len(t, m.Attachments, 1)
@@ -324,6 +327,69 @@ func TestParseTextPlainWithImageInline(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 8, img.Width)
 	assert.Equal(t, 8, img.Height)
+}
+
+func TestParseTextPlainWithImageInlineWithMoreTextParts(t *testing.T) {
+	// Inline image test with text - image - text, ensure all parts are convert to html
+	f := getFileReader("text_plain_image_inline2.eml")
+
+	m, err := Parse(f)
+	require.NoError(t, err)
+
+	require.NotEmpty(t, m.Attachments[0].ContentID)
+	assert.Equal(t, "bodybody2", string(m.PlainBody))
+	assert.Equal(t, fmt.Sprintf("<html><body><p>body</p><img src=\"cid:%v\"/></body></html><html><body><p>body2<br/>\n</p></body></html>", m.Attachments[0].ContentID), string(m.RichBody))
+
+	// The inline image is an 8x8 mic-dropping gopher.
+	require.Len(t, m.Attachments, 1)
+	img, err := png.DecodeConfig(bytes.NewReader(m.Attachments[0].Data))
+	require.NoError(t, err)
+	assert.Equal(t, 8, img.Width)
+	assert.Equal(t, 8, img.Height)
+}
+
+func TestParseTextPlainWithImageInlineAfterOtherAttachment(t *testing.T) {
+	// Inline image test with text - image - text, ensure all parts are convert to html
+	f := getFileReader("text_plain_image_inline2.eml")
+
+	m, err := Parse(f)
+	require.NoError(t, err)
+
+	require.NotEmpty(t, m.Attachments[0].ContentID)
+	assert.Equal(t, "bodybody2", string(m.PlainBody))
+	assert.Equal(t, fmt.Sprintf("<html><body><p>body</p><img src=\"cid:%v\"/></body></html><html><body><p>body2<br/>\n</p></body></html>", m.Attachments[0].ContentID), string(m.RichBody))
+
+	// The inline image is an 8x8 mic-dropping gopher.
+	require.Len(t, m.Attachments, 1)
+	img, err := png.DecodeConfig(bytes.NewReader(m.Attachments[0].Data))
+	require.NoError(t, err)
+	assert.Equal(t, 8, img.Width)
+	assert.Equal(t, 8, img.Height)
+}
+
+func TestParseTextPlainWithImageBetweenAttachments(t *testing.T) {
+	// Inline image test with text - pdf - image - text. A new part must be created to be injected.
+	f := getFileReader("text_plain_image_inline_between_attachment.eml")
+
+	m, err := Parse(f)
+	require.NoError(t, err)
+
+	require.Empty(t, m.Attachments[0].ContentID)
+	require.NotEmpty(t, m.Attachments[1].ContentID)
+	assert.Equal(t, "bodybody2", string(m.PlainBody))
+	assert.Equal(t, fmt.Sprintf("<html><body><p>body</p></body></html><html><body><img src=\"cid:%v\"/></body></html><html><body><p>body2<br/>\n</p></body></html>", m.Attachments[1].ContentID), string(m.RichBody))
+}
+
+func TestParseTextPlainWithImageFirst(t *testing.T) {
+	// Inline image test with text - pdf - image - text. A new part must be created to be injected.
+	f := getFileReader("text_plain_image_inline_attachment_first.eml")
+
+	m, err := Parse(f)
+	require.NoError(t, err)
+
+	require.NotEmpty(t, m.Attachments[0].ContentID)
+	assert.Equal(t, "body", string(m.PlainBody))
+	assert.Equal(t, fmt.Sprintf("<html><body><img src=\"cid:%v\"/></body></html><html><body><p>body</p></body></html>", m.Attachments[0].ContentID), string(m.RichBody))
 }
 
 func TestParseTextPlainWithDuplicateCharset(t *testing.T) {
@@ -428,11 +494,12 @@ func TestParseTextHTMLWithImageInline(t *testing.T) {
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
 
-	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> with attachment</body></html>", string(m.RichBody))
+	require.Len(t, m.Attachments, 1)
+
+	assert.Equal(t, fmt.Sprintf(`<html><head></head><body>This is body of <b>HTML mail</b> with attachment</body></html><html><body><img src="cid:%v"/></body></html>`, m.Attachments[0].ContentID), string(m.RichBody))
 	assert.Equal(t, "This is body of *HTML mail* with attachment", string(m.PlainBody))
 
 	// The inline image is an 8x8 mic-dropping gopher.
-	require.Len(t, m.Attachments, 1)
 	img, err := png.DecodeConfig(bytes.NewReader(m.Attachments[0].Data))
 	require.NoError(t, err)
 	assert.Equal(t, 8, img.Width)
@@ -717,6 +784,23 @@ func TestParseTextPlainWithDocxAttachmentCyrillic(t *testing.T) {
 	require.Len(t, m.Attachments, 1)
 	require.Equal(t, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", m.Attachments[0].MIMEType)
 	assert.Equal(t, "АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЧЏЗШ.docx", m.Attachments[0].Name)
+}
+
+func TestPatchNewLineWithHtmlBreaks(t *testing.T) {
+	{
+		input := []byte("\nfoo\nbar\n\n\nzz\nddd")
+		expected := []byte("<br/>\nfoo<br/>\nbar<br/>\n<br/>\n<br/>\nzz<br/>\nddd")
+
+		result := patchNewLineWithHTMLBreaks(input)
+		require.Equal(t, expected, result)
+	}
+	{
+		input := []byte("\r\nfoo\r\nbar\r\n\r\n\r\nzz\r\nddd")
+		expected := []byte("<br/>\r\nfoo<br/>\r\nbar<br/>\r\n<br/>\r\n<br/>\r\nzz<br/>\r\nddd")
+
+		result := patchNewLineWithHTMLBreaks(input)
+		require.Equal(t, expected, result)
+	}
 }
 
 func getFileReader(filename string) io.Reader {

@@ -336,6 +336,9 @@ func TestBridge_SendInvite(t *testing.T) {
 }
 
 func TestBridge_SendAddTextBodyPartIfNotExists(t *testing.T) {
+	// NOTE: Prior to GODT-2887, these tests had inline images, however after the implementation to support
+	// inline images new parts are injected to reference inline images without content-id set. The images
+	// in this test have been changed to regular attachments to keep the original checks in place.
 	const messageMultipartWithoutText = `Content-Type: multipart/mixed;
   boundary="Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84"
 Subject: A new message
@@ -343,7 +346,7 @@ Date: Mon, 13 Mar 2023 16:06:16 +0100
 
 
 --Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84
-Content-Disposition: inline;
+Content-Disposition: attachment;
   filename=Cat_August_2010-4.jpeg
 Content-Type: image/jpeg;
   name="Cat_August_2010-4.jpeg"
@@ -360,7 +363,7 @@ Subject: A new message Part2
 Date: Mon, 13 Mar 2023 16:06:16 +0100
 
 --Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84
-Content-Disposition: inline;
+Content-Disposition: attachment;
   filename=Cat_August_2010-4.jpeg
 Content-Type: image/jpeg;
   name="Cat_August_2010-4.jpeg"
@@ -513,6 +516,184 @@ SGVsbG8gd29ybGQK
 						require.Equal(t, "plain", message.BodyStructure.Parts[1].MIMESubType)
 						require.Equal(t, "attachment", message.BodyStructure.Parts[1].Disposition)
 					}
+				}
+
+				return true
+			}, 10*time.Second, 100*time.Millisecond)
+		})
+	})
+}
+
+func TestBridge_SendInlineImage(t *testing.T) {
+	const messageInlineImageOnly = `Content-Type: multipart/mixed;
+  boundary="Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84"
+Subject: A new message
+Date: Mon, 13 Mar 2023 16:06:16 +0100
+
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84
+Content-Disposition: inline;
+  filename=Cat_August_2010-4.jpeg
+Content-Type: image/jpeg;
+  name="Cat_August_2010-4.jpeg"
+Content-Transfer-Encoding: base64
+
+SGVsbG8gd29ybGQ=
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84--
+	`
+
+	const messageInlineImageWithHTML = `Content-Type: multipart/mixed;
+  boundary="Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84"
+Subject: A new message Part2 
+Date: Mon, 13 Mar 2023 16:06:16 +0100
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84
+Content-Type: text/html;charset=utf8
+Content-Transfer-Encoding: quoted-printable
+
+Hello world
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84
+Content-Disposition: inline;
+  filename=Cat_August_2010-4.jpeg
+Content-Type: image/jpeg;
+  name="Cat_August_2010-4.jpeg"
+Content-Transfer-Encoding: base64
+
+SGVsbG8gd29ybGQ=
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84--
+`
+
+	const messageInlineImageWithText = `Content-Type: multipart/mixed;
+  boundary="Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84"
+Subject: A new message Part3
+Date: Mon, 13 Mar 2023 16:06:16 +0100
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84
+Content-Type: text/plain;charset=utf8
+Content-Transfer-Encoding: quoted-printable
+
+Hello world
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84
+Content-Disposition: inline;
+  filename=Cat_August_2010-4.jpeg
+Content-Type: image/jpeg;
+  name="Cat_August_2010-4.jpeg"
+Content-Transfer-Encoding: base64
+
+SGVsbG8gd29ybGQ=
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84--
+`
+
+	const messageInlineImageFollowedByText = `Content-Type: multipart/mixed;
+  boundary="Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84"
+Subject: A new message Part4
+Date: Mon, 13 Mar 2023 16:06:16 +0100
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84
+Content-Disposition: inline;
+  filename=Cat_August_2010-4.jpeg
+Content-Type: image/jpeg;
+  name="Cat_August_2010-4.jpeg"
+Content-Transfer-Encoding: base64
+
+SGVsbG8gd29ybGQ=
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84
+Content-Type: text/plain;charset=utf8
+Content-Transfer-Encoding: quoted-printable
+
+Hello world
+
+--Apple-Mail=_E7AC06C7-4EB2-4453-8CBB-80F4412A7C84--
+`
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		_, _, err := s.CreateUser("recipient", password)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			smtpWaiter := waitForSMTPServerReady(bridge)
+			defer smtpWaiter.Done()
+
+			senderUserID, err := bridge.LoginFull(ctx, username, password, nil, nil)
+			require.NoError(t, err)
+
+			recipientUserID, err := bridge.LoginFull(ctx, "recipient", password, nil, nil)
+			require.NoError(t, err)
+
+			senderInfo, err := bridge.GetUserInfo(senderUserID)
+			require.NoError(t, err)
+
+			recipientInfo, err := bridge.GetUserInfo(recipientUserID)
+			require.NoError(t, err)
+
+			messages := []string{
+				messageInlineImageOnly,
+				messageInlineImageWithHTML,
+				messageInlineImageWithText,
+				messageInlineImageFollowedByText,
+			}
+
+			smtpWaiter.Wait()
+
+			for _, m := range messages {
+				// Dial the server.
+				client, err := smtp.Dial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetSMTPPort())))
+				require.NoError(t, err)
+				defer client.Close() //nolint:errcheck
+
+				// Upgrade to TLS.
+				require.NoError(t, client.StartTLS(&tls.Config{InsecureSkipVerify: true}))
+
+				// Authorize with SASL LOGIN.
+				require.NoError(t, client.Auth(sasl.NewLoginClient(
+					senderInfo.Addresses[0],
+					string(senderInfo.BridgePass)),
+				))
+
+				// Send the message.
+				require.NoError(t, client.SendMail(
+					senderInfo.Addresses[0],
+					[]string{recipientInfo.Addresses[0]},
+					strings.NewReader(m),
+				))
+			}
+
+			// Connect the sender IMAP client.
+			senderIMAPClient, err := eventuallyDial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetIMAPPort())))
+			require.NoError(t, err)
+			require.NoError(t, senderIMAPClient.Login(senderInfo.Addresses[0], string(senderInfo.BridgePass)))
+			defer senderIMAPClient.Logout() //nolint:errcheck
+
+			// Connect the recipient IMAP client.
+			recipientIMAPClient, err := eventuallyDial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetIMAPPort())))
+			require.NoError(t, err)
+			require.NoError(t, recipientIMAPClient.Login(recipientInfo.Addresses[0], string(recipientInfo.BridgePass)))
+			defer recipientIMAPClient.Logout() //nolint:errcheck
+
+			require.Eventually(t, func() bool {
+				messages, err := clientFetch(senderIMAPClient, `Sent`, imap.FetchBodyStructure)
+				require.NoError(t, err)
+				if len(messages) != 4 {
+					return false
+				}
+
+				// messages may not be in order
+				for _, message := range messages {
+					require.Equal(t, 1, len(message.BodyStructure.Parts))
+					require.Equal(t, "multipart", message.BodyStructure.MIMEType)
+					require.Equal(t, "mixed", message.BodyStructure.MIMESubType)
+					require.Equal(t, "multipart", message.BodyStructure.Parts[0].MIMEType)
+					require.Equal(t, "related", message.BodyStructure.Parts[0].MIMESubType)
+					require.Len(t, message.BodyStructure.Parts[0].Parts, 2)
+					require.Equal(t, "text", message.BodyStructure.Parts[0].Parts[0].MIMEType)
+					require.Equal(t, "html", message.BodyStructure.Parts[0].Parts[0].MIMESubType)
+					require.Equal(t, "image", message.BodyStructure.Parts[0].Parts[1].MIMEType)
+					require.Equal(t, "jpeg", message.BodyStructure.Parts[0].Parts[1].MIMESubType)
 				}
 
 				return true
