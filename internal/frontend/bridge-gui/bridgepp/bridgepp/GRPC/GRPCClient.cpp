@@ -1298,17 +1298,9 @@ void GRPCClient::processCacheEvent(DiskCacheEvent const &event) {
     switch (event.event_case()) {
     case DiskCacheEvent::kError: {
         switch (event.error().type()) {
-        case DISK_CACHE_UNAVAILABLE_ERROR:
-            this->logError("Cache error received: diskCacheUnavailable.");
-            emit diskCacheUnavailable();
-            break;
         case CANT_MOVE_DISK_CACHE_ERROR:
             this->logError("Cache error received: cantMoveDiskCache.");
             emit cantMoveDiskCache();
-            break;
-        case DISK_FULL_ERROR:
-            this->logError("Cache error received: diskFull.");
-            emit diskFull();
             break;
         default:
             this->logError("Unknown cache error event received.");

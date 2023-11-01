@@ -224,10 +224,8 @@ public slots: // slot for signals received from gRPC that need transformation in
 
 signals: // Signals received from the Go backend, to be forwarded to QML
     void toggleAutostartFinished(); ///< Signal for the 'toggleAutostartFinished' gRPC stream event.
-    void diskCacheUnavailable(); ///< Signal for the 'diskCacheUnavailable' gRPC stream event.
     void cantMoveDiskCache(); ///< Signal for the 'cantMoveDiskCache' gRPC stream event.
     void diskCachePathChangeFinished(); ///< Signal for the 'diskCachePathChangeFinished' gRPC stream event.
-    void diskFull(); ///< Signal for the 'diskFull' gRPC stream event.
     void loginUsernamePasswordError(QString const &errorMsg); ///< Signal for the 'loginUsernamePasswordError' gRPC stream event.
     void loginFreeUserError(); ///< Signal for the 'loginFreeUserError' gRPC stream event.
     void loginConnectionError(QString const &errorMsg); ///< Signal for the 'loginConnectionError' gRPC stream event.

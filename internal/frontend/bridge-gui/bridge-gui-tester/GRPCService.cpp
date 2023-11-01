@@ -535,7 +535,7 @@ Status GRPCService::SetDiskCachePath(ServerContext *, StringValue const *path, E
 
     // we mimic the behaviour of Bridge
     if (!tab.nextCacheChangeWillSucceed()) {
-        qtProxy_.sendDelayedEvent(newDiskCacheErrorEvent(grpc::DiskCacheErrorType(tab.cacheError())));
+        qtProxy_.sendDelayedEvent(newDiskCacheErrorEvent(grpc::DiskCacheErrorType(CANT_MOVE_DISK_CACHE_ERROR)));
     } else {
         qtProxy_.setDiskCachePath(qPath);
         qtProxy_.sendDelayedEvent(newDiskCachePathChangedEvent(qPath));

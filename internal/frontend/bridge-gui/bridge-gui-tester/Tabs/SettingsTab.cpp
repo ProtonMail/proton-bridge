@@ -54,14 +54,6 @@ SettingsTab::SettingsTab(QWidget *parent)
     connect(ui_.buttonInternetOff, &QPushButton::clicked, []() { app().grpc().sendEvent(newInternetStatusEvent(false)); });
     connect(ui_.buttonShowMainWindow, &QPushButton::clicked, []() { app().grpc().sendEvent(newShowMainWindowEvent()); });
     connect(ui_.buttonAPICertIssue, &QPushButton::clicked, []() { app().grpc().sendEvent(newApiCertIssueEvent()); });
-    connect(ui_.buttonDiskCacheUnavailable, &QPushButton::clicked, []() {
-        app().grpc().sendEvent(
-            newDiskCacheErrorEvent(grpc::DiskCacheErrorType::DISK_CACHE_UNAVAILABLE_ERROR));
-    });
-    connect(ui_.buttonDiskFull, &QPushButton::clicked, []() {
-        app().grpc().sendEvent(
-            newDiskCacheErrorEvent(grpc::DiskCacheErrorType::DISK_FULL_ERROR));
-    });
     connectAddressError(ui_.buttonNoActiveKeyForRecipient, ui_.editAddressErrors, newNoActiveKeyForRecipientEvent);
     connectAddressError(ui_.buttonAddressChanged, ui_.editAddressErrors, newAddressChangedEvent);
     connectAddressError(ui_.buttonAddressChangedLogout, ui_.editAddressErrors, newAddressChangedLogoutEvent);
@@ -94,7 +86,6 @@ void SettingsTab::updateGUIState() {
     for (QWidget *widget: { ui_.groupVersion, ui_.groupGeneral, ui_.groupMail, ui_.groupPaths, ui_.groupCache }) {
         widget->setEnabled(!connected);
     }
-    ui_.comboCacheError->setEnabled(!ui_.checkNextCacheChangeWillSucceed->isChecked());
 }
 
 
@@ -471,14 +462,6 @@ bool SettingsTab::nextCacheChangeWillSucceed() const {
 
 
 //****************************************************************************************************************************************************
-/// \return The index of the selected cache error.
-//****************************************************************************************************************************************************
-qint32 SettingsTab::cacheError() const {
-    return ui_.comboCacheError->currentIndex();
-}
-
-
-//****************************************************************************************************************************************************
 /// \return the value for the 'Automatic Update' check.
 //****************************************************************************************************************************************************
 bool SettingsTab::isAutomaticUpdateOn() const {
@@ -551,7 +534,6 @@ void SettingsTab::resetUI() {
     QDir().mkpath(cacheDir);
     ui_.editDiskCachePath->setText(QDir::toNativeSeparators(cacheDir));
     ui_.checkNextCacheChangeWillSucceed->setChecked(true);
-    ui_.comboCacheError->setCurrentIndex(0);
 
     ui_.checkAutomaticUpdate->setChecked(true);
 

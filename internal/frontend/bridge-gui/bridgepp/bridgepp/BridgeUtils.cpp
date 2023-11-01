@@ -208,23 +208,35 @@ QString randomLastName() {
 
 
 //****************************************************************************************************************************************************
-//
+/// \param[in] firstName The user's first name. If empty, a random common US first name is used.
+/// \param[in] lastName The user's last name. If empty, a random common US last name is used.
+/// \return The user
 //****************************************************************************************************************************************************
-SPUser randomUser() {
+SPUser randomUser(QString const &firstName, QString const &lastName) {
     SPUser user = User::newUser(nullptr);
     user->setID(QUuid::createUuid().toString());
-    QString const firstName = randomFirstName();
-    QString const lastName = randomLastName();
-    QString const username = QString("%1.%2").arg(firstName.toLower(), lastName.toLower());
+    QString const first = firstName.isEmpty() ? randomFirstName() : firstName;
+    QString const last = lastName.isEmpty() ? randomLastName() : lastName;
+    QString const username = QString("%1.%2").arg(first.toLower(), last.toLower());
     user->setUsername(username);
     user->setAddresses(QStringList() << (username + "@proton.me") << (username + "@protonmail.com"));
-    user->setPassword(QUuid().createUuid().toString(QUuid::StringFormat::WithoutBraces).left(20));
+    user->setPassword(QUuid::createUuid().toString(QUuid::StringFormat::WithoutBraces).left(20));
     user->setAvatarText(firstName.left(1) + lastName.left(1));
     user->setState(UserState::Connected);
     user->setSplitMode(false);
     qint64 const totalBytes = (500 + randN(2501)) * 1000000;
     user->setUsedBytes(float(bridgepp::randN(totalBytes + 1)) * 1.05f); // we maybe slightly over quota
     user->setTotalBytes(float(totalBytes));
+    return user;
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The default user. The name Eric Norbert is used on the proton.me website, and should be used for screenshots.
+//****************************************************************************************************************************************************
+SPUser defaultUser() {
+    SPUser user = randomUser("Eric", "Norbert");
+    user->setAddresses({"eric.norbert@proton.me", "eric_norbert_writes@protonmail.com"}); // we override the address list with addresses commonly used on screenshots proton.me
     return user;
 }
 

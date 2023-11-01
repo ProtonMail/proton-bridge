@@ -385,9 +385,7 @@ message DiskCacheEvent {
 }
 
 enum DiskCacheErrorType {
-  DISK_CACHE_UNAVAILABLE_ERROR = 0;
-  CANT_MOVE_DISK_CACHE_ERROR = 1;
-  DISK_FULL_ERROR = 2;
+  CANT_MOVE_DISK_CACHE_ERROR = 0;
 };
 
 message DiskCacheErrorEvent {

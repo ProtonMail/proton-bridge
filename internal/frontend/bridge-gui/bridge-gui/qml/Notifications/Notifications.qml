@@ -59,7 +59,7 @@ QtObject {
             target: Backend
         }
     }
-    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.bugReportSendFallback, root.cacheUnavailable, root.cacheCantMove, root.diskFull, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.noActiveKeyForRecipient, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion]
+    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.bugReportSendFallback, root.cacheCantMove, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.noActiveKeyForRecipient, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion]
     property Notification alreadyLoggedIn: Notification {
         brief: qsTr("Already signed in")
         description: qsTr("This account is already signed in.")
@@ -248,43 +248,6 @@ QtObject {
             target: Backend
         }
     }
-
-    // Cache
-    property Notification cacheUnavailable: Notification {
-        brief: title
-        description: qsTr("The current cache location is unavailable. Check the directory or change it in your settings.")
-        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
-        icon: "./icons/ic-exclamation-circle-filled.svg"
-        title: qsTr("Cache location is unavailable")
-        type: Notification.NotificationType.Warning
-
-        action: [
-            Action {
-                text: qsTr("Quit Bridge")
-
-                onTriggered: {
-                    Backend.quit();
-                    root.cacheUnavailable.active = false;
-                }
-            },
-            Action {
-                text: qsTr("Change location")
-
-                onTriggered: {
-                    root.cacheUnavailable.active = false;
-                    root.frontendMain.showLocalCacheSettings();
-                }
-            }
-        ]
-
-        Connections {
-            function onDiskCacheUnavailable() {
-                root.cacheUnavailable.active = true;
-            }
-
-            target: Backend
-        }
-    }
     property Notification changeAllMailVisibility: Notification {
         property var isVisibleNow
 
@@ -361,41 +324,6 @@ QtObject {
             }
 
             target: root
-        }
-    }
-    property Notification diskFull: Notification {
-        brief: title
-        description: qsTr("Quit Bridge and free disk space or move the local cache to another disk.")
-        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
-        icon: "./icons/ic-exclamation-circle-filled.svg"
-        title: qsTr("Your disk is almost full")
-        type: Notification.NotificationType.Warning
-
-        action: [
-            Action {
-                text: qsTr("Quit Bridge")
-
-                onTriggered: {
-                    Backend.quit();
-                    root.diskFull.active = false;
-                }
-            },
-            Action {
-                text: qsTr("Settings")
-
-                onTriggered: {
-                    root.diskFull.active = false;
-                    root.frontendMain.showLocalCacheSettings();
-                }
-            }
-        ]
-
-        Connections {
-            function onDiskFull() {
-                root.diskFull.active = true;
-            }
-
-            target: Backend
         }
     }
     property Notification enableBeta: Notification {

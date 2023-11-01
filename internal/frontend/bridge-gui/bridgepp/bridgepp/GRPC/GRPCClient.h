@@ -113,9 +113,7 @@ public:
     grpc::Status setDiskCachePath(QUrl const &path); ///< Performs the 'setDiskCachePath' call
 
 signals:
-    void diskCacheUnavailable();
     void cantMoveDiskCache();
-    void diskFull();
     void diskCachePathChanged(QUrl const &path);
     void diskCachePathChangeFinished();
 

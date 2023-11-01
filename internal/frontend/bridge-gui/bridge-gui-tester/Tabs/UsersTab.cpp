@@ -58,7 +58,7 @@ UsersTab::UsersTab(QWidget *parent)
     connect(ui_.checkSync, &QCheckBox::toggled, this, &UsersTab::onCheckSyncToggled);
     connect(ui_.sliderSync, &QSlider::valueChanged, this, &UsersTab::onSliderSyncValueChanged);
 
-    users_.append(randomUser());
+    users_.append(defaultUser());
 
     this->updateGUIState();
 }

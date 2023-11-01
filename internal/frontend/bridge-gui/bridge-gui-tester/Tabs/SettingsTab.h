@@ -74,7 +74,6 @@ public: // member functions.
     bool isPortFree() const; ///< Get the value for the "Is Port Free" check box.
     QString diskCachePath() const; ///< Get the value for the 'Disk Cache Path' edit.
     bool nextCacheChangeWillSucceed() const; ///< Get the value for the 'Next Cache Change will succeed' edit.
-    qint32 cacheError() const; ///< Return the index of the selected cache error.
     bool isAutomaticUpdateOn() const; ///<Get the value for the 'Automatic Update' check box.
 
 public slots:

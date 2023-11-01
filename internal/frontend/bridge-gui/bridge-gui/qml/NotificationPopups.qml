@@ -63,15 +63,7 @@ Item {
     }
     NotificationDialog {
         colorScheme: root.colorScheme
-        notification: root.notifications.cacheUnavailable
-    }
-    NotificationDialog {
-        colorScheme: root.colorScheme
         notification: root.notifications.cacheCantMove
-    }
-    NotificationDialog {
-        colorScheme: root.colorScheme
-        notification: root.notifications.diskFull
     }
     NotificationDialog {
         colorScheme: root.colorScheme

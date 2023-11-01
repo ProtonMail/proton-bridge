@@ -44,7 +44,8 @@ QString goos(); ///< return the value of Go's  GOOS for the current platform ("d
 qint64 randN(qint64 n); ///< return a random integer in the half open range  [0,n)
 QString randomFirstName(); ///< Get a random first name from a pre-determined list.
 QString randomLastName(); ///< Get a random first name from a pre-determined list.
-SPUser randomUser(); ///< Get a random user.
+SPUser defaultUser(); ///< Return The default user, with the name and addresses used on screenshots on proton.me
+SPUser randomUser(QString const &firstName = "", QString const &lastName = ""); ///< Get a random user.
 OS os(); ///< Return the operating system.
 bool onLinux(); ///< Check if the OS is Linux.
 bool onMacOS(); ///< Check if the OS is macOS.

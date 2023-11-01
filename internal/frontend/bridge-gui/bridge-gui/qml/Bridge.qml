@@ -34,9 +34,6 @@ QtObject {
             function onColorSchemeNameChanged(scheme) {
                 root.setColorScheme();
             }
-            function onDiskCacheUnavailable() {
-                mainWindow.showAndRise();
-            }
             function onHideMainWindow() {
                 mainWindow.hide();
             }

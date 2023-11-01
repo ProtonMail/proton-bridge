@@ -1307,9 +1307,7 @@ void QMLBackend::connectGrpcEvents() {
     connect(client, &GRPCClient::showMainWindow, [&]() { this->showMainWindow("gRPC showMainWindow event"); });
 
     // cache events
-    connect(client, &GRPCClient::diskCacheUnavailable, this, &QMLBackend::diskCacheUnavailable);
     connect(client, &GRPCClient::cantMoveDiskCache, this, &QMLBackend::cantMoveDiskCache);
-    connect(client, &GRPCClient::diskFull, this, &QMLBackend::diskFull);
     connect(client, &GRPCClient::diskCachePathChanged, this, &QMLBackend::diskCachePathChanged);
     connect(client, &GRPCClient::diskCachePathChangeFinished, this, &QMLBackend::diskCachePathChangeFinished);
 
