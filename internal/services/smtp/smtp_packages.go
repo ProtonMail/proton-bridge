@@ -18,6 +18,8 @@
 package smtp
 
 import (
+	"fmt"
+
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -53,6 +55,10 @@ func createSendReq(
 			if err := req.AddTextPackage(kr, string(plainBody), rfc822.TextPlain, recs, attKeys); err != nil {
 				return proton.SendDraftReq{}, err
 			}
+		}
+
+		if recs := recs.content(rfc822.MultipartMixed); len(recs) > 0 {
+			return proton.SendDraftReq{}, fmt.Errorf("invalid MIME type for MIME package: %s", rfc822.MultipartMixed)
 		}
 	}
 
