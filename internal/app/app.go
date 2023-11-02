@@ -204,7 +204,7 @@ func run(c *cli.Context) error {
 	}()
 
 	// Restart the app if requested.
-	return withRestarter(exe, func(restarter *restarter.Restarter) error {
+	err = withRestarter(exe, func(restarter *restarter.Restarter) error {
 		// Handle crashes with various actions.
 		return withCrashHandler(restarter, reporter, func(crashHandler *crash.Handler, quitCh <-chan struct{}) error {
 			migrationErr := migrateOldVersions()
@@ -293,6 +293,13 @@ func run(c *cli.Context) error {
 			})
 		})
 	})
+
+	// if an error occurs, it must be logged now because we're about to close the log file.
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	return err
 }
 
 // If there's another instance already running, try to raise it and exit.

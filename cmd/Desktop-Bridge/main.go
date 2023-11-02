@@ -23,7 +23,6 @@ import (
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/app"
 	"github.com/bradenaw/juniper/xslices"
-	"github.com/sirupsen/logrus"
 )
 
 /*
@@ -44,7 +43,5 @@ import (
 */
 
 func main() {
-	if err := app.New().Run(xslices.Filter(os.Args, func(arg string) bool { return !strings.Contains(arg, "-psn_") })); err != nil {
-		logrus.Fatal(err)
-	}
+	_ = app.New().Run(xslices.Filter(os.Args, func(arg string) bool { return !strings.Contains(arg, "-psn_") }))
 }
