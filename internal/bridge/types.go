@@ -53,4 +53,5 @@ type Autostarter interface {
 type Updater interface {
 	GetVersionInfo(context.Context, updater.Downloader, updater.Channel) (updater.VersionInfo, error)
 	InstallUpdate(context.Context, updater.Downloader, updater.VersionInfo) error
+	RemoveOldUpdates() error
 }

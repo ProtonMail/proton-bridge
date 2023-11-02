@@ -154,3 +154,7 @@ func (testUpdater *TestUpdater) GetVersionInfo(_ context.Context, _ updater.Down
 func (testUpdater *TestUpdater) InstallUpdate(_ context.Context, _ updater.Downloader, _ updater.VersionInfo) error {
 	return nil
 }
+
+func (testUpdater *TestUpdater) RemoveOldUpdates() error {
+	return nil
+}

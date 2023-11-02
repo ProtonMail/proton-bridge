@@ -155,7 +155,7 @@ func newUpdater(locations *locations.Locations) (*updater.Updater, error) {
 	}
 
 	return updater.NewUpdater(
-		updater.NewInstaller(versioner.New(updatesDir)),
+		versioner.New(updatesDir),
 		verifier,
 		constants.UpdateName,
 		runtime.GOOS,

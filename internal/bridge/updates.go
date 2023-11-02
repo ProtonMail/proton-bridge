@@ -139,3 +139,9 @@ func (bridge *Bridge) installUpdate(ctx context.Context, job installJob) {
 		}
 	}, bridge.newVersionLock)
 }
+
+func (bridge *Bridge) RemoveOldUpdates() {
+	if err := bridge.updater.RemoveOldUpdates(); err != nil {
+		logrus.WithError(err).Error("Remove old updates fails")
+	}
+}

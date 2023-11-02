@@ -276,6 +276,9 @@ func run(c *cli.Context) error {
 											b.PushError(bridge.ErrVaultCorrupt)
 										}
 
+										// Remove old updates files
+										b.RemoveOldUpdates()
+
 										// Start telemetry heartbeat process
 										b.StartHeartbeat(b)
 
