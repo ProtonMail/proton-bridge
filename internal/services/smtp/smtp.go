@@ -95,6 +95,11 @@ func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, 
 	// If the message contains a sender, use it instead of the one from the return path.
 	if sender, ok := getMessageSender(parser); ok {
 		from = sender
+		fromAddr, err = s.identityState.GetAddr(from)
+		if err != nil {
+			logrus.WithError(err).Errorf("Failed to get identity from sender address %v", sender)
+			return ErrInvalidReturnPath
+		}
 	}
 
 	// Load the user's mail settings.
