@@ -480,3 +480,170 @@ Feature: SMTP sending of plain messages
       }
     }
     """
+
+Scenario: Forward a message containing various attachments
+  When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:user2]@[domain]":
+    """
+    Content-Type: multipart/mixed; boundary="------------MQ01Z9UM8OaR9z39TvzDfdIq"
+    Subject: Fwd: Reply to this message, it has various attachments.
+    References: <something@protonmail.ch>
+    To: <[user:user2]@[domain]>
+    From: <[user:user]@[domain]>
+    In-Reply-To: <something@protonmail.ch>
+    X-Forwarded-Message-Id: <something@protonmail.ch>
+
+    This is a multi-part message in MIME format.
+    --------------MQ01Z9UM8OaR9z39TvzDfdIq
+    Content-Type: text/plain; charset=UTF-8; format=flowed
+    Content-Transfer-Encoding: 7bit
+
+    Forwarding a message with various attachments in it!
+
+
+
+    -------- Forwarded Message --------
+    Subject: 	Reply to this message, it has various attachments.
+    Date: 	Thu, 26 Oct 2023 10:41:55 +0000
+    From: 	Gjorgji Testing <gorgitesting@protonmail.com>
+    Reply-To: 	Gjorgji Testing <gorgitesting@protonmail.com>
+    To: 	Gjorgji Test v3 <gorgitesting3@protonmail.com>
+
+
+
+
+    For real!
+
+    *Gjorgji Testing
+    TesASID <https://www.youtube.com/watch?v=MifXUbrjYr8>
+    *
+    --------------MQ01Z9UM8OaR9z39TvzDfdIq
+    Content-Type: text/html; charset=UTF-8; name="index.html"
+    Content-Disposition: attachment; filename="index.html"
+    Content-Transfer-Encoding: base64
+
+    IDwhRE9DVFlQRSBodG1sPg0KPGh0bWw+DQo8aGVhZD4NCjx0aXRsZT5QYWdlIFRpdGxlPC90
+    aXRsZT4NCjwvaGVhZD4NCjxib2R5Pg0KDQo8aDE+TXkgRmlyc3QgSGVhZGluZzwvaDE+DQo8
+    cD5NeSBmaXJzdCBwYXJhZ3JhcGguPC9wPg0KDQo8L2JvZHk+DQo8L2h0bWw+IA==
+    --------------MQ01Z9UM8OaR9z39TvzDfdIq
+    Content-Type: text/xml; charset=UTF-8; name="testxml.xml"
+    Content-Disposition: attachment; filename="testxml.xml"
+    Content-Transfer-Encoding: base64
+
+    PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIHN1aXRl
+    IFNZU1RFTSAiaHR0cDovL3Rlc3RuZy5vcmcvdGVzdG5nLTEuMC5kdGQiID4KCjxzdWl0ZSBu
+    YW1lPSJBZmZpbGlhdGUgTmV0d29ya3MiPgoKICAgIDx0ZXN0IG5hbWU9IkFmZmlsaWF0ZSBO
+    ZXR3b3JrcyIgZW5hYmxlZD0idHJ1ZSI+CiAgICAgICAgPGNsYXNzZXM+CiAgICAgICAgICAg
+    IDxjbGFzcyBuYW1lPSJjb20uY2xpY2tvdXQuYXBpdGVzdGluZy5hZmZOZXR3b3Jrcy5Bd2lu
+    VUtUZXN0Ii8+CiAgICAgICAgPC9jbGFzc2VzPgogICAgPC90ZXN0PgoKPC9zdWl0ZT4=
+    --------------MQ01Z9UM8OaR9z39TvzDfdIq
+    Content-Type: application/pdf; name="test.pdf"
+    Content-Disposition: attachment; filename="test.pdf"
+    Content-Transfer-Encoding: base64
+
+    JVBERi0xLjUKJeLjz9MKNyAwIG9iago8PAovVHlwZSAvRm9udERlc2NyaXB0b3IKL0ZvbnRO
+    MjM0NAolJUVPRgo=
+    --------------MQ01Z9UM8OaR9z39TvzDfdIq
+    Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;
+      name="test.xlsx"
+    Content-Disposition: attachment; filename="test.xlsx"
+    Content-Transfer-Encoding: base64
+
+    UEsDBBQABgAIAAAAIQBi7p1oXgEAAJAEAAATAAgCW0NvbnRlbnRfVHlwZXNdLnhtbCCiBAIo
+    UQIAABEAAAAAAAAAAAAAAAAARBcAAGRvY1Byb3BzL2NvcmUueG1sUEsBAi0AFAAGAAgAAAAh
+    AGFJCRCJAQAAEQMAABAAAAAAAAAAAAAAAAAAvBkAAGRvY1Byb3BzL2FwcC54bWxQSwUGAAAA
+    AAoACgCAAgAAexwAAAAA
+    --------------MQ01Z9UM8OaR9z39TvzDfdIq
+    Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document;
+      name="test.docx"
+    Content-Disposition: attachment; filename="test.docx"
+    Content-Transfer-Encoding: base64
+
+    UEsDBBQABgAIAAAAIQDfpNJsWgEAACAFAAATAAgCW0NvbnRlbnRfVHlwZXNdLnhtbCCiBAIo
+    cHAueG1sUEsBAi0AFAAGAAgAAAAhABA0tG9uAQAA4QIAABEAAAAAAAAAAAAAAAAA2xsAAGRv
+    Y1Byb3BzL2NvcmUueG1sUEsBAi0AFAAGAAgAAAAhAJ/mlBIqCwAAU3AAAA8AAAAAAAAAAAAA
+    AAAAgB4AAHdvcmQvc3R5bGVzLnhtbFBLBQYAAAAACwALAMECAADXKQAAAAA=
+    --------------MQ01Z9UM8OaR9z39TvzDfdIq
+    Content-Type: text/plain; charset=UTF-8; name="text file.txt"
+    Content-Disposition: attachment; filename="text file.txt"
+    Content-Transfer-Encoding: base64
+
+    dGV4dCBmaWxl
+
+    --------------MQ01Z9UM8OaR9z39TvzDfdIq--
+
+    """
+  Then it succeeds
+  When user "[user:user]" connects and authenticates IMAP client "1"
+  Then IMAP client "1" eventually sees the following messages in "Sent":
+    | from                 | to                    | subject                                                 | X-Forwarded-Message-Id  |
+    | [user:user]@[domain] | [user:user2]@[domain] | Fwd: Reply to this message, it has various attachments. | something@protonmail.ch |
+  And IMAP client "1" eventually sees 1 messages in "Sent"
+  When the user logs in with username "[user:user2]" and password "password"
+  And user "[user:user2]" connects and authenticates IMAP client "2"
+  And user "[user:user2]" finishes syncing
+  And it succeeds
+  Then IMAP client "2" eventually sees the following messages in "Inbox":
+    | from                 | to                    | subject                                                 | X-Forwarded-Message-Id  |
+    | [user:user]@[domain] | [user:user2]@[domain] | Fwd: Reply to this message, it has various attachments. | something@protonmail.ch |
+  Then IMAP client "2" eventually sees the following message in "Inbox" with this structure:
+    """
+    {
+      "from": "[user:user]@[domain]",
+      "to": "[user:user2]@[domain]",
+      "subject": "Fwd: Reply to this message, it has various attachments.",
+      "content": {
+        "content-type": "multipart/mixed",
+        "sections":[
+          {
+            "content-type": "text/plain",
+            "content-type-charset": "utf-8",
+            "transfer-encoding": "quoted-printable",
+            "body-is": "Forwarding a message with various attachments in it!\r\n\r\n\r\n\r\n-------- Forwarded Message --------\r\nSubject: \tReply to this message, it has various attachments.\r\nDate: \tThu, 26 Oct 2023 10:41:55 +0000\r\nFrom: \tGjorgji Testing <gorgitesting@protonmail.com>\r\nReply-To: \tGjorgji Testing <gorgitesting@protonmail.com>\r\nTo: \tGjorgji Test v3 <gorgitesting3@protonmail.com>\r\n\r\n\r\n\r\n\r\nFor real!\r\n\r\n*Gjorgji Testing\r\nTesASID <https://www.youtube.com/watch?v=3DMifXUbrjYr8>\r\n*"
+          },
+          {
+            "content-type": "text/html",
+            "content-type-name": "index.html",
+            "content-disposition": "attachment",
+            "content-disposition-filename": "index.html",
+            "transfer-encoding": "base64"
+          },
+          {
+            "content-type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "content-type-name": "test.docx",
+            "content-disposition": "attachment",
+            "content-disposition-filename": "test.docx",
+            "transfer-encoding": "base64"
+          },
+          {
+            "content-type": "application/pdf",
+            "content-type-name": "test.pdf",
+            "content-disposition": "attachment",
+            "content-disposition-filename": "test.pdf",
+            "transfer-encoding": "base64"
+          },
+          {
+            "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "content-type-name": "test.xlsx",
+            "content-disposition": "attachment",
+            "content-disposition-filename": "test.xlsx",
+            "transfer-encoding": "base64"
+          },
+          {
+            "content-type": "text/xml",
+            "content-type-name": "testxml.xml",
+            "content-disposition": "attachment",
+            "content-disposition-filename": "testxml.xml",
+            "transfer-encoding": "base64"
+          },
+          {
+            "content-type": "text/plain",
+            "content-type-name": "text file.txt",
+            "content-disposition": "attachment",
+            "content-disposition-filename": "text file.txt",
+            "transfer-encoding": "base64",
+            "body-is": "dGV4dCBmaWxl"
+          }
+        ]
+      }
+    }
+    """

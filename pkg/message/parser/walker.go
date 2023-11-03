@@ -33,8 +33,11 @@ func newWalker(root *Part) *Walker {
 	}
 }
 
-func (w *Walker) Walk() (err error) {
+func (w *Walker) Walk() error {
 	return w.walkOverPart(w.root)
+}
+func (w *Walker) WalkSkipAttachment() error {
+	return w.walkOverPartSkipAttachment(w.root)
 }
 
 func (w *Walker) walkOverPart(p *Part) error {
@@ -44,6 +47,20 @@ func (w *Walker) walkOverPart(p *Part) error {
 
 	for _, child := range p.children {
 		if err := w.walkOverPart(child); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (w *Walker) walkOverPartSkipAttachment(p *Part) error {
+	if err := w.getHandlerFuncSkipAttachment(p)(p); err != nil {
+		return err
+	}
+
+	for _, child := range p.children {
+		if err := w.walkOverPartSkipAttachment(child); err != nil {
 			return err
 		}
 	}
@@ -85,6 +102,16 @@ func (w *Walker) RegisterContentDispositionHandler(dispRegExp string, fn Handler
 func (w *Walker) getHandlerFunc(p *Part) HandlerFunc {
 	for _, handler := range w.handlers {
 		if handler.matchPart(p) {
+			return handler.fn
+		}
+	}
+
+	return w.defaultHandler
+}
+
+func (w *Walker) getHandlerFuncSkipAttachment(p *Part) HandlerFunc {
+	for _, handler := range w.handlers {
+		if handler.matchPartSkipAttachment(p) {
 			return handler.fn
 		}
 	}

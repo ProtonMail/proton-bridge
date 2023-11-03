@@ -54,7 +54,7 @@ func (p *Part) ContentType() (string, map[string]string, error) {
 }
 
 func (p *Part) ContentDisposition() (string, map[string]string, error) {
-	return p.Header.ContentDisposition()
+	return pmmime.ParseMediaType(p.Header.Get("Content-Disposition"))
 }
 
 func (p *Part) HasContentID() bool {
@@ -207,6 +207,14 @@ func (p *Part) isMultipartMixedOrRelated() bool {
 	}
 
 	return t == "multipart/mixed" || t == "multipart/related"
+}
+
+func (p *Part) isAttachment() bool {
+	disp, _, err := p.ContentDisposition()
+	if err != nil {
+		disp = ""
+	}
+	return disp == "attachment"
 }
 
 func getContentHeaders(header message.Header) message.Header {

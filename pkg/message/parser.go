@@ -147,7 +147,7 @@ func parse(p *parser.Parser, allowInvalidAddressLists bool) (Message, error) {
 	m.PlainBody = Body(plainBody)
 	m.MIMEBody = MIMEBody(mimeBody)
 
-	mimeType, err := determineMIMEType(p)
+	mimeType, err := determineBodyMIMEType(p)
 	if err != nil {
 		return Message{}, errors.Wrap(err, "failed to get mime type")
 	}
@@ -313,7 +313,7 @@ func collectBodyParts(p *parser.Parser, preferredContentType string) (parser.Par
 			return bestChoice(childParts, preferredContentType), nil
 		}).
 		RegisterRule("text/plain", func(p *parser.Part, visit parser.Visit) (interface{}, error) {
-			disp, _, err := p.Header.ContentDisposition()
+			disp, _, err := p.ContentDisposition()
 			if err != nil {
 				disp = ""
 			}
@@ -325,7 +325,7 @@ func collectBodyParts(p *parser.Parser, preferredContentType string) (parser.Par
 			return parser.Parts{p}, nil
 		}).
 		RegisterRule("text/html", func(p *parser.Part, visit parser.Visit) (interface{}, error) {
-			disp, _, err := p.Header.ContentDisposition()
+			disp, _, err := p.ContentDisposition()
 			if err != nil {
 				disp = ""
 			}
@@ -405,7 +405,7 @@ func allPartsHaveContentType(parts parser.Parts, contentType string) bool {
 	return true
 }
 
-func determineMIMEType(p *parser.Parser) (string, error) {
+func determineBodyMIMEType(p *parser.Parser) (string, error) {
 	var isHTML bool
 
 	w := p.NewWalker().
@@ -414,7 +414,7 @@ func determineMIMEType(p *parser.Parser) (string, error) {
 			return
 		})
 
-	if err := w.Walk(); err != nil {
+	if err := w.WalkSkipAttachment(); err != nil {
 		return "", err
 	}
 

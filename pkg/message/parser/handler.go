@@ -32,6 +32,10 @@ func (h *handler) matchPart(p *Part) bool {
 	return h.matchType(p) || h.matchDisp(p)
 }
 
+func (h *handler) matchPartSkipAttachment(p *Part) bool {
+	return !p.isAttachment() && h.matchPart(p)
+}
+
 func (h *handler) matchType(p *Part) bool {
 	if h.typeRegExp == nil {
 		return false
@@ -50,7 +54,7 @@ func (h *handler) matchDisp(p *Part) bool {
 		return false
 	}
 
-	disp, _, err := p.Header.ContentDisposition()
+	disp, _, err := p.ContentDisposition()
 	if err != nil {
 		disp = ""
 	}

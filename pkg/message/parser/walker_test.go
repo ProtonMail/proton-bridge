@@ -60,6 +60,27 @@ func TestWalkerTypeHandler(t *testing.T) {
 	}, html)
 }
 
+func TestWalkerTypeHandler_excludingAttachment(t *testing.T) {
+	p := newTestParser(t, "forwarding_html_attachment.eml")
+
+	html := [][]byte{}
+	plain := [][]byte{}
+
+	walker := p.NewWalker().
+		RegisterContentTypeHandler("text/html", func(p *Part) (err error) {
+			html = append(html, p.Body)
+			return
+		}).
+		RegisterContentTypeHandler("text/plain", func(p *Part) (err error) {
+			plain = append(plain, p.Body)
+			return
+		})
+
+	assert.NoError(t, walker.WalkSkipAttachment())
+	assert.Equal(t, 1, len(plain))
+	assert.Equal(t, 0, len(html))
+}
+
 func TestWalkerDispositionHandler(t *testing.T) {
 	p := newTestParser(t, "text_html_octet_attachment.eml")
 

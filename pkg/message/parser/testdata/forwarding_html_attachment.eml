@@ -1,0 +1,86 @@
+Content-Type: multipart/mixed; boundary="------------MQ01Z9UM8OaR9z39TvzDfdIq"
+Subject: Fwd: Reply to this message, it has various attachments.
+References: <something@protonmail.ch>
+To: <[user:user2]@[domain]>
+From: <[user:user]@[domain]>
+In-Reply-To: <something@protonmail.ch>
+X-Forwarded-Message-Id: <something@protonmail.ch>
+
+This is a multi-part message in MIME format.
+--------------MQ01Z9UM8OaR9z39TvzDfdIq
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Forwarding a message with various attachments in it!
+
+
+
+-------- Forwarded Message --------
+Subject: 	Reply to this message, it has various attachments.
+Date: 	Thu, 26 Oct 2023 10:41:55 +0000
+From: 	Gjorgji Testing <gorgitesting@protonmail.com>
+Reply-To: 	Gjorgji Testing <gorgitesting@protonmail.com>
+To: 	Gjorgji Test v3 <gorgitesting3@protonmail.com>
+
+
+
+
+For real!
+
+*Gjorgji Testing
+TesASID <https://www.youtube.com/watch?v=MifXUbrjYr8>
+*
+--------------MQ01Z9UM8OaR9z39TvzDfdIq
+Content-Type: text/html; charset=UTF-8; name="index.html"
+Content-Disposition: attachment; filename="index.html"
+Content-Transfer-Encoding: base64
+
+IDwhRE9DVFlQRSBodG1sPg0KPGh0bWw+DQo8aGVhZD4NCjx0aXRsZT5QYWdlIFRpdGxlPC90
+aXRsZT4NCjwvaGVhZD4NCjxib2R5Pg0KDQo8aDE+TXkgRmlyc3QgSGVhZGluZzwvaDE+DQo8
+cD5NeSBmaXJzdCBwYXJhZ3JhcGguPC9wPg0KDQo8L2JvZHk+DQo8L2h0bWw+IA==
+--------------MQ01Z9UM8OaR9z39TvzDfdIq
+Content-Type: text/xml; charset=UTF-8; name="testxml.xml"
+Content-Disposition: attachment; filename="testxml.xml"
+Content-Transfer-Encoding: base64
+
+PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIHN1aXRl
+IFNZU1RFTSAiaHR0cDovL3Rlc3RuZy5vcmcvdGVzdG5nLTEuMC5kdGQiID4KCjxzdWl0ZSBu
+YW1lPSJBZmZpbGlhdGUgTmV0d29ya3MiPgoKICAgIDx0ZXN0IG5hbWU9IkFmZmlsaWF0ZSBO
+ZXR3b3JrcyIgZW5hYmxlZD0idHJ1ZSI+CiAgICAgICAgPGNsYXNzZXM+CiAgICAgICAgICAg
+IDxjbGFzcyBuYW1lPSJjb20uY2xpY2tvdXQuYXBpdGVzdGluZy5hZmZOZXR3b3Jrcy5Bd2lu
+VUtUZXN0Ii8+CiAgICAgICAgPC9jbGFzc2VzPgogICAgPC90ZXN0PgoKPC9zdWl0ZT4=
+--------------MQ01Z9UM8OaR9z39TvzDfdIq
+Content-Type: application/pdf; name="test.pdf"
+Content-Disposition: attachment; filename="test.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjUKJeLjz9MKNyAwIG9iago8PAovVHlwZSAvRm9udERlc2NyaXB0b3IKL0ZvbnRO
+MjM0NAolJUVPRgo=
+--------------MQ01Z9UM8OaR9z39TvzDfdIq
+Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;
+  name="test.xlsx"
+Content-Disposition: attachment; filename="test.xlsx"
+Content-Transfer-Encoding: base64
+
+UEsDBBQABgAIAAAAIQBi7p1oXgEAAJAEAAATAAgCW0NvbnRlbnRfVHlwZXNdLnhtbCCiBAIo
+UQIAABEAAAAAAAAAAAAAAAAARBcAAGRvY1Byb3BzL2NvcmUueG1sUEsBAi0AFAAGAAgAAAAh
+AGFJCRCJAQAAEQMAABAAAAAAAAAAAAAAAAAAvBkAAGRvY1Byb3BzL2FwcC54bWxQSwUGAAAA
+AAoACgCAAgAAexwAAAAA
+--------------MQ01Z9UM8OaR9z39TvzDfdIq
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document;
+  name="test.docx"
+Content-Disposition: attachment; filename="test.docx"
+Content-Transfer-Encoding: base64
+
+UEsDBBQABgAIAAAAIQDfpNJsWgEAACAFAAATAAgCW0NvbnRlbnRfVHlwZXNdLnhtbCCiBAIo
+cHAueG1sUEsBAi0AFAAGAAgAAAAhABA0tG9uAQAA4QIAABEAAAAAAAAAAAAAAAAA2xsAAGRv
+Y1Byb3BzL2NvcmUueG1sUEsBAi0AFAAGAAgAAAAhAJ/mlBIqCwAAU3AAAA8AAAAAAAAAAAAA
+AAAAgB4AAHdvcmQvc3R5bGVzLnhtbFBLBQYAAAAACwALAMECAADXKQAAAAA=
+--------------MQ01Z9UM8OaR9z39TvzDfdIq
+Content-Type: text/plain; charset=UTF-8; name="text file.txt"
+Content-Disposition: attachment; filename="text file.txt"
+Content-Transfer-Encoding: base64
+
+dGV4dCBmaWxl
+
+--------------MQ01Z9UM8OaR9z39TvzDfdIq--
