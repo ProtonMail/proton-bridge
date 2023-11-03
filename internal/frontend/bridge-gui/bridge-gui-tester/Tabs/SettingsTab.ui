@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1212</width>
-    <height>857</height>
+    <width>1214</width>
+    <height>864</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -614,95 +614,6 @@
           <string>Bug Report</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="1" column="3">
-           <widget class="QLineEdit" name="editAddress">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>250</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QLineEdit" name="editAddress">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QLabel" name="labelAddress">
-            <property name="text">
-             <string>Address</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelOSType"/>
-          </item>
-          <item row="3" column="1" colspan="3">
-           <widget class="QLabel" name="labelIncludeLogsValue">
-            <property name="text">
-             <string>?</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="labelIncludeLogs"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="labelDescription">
-            <property name="text">
-             <string>Description</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QLabel" name="labelAddress"/>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="labelIncludeLogs">
-            <property name="text">
-             <string>Include Logs</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="labelOSVersion">
-            <property name="text">
-             <string>OS Version</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="editOSType"/>
-          </item>
-          <item row="2" column="1" colspan="3">
-           <widget class="QPlainTextEdit" name="editDescription">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="1">
            <widget class="QLineEdit" name="editEmailClient">
             <property name="minimumSize">
@@ -725,9 +636,6 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1" colspan="3">
-           <widget class="QLabel" name="labelIncludeLogsValue"/>
-          </item>
           <item row="0" column="0">
            <widget class="QLabel" name="labelOSType">
             <property name="text">
@@ -735,10 +643,54 @@
             </property>
            </widget>
           </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="labelAddress">
+            <property name="text">
+             <string>Address</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="labelEmailClient">
+            <property name="text">
+             <string>Email Cient</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1" colspan="3">
+           <widget class="QPlainTextEdit" name="editDescription">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QLineEdit" name="editAddress">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="labelIncludeLogs">
+            <property name="text">
+             <string>Include Logs</string>
+            </property>
+           </widget>
+          </item>
           <item row="2" column="0">
            <widget class="QLabel" name="labelDescription">
             <property name="text">
              <string>Description</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
             </property>
            </widget>
           </item>
@@ -761,6 +713,13 @@
             </property>
            </widget>
           </item>
+          <item row="3" column="1" colspan="3">
+           <widget class="QLabel" name="labelIncludeLogsValue">
+            <property name="text">
+             <string>?</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="1">
            <widget class="QLineEdit" name="editOSType">
             <property name="minimumSize">
@@ -780,10 +739,10 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labelEmailClient">
+          <item row="0" column="2">
+           <widget class="QLabel" name="labelOSVersion">
             <property name="text">
-             <string>Email Cient</string>
+             <string>OS Version</string>
             </property>
            </widget>
           </item>
@@ -852,36 +811,46 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
-            <item>
-             <widget class="QPushButton" name="buttonInternetOff">
-              <property name="text">
-               <string>Internet Off</string>
-              </property>
-             </widget>
-            </item>
-            <item>
+           <layout class="QGridLayout" name="gridLayout_5">
+            <item row="0" column="1">
              <widget class="QPushButton" name="buttonInternetOn">
               <property name="text">
                <string>Internet On</string>
               </property>
              </widget>
             </item>
-            <item>
+            <item row="0" column="2">
              <widget class="QPushButton" name="buttonShowMainWindow">
               <property name="text">
                <string>Show Main Window</string>
               </property>
              </widget>
             </item>
-            <item>
+            <item row="0" column="0">
+             <widget class="QPushButton" name="buttonInternetOff">
+              <property name="text">
+               <string>Internet Off</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
              <widget class="QPushButton" name="buttonAPICertIssue">
               <property name="text">
-               <string>API cert. Issue</string>
+               <string>API Certficate Issue</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QPushButton" name="buttonNoKeychain">
+              <property name="text">
+               <string>No Keychain</string>
               </property>
              </widget>
             </item>
            </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_9"/>
           </item>
           <item>
            <widget class="QGroupBox" name="groupBox">
@@ -1115,15 +1084,9 @@
   <tabstop>editDependencyLicenseLink</tabstop>
   <tabstop>editLandingPageLink</tabstop>
   <tabstop>editDiskCachePath</tabstop>
-  <tabstop>editOSType</tabstop>
   <tabstop>editOSVersion</tabstop>
   <tabstop>editEmailClient</tabstop>
-  <tabstop>editAddress</tabstop>
-  <tabstop>editDescription</tabstop>
   <tabstop>spinEventDelay</tabstop>
-  <tabstop>buttonInternetOff</tabstop>
-  <tabstop>buttonInternetOn</tabstop>
-  <tabstop>buttonShowMainWindow</tabstop>
   <tabstop>checkIsPortFree</tabstop>
   <tabstop>checkNextBugReportWillSucceed</tabstop>
  </tabstops>
