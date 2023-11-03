@@ -3,6 +3,48 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Wakato Bridge 3.7.0
+
+### Added
+* Test(GODT-1224): Add testing around package creation.
+* Add debug_assemble binary.
+* Test(GODT-2723): Add importing a message with remote content.
+* Test(GODT-2737): Sending HTML messages to internal.
+* Test(GODT-3036): Keep inline attachment order on GPA Fake Server.
+* GODT-3015: Add simple algorithm to deal with multiple attachment for bug report.
+* Test: make message structure check more verbose.
+* Test: Add test around account settings.
+
+### Changed
+* Test: Support multiple users when waiting for sync event.
+* Test: Update fake server with defautl draft content-type and test it.
+* Test: be less aggressive while checking for message structure.
+* GODT-2996: Set password fields to hidden when resetting the login form.
+* GODT-2990: Change runner tags.
+* GODT-2835: Bump GPA adding support for AsyncAttachments for BugReport +...
+* GODT-2940: Allow 3 attempts for mailbox password.
+* GODT-3095: Update GOpenPGP.
+
+### Fixed
+* GODT-3041: Fix Invalid Or Missing message signature during send.
+* GODT-3087: Exclude attachment content-disposition part when determining...
+* GODT-2887: Inline images with Apple Mail.
+* GODT-3100: Fix issue where a fatal error that bubble up to cli.Run() is not written in the log file.
+* GODT-3094: Clean up old update files on bridge startup.
+* GODT-3012: Fix multipart request retries.
+* GODT-2935: Do not allow parentID into drafts.
+* GODT-2935: Correct error message when draft fails to create.
+* GODT-2970: Correctly handle rename of Inbox.
+* GODT-2969: Prevent duration corruption for config status event.
+* Fixed type in QA installer CI job name.
+* GODT-3019: Fix title of main window when no account is connected.
+* GODT-3013: IMAP service getting "stuck".
+* GODT-2966: Allow permissive parsing of MediaType parameters for import.
+* GODT-2966: Add more test regarding quoted/unquoted filename in attachment.
+* GODT-2490: Fix sync progress not being reset when toggling split mode.
+* GODT-2515: Customized notification of unavailable keychain on macOS.
+
+
 ## Vasco da Gama Bridge 3.6.1
 
 ### Fixed
