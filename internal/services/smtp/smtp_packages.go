@@ -25,6 +25,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
 	"github.com/bradenaw/juniper/xslices"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
@@ -45,6 +46,9 @@ func createSendReq(
 	}
 
 	if recs := recipients.scheme(proton.InternalScheme, proton.ClearScheme, proton.PGPInlineScheme); len(recs) > 0 {
+		if recs := recipients.scheme(proton.PGPInlineScheme); len(recs) > 0 {
+			logrus.WithFields(logrus.Fields{"service": "smtp", "settings": "recipient"}).Warn("PGPInline scheme used. Planed to be deprecated.")
+		}
 		if recs := recs.content(rfc822.TextHTML); len(recs) > 0 {
 			if err := req.AddTextPackage(kr, string(richBody), rfc822.TextHTML, recs, attKeys); err != nil {
 				return proton.SendDraftReq{}, err

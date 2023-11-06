@@ -24,6 +24,7 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -547,6 +548,7 @@ func (b *sendPrefsBuilder) setEncryptionPreferences(mailSettings proton.MailSett
 	// Otherwise keep the defined value.
 	switch mailSettings.PGPScheme {
 	case proton.PGPInlineScheme:
+		logrus.WithFields(logrus.Fields{"service": "smtp", "settings": "account"}).Warn("PGPInline scheme used. Planed to be deprecated.")
 		b.withSchemeDefault(pgpInline)
 	case proton.PGPMIMEScheme:
 		b.withSchemeDefault(pgpMIME)
