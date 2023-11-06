@@ -16,6 +16,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Test: Add test around account settings.
 
 ### Changed
+* GODT-3097: Warn about PGPInline encryption scheme which will be deprecated.
 * Test: Support multiple users when waiting for sync event.
 * Test: Update fake server with defautl draft content-type and test it.
 * Test: be less aggressive while checking for message structure.
@@ -26,6 +27,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-3095: Update GOpenPGP.
 
 ### Fixed
+* GODT-3106: Broken import route.
 * GODT-3041: Fix Invalid Or Missing message signature during send.
 * GODT-3087: Exclude attachment content-disposition part when determining...
 * GODT-2887: Inline images with Apple Mail.
