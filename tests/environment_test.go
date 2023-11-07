@@ -91,44 +91,71 @@ func (s *scenario) theHeaderInTheRequestToHasSetTo(method, path, key, value stri
 }
 
 func (s *scenario) theHeaderInTheMultipartRequestToHasSetTo(method, path, key, value string) error {
+	req, err := s.getLastCallMultipartForm(method, path)
+	if err != nil {
+		return fmt.Errorf("failed to parse multipart form: %w", err)
+	}
+	if haveValue := req.FormValue(key); haveValue != value {
+		return fmt.Errorf("header field %q have %q, want %q", key, haveValue, value)
+	}
+	return nil
+}
+
+func (s *scenario) checkParsedMultipartFormForFile(method, path, file string, hasFile bool) error {
+	req, err := s.getLastCallMultipartForm(method, path)
+	if err != nil {
+		return fmt.Errorf("failed to parse multipart form: %w", err)
+	}
+
+	if _, ok := req.MultipartForm.File[file]; hasFile != ok {
+		return fmt.Errorf("Multipart file in bug report is %t, want it to be %t", ok, hasFile)
+	}
+
+	return nil
+}
+
+func (s *scenario) theHeaderInTheMultipartRequestToHasFile(method, path, file string) error {
+	return s.checkParsedMultipartFormForFile(method, path, file, true)
+}
+
+func (s *scenario) theHeaderInTheMultipartRequestToHasNoFile(method, path, file string) error {
+	return s.checkParsedMultipartFormForFile(method, path, file, false)
+}
+
+func (s *scenario) getLastCallMultipartForm(method, path string) (*http.Request, error) {
 	// We have to exclude HTTP-Overrides to avoid race condition with the creating and sending of the draft message.
 	call, err := s.t.getLastCallExcludingHTTPOverride(method, path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	buf := new(bytes.Buffer)
 
 	if _, err := buf.WriteString(fmt.Sprintf("%s %s HTTP/1.1\r\n", call.Method, call.URL.Path)); err != nil {
-		return fmt.Errorf("failed to write request line: %w", err)
+		return nil, fmt.Errorf("failed to write request line: %w", err)
 	}
 
 	if err := call.RequestHeader.Write(buf); err != nil {
-		return fmt.Errorf("failed to write header: %w", err)
+		return nil, fmt.Errorf("failed to write header: %w", err)
 	}
 
 	if _, err := buf.WriteString("\r\n"); err != nil {
-		return fmt.Errorf("failed to write header: %w", err)
+		return nil, fmt.Errorf("failed to write header: %w", err)
 	}
 
 	if _, err := buf.Write(call.RequestBody); err != nil {
-		return fmt.Errorf("failed to write body: %w", err)
+		return nil, fmt.Errorf("failed to write body: %w", err)
 	}
 
 	req, err := http.ReadRequest(bufio.NewReader(buf))
 	if err != nil {
-		return fmt.Errorf("failed to read request: %w", err)
+		return nil, fmt.Errorf("failed to read request: %w", err)
 	}
 
 	if err := req.ParseMultipartForm(1 << 10); err != nil {
-		return fmt.Errorf("failed to parse multipart form: %w", err)
+		return nil, fmt.Errorf("failed to parse multipart form: %w", err)
 	}
-
-	if haveValue := req.FormValue(key); haveValue != value {
-		return fmt.Errorf("header field %q have %q, want %q", key, haveValue, value)
-	}
-
-	return nil
+	return req, nil
 }
 
 func (s *scenario) theBodyInTheRequestToIs(method, path string, value *godog.DocString) error {

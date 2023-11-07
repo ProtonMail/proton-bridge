@@ -29,6 +29,8 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the user agent is "([^"]*)"$`, s.theUserAgentIs)
 	ctx.Step(`^the header in the "([^"]*)" request to "([^"]*)" has "([^"]*)" set to "([^"]*)"$`, s.theHeaderInTheRequestToHasSetTo)
 	ctx.Step(`^the header in the "([^"]*)" multipart request to "([^"]*)" has "([^"]*)" set to "([^"]*)"$`, s.theHeaderInTheMultipartRequestToHasSetTo)
+	ctx.Step(`^the header in the "([^"]*)" multipart request to "([^"]*)" has file "([^"]*)"$`, s.theHeaderInTheMultipartRequestToHasFile)
+	ctx.Step(`^the header in the "([^"]*)" multipart request to "([^"]*)" has no file "([^"]*)"$`, s.theHeaderInTheMultipartRequestToHasNoFile)
 	ctx.Step(`^the body in the "([^"]*)" request to "([^"]*)" is:$`, s.theBodyInTheRequestToIs)
 	ctx.Step(`^the body in the "([^"]*)" response to "([^"]*)" is:$`, s.theBodyInTheResponseToIs)
 	ctx.Step(`^the API requires bridge version at least "([^"]*)"$`, s.theAPIRequiresBridgeVersion)

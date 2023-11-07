@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -177,6 +178,18 @@ func newTestBugReport(br *bridge.Bridge) *testBugReport {
 }
 
 func (r *testBugReport) report() error {
+	if r.request.IncludeLogs == true {
+		data := []byte("Test log file.\n")
+		logName := "20231031_122940334_bri_000_v3.6.1+qa_br-178.log"
+		logPath, err := r.bridge.GetLogsPath()
+		if err != nil {
+			return err
+		}
+
+		if err := os.WriteFile(filepath.Join(logPath, logName), data, 0o600); err != nil {
+			return err
+		}
+	}
 	return r.bridge.ReportBug(context.Background(), &r.request)
 }
 
@@ -202,7 +215,7 @@ func (s *scenario) theUserReportsABugWithSingleHeaderChange(key, value string) e
 		bugReport.request.Email = value
 	case "Client":
 		bugReport.request.EmailClient = value
-	case "Attachment":
+	case "IncludeLogs":
 		att, err := strconv.ParseBool(value)
 		if err != nil {
 			return fmt.Errorf("failed to parse bug report attachment preferences: %w", err)

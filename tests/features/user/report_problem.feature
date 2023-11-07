@@ -12,8 +12,17 @@ Feature: The user reports a problem
     Then the header in the "POST" multipart request to "/core/v4/reports/bug" has "Title" set to "[Bridge] Bug - title"
     And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Description" set to "description"
     And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Username" set to "[user:user]"
-    And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Attachment" set to ""
+    And the header in the "POST" multipart request to "/core/v4/reports/bug" has no file "logs.zip"
 
+  Scenario: User sends a problem report with logs attached
+    When the user reports a bug with field "IncludeLogs" set to "true"
+    Then it succeeds
+    And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Title" set to "[Bridge] Bug - title"
+    And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Description" set to "description"
+    And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Username" set to "[user:user]"
+    And the header in the "POST" multipart request to "/core/v4/reports/bug" has file "logs.zip"
+
+  
   @regression
   Scenario: User sends a problem report while signed out of Bridge
     When user "[user:user]" logs out
@@ -41,7 +50,8 @@ Feature: The user reports a problem
         "Description": "Testing Description",
         "Username": "[user:user]",
         "Email": "[user:user]@[domain]",
-        "EmailClient": "Apple Mail"
+        "EmailClient": "Apple Mail",
+        "IncludeLogs": true
       }
       """
     Then the header in the "POST" multipart request to "/core/v4/reports/bug" has "Title" set to "[Bridge] Bug - Testing Title"
@@ -51,3 +61,4 @@ Feature: The user reports a problem
     And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Username" set to "[user:user]"
     And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Email" set to "[user:user]@[domain]"
     And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Client" set to "Apple Mail"
+    And the header in the "POST" multipart request to "/core/v4/reports/bug" has file "logs.zip"
