@@ -364,7 +364,19 @@ Status GRPCService::ReportBug(ServerContext *, ReportBugRequest const *request, 
     qtProxy_.reportBug(QString::fromStdString(request->ostype()), QString::fromStdString(request->osversion()),
         QString::fromStdString(request->emailclient()), QString::fromStdString(request->address()), QString::fromStdString(request->description()),
         request->includelogs());
-    qtProxy_.sendDelayedEvent(tab.nextBugReportWillSucceed() ? newReportBugSuccessEvent() : newReportBugErrorEvent());
+    SPStreamEvent event;
+    switch (tab.nextBugReportResult()) {
+    case SettingsTab::BugReportResult::Success:
+        event = newReportBugSuccessEvent();
+        break;
+    case SettingsTab::BugReportResult::Error:
+        event = newReportBugErrorEvent();
+        break;
+    case SettingsTab::BugReportResult::DataSharingError:
+        event = newReportBugFallbackEvent();
+        break;
+    }
+    qtProxy_.sendDelayedEvent(event);
     qtProxy_.sendDelayedEvent(newReportBugFinishedEvent());
 
     return Status::OK;

@@ -35,6 +35,12 @@ public: // data types.
         Failure = 2
     }; ///< Enumeration for the result of a TLS certificate installation.
 
+    enum class BugReportResult {
+        Success  = 0,
+        Error = 1,
+        DataSharingError = 2,
+    }; ///< Enumeration for the result of bug report sending
+
 public: // member functions.
     explicit SettingsTab(QWidget *parent = nullptr); ///< Default constructor.
     SettingsTab(SettingsTab const &) = delete; ///< Disabled copy-constructor.
@@ -60,7 +66,7 @@ public: // member functions.
     QString releaseNotesPageLink() const; ///< Get the content of the 'Release Notes Page Link' edit.
     QString dependencyLicenseLink() const; ///< Get the content of the 'Dependency License Link' edit.
     QString landingPageLink() const; ///< Get the content of the 'Landing Page Link' edit.
-    bool nextBugReportWillSucceed() const; ///< Get the status of the 'Next Bug Report Will Fail' check box.
+    BugReportResult nextBugReportResult() const; ///< Get the value of the 'Next bug report result' combo box.
     bool isTLSCertificateInstalled() const; ///< Get the status of the 'TLS Certificate is installed' check box.
     TLSCertInstallResult nextTLSCertInstallResult() const; ///< Get the value of the 'Next TLS Certificate install result' combo box.
     bool nextTLSCertExportWillSucceed() const;  ///< Get the status of the 'Next TLS Cert export will succeed' check box.

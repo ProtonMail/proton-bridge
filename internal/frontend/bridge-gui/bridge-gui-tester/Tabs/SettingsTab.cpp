@@ -323,8 +323,8 @@ void SettingsTab::exportTLSCertificates(QString const &folderPath) {
 //****************************************************************************************************************************************************
 /// \return The state of the check box.
 //****************************************************************************************************************************************************
-bool SettingsTab::nextBugReportWillSucceed() const {
-    return ui_.checkNextBugReportWillSucceed->isChecked();
+SettingsTab::BugReportResult SettingsTab::nextBugReportResult() const {
+    return BugReportResult(ui_.comboBugReportResult->currentIndex());
 }
 
 
@@ -522,7 +522,7 @@ void SettingsTab::resetUI() {
     ui_.editAddress->setText(QString());
     ui_.editDescription->setPlainText(QString());
     ui_.labelIncludeLogsValue->setText(QString());
-    ui_.checkNextBugReportWillSucceed->setChecked(true);
+    ui_.comboBugReportResult->setCurrentIndex(0);
 
     ui_.editHostname->setText("localhost");
     ui_.spinPortIMAP->setValue(1143);

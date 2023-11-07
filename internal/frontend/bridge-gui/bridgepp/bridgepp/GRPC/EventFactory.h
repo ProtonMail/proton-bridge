@@ -34,6 +34,7 @@ SPStreamEvent newResetFinishedEvent(); ///< Create a new ResetFinishedEvent even
 SPStreamEvent newReportBugFinishedEvent(); ///< Create a new ReportBugFinishedEvent event.
 SPStreamEvent newReportBugSuccessEvent(); ///< Create a new ReportBugSuccessEvent event.
 SPStreamEvent newReportBugErrorEvent(); ///< Create a new ReportBugErrorEvent event.
+SPStreamEvent newReportBugFallbackEvent(); ///< Create a new ReportBugFallbackEvent event.
 SPStreamEvent newCertificateInstallSuccessEvent(); ///< Create a new CertificateInstallSuccessEvent event.
 SPStreamEvent newCertificateInstallCanceledEvent(); ///< Create a new CertificateInstallCanceledEvent event.
 SPStreamEvent newCertificateInstallFailedEvent(); ///< Create anew CertificateInstallFailedEvent event.

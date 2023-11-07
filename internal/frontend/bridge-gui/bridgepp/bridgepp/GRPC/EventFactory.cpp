@@ -205,6 +205,18 @@ SPStreamEvent newReportBugErrorEvent() {
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
+SPStreamEvent newReportBugFallbackEvent() {
+    auto event = new grpc::ReportBugFallbackEvent;
+    auto appEvent = new grpc::AppEvent;
+    appEvent->set_allocated_reportbugfallback(event);
+    return wrapAppEvent(appEvent);
+}
+
+
+
+//****************************************************************************************************************************************************
+/// \return The event.
+//****************************************************************************************************************************************************
 SPStreamEvent newCertificateInstallSuccessEvent() {
     auto event = new grpc::CertificateInstallSuccessEvent;
     auto appEvent = new grpc::AppEvent;
