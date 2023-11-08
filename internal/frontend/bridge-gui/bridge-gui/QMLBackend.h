@@ -256,7 +256,6 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void changeKeychainFinished(); ///< Signal for the 'changeKeychainFinished' gRPC stream event.
     void notifyHasNoKeychain(); ///< Signal for the 'notifyHasNoKeychain' gRPC stream event.
     void notifyRebuildKeychain(); ///< Signal for the 'notifyRebuildKeychain' gRPC stream event.
-    void noActiveKeyForRecipient(QString const &email); ///< Signal for the 'noActiveKeyForRecipient' gRPC stream event.
     void addressChanged(QString const &address); ///< Signal for the 'addressChanged' gRPC stream event.
     void addressChangedLogout(QString const &address); ///< Signal for the 'addressChangedLogout' gRPC stream event.
     void apiCertIssue(); ///< Signal for the 'apiCertIssue' gRPC stream event.

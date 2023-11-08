@@ -444,15 +444,10 @@ message RebuildKeychainEvent {}
 //**********************************************************
 message MailEvent {
   oneof event {
-    NoActiveKeyForRecipientEvent noActiveKeyForRecipientEvent = 1;
-    AddressChangedEvent addressChanged = 2;
-    AddressChangedLogoutEvent addressChangedLogout = 3;
-    ApiCertIssueEvent apiCertIssue = 6;
+    AddressChangedEvent addressChanged = 1;
+    AddressChangedLogoutEvent addressChangedLogout = 2;
+    ApiCertIssueEvent apiCertIssue = 3;
   }
-}
-
-message NoActiveKeyForRecipientEvent {
-  string email = 1;
 }
 
 message AddressChangedEvent {

@@ -161,10 +161,6 @@ func NewKeychainRebuildKeychainEvent() *StreamEvent {
 	return keychainEvent(&KeychainEvent{Event: &KeychainEvent_RebuildKeychain{RebuildKeychain: &RebuildKeychainEvent{}}})
 }
 
-func NewMailNoActiveKeyForRecipientEvent(email string) *StreamEvent {
-	return mailEvent(&MailEvent{Event: &MailEvent_NoActiveKeyForRecipientEvent{NoActiveKeyForRecipientEvent: &NoActiveKeyForRecipientEvent{Email: email}}})
-}
-
 func NewMailAddressChangeEvent(email string) *StreamEvent {
 	return mailEvent(&MailEvent{Event: &MailEvent_AddressChanged{AddressChanged: &AddressChangedEvent{Address: email}}})
 }

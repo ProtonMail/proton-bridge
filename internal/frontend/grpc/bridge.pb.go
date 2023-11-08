@@ -3557,7 +3557,6 @@ type MailEvent struct {
 
 	// Types that are assignable to Event:
 	//
-	//	*MailEvent_NoActiveKeyForRecipientEvent
 	//	*MailEvent_AddressChanged
 	//	*MailEvent_AddressChangedLogout
 	//	*MailEvent_ApiCertIssue
@@ -3603,13 +3602,6 @@ func (m *MailEvent) GetEvent() isMailEvent_Event {
 	return nil
 }
 
-func (x *MailEvent) GetNoActiveKeyForRecipientEvent() *NoActiveKeyForRecipientEvent {
-	if x, ok := x.GetEvent().(*MailEvent_NoActiveKeyForRecipientEvent); ok {
-		return x.NoActiveKeyForRecipientEvent
-	}
-	return nil
-}
-
 func (x *MailEvent) GetAddressChanged() *AddressChangedEvent {
 	if x, ok := x.GetEvent().(*MailEvent_AddressChanged); ok {
 		return x.AddressChanged
@@ -3635,76 +3627,23 @@ type isMailEvent_Event interface {
 	isMailEvent_Event()
 }
 
-type MailEvent_NoActiveKeyForRecipientEvent struct {
-	NoActiveKeyForRecipientEvent *NoActiveKeyForRecipientEvent `protobuf:"bytes,1,opt,name=noActiveKeyForRecipientEvent,proto3,oneof"`
-}
-
 type MailEvent_AddressChanged struct {
-	AddressChanged *AddressChangedEvent `protobuf:"bytes,2,opt,name=addressChanged,proto3,oneof"`
+	AddressChanged *AddressChangedEvent `protobuf:"bytes,1,opt,name=addressChanged,proto3,oneof"`
 }
 
 type MailEvent_AddressChangedLogout struct {
-	AddressChangedLogout *AddressChangedLogoutEvent `protobuf:"bytes,3,opt,name=addressChangedLogout,proto3,oneof"`
+	AddressChangedLogout *AddressChangedLogoutEvent `protobuf:"bytes,2,opt,name=addressChangedLogout,proto3,oneof"`
 }
 
 type MailEvent_ApiCertIssue struct {
-	ApiCertIssue *ApiCertIssueEvent `protobuf:"bytes,6,opt,name=apiCertIssue,proto3,oneof"`
+	ApiCertIssue *ApiCertIssueEvent `protobuf:"bytes,3,opt,name=apiCertIssue,proto3,oneof"`
 }
-
-func (*MailEvent_NoActiveKeyForRecipientEvent) isMailEvent_Event() {}
 
 func (*MailEvent_AddressChanged) isMailEvent_Event() {}
 
 func (*MailEvent_AddressChangedLogout) isMailEvent_Event() {}
 
 func (*MailEvent_ApiCertIssue) isMailEvent_Event() {}
-
-type NoActiveKeyForRecipientEvent struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
-}
-
-func (x *NoActiveKeyForRecipientEvent) Reset() {
-	*x = NoActiveKeyForRecipientEvent{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[53]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *NoActiveKeyForRecipientEvent) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*NoActiveKeyForRecipientEvent) ProtoMessage() {}
-
-func (x *NoActiveKeyForRecipientEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[53]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use NoActiveKeyForRecipientEvent.ProtoReflect.Descriptor instead.
-func (*NoActiveKeyForRecipientEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{53}
-}
-
-func (x *NoActiveKeyForRecipientEvent) GetEmail() string {
-	if x != nil {
-		return x.Email
-	}
-	return ""
-}
 
 type AddressChangedEvent struct {
 	state         protoimpl.MessageState
@@ -3717,7 +3656,7 @@ type AddressChangedEvent struct {
 func (x *AddressChangedEvent) Reset() {
 	*x = AddressChangedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[54]
+		mi := &file_bridge_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3730,7 +3669,7 @@ func (x *AddressChangedEvent) String() string {
 func (*AddressChangedEvent) ProtoMessage() {}
 
 func (x *AddressChangedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[54]
+	mi := &file_bridge_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3743,7 +3682,7 @@ func (x *AddressChangedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddressChangedEvent.ProtoReflect.Descriptor instead.
 func (*AddressChangedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{54}
+	return file_bridge_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *AddressChangedEvent) GetAddress() string {
@@ -3764,7 +3703,7 @@ type AddressChangedLogoutEvent struct {
 func (x *AddressChangedLogoutEvent) Reset() {
 	*x = AddressChangedLogoutEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[55]
+		mi := &file_bridge_proto_msgTypes[54]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3777,7 +3716,7 @@ func (x *AddressChangedLogoutEvent) String() string {
 func (*AddressChangedLogoutEvent) ProtoMessage() {}
 
 func (x *AddressChangedLogoutEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[55]
+	mi := &file_bridge_proto_msgTypes[54]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3790,7 +3729,7 @@ func (x *AddressChangedLogoutEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddressChangedLogoutEvent.ProtoReflect.Descriptor instead.
 func (*AddressChangedLogoutEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{55}
+	return file_bridge_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *AddressChangedLogoutEvent) GetAddress() string {
@@ -3809,7 +3748,7 @@ type ApiCertIssueEvent struct {
 func (x *ApiCertIssueEvent) Reset() {
 	*x = ApiCertIssueEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[56]
+		mi := &file_bridge_proto_msgTypes[55]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3822,7 +3761,7 @@ func (x *ApiCertIssueEvent) String() string {
 func (*ApiCertIssueEvent) ProtoMessage() {}
 
 func (x *ApiCertIssueEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[56]
+	mi := &file_bridge_proto_msgTypes[55]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3835,7 +3774,7 @@ func (x *ApiCertIssueEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApiCertIssueEvent.ProtoReflect.Descriptor instead.
 func (*ApiCertIssueEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{56}
+	return file_bridge_proto_rawDescGZIP(), []int{55}
 }
 
 type UserEvent struct {
@@ -3860,7 +3799,7 @@ type UserEvent struct {
 func (x *UserEvent) Reset() {
 	*x = UserEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[57]
+		mi := &file_bridge_proto_msgTypes[56]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3873,7 +3812,7 @@ func (x *UserEvent) String() string {
 func (*UserEvent) ProtoMessage() {}
 
 func (x *UserEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[57]
+	mi := &file_bridge_proto_msgTypes[56]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3886,7 +3825,7 @@ func (x *UserEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserEvent.ProtoReflect.Descriptor instead.
 func (*UserEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{57}
+	return file_bridge_proto_rawDescGZIP(), []int{56}
 }
 
 func (m *UserEvent) GetEvent() isUserEvent_Event {
@@ -4028,7 +3967,7 @@ type ToggleSplitModeFinishedEvent struct {
 func (x *ToggleSplitModeFinishedEvent) Reset() {
 	*x = ToggleSplitModeFinishedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[58]
+		mi := &file_bridge_proto_msgTypes[57]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4041,7 +3980,7 @@ func (x *ToggleSplitModeFinishedEvent) String() string {
 func (*ToggleSplitModeFinishedEvent) ProtoMessage() {}
 
 func (x *ToggleSplitModeFinishedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[58]
+	mi := &file_bridge_proto_msgTypes[57]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4054,7 +3993,7 @@ func (x *ToggleSplitModeFinishedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ToggleSplitModeFinishedEvent.ProtoReflect.Descriptor instead.
 func (*ToggleSplitModeFinishedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{58}
+	return file_bridge_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *ToggleSplitModeFinishedEvent) GetUserID() string {
@@ -4075,7 +4014,7 @@ type UserDisconnectedEvent struct {
 func (x *UserDisconnectedEvent) Reset() {
 	*x = UserDisconnectedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[59]
+		mi := &file_bridge_proto_msgTypes[58]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4088,7 +4027,7 @@ func (x *UserDisconnectedEvent) String() string {
 func (*UserDisconnectedEvent) ProtoMessage() {}
 
 func (x *UserDisconnectedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[59]
+	mi := &file_bridge_proto_msgTypes[58]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4101,7 +4040,7 @@ func (x *UserDisconnectedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserDisconnectedEvent.ProtoReflect.Descriptor instead.
 func (*UserDisconnectedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{59}
+	return file_bridge_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *UserDisconnectedEvent) GetUsername() string {
@@ -4122,7 +4061,7 @@ type UserChangedEvent struct {
 func (x *UserChangedEvent) Reset() {
 	*x = UserChangedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[60]
+		mi := &file_bridge_proto_msgTypes[59]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4135,7 +4074,7 @@ func (x *UserChangedEvent) String() string {
 func (*UserChangedEvent) ProtoMessage() {}
 
 func (x *UserChangedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[60]
+	mi := &file_bridge_proto_msgTypes[59]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4148,7 +4087,7 @@ func (x *UserChangedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserChangedEvent.ProtoReflect.Descriptor instead.
 func (*UserChangedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{60}
+	return file_bridge_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *UserChangedEvent) GetUserID() string {
@@ -4170,7 +4109,7 @@ type UserBadEvent struct {
 func (x *UserBadEvent) Reset() {
 	*x = UserBadEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[61]
+		mi := &file_bridge_proto_msgTypes[60]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4183,7 +4122,7 @@ func (x *UserBadEvent) String() string {
 func (*UserBadEvent) ProtoMessage() {}
 
 func (x *UserBadEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[61]
+	mi := &file_bridge_proto_msgTypes[60]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4196,7 +4135,7 @@ func (x *UserBadEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserBadEvent.ProtoReflect.Descriptor instead.
 func (*UserBadEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{61}
+	return file_bridge_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *UserBadEvent) GetUserID() string {
@@ -4225,7 +4164,7 @@ type UsedBytesChangedEvent struct {
 func (x *UsedBytesChangedEvent) Reset() {
 	*x = UsedBytesChangedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[62]
+		mi := &file_bridge_proto_msgTypes[61]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4238,7 +4177,7 @@ func (x *UsedBytesChangedEvent) String() string {
 func (*UsedBytesChangedEvent) ProtoMessage() {}
 
 func (x *UsedBytesChangedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[62]
+	mi := &file_bridge_proto_msgTypes[61]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4251,7 +4190,7 @@ func (x *UsedBytesChangedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UsedBytesChangedEvent.ProtoReflect.Descriptor instead.
 func (*UsedBytesChangedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{62}
+	return file_bridge_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *UsedBytesChangedEvent) GetUserID() string {
@@ -4279,7 +4218,7 @@ type ImapLoginFailedEvent struct {
 func (x *ImapLoginFailedEvent) Reset() {
 	*x = ImapLoginFailedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[63]
+		mi := &file_bridge_proto_msgTypes[62]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4292,7 +4231,7 @@ func (x *ImapLoginFailedEvent) String() string {
 func (*ImapLoginFailedEvent) ProtoMessage() {}
 
 func (x *ImapLoginFailedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[63]
+	mi := &file_bridge_proto_msgTypes[62]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4305,7 +4244,7 @@ func (x *ImapLoginFailedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImapLoginFailedEvent.ProtoReflect.Descriptor instead.
 func (*ImapLoginFailedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{63}
+	return file_bridge_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ImapLoginFailedEvent) GetUsername() string {
@@ -4326,7 +4265,7 @@ type SyncStartedEvent struct {
 func (x *SyncStartedEvent) Reset() {
 	*x = SyncStartedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[64]
+		mi := &file_bridge_proto_msgTypes[63]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4339,7 +4278,7 @@ func (x *SyncStartedEvent) String() string {
 func (*SyncStartedEvent) ProtoMessage() {}
 
 func (x *SyncStartedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[64]
+	mi := &file_bridge_proto_msgTypes[63]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4352,7 +4291,7 @@ func (x *SyncStartedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncStartedEvent.ProtoReflect.Descriptor instead.
 func (*SyncStartedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{64}
+	return file_bridge_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *SyncStartedEvent) GetUserID() string {
@@ -4373,7 +4312,7 @@ type SyncFinishedEvent struct {
 func (x *SyncFinishedEvent) Reset() {
 	*x = SyncFinishedEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[65]
+		mi := &file_bridge_proto_msgTypes[64]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4386,7 +4325,7 @@ func (x *SyncFinishedEvent) String() string {
 func (*SyncFinishedEvent) ProtoMessage() {}
 
 func (x *SyncFinishedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[65]
+	mi := &file_bridge_proto_msgTypes[64]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4399,7 +4338,7 @@ func (x *SyncFinishedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncFinishedEvent.ProtoReflect.Descriptor instead.
 func (*SyncFinishedEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{65}
+	return file_bridge_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *SyncFinishedEvent) GetUserID() string {
@@ -4423,7 +4362,7 @@ type SyncProgressEvent struct {
 func (x *SyncProgressEvent) Reset() {
 	*x = SyncProgressEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[66]
+		mi := &file_bridge_proto_msgTypes[65]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4436,7 +4375,7 @@ func (x *SyncProgressEvent) String() string {
 func (*SyncProgressEvent) ProtoMessage() {}
 
 func (x *SyncProgressEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[66]
+	mi := &file_bridge_proto_msgTypes[65]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4449,7 +4388,7 @@ func (x *SyncProgressEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncProgressEvent.ProtoReflect.Descriptor instead.
 func (*SyncProgressEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{66}
+	return file_bridge_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *SyncProgressEvent) GetUserID() string {
@@ -4491,7 +4430,7 @@ type GenericErrorEvent struct {
 func (x *GenericErrorEvent) Reset() {
 	*x = GenericErrorEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bridge_proto_msgTypes[67]
+		mi := &file_bridge_proto_msgTypes[66]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4504,7 +4443,7 @@ func (x *GenericErrorEvent) String() string {
 func (*GenericErrorEvent) ProtoMessage() {}
 
 func (x *GenericErrorEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_bridge_proto_msgTypes[67]
+	mi := &file_bridge_proto_msgTypes[66]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4517,7 +4456,7 @@ func (x *GenericErrorEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenericErrorEvent.ProtoReflect.Descriptor instead.
 func (*GenericErrorEvent) Descriptor() ([]byte, []int) {
-	return file_bridge_proto_rawDescGZIP(), []int{67}
+	return file_bridge_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *GenericErrorEvent) GetCode() ErrorCode {
@@ -4901,32 +4840,22 @@ var file_bridge_proto_rawDesc = []byte{
 	0x68, 0x65, 0x64, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x22, 0x14, 0x0a, 0x12, 0x48, 0x61, 0x73, 0x4e,
 	0x6f, 0x4b, 0x65, 0x79, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x22, 0x16,
 	0x0a, 0x14, 0x52, 0x65, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x4b, 0x65, 0x79, 0x63, 0x68, 0x61, 0x69,
-	0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x22, 0xd9, 0x02, 0x0a, 0x09, 0x4d, 0x61, 0x69, 0x6c, 0x45,
-	0x76, 0x65, 0x6e, 0x74, 0x12, 0x68, 0x0a, 0x1c, 0x6e, 0x6f, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65,
-	0x4b, 0x65, 0x79, 0x46, 0x6f, 0x72, 0x52, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x45,
-	0x76, 0x65, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x67, 0x72, 0x70,
-	0x63, 0x2e, 0x4e, 0x6f, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65, 0x4b, 0x65, 0x79, 0x46, 0x6f, 0x72,
-	0x52, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x48, 0x00,
-	0x52, 0x1c, 0x6e, 0x6f, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65, 0x4b, 0x65, 0x79, 0x46, 0x6f, 0x72,
-	0x52, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x12, 0x43,
-	0x0a, 0x0e, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x64,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x41, 0x64,
-	0x64, 0x72, 0x65, 0x73, 0x73, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x64, 0x45, 0x76, 0x65, 0x6e,
-	0x74, 0x48, 0x00, 0x52, 0x0e, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x43, 0x68, 0x61, 0x6e,
-	0x67, 0x65, 0x64, 0x12, 0x55, 0x0a, 0x14, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x43, 0x68,
-	0x61, 0x6e, 0x67, 0x65, 0x64, 0x4c, 0x6f, 0x67, 0x6f, 0x75, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x0b, 0x32, 0x1f, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73,
-	0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x64, 0x4c, 0x6f, 0x67, 0x6f, 0x75, 0x74, 0x45, 0x76, 0x65,
-	0x6e, 0x74, 0x48, 0x00, 0x52, 0x14, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x43, 0x68, 0x61,
-	0x6e, 0x67, 0x65, 0x64, 0x4c, 0x6f, 0x67, 0x6f, 0x75, 0x74, 0x12, 0x3d, 0x0a, 0x0c, 0x61, 0x70,
-	0x69, 0x43, 0x65, 0x72, 0x74, 0x49, 0x73, 0x73, 0x75, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x17, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x41, 0x70, 0x69, 0x43, 0x65, 0x72, 0x74, 0x49,
-	0x73, 0x73, 0x75, 0x65, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x48, 0x00, 0x52, 0x0c, 0x61, 0x70, 0x69,
-	0x43, 0x65, 0x72, 0x74, 0x49, 0x73, 0x73, 0x75, 0x65, 0x42, 0x07, 0x0a, 0x05, 0x65, 0x76, 0x65,
-	0x6e, 0x74, 0x22, 0x34, 0x0a, 0x1c, 0x4e, 0x6f, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65, 0x4b, 0x65,
-	0x79, 0x46, 0x6f, 0x72, 0x52, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x45, 0x76, 0x65,
-	0x6e, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x22, 0x2f, 0x0a, 0x13, 0x41, 0x64, 0x64, 0x72,
+	0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x22, 0xef, 0x01, 0x0a, 0x09, 0x4d, 0x61, 0x69, 0x6c, 0x45,
+	0x76, 0x65, 0x6e, 0x74, 0x12, 0x43, 0x0a, 0x0e, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x43,
+	0x68, 0x61, 0x6e, 0x67, 0x65, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x67,
+	0x72, 0x70, 0x63, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x43, 0x68, 0x61, 0x6e, 0x67,
+	0x65, 0x64, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x48, 0x00, 0x52, 0x0e, 0x61, 0x64, 0x64, 0x72, 0x65,
+	0x73, 0x73, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x64, 0x12, 0x55, 0x0a, 0x14, 0x61, 0x64, 0x64,
+	0x72, 0x65, 0x73, 0x73, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x64, 0x4c, 0x6f, 0x67, 0x6f, 0x75,
+	0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x41,
+	0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x64, 0x4c, 0x6f, 0x67,
+	0x6f, 0x75, 0x74, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x48, 0x00, 0x52, 0x14, 0x61, 0x64, 0x64, 0x72,
+	0x65, 0x73, 0x73, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x64, 0x4c, 0x6f, 0x67, 0x6f, 0x75, 0x74,
+	0x12, 0x3d, 0x0a, 0x0c, 0x61, 0x70, 0x69, 0x43, 0x65, 0x72, 0x74, 0x49, 0x73, 0x73, 0x75, 0x65,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x41, 0x70,
+	0x69, 0x43, 0x65, 0x72, 0x74, 0x49, 0x73, 0x73, 0x75, 0x65, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x48,
+	0x00, 0x52, 0x0c, 0x61, 0x70, 0x69, 0x43, 0x65, 0x72, 0x74, 0x49, 0x73, 0x73, 0x75, 0x65, 0x42,
+	0x07, 0x0a, 0x05, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x22, 0x2f, 0x0a, 0x13, 0x41, 0x64, 0x64, 0x72,
 	0x65, 0x73, 0x73, 0x43, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x64, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x12,
 	0x18, 0x0a, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
 	0x52, 0x07, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x22, 0x35, 0x0a, 0x19, 0x41, 0x64, 0x64,
@@ -5359,7 +5288,7 @@ func file_bridge_proto_rawDescGZIP() []byte {
 }
 
 var file_bridge_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
-var file_bridge_proto_msgTypes = make([]protoimpl.MessageInfo, 68)
+var file_bridge_proto_msgTypes = make([]protoimpl.MessageInfo, 67)
 var file_bridge_proto_goTypes = []interface{}{
 	(LogLevel)(0),                                 // 0: grpc.LogLevel
 	(UserState)(0),                                // 1: grpc.UserState
@@ -5421,25 +5350,24 @@ var file_bridge_proto_goTypes = []interface{}{
 	(*HasNoKeychainEvent)(nil),                    // 57: grpc.HasNoKeychainEvent
 	(*RebuildKeychainEvent)(nil),                  // 58: grpc.RebuildKeychainEvent
 	(*MailEvent)(nil),                             // 59: grpc.MailEvent
-	(*NoActiveKeyForRecipientEvent)(nil),          // 60: grpc.NoActiveKeyForRecipientEvent
-	(*AddressChangedEvent)(nil),                   // 61: grpc.AddressChangedEvent
-	(*AddressChangedLogoutEvent)(nil),             // 62: grpc.AddressChangedLogoutEvent
-	(*ApiCertIssueEvent)(nil),                     // 63: grpc.ApiCertIssueEvent
-	(*UserEvent)(nil),                             // 64: grpc.UserEvent
-	(*ToggleSplitModeFinishedEvent)(nil),          // 65: grpc.ToggleSplitModeFinishedEvent
-	(*UserDisconnectedEvent)(nil),                 // 66: grpc.UserDisconnectedEvent
-	(*UserChangedEvent)(nil),                      // 67: grpc.UserChangedEvent
-	(*UserBadEvent)(nil),                          // 68: grpc.UserBadEvent
-	(*UsedBytesChangedEvent)(nil),                 // 69: grpc.UsedBytesChangedEvent
-	(*ImapLoginFailedEvent)(nil),                  // 70: grpc.ImapLoginFailedEvent
-	(*SyncStartedEvent)(nil),                      // 71: grpc.SyncStartedEvent
-	(*SyncFinishedEvent)(nil),                     // 72: grpc.SyncFinishedEvent
-	(*SyncProgressEvent)(nil),                     // 73: grpc.SyncProgressEvent
-	(*GenericErrorEvent)(nil),                     // 74: grpc.GenericErrorEvent
-	(*wrapperspb.StringValue)(nil),                // 75: google.protobuf.StringValue
-	(*emptypb.Empty)(nil),                         // 76: google.protobuf.Empty
-	(*wrapperspb.BoolValue)(nil),                  // 77: google.protobuf.BoolValue
-	(*wrapperspb.Int32Value)(nil),                 // 78: google.protobuf.Int32Value
+	(*AddressChangedEvent)(nil),                   // 60: grpc.AddressChangedEvent
+	(*AddressChangedLogoutEvent)(nil),             // 61: grpc.AddressChangedLogoutEvent
+	(*ApiCertIssueEvent)(nil),                     // 62: grpc.ApiCertIssueEvent
+	(*UserEvent)(nil),                             // 63: grpc.UserEvent
+	(*ToggleSplitModeFinishedEvent)(nil),          // 64: grpc.ToggleSplitModeFinishedEvent
+	(*UserDisconnectedEvent)(nil),                 // 65: grpc.UserDisconnectedEvent
+	(*UserChangedEvent)(nil),                      // 66: grpc.UserChangedEvent
+	(*UserBadEvent)(nil),                          // 67: grpc.UserBadEvent
+	(*UsedBytesChangedEvent)(nil),                 // 68: grpc.UsedBytesChangedEvent
+	(*ImapLoginFailedEvent)(nil),                  // 69: grpc.ImapLoginFailedEvent
+	(*SyncStartedEvent)(nil),                      // 70: grpc.SyncStartedEvent
+	(*SyncFinishedEvent)(nil),                     // 71: grpc.SyncFinishedEvent
+	(*SyncProgressEvent)(nil),                     // 72: grpc.SyncProgressEvent
+	(*GenericErrorEvent)(nil),                     // 73: grpc.GenericErrorEvent
+	(*wrapperspb.StringValue)(nil),                // 74: google.protobuf.StringValue
+	(*emptypb.Empty)(nil),                         // 75: google.protobuf.Empty
+	(*wrapperspb.BoolValue)(nil),                  // 76: google.protobuf.BoolValue
+	(*wrapperspb.Int32Value)(nil),                 // 77: google.protobuf.Int32Value
 }
 var file_bridge_proto_depIdxs = []int32{
 	0,   // 0: grpc.AddLogEntryRequest.level:type_name -> grpc.LogLevel
@@ -5452,8 +5380,8 @@ var file_bridge_proto_depIdxs = []int32{
 	51,  // 7: grpc.StreamEvent.mailServerSettings:type_name -> grpc.MailServerSettingsEvent
 	55,  // 8: grpc.StreamEvent.keychain:type_name -> grpc.KeychainEvent
 	59,  // 9: grpc.StreamEvent.mail:type_name -> grpc.MailEvent
-	64,  // 10: grpc.StreamEvent.user:type_name -> grpc.UserEvent
-	74,  // 11: grpc.StreamEvent.genericError:type_name -> grpc.GenericErrorEvent
+	63,  // 10: grpc.StreamEvent.user:type_name -> grpc.UserEvent
+	73,  // 11: grpc.StreamEvent.genericError:type_name -> grpc.GenericErrorEvent
 	22,  // 12: grpc.AppEvent.internetStatus:type_name -> grpc.InternetStatusEvent
 	23,  // 13: grpc.AppEvent.toggleAutostartFinished:type_name -> grpc.ToggleAutostartFinishedEvent
 	24,  // 14: grpc.AppEvent.resetFinished:type_name -> grpc.ResetFinishedEvent
@@ -5492,149 +5420,148 @@ var file_bridge_proto_depIdxs = []int32{
 	56,  // 47: grpc.KeychainEvent.changeKeychainFinished:type_name -> grpc.ChangeKeychainFinishedEvent
 	57,  // 48: grpc.KeychainEvent.hasNoKeychain:type_name -> grpc.HasNoKeychainEvent
 	58,  // 49: grpc.KeychainEvent.rebuildKeychain:type_name -> grpc.RebuildKeychainEvent
-	60,  // 50: grpc.MailEvent.noActiveKeyForRecipientEvent:type_name -> grpc.NoActiveKeyForRecipientEvent
-	61,  // 51: grpc.MailEvent.addressChanged:type_name -> grpc.AddressChangedEvent
-	62,  // 52: grpc.MailEvent.addressChangedLogout:type_name -> grpc.AddressChangedLogoutEvent
-	63,  // 53: grpc.MailEvent.apiCertIssue:type_name -> grpc.ApiCertIssueEvent
-	65,  // 54: grpc.UserEvent.toggleSplitModeFinished:type_name -> grpc.ToggleSplitModeFinishedEvent
-	66,  // 55: grpc.UserEvent.userDisconnected:type_name -> grpc.UserDisconnectedEvent
-	67,  // 56: grpc.UserEvent.userChanged:type_name -> grpc.UserChangedEvent
-	68,  // 57: grpc.UserEvent.userBadEvent:type_name -> grpc.UserBadEvent
-	69,  // 58: grpc.UserEvent.usedBytesChangedEvent:type_name -> grpc.UsedBytesChangedEvent
-	70,  // 59: grpc.UserEvent.imapLoginFailedEvent:type_name -> grpc.ImapLoginFailedEvent
-	71,  // 60: grpc.UserEvent.syncStartedEvent:type_name -> grpc.SyncStartedEvent
-	72,  // 61: grpc.UserEvent.syncFinishedEvent:type_name -> grpc.SyncFinishedEvent
-	73,  // 62: grpc.UserEvent.syncProgressEvent:type_name -> grpc.SyncProgressEvent
-	6,   // 63: grpc.GenericErrorEvent.code:type_name -> grpc.ErrorCode
-	75,  // 64: grpc.Bridge.CheckTokens:input_type -> google.protobuf.StringValue
-	7,   // 65: grpc.Bridge.AddLogEntry:input_type -> grpc.AddLogEntryRequest
-	76,  // 66: grpc.Bridge.GuiReady:input_type -> google.protobuf.Empty
-	76,  // 67: grpc.Bridge.Quit:input_type -> google.protobuf.Empty
-	76,  // 68: grpc.Bridge.Restart:input_type -> google.protobuf.Empty
-	76,  // 69: grpc.Bridge.ShowOnStartup:input_type -> google.protobuf.Empty
-	77,  // 70: grpc.Bridge.SetIsAutostartOn:input_type -> google.protobuf.BoolValue
-	76,  // 71: grpc.Bridge.IsAutostartOn:input_type -> google.protobuf.Empty
-	77,  // 72: grpc.Bridge.SetIsBetaEnabled:input_type -> google.protobuf.BoolValue
-	76,  // 73: grpc.Bridge.IsBetaEnabled:input_type -> google.protobuf.Empty
-	77,  // 74: grpc.Bridge.SetIsAllMailVisible:input_type -> google.protobuf.BoolValue
-	76,  // 75: grpc.Bridge.IsAllMailVisible:input_type -> google.protobuf.Empty
-	77,  // 76: grpc.Bridge.SetIsTelemetryDisabled:input_type -> google.protobuf.BoolValue
-	76,  // 77: grpc.Bridge.IsTelemetryDisabled:input_type -> google.protobuf.Empty
-	76,  // 78: grpc.Bridge.GoOs:input_type -> google.protobuf.Empty
-	76,  // 79: grpc.Bridge.TriggerReset:input_type -> google.protobuf.Empty
-	76,  // 80: grpc.Bridge.Version:input_type -> google.protobuf.Empty
-	76,  // 81: grpc.Bridge.LogsPath:input_type -> google.protobuf.Empty
-	76,  // 82: grpc.Bridge.LicensePath:input_type -> google.protobuf.Empty
-	76,  // 83: grpc.Bridge.ReleaseNotesPageLink:input_type -> google.protobuf.Empty
-	76,  // 84: grpc.Bridge.DependencyLicensesLink:input_type -> google.protobuf.Empty
-	76,  // 85: grpc.Bridge.LandingPageLink:input_type -> google.protobuf.Empty
-	75,  // 86: grpc.Bridge.SetColorSchemeName:input_type -> google.protobuf.StringValue
-	76,  // 87: grpc.Bridge.ColorSchemeName:input_type -> google.protobuf.Empty
-	76,  // 88: grpc.Bridge.CurrentEmailClient:input_type -> google.protobuf.Empty
-	9,   // 89: grpc.Bridge.ReportBug:input_type -> grpc.ReportBugRequest
-	75,  // 90: grpc.Bridge.ForceLauncher:input_type -> google.protobuf.StringValue
-	75,  // 91: grpc.Bridge.SetMainExecutable:input_type -> google.protobuf.StringValue
-	10,  // 92: grpc.Bridge.Login:input_type -> grpc.LoginRequest
-	10,  // 93: grpc.Bridge.Login2FA:input_type -> grpc.LoginRequest
-	10,  // 94: grpc.Bridge.Login2Passwords:input_type -> grpc.LoginRequest
-	11,  // 95: grpc.Bridge.LoginAbort:input_type -> grpc.LoginAbortRequest
-	76,  // 96: grpc.Bridge.CheckUpdate:input_type -> google.protobuf.Empty
-	76,  // 97: grpc.Bridge.InstallUpdate:input_type -> google.protobuf.Empty
-	77,  // 98: grpc.Bridge.SetIsAutomaticUpdateOn:input_type -> google.protobuf.BoolValue
-	76,  // 99: grpc.Bridge.IsAutomaticUpdateOn:input_type -> google.protobuf.Empty
-	76,  // 100: grpc.Bridge.DiskCachePath:input_type -> google.protobuf.Empty
-	75,  // 101: grpc.Bridge.SetDiskCachePath:input_type -> google.protobuf.StringValue
-	77,  // 102: grpc.Bridge.SetIsDoHEnabled:input_type -> google.protobuf.BoolValue
-	76,  // 103: grpc.Bridge.IsDoHEnabled:input_type -> google.protobuf.Empty
-	76,  // 104: grpc.Bridge.MailServerSettings:input_type -> google.protobuf.Empty
-	12,  // 105: grpc.Bridge.SetMailServerSettings:input_type -> grpc.ImapSmtpSettings
-	76,  // 106: grpc.Bridge.Hostname:input_type -> google.protobuf.Empty
-	78,  // 107: grpc.Bridge.IsPortFree:input_type -> google.protobuf.Int32Value
-	76,  // 108: grpc.Bridge.AvailableKeychains:input_type -> google.protobuf.Empty
-	75,  // 109: grpc.Bridge.SetCurrentKeychain:input_type -> google.protobuf.StringValue
-	76,  // 110: grpc.Bridge.CurrentKeychain:input_type -> google.protobuf.Empty
-	76,  // 111: grpc.Bridge.GetUserList:input_type -> google.protobuf.Empty
-	75,  // 112: grpc.Bridge.GetUser:input_type -> google.protobuf.StringValue
-	15,  // 113: grpc.Bridge.SetUserSplitMode:input_type -> grpc.UserSplitModeRequest
-	16,  // 114: grpc.Bridge.SendBadEventUserFeedback:input_type -> grpc.UserBadEventFeedbackRequest
-	75,  // 115: grpc.Bridge.LogoutUser:input_type -> google.protobuf.StringValue
-	75,  // 116: grpc.Bridge.RemoveUser:input_type -> google.protobuf.StringValue
-	18,  // 117: grpc.Bridge.ConfigureUserAppleMail:input_type -> grpc.ConfigureAppleMailRequest
-	76,  // 118: grpc.Bridge.ReportBugClicked:input_type -> google.protobuf.Empty
-	75,  // 119: grpc.Bridge.AutoconfigClicked:input_type -> google.protobuf.StringValue
-	75,  // 120: grpc.Bridge.KBArticleClicked:input_type -> google.protobuf.StringValue
-	76,  // 121: grpc.Bridge.IsTLSCertificateInstalled:input_type -> google.protobuf.Empty
-	76,  // 122: grpc.Bridge.InstallTLSCertificate:input_type -> google.protobuf.Empty
-	75,  // 123: grpc.Bridge.ExportTLSCertificates:input_type -> google.protobuf.StringValue
-	19,  // 124: grpc.Bridge.RunEventStream:input_type -> grpc.EventStreamRequest
-	76,  // 125: grpc.Bridge.StopEventStream:input_type -> google.protobuf.Empty
-	75,  // 126: grpc.Bridge.CheckTokens:output_type -> google.protobuf.StringValue
-	76,  // 127: grpc.Bridge.AddLogEntry:output_type -> google.protobuf.Empty
-	8,   // 128: grpc.Bridge.GuiReady:output_type -> grpc.GuiReadyResponse
-	76,  // 129: grpc.Bridge.Quit:output_type -> google.protobuf.Empty
-	76,  // 130: grpc.Bridge.Restart:output_type -> google.protobuf.Empty
-	77,  // 131: grpc.Bridge.ShowOnStartup:output_type -> google.protobuf.BoolValue
-	76,  // 132: grpc.Bridge.SetIsAutostartOn:output_type -> google.protobuf.Empty
-	77,  // 133: grpc.Bridge.IsAutostartOn:output_type -> google.protobuf.BoolValue
-	76,  // 134: grpc.Bridge.SetIsBetaEnabled:output_type -> google.protobuf.Empty
-	77,  // 135: grpc.Bridge.IsBetaEnabled:output_type -> google.protobuf.BoolValue
-	76,  // 136: grpc.Bridge.SetIsAllMailVisible:output_type -> google.protobuf.Empty
-	77,  // 137: grpc.Bridge.IsAllMailVisible:output_type -> google.protobuf.BoolValue
-	76,  // 138: grpc.Bridge.SetIsTelemetryDisabled:output_type -> google.protobuf.Empty
-	77,  // 139: grpc.Bridge.IsTelemetryDisabled:output_type -> google.protobuf.BoolValue
-	75,  // 140: grpc.Bridge.GoOs:output_type -> google.protobuf.StringValue
-	76,  // 141: grpc.Bridge.TriggerReset:output_type -> google.protobuf.Empty
-	75,  // 142: grpc.Bridge.Version:output_type -> google.protobuf.StringValue
-	75,  // 143: grpc.Bridge.LogsPath:output_type -> google.protobuf.StringValue
-	75,  // 144: grpc.Bridge.LicensePath:output_type -> google.protobuf.StringValue
-	75,  // 145: grpc.Bridge.ReleaseNotesPageLink:output_type -> google.protobuf.StringValue
-	75,  // 146: grpc.Bridge.DependencyLicensesLink:output_type -> google.protobuf.StringValue
-	75,  // 147: grpc.Bridge.LandingPageLink:output_type -> google.protobuf.StringValue
-	76,  // 148: grpc.Bridge.SetColorSchemeName:output_type -> google.protobuf.Empty
-	75,  // 149: grpc.Bridge.ColorSchemeName:output_type -> google.protobuf.StringValue
-	75,  // 150: grpc.Bridge.CurrentEmailClient:output_type -> google.protobuf.StringValue
-	76,  // 151: grpc.Bridge.ReportBug:output_type -> google.protobuf.Empty
-	76,  // 152: grpc.Bridge.ForceLauncher:output_type -> google.protobuf.Empty
-	76,  // 153: grpc.Bridge.SetMainExecutable:output_type -> google.protobuf.Empty
-	76,  // 154: grpc.Bridge.Login:output_type -> google.protobuf.Empty
-	76,  // 155: grpc.Bridge.Login2FA:output_type -> google.protobuf.Empty
-	76,  // 156: grpc.Bridge.Login2Passwords:output_type -> google.protobuf.Empty
-	76,  // 157: grpc.Bridge.LoginAbort:output_type -> google.protobuf.Empty
-	76,  // 158: grpc.Bridge.CheckUpdate:output_type -> google.protobuf.Empty
-	76,  // 159: grpc.Bridge.InstallUpdate:output_type -> google.protobuf.Empty
-	76,  // 160: grpc.Bridge.SetIsAutomaticUpdateOn:output_type -> google.protobuf.Empty
-	77,  // 161: grpc.Bridge.IsAutomaticUpdateOn:output_type -> google.protobuf.BoolValue
-	75,  // 162: grpc.Bridge.DiskCachePath:output_type -> google.protobuf.StringValue
-	76,  // 163: grpc.Bridge.SetDiskCachePath:output_type -> google.protobuf.Empty
-	76,  // 164: grpc.Bridge.SetIsDoHEnabled:output_type -> google.protobuf.Empty
-	77,  // 165: grpc.Bridge.IsDoHEnabled:output_type -> google.protobuf.BoolValue
-	12,  // 166: grpc.Bridge.MailServerSettings:output_type -> grpc.ImapSmtpSettings
-	76,  // 167: grpc.Bridge.SetMailServerSettings:output_type -> google.protobuf.Empty
-	75,  // 168: grpc.Bridge.Hostname:output_type -> google.protobuf.StringValue
-	77,  // 169: grpc.Bridge.IsPortFree:output_type -> google.protobuf.BoolValue
-	13,  // 170: grpc.Bridge.AvailableKeychains:output_type -> grpc.AvailableKeychainsResponse
-	76,  // 171: grpc.Bridge.SetCurrentKeychain:output_type -> google.protobuf.Empty
-	75,  // 172: grpc.Bridge.CurrentKeychain:output_type -> google.protobuf.StringValue
-	17,  // 173: grpc.Bridge.GetUserList:output_type -> grpc.UserListResponse
-	14,  // 174: grpc.Bridge.GetUser:output_type -> grpc.User
-	76,  // 175: grpc.Bridge.SetUserSplitMode:output_type -> google.protobuf.Empty
-	76,  // 176: grpc.Bridge.SendBadEventUserFeedback:output_type -> google.protobuf.Empty
-	76,  // 177: grpc.Bridge.LogoutUser:output_type -> google.protobuf.Empty
-	76,  // 178: grpc.Bridge.RemoveUser:output_type -> google.protobuf.Empty
-	76,  // 179: grpc.Bridge.ConfigureUserAppleMail:output_type -> google.protobuf.Empty
-	76,  // 180: grpc.Bridge.ReportBugClicked:output_type -> google.protobuf.Empty
-	76,  // 181: grpc.Bridge.AutoconfigClicked:output_type -> google.protobuf.Empty
-	76,  // 182: grpc.Bridge.KBArticleClicked:output_type -> google.protobuf.Empty
-	77,  // 183: grpc.Bridge.IsTLSCertificateInstalled:output_type -> google.protobuf.BoolValue
-	76,  // 184: grpc.Bridge.InstallTLSCertificate:output_type -> google.protobuf.Empty
-	76,  // 185: grpc.Bridge.ExportTLSCertificates:output_type -> google.protobuf.Empty
-	20,  // 186: grpc.Bridge.RunEventStream:output_type -> grpc.StreamEvent
-	76,  // 187: grpc.Bridge.StopEventStream:output_type -> google.protobuf.Empty
-	126, // [126:188] is the sub-list for method output_type
-	64,  // [64:126] is the sub-list for method input_type
-	64,  // [64:64] is the sub-list for extension type_name
-	64,  // [64:64] is the sub-list for extension extendee
-	0,   // [0:64] is the sub-list for field type_name
+	60,  // 50: grpc.MailEvent.addressChanged:type_name -> grpc.AddressChangedEvent
+	61,  // 51: grpc.MailEvent.addressChangedLogout:type_name -> grpc.AddressChangedLogoutEvent
+	62,  // 52: grpc.MailEvent.apiCertIssue:type_name -> grpc.ApiCertIssueEvent
+	64,  // 53: grpc.UserEvent.toggleSplitModeFinished:type_name -> grpc.ToggleSplitModeFinishedEvent
+	65,  // 54: grpc.UserEvent.userDisconnected:type_name -> grpc.UserDisconnectedEvent
+	66,  // 55: grpc.UserEvent.userChanged:type_name -> grpc.UserChangedEvent
+	67,  // 56: grpc.UserEvent.userBadEvent:type_name -> grpc.UserBadEvent
+	68,  // 57: grpc.UserEvent.usedBytesChangedEvent:type_name -> grpc.UsedBytesChangedEvent
+	69,  // 58: grpc.UserEvent.imapLoginFailedEvent:type_name -> grpc.ImapLoginFailedEvent
+	70,  // 59: grpc.UserEvent.syncStartedEvent:type_name -> grpc.SyncStartedEvent
+	71,  // 60: grpc.UserEvent.syncFinishedEvent:type_name -> grpc.SyncFinishedEvent
+	72,  // 61: grpc.UserEvent.syncProgressEvent:type_name -> grpc.SyncProgressEvent
+	6,   // 62: grpc.GenericErrorEvent.code:type_name -> grpc.ErrorCode
+	74,  // 63: grpc.Bridge.CheckTokens:input_type -> google.protobuf.StringValue
+	7,   // 64: grpc.Bridge.AddLogEntry:input_type -> grpc.AddLogEntryRequest
+	75,  // 65: grpc.Bridge.GuiReady:input_type -> google.protobuf.Empty
+	75,  // 66: grpc.Bridge.Quit:input_type -> google.protobuf.Empty
+	75,  // 67: grpc.Bridge.Restart:input_type -> google.protobuf.Empty
+	75,  // 68: grpc.Bridge.ShowOnStartup:input_type -> google.protobuf.Empty
+	76,  // 69: grpc.Bridge.SetIsAutostartOn:input_type -> google.protobuf.BoolValue
+	75,  // 70: grpc.Bridge.IsAutostartOn:input_type -> google.protobuf.Empty
+	76,  // 71: grpc.Bridge.SetIsBetaEnabled:input_type -> google.protobuf.BoolValue
+	75,  // 72: grpc.Bridge.IsBetaEnabled:input_type -> google.protobuf.Empty
+	76,  // 73: grpc.Bridge.SetIsAllMailVisible:input_type -> google.protobuf.BoolValue
+	75,  // 74: grpc.Bridge.IsAllMailVisible:input_type -> google.protobuf.Empty
+	76,  // 75: grpc.Bridge.SetIsTelemetryDisabled:input_type -> google.protobuf.BoolValue
+	75,  // 76: grpc.Bridge.IsTelemetryDisabled:input_type -> google.protobuf.Empty
+	75,  // 77: grpc.Bridge.GoOs:input_type -> google.protobuf.Empty
+	75,  // 78: grpc.Bridge.TriggerReset:input_type -> google.protobuf.Empty
+	75,  // 79: grpc.Bridge.Version:input_type -> google.protobuf.Empty
+	75,  // 80: grpc.Bridge.LogsPath:input_type -> google.protobuf.Empty
+	75,  // 81: grpc.Bridge.LicensePath:input_type -> google.protobuf.Empty
+	75,  // 82: grpc.Bridge.ReleaseNotesPageLink:input_type -> google.protobuf.Empty
+	75,  // 83: grpc.Bridge.DependencyLicensesLink:input_type -> google.protobuf.Empty
+	75,  // 84: grpc.Bridge.LandingPageLink:input_type -> google.protobuf.Empty
+	74,  // 85: grpc.Bridge.SetColorSchemeName:input_type -> google.protobuf.StringValue
+	75,  // 86: grpc.Bridge.ColorSchemeName:input_type -> google.protobuf.Empty
+	75,  // 87: grpc.Bridge.CurrentEmailClient:input_type -> google.protobuf.Empty
+	9,   // 88: grpc.Bridge.ReportBug:input_type -> grpc.ReportBugRequest
+	74,  // 89: grpc.Bridge.ForceLauncher:input_type -> google.protobuf.StringValue
+	74,  // 90: grpc.Bridge.SetMainExecutable:input_type -> google.protobuf.StringValue
+	10,  // 91: grpc.Bridge.Login:input_type -> grpc.LoginRequest
+	10,  // 92: grpc.Bridge.Login2FA:input_type -> grpc.LoginRequest
+	10,  // 93: grpc.Bridge.Login2Passwords:input_type -> grpc.LoginRequest
+	11,  // 94: grpc.Bridge.LoginAbort:input_type -> grpc.LoginAbortRequest
+	75,  // 95: grpc.Bridge.CheckUpdate:input_type -> google.protobuf.Empty
+	75,  // 96: grpc.Bridge.InstallUpdate:input_type -> google.protobuf.Empty
+	76,  // 97: grpc.Bridge.SetIsAutomaticUpdateOn:input_type -> google.protobuf.BoolValue
+	75,  // 98: grpc.Bridge.IsAutomaticUpdateOn:input_type -> google.protobuf.Empty
+	75,  // 99: grpc.Bridge.DiskCachePath:input_type -> google.protobuf.Empty
+	74,  // 100: grpc.Bridge.SetDiskCachePath:input_type -> google.protobuf.StringValue
+	76,  // 101: grpc.Bridge.SetIsDoHEnabled:input_type -> google.protobuf.BoolValue
+	75,  // 102: grpc.Bridge.IsDoHEnabled:input_type -> google.protobuf.Empty
+	75,  // 103: grpc.Bridge.MailServerSettings:input_type -> google.protobuf.Empty
+	12,  // 104: grpc.Bridge.SetMailServerSettings:input_type -> grpc.ImapSmtpSettings
+	75,  // 105: grpc.Bridge.Hostname:input_type -> google.protobuf.Empty
+	77,  // 106: grpc.Bridge.IsPortFree:input_type -> google.protobuf.Int32Value
+	75,  // 107: grpc.Bridge.AvailableKeychains:input_type -> google.protobuf.Empty
+	74,  // 108: grpc.Bridge.SetCurrentKeychain:input_type -> google.protobuf.StringValue
+	75,  // 109: grpc.Bridge.CurrentKeychain:input_type -> google.protobuf.Empty
+	75,  // 110: grpc.Bridge.GetUserList:input_type -> google.protobuf.Empty
+	74,  // 111: grpc.Bridge.GetUser:input_type -> google.protobuf.StringValue
+	15,  // 112: grpc.Bridge.SetUserSplitMode:input_type -> grpc.UserSplitModeRequest
+	16,  // 113: grpc.Bridge.SendBadEventUserFeedback:input_type -> grpc.UserBadEventFeedbackRequest
+	74,  // 114: grpc.Bridge.LogoutUser:input_type -> google.protobuf.StringValue
+	74,  // 115: grpc.Bridge.RemoveUser:input_type -> google.protobuf.StringValue
+	18,  // 116: grpc.Bridge.ConfigureUserAppleMail:input_type -> grpc.ConfigureAppleMailRequest
+	75,  // 117: grpc.Bridge.ReportBugClicked:input_type -> google.protobuf.Empty
+	74,  // 118: grpc.Bridge.AutoconfigClicked:input_type -> google.protobuf.StringValue
+	74,  // 119: grpc.Bridge.KBArticleClicked:input_type -> google.protobuf.StringValue
+	75,  // 120: grpc.Bridge.IsTLSCertificateInstalled:input_type -> google.protobuf.Empty
+	75,  // 121: grpc.Bridge.InstallTLSCertificate:input_type -> google.protobuf.Empty
+	74,  // 122: grpc.Bridge.ExportTLSCertificates:input_type -> google.protobuf.StringValue
+	19,  // 123: grpc.Bridge.RunEventStream:input_type -> grpc.EventStreamRequest
+	75,  // 124: grpc.Bridge.StopEventStream:input_type -> google.protobuf.Empty
+	74,  // 125: grpc.Bridge.CheckTokens:output_type -> google.protobuf.StringValue
+	75,  // 126: grpc.Bridge.AddLogEntry:output_type -> google.protobuf.Empty
+	8,   // 127: grpc.Bridge.GuiReady:output_type -> grpc.GuiReadyResponse
+	75,  // 128: grpc.Bridge.Quit:output_type -> google.protobuf.Empty
+	75,  // 129: grpc.Bridge.Restart:output_type -> google.protobuf.Empty
+	76,  // 130: grpc.Bridge.ShowOnStartup:output_type -> google.protobuf.BoolValue
+	75,  // 131: grpc.Bridge.SetIsAutostartOn:output_type -> google.protobuf.Empty
+	76,  // 132: grpc.Bridge.IsAutostartOn:output_type -> google.protobuf.BoolValue
+	75,  // 133: grpc.Bridge.SetIsBetaEnabled:output_type -> google.protobuf.Empty
+	76,  // 134: grpc.Bridge.IsBetaEnabled:output_type -> google.protobuf.BoolValue
+	75,  // 135: grpc.Bridge.SetIsAllMailVisible:output_type -> google.protobuf.Empty
+	76,  // 136: grpc.Bridge.IsAllMailVisible:output_type -> google.protobuf.BoolValue
+	75,  // 137: grpc.Bridge.SetIsTelemetryDisabled:output_type -> google.protobuf.Empty
+	76,  // 138: grpc.Bridge.IsTelemetryDisabled:output_type -> google.protobuf.BoolValue
+	74,  // 139: grpc.Bridge.GoOs:output_type -> google.protobuf.StringValue
+	75,  // 140: grpc.Bridge.TriggerReset:output_type -> google.protobuf.Empty
+	74,  // 141: grpc.Bridge.Version:output_type -> google.protobuf.StringValue
+	74,  // 142: grpc.Bridge.LogsPath:output_type -> google.protobuf.StringValue
+	74,  // 143: grpc.Bridge.LicensePath:output_type -> google.protobuf.StringValue
+	74,  // 144: grpc.Bridge.ReleaseNotesPageLink:output_type -> google.protobuf.StringValue
+	74,  // 145: grpc.Bridge.DependencyLicensesLink:output_type -> google.protobuf.StringValue
+	74,  // 146: grpc.Bridge.LandingPageLink:output_type -> google.protobuf.StringValue
+	75,  // 147: grpc.Bridge.SetColorSchemeName:output_type -> google.protobuf.Empty
+	74,  // 148: grpc.Bridge.ColorSchemeName:output_type -> google.protobuf.StringValue
+	74,  // 149: grpc.Bridge.CurrentEmailClient:output_type -> google.protobuf.StringValue
+	75,  // 150: grpc.Bridge.ReportBug:output_type -> google.protobuf.Empty
+	75,  // 151: grpc.Bridge.ForceLauncher:output_type -> google.protobuf.Empty
+	75,  // 152: grpc.Bridge.SetMainExecutable:output_type -> google.protobuf.Empty
+	75,  // 153: grpc.Bridge.Login:output_type -> google.protobuf.Empty
+	75,  // 154: grpc.Bridge.Login2FA:output_type -> google.protobuf.Empty
+	75,  // 155: grpc.Bridge.Login2Passwords:output_type -> google.protobuf.Empty
+	75,  // 156: grpc.Bridge.LoginAbort:output_type -> google.protobuf.Empty
+	75,  // 157: grpc.Bridge.CheckUpdate:output_type -> google.protobuf.Empty
+	75,  // 158: grpc.Bridge.InstallUpdate:output_type -> google.protobuf.Empty
+	75,  // 159: grpc.Bridge.SetIsAutomaticUpdateOn:output_type -> google.protobuf.Empty
+	76,  // 160: grpc.Bridge.IsAutomaticUpdateOn:output_type -> google.protobuf.BoolValue
+	74,  // 161: grpc.Bridge.DiskCachePath:output_type -> google.protobuf.StringValue
+	75,  // 162: grpc.Bridge.SetDiskCachePath:output_type -> google.protobuf.Empty
+	75,  // 163: grpc.Bridge.SetIsDoHEnabled:output_type -> google.protobuf.Empty
+	76,  // 164: grpc.Bridge.IsDoHEnabled:output_type -> google.protobuf.BoolValue
+	12,  // 165: grpc.Bridge.MailServerSettings:output_type -> grpc.ImapSmtpSettings
+	75,  // 166: grpc.Bridge.SetMailServerSettings:output_type -> google.protobuf.Empty
+	74,  // 167: grpc.Bridge.Hostname:output_type -> google.protobuf.StringValue
+	76,  // 168: grpc.Bridge.IsPortFree:output_type -> google.protobuf.BoolValue
+	13,  // 169: grpc.Bridge.AvailableKeychains:output_type -> grpc.AvailableKeychainsResponse
+	75,  // 170: grpc.Bridge.SetCurrentKeychain:output_type -> google.protobuf.Empty
+	74,  // 171: grpc.Bridge.CurrentKeychain:output_type -> google.protobuf.StringValue
+	17,  // 172: grpc.Bridge.GetUserList:output_type -> grpc.UserListResponse
+	14,  // 173: grpc.Bridge.GetUser:output_type -> grpc.User
+	75,  // 174: grpc.Bridge.SetUserSplitMode:output_type -> google.protobuf.Empty
+	75,  // 175: grpc.Bridge.SendBadEventUserFeedback:output_type -> google.protobuf.Empty
+	75,  // 176: grpc.Bridge.LogoutUser:output_type -> google.protobuf.Empty
+	75,  // 177: grpc.Bridge.RemoveUser:output_type -> google.protobuf.Empty
+	75,  // 178: grpc.Bridge.ConfigureUserAppleMail:output_type -> google.protobuf.Empty
+	75,  // 179: grpc.Bridge.ReportBugClicked:output_type -> google.protobuf.Empty
+	75,  // 180: grpc.Bridge.AutoconfigClicked:output_type -> google.protobuf.Empty
+	75,  // 181: grpc.Bridge.KBArticleClicked:output_type -> google.protobuf.Empty
+	76,  // 182: grpc.Bridge.IsTLSCertificateInstalled:output_type -> google.protobuf.BoolValue
+	75,  // 183: grpc.Bridge.InstallTLSCertificate:output_type -> google.protobuf.Empty
+	75,  // 184: grpc.Bridge.ExportTLSCertificates:output_type -> google.protobuf.Empty
+	20,  // 185: grpc.Bridge.RunEventStream:output_type -> grpc.StreamEvent
+	75,  // 186: grpc.Bridge.StopEventStream:output_type -> google.protobuf.Empty
+	125, // [125:187] is the sub-list for method output_type
+	63,  // [63:125] is the sub-list for method input_type
+	63,  // [63:63] is the sub-list for extension type_name
+	63,  // [63:63] is the sub-list for extension extendee
+	0,   // [0:63] is the sub-list for field type_name
 }
 
 func init() { file_bridge_proto_init() }
@@ -6280,18 +6207,6 @@ func file_bridge_proto_init() {
 			}
 		}
 		file_bridge_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NoActiveKeyForRecipientEvent); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_bridge_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AddressChangedEvent); i {
 			case 0:
 				return &v.state
@@ -6303,7 +6218,7 @@ func file_bridge_proto_init() {
 				return nil
 			}
 		}
-		file_bridge_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
+		file_bridge_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AddressChangedLogoutEvent); i {
 			case 0:
 				return &v.state
@@ -6315,7 +6230,7 @@ func file_bridge_proto_init() {
 				return nil
 			}
 		}
-		file_bridge_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
+		file_bridge_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ApiCertIssueEvent); i {
 			case 0:
 				return &v.state
@@ -6327,7 +6242,7 @@ func file_bridge_proto_init() {
 				return nil
 			}
 		}
-		file_bridge_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
+		file_bridge_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserEvent); i {
 			case 0:
 				return &v.state
@@ -6339,7 +6254,7 @@ func file_bridge_proto_init() {
 				return nil
 			}
 		}
-		file_bridge_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
+		file_bridge_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ToggleSplitModeFinishedEvent); i {
 			case 0:
 				return &v.state
@@ -6351,7 +6266,7 @@ func file_bridge_proto_init() {
 				return nil
 			}
 		}
-		file_bridge_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
+		file_bridge_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserDisconnectedEvent); i {
 			case 0:
 				return &v.state
@@ -6363,7 +6278,7 @@ func file_bridge_proto_init() {
 				return nil
 			}
 		}
-		file_bridge_proto_msgTypes[60].Exporter = func(v interface{}, i int) interface{} {
+		file_bridge_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserChangedEvent); i {
 			case 0:
 				return &v.state
@@ -6375,7 +6290,7 @@ func file_bridge_proto_init() {
 				return nil
 			}
 		}
-		file_bridge_proto_msgTypes[61].Exporter = func(v interface{}, i int) interface{} {
+		file_bridge_proto_msgTypes[60].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserBadEvent); i {
 			case 0:
 				return &v.state
@@ -6387,7 +6302,7 @@ func file_bridge_proto_init() {
 				return nil
 			}
 		}
-		file_bridge_proto_msgTypes[62].Exporter = func(v interface{}, i int) interface{} {
+		file_bridge_proto_msgTypes[61].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UsedBytesChangedEvent); i {
 			case 0:
 				return &v.state
@@ -6399,7 +6314,7 @@ func file_bridge_proto_init() {
 				return nil
 			}
 		}
-		file_bridge_proto_msgTypes[63].Exporter = func(v interface{}, i int) interface{} {
+		file_bridge_proto_msgTypes[62].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ImapLoginFailedEvent); i {
 			case 0:
 				return &v.state
@@ -6411,7 +6326,7 @@ func file_bridge_proto_init() {
 				return nil
 			}
 		}
-		file_bridge_proto_msgTypes[64].Exporter = func(v interface{}, i int) interface{} {
+		file_bridge_proto_msgTypes[63].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SyncStartedEvent); i {
 			case 0:
 				return &v.state
@@ -6423,7 +6338,7 @@ func file_bridge_proto_init() {
 				return nil
 			}
 		}
-		file_bridge_proto_msgTypes[65].Exporter = func(v interface{}, i int) interface{} {
+		file_bridge_proto_msgTypes[64].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SyncFinishedEvent); i {
 			case 0:
 				return &v.state
@@ -6435,7 +6350,7 @@ func file_bridge_proto_init() {
 				return nil
 			}
 		}
-		file_bridge_proto_msgTypes[66].Exporter = func(v interface{}, i int) interface{} {
+		file_bridge_proto_msgTypes[65].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SyncProgressEvent); i {
 			case 0:
 				return &v.state
@@ -6447,7 +6362,7 @@ func file_bridge_proto_init() {
 				return nil
 			}
 		}
-		file_bridge_proto_msgTypes[67].Exporter = func(v interface{}, i int) interface{} {
+		file_bridge_proto_msgTypes[66].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenericErrorEvent); i {
 			case 0:
 				return &v.state
@@ -6517,12 +6432,11 @@ func file_bridge_proto_init() {
 		(*KeychainEvent_RebuildKeychain)(nil),
 	}
 	file_bridge_proto_msgTypes[52].OneofWrappers = []interface{}{
-		(*MailEvent_NoActiveKeyForRecipientEvent)(nil),
 		(*MailEvent_AddressChanged)(nil),
 		(*MailEvent_AddressChangedLogout)(nil),
 		(*MailEvent_ApiCertIssue)(nil),
 	}
-	file_bridge_proto_msgTypes[57].OneofWrappers = []interface{}{
+	file_bridge_proto_msgTypes[56].OneofWrappers = []interface{}{
 		(*UserEvent_ToggleSplitModeFinished)(nil),
 		(*UserEvent_UserDisconnected)(nil),
 		(*UserEvent_UserChanged)(nil),
@@ -6539,7 +6453,7 @@ func file_bridge_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_bridge_proto_rawDesc,
 			NumEnums:      7,
-			NumMessages:   68,
+			NumMessages:   67,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

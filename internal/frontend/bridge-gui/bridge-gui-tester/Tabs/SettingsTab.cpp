@@ -55,7 +55,6 @@ SettingsTab::SettingsTab(QWidget *parent)
     connect(ui_.buttonShowMainWindow, &QPushButton::clicked, []() { app().grpc().sendEvent(newShowMainWindowEvent()); });
     connect(ui_.buttonNoKeychain, &QPushButton::clicked, []() { app().grpc().sendEvent(newHasNoKeychainEvent()); });
     connect(ui_.buttonAPICertIssue, &QPushButton::clicked, []() { app().grpc().sendEvent(newApiCertIssueEvent()); });
-    connectAddressError(ui_.buttonNoActiveKeyForRecipient, ui_.editAddressErrors, newNoActiveKeyForRecipientEvent);
     connectAddressError(ui_.buttonAddressChanged, ui_.editAddressErrors, newAddressChangedEvent);
     connectAddressError(ui_.buttonAddressChangedLogout, ui_.editAddressErrors, newAddressChangedLogoutEvent);
     connect(ui_.checkNextCacheChangeWillSucceed, &QCheckBox::toggled, this, &SettingsTab::updateGUIState);

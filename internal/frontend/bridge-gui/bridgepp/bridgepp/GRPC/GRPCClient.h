@@ -213,7 +213,6 @@ signals:
     void certIsReady();
 
 signals: // mail related events
-    void noActiveKeyForRecipient(QString const &email);
     void addressChanged(QString const &address);
     void addressChangedLogout(QString const &address);
     void apiCertIssue();

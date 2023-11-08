@@ -73,7 +73,6 @@ SPStreamEvent newHasNoKeychainEvent(); ///< Create a new HasNoKeychainEvent even
 SPStreamEvent newRebuildKeychainEvent(); ///< Create a new RebuildKeychainEvent event.
 
 // Mail related events
-SPStreamEvent newNoActiveKeyForRecipientEvent(QString const &email); ///< Create a new NoActiveKeyForRecipientEvent event.
 SPStreamEvent newAddressChangedEvent(QString const &address); ///< Create a new AddressChangedEvent event.
 SPStreamEvent newAddressChangedLogoutEvent(QString const &address); ///< Create a new AddressChangedLogoutEvent event.
 SPStreamEvent newApiCertIssueEvent(); ///< Create a new ApiCertIssueEvent event.

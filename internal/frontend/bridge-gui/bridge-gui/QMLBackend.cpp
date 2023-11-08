@@ -1352,7 +1352,6 @@ void QMLBackend::connectGrpcEvents() {
     connect(client, &GRPCClient::rebuildKeychain, this, &QMLBackend::notifyRebuildKeychain);
 
     // mail events
-    connect(client, &GRPCClient::noActiveKeyForRecipient, this, &QMLBackend::noActiveKeyForRecipient);
     connect(client, &GRPCClient::addressChanged, this, &QMLBackend::addressChanged);
     connect(client, &GRPCClient::addressChangedLogout, this, &QMLBackend::addressChangedLogout);
     connect(client, &GRPCClient::apiCertIssue, this, &QMLBackend::apiCertIssue);

@@ -59,7 +59,7 @@ QtObject {
             target: Backend
         }
     }
-    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.bugReportSendFallback, root.cacheCantMove, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.noActiveKeyForRecipient, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion]
+    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.bugReportSendFallback, root.cacheCantMove, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion]
     property Notification alreadyLoggedIn: Notification {
         brief: qsTr("Already signed in")
         description: qsTr("This account is already signed in.")
@@ -587,33 +587,6 @@ QtObject {
         Connections {
             function onLoginConnectionError(_) {
                 root.loginConnectionError.active = true;
-            }
-
-            target: Backend
-        }
-    }
-    property Notification noActiveKeyForRecipient: Notification {
-        brief: title
-        description: "#PlaceholderText#"
-        group: Notifications.Group.Dialogs | Notifications.Group.Connection
-        icon: "./icons/ic-exclamation-circle-filled.svg"
-        title: qsTr("Unable to send \nencrypted message")
-        type: Notification.NotificationType.Danger
-
-        action: [
-            Action {
-                text: qsTr("OK")
-
-                onTriggered: {
-                    root.noActiveKeyForRecipient.active = false;
-                }
-            }
-        ]
-
-        Connections {
-            function onNoActiveKeyForRecipient(email) {
-                root.noActiveKeyForRecipient.description = qsTr("There are no active keys to encrypt your message to %1. " + "Please update the setting for this contact.").arg(email);
-                root.noActiveKeyForRecipient.active = true;
             }
 
             target: Backend

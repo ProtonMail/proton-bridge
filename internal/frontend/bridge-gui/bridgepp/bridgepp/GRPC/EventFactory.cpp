@@ -529,19 +529,6 @@ SPStreamEvent newRebuildKeychainEvent() {
 
 
 //****************************************************************************************************************************************************
-/// \param[in] email The email.
-/// \return The event.
-//****************************************************************************************************************************************************
-SPStreamEvent newNoActiveKeyForRecipientEvent(QString const &email) {
-    auto event = new grpc::NoActiveKeyForRecipientEvent;
-    event->set_email(email.toStdString());
-    auto mailEvent = new grpc::MailEvent;
-    mailEvent->set_allocated_noactivekeyforrecipientevent(event);
-    return wrapMailEvent(mailEvent);
-}
-
-
-//****************************************************************************************************************************************************
 /// \param[in] address The address.
 /// /// \return The event.
 //****************************************************************************************************************************************************

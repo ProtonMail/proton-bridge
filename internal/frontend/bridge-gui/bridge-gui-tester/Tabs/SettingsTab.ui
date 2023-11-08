@@ -898,13 +898,6 @@
                  </property>
                 </widget>
                </item>
-               <item>
-                <widget class="QPushButton" name="buttonNoActiveKeyForRecipient">
-                 <property name="text">
-                  <string>No Active Key For Recipient</string>
-                 </property>
-                </widget>
-               </item>
               </layout>
              </item>
             </layout>

@@ -166,7 +166,6 @@ func (s *Service) StartEventTest() error {
 		NewKeychainRebuildKeychainEvent(),
 
 		// mail
-		NewMailNoActiveKeyForRecipientEvent(dummyAddress),
 		NewMailAddressChangeEvent(dummyAddress),
 		NewMailAddressChangeLogoutEvent(dummyAddress),
 		NewMailApiCertIssue(),

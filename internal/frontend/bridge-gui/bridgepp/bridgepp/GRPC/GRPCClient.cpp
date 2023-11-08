@@ -1401,12 +1401,6 @@ void GRPCClient::processKeychainEvent(KeychainEvent const &event) {
 //****************************************************************************************************************************************************
 void GRPCClient::processMailEvent(MailEvent const &event) {
     switch (event.event_case()) {
-    case MailEvent::kNoActiveKeyForRecipientEvent: {
-        QString const email = QString::fromStdString(event.noactivekeyforrecipientevent().email());
-        this->logTrace(QString("Mail event received: NoActiveKeyForRecipient (email = %1).").arg(email));
-        emit noActiveKeyForRecipient(email);
-        break;
-    }
     case MailEvent::kAddressChanged:
         this->logTrace("Mail event received: AddressChanged.");
         emit addressChanged(QString::fromStdString(event.addresschanged().address()));

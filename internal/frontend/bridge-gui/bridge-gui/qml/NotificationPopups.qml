@@ -95,10 +95,6 @@ Item {
     }
     NotificationDialog {
         colorScheme: root.colorScheme
-        notification: root.notifications.noActiveKeyForRecipient
-    }
-    NotificationDialog {
-        colorScheme: root.colorScheme
         notification: root.notifications.userBadEvent
     }
     NotificationDialog {
