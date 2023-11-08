@@ -110,7 +110,22 @@ func TestPreferencesBuilder(t *testing.T) {
 		{
 			name: "wkd-external",
 
-			contactMeta:  &contactSettings{},
+			contactMeta:  &contactSettings{EncryptUntrusted: true},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
+			isInternal:   false,
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
+
+			wantEncrypt:   true,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.PGPMIMEScheme,
+			wantMIMEType:  "multipart/mixed",
+			wantPublicKey: testPublicKey,
+		},
+
+		{
+			name: "wkd-external",
+
+			contactMeta:  &contactSettings{EncryptUntrusted: true},
 			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
 			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
@@ -125,7 +140,7 @@ func TestPreferencesBuilder(t *testing.T) {
 		{
 			name: "wkd-external with contact-specific email format",
 
-			contactMeta:  &contactSettings{MIMEType: "text/plain"},
+			contactMeta:  &contactSettings{MIMEType: "text/plain", EncryptUntrusted: true},
 			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
 			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
@@ -140,7 +155,7 @@ func TestPreferencesBuilder(t *testing.T) {
 		{
 			name: "wkd-external with global pgp-inline scheme",
 
-			contactMeta:  &contactSettings{},
+			contactMeta:  &contactSettings{EncryptUntrusted: true},
 			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
 			mailSettings: proton.MailSettings{PGPScheme: proton.PGPInlineScheme, DraftMIMEType: "text/html"},
@@ -155,7 +170,7 @@ func TestPreferencesBuilder(t *testing.T) {
 		{
 			name: "wkd-external with contact-specific pgp-inline scheme overriding global pgp-mime setting",
 
-			contactMeta:  &contactSettings{Scheme: pgpInline},
+			contactMeta:  &contactSettings{Scheme: pgpInline, EncryptUntrusted: true},
 			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
 			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
@@ -170,7 +185,7 @@ func TestPreferencesBuilder(t *testing.T) {
 		{
 			name: "wkd-external with contact-specific pgp-mime scheme overriding global pgp-inline setting",
 
-			contactMeta:  &contactSettings{Scheme: pgpMIME},
+			contactMeta:  &contactSettings{Scheme: pgpMIME, EncryptUntrusted: true},
 			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
 			mailSettings: proton.MailSettings{PGPScheme: proton.PGPInlineScheme, DraftMIMEType: "text/html"},
@@ -185,7 +200,7 @@ func TestPreferencesBuilder(t *testing.T) {
 		{
 			name: "wkd-external with additional pinned contact public key",
 
-			contactMeta:  &contactSettings{Keys: []string{testContactKey}},
+			contactMeta:  &contactSettings{Keys: []string{testContactKey}, EncryptUntrusted: true},
 			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
 			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
@@ -201,7 +216,7 @@ func TestPreferencesBuilder(t *testing.T) {
 			// NOTE: Need to figured out how to test that this calls the frontend to check for user confirmation.
 			name: "wkd-external with additional conflicting contact public key",
 
-			contactMeta:  &contactSettings{Keys: []string{testOtherContactKey}},
+			contactMeta:  &contactSettings{Keys: []string{testOtherContactKey}, EncryptUntrusted: true},
 			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
 			isInternal:   false,
 			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
@@ -209,6 +224,51 @@ func TestPreferencesBuilder(t *testing.T) {
 			wantEncrypt:   true,
 			wantSign:      proton.DetachedSignature,
 			wantScheme:    proton.PGPMIMEScheme,
+			wantMIMEType:  "multipart/mixed",
+			wantPublicKey: testPublicKey,
+		},
+
+		{
+			name: "wkd-external-with-encrypt-and-sign-disabled",
+
+			contactMeta:  &contactSettings{EncryptUntrusted: false},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
+			isInternal:   false,
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
+
+			wantEncrypt:   false,
+			wantSign:      proton.NoSignature,
+			wantScheme:    proton.ClearScheme,
+			wantMIMEType:  "text/html",
+			wantPublicKey: testPublicKey,
+		},
+
+		{
+			name: "wkd-external-with-encrypt-and-sign-disabled-plain-text",
+
+			contactMeta:  &contactSettings{EncryptUntrusted: false},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
+			isInternal:   false,
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/plain"},
+
+			wantEncrypt:   false,
+			wantSign:      proton.NoSignature,
+			wantScheme:    proton.ClearScheme,
+			wantMIMEType:  "text/plain",
+			wantPublicKey: testPublicKey,
+		},
+
+		{
+			name: "wkd-external-with-encrypt-disabled-sign-enabled",
+
+			contactMeta:  &contactSettings{EncryptUntrusted: false, Sign: true, SignIsSet: true},
+			receivedKeys: []proton.PublicKey{{PublicKey: testPublicKey}},
+			isInternal:   false,
+			mailSettings: proton.MailSettings{PGPScheme: proton.PGPMIMEScheme, DraftMIMEType: "text/html"},
+
+			wantEncrypt:   false,
+			wantSign:      proton.DetachedSignature,
+			wantScheme:    proton.ClearMIMEScheme,
 			wantMIMEType:  "multipart/mixed",
 			wantPublicKey: testPublicKey,
 		},

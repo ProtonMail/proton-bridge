@@ -505,12 +505,15 @@ func (s *Service) getRecipients(
 			return proton.SendPreferences{}, fmt.Errorf("failed to get contact settings for %v: %w", recipient, err)
 		}
 
+		s.log.Infof("ContactSettings=%v", contactSettings)
+
 		return buildSendPrefs(contactSettings, settings, pubKeys, draft.MIMEType, recType == proton.RecipientTypeInternal)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get send preferences: %w", err)
 	}
 
+	s.log.Infof("Settings=%v", prefs)
 	recipients := make(recipients)
 
 	for idx, pref := range prefs {

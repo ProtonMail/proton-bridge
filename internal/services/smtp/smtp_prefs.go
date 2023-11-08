@@ -34,13 +34,14 @@ const (
 )
 
 type contactSettings struct {
-	Email     string
-	Keys      []string
-	Scheme    string
-	Sign      bool
-	SignIsSet bool
-	Encrypt   bool
-	MIMEType  rfc822.MIMEType
+	Email            string
+	Keys             []string
+	Scheme           string
+	Sign             bool
+	SignIsSet        bool
+	Encrypt          bool
+	EncryptUntrusted bool
+	MIMEType         rfc822.MIMEType
 }
 
 // newContactSettings converts the API settings into our local settings.
@@ -59,6 +60,12 @@ func newContactSettings(settings proton.ContactSettings) *contactSettings {
 
 	if settings.Encrypt != nil {
 		metadata.Encrypt = *settings.Encrypt
+	}
+
+	if settings.EncryptUntrusted != nil {
+		metadata.EncryptUntrusted = *settings.EncryptUntrusted
+	} else {
+		metadata.EncryptUntrusted = true
 	}
 
 	if settings.Scheme != nil {
@@ -426,9 +433,12 @@ func (b *sendPrefsBuilder) setExternalPGPSettingsWithWKDKeys(
 		return errors.New("an API key is necessary but wasn't provided")
 	}
 
-	// We always encrypt and sign external mail if WKD keys are present.
-	b.withEncrypt(true)
-	b.withSign(true)
+	b.withEncrypt(vCardData.EncryptUntrusted)
+	if vCardData.EncryptUntrusted {
+		b.withSign(true)
+	} else if vCardData.SignIsSet {
+		b.withSign(vCardData.Sign)
+	}
 
 	// If the contact has a specific Scheme preference, we set it (otherwise we
 	// leave it unset to allow it to be filled in with the default value later).
