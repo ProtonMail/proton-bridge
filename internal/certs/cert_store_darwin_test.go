@@ -28,6 +28,7 @@ import (
 func TestCertInKeychain(t *testing.T) {
 	// no trust settings change is performed, so this test will not trigger an OS security prompt.
 	certPEM := generatePEMCertificate(t)
+	require.True(t, osSupportCertInstall())
 	require.False(t, isCertInKeychain(certPEM))
 	require.NoError(t, addCertToKeychain(certPEM))
 	require.True(t, isCertInKeychain(certPEM))

@@ -17,6 +17,10 @@
 
 package certs
 
+func osSupportCertInstall() bool {
+	return false
+}
+
 func installCert([]byte) error {
 	return nil // NOTE(GODT-986): Install certs to root cert store?
 }

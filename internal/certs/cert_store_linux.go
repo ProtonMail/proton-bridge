@@ -17,6 +17,10 @@
 
 package certs
 
+func osSupportCertInstall() bool {
+	return false
+}
+
 func installCert([]byte) error {
 	return nil // Linux doesn't have a root cert store.
 }

@@ -37,6 +37,10 @@ func NewInstaller() *Installer {
 	}
 }
 
+func (installer *Installer) OSSupportCertInstall() bool {
+	return osSupportCertInstall()
+}
+
 func (installer *Installer) InstallCert(certPEM []byte) error {
 	installer.log.Info("Installing the Bridge TLS certificate in the OS keychain")
 
@@ -63,4 +67,16 @@ func (installer *Installer) UninstallCert(certPEM []byte) error {
 
 func (installer *Installer) IsCertInstalled(certPEM []byte) bool {
 	return isCertInstalled(certPEM)
+}
+
+// LogCertInstallStatus reports the current status of the certificate installation in the log.
+// If certificate installation is not supported on the platform, this function does nothing.
+func (installer *Installer) LogCertInstallStatus(certPEM []byte) {
+	if installer.OSSupportCertInstall() {
+		if installer.IsCertInstalled(certPEM) {
+			installer.log.Info("The Bridge TLS certificate is installed in the OS keychain")
+		} else {
+			installer.log.Info("The Bridge TLS certificate is not installed in the OS keychain")
+		}
+	}
 }

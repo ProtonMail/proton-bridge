@@ -356,6 +356,10 @@ func removeCertTrustCGo(buffer *C.char, size C.ulonglong) error {
 	}
 }
 
+func osSupportCertInstall() bool {
+	return true
+}
+
 // installCert installs a certificate in the keychain. The certificate is added to the keychain and it is set as trusted.
 // This function will trigger a security prompt from the system, unless the certificate is already trusted in the user keychain.
 func installCert(certPEM []byte) error {

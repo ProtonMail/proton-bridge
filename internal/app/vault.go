@@ -22,6 +22,7 @@ import (
 	"path"
 
 	"github.com/ProtonMail/gluon/async"
+	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
@@ -43,6 +44,9 @@ func WithVault(locations *locations.Locations, keychains *keychain.List, panicHa
 		"insecure": insecure,
 		"corrupt":  corrupt,
 	}).Debug("Vault created")
+
+	cert, _ := encVault.GetBridgeTLSCert()
+	certs.NewInstaller().LogCertInstallStatus(cert)
 
 	// GODT-1950: Add teardown actions (e.g. to close the vault).
 
