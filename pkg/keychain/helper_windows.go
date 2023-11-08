@@ -20,18 +20,21 @@ package keychain
 import (
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/docker/docker-credential-helpers/wincred"
+	"github.com/sirupsen/logrus"
 )
 
 const WindowsCredentials = "windows-credentials"
 
-func init() { //nolint:gochecknoinits
-	Helpers = make(map[string]helperConstructor)
-
+func listHelpers() (Helpers, string) {
+	helpers := make(Helpers)
 	// Windows always provides a keychain.
-	Helpers[WindowsCredentials] = newWinCredHelper
-
+	if isUsable(newWinCredHelper("")) {
+		helpers[WindowsCredentials] = newWinCredHelper
+	} else {
+		logrus.WithField("keychain", "WindowsCredentials").Warn("Keychain is not available.")
+	}
 	// Use WindowsCredentials by default.
-	DefaultHelper = WindowsCredentials
+	return helpers, WindowsCredentials
 }
 
 func newWinCredHelper(string) (credentials.Helper, error) {

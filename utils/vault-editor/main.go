@@ -50,7 +50,7 @@ func main() {
 
 func readAction(c *cli.Context) error {
 	return app.WithLocations(func(locations *locations.Locations) error {
-		return app.WithVault(locations, async.NoopPanicHandler{}, func(vault *vault.Vault, insecure, corrupt bool) error {
+		return app.WithVault(locations, nil, async.NoopPanicHandler{}, func(vault *vault.Vault, insecure, corrupt bool) error {
 			if _, err := os.Stdout.Write(vault.ExportJSON()); err != nil {
 				return fmt.Errorf("failed to write vault: %w", err)
 			}
@@ -62,7 +62,7 @@ func readAction(c *cli.Context) error {
 
 func writeAction(c *cli.Context) error {
 	return app.WithLocations(func(locations *locations.Locations) error {
-		return app.WithVault(locations, async.NoopPanicHandler{}, func(vault *vault.Vault, insecure, corrupt bool) error {
+		return app.WithVault(locations, nil, async.NoopPanicHandler{}, func(vault *vault.Vault, insecure, corrupt bool) error {
 			b, err := io.ReadAll(os.Stdin)
 			if err != nil {
 				return fmt.Errorf("failed to read vault: %w", err)

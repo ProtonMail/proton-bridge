@@ -29,12 +29,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func WithVault(locations *locations.Locations, panicHandler async.PanicHandler, fn func(*vault.Vault, bool, bool) error) error {
+func WithVault(locations *locations.Locations, keychains *keychain.List, panicHandler async.PanicHandler, fn func(*vault.Vault, bool, bool) error) error {
 	logrus.Debug("Creating vault")
 	defer logrus.Debug("Vault stopped")
 
 	// Create the encVault.
-	encVault, insecure, corrupt, err := newVault(locations, panicHandler)
+	encVault, insecure, corrupt, err := newVault(locations, keychains, panicHandler)
 	if err != nil {
 		return fmt.Errorf("could not create vault: %w", err)
 	}
@@ -49,7 +49,7 @@ func WithVault(locations *locations.Locations, panicHandler async.PanicHandler, 
 	return fn(encVault, insecure, corrupt)
 }
 
-func newVault(locations *locations.Locations, panicHandler async.PanicHandler) (*vault.Vault, bool, bool, error) {
+func newVault(locations *locations.Locations, keychains *keychain.List, panicHandler async.PanicHandler) (*vault.Vault, bool, bool, error) {
 	vaultDir, err := locations.ProvideSettingsPath()
 	if err != nil {
 		return nil, false, false, fmt.Errorf("could not get vault dir: %w", err)
@@ -62,7 +62,7 @@ func newVault(locations *locations.Locations, panicHandler async.PanicHandler) (
 		insecure bool
 	)
 
-	if key, err := loadVaultKey(vaultDir); err != nil {
+	if key, err := loadVaultKey(vaultDir, keychains); err != nil {
 		logrus.WithError(err).Error("Could not load/create vault key")
 		insecure = true
 
@@ -85,13 +85,13 @@ func newVault(locations *locations.Locations, panicHandler async.PanicHandler) (
 	return vault, insecure, corrupt, nil
 }
 
-func loadVaultKey(vaultDir string) ([]byte, error) {
+func loadVaultKey(vaultDir string, keychains *keychain.List) ([]byte, error) {
 	helper, err := vault.GetHelper(vaultDir)
 	if err != nil {
 		return nil, fmt.Errorf("could not get keychain helper: %w", err)
 	}
 
-	kc, err := keychain.NewKeychain(helper, constants.KeyChainName)
+	kc, err := keychain.NewKeychain(helper, constants.KeyChainName, keychains.GetHelpers(), keychains.GetDefaultHelper())
 	if err != nil {
 		return nil, fmt.Errorf("could not create keychain: %w", err)
 	}

@@ -41,6 +41,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/restarter"
 	"github.com/pkg/profile"
 	"github.com/sirupsen/logrus"
@@ -234,56 +235,59 @@ func run(c *cli.Context) error {
 						}
 
 						return withSingleInstance(settings, locations.GetLockFile(), version, func() error {
-							// Unlock the encrypted vault.
-							return WithVault(locations, crashHandler, func(v *vault.Vault, insecure, corrupt bool) error {
-								if !v.Migrated() {
-									// Migrate old settings into the vault.
-									if err := migrateOldSettings(v); err != nil {
-										logrus.WithError(err).Error("Failed to migrate old settings")
-									}
-
-									// Migrate old accounts into the vault.
-									if err := migrateOldAccounts(locations, v); err != nil {
-										logrus.WithError(err).Error("Failed to migrate old accounts")
-									}
-
-									// The vault has been migrated.
-									if err := v.SetMigrated(); err != nil {
-										logrus.WithError(err).Error("Failed to mark vault as migrated")
-									}
-								}
-
-								logrus.WithFields(logrus.Fields{
-									"lastVersion": v.GetLastVersion().String(),
-									"showAllMail": v.GetShowAllMail(),
-									"updateCh":    v.GetUpdateChannel(),
-									"autoUpdate":  v.GetAutoUpdate(),
-									"rollout":     v.GetUpdateRollout(),
-									"DoH":         v.GetProxyAllowed(),
-								}).Info("Vault loaded")
-
-								// Load the cookies from the vault.
-								return withCookieJar(v, func(cookieJar http.CookieJar) error {
-									// Create a new bridge instance.
-									return withBridge(c, exe, locations, version, identifier, crashHandler, reporter, v, cookieJar, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
-										if insecure {
-											logrus.Warn("The vault key could not be retrieved; the vault will not be encrypted")
-											b.PushError(bridge.ErrVaultInsecure)
+							// Look for available keychains
+							return withKeychainList(func(keychains *keychain.List) error {
+								// Unlock the encrypted vault.
+								return WithVault(locations, keychains, crashHandler, func(v *vault.Vault, insecure, corrupt bool) error {
+									if !v.Migrated() {
+										// Migrate old settings into the vault.
+										if err := migrateOldSettings(v); err != nil {
+											logrus.WithError(err).Error("Failed to migrate old settings")
 										}
 
-										if corrupt {
-											logrus.Warn("The vault is corrupt and has been wiped")
-											b.PushError(bridge.ErrVaultCorrupt)
+										// Migrate old accounts into the vault.
+										if err := migrateOldAccounts(locations, keychains, v); err != nil {
+											logrus.WithError(err).Error("Failed to migrate old accounts")
 										}
 
-										// Remove old updates files
-										b.RemoveOldUpdates()
+										// The vault has been migrated.
+										if err := v.SetMigrated(); err != nil {
+											logrus.WithError(err).Error("Failed to mark vault as migrated")
+										}
+									}
 
-										// Start telemetry heartbeat process
-										b.StartHeartbeat(b)
+									logrus.WithFields(logrus.Fields{
+										"lastVersion": v.GetLastVersion().String(),
+										"showAllMail": v.GetShowAllMail(),
+										"updateCh":    v.GetUpdateChannel(),
+										"autoUpdate":  v.GetAutoUpdate(),
+										"rollout":     v.GetUpdateRollout(),
+										"DoH":         v.GetProxyAllowed(),
+									}).Info("Vault loaded")
 
-										// Run the frontend.
-										return runFrontend(c, crashHandler, restarter, locations, b, eventCh, quitCh, c.Int(flagParentPID))
+									// Load the cookies from the vault.
+									return withCookieJar(v, func(cookieJar http.CookieJar) error {
+										// Create a new bridge instance.
+										return withBridge(c, exe, locations, version, identifier, crashHandler, reporter, v, cookieJar, keychains, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
+											if insecure {
+												logrus.Warn("The vault key could not be retrieved; the vault will not be encrypted")
+												b.PushError(bridge.ErrVaultInsecure)
+											}
+
+											if corrupt {
+												logrus.Warn("The vault is corrupt and has been wiped")
+												b.PushError(bridge.ErrVaultCorrupt)
+											}
+
+											// Remove old updates files
+											b.RemoveOldUpdates()
+
+											// Start telemetry heartbeat process
+											b.StartHeartbeat(b)
+
+											// Run the frontend.
+											return runFrontend(c, crashHandler, restarter, locations, b, eventCh, quitCh, c.Int(flagParentPID))
+										})
 									})
 								})
 							})
@@ -478,6 +482,13 @@ func withCookieJar(vault *vault.Vault, fn func(http.CookieJar) error) error {
 	}()
 
 	return fn(persister)
+}
+
+// List usable keychains.
+func withKeychainList(fn func(*keychain.List) error) error {
+	logrus.Debug("Creating keychain list")
+	defer logrus.Debug("Keychain list stop")
+	return fn(keychain.NewList())
 }
 
 func setDeviceCookies(jar *cookies.Jar) error {

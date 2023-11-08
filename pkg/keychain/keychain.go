@@ -21,9 +21,12 @@ package keychain
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"sync"
+	"time"
 
 	"github.com/docker/docker-credential-helpers/credentials"
+	"github.com/sirupsen/logrus"
 )
 
 // helperConstructor constructs a keychain helperConstructor.
@@ -38,28 +41,53 @@ var (
 
 	// ErrMacKeychainRebuild is returned on macOS with blocked or corrupted keychain.
 	ErrMacKeychainRebuild = errors.New("keychain error -25293")
-
-	// Helpers holds all discovered keychain helpers. It is populated in init().
-	Helpers map[string]helperConstructor //nolint:gochecknoglobals
-
-	// DefaultHelper is the default helper to use if the user hasn't yet set a preference.
-	DefaultHelper string //nolint:gochecknoglobals
 )
 
+type Helpers map[string]helperConstructor
+
+type List struct {
+	helpers       Helpers
+	defaultHelper string
+	locker        sync.Locker
+}
+
+// NewList checks availability of every keychains detected on the User Operating System
+// This will ask the user to unlock keychain(s) to check their usability.
+// This should only be called once.
+func NewList() *List {
+	var list = List{locker: &sync.Mutex{}}
+	list.helpers, list.defaultHelper = listHelpers()
+	return &list
+}
+
+func (kcl *List) GetHelpers() Helpers {
+	kcl.locker.Lock()
+	defer kcl.locker.Unlock()
+
+	return kcl.helpers
+}
+
+func (kcl *List) GetDefaultHelper() string {
+	kcl.locker.Lock()
+	defer kcl.locker.Unlock()
+
+	return kcl.defaultHelper
+}
+
 // NewKeychain creates a new native keychain.
-func NewKeychain(preferred, keychainName string) (*Keychain, error) {
+func NewKeychain(preferred, keychainName string, helpers Helpers, defaultHelper string) (*Keychain, error) {
 	// There must be at least one keychain helper available.
-	if len(Helpers) < 1 {
+	if len(helpers) < 1 {
 		return nil, ErrNoKeychain
 	}
 
 	// If the preferred keychain is unsupported, fallback to the default one.
-	if _, ok := Helpers[preferred]; !ok {
-		preferred = DefaultHelper
+	if _, ok := helpers[preferred]; !ok {
+		preferred = defaultHelper
 	}
 
 	// Load the user's preferred keychain helper.
-	helperConstructor, ok := Helpers[preferred]
+	helperConstructor, ok := helpers[preferred]
 	if !ok {
 		return nil, ErrNoKeychain
 	}
@@ -162,4 +190,50 @@ func (kc *Keychain) Put(userID, secret string) error {
 // secretURL returns the URL referring to a userID's secrets.
 func (kc *Keychain) secretURL(userID string) string {
 	return fmt.Sprintf("%v/%v", kc.url, userID)
+}
+
+// isUsable returns whether the credentials helper is usable.
+func isUsable(helper credentials.Helper, err error) bool {
+	l := logrus.WithField("helper", reflect.TypeOf(helper))
+
+	if err != nil {
+		l.WithError(err).Warn("Keychain helper couldn't be created")
+		return false
+	}
+
+	creds := &credentials.Credentials{
+		ServerURL: "bridge/check",
+		Username:  "check",
+		Secret:    "check",
+	}
+
+	if err := retry(func() error {
+		return helper.Add(creds)
+	}); err != nil {
+		l.WithError(err).Warn("Failed to add test credentials to keychain")
+		return false
+	}
+
+	if _, _, err := helper.Get(creds.ServerURL); err != nil {
+		l.WithError(err).Warn("Failed to get test credentials from keychain")
+		return false
+	}
+
+	if err := helper.Delete(creds.ServerURL); err != nil {
+		l.WithError(err).Warn("Failed to delete test credentials from keychain")
+		return false
+	}
+
+	return true
+}
+
+func retry(condition func() error) error {
+	var maxRetry = 5
+	for r := 0; ; r++ {
+		err := condition()
+		if err == nil || r >= maxRetry {
+			return err
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
 }

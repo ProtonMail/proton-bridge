@@ -35,7 +35,6 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
-	dockerCredentials "github.com/docker/docker-credential-helpers/credentials"
 	"github.com/stretchr/testify/require"
 )
 
@@ -133,11 +132,9 @@ func TestKeychainMigration(t *testing.T) {
 }
 
 func TestUserMigration(t *testing.T) {
-	keychainHelper := keychain.NewTestHelper()
+	kcl := keychain.NewTestKeychainsList()
 
-	keychain.Helpers["mock"] = func(string) (dockerCredentials.Helper, error) { return keychainHelper, nil }
-
-	kc, err := keychain.NewKeychain("mock", "bridge")
+	kc, err := keychain.NewKeychain("mock", "bridge", kcl.GetHelpers(), kcl.GetDefaultHelper())
 	require.NoError(t, err)
 
 	require.NoError(t, kc.Put("brokenID", "broken"))
@@ -178,7 +175,7 @@ func TestUserMigration(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, corrupt)
 
-	require.NoError(t, migrateOldAccounts(locations, v))
+	require.NoError(t, migrateOldAccounts(locations, kcl, v))
 	require.Equal(t, []string{wantCredentials.UserID}, v.GetUserIDs())
 
 	require.NoError(t, v.GetUser(wantCredentials.UserID, func(u *vault.User) {

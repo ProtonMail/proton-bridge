@@ -37,6 +37,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/internal/versioner"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
@@ -55,6 +56,7 @@ func withBridge(
 	reporter *sentry.Reporter,
 	vault *vault.Vault,
 	cookieJar http.CookieJar,
+	keychains *keychain.List,
 	fn func(*bridge.Bridge, <-chan events.Event) error,
 ) error {
 	logrus.Debug("Creating bridge")
@@ -97,6 +99,7 @@ func withBridge(
 		autostarter,
 		updater,
 		version,
+		keychains,
 
 		// The API stuff.
 		constants.APIHost,

@@ -33,10 +33,8 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
-	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/ports"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/exp/maps"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/runtime/protoimpl"
@@ -712,7 +710,7 @@ func (s *Service) IsPortFree(_ context.Context, port *wrapperspb.Int32Value) (*w
 func (s *Service) AvailableKeychains(_ context.Context, _ *emptypb.Empty) (*AvailableKeychainsResponse, error) {
 	s.log.Debug("AvailableKeychains")
 
-	return &AvailableKeychainsResponse{Keychains: maps.Keys(keychain.Helpers)}, nil
+	return &AvailableKeychainsResponse{Keychains: s.bridge.GetHelpersNames()}, nil
 }
 
 func (s *Service) SetCurrentKeychain(ctx context.Context, keychain *wrapperspb.StringValue) (*emptypb.Empty, error) {

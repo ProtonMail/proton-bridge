@@ -122,7 +122,7 @@ func migrateOldSettingsWithDir(configDir string, v *vault.Vault) error {
 	return v.SetBridgeTLSCertKey(certPEM, keyPEM)
 }
 
-func migrateOldAccounts(locations *locations.Locations, v *vault.Vault) error {
+func migrateOldAccounts(locations *locations.Locations, keychains *keychain.List, v *vault.Vault) error {
 	logrus.Info("Migrating accounts")
 
 	settings, err := locations.ProvideSettingsPath()
@@ -134,8 +134,7 @@ func migrateOldAccounts(locations *locations.Locations, v *vault.Vault) error {
 	if err != nil {
 		return fmt.Errorf("failed to get helper: %w", err)
 	}
-
-	keychain, err := keychain.NewKeychain(helper, "bridge")
+	keychain, err := keychain.NewKeychain(helper, "bridge", keychains.GetHelpers(), keychains.GetDefaultHelper())
 	if err != nil {
 		return fmt.Errorf("failed to create keychain: %w", err)
 	}

@@ -45,6 +45,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
@@ -81,6 +82,9 @@ type Bridge struct {
 	curVersion     *semver.Version
 	newVersion     *semver.Version
 	newVersionLock safe.RWMutex
+
+	// keychains is the utils that own usable keychains found in the OS.
+	keychains *keychain.List
 
 	// focusService is used to raise the bridge window when needed.
 	focusService *focus.Service
@@ -138,6 +142,7 @@ func New(
 	autostarter Autostarter, // the autostarter to manage autostart settings
 	updater Updater, // the updater to fetch and install updates
 	curVersion *semver.Version, // the current version of the bridge
+	keychains *keychain.List, // usable keychains
 
 	apiURL string, // the URL of the API to use
 	cookieJar http.CookieJar, // the cookie jar to use
@@ -171,6 +176,7 @@ func New(
 		autostarter,
 		updater,
 		curVersion,
+		keychains,
 		panicHandler,
 		reporter,
 
@@ -204,6 +210,7 @@ func newBridge(
 	autostarter Autostarter,
 	updater Updater,
 	curVersion *semver.Version,
+	keychains *keychain.List,
 	panicHandler async.PanicHandler,
 	reporter reporter.Reporter,
 
@@ -255,6 +262,8 @@ func newBridge(
 		curVersion:     curVersion,
 		newVersion:     curVersion,
 		newVersionLock: safe.NewRWMutex(),
+
+		keychains: keychains,
 
 		panicHandler: panicHandler,
 		reporter:     reporter,

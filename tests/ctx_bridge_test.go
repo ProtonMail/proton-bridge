@@ -39,6 +39,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -153,6 +154,7 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 		t.mocks.Autostarter,
 		t.mocks.Updater,
 		t.version,
+		keychain.NewTestKeychainsList(),
 
 		// API stuff
 		t.api.GetHostURL(),

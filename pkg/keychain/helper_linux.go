@@ -18,8 +18,6 @@
 package keychain
 
 import (
-	"reflect"
-
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/docker/docker-credential-helpers/pass"
 	"github.com/docker/docker-credential-helpers/secretservice"
@@ -33,30 +31,37 @@ const (
 	SecretServiceDBus = "secret-service-dbus"
 )
 
-func init() { //nolint:gochecknoinits
-	Helpers = make(map[string]helperConstructor)
+func listHelpers() (Helpers, string) {
+	helpers := make(Helpers)
 
 	if isUsable(newDBusHelper("")) {
-		Helpers[SecretServiceDBus] = newDBusHelper
+		helpers[SecretServiceDBus] = newDBusHelper
+	} else {
+		logrus.WithField("keychain", "SecretServiceDBus").Warn("Keychain is not available.")
 	}
 
 	if _, err := execabs.LookPath("gnome-keyring"); err == nil && isUsable(newSecretServiceHelper("")) {
-		Helpers[SecretService] = newSecretServiceHelper
+		helpers[SecretService] = newSecretServiceHelper
+	} else {
+		logrus.WithField("keychain", "SecretService").Warn("Keychain is not available.")
 	}
 
 	if _, err := execabs.LookPath("pass"); err == nil && isUsable(newPassHelper("")) {
-		Helpers[Pass] = newPassHelper
+		helpers[Pass] = newPassHelper
+	} else {
+		logrus.WithField("keychain", "Pass").Warn("Keychain is not available.")
 	}
 
-	DefaultHelper = SecretServiceDBus
+	defaultHelper := SecretServiceDBus
 
 	// If Pass is available, use it by default.
 	// Otherwise, if SecretService is available, use it by default.
-	if _, ok := Helpers[Pass]; ok {
-		DefaultHelper = Pass
-	} else if _, ok := Helpers[SecretService]; ok {
-		DefaultHelper = SecretService
+	if _, ok := helpers[Pass]; ok {
+		defaultHelper = Pass
+	} else if _, ok := helpers[SecretService]; ok {
+		defaultHelper = SecretService
 	}
+	return helpers, defaultHelper
 }
 
 func newDBusHelper(string) (credentials.Helper, error) {
@@ -69,37 +74,4 @@ func newPassHelper(string) (credentials.Helper, error) {
 
 func newSecretServiceHelper(string) (credentials.Helper, error) {
 	return &secretservice.Secretservice{}, nil
-}
-
-// isUsable returns whether the credentials helper is usable.
-func isUsable(helper credentials.Helper, err error) bool {
-	l := logrus.WithField("helper", reflect.TypeOf(helper))
-
-	if err != nil {
-		l.WithError(err).Warn("Keychain helper couldn't be created")
-		return false
-	}
-
-	creds := &credentials.Credentials{
-		ServerURL: "bridge/check",
-		Username:  "check",
-		Secret:    "check",
-	}
-
-	if err := helper.Add(creds); err != nil {
-		l.WithError(err).Warn("Failed to add test credentials to keychain")
-		return false
-	}
-
-	if _, _, err := helper.Get(creds.ServerURL); err != nil {
-		l.WithError(err).Warn("Failed to get test credentials from keychain")
-		return false
-	}
-
-	if err := helper.Delete(creds.ServerURL); err != nil {
-		l.WithError(err).Warn("Failed to delete test credentials from keychain")
-		return false
-	}
-
-	return true
 }

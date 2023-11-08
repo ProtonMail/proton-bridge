@@ -17,9 +17,21 @@
 
 package keychain
 
-import "github.com/docker/docker-credential-helpers/credentials"
+import (
+	"sync"
+
+	"github.com/docker/docker-credential-helpers/credentials"
+)
 
 type TestHelper map[string]*credentials.Credentials
+
+func NewTestKeychainsList() *List {
+	keychainHelper := NewTestHelper()
+	helpers := make(Helpers)
+	helpers["mock"] = func(string) (credentials.Helper, error) { return keychainHelper, nil }
+	var list = List{helpers: helpers, defaultHelper: "mock", locker: &sync.Mutex{}}
+	return &list
+}
 
 func NewTestHelper() TestHelper {
 	return make(TestHelper)

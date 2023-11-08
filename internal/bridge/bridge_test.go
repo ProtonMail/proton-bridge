@@ -49,6 +49,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/ProtonMail/proton-bridge/v3/tests"
 	"github.com/bradenaw/juniper/xslices"
 	imapid "github.com/emersion/go-imap-id"
@@ -950,6 +951,7 @@ func withBridgeNoMocks(
 		mocks.Autostarter,
 		mocks.Updater,
 		v2_3_0,
+		keychain.NewTestKeychainsList(),
 
 		// The API stuff.
 		apiURL,
