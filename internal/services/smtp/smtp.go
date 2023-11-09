@@ -292,8 +292,6 @@ func getParentID(
 		for _, metadata := range metadata {
 			if !metadata.IsDraft() {
 				parentID = metadata.ID
-			} else if err := client.DeleteMessage(ctx, metadata.ID); err != nil {
-				return "", fmt.Errorf("failed to delete message: %w", err)
 			}
 		}
 	}
