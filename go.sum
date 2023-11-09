@@ -38,6 +38,8 @@ github.com/ProtonMail/go-mime v0.0.0-20230322103455-7d82a3887f2f h1:tCbYj7/299ek
 github.com/ProtonMail/go-mime v0.0.0-20230322103455-7d82a3887f2f/go.mod h1:gcr0kNtGBqin9zDW9GOHcVntrwnjrK+qdJ06mWYBybw=
 github.com/ProtonMail/go-proton-api v0.4.1-0.20231108105501-fb55d3bd8bd8 h1:A89egSM6ODsnxLrb8ChMC/SR5yqZiGIJipEdesPOPhM=
 github.com/ProtonMail/go-proton-api v0.4.1-0.20231108105501-fb55d3bd8bd8/go.mod h1:WEXJqj5DSc2YI77SgXdpMY0nk33Qy92Vu2r4tOEazA8=
+github.com/ProtonMail/go-smtp v0.0.0-20231109081432-2b3d50599865 h1:EP1gnxLL5Z7xBSymE9nSTM27nRYINuvssAtDmG0suD8=
+github.com/ProtonMail/go-smtp v0.0.0-20231109081432-2b3d50599865/go.mod h1:qm27SGYgoIPRot6ubfQ/GpiPy/g3PaZAVRxiO/sDUgQ=
 github.com/ProtonMail/go-srp v0.0.7 h1:Sos3Qk+th4tQR64vsxGIxYpN3rdnG9Wf9K4ZloC1JrI=
 github.com/ProtonMail/go-srp v0.0.7/go.mod h1:giCp+7qRnMIcCvI6V6U3S1lDDXDQYx2ewJ6F/9wdlJk=
 github.com/ProtonMail/gopenpgp/v2 v2.7.4-proton h1:8tqHYM6IGsdEc6Vxf1TWiwpHNj8yIEQNACPhxsDagrk=
@@ -122,8 +124,6 @@ github.com/emersion/go-imap-id v0.0.0-20190926060100-f94a56b9ecde/go.mod h1:sPwp
 github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21/go.mod h1:iL2twTeMvZnrg54ZoPDNfJaJaqy0xIQFuBdrLsmspwQ=
 github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead h1:fI1Jck0vUrXT8bnphprS1EoVRe2Q5CKCX8iDlpqjQ/Y=
 github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead/go.mod h1:iL2twTeMvZnrg54ZoPDNfJaJaqy0xIQFuBdrLsmspwQ=
-github.com/emersion/go-smtp v0.15.1-0.20221021114529-49b17434419d h1:hFRM6zCBSc+Xa0rBOqSlG6Qe9dKC/2vLhGAuZlWxTsc=
-github.com/emersion/go-smtp v0.15.1-0.20221021114529-49b17434419d/go.mod h1:qm27SGYgoIPRot6ubfQ/GpiPy/g3PaZAVRxiO/sDUgQ=
 github.com/emersion/go-textwrapper v0.0.0-20200911093747-65d896831594 h1:IbFBtwoTQyw0fIM5xv1HF+Y+3ZijDR839WMulgxCcUY=
 github.com/emersion/go-textwrapper v0.0.0-20200911093747-65d896831594/go.mod h1:aqO8z8wPrjkscevZJFVE1wXJrLpC5LtJG7fqLOsPb2U=
 github.com/emersion/go-vcard v0.0.0-20230331202150-f3d26859ccd3 h1:hQ1wTMaKcGfobYRT88RM8NFNyX+IQHvagkm/tqViU98=
