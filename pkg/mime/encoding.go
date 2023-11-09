@@ -256,6 +256,9 @@ func DecodeCharset(original []byte, contentType string) ([]byte, error) {
 
 // ParseMediaType from MIME doesn't support RFC2231 for non asci / utf8 encodings so we have to pre-parse it.
 func ParseMediaType(v string) (string, map[string]string, error) {
+	if v == "" {
+		return "", nil, errors.New("empty media type")
+	}
 	decoded, err := DecodeHeader(v)
 	if err != nil {
 		logrus.WithField("value", v).WithError(err).Error("Media Type parsing error.")
