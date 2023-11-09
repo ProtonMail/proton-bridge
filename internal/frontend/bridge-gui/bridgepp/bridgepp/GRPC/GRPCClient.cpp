@@ -72,8 +72,8 @@ GRPCConfig GRPCClient::waitAndRetrieveServiceConfig(QString const & sessionID, Q
     bool found = false;
     while (true) {
         if (serverProcess && serverProcess->getStatus().ended) {
-            throw Exception("Bridge application exited before providing a gRPC service configuration file.", QString(), __FUNCTION__,
-                tailOfLatestBridgeLog(sessionID));
+            throw Exception("Bridge failed to start.", "Bridge application exited before providing a gRPC service configuration file", __FUNCTION__,
+                tailOfLatestBridgeLog(sessionID), true);
         }
 
         if (file.exists()) {

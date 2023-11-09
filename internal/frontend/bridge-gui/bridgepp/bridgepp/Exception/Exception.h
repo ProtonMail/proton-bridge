@@ -33,7 +33,7 @@ namespace bridgepp {
 class Exception : public std::exception {
 public: // member functions
     explicit Exception(QString qwhat = QString(), QString details = QString(), QString function = QString(),
-        QByteArray attachment = QByteArray()) noexcept; ///< Constructor
+        QByteArray attachment = QByteArray(), bool showSupportLink = false) noexcept; ///< Constructor
     Exception(Exception const &ref) noexcept; ///< copy constructor
     Exception(Exception &&ref) noexcept; ///< copy constructor
     Exception &operator=(Exception const &) = delete; ///< Disabled assignment operator
@@ -45,6 +45,7 @@ public: // member functions
     QString function() const noexcept; ///< Return the function that threw the exception.
     QByteArray attachment() const noexcept; ///< Return the attachment for the exception.
     QString detailedWhat() const; ///< Return the detailed description of the message (i.e. including the function name and the details).
+    bool showSupportLink() const; ///< Return the value for the 'Show support link' option.
 
 public: // static data members
     static qsizetype const attachmentMaxLength {25 * 1024}; ///< The maximum length text attachment sent in Sentry reports, in bytes.
@@ -55,6 +56,7 @@ private: // data members
     QString const details_; ///< The optional details for the exception.
     QString const function_; ///< The name of the function that created the exception.
     QByteArray const attachment_; ///< The attachment to add to the exception.
+    bool const showSupportLink_; ///< Should the GUI feedback include a link to support.
 };
 
 

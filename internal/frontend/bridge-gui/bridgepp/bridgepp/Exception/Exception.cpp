@@ -26,14 +26,16 @@ namespace bridgepp {
 /// \param[in] what A description of the exception.
 /// \param[in] details The optional details for the exception.
 /// \param[in] function The name of the calling function.
+/// \param[in] showSupportLink Should a link to the support web form be included in GUI message.
 //****************************************************************************************************************************************************
-Exception::Exception(QString qwhat, QString details, QString function, QByteArray attachment) noexcept
+Exception::Exception(QString qwhat, QString details, QString function, QByteArray attachment, bool showSupportLink) noexcept
     : std::exception()
     , qwhat_(std::move(qwhat))
     , what_(qwhat_.toLocal8Bit())
     , details_(std::move(details))
     , function_(std::move(function))
-    , attachment_(std::move(attachment)) {
+    , attachment_(std::move(attachment))
+    , showSupportLink_(showSupportLink) {
 }
 
 
@@ -46,7 +48,8 @@ Exception::Exception(Exception const &ref) noexcept
     , what_(ref.what_)
     , details_(ref.details_)
     , function_(ref.function_)
-    , attachment_(ref.attachment_) {
+    , attachment_(ref.attachment_)
+    , showSupportLink_(ref.showSupportLink_) {
 }
 
 
@@ -59,7 +62,8 @@ Exception::Exception(Exception &&ref) noexcept
     , what_(ref.what_)
     , details_(ref.details_)
     , function_(ref.function_)
-    , attachment_(ref.attachment_) {
+    , attachment_(ref.attachment_)
+    , showSupportLink_(ref.showSupportLink_) {
 }
 
 
@@ -115,6 +119,14 @@ QString Exception::detailedWhat() const {
         result += "\n\nDetails:\n" + details_;
     }
     return result;
+}
+
+
+//****************************************************************************************************************************************************
+/// \return true iff A link to the support page should shown in the GUI message box.
+//****************************************************************************************************************************************************
+bool Exception::showSupportLink() const {
+    return showSupportLink_;
 }
 
 

@@ -415,7 +415,11 @@ int main(int argc, char *argv[]) {
     }
     catch (Exception const &e) {
         sentry_uuid_s const uuid = reportSentryException("Exception occurred during main", e);
-        QMessageBox::critical(nullptr, "Error", e.qwhat());
+        QString message = e.qwhat();
+        if (e.showSupportLink()) {
+            message += R"(<br/><br/>If the issue persists, please contact our <a href="https://proton.me/support/contact">customer support</a>.)";
+        }
+        QMessageBox::critical(nullptr, "Error", message);
         QTextStream(stderr) << "reportID: " << QByteArray(uuid.bytes, 16).toHex() << " Captured exception :" << e.detailedWhat() << "\n";
         return EXIT_FAILURE;
     }
