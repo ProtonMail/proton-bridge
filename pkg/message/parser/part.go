@@ -209,7 +209,7 @@ func (p *Part) isMultipartMixedOrRelated() bool {
 	return t == "multipart/mixed" || t == "multipart/related"
 }
 
-func (p *Part) isAttachment() bool {
+func (p *Part) IsAttachment() bool {
 	disp, _, err := p.ContentDisposition()
 	if err != nil {
 		disp = ""

@@ -184,9 +184,7 @@ Feature: SMTP sending of PLAIN messages to Internal recipient
       Content-Disposition: attachment; filename="index.html"
       Content-Transfer-Encoding: base64
 
-      IDwhRE9DVFlQRSBodG1sPg0KPGh0bWw+DQo8aGVhZD4NCjx0aXRsZT5QYWdlIFRpdGxlPC90
-      aXRsZT4NCjwvaGVhZD4NCjxib2R5Pg0KDQo8aDE+TXkgRmlyc3QgSGVhZGluZzwvaDE+DQo8
-      cD5NeSBmaXJzdCBwYXJhZ3JhcGguPC9wPg0KDQo8L2JvZHk+DQo8L2h0bWw+IA==
+      PCFET0NUWVBFIGh0bWw+
       --------------WI90RPIYF20K6dGXjs7dm2mi
       Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document;
         name="test.docx"
@@ -669,7 +667,7 @@ Feature: SMTP sending of PLAIN messages to Internal recipient
               "content-disposition": "attachment",
               "content-disposition-filename": "index.html",
               "transfer-encoding": "base64",
-              "body-is": "PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+Cjx0aXRsZT5QYWdlIFRpdGxlPC90aXRsZT4KPC9o\r\nZWFkPgo8Ym9keT4KCjxoMT5NeSBGaXJzdCBIZWFkaW5nPC9oMT4KPHA+TXkgZmlyc3QgcGFyYWdy\r\nYXBoLjwvcD4KCgogPC9ib2R5PjwvaHRtbD4="
+              "body-is": "PCFET0NUWVBFIGh0bWw+"
             },
             {
               "content-type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

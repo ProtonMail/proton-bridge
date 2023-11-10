@@ -33,7 +33,7 @@ func (h *handler) matchPart(p *Part) bool {
 }
 
 func (h *handler) matchPartSkipAttachment(p *Part) bool {
-	return !p.isAttachment() && h.matchPart(p)
+	return !p.IsAttachment() && h.matchPart(p)
 }
 
 func (h *handler) matchType(p *Part) bool {

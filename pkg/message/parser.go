@@ -197,6 +197,9 @@ func convertForeignEncodings(p *parser.Parser) error {
 
 	return p.NewWalker().
 		RegisterContentTypeHandler("text/html", func(p *parser.Part) error {
+			if p.IsAttachment() {
+				return nil
+			}
 			if err := p.ConvertToUTF8(); err != nil {
 				return err
 			}
@@ -313,24 +316,14 @@ func collectBodyParts(p *parser.Parser, preferredContentType string) (parser.Par
 			return bestChoice(childParts, preferredContentType), nil
 		}).
 		RegisterRule("text/plain", func(p *parser.Part, visit parser.Visit) (interface{}, error) {
-			disp, _, err := p.ContentDisposition()
-			if err != nil {
-				disp = ""
-			}
-
-			if disp == "attachment" {
+			if p.IsAttachment() {
 				return parser.Parts{}, nil
 			}
 
 			return parser.Parts{p}, nil
 		}).
 		RegisterRule("text/html", func(p *parser.Part, visit parser.Visit) (interface{}, error) {
-			disp, _, err := p.ContentDisposition()
-			if err != nil {
-				disp = ""
-			}
-
-			if disp == "attachment" {
+			if p.IsAttachment() {
 				return parser.Parts{}, nil
 			}
 
