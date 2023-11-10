@@ -380,7 +380,7 @@ QtObject {
     }
     property Notification diskFull: Notification {
         brief: title
-        description: qsTr("Quit Bridge and free disk space or disable the local cache (not recommended).")
+        description: qsTr("Quit Bridge and free disk space or move the local cache to another disk.")
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
         icon: "./icons/ic-exclamation-circle-filled.svg"
         title: qsTr("Your disk is almost full")
