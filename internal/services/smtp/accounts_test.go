@@ -17,9 +17,30 @@
 
 package smtp
 
-import "errors"
+import (
+	"errors"
+	"testing"
+	"time"
 
-var ErrInvalidRecipient = errors.New("invalid recipient")
-var ErrInvalidReturnPath = errors.New("invalid return path")
-var ErrNoSuchUser = errors.New("no such user")
-var ErrTooManyErrors = errors.New("too many failed requests, please try again later")
+	"github.com/stretchr/testify/assert"
+)
+
+func TestAccountTimeout(t *testing.T) {
+	account := smtpAccountState{errTimeout: 5 * time.Second}
+	err := errors.New("fail")
+
+	for i := 0; i <= maxFailedCommands; i++ {
+		requestTime := time.Now()
+		assert.Nil(t, account.canMakeRequest(requestTime))
+		account.handleSMTPErr(requestTime, err)
+	}
+	{
+		requestTime := time.Now()
+		assert.ErrorIs(t, account.canMakeRequest(requestTime), ErrTooManyErrors)
+	}
+
+	assert.Eventually(t, func() bool {
+		requestTime := time.Now()
+		return account.canMakeRequest(requestTime) == nil
+	}, 10*time.Second, time.Second)
+}

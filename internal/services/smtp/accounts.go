@@ -21,16 +21,21 @@ import (
 	"context"
 	"io"
 	"sync"
+	"time"
 )
 
 type Accounts struct {
 	accountsLock sync.RWMutex
-	accounts     map[string]*Service
+	accounts     map[string]*smtpAccountState
 }
+
+const maxFailedCommands = 3
+const defaultErrTimeout = 20 * time.Second
+const successiveErrInterval = time.Second
 
 func NewAccounts() *Accounts {
 	return &Accounts{
-		accounts: make(map[string]*Service),
+		accounts: make(map[string]*smtpAccountState),
 	}
 }
 
@@ -38,7 +43,10 @@ func (s *Accounts) AddAccount(account *Service) {
 	s.accountsLock.Lock()
 	defer s.accountsLock.Unlock()
 
-	s.accounts[account.UserID()] = account
+	s.accounts[account.UserID()] = &smtpAccountState{
+		service:    account,
+		errTimeout: defaultErrTimeout,
+	}
 }
 
 func (s *Accounts) RemoveAccount(account *Service) {
@@ -52,18 +60,18 @@ func (s *Accounts) CheckAuth(user string, password []byte) (string, string, erro
 	s.accountsLock.RLock()
 	defer s.accountsLock.RUnlock()
 
-	for id, service := range s.accounts {
-		addrID, err := service.checkAuth(context.Background(), user, password)
+	for id, account := range s.accounts {
+		addrID, err := account.service.checkAuth(context.Background(), user, password)
 		if err != nil {
 			continue
 		}
 
-		service.telemetry.ReportSMTPAuthSuccess(context.Background())
+		account.service.telemetry.ReportSMTPAuthSuccess(context.Background())
 		return id, addrID, nil
 	}
 
 	for _, service := range s.accounts {
-		service.telemetry.ReportSMTPAuthFailed(user)
+		service.service.telemetry.ReportSMTPAuthFailed(user)
 	}
 
 	return "", "", ErrNoSuchUser
@@ -77,10 +85,57 @@ func (s *Accounts) SendMail(ctx context.Context, userID, addrID, from string, to
 	s.accountsLock.RLock()
 	defer s.accountsLock.RUnlock()
 
-	service, ok := s.accounts[userID]
+	requestTime := time.Now()
+
+	account, ok := s.accounts[userID]
 	if !ok {
 		return ErrNoSuchUser
 	}
 
-	return service.SendMail(ctx, addrID, from, to, r)
+	if err := account.canMakeRequest(requestTime); err != nil {
+		return err
+	}
+
+	err := account.service.SendMail(ctx, addrID, from, to, r)
+	account.handleSMTPErr(requestTime, err)
+
+	return err
+}
+
+type smtpAccountState struct {
+	service    *Service
+	errTimeout time.Duration
+
+	errLock     sync.Mutex
+	errCounter  int
+	lastRequest time.Time
+}
+
+func (s *smtpAccountState) canMakeRequest(requestTime time.Time) error {
+	s.errLock.Lock()
+	defer s.errLock.Unlock()
+
+	if s.errCounter >= maxFailedCommands {
+		if requestTime.Sub(s.lastRequest) >= s.errTimeout {
+			s.errCounter = 0
+			return nil
+		}
+
+		return ErrTooManyErrors
+	}
+
+	return nil
+}
+
+func (s *smtpAccountState) handleSMTPErr(requestTime time.Time, err error) {
+	s.errLock.Lock()
+	defer s.errLock.Unlock()
+
+	if err == nil || requestTime.Sub(s.lastRequest) > successiveErrInterval {
+		s.errCounter = 0
+	} else {
+		s.errCounter++
+	}
+
+	s.lastRequest = requestTime
 }
