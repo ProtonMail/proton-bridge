@@ -197,9 +197,6 @@ func convertForeignEncodings(p *parser.Parser) error {
 
 	return p.NewWalker().
 		RegisterContentTypeHandler("text/html", func(p *parser.Part) error {
-			if p.IsAttachment() {
-				return nil
-			}
 			if err := p.ConvertToUTF8(); err != nil {
 				return err
 			}

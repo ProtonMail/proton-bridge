@@ -431,7 +431,7 @@ func TestParseTextHTML(t *testing.T) {
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
 
-	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> without attachment</body></html>", string(m.RichBody))
+	assert.Equal(t, "<html><body>This is body of <b>HTML mail</b> without attachment</body></html>", string(m.RichBody))
 	assert.Equal(t, "This is body of *HTML mail* without attachment", string(m.PlainBody))
 
 	assert.Len(t, m.Attachments, 0)
@@ -446,7 +446,7 @@ func TestParseTextHTMLAlready7Bit(t *testing.T) {
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
 
-	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> without attachment</body></html>", string(m.RichBody))
+	assert.Equal(t, "<html><body>This is body of <b>HTML mail</b> without attachment</body></html>", string(m.RichBody))
 	assert.Equal(t, "This is body of *HTML mail* without attachment", string(m.PlainBody))
 
 	assert.Len(t, m.Attachments, 0)
@@ -461,7 +461,7 @@ func TestParseTextHTMLWithOctetAttachment(t *testing.T) {
 	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
 
-	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> with attachment</body></html>", string(m.RichBody))
+	assert.Equal(t, "<html><body>This is body of <b>HTML mail</b> with attachment</body></html>", string(m.RichBody))
 	assert.Equal(t, "This is body of *HTML mail* with attachment", string(m.PlainBody))
 
 	require.Len(t, m.Attachments, 1)
@@ -478,7 +478,7 @@ func TestParseTextHTMLWithPlainAttachment(t *testing.T) {
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
 
 	// BAD: plainBody should not be empty!
-	assert.Equal(t, "<html><head></head><body>This is body of <b>HTML mail</b> with attachment</body></html>", string(m.RichBody))
+	assert.Equal(t, "<html><body>This is body of <b>HTML mail</b> with attachment</body></html>", string(m.RichBody))
 	assert.Equal(t, "This is body of *HTML mail* with attachment", string(m.PlainBody))
 
 	require.Len(t, m.Attachments, 1)
@@ -496,7 +496,7 @@ func TestParseTextHTMLWithImageInline(t *testing.T) {
 
 	require.Len(t, m.Attachments, 1)
 
-	assert.Equal(t, fmt.Sprintf(`<html><head></head><body>This is body of <b>HTML mail</b> with attachment</body></html><html><body><img src="cid:%v"/></body></html>`, m.Attachments[0].ContentID), string(m.RichBody))
+	assert.Equal(t, fmt.Sprintf(`<html><body>This is body of <b>HTML mail</b> with attachment</body></html><html><body><img src="cid:%v"/></body></html>`, m.Attachments[0].ContentID), string(m.RichBody))
 	assert.Equal(t, "This is body of *HTML mail* with attachment", string(m.PlainBody))
 
 	// The inline image is an 8x8 mic-dropping gopher.
@@ -627,7 +627,7 @@ func TestParseWithTrailingEndOfMailIndicator(t *testing.T) {
 	assert.Equal(t, `"Sender" <sender@sender.com>`, m.Sender.String())
 	assert.Equal(t, `"Receiver" <receiver@receiver.com>`, m.ToList[0].String())
 
-	assert.Equal(t, "<!DOCTYPE html><html><head></head><body>boo!</body></html>", string(m.RichBody))
+	assert.Equal(t, "<!DOCTYPE HTML>\n<html><body>boo!</body></html>", string(m.RichBody))
 	assert.Equal(t, "boo!", string(m.PlainBody))
 }
 

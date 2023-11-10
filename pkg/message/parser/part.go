@@ -41,6 +41,8 @@ type Part struct {
 	children Parts
 }
 
+const utf8Charset = "UTF-8"
+
 func (p *Part) ContentType() (string, map[string]string, error) {
 	t, params, err := p.Header.ContentType()
 	if err != nil {
@@ -116,7 +118,7 @@ func (p *Part) ConvertToUTF8() error {
 		params = make(map[string]string)
 	}
 
-	params["charset"] = "UTF-8"
+	params["charset"] = utf8Charset
 
 	p.Header.SetContentType(t, params)
 
@@ -129,6 +131,8 @@ func (p *Part) ConvertMetaCharset() error {
 		return err
 	}
 
+	// Override charset to UTF-8 in meta headers only if needed.
+	var metaModified = false
 	goquery.NewDocumentFromNode(doc).Find("meta").Each(func(n int, sel *goquery.Selection) {
 		if val, ok := sel.Attr("content"); ok {
 			t, params, err := pmmime.ParseMediaType(val)
@@ -136,24 +140,31 @@ func (p *Part) ConvertMetaCharset() error {
 				return
 			}
 
-			params["charset"] = "UTF-8"
+			if charset, ok := params["charset"]; ok && charset != utf8Charset {
+				params["charset"] = utf8Charset
+			}
 
 			sel.SetAttr("content", mime.FormatMediaType(t, params))
+			metaModified = true
 		}
 
-		if _, ok := sel.Attr("charset"); ok {
-			sel.SetAttr("charset", "UTF-8")
+		if charset, ok := sel.Attr("charset"); ok && charset != utf8Charset {
+			sel.SetAttr("charset", utf8Charset)
+			metaModified = true
 		}
 	})
 
-	buf := new(bytes.Buffer)
+	// Override the body part only if modification was applied
+	// as html.render will sanitise the html headers.
+	if metaModified {
+		buf := new(bytes.Buffer)
 
-	if err := html.Render(buf, doc); err != nil {
-		return err
+		if err := html.Render(buf, doc); err != nil {
+			return err
+		}
+
+		p.Body = buf.Bytes()
 	}
-
-	p.Body = buf.Bytes()
-
 	return nil
 }
 

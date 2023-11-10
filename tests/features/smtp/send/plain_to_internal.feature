@@ -1242,7 +1242,7 @@ Feature: SMTP sending of PLAIN messages to Internal recipient
               "content-disposition": "attachment",
               "content-disposition-filename": "index.html",
               "transfer-encoding": "base64",
-              "body-is": "PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+Cjx0aXRsZT5QYWdlIFRpdGxlPC90aXRsZT4KPC9o\r\nZWFkPgo8Ym9keT4KCjxoMT5NeSBGaXJzdCBIZWFkaW5nPC9oMT4KPHA+TXkgZmlyc3QgcGFyYWdy\r\nYXBoLjwvcD4KCgogPC9ib2R5PjwvaHRtbD4="
+              "body-is": "IDwhRE9DVFlQRSBodG1sPg0KPGh0bWw+DQo8aGVhZD4NCjx0aXRsZT5QYWdlIFRpdGxlPC90aXRs\r\nZT4NCjwvaGVhZD4NCjxib2R5Pg0KDQo8aDE+TXkgRmlyc3QgSGVhZGluZzwvaDE+DQo8cD5NeSBm\r\naXJzdCBwYXJhZ3JhcGguPC9wPg0KDQo8L2JvZHk+DQo8L2h0bWw+IA=="
             },
             {
               "content-type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
