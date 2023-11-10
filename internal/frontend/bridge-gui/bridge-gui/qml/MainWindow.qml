@@ -69,8 +69,8 @@ ApplicationWindow {
     }
 
     colorScheme: ProtonStyle.currentStyle
-    height: ProtonStyle.window_default_height
-    minimumHeight:ProtonStyle.window_minimum_height
+    height: screen.height < ProtonStyle.window_default_height + 100 ? ProtonStyle.window_minimum_height : ProtonStyle.window_default_height
+    minimumHeight: ProtonStyle.window_minimum_height
     minimumWidth: ProtonStyle.window_minimum_width
     visible: true
     width: ProtonStyle.window_default_width
