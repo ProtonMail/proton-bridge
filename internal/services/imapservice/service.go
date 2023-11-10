@@ -395,6 +395,11 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 				// event service is unable to reply to the request until the events have been processed.
 				s.log.Info("Sync complete, starting API event stream")
 				go func() {
+					// If context cancelled do not do anything
+					if ctx.Err() != nil {
+						return
+					}
+
 					if err := s.eventProvider.RewindEventID(ctx, s.lastHandledEventID); err != nil {
 						if errors.Is(err, context.Canceled) {
 							return
