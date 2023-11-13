@@ -186,17 +186,24 @@ func (user *User) RemFailedMessageID(messageID string) error {
 	})
 }
 
-// GetSyncStatus returns the user's sync status.
-func (user *User) GetSyncStatus() SyncStatus {
+// GetSyncStatusDeprecated returns the user's sync status.
+func (user *User) GetSyncStatusDeprecated() SyncStatus {
 	return user.vault.getUser(user.userID).SyncStatus
 }
 
-// ClearSyncStatus clears the user's sync status.
-func (user *User) ClearSyncStatus() error {
+// ClearSyncStatusDeprecated clears the user's sync status.
+func (user *User) ClearSyncStatusDeprecated() error {
 	return user.vault.modUser(user.userID, func(data *UserData) {
 		data.SyncStatus = SyncStatus{}
 
 		data.EventID = ""
+	})
+}
+
+// ClearSyncStatusWithoutEventID clears the user's sync status without modifying EventID.
+func (user *User) ClearSyncStatusWithoutEventID() error {
+	return user.vault.modUser(user.userID, func(data *UserData) {
+		data.SyncStatus = SyncStatus{}
 	})
 }
 

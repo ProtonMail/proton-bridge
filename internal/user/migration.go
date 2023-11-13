@@ -33,7 +33,7 @@ func migrateSyncStatusFromVault(encVault *vault.User, syncConfigDir string, user
 	}
 
 	if migrated {
-		if err := encVault.ClearSyncStatus(); err != nil {
+		if err := encVault.ClearSyncStatusWithoutEventID(); err != nil {
 			return fmt.Errorf("failed to clear sync settings from vault: %w", err)
 		}
 	}

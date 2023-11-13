@@ -137,12 +137,37 @@ func TestUser_SyncStatus(t *testing.T) {
 	require.True(t, user.SyncStatus().HasMessages)
 
 	// Clear the sync status.
-	require.NoError(t, user.ClearSyncStatus())
+	require.NoError(t, user.ClearSyncStatusDeprecated())
 
 	// Check the user's cleared sync status.
 	require.False(t, user.SyncStatus().HasLabels)
 	require.False(t, user.SyncStatus().HasMessages)
 	require.Empty(t, user.SyncStatus().LastMessageID)
+}
+
+func TestUser_ClearSyncStatusWithoutEventID(t *testing.T) {
+	// Create a new test vault.
+	s := newVault(t)
+
+	// Create a new user.
+	user, err := s.AddUser("userID", "username", "username@pm.me", "authUID", "authRef", []byte("keyPass"))
+	require.NoError(t, err)
+
+	// Simulate finishing the sync.
+	require.NoError(t, user.SetHasLabels(true))
+	require.NoError(t, user.SetHasMessages(true))
+	require.True(t, user.SyncStatus().HasLabels)
+	require.True(t, user.SyncStatus().HasMessages)
+	require.NoError(t, user.SetEventID("foo"))
+
+	// Clear the sync status.
+	require.NoError(t, user.ClearSyncStatusWithoutEventID())
+
+	// Check the user's cleared sync status.
+	require.False(t, user.SyncStatus().HasLabels)
+	require.False(t, user.SyncStatus().HasMessages)
+	require.Empty(t, user.SyncStatus().LastMessageID)
+	require.Equal(t, "foo", user.EventID())
 }
 
 func TestUser_PrimaryEmail(t *testing.T) {
