@@ -35,6 +35,44 @@ func (m *MockIMAPStateWrite) EXPECT() *MockIMAPStateWriteMockRecorder {
 	return m.recorder
 }
 
+// AddFlagsToAllMailboxes mocks base method.
+func (m *MockIMAPStateWrite) AddFlagsToAllMailboxes(arg0 context.Context, arg1 ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "AddFlagsToAllMailboxes", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddFlagsToAllMailboxes indicates an expected call of AddFlagsToAllMailboxes.
+func (mr *MockIMAPStateWriteMockRecorder) AddFlagsToAllMailboxes(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFlagsToAllMailboxes", reflect.TypeOf((*MockIMAPStateWrite)(nil).AddFlagsToAllMailboxes), varargs...)
+}
+
+// AddPermFlagsToAllMailboxes mocks base method.
+func (m *MockIMAPStateWrite) AddPermFlagsToAllMailboxes(arg0 context.Context, arg1 ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "AddPermFlagsToAllMailboxes", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddPermFlagsToAllMailboxes indicates an expected call of AddPermFlagsToAllMailboxes.
+func (mr *MockIMAPStateWriteMockRecorder) AddPermFlagsToAllMailboxes(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPermFlagsToAllMailboxes", reflect.TypeOf((*MockIMAPStateWrite)(nil).AddPermFlagsToAllMailboxes), varargs...)
+}
+
 // CreateMailbox mocks base method.
 func (m *MockIMAPStateWrite) CreateMailbox(arg0 context.Context, arg1 imap.Mailbox) error {
 	m.ctrl.T.Helper()

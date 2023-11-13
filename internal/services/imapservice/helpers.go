@@ -68,6 +68,10 @@ func BuildFlagSetFromMessageMetadata(message proton.MessageMetadata) imap.FlagSe
 		flags.AddToSelf(imap.FlagAnswered)
 	}
 
+	if message.IsForwarded {
+		flags.AddToSelf(imap.ForwardFlagList...)
+	}
+
 	return flags
 }
 

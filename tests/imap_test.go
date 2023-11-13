@@ -468,10 +468,12 @@ func (s *scenario) imapClientMarksAllMessagesAsState(clientID, messageState stri
 	return nil
 }
 
-func (s *scenario) imapClientSeesThatMessageHasTheFlag(clientID string, seq int, flag string) error {
-	_, client := s.t.getIMAPClient(clientID)
+func (s *scenario) imapClientEventuallySeesThatMessageHasTheFlag(clientID string, seq int, flag string) error {
+	return eventually(func() error {
+		_, client := s.t.getIMAPClient(clientID)
 
-	return clientIsFlagApplied(client, seq, flag, true, false)
+		return clientIsFlagApplied(client, seq, flag, true, false)
+	})
 }
 
 func (s *scenario) imapClientSeesThatMessageDoesNotHaveTheFlag(clientID string, seq int, flag string) error {
@@ -480,38 +482,46 @@ func (s *scenario) imapClientSeesThatMessageDoesNotHaveTheFlag(clientID string, 
 	return clientIsFlagApplied(client, seq, flag, false, false)
 }
 
-func (s *scenario) imapClientSeesThatTheMessageWithSubjectHasTheFlag(clientID, subject, flag string) error {
-	_, client := s.t.getIMAPClient(clientID)
+func (s *scenario) imapClientEventuallySeesThatTheMessageWithSubjectHasTheFlag(clientID, subject, flag string) error {
+	return eventually(func() error {
+		_, client := s.t.getIMAPClient(clientID)
 
-	uid, err := clientGetUIDBySubject(client, client.Mailbox().Name, subject)
-	if err != nil {
-		return err
-	}
+		uid, err := clientGetUIDBySubject(client, client.Mailbox().Name, subject)
+		if err != nil {
+			return err
+		}
 
-	return clientIsFlagApplied(client, int(uid), flag, true, false)
+		return clientIsFlagApplied(client, int(uid), flag, true, false)
+	})
 }
 
-func (s *scenario) imapClientSeesThatTheMessageWithSubjectDoesNotHaveTheFlag(clientID, subject, flag string) error {
-	_, client := s.t.getIMAPClient(clientID)
+func (s *scenario) imapClientEventuallySeesThatTheMessageWithSubjectDoesNotHaveTheFlag(clientID, subject, flag string) error {
+	return eventually(func() error {
+		_, client := s.t.getIMAPClient(clientID)
 
-	uid, err := clientGetUIDBySubject(client, client.Mailbox().Name, subject)
-	if err != nil {
-		return err
-	}
+		uid, err := clientGetUIDBySubject(client, client.Mailbox().Name, subject)
+		if err != nil {
+			return err
+		}
 
-	return clientIsFlagApplied(client, int(uid), flag, false, false)
+		return clientIsFlagApplied(client, int(uid), flag, false, false)
+	})
 }
 
-func (s *scenario) imapClientSeesThatAllTheMessagesHaveTheFlag(clientID string, flag string) error {
-	_, client := s.t.getIMAPClient(clientID)
+func (s *scenario) imapClientEventuallySeesThatAllTheMessagesHaveTheFlag(clientID string, flag string) error {
+	return eventually(func() error {
+		_, client := s.t.getIMAPClient(clientID)
 
-	return clientIsFlagApplied(client, 1, flag, true, true)
+		return clientIsFlagApplied(client, 1, flag, true, true)
+	})
 }
 
-func (s *scenario) imapClientSeesThatAllTheMessagesDoNotHaveTheFlag(clientID string, flag string) error {
-	_, client := s.t.getIMAPClient(clientID)
+func (s *scenario) imapClientEventuallySeesThatAllTheMessagesDoNotHaveTheFlag(clientID string, flag string) error {
+	return eventually(func() error {
+		_, client := s.t.getIMAPClient(clientID)
 
-	return clientIsFlagApplied(client, 1, flag, false, true)
+		return clientIsFlagApplied(client, 1, flag, false, true)
+	})
 }
 
 func (s *scenario) imapClientExpunges(clientID string) error {
@@ -913,6 +923,18 @@ func clientChangeMessageState(client *client.Client, seq int, messageState strin
 
 	case messageState == "unstarred":
 		_, err := clientStore(client, seq, seq, isUID, imap.FormatFlagsOp(imap.RemoveFlags, true), imap.FlaggedFlag)
+		if err != nil {
+			return err
+		}
+
+	case messageState == "forwarded":
+		_, err := clientStore(client, seq, seq, isUID, imap.FormatFlagsOp(imap.AddFlags, true), "Forwarded")
+		if err != nil {
+			return err
+		}
+
+	case messageState == "unforwarded":
+		_, err := clientStore(client, seq, seq, isUID, imap.FormatFlagsOp(imap.RemoveFlags, true), "Forwarded")
 		if err != nil {
 			return err
 		}

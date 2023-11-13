@@ -84,9 +84,9 @@ func NewConnector(
 		identityState: identityState,
 		addrID:        addrID,
 		showAllMail:   b32(showAllMail),
-		flags:         defaultFlags,
-		permFlags:     defaultPermanentFlags,
-		attrs:         defaultAttributes,
+		flags:         defaultMailboxFlags(),
+		permFlags:     defaultMailboxPermanentFlags(),
+		attrs:         defaultMailboxAttributes(),
 
 		client:       apiClient,
 		telemetry:    telemetry,
@@ -144,6 +144,18 @@ func (s *Connector) Init(ctx context.Context, cache connector.IMAPState) error {
 				}
 			}
 		}
+
+		// Retroactively apply the forwarded flags to existing mailboxes so that the IMAP clients can recognize
+		// that they can store these flags now.
+		if err := write.AddFlagsToAllMailboxes(ctx, imap.ForwardFlagList...); err != nil {
+			return fmt.Errorf("failed to add \\Forward flag to all mailboxes:%w", err)
+		}
+
+		// Add forwarded flag as perm flags to all mailboxes.
+		if err := write.AddPermFlagsToAllMailboxes(ctx, imap.ForwardFlagList...); err != nil {
+			return fmt.Errorf("failed to add \\Forward permanent flag to all mailboxes:%w", err)
+		}
+
 		return nil
 	})
 }
@@ -487,6 +499,14 @@ func (s *Connector) MarkMessagesFlagged(ctx context.Context, _ connector.IMAPSta
 	return s.client.UnlabelMessages(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs), proton.StarredLabel)
 }
 
+func (s *Connector) MarkMessagesForwarded(ctx context.Context, _ connector.IMAPStateWrite, messageIDs []imap.MessageID, flagged bool) error {
+	if flagged {
+		return s.client.MarkMessagesForwarded(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs)...)
+	}
+
+	return s.client.MarkMessagesUnForwarded(ctx, usertypes.MapTo[imap.MessageID, string](messageIDs)...)
+}
+
 func (s *Connector) GetUpdates() <-chan imap.Update {
 	return s.updateCh.GetChannel()
 }
@@ -500,12 +520,6 @@ func (s *Connector) Close(_ context.Context) error {
 func (s *Connector) ShowAllMail(v bool) {
 	atomic.StoreUint32(&s.showAllMail, b32(v))
 }
-
-var (
-	defaultFlags          = imap.NewFlagSet(imap.FlagSeen, imap.FlagFlagged, imap.FlagDeleted) // nolint:gochecknoglobals
-	defaultPermanentFlags = imap.NewFlagSet(imap.FlagSeen, imap.FlagFlagged, imap.FlagDeleted) // nolint:gochecknoglobals
-	defaultAttributes     = imap.NewFlagSet()                                                  // nolint:gochecknoglobals
-)
 
 const (
 	folderPrefix = "Folders"
@@ -811,4 +825,19 @@ func fixGODT3003Labels(
 	}
 
 	return applied, nil
+}
+
+func defaultMailboxFlags() imap.FlagSet {
+	f := imap.NewFlagSet(imap.FlagSeen, imap.FlagFlagged, imap.FlagDeleted)
+	f.AddToSelf(imap.ForwardFlagList...)
+
+	return f
+}
+
+func defaultMailboxPermanentFlags() imap.FlagSet {
+	return defaultMailboxFlags()
+}
+
+func defaultMailboxAttributes() imap.FlagSet {
+	return imap.NewFlagSet()
 }

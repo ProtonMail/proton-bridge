@@ -48,4 +48,6 @@ type APIClient interface {
 	DeleteMessage(ctx context.Context, messageIDs ...string) error
 	MarkMessagesRead(ctx context.Context, messageIDs ...string) error
 	MarkMessagesUnread(ctx context.Context, messageIDs ...string) error
+	MarkMessagesForwarded(ctx context.Context, messageIDs ...string) error
+	MarkMessagesUnForwarded(ctx context.Context, messageIDs ...string) error
 }

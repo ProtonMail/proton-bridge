@@ -32,8 +32,8 @@ func newSystemMailboxCreatedUpdate(labelID imap.MailboxID, labelName string) *im
 	}
 
 	attrs := imap.NewFlagSet(imap.AttrNoInferiors)
-	permanentFlags := defaultPermanentFlags
-	flags := defaultFlags
+	permanentFlags := defaultMailboxPermanentFlags()
+	flags := defaultMailboxFlags()
 
 	switch labelID {
 	case proton.TrashLabel:
@@ -86,8 +86,8 @@ func newPlaceHolderMailboxCreatedUpdate(labelName string) *imap.MailboxCreated {
 	return imap.NewMailboxCreated(imap.Mailbox{
 		ID:             imap.MailboxID(labelName),
 		Name:           []string{labelName},
-		Flags:          defaultFlags,
-		PermanentFlags: defaultPermanentFlags,
+		Flags:          defaultMailboxFlags(),
+		PermanentFlags: defaultMailboxPermanentFlags(),
 		Attributes:     imap.NewFlagSet(imap.AttrNoSelect),
 	})
 }
@@ -96,8 +96,8 @@ func newMailboxCreatedUpdate(labelID imap.MailboxID, labelName []string) *imap.M
 	return imap.NewMailboxCreated(imap.Mailbox{
 		ID:             labelID,
 		Name:           labelName,
-		Flags:          defaultFlags,
-		PermanentFlags: defaultPermanentFlags,
+		Flags:          defaultMailboxFlags(),
+		PermanentFlags: defaultMailboxPermanentFlags(),
 		Attributes:     imap.NewFlagSet(),
 	})
 }
