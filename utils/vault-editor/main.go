@@ -65,15 +65,17 @@ func readAction(c *cli.Context) error {
 
 func writeAction(c *cli.Context) error {
 	return app.WithLocations(func(locations *locations.Locations) error {
-		return app.WithVault(locations, nil, async.NoopPanicHandler{}, func(vault *vault.Vault, insecure, corrupt bool) error {
-			b, err := io.ReadAll(os.Stdin)
-			if err != nil {
-				return fmt.Errorf("failed to read vault: %w", err)
-			}
+		return app.WithKeychainList(func(keychains *keychain.List) error {
+			return app.WithVault(locations, keychains, async.NoopPanicHandler{}, func(vault *vault.Vault, insecure, corrupt bool) error {
+				b, err := io.ReadAll(os.Stdin)
+				if err != nil {
+					return fmt.Errorf("failed to read vault: %w", err)
+				}
 
-			vault.ImportJSON(b)
+				vault.ImportJSON(b)
 
-			return nil
+				return nil
+			})
 		})
 	})
 }
