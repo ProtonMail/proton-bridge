@@ -3,6 +3,34 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Wakato Bridge 3.7.1
+
+### Added
+* Test(GODT-2740): Sending Plain text messages to internal recipient.
+* Test(GODT-2892): Create fake log file.
+
+### Changed
+* Remove debug prints.
+* GODT-2576: Forward and $Forward Flag Support.
+* GODT-3053: Use smaller bridge window on small screens.
+* GODT-3113: Only force UTF-8 charset for HTML part when needed.
+* GODT-3113: Do not render HTML for attachment.
+* GODT-3112: Replaced error message when bridge exists prematurely. Added a link to support form.
+* GODT-2947: Remove 'blame it on the weather' error part from go-smtp.
+* GODT-3010: Log MimeType parsing issue.
+* GODT-3104: Added log entry for cert install status on startup on macOS.
+* GODT-2277: Move Keychain helpers creation in main.
+
+### Fixed
+* GODT-3123: Trigger bad event on empty EventID on existing accounts.
+* GODT-3118: Do not reset EventID when migrating sync settings.
+* GODT-3116: Panic on closed channel.
+* GODT-1623: Throttle SMTP failed requests.
+* GODT-3047: Fixed 'disk full' error message.
+* GODT-3054: Delete draft create from reply.
+* GODT-3048: WKD Policy behavior.
+
+
 ## Wakato Bridge 3.7.0
 
 ### Added
