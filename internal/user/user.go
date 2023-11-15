@@ -58,6 +58,11 @@ const (
 	SyncRetryCooldown = 20 * time.Second
 )
 
+type Identity struct {
+	DisplayName string
+	Email       string
+}
+
 type User struct {
 	id  string
 	log *logrus.Entry
@@ -378,19 +383,16 @@ func (user *User) Match(query string) bool {
 
 	return false
 }
-
-// Emails returns all the user's active email addresses.
-// It returns them in sorted order; the user's primary address is first.
-func (user *User) Emails() []string {
+func (user *User) Identities() []Identity {
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute))
 	defer cancel()
 
-	apiAddrs, err := user.identityService.GetAddresses(ctx)
+	apiAddresses, err := user.identityService.GetAddresses(ctx)
 	if err != nil {
 		return nil
 	}
 
-	addresses := xslices.Filter(maps.Values(apiAddrs), func(addr proton.Address) bool {
+	addresses := xslices.Filter(maps.Values(apiAddresses), func(addr proton.Address) bool {
 		return addr.Status == proton.AddressStatusEnabled && addr.Type != proton.AddressTypeExternal
 	})
 
@@ -398,8 +400,24 @@ func (user *User) Emails() []string {
 		return a.Order < b.Order
 	})
 
-	return xslices.Map(addresses, func(addr proton.Address) string {
-		return addr.Email
+	return xslices.Map(addresses, func(addr proton.Address) Identity {
+		return Identity{
+			DisplayName: addr.DisplayName,
+			Email:       addr.Email,
+		}
+	})
+}
+
+// Emails returns all the user's active email addresses.
+// It returns them in sorted order; the user's primary address is first.
+func (user *User) Emails() []string {
+	identities := user.Identities()
+	if identities == nil {
+		return nil
+	}
+
+	return xslices.Map(identities, func(identity Identity) string {
+		return identity.Email
 	})
 }
 

@@ -39,10 +39,10 @@ func (c *AppleMail) Configure(
 	hostname string,
 	imapPort, smtpPort int,
 	imapSSL, smtpSSL bool,
-	username, addresses string,
+	username, displayName, addresses string,
 	password []byte,
 ) error {
-	mc := prepareMobileConfig(hostname, imapPort, smtpPort, imapSSL, smtpSSL, username, addresses, password)
+	mc := prepareMobileConfig(hostname, imapPort, smtpPort, imapSSL, smtpSSL, username, displayName, addresses, password)
 
 	confPath, err := saveConfigTemporarily(mc)
 	if err != nil {
@@ -66,13 +66,13 @@ func prepareMobileConfig(
 	hostname string,
 	imapPort, smtpPort int,
 	imapSSL, smtpSSL bool,
-	username, addresses string,
+	username, displayName, addresses string,
 	password []byte,
 ) *mobileconfig.Config {
 	return &mobileconfig.Config{
 		DisplayName:        username,
 		EmailAddress:       addresses,
-		AccountName:        username,
+		AccountName:        displayName,
 		AccountDescription: username,
 		Identifier:         "protonmail " + username + strconv.FormatInt(time.Now().Unix(), 10),
 		IMAP: &mobileconfig.IMAP{

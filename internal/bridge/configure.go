@@ -19,19 +19,22 @@ package bridge
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/clientconfig"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
+	userpkg "github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 )
 
-// ConfigureAppleMail configures apple mail for the given userID and address.
-// If configuring apple mail for Catalina or newer, it ensures Bridge is using SSL.
+// ConfigureAppleMail configures Apple Mail for the given userID and address.
+// If configuring Apple Mail for Catalina or newer, it ensures Bridge is using SSL.
 func (bridge *Bridge) ConfigureAppleMail(ctx context.Context, userID, address string) error {
 	logrus.WithFields(logrus.Fields{
 		"userID":  userID,
@@ -44,16 +47,31 @@ func (bridge *Bridge) ConfigureAppleMail(ctx context.Context, userID, address st
 			return ErrNoSuchUser
 		}
 
-		if address == "" {
-			address = user.Emails()[0]
+		identities := user.Identities()
+		if len(identities) == 0 {
+			return errors.New("could not retrieve user identities")
 		}
 
-		username := address
-		addresses := address
+		if address == "" {
+			address = identities[0].Email
+		}
 
+		var username, displayName, addresses string
 		if user.GetAddressMode() == vault.CombinedMode {
-			username = user.Emails()[0]
+			username = identities[0].Email
+			displayName = identities[0].DisplayName
 			addresses = strings.Join(user.Emails(), ",")
+		} else {
+			username = address
+			addresses = address
+			index := slices.IndexFunc(identities, func(identity userpkg.Identity) bool {
+				return strings.EqualFold(identity.Email, address)
+			})
+			if index >= 0 {
+				displayName = identities[index].DisplayName
+			} else {
+				displayName = address
+			}
 		}
 
 		if useragent.IsCatalinaOrNewer() && !bridge.vault.GetSMTPSSL() {
@@ -69,6 +87,7 @@ func (bridge *Bridge) ConfigureAppleMail(ctx context.Context, userID, address st
 			bridge.vault.GetIMAPSSL(),
 			bridge.vault.GetSMTPSSL(),
 			username,
+			displayName,
 			addresses,
 			user.BridgePass(),
 		)
