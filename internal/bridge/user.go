@@ -494,7 +494,7 @@ func (bridge *Bridge) addUser(
 		return fmt.Errorf("failed to add vault user: %w", err)
 	}
 
-	if err := bridge.addUserWithVault(ctx, client, apiUser, vaultUser); err != nil {
+	if err := bridge.addUserWithVault(ctx, client, apiUser, vaultUser, isNew); err != nil {
 		if _, ok := err.(*resty.ResponseError); ok || isLogin {
 			logrus.WithError(err).Error("Failed to add user, clearing its secrets from vault")
 
@@ -529,6 +529,7 @@ func (bridge *Bridge) addUserWithVault(
 	client *proton.Client,
 	apiUser proton.User,
 	vault *vault.User,
+	isNew bool,
 ) error {
 	statsPath, err := bridge.locator.ProvideStatsPath()
 	if err != nil {
@@ -556,6 +557,7 @@ func (bridge *Bridge) addUserWithVault(
 		&bridgeEventSubscription{b: bridge},
 		bridge.syncService,
 		syncSettingsPath,
+		isNew,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)

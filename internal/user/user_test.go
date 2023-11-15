@@ -158,6 +158,7 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 		nullEventSubscription,
 		nil,
 		"",
+		true,
 	)
 	require.NoError(tb, err)
 	defer user.Close()

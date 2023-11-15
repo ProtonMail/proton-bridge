@@ -105,6 +105,7 @@ func New(
 	eventSubscription events.Subscription,
 	syncService syncservice.Regulator,
 	syncConfigDir string,
+	isNew bool,
 ) (*User, error) {
 	user, err := newImpl(
 		ctx,
@@ -122,6 +123,7 @@ func New(
 		eventSubscription,
 		syncService,
 		syncConfigDir,
+		isNew,
 	)
 	if err != nil {
 		// Cleanup any pending resources on error
@@ -152,6 +154,7 @@ func newImpl(
 	eventSubscription events.Subscription,
 	syncService syncservice.Regulator,
 	syncConfigDir string,
+	isNew bool,
 ) (*User, error) {
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
 
@@ -294,6 +297,14 @@ func newImpl(
 		user.log.Infof("%v: %v %v", r.Status(), r.Request.Method, r.Request.URL)
 		return nil
 	})
+
+	// If it's not a fresh user check the eventID and evaluate whether it is valid. If it's a new user, we don't
+	// need to perform this check.
+	if !isNew {
+		if err := checkIrrecoverableEventID(ctx, encVault.EventID(), apiUser.ID, syncConfigDir, user); err != nil {
+			return nil, err
+		}
+	}
 
 	// Start Event Service
 	lastEventID, err := user.eventService.Start(ctx, user.serviceGroup)

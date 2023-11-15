@@ -58,6 +58,10 @@ func (s Status) IsComplete() bool {
 	return s.HasLabels && s.HasMessages
 }
 
+func (s Status) InProgress() bool {
+	return s.HasLabels || s.HasMessageCount
+}
+
 // Regulator is an abstraction for the sync service, since it regulates the number of concurrent sync activities.
 type Regulator interface {
 	Sync(ctx context.Context, stage *Job)
