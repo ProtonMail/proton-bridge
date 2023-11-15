@@ -17,9 +17,24 @@
 
 package smtp
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var ErrInvalidRecipient = errors.New("invalid recipient")
 var ErrInvalidReturnPath = errors.New("invalid return path")
 var ErrNoSuchUser = errors.New("no such user")
 var ErrTooManyErrors = errors.New("too many failed requests, please try again later")
+
+type ErrCanNotSendOnAddress struct {
+	address string
+}
+
+func NewErrCanNotSendOnAddress(address string) *ErrCanNotSendOnAddress {
+	return &ErrCanNotSendOnAddress{address: address}
+}
+
+func (e ErrCanNotSendOnAddress) Error() string {
+	return fmt.Sprintf("can't send on address: %v", e.address)
+}

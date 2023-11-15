@@ -33,6 +33,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	smtpservice "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
@@ -698,6 +699,59 @@ Hello world
 
 				return true
 			}, 10*time.Second, 100*time.Millisecond)
+		})
+	})
+}
+
+func TestBridge_SendAddressDisabled(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		recipientUserID, _, err := s.CreateUser("recipient", password)
+		require.NoError(t, err)
+
+		senderUserID, addrID, err := s.CreateUser("sender", password)
+		require.NoError(t, err)
+
+		require.NoError(t, s.ChangeAddressAllowSend(senderUserID, addrID, false))
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			smtpWaiter := waitForSMTPServerReady(bridge)
+			defer smtpWaiter.Done()
+
+			senderUserID, err := bridge.LoginFull(ctx, "sender", password, nil, nil)
+			require.NoError(t, err)
+
+			_, err = bridge.LoginFull(ctx, "recipient", password, nil, nil)
+			require.NoError(t, err)
+
+			smtpWaiter.Wait()
+
+			recipientInfo, err := bridge.GetUserInfo(recipientUserID)
+			require.NoError(t, err)
+
+			senderInfo, err := bridge.GetUserInfo(senderUserID)
+			require.NoError(t, err)
+
+			// Dial the server.
+			client, err := smtp.Dial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetSMTPPort())))
+			require.NoError(t, err)
+			defer client.Close() //nolint:errcheck
+
+			// Upgrade to TLS.
+			require.NoError(t, client.StartTLS(&tls.Config{InsecureSkipVerify: true}))
+			require.NoError(t, client.Auth(sasl.NewLoginClient(
+				senderInfo.Addresses[0],
+				string(senderInfo.BridgePass)),
+			))
+
+			// Send the message.
+			err = client.SendMail(
+				senderInfo.Addresses[0],
+				[]string{recipientInfo.Addresses[0]},
+				strings.NewReader("Subject: Test 1\r\n\r\nHello world!"),
+			)
+
+			smtpErr := smtpservice.NewErrCanNotSendOnAddress(senderInfo.Addresses[0])
+			require.Equal(t, fmt.Sprintf("Error: %v", smtpErr.Error()), err.Error())
 		})
 	})
 }

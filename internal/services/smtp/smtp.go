@@ -97,9 +97,14 @@ func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, 
 		from = sender
 		fromAddr, err = s.identityState.GetAddr(from)
 		if err != nil {
-			logrus.WithError(err).Errorf("Failed to get identity from sender address %v", sender)
+			logrus.WithError(err).Errorf("Failed to get identity for from address %v", sender)
 			return ErrInvalidReturnPath
 		}
+	}
+
+	if !fromAddr.Send {
+		s.log.Errorf("Can't send emails on address: %v", fromAddr.Email)
+		return &ErrCanNotSendOnAddress{address: fromAddr.Email}
 	}
 
 	// Load the user's mail settings.
