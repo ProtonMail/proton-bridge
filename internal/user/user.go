@@ -58,11 +58,6 @@ const (
 	SyncRetryCooldown = 20 * time.Second
 )
 
-type Identity struct {
-	DisplayName string
-	Email       string
-}
-
 type User struct {
 	id  string
 	log *logrus.Entry
@@ -383,41 +378,32 @@ func (user *User) Match(query string) bool {
 
 	return false
 }
-func (user *User) Identities() []Identity {
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute))
-	defer cancel()
 
-	apiAddresses, err := user.identityService.GetAddresses(ctx)
-	if err != nil {
+// DisplayNames returns a map of the email addresses and their associated display names.
+func (user *User) DisplayNames() map[string]string {
+	addresses := user.protonAddresses()
+	if addresses == nil {
 		return nil
 	}
 
-	addresses := xslices.Filter(maps.Values(apiAddresses), func(addr proton.Address) bool {
-		return addr.Status == proton.AddressStatusEnabled && addr.Type != proton.AddressTypeExternal
-	})
+	result := make(map[string]string)
+	for _, address := range addresses {
+		result[address.Email] = address.DisplayName
+	}
 
-	slices.SortFunc(addresses, func(a, b proton.Address) bool {
-		return a.Order < b.Order
-	})
-
-	return xslices.Map(addresses, func(addr proton.Address) Identity {
-		return Identity{
-			DisplayName: addr.DisplayName,
-			Email:       addr.Email,
-		}
-	})
+	return result
 }
 
 // Emails returns all the user's active email addresses.
 // It returns them in sorted order; the user's primary address is first.
 func (user *User) Emails() []string {
-	identities := user.Identities()
-	if identities == nil {
+	addresses := user.protonAddresses()
+	if addresses == nil {
 		return nil
 	}
 
-	return xslices.Map(identities, func(identity Identity) string {
-		return identity.Email
+	return xslices.Map(addresses, func(addr proton.Address) string {
+		return addr.Email
 	})
 }
 
@@ -710,4 +696,24 @@ func (user *User) PauseEventLoopWithWaiter() *userevents.EventPollWaiter {
 
 func (user *User) ResumeEventLoop() {
 	user.eventService.Resume()
+}
+
+func (user *User) protonAddresses() []proton.Address {
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Minute))
+	defer cancel()
+
+	apiAddrs, err := user.identityService.GetAddresses(ctx)
+	if err != nil {
+		return nil
+	}
+
+	addresses := xslices.Filter(maps.Values(apiAddrs), func(addr proton.Address) bool {
+		return addr.Status == proton.AddressStatusEnabled && addr.Type != proton.AddressTypeExternal
+	})
+
+	slices.SortFunc(addresses, func(a, b proton.Address) bool {
+		return a.Order < b.Order
+	})
+
+	return addresses
 }

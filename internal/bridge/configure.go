@@ -26,11 +26,9 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
-	userpkg "github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/exp/slices"
 )
 
 // ConfigureAppleMail configures Apple Mail for the given userID and address.
@@ -47,29 +45,26 @@ func (bridge *Bridge) ConfigureAppleMail(ctx context.Context, userID, address st
 			return ErrNoSuchUser
 		}
 
-		identities := user.Identities()
-		if len(identities) == 0 {
-			return errors.New("could not retrieve user identities")
+		emails := user.Emails()
+		displayNames := user.DisplayNames()
+		if (len(emails) == 0) || (len(displayNames) == 0) {
+			return errors.New("could not retrieve user address info")
 		}
 
 		if address == "" {
-			address = identities[0].Email
+			address = emails[0]
 		}
 
 		var username, displayName, addresses string
 		if user.GetAddressMode() == vault.CombinedMode {
-			username = identities[0].Email
-			displayName = identities[0].DisplayName
-			addresses = strings.Join(user.Emails(), ",")
+			username = address
+			displayName = displayNames[username]
+			addresses = strings.Join(emails, ",")
 		} else {
 			username = address
 			addresses = address
-			index := slices.IndexFunc(identities, func(identity userpkg.Identity) bool {
-				return strings.EqualFold(identity.Email, address)
-			})
-			if index >= 0 {
-				displayName = identities[index].DisplayName
-			} else {
+			displayName = displayNames[address]
+			if len(displayName) == 0 {
 				displayName = address
 			}
 		}

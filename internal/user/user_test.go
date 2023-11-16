@@ -19,6 +19,7 @@ package user
 
 import (
 	"context"
+	"reflect"
 	"testing"
 	"time"
 
@@ -58,8 +59,12 @@ func TestUser_Info(t *testing.T) {
 				// User's name should be correct.
 				require.Equal(t, "username", user.Name())
 
-				// User's email should be correct.
+				// User's emails should be correct and their associated display names should be correct
 				require.ElementsMatch(t, []string{"username@" + s.GetDomain(), "alias@pm.me"}, user.Emails())
+				require.True(t, reflect.DeepEqual(map[string]string{
+					"username@" + s.GetDomain(): "username" + " (Display Name)",
+					"alias@pm.me":               "alias@pm.me (Display Name)",
+				}, user.DisplayNames()))
 
 				// By default, user should be in combined mode.
 				require.Equal(t, vault.CombinedMode, user.GetAddressMode())
@@ -98,12 +103,14 @@ func withAPI(_ testing.TB, ctx context.Context, fn func(context.Context, *server
 func withAccount(tb testing.TB, s *server.Server, username, password string, aliases []string, fn func(string, []string)) { //nolint:unparam
 	userID, addrID, err := s.CreateUser(username, []byte(password))
 	require.NoError(tb, err)
+	require.NoError(tb, s.ChangeAddressDisplayName(userID, addrID, username+" (Display Name)"))
 
 	addrIDs := []string{addrID}
 
 	for _, email := range aliases {
 		addrID, err := s.CreateAddress(userID, email, []byte(password))
 		require.NoError(tb, err)
+		require.NoError(tb, s.ChangeAddressDisplayName(userID, addrID, email+" (Display Name)"))
 
 		addrIDs = append(addrIDs, addrID)
 	}
