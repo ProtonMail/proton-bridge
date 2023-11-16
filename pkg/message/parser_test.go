@@ -786,6 +786,16 @@ func TestParseTextPlainWithDocxAttachmentCyrillic(t *testing.T) {
 	assert.Equal(t, "АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЧЏЗШ.docx", m.Attachments[0].Name)
 }
 
+func TestParseInReplyToAndXForward(t *testing.T) {
+	f := getFileReader("text_plain_utf8_reply_to_and_x_forward.eml")
+
+	m, err := Parse(f)
+	require.NoError(t, err)
+
+	require.Equal(t, "00000@protonmail.com", m.XForward)
+	require.Equal(t, "00000@protonmail.com", m.InReplyTo)
+}
+
 func TestPatchNewLineWithHtmlBreaks(t *testing.T) {
 	{
 		input := []byte("\nfoo\nbar\n\n\nzz\nddd")

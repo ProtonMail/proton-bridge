@@ -217,7 +217,7 @@ func (s *Service) sendWithKey(
 		return proton.Message{}, fmt.Errorf("unsupported MIME type: %v", message.MIMEType)
 	}
 
-	draft, err := s.createDraft(ctx, addrKR, emails, from, to, parentID, message.InReplyTo, proton.DraftTemplate{
+	draft, err := s.createDraft(ctx, addrKR, emails, from, to, parentID, message.InReplyTo, message.XForward, proton.DraftTemplate{
 		Subject:  message.Subject,
 		Body:     decBody,
 		MIMEType: message.MIMEType,
@@ -353,6 +353,7 @@ func (s *Service) createDraft(
 	to []string,
 	parentID string,
 	replyToID string,
+	xForwardID string,
 	template proton.DraftTemplate,
 ) (proton.Message, error) {
 	// Check sender: set the sender if it's missing.
@@ -388,7 +389,12 @@ func (s *Service) createDraft(
 	var action proton.CreateDraftAction
 
 	if len(replyToID) > 0 {
-		action = proton.ReplyAction
+		// Thunderbird fills both ReplyTo and adds an X-Forwarded-Message-Id header when forwarding.
+		if replyToID == xForwardID {
+			action = proton.ForwardAction
+		} else {
+			action = proton.ReplyAction
+		}
 	} else {
 		action = proton.ForwardAction
 	}

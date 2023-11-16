@@ -60,6 +60,7 @@ type Message struct {
 	References []string
 	ExternalID string
 	InReplyTo  string
+	XForward   string
 }
 
 type Attachment struct {
@@ -519,6 +520,9 @@ func parseMessageHeader(h message.Header, allowInvalidAddressLists bool) (Messag
 
 		case "in-reply-to":
 			m.InReplyTo = regexp.MustCompile("<(.*)>").ReplaceAllString(fields.Value(), "$1")
+
+		case "x-forwarded-message-id":
+			m.XForward = regexp.MustCompile("<(.*)>").ReplaceAllString(fields.Value(), "$1")
 
 		case "references":
 			for _, ref := range strings.Fields(fields.Value()) {
