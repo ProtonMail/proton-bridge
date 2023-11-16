@@ -594,7 +594,7 @@ func (bridge *Bridge) addUserWithVault(
 	}, bridge.usersLock)
 
 	// As we need at least one user to send heartbeat, try to send it.
-	defer bridge.goHeartbeat()
+	bridge.heartbeat.start()
 
 	return nil
 }

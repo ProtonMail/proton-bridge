@@ -166,6 +166,7 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 		t.mocks.CrashHandler,
 		t.reporter,
 		imap.DefaultEpochUIDValidityGenerator(),
+		t.heartbeat,
 
 		// Logging stuff
 		logIMAP,
@@ -178,8 +179,6 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 
 	t.bridge = bridge
 	t.heartbeat.setBridge(bridge)
-
-	bridge.StartHeartbeat(t.heartbeat)
 
 	return t.events.collectFrom(eventCh), nil
 }

@@ -36,6 +36,20 @@ func (m *MockHeartbeatManager) EXPECT() *MockHeartbeatManagerMockRecorder {
 	return m.recorder
 }
 
+// GetHeartbeatPeriodicInterval mocks base method.
+func (m *MockHeartbeatManager) GetHeartbeatPeriodicInterval() time.Duration {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHeartbeatPeriodicInterval")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+// GetHeartbeatPeriodicInterval indicates an expected call of GetHeartbeatPeriodicInterval.
+func (mr *MockHeartbeatManagerMockRecorder) GetHeartbeatPeriodicInterval() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHeartbeatPeriodicInterval", reflect.TypeOf((*MockHeartbeatManager)(nil).GetHeartbeatPeriodicInterval))
+}
+
 // GetLastHeartbeatSent mocks base method.
 func (m *MockHeartbeatManager) GetLastHeartbeatSent() time.Time {
 	m.ctrl.T.Helper()

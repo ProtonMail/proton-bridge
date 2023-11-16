@@ -963,6 +963,7 @@ func withBridgeNoMocks(
 		mocks.CrashHandler,
 		mocks.Reporter,
 		testUIDValidityGenerator,
+		mocks.Heartbeat,
 
 		// The logging stuff.
 		os.Getenv("BRIDGE_LOG_IMAP_CLIENT") == "1",
@@ -971,9 +972,6 @@ func withBridgeNoMocks(
 	)
 	require.NoError(t, err)
 	require.Empty(t, bridge.GetErrors())
-
-	// Start the Heartbeat process.
-	bridge.StartHeartbeat(mocks.Heartbeat)
 
 	// Wait for bridge to finish loading users.
 	waitForEvent(t, eventCh, events.AllUsersLoaded{})

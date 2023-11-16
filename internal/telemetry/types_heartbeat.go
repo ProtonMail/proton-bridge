@@ -42,6 +42,7 @@ type HeartbeatManager interface {
 	SendHeartbeat(ctx context.Context, heartbeat *HeartbeatData) bool
 	GetLastHeartbeatSent() time.Time
 	SetLastHeartbeatSent(time.Time) error
+	GetHeartbeatPeriodicInterval() time.Duration
 }
 
 type HeartbeatValues struct {

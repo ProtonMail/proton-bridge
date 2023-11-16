@@ -113,6 +113,7 @@ func withBridge(
 		crashHandler,
 		reporter,
 		imap.DefaultEpochUIDValidityGenerator(),
+		nil,
 
 		// The logging stuff.
 		c.String(flagLogIMAP) == "client" || c.String(flagLogIMAP) == "all",

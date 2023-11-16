@@ -75,7 +75,7 @@ type Bridge struct {
 	installCh chan installJob
 
 	// heartbeat is the telemetry heartbeat for metrics.
-	heartbeat telemetry.Heartbeat
+	heartbeat *heartBeatState
 
 	// curVersion is the current version of the bridge,
 	// newVersion is the version that was installed by the updater.
@@ -128,9 +128,6 @@ type Bridge struct {
 	// goUpdate triggers a check/install of updates.
 	goUpdate func()
 
-	// goHeartbeat triggers a check/sending if heartbeat is needed.
-	goHeartbeat func()
-
 	serverManager *imapsmtpserver.Service
 	syncService   *syncservice.Service
 }
@@ -153,6 +150,7 @@ func New(
 	panicHandler async.PanicHandler,
 	reporter reporter.Reporter,
 	uidValidityGenerator imap.UIDValidityGenerator,
+	heartBeatManager telemetry.HeartbeatManager,
 
 	logIMAPClient, logIMAPServer bool, // whether to log IMAP client/server activity
 	logSMTP bool, // whether to log SMTP activity
@@ -168,6 +166,7 @@ func New(
 
 	// bridge is the bridge.
 	bridge, err := newBridge(
+		context.Background(),
 		tasks,
 		imapEventCh,
 
@@ -184,6 +183,7 @@ func New(
 		identifier,
 		proxyCtl,
 		uidValidityGenerator,
+		heartBeatManager,
 		logIMAPClient, logIMAPServer, logSMTP,
 	)
 	if err != nil {
@@ -202,6 +202,7 @@ func New(
 }
 
 func newBridge(
+	ctx context.Context,
 	tasks *async.Group,
 	imapEventCh chan imapEvents.Event,
 
@@ -218,6 +219,7 @@ func newBridge(
 	identifier identifier.Identifier,
 	proxyCtl ProxyController,
 	uidValidityGenerator imap.UIDValidityGenerator,
+	heartbeatManager telemetry.HeartbeatManager,
 
 	logIMAPClient, logIMAPServer, logSMTP bool,
 ) (*Bridge, error) {
@@ -268,6 +270,8 @@ func newBridge(
 		panicHandler: panicHandler,
 		reporter:     reporter,
 
+		heartbeat: newHeartBeatState(ctx, panicHandler),
+
 		focusService: focusService,
 		autostarter:  autostarter,
 		locator:      locator,
@@ -295,6 +299,12 @@ func newBridge(
 
 	if err := bridge.serverManager.Init(context.Background(), bridge.tasks, &bridgeEventSubscription{b: bridge}); err != nil {
 		return nil, err
+	}
+
+	if heartbeatManager == nil {
+		bridge.heartbeat.init(bridge, bridge)
+	} else {
+		bridge.heartbeat.init(bridge, heartbeatManager)
 	}
 
 	bridge.syncService.Run(bridge.tasks)
@@ -425,6 +435,9 @@ func (bridge *Bridge) GetErrors() []error {
 
 func (bridge *Bridge) Close(ctx context.Context) {
 	logrus.Info("Closing bridge")
+
+	// Stop heart beat before closing users.
+	bridge.heartbeat.stop()
 
 	// Close all users.
 	safe.Lock(func() {

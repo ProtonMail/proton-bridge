@@ -20,8 +20,10 @@ package bridge
 import (
 	"context"
 	"encoding/json"
+	"sync"
 	"time"
 
+	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
@@ -30,6 +32,87 @@ import (
 )
 
 const HeartbeatCheckInterval = time.Hour
+
+type heartBeatState struct {
+	task *async.Group
+	telemetry.Heartbeat
+	taskLock     sync.Mutex
+	taskStarted  bool
+	taskInterval time.Duration
+}
+
+func newHeartBeatState(ctx context.Context, panicHandler async.PanicHandler) *heartBeatState {
+	return &heartBeatState{
+		task: async.NewGroup(ctx, panicHandler),
+	}
+}
+
+func (h *heartBeatState) init(bridge *Bridge, manager telemetry.HeartbeatManager) {
+	h.Heartbeat = telemetry.NewHeartbeat(manager, 1143, 1025, bridge.GetGluonCacheDir(), bridge.keychains.GetDefaultHelper())
+	h.taskInterval = manager.GetHeartbeatPeriodicInterval()
+	h.SetRollout(bridge.GetUpdateRollout())
+	h.SetAutoStart(bridge.GetAutostart())
+	h.SetAutoUpdate(bridge.GetAutoUpdate())
+	h.SetBeta(bridge.GetUpdateChannel())
+	h.SetDoh(bridge.GetProxyAllowed())
+	h.SetShowAllMail(bridge.GetShowAllMail())
+	h.SetIMAPConnectionMode(bridge.GetIMAPSSL())
+	h.SetSMTPConnectionMode(bridge.GetSMTPSSL())
+	h.SetIMAPPort(bridge.GetIMAPPort())
+	h.SetSMTPPort(bridge.GetSMTPPort())
+	h.SetCacheLocation(bridge.GetGluonCacheDir())
+	if val, err := bridge.GetKeychainApp(); err != nil {
+		h.SetKeyChainPref(val)
+	} else {
+		h.SetKeyChainPref(bridge.keychains.GetDefaultHelper())
+	}
+	h.SetPrevVersion(bridge.GetLastVersion().String())
+
+	safe.RLock(func() {
+		var splitMode = false
+		for _, user := range bridge.users {
+			if user.GetAddressMode() == vault.SplitMode {
+				splitMode = true
+				break
+			}
+		}
+		var nbAccount = len(bridge.users)
+		h.SetNbAccount(nbAccount)
+		h.SetSplitMode(splitMode)
+
+		// Do not try to send if there is no user yet.
+		if nbAccount > 0 {
+			defer h.start()
+		}
+	}, bridge.usersLock)
+}
+
+func (h *heartBeatState) start() {
+	h.taskLock.Lock()
+	defer h.taskLock.Unlock()
+	if h.taskStarted {
+		return
+	}
+
+	h.taskStarted = true
+
+	h.task.PeriodicOrTrigger(h.taskInterval, 0, func(ctx context.Context) {
+		logrus.Debug("Checking for heartbeat")
+
+		h.TrySending(ctx)
+	})
+}
+
+func (h *heartBeatState) stop() {
+	h.taskLock.Lock()
+	defer h.taskLock.Unlock()
+	if !h.taskStarted {
+		return
+	}
+
+	h.task.CancelAndWait()
+	h.taskStarted = false
+}
 
 func (bridge *Bridge) IsTelemetryAvailable(ctx context.Context) bool {
 	var flag = true
@@ -79,49 +162,6 @@ func (bridge *Bridge) SetLastHeartbeatSent(timestamp time.Time) error {
 	return bridge.vault.SetLastHeartbeatSent(timestamp)
 }
 
-func (bridge *Bridge) StartHeartbeat(manager telemetry.HeartbeatManager) {
-	bridge.heartbeat = telemetry.NewHeartbeat(manager, 1143, 1025, bridge.GetGluonCacheDir(), bridge.keychains.GetDefaultHelper())
-
-	// Check for heartbeat when triggered.
-	bridge.goHeartbeat = bridge.tasks.PeriodicOrTrigger(HeartbeatCheckInterval, 0, func(ctx context.Context) {
-		logrus.Debug("Checking for heartbeat")
-
-		bridge.heartbeat.TrySending(ctx)
-	})
-
-	bridge.heartbeat.SetRollout(bridge.GetUpdateRollout())
-	bridge.heartbeat.SetAutoStart(bridge.GetAutostart())
-	bridge.heartbeat.SetAutoUpdate(bridge.GetAutoUpdate())
-	bridge.heartbeat.SetBeta(bridge.GetUpdateChannel())
-	bridge.heartbeat.SetDoh(bridge.GetProxyAllowed())
-	bridge.heartbeat.SetShowAllMail(bridge.GetShowAllMail())
-	bridge.heartbeat.SetIMAPConnectionMode(bridge.GetIMAPSSL())
-	bridge.heartbeat.SetSMTPConnectionMode(bridge.GetSMTPSSL())
-	bridge.heartbeat.SetIMAPPort(bridge.GetIMAPPort())
-	bridge.heartbeat.SetSMTPPort(bridge.GetSMTPPort())
-	bridge.heartbeat.SetCacheLocation(bridge.GetGluonCacheDir())
-	if val, err := bridge.GetKeychainApp(); err != nil {
-		bridge.heartbeat.SetKeyChainPref(val)
-	} else {
-		bridge.heartbeat.SetKeyChainPref(bridge.keychains.GetDefaultHelper())
-	}
-	bridge.heartbeat.SetPrevVersion(bridge.GetLastVersion().String())
-
-	safe.RLock(func() {
-		var splitMode = false
-		for _, user := range bridge.users {
-			if user.GetAddressMode() == vault.SplitMode {
-				splitMode = true
-				break
-			}
-		}
-		var nbAccount = len(bridge.users)
-		bridge.heartbeat.SetNbAccount(nbAccount)
-		bridge.heartbeat.SetSplitMode(splitMode)
-
-		// Do not try to send if there is no user yet.
-		if nbAccount > 0 {
-			defer bridge.goHeartbeat()
-		}
-	}, bridge.usersLock)
+func (bridge *Bridge) GetHeartbeatPeriodicInterval() time.Duration {
+	return HeartbeatCheckInterval
 }

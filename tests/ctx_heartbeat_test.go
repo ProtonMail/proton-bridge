@@ -85,6 +85,10 @@ func (hb *heartbeatRecorder) SetLastHeartbeatSent(timestamp time.Time) error {
 	return hb.bridge.SetLastHeartbeatSent(timestamp)
 }
 
+func (hb *heartbeatRecorder) GetHeartbeatPeriodicInterval() time.Duration {
+	return 200 * time.Millisecond
+}
+
 func (hb *heartbeatRecorder) rejectSend() {
 	hb.reject = true
 }

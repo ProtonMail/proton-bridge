@@ -282,9 +282,6 @@ func run(c *cli.Context) error {
 											// Remove old updates files
 											b.RemoveOldUpdates()
 
-											// Start telemetry heartbeat process
-											b.StartHeartbeat(b)
-
 											// Run the frontend.
 											return runFrontend(c, crashHandler, restarter, locations, b, eventCh, quitCh, c.Int(flagParentPID))
 										})

@@ -7,6 +7,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge/mocks"
@@ -51,6 +52,7 @@ func NewMocks(tb testing.TB, version, minAuto *semver.Version) *Mocks {
 
 	// this is called at start of heartbeat process.
 	mocks.Heartbeat.EXPECT().IsTelemetryAvailable(gomock.Any()).AnyTimes()
+	mocks.Heartbeat.EXPECT().GetHeartbeatPeriodicInterval().AnyTimes().Return(500 * time.Millisecond)
 
 	return mocks
 }
