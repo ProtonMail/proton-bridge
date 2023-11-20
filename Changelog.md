@@ -8,6 +8,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ### Added
 * Test(GODT-2740): Sending Plain text messages to internal recipient.
 * Test(GODT-2892): Create fake log file.
+* GODT-3122: Added test, changed interface for accessing display name.
 
 ### Changed
 * Remove debug prints.
@@ -22,6 +23,11 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-2277: Move Keychain helpers creation in main.
 
 ### Fixed
+* GODT-3054: Only delete drafts after message has been Sent.
+* GODT-2576: Correctly handle Forwarded messages from Thunderbird.
+* GODT-3122: Use display name as 'Email Account Name' in macOS profile.
+* GODT-3125: Heartbeat crash on exit.
+* GODT-2617: Validate user can send from the SMTP sender address.
 * GODT-3123: Trigger bad event on empty EventID on existing accounts.
 * GODT-3118: Do not reset EventID when migrating sync settings.
 * GODT-3116: Panic on closed channel.
