@@ -191,7 +191,7 @@ func (s *Service) sendWithKey(
 	if message.InReplyTo != "" {
 		references = append(references, message.InReplyTo)
 	}
-	parentID, err := getParentID(ctx, s.client, authAddrID, addrMode, references)
+	parentID, draftsToDelete, err := getParentID(ctx, s.client, authAddrID, addrMode, references)
 	if err != nil {
 		if err := s.reporter.ReportMessageWithContext("Failed to get parent ID", reporter.Context{
 			"error":      err,
@@ -253,6 +253,13 @@ func (s *Service) sendWithKey(
 		return proton.Message{}, fmt.Errorf("failed to send draft: %w", err)
 	}
 
+	// Only delete the drafts, if any, after message was successfully sent.
+	if len(draftsToDelete) != 0 {
+		if err := s.client.DeleteMessage(ctx, draftsToDelete...); err != nil {
+			s.log.WithField("ids", draftsToDelete).WithError(err).Errorf("Failed to delete requested messages from Drafts")
+		}
+	}
+
 	return res, nil
 }
 
@@ -262,11 +269,12 @@ func getParentID(
 	authAddrID string,
 	addrMode usertypes.AddressMode,
 	references []string,
-) (string, error) {
+) (string, []string, error) {
 	var (
-		parentID string
-		internal []string
-		external []string
+		parentID       string
+		internal       []string
+		external       []string
+		draftsToDelete []string
 	)
 
 	// Collect all the internal and external references of the message.
@@ -291,12 +299,18 @@ func getParentID(
 			AddressID: addrID,
 		})
 		if err != nil {
-			return "", fmt.Errorf("failed to get message metadata: %w", err)
+			return "", nil, fmt.Errorf("failed to get message metadata: %w", err)
 		}
 
 		for _, metadata := range metadata {
 			if !metadata.IsDraft() {
 				parentID = metadata.ID
+			} else {
+				// We need to record this ID to delete later after the message has been sent successfully. This is
+				// required for Apple Mail to correctly delete a draft when a draft is created in Apple Mail, then
+				// edited on the web, edited again in Apple Mail and then Send from Apple Mail. If we don't
+				// delete the referenced draft it is never deleted from the drafts folder.
+				draftsToDelete = append(draftsToDelete, metadata.ID)
 			}
 		}
 	}
@@ -317,7 +331,7 @@ func getParentID(
 			AddressID:  addrID,
 		})
 		if err != nil {
-			return "", fmt.Errorf("failed to get message metadata: %w", err)
+			return "", nil, fmt.Errorf("failed to get message metadata: %w", err)
 		}
 
 		switch len(metadata) {
@@ -342,7 +356,7 @@ func getParentID(
 		}
 	}
 
-	return parentID, nil
+	return parentID, draftsToDelete, nil
 }
 
 func (s *Service) createDraft(
