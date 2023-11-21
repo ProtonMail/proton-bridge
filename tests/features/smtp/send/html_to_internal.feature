@@ -2194,3 +2194,203 @@ Feature: SMTP sending of HTMl messages to Internal recipient
         }
       }
       """
+
+  Scenario: HTML message with inline HTML and HTML attachment encoded in UTF-8
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
+      """
+      Content-Type: multipart/mixed; boundary="------------2p04vJsuXgcobQxmsvuPsEB2"
+      To: <[user:to]@[domain]>
+      From: <[user:user]@[domain]>
+      Subject: HTML message with inline HTML and HTML attachment encoded in UTF-8
+
+      This is a multi-part message in MIME format.
+      --------------2p04vJsuXgcobQxmsvuPsEB2
+      Content-Type: text/html; charset=UTF-8
+      Content-Transfer-Encoding: 7bit
+
+      <!DOCTYPE html>
+      <html>
+        <head>
+
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        </head>
+        <body>
+          <p>Hello, this is a <b>HTML message</b> with <i>HTML attachment</i>.<br>
+          </p>
+        </body>
+      </html>
+      --------------2p04vJsuXgcobQxmsvuPsEB2
+      Content-Type: text/html; charset=UTF-8; name="index.html"
+      Content-Disposition: attachment; filename="index.html"
+      Content-Transfer-Encoding: base64
+
+      PCFET0NUWVBFIGh0bWw+
+      --------------2p04vJsuXgcobQxmsvuPsEB2--
+
+      """
+    Then it succeeds
+    When user "[user:user]" connects and authenticates IMAP client "1"
+    Then IMAP client "1" eventually sees the following messages in "Sent":
+      | from                 | to                 | subject                                                            |
+      | [user:user]@[domain] | [user:to]@[domain] | HTML message with inline HTML and HTML attachment encoded in UTF-8 |
+    And IMAP client "1" eventually sees 1 messages in "Sent"
+    When the user logs in with username "[user:to]" and password "password"
+    And user "[user:to]" connects and authenticates IMAP client "2"
+    And user "[user:to]" finishes syncing
+    And it succeeds
+    Then IMAP client "2" eventually sees the following message in "Inbox" with this structure:
+      """
+      {
+        "from": "[user:user]@[domain]",
+        "to": "[user:to]@[domain]",
+        "subject": "HTML message with inline HTML and HTML attachment encoded in UTF-8",
+        "content": {
+          "content-type": "multipart/mixed",
+          "sections":[
+            {
+              "content-type": "text/html",
+              "content-type-charset": "utf-8",
+              "transfer-encoding": "quoted-printable",
+              "body-is": "<!DOCTYPE html><html><head>\r\n\r\n    <meta http-equiv=3D\"content-type\" content=3D\"text/html; charset=3DUTF-8=\r\n\"/>\r\n  </head>\r\n  <body>\r\n    <p>Hello, this is a <b>HTML message</b> with <i>HTML attachment</i>.<br=\r\n/>\r\n    </p>\r\n =20\r\n</body></html>"
+            },
+            {
+              "content-type": "text/html",
+              "content-type-charset": "UTF-8",
+              "content-type-name": "index.html",
+              "content-disposition": "attachment",
+              "content-disposition-filename": "index.html",
+              "transfer-encoding": "base64",
+              "body-is": "PCFET0NUWVBFIGh0bWw+"
+            }
+          ]
+        }
+      }
+      """
+
+  Scenario: HTML msg with inline HTML and HTML attachment not encoded in UTF-8
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
+      """
+      Content-Type: multipart/mixed; boundary="------------2p04vJsuXgcobQxmsvuPsEB2"
+      To: <[user:to]@[domain]>
+      From: <[user:user]@[domain]>
+      Subject: HTML msg with inline HTML and HTML attachment not encoded in UTF-8
+
+      This is a multi-part message in MIME format.
+      --------------2p04vJsuXgcobQxmsvuPsEB2
+      Content-Type: text/html; charset=UTF-7
+      Content-Transfer-Encoding: 7bit
+
+      <!DOCTYPE html><meta http-equiv="content-type" content="text/html; charset=UTF-7">
+      --------------2p04vJsuXgcobQxmsvuPsEB2
+      Content-Type: text/html; charset=UTF-7; name="index.html"
+      Content-Disposition: attachment; filename="index.html"
+      Content-Transfer-Encoding: base64
+
+      PCFET0NUWVBFIGh0bWw+CjxtZXRhIGh0dHAtZXF1aXY9ImNvbnRlbnQtdHlwZSIgY29udGVu
+      dD0idGV4dC9odG1sOyBjaGFyc2V0PVVURi03Ij4=
+
+      --------------2p04vJsuXgcobQxmsvuPsEB2-- 
+      
+      """
+    Then it succeeds
+    When user "[user:user]" connects and authenticates IMAP client "1"
+    Then IMAP client "1" eventually sees the following messages in "Sent":
+      | from                 | to                 | subject                                            |
+      | [user:user]@[domain] | [user:to]@[domain] | HTML msg with inline HTML and HTML attachment not encoded in UTF-8 |
+    And IMAP client "1" eventually sees 1 messages in "Sent"
+    When the user logs in with username "[user:to]" and password "password"
+    And user "[user:to]" connects and authenticates IMAP client "2"
+    And user "[user:to]" finishes syncing
+    And it succeeds
+    Then IMAP client "2" eventually sees the following message in "Inbox" with this structure:
+      """
+      {
+        "from": "[user:user]@[domain]",
+        "to": "[user:to]@[domain]",
+        "subject": "HTML msg with inline HTML and HTML attachment not encoded in UTF-8",
+        "content": {
+          "content-type": "multipart/mixed",
+          "sections":[
+            {
+              "content-type": "text/html",
+              "content-type-charset": "utf-8",
+              "transfer-encoding": "quoted-printable",
+              "body-is": "<!DOCTYPE html><html><head><meta http-equiv=3D\"content-type\" content=3D\"tex=\r\nt/html; charset=3DUTF-8\"/></head><body></body></html>"
+            },
+            {
+              "content-type": "text/html",
+              "content-type-charset": "UTF-8",
+              "content-type-name": "index.html",
+              "content-disposition": "attachment",
+              "content-disposition-filename": "index.html",
+              "transfer-encoding": "base64",
+              "body-is": "PCFET0NUWVBFIGh0bWw+PGh0bWw+PGhlYWQ+PG1ldGEgaHR0cC1lcXVpdj0iY29udGVudC10eXBl\r\nIiBjb250ZW50PSJ0ZXh0L2h0bWw7IGNoYXJzZXQ9VVRGLTgiLz48L2hlYWQ+PGJvZHk+PC9ib2R5\r\nPjwvaHRtbD4="
+            }
+          ]
+        }
+      }
+      """
+
+  Scenario: HTML message and attachment not encoded in UTF-8 and without meta charset
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
+      """
+      Content-Type: multipart/mixed; boundary="------------2p04vJsuXgcobQxmsvuPsEB2"
+      To: <[user:to]@[domain]>
+      From: <[user:user]@[domain]>
+      Subject: HTML message and attachment not encoded in UTF-8 and without meta charset
+
+      This is a multi-part message in MIME format.
+      --------------2p04vJsuXgcobQxmsvuPsEB2
+      Content-Type: text/html; charset=UTF-7
+      Content-Transfer-Encoding: 7bit
+
+      <!DOCTYPE html>
+      
+      --------------2p04vJsuXgcobQxmsvuPsEB2
+      Content-Type: text/html; charset=UTF-7; name="index.html"
+      Content-Disposition: attachment; filename="index.html"
+      Content-Transfer-Encoding: base64
+
+      PCFET0NUWVBFIGh0bWw+
+      --------------2p04vJsuXgcobQxmsvuPsEB2--
+
+      """
+    Then it succeeds
+    When user "[user:user]" connects and authenticates IMAP client "1"
+    Then IMAP client "1" eventually sees the following messages in "Sent":
+      | from                 | to                 | subject                                                               |
+      | [user:user]@[domain] | [user:to]@[domain] | HTML message and attachment not encoded in UTF-8 and without meta charset |
+    And IMAP client "1" eventually sees 1 messages in "Sent"
+    When the user logs in with username "[user:to]" and password "password"
+    And user "[user:to]" connects and authenticates IMAP client "2"
+    And user "[user:to]" finishes syncing
+    And it succeeds
+    Then IMAP client "2" eventually sees the following message in "Inbox" with this structure:
+      """
+      {
+        "from": "[user:user]@[domain]",
+        "to": "[user:to]@[domain]",
+        "subject": "HTML message and attachment not encoded in UTF-8 and without meta charset",
+        "content": {
+          "content-type": "multipart/mixed",
+          "sections":[
+            {
+              "content-type": "text/html",
+              "content-type-charset": "utf-8",
+              "transfer-encoding": "quoted-printable",
+              "body-is": "<!DOCTYPE html>"
+            },
+            {
+              "content-type": "text/html",
+              "content-type-charset": "UTF-8",
+              "content-type-name": "index.html",
+              "content-disposition": "attachment",
+              "content-disposition-filename": "index.html",
+              "transfer-encoding": "base64",
+              "body-is": "PCFET0NUWVBFIGh0bWw+"
+            }
+          ]
+        }
+      }
+      """
+    
