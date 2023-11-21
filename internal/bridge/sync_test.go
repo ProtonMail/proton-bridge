@@ -641,6 +641,55 @@ func TestBridge_CorruptedVaultClearsPreviousIMAPSyncState(t *testing.T) {
 	})
 }
 
+func TestBridge_AddressOrderChangeDuringSyncInCombinedModeDoesNotTriggerBadEventOnNewMessage(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		userID, addrID, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			userInfoChanged, done := chToType[events.Event, events.UserChanged](bridge.GetEvents(events.UserChanged{}))
+			defer done()
+
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				createNumMessages(ctx, t, c, addrID, proton.InboxLabel, 300)
+			})
+
+			_, err := bridge.LoginFull(ctx, "user", password, nil, nil)
+			require.NoError(t, err)
+
+			info, err := bridge.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.Equal(t, 1, len(info.Addresses))
+			require.Equal(t, info.Addresses[0], "user@proton.local")
+
+			addrID2, err := s.CreateAddress(userID, "foo@"+s.GetDomain(), password)
+			require.NoError(t, err)
+
+			require.NoError(t, s.SetAddressOrder(userID, []string{addrID2, addrID}))
+
+			withClient(ctx, t, s, "user", password, func(ctx context.Context, c *proton.Client) {
+				createNumMessages(ctx, t, c, addrID2, proton.InboxLabel, 1)
+			})
+
+			// Since we can't intercept events at this time, we sleep for a bit to make sure the
+			// new message does not get combined into the event below. This ensures the newly created
+			// goes through the full code flow which triggered the original bad event.
+			time.Sleep(time.Second)
+			require.NoError(t, s.SetAddressOrder(userID, []string{addrID, addrID2}))
+
+			for i := 0; i < 2; i++ {
+				select {
+				case <-ctx.Done():
+					return
+				case e := <-userInfoChanged:
+					require.Equal(t, userID, e.UserID)
+				}
+			}
+		})
+	})
+}
+
 func withClient(ctx context.Context, t *testing.T, s *server.Server, username string, password []byte, fn func(context.Context, *proton.Client)) { //nolint:unparam
 	m := proton.New(
 		proton.WithHostURL(s.GetHostURL()),

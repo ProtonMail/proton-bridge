@@ -274,6 +274,10 @@ func (s *Service) HandleRefreshEvent(ctx context.Context, _ proton.RefreshFlag) 
 		return err
 	}
 
+	if err := s.rebuildConnectors(); err != nil {
+		return err
+	}
+
 	if err := s.syncStateProvider.ClearSyncStatus(ctx); err != nil {
 		return fmt.Errorf("failed to clear sync status:%w", err)
 	}
@@ -292,6 +296,7 @@ func (s *Service) HandleUserEvent(_ context.Context, user *proton.User) error {
 
 	return s.identityState.Write(func(identity *useridentity.State) error {
 		identity.OnUserEvent(*user)
+
 		return nil
 	})
 }

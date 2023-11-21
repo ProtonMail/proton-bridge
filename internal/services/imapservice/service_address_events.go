@@ -24,12 +24,18 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/useridentity"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
+	"github.com/sirupsen/logrus"
 )
 
 func (s *Service) HandleAddressEvents(ctx context.Context, events []proton.AddressEvent) error {
 	s.log.Debug("handling address event")
 
 	if s.addressMode == usertypes.AddressModeCombined {
+		oldPrimaryAddr, err := s.identityState.GetPrimaryAddress()
+		if err != nil {
+			return fmt.Errorf("failed to get primary addr: %w", err)
+		}
+
 		if err := s.identityState.Write(func(identity *useridentity.State) error {
 			identity.OnAddressEvents(events)
 			return nil
@@ -37,6 +43,28 @@ func (s *Service) HandleAddressEvents(ctx context.Context, events []proton.Addre
 			s.log.WithError(err).Error("Failed to apply address events to identity state")
 			return err
 		}
+
+		newPrimaryAddr, err := s.identityState.GetPrimaryAddress()
+		if err != nil {
+			return fmt.Errorf("failed to get primary addr after update: %w", err)
+		}
+
+		if oldPrimaryAddr.ID == newPrimaryAddr.ID {
+			return nil
+		}
+
+		connector, ok := s.connectors[oldPrimaryAddr.ID]
+		if !ok {
+			return fmt.Errorf("could not find old primary addr conncetor after default address change")
+		}
+
+		s.connectors[newPrimaryAddr.ID] = connector
+		delete(s.connectors, oldPrimaryAddr.ID)
+
+		s.log.WithFields(logrus.Fields{
+			"old": oldPrimaryAddr.Email,
+			"new": newPrimaryAddr.Email,
+		}).Debug("Primary address changed")
 
 		return nil
 	}
