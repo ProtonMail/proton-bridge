@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1127</width>
-    <height>808</height>
+    <width>1131</width>
+    <height>762</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,6 +18,9 @@
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
        <item>
         <widget class="QGroupBox" name="groupVersion">
          <property name="minimumSize">
@@ -103,6 +106,9 @@
           <string>General Settings</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
+          <property name="verticalSpacing">
+           <number>4</number>
+          </property>
           <item row="0" column="0">
            <widget class="QCheckBox" name="checkShowOnStartup">
             <property name="text">
@@ -186,6 +192,9 @@
           <string>Mail</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_6">
+          <property name="spacing">
+           <number>4</number>
+          </property>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0">
             <item>
@@ -287,6 +296,9 @@
           <string>Paths &amp;&amp; Links</string>
          </property>
          <layout class="QGridLayout" name="gridLayout">
+          <property name="verticalSpacing">
+           <number>4</number>
+          </property>
           <item row="0" column="0">
            <widget class="QLabel" name="labelLogsPath">
             <property name="text">
@@ -381,6 +393,9 @@
           <string>TLS Certficates</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_4" columnstretch="1,1">
+          <property name="verticalSpacing">
+           <number>4</number>
+          </property>
           <item row="0" column="0">
            <widget class="QCheckBox" name="checkTLSCertIsInstalled">
             <property name="text">
@@ -487,6 +502,9 @@
           <string>Status</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="spacing">
+           <number>5</number>
+          </property>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
@@ -596,6 +614,9 @@
           <string>Bug Report</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
+          <property name="verticalSpacing">
+           <number>4</number>
+          </property>
           <item row="0" column="3">
            <widget class="QLineEdit" name="editOSVersion">
             <property name="minimumSize">
@@ -737,6 +758,9 @@
           <string>Events &amp;&amp; Errors</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_8">
+          <property name="spacing">
+           <number>4</number>
+          </property>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_11">
             <item>
@@ -929,6 +953,133 @@
              <string>Next Bug Report Will Succeed</string>
             </property>
            </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_16">
+            <item>
+             <widget class="QPushButton" name="buttonUpdateError">
+              <property name="text">
+               <string>Update error</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboUpdateError">
+              <property name="sizeAdjustPolicy">
+               <enum>QComboBox::AdjustToContents</enum>
+              </property>
+              <item>
+               <property name="text">
+                <string>Update manual error</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Update force error</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Update silent error</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>1</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_17">
+            <item>
+             <widget class="QPushButton" name="buttonUpdateManualReady">
+              <property name="text">
+               <string>Update Manual Ready</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonUpdateForce">
+              <property name="text">
+               <string>Update Force</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="editUpdateVersion">
+              <property name="text">
+               <string>4.0</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_18">
+            <item>
+             <widget class="QPushButton" name="buttonUpdateManualRestart">
+              <property name="text">
+               <string>Update manual restart</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonUpdateSilentRestart">
+              <property name="text">
+               <string>Update silent restart</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonUpdateIsLatest">
+              <property name="text">
+               <string>Update is latest</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_19">
+            <item>
+             <widget class="QPushButton" name="buttonUpdateCheckFinished">
+              <property name="text">
+               <string>Update check finished</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buttonUpdateVersionChanged">
+              <property name="text">
+               <string>Update version changed</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_7">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>1</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>

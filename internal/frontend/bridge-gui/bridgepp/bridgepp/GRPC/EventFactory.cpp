@@ -368,7 +368,7 @@ SPStreamEvent newUpdateForceEvent(QString const &version) {
 //****************************************************************************************************************************************************
 /// \return the event.
 //****************************************************************************************************************************************************
-SPStreamEvent newUpdateSilentRestartNeeded() {
+SPStreamEvent newUpdateSilentRestartNeededEvent() {
     auto event = new grpc::UpdateSilentRestartNeeded;
     auto updateEvent = new grpc::UpdateEvent;
     updateEvent->set_allocated_silentrestartneeded(event);
@@ -379,7 +379,7 @@ SPStreamEvent newUpdateSilentRestartNeeded() {
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newUpdateIsLatestVersion() {
+SPStreamEvent newUpdateIsLatestVersionEvent() {
     auto event = new grpc::UpdateIsLatestVersion;
     auto updateEvent = new grpc::UpdateEvent;
     updateEvent->set_allocated_islatestversion(event);
@@ -390,10 +390,21 @@ SPStreamEvent newUpdateIsLatestVersion() {
 //****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
-SPStreamEvent newUpdateCheckFinished() {
+SPStreamEvent newUpdateCheckFinishedEvent() {
     auto event = new grpc::UpdateCheckFinished;
     auto updateEvent = new grpc::UpdateEvent;
     updateEvent->set_allocated_checkfinished(event);
+    return wrapUpdateEvent(updateEvent);
+}
+
+
+//****************************************************************************************************************************************************
+/// \return The event.
+//****************************************************************************************************************************************************
+SPStreamEvent newUpdateVersionChangedEvent() {
+    auto event = new grpc::UpdateVersionChanged;
+    auto updateEvent = new grpc::UpdateEvent;
+    updateEvent->set_allocated_versionchanged(event);
     return wrapUpdateEvent(updateEvent);
 }
 

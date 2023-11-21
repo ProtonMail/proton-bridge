@@ -51,9 +51,10 @@ SPStreamEvent newUpdateErrorEvent(grpc::UpdateErrorType errorType); ///< Create 
 SPStreamEvent newUpdateManualReadyEvent(QString const &version); ///< Create a new UpdateManualReadyEvent event.
 SPStreamEvent newUpdateManualRestartNeededEvent(); ///< Create a new UpdateManualRestartNeededEvent event.
 SPStreamEvent newUpdateForceEvent(QString const &version); ///< Create a new UpdateForceEvent event.
-SPStreamEvent newUpdateSilentRestartNeeded(); ///< Create a new UpdateSilentRestartNeeded event.
-SPStreamEvent newUpdateIsLatestVersion(); ///< Create a new UpdateIsLatestVersion event.
-SPStreamEvent newUpdateCheckFinished(); ///< Create a new UpdateCheckFinished event.
+SPStreamEvent newUpdateSilentRestartNeededEvent(); ///< Create a new UpdateSilentRestartNeeded event.
+SPStreamEvent newUpdateIsLatestVersionEvent(); ///< Create a new UpdateIsLatestVersion event.
+SPStreamEvent newUpdateCheckFinishedEvent(); ///< Create a new UpdateCheckFinished event.
+SPStreamEvent newUpdateVersionChangedEvent(); ///< Create a new updateVersionChanged event.
 
 // Cache on disk related events
 SPStreamEvent newDiskCacheErrorEvent(grpc::DiskCacheErrorType errorType); ///< Create a new DiskCacheErrorEvent event.

@@ -55,6 +55,21 @@ SettingsTab::SettingsTab(QWidget *parent)
             newNoActiveKeyForRecipientEvent(ui_.editNoActiveKeyForRecipient->text()));
     });
     connect(ui_.checkNextCacheChangeWillSucceed, &QCheckBox::toggled, this, &SettingsTab::updateGUIState);
+    connect(ui_.buttonUpdateError, &QPushButton::clicked, [&]() {
+        app().grpc().sendEvent(newUpdateErrorEvent(static_cast<grpc::UpdateErrorType>(ui_.comboUpdateError->currentIndex())));
+    });
+    connect(ui_.buttonUpdateManualReady, &QPushButton::clicked, [&] {
+        app().grpc().sendEvent(newUpdateManualReadyEvent(ui_.editUpdateVersion->text()));
+    });
+    connect(ui_.buttonUpdateForce, &QPushButton::clicked, [&] {
+        app().grpc().sendEvent(newUpdateForceEvent(ui_.editUpdateVersion->text()));
+    });
+    connect(ui_.buttonUpdateManualRestart, &QPushButton::clicked, []() { app().grpc().sendEvent(newUpdateManualRestartNeededEvent()); });
+    connect(ui_.buttonUpdateSilentRestart, &QPushButton::clicked, []() { app().grpc().sendEvent(newUpdateSilentRestartNeededEvent()); });
+    connect(ui_.buttonUpdateIsLatest, &QPushButton::clicked, []() { app().grpc().sendEvent(newUpdateIsLatestVersionEvent()); });
+    connect(ui_.buttonUpdateCheckFinished, &QPushButton::clicked, []() { app().grpc().sendEvent(newUpdateCheckFinishedEvent()); });
+    connect(ui_.buttonUpdateVersionChanged, &QPushButton::clicked, []() { app().grpc().sendEvent(newUpdateVersionChangedEvent()); });
+
     this->resetUI();
     this->updateGUIState();
 }
