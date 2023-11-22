@@ -520,7 +520,7 @@ QtObject {
         icon: "./icons/ic-exclamation-circle-filled.svg"
         linkText: qsTr("Learn more about IMAP login issues")
         linkUrl: "https://proton.me/support/bridge-imap-login-failed"
-        title: qsTr("IMAP Login failed")
+        title: qsTr("IMAP login failed")
         type: Notification.NotificationType.Danger
 
         action: [
