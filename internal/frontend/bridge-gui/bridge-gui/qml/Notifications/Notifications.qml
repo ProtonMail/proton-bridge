@@ -617,7 +617,7 @@ QtObject {
         brief: title
         description: Backend.goos === "darwin" ?
             qsTr("Bridge is not able to access your keychain. Please make sure your keychain is not locked and restart the application.") :
-            qsTr("Bridge is not able to detect a supported password manager (pass or secret-service). Please install and setup supported password manager and restart the application.")
+            qsTr("Bridge is not able to detect a supported password manager (pass or secret-service). Please install and setup a supported password manager and restart the application.")
         group: Notifications.Group.Dialogs | Notifications.Group.Configuration
         icon: "./icons/ic-exclamation-circle-filled.svg"
         title: Backend.goos === "darwin" ? qsTr("Cannot access keychain") : qsTr("No keychain available")
