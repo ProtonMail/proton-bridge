@@ -132,12 +132,6 @@ Popup {
                         text: root.notification ? root.notification.linkText : ""
                         visible: root.notification && root.notification.linkUrl.length > 0
                     }
-                   //  Label {
-                   //      color: root.colorScheme.text_invert
-                   //      colorScheme: root.colorScheme
-                   //      text: "Youpi!"
-                   //      wrapMode: Text.WordWrap
-                   // }
                 }
             }
         }
