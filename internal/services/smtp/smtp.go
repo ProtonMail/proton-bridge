@@ -102,7 +102,7 @@ func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, 
 		}
 	}
 
-	if !fromAddr.Send {
+	if !fromAddr.Send || fromAddr.Status != proton.AddressStatusEnabled {
 		s.log.Errorf("Can't send emails on address: %v", fromAddr.Email)
 		return &ErrCanNotSendOnAddress{address: fromAddr.Email}
 	}

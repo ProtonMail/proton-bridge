@@ -1,6 +1,7 @@
 Feature: SMTP wrong messages
   Background:
     Given there exists an account with username "[user:user]" and password "password"
+    And the account "[user:user]" has additional disabled address "[user:disabled]@[domain]"
     And there exists an account with username "[user:to]" and password "password"
     Then it succeeds
     When bridge starts
@@ -54,4 +55,14 @@ Feature: SMTP wrong messages
       hello
 
       """
-    Then it fails
+    Then it fails with error "invalid return path"
+
+ Scenario: Send from a valid address that cannot send
+   When SMTP client "1" sends the following message from "[user:disabled]@[domain]" to "[user:to]@[domain]":
+     """
+     From: Bridge Test Disabled <[user:disabled]@[domain]>
+     To: Internal Bridge <[user:to]@[domain]>
+
+     Hello
+     """
+   And it fails with error "Error: can't send on address: [user:disabled]@[domain]"
