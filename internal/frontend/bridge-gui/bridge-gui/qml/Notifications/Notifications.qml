@@ -33,9 +33,10 @@ QtObject {
         description: qsTr("The address list for your account has changed. You might need to reconfigure your email client.")
         group: Notifications.Group.Configuration
         icon: "./icons/ic-exclamation-circle-filled.svg"
+        linkText: qsTr("Learn more about address list changes")
+        linkUrl: "https://proton.me/support/bridge-address-list-has-changed"
         title: qsTr("Address list changes")
         type: Notification.NotificationType.Warning
-
         action: [
             Action {
                 text: qsTr("OK")
@@ -90,8 +91,8 @@ QtObject {
         description: qsTr("Bridge cannot verify the authenticity of Proton servers on your current network due to a TLS certificate error. Start Bridge again after ensuring your connection is secure and/or connecting to a VPN.")
         group: Notifications.Group.Dialogs | Notifications.Group.Connection
         icon: "./icons/ic-exclamation-circle-filled.svg"
-        linkUrl: "https://proton.me/blog/tls-ssl-certificate#Extra-security-precautions-taken-by-ProtonMail"
         linkText: qsTr("Learn mode about TLS pinning")
+        linkUrl: "https://proton.me/blog/tls-ssl-certificate#Extra-security-precautions-taken-by-ProtonMail"
         title: qsTr("Unable to establish a \nsecure connection to \nProton servers")
         type: Notification.NotificationType.Danger
 
@@ -193,6 +194,8 @@ QtObject {
         description: qsTr("The location you have selected is not available. Make sure you have enough free space or choose another location.")
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
         icon: "./icons/ic-exclamation-circle-filled.svg"
+        linkText: qsTr("Learn more about cache relocation issues")
+        linkUrl: "https://proton.me/support/bridge-cant-move-cache"
         title: qsTr("Can’t move cache")
         type: Notification.NotificationType.Warning
 
@@ -367,6 +370,8 @@ QtObject {
         description: qsTr("Changing between split and combined address mode will require you to delete your account(s) from your email client and begin the setup process from scratch.")
         group: Notifications.Group.Configuration | Notifications.Group.Dialogs
         icon: "./icons/ic-question-circle.svg"
+        linkText: qsTr("Learn more about split mode")
+        linkUrl: "https://proton.me/support/difference-combined-addresses-mode-split-addresses-mode"
         title: qsTr("Enable split mode?")
         type: Notification.NotificationType.Warning
 
@@ -513,6 +518,8 @@ QtObject {
         description: "#PlaceHolderText"
         group: Notifications.Group.Connection
         icon: "./icons/ic-exclamation-circle-filled.svg"
+        linkText: qsTr("Learn more about IMAP login issues")
+        linkUrl: "https://proton.me/support/bridge-imap-login-failed"
         title: qsTr("IMAP Login failed")
         type: Notification.NotificationType.Danger
 
@@ -540,6 +547,8 @@ QtObject {
         description: qsTr("The IMAP port could not be changed.")
         group: Notifications.Group.Connection
         icon: "./icons/ic-alert.svg"
+        linkText: qsTr("Learn more about IMAP port issues")
+        linkUrl: "https://proton.me/support/port-already-occupied-error"
         type: Notification.NotificationType.Danger
 
         Connections {
@@ -555,6 +564,8 @@ QtObject {
         description: qsTr("The IMAP server could not be started. Please check or change the IMAP port.")
         group: Notifications.Group.Connection
         icon: "./icons/ic-alert.svg"
+        linkText: qsTr("Learn more about IMAP port issues")
+        linkUrl: "https://proton.me/support/port-already-occupied-error"
         type: Notification.NotificationType.Danger
 
         Connections {
@@ -600,8 +611,8 @@ QtObject {
         group: Notifications.Group.Connection
         icon: "./icons/ic-no-connection.svg"
         type: Notification.NotificationType.Danger
-        linkUrl: "https://proton.me/support/bridge"
         linkText: qsTr("What happens with my messages when internet is down?")
+        linkUrl: "https://proton.me/support/bridge"
         Connections {
             function onInternetOff() {
                 root.noInternet.active = true;
@@ -620,6 +631,8 @@ QtObject {
             qsTr("Bridge is not able to detect a supported password manager (pass or secret-service). Please install and setup a supported password manager and restart the application.")
         group: Notifications.Group.Dialogs | Notifications.Group.Configuration
         icon: "./icons/ic-exclamation-circle-filled.svg"
+        linkText: qsTr("Learn more about keychain issues")
+        linkUrl: "https://proton.me/support/bridge-cannot-access-keychain"
         title: Backend.goos === "darwin" ? qsTr("Cannot access keychain") : qsTr("No keychain available")
         type: Notification.NotificationType.Danger
 
@@ -780,6 +793,8 @@ QtObject {
         description: qsTr("The SMTP port could not be changed.")
         group: Notifications.Group.Connection
         icon: "./icons/ic-alert.svg"
+        linkText: qsTr("Learn more about SMTP port issues")
+        linkUrl: "https://proton.me/support/port-already-occupied-error"
         type: Notification.NotificationType.Danger
 
         Connections {
@@ -795,6 +810,8 @@ QtObject {
         description: qsTr("The SMTP server could not be started. Please check or change the SMTP port.")
         group: Notifications.Group.Connection
         icon: "./icons/ic-alert.svg"
+        linkText: qsTr("Learn more about SMTP port issues")
+        linkUrl: "https://proton.me/support/port-already-occupied-error"
         type: Notification.NotificationType.Danger
 
         Connections {
@@ -856,6 +873,8 @@ QtObject {
         description: qsTr("You must update manually. Go to: https://proton.me/mail/bridge#download")
         group: Notifications.Group.Update | Notifications.Group.Dialogs
         icon: "./icons/ic-exclamation-circle-filled.svg"
+        linkText: qsTr("Learn more about Bridge updates")
+        linkUrl: "https://proton.me/support/protonmail-bridge-manual-update"
         title: qsTr("Bridge couldn't update")
         type: Notification.NotificationType.Danger
 
@@ -914,6 +933,8 @@ QtObject {
         description: qsTr("Please follow manual installation in order to update Bridge.")
         group: Notifications.Group.Update
         icon: "./icons/ic-exclamation-circle-filled.svg"
+        linkText: qsTr("Learn more about Bridge updates")
+        linkUrl: "https://proton.me/support/protonmail-bridge-manual-update"
         title: qsTr("Bridge couldn’t update")
         type: Notification.NotificationType.Warning
 
@@ -1025,6 +1046,8 @@ QtObject {
         description: qsTr("Bridge couldn't update")
         group: Notifications.Group.Update
         icon: "./icons/ic-exclamation-circle-filled.svg"
+        linkText: qsTr("Learn more about Bridge updates")
+        linkUrl: "https://proton.me/support/protonmail-bridge-manual-update"
         type: Notification.NotificationType.Warning
 
         action: Action {
@@ -1075,6 +1098,8 @@ QtObject {
         description: "#PlaceHolderText"
         group: Notifications.Group.Connection | Notifications.Group.Dialogs
         icon: "./icons/ic-exclamation-circle-filled.svg"
+        linkText: qsTr("Learn more about internal errors")
+        linkUrl: "https://proton.me/support/bridge-internal-error"
         title: qsTr("Internal error")
         type: Notification.NotificationType.Danger
 
