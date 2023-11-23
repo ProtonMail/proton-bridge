@@ -938,6 +938,18 @@ func clientChangeMessageState(client *client.Client, seq int, messageState strin
 		if err != nil {
 			return err
 		}
+
+	case messageState == "replied":
+		_, err := clientStore(client, seq, seq, isUID, imap.FormatFlagsOp(imap.AddFlags, true), imap.AnsweredFlag)
+		if err != nil {
+			return err
+		}
+
+	case messageState == "unreplied":
+		_, err := clientStore(client, seq, seq, isUID, imap.FormatFlagsOp(imap.RemoveFlags, true), imap.AnsweredFlag)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -30,3 +30,22 @@ Feature: IMAP marks messages as forwarded
     And it succeeds
     Then IMAP client "1" eventually sees that message at row 1 does not have the flag "forwarded"
     And it succeeds
+
+  Scenario: Mark message as replied
+    When IMAP client "1" selects "Folders/mbox"
+    And IMAP client "1" marks message 1 as "replied"
+    And it succeeds
+    Then IMAP client "1" eventually sees that message at row 1 has the flag "\Answered"
+    And it succeeds
+
+  @regression
+  Scenario: Mark message as replied and then revert
+    When IMAP client "1" selects "Folders/mbox"
+    And IMAP client "1" marks message 1 as "replied"
+    And it succeeds
+    Then IMAP client "1" eventually sees that message at row 1 has the flag "\Answered"
+    And it succeeds
+    And IMAP client "1" marks message 1 as "unreplied"
+    And it succeeds
+    Then IMAP client "1" eventually sees that message at row 1 does not have the flag "\Answered"
+    And it succeeds
