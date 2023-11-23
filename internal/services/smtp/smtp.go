@@ -138,7 +138,11 @@ func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, 
 				return fmt.Errorf("failed to get public key: %w", err)
 			}
 
-			parser.AttachPublicKey(pubKey, fmt.Sprintf("publickey - %v - %v", addrKR.GetIdentities()[0].Name, key.GetFingerprint()[:8]))
+			parser.AttachPublicKey(pubKey, fmt.Sprintf(
+				"publickey - %v - 0x%v",
+				addrKR.GetIdentities()[0].Name,
+				strings.ToUpper(key.GetFingerprint()[:8]),
+			))
 		}
 
 		// Parse the message we want to send (after we have attached the public key).

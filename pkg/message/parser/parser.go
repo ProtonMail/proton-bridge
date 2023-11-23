@@ -18,8 +18,8 @@
 package parser
 
 import (
-	"fmt"
 	"io"
+	"mime"
 	"strings"
 
 	"github.com/emersion/go-message"
@@ -70,10 +70,12 @@ func (p *Parser) Root() *Part {
 }
 
 func (p *Parser) AttachPublicKey(key, keyName string) {
-	h := message.Header{}
+	encName := mime.QEncoding.Encode("utf-8", keyName+".asc")
+	params := map[string]string{"name": encName, "filename": encName}
 
-	h.Set("Content-Type", fmt.Sprintf(`application/pgp-keys; name="%v.asc"; filename="%v.asc"`, keyName, keyName))
-	h.Set("Content-Disposition", fmt.Sprintf(`attachment; name="%v.asc"; filename="%v.asc"`, keyName, keyName))
+	h := message.Header{}
+	h.Set("Content-Type", mime.FormatMediaType("application/pgp-keys", params))
+	h.Set("Content-Disposition", mime.FormatMediaType("attachment", params))
 	h.Set("Content-Transfer-Encoding", "base64")
 
 	p.Root().AddChild(&Part{
