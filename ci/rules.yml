@@ -1,0 +1,32 @@
+
+---
+
+.rules-branch-and-MR-manual:
+  rules:
+    - if: $CI_COMMIT_BRANCH ||  $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
+    - when: never
+
+.rules-branch-manual-MR-and-devel-always:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "devel" || $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+      allow_failure: false
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+      allow_failure: true
+    - when: never
+
+.rules-branch-manual-scheduled-and-test-branch-always:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: always
+      allow_failure: false
+    - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME=~ /^test/
+      when: always
+      allow_failure: false
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+      allow_failure: true
+    - when: never

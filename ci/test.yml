@@ -1,0 +1,109 @@
+
+---
+
+lint:
+  stage: test
+  extends:
+    - .rules-branch-manual-MR-and-devel-always
+  script:
+    - make lint
+  tags:
+    - shared-medium
+
+bug-report-preview:
+  stage: test
+  extends:
+    - .rules-branch-and-MR-manual
+  script:
+    - make lint-bug-report-preview
+  tags:
+    - shared-medium
+
+.script-test:
+  stage: test
+  extends:
+    - .rules-branch-manual-MR-and-devel-always
+  script:
+    - make test
+  artifacts:
+    paths:
+      - coverage/**
+
+test-linux:
+  extends:
+    - .script-test
+  tags:
+    - shared-large
+
+fuzz-linux:
+  stage: test
+  extends:
+    - .rules-branch-manual-MR-and-devel-always
+  script:
+    - make fuzz
+  tags:
+    - shared-large
+
+test-linux-race:
+  extends:
+    - test-linux
+    - .rules-branch-and-MR-manual
+  script:
+    - make test-race
+
+test-integration:
+  extends:
+    - test-linux
+  script:
+    - make test-integration
+
+test-integration-race:
+  extends:
+    - test-integration
+    - .rules-branch-and-MR-manual
+  script:
+    - make test-integration-race
+
+test-integration-nightly:
+  extends:
+    - test-integration
+    - .rules-branch-manual-scheduled-and-test-branch-always
+  needs:
+    - test-integration
+  script:
+    - make test-integration-nightly
+
+test-windows:
+  extends:
+    - .env-windows
+    - .script-test
+
+test-darwin:
+  extends:
+    - .env-darwin
+    - .script-test
+
+test-coverage:
+  stage: test
+  extends:
+    - .rules-branch-manual-scheduled-and-test-branch-always
+  script:
+    - ./utils/coverage.sh
+  coverage: '/total:.*\(statements\).*\d+\.\d+%/'
+  needs:
+    - test-linux
+    - test-windows
+    - test-darwin
+    - test-integration
+    - test-integration-nightly
+  tags:
+    - shared-small
+  artifacts:
+    paths:
+      - coverage*
+      - coverage/**
+    when: 'always'
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
