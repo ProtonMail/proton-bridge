@@ -4,7 +4,7 @@
 lint:
   stage: test
   extends:
-    - .rules-branch-manual-MR-and-devel-always
+    - .rules-branch-manual-br-tag-and-MR-and-devel-always
   script:
     - make lint
   tags:
