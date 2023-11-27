@@ -36,7 +36,7 @@ SettingsView {
         type: SettingsItem.PrimaryButton
 
         onClicked: {
-            Backend.openKBArticle();
+            Backend.openExternalLink();
         }
     }
     SettingsItem {
@@ -70,7 +70,7 @@ SettingsView {
         text: qsTr("Logs")
         type: SettingsItem.Button
 
-        onClicked: Qt.openUrlExternally(Backend.logsPath)
+        onClicked: Backend.openExternalLink(Backend.logsPath)
     }
     SettingsItem {
         id: reportBug
@@ -103,7 +103,7 @@ SettingsView {
         type: Label.Caption
 
         onLinkActivated: function (link) {
-            Qt.openUrlExternally(link)
+            Backend.openExternalLink(link)
         }
     }
 }

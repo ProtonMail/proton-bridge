@@ -194,7 +194,7 @@ signals:
 public: // telemetry related calls
     grpc::Status reportBugClicked();  ///< Performs the 'reportBugClicked' call.
     grpc::Status autoconfigClicked(QString const &userID); ///< Performs the 'AutoconfigClicked' call.
-    grpc::Status KBArticleClicked(QString const &userID); ///< Performs the 'KBArticleClicked' call.
+    grpc::Status externalLinkClicked(QString const &userID); ///< Performs the 'KBArticleClicked' call.
 
 public: // keychain related calls
     grpc::Status availableKeychains(QStringList &outKeychains);

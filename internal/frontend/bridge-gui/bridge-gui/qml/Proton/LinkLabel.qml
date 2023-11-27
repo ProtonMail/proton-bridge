@@ -55,7 +55,7 @@ RowLayout {
         type: Label.LabelType.Body
         onLinkActivated: function (link) {
             if ((link !== "#") && (link.length > 0)) {
-                Qt.openUrlExternally(link);
+                Backend.openExternalLink(link);
             }
             if (callback) {
                 callback();

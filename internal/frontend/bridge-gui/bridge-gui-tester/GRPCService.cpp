@@ -817,7 +817,7 @@ Status GRPCService::InstallTLSCertificate(ServerContext *, Empty const *, Empty 
 //****************************************************************************************************************************************************
 /// \param[in] request The request.
 //****************************************************************************************************************************************************
-Status GRPCService::KBArticleClicked(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) {
+Status GRPCService::ExternalLinkClicked(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) {
     app().log().debug(QString("%1 - URL = %2").arg(__FUNCTION__, QString::fromStdString(request->value())));
     return Status::OK;
 }

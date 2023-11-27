@@ -49,7 +49,7 @@ Button {
             text: qsTr("Get help")
 
             onClicked: {
-                Backend.openKBArticle();
+                Backend.openExternalLink();
             }
         }
         MenuItem {

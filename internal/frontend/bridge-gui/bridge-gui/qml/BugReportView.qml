@@ -113,7 +113,7 @@ SettingsView {
             secondary: true
             text: qsTr("View logs")
 
-            onClicked: Qt.openUrlExternally(Backend.logsPath)
+            onClicked: Backend.openExternalLink(Backend.logsPath)
         }
     }
     TextEdit {

@@ -98,7 +98,7 @@ public: // member functions.
     grpc::Status ExportTLSCertificates(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) override;
     grpc::Status ReportBugClicked(::grpc::ServerContext *context, ::google::protobuf::Empty const *request, ::google::protobuf::Empty *) override;
     grpc::Status AutoconfigClicked(::grpc::ServerContext *context, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) override;
-    grpc::Status KBArticleClicked(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) override;
+    grpc::Status ExternalLinkClicked(::grpc::ServerContext *, ::google::protobuf::StringValue const *request, ::google::protobuf::Empty *) override;
     grpc::Status RunEventStream(::grpc::ServerContext *ctx, ::grpc::EventStreamRequest const *request, ::grpc::ServerWriter<::grpc::StreamEvent> *writer) override;
     grpc::Status StopEventStream(::grpc::ServerContext *, ::google::protobuf::Empty const *, ::google::protobuf::Empty *) override;
     bool sendEvent(bridgepp::SPStreamEvent const &event); ///< Queue an event for sending through the event stream.

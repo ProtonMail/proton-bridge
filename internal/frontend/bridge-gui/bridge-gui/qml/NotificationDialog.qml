@@ -71,7 +71,7 @@ Dialog {
             wrapMode: Text.WordWrap
 
             onLinkActivated: function (link) {
-                Qt.openUrlExternally(link);
+                Backend.openExternalLink(link);
             }
         }
         Item {

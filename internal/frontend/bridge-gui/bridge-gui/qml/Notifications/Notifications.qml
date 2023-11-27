@@ -673,7 +673,7 @@ QtObject {
                 text: qsTr("Upgrade")
 
                 onTriggered: {
-                    Qt.openUrlExternally(root.onlyPaidUsers.pricingLink);
+                    Backend.openExternalLink(root.onlyPaidUsers.pricingLink);
                     root.onlyPaidUsers.active = false;
                 }
             }
@@ -700,7 +700,7 @@ QtObject {
                 text: qsTr("Open the support page")
 
                 onTriggered: {
-                    Backend.openKBArticle();
+                    Backend.openExternalLink();
                     Backend.quit();
                 }
             }
@@ -841,7 +841,7 @@ QtObject {
                 text: qsTr("Update manually")
 
                 onTriggered: {
-                    Qt.openUrlExternally(Backend.landingPageLink);
+                    Backend.openExternalLink(Backend.landingPageLink);
                     root.updateForce.active = false;
                 }
             },
@@ -881,7 +881,7 @@ QtObject {
                 text: qsTr("Update manually")
 
                 onTriggered: {
-                    Qt.openUrlExternally(Backend.landingPageLink);
+                    Backend.openExternalLink(Backend.landingPageLink);
                     root.updateForceError.active = false;
                 }
             },
@@ -941,7 +941,7 @@ QtObject {
                 text: qsTr("Update manually")
 
                 onTriggered: {
-                    Qt.openUrlExternally(Backend.landingPageLink);
+                    Backend.openExternalLink(Backend.landingPageLink);
                     root.updateManualError.active = false;
                     Backend.quit();
                 }
@@ -991,7 +991,7 @@ QtObject {
                 text: qsTr("Update manually")
 
                 onTriggered: {
-                    Qt.openUrlExternally(Backend.landingPageLink);
+                    Backend.openExternalLink(Backend.landingPageLink);
                     root.updateManualReady.active = false;
                 }
             },
@@ -1052,7 +1052,7 @@ QtObject {
             text: qsTr("Update manually")
 
             onTriggered: {
-                Qt.openUrlExternally(Backend.landingPageLink);
+                Backend.openExternalLink(Backend.landingPageLink);
                 root.updateSilentError.active = false;
             }
         }

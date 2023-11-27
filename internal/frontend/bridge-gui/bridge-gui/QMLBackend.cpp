@@ -294,11 +294,11 @@ bool QMLBackend::isTLSCertificateInstalled() {
 //****************************************************************************************************************************************************
 /// \param[in] url The URL of the knowledge base article. If empty/invalid, the home page for the Bridge knowledge base is opened.
 //****************************************************************************************************************************************************
-void QMLBackend::openKBArticle(QString const &url) {
+void QMLBackend::openExternalLink(QString const &url) {
     HANDLE_EXCEPTION(
         QString const u = url.isEmpty() ? bridgeKBUrl : url;
         QDesktopServices::openUrl(u);
-        emit notifyKBArticleClicked(u);
+        emit notifyExternalLinkClicked(u);
     )
 }
 
@@ -1062,9 +1062,9 @@ void QMLBackend::notifyAutoconfigClicked(QString const &client) const {
 //****************************************************************************************************************************************************
 /// \param[in] article The url of the KB article.
 //****************************************************************************************************************************************************
-void QMLBackend::notifyKBArticleClicked(QString const &article) const {
+void QMLBackend::notifyExternalLinkClicked(QString const &article) const {
     HANDLE_EXCEPTION(
-            app().grpc().KBArticleClicked(article);
+            app().grpc().externalLinkClicked(article);
     )
 }
 

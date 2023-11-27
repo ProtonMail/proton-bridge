@@ -37,10 +37,10 @@ func (bridge *Bridge) AutoconfigUsed(client string) {
 	}, bridge.usersLock)
 }
 
-func (bridge *Bridge) KBArticleOpened(article string) {
+func (bridge *Bridge) ExternalLinkClicked(article string) {
 	safe.RLock(func() {
 		for _, user := range bridge.users {
-			user.KBArticleOpened(article)
+			user.ExternalLinkClicked(article)
 		}
 	}, bridge.usersLock)
 }

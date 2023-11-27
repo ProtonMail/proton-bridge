@@ -65,7 +65,7 @@ public: // member functions.
     Q_INVOKABLE QString collectAnswers(quint8 categoryId) const; ///< Collect answer for a given set of questions.
     Q_INVOKABLE void clearAnswers(); ///< Clear all collected answers.
     Q_INVOKABLE bool isTLSCertificateInstalled(); ///< Check if the bridge certificate is installed in the OS keychain.
-    Q_INVOKABLE void openKBArticle(QString const & url = QString()); ///< Open a knowledge base article.
+    Q_INVOKABLE void openExternalLink(QString const & url = QString()); ///< Open a knowledge base article.
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
     Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)
@@ -205,7 +205,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void sendBadEventUserFeedback(QString const &userID, bool doResync); ///< Slot the providing user feedback for a bad event.
     void notifyReportBugClicked() const; ///< Slot for the ReportBugClicked gRPC event.
     void notifyAutoconfigClicked(QString const &client) const; ///< Slot for gAutoconfigClicked gRPC event.
-    void notifyKBArticleClicked(QString const &article) const; ///< Slot for KBArticleClicked gRPC event.
+    void notifyExternalLinkClicked(QString const &article) const; ///< Slot for KBArticleClicked gRPC event.
 
 public slots: // slots for functions that need to be processed locally.
     void setNormalTrayIcon(); ///< Set the tray icon to normal.

@@ -34,7 +34,7 @@ func (s *Service) AutoconfigClicked(_ context.Context, client *wrapperspb.String
 	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) KBArticleClicked(_ context.Context, article *wrapperspb.StringValue) (*emptypb.Empty, error) {
-	s.bridge.KBArticleOpened(article.Value)
+func (s *Service) ExternalLinkClicked(_ context.Context, article *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	s.bridge.ExternalLinkClicked(article.Value)
 	return &emptypb.Empty{}, nil
 }
