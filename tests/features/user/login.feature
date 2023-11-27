@@ -1,14 +1,14 @@
 Feature: A user can login
   Background:
-    Given there exists an account with username "[user:user]" and password "password"
-    And there exists an account with username "[user:MixedCaps]" and password "password"
-    And there exists a disabled account with username "[user:disabled]" and password "password"
+    Given there exists an account with username "[user:user]" and password "password2"
+    And there exists an account with username "[user:MixedCaps]" and password "password3"
+    And there exists a disabled account with username "[user:disabled]" and password "password4"
     Then it succeeds
     And bridge starts
     Then it succeeds
 
   Scenario: Login to account
-    When the user logs in with username "[user:user]" and password "password"
+    When the user logs in with username "[user:user]" and password "password2"
     Then user "[user:user]" is eventually listed and connected
 
   Scenario: Login to account with wrong password
@@ -21,19 +21,19 @@ Feature: A user can login
 
   Scenario: Login to account without internet
     Given the internet is turned off
-    When the user logs in with username "[user:user]" and password "password"
+    When the user logs in with username "[user:user]" and password "password2"
     Then user "[user:user]" is not listed
 
   Scenario: Login to account with caps
-    When the user logs in with username "[user:MixedCaps]" and password "password"
+    When the user logs in with username "[user:MixedCaps]" and password "password3"
     Then user "[user:MixedCaps]" is eventually listed and connected
 
   Scenario: Login to account with disabled primary
-    When the user logs in with username "[user:disabled]" and password "password"
+    When the user logs in with username "[user:disabled]" and password "password4"
     Then user "[user:disabled]" is eventually listed and connected
 
   Scenario: Login to account without internet but the connection is later restored
-    When the user logs in with username "[user:user]" and password "password"
+    When the user logs in with username "[user:user]" and password "password2"
     And bridge stops
     And the internet is turned off
     And bridge starts
@@ -42,7 +42,7 @@ Feature: A user can login
 
   Scenario: Login to multiple accounts
     Given there exists an account with username "[user:additional]" and password "password"
-    When the user logs in with username "[user:user]" and password "password"
+    When the user logs in with username "[user:user]" and password "password2"
     And the user logs in with username "[user:additional]" and password "password"
     Then user "[user:user]" is eventually listed and connected
     And user "[user:additional]" is eventually listed and connected
