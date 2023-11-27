@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/frontend/theme"
+	"github.com/ProtonMail/proton-bridge/v3/internal/kb"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
@@ -371,6 +372,23 @@ func (s *Service) SetMainExecutable(_ context.Context, exe *wrapperspb.StringVal
 	s.log.WithField("executable", exe.Value).Debug("SetMainExecutable")
 
 	s.restarter.AddFlags("--wait", exe.Value)
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s *Service) RequestKnowledgeBaseSuggestions(_ context.Context, userInput *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	s.log.Debug("RequestKnowledgeBaseSuggestions")
+	go func() {
+		defer async.HandlePanic(s.panicHandler)
+
+		articles, err := s.bridge.GetKnowledgeBaseSuggestions(userInput.Value)
+		if err != nil {
+			s.log.WithError(err).Error("Could not retrieve KB article suggestions")
+			articles = kb.ArticleList{}
+		}
+
+		_ = s.SendEvent(NewRequestKnowledgeBaseSuggestionsEvent(articles))
+	}()
 
 	return &emptypb.Empty{}, nil
 }

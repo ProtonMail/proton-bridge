@@ -58,6 +58,7 @@ service Bridge {
   rpc ReportBug(ReportBugRequest) returns (google.protobuf.Empty);
   rpc ForceLauncher(google.protobuf.StringValue) returns (google.protobuf.Empty);
   rpc SetMainExecutable(google.protobuf.StringValue) returns (google.protobuf.Empty);
+  rpc RequestKnowledgeBaseSuggestions(google.protobuf.StringValue) returns (google.protobuf.Empty);
 
   // login
   rpc Login(LoginRequest) returns (google.protobuf.Empty);
@@ -269,6 +270,7 @@ message AppEvent {
     CertificateInstallSuccessEvent certificateInstallSuccess = 9;
     CertificateInstallCanceledEvent certificateInstallCanceled = 10;
     CertificateInstallFailedEvent certificateInstallFailed = 11;
+    KnowledgeBaseSuggestionsEvent knowledgeBaseSuggestions = 12;
   }
 }
 
@@ -286,6 +288,15 @@ message ReportBugFallbackEvent {}
 message CertificateInstallSuccessEvent {}
 message CertificateInstallCanceledEvent {}
 message CertificateInstallFailedEvent {}
+
+message KnowledgeBaseSuggestion {
+  string url = 1;
+  string title = 2;
+}
+
+message KnowledgeBaseSuggestionsEvent {
+  repeated KnowledgeBaseSuggestion suggestions = 1;
+}
 
 //**********************************************************
 // Login related events
@@ -477,6 +488,7 @@ message UserEvent {
     SyncProgressEvent syncProgressEvent = 9;
   }
 }
+
 
 message ToggleSplitModeFinishedEvent {
   string userID = 1;

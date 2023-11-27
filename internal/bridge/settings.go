@@ -22,6 +22,7 @@ import (
 	"fmt"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/proton-bridge/v3/internal/kb"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
@@ -308,6 +309,10 @@ func (bridge *Bridge) GetColorScheme() string {
 
 func (bridge *Bridge) SetColorScheme(colorScheme string) error {
 	return bridge.vault.SetColorScheme(colorScheme)
+}
+
+func (bridge *Bridge) GetKnowledgeBaseSuggestions(userInput string) (kb.ArticleList, error) {
+	return kb.GetSuggestions(userInput)
 }
 
 // FactoryReset deletes all users, wipes the vault, and deletes all files.

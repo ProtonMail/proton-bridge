@@ -569,6 +569,14 @@ grpc::Status GRPCClient::hostname(QString &outHostname) {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] input The user input to analyze.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::RequestKnowledgeBaseSuggestions(QString const &input) {
+    return this->logGRPCCallStatus(this->setString(&Bridge::Stub::RequestKnowledgeBaseSuggestions, input), __FUNCTION__);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[out] outPath The value for the property.
 /// \return The status for the gRPC call.
 //****************************************************************************************************************************************************
@@ -1164,6 +1172,19 @@ void GRPCClient::processAppEvent(AppEvent const &event) {
         this->logTrace("App event received: CertificateInstallFailed.");
         emit certificateInstallFailed();
         break;
+    case AppEvent::kKnowledgeBaseSuggestions:
+    {
+        this->logTrace("App event received: KnowledgeBaseSuggestions.");
+        QList<KnowledgeBaseSuggestion> suggestions;
+        for (grpc::KnowledgeBaseSuggestion const &suggestion: event.knowledgebasesuggestions().suggestions()) {
+            suggestions.push_back(KnowledgeBaseSuggestion{
+                .url = QString::fromUtf8(suggestion.url()),
+                .title = QString::fromUtf8(suggestion.title())
+            });
+        }
+        emit knowledgeBasSuggestions(suggestions);
+        break;
+    }
     default:
         this->logError("Unknown App event received.");
     }

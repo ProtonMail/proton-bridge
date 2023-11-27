@@ -21,6 +21,7 @@ import (
 	"context"
 
 	"github.com/ProtonMail/gluon/async"
+	"github.com/ProtonMail/proton-bridge/v3/internal/kb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -122,6 +123,7 @@ func (s *Service) StartEventTest() error {
 		NewReportBugSuccessEvent(),
 		NewReportBugErrorEvent(),
 		NewShowMainWindowEvent(),
+		NewRequestKnowledgeBaseSuggestionsEvent(kb.ArticleList{}),
 
 		// login
 		NewLoginError(LoginErrorType_FREE_USER, "error"),

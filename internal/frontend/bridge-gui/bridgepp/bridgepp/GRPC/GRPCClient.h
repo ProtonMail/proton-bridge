@@ -43,6 +43,15 @@ typedef std::unique_ptr<grpc::ClientContext> UPClientContext;
 
 
 //****************************************************************************************************************************************************
+/// \brief A struct for knowledge base suggestion.
+//****************************************************************************************************************************************************
+struct KnowledgeBaseSuggestion {
+    QString url; ///< The URL of the knowledge base article
+    QString title; ///< The title of the knowledge base article.
+};
+
+
+//****************************************************************************************************************************************************
 /// \brief gRPC client class. This class encapsulate the gRPC service, abstracting all data type conversions.
 //****************************************************************************************************************************************************
 class GRPCClient : public QObject {
@@ -93,6 +102,7 @@ public: // member functions.
     grpc::Status releaseNotesPageLink(QUrl &outUrl); ///< Performs the 'releaseNotesPageLink' call.
     grpc::Status landingPageLink(QUrl &outUrl); ///< Performs the 'landingPageLink' call.
     grpc::Status hostname(QString &outHostname); ///< Performs the 'Hostname' call.
+    grpc::Status RequestKnowledgeBaseSuggestions(QString const &input); ///< Performs the 'RequestKnowledgeBaseSuggestions' call.
 
 signals: // app related signals
     void internetStatus(bool isOn);
@@ -106,9 +116,10 @@ signals: // app related signals
     void certificateInstallCanceled();
     void certificateInstallFailed();
     void showMainWindow();
+    void knowledgeBasSuggestions(QList<KnowledgeBaseSuggestion> const& suggestions);
 
-    // cache related calls
-public:
+
+public: // cache related calls
     grpc::Status diskCachePath(QUrl &outPath); ///< Performs the 'diskCachePath' call.
     grpc::Status setDiskCachePath(QUrl const &path); ///< Performs the 'setDiskCachePath' call
 
@@ -117,8 +128,8 @@ signals:
     void diskCachePathChanged(QUrl const &path);
     void diskCachePathChangeFinished();
 
-    // mail settings related calls
-public:
+
+public: // mail settings related calls
     grpc::Status mailServerSettings(qint32 &outIMAPPort, qint32 &outSMTPPort, bool &outUseSSLForIMAP, bool &outUseSSLForSMTP); ///< Performs the 'MailServerSettings' gRPC call.
     grpc::Status setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Performs the 'SetMailServerSettings' gRPC call.
     grpc::Status isDoHEnabled(bool &outEnabled); ///< Performs the 'isDoHEnabled' gRPC call.

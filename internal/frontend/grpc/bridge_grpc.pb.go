@@ -38,68 +38,69 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Bridge_CheckTokens_FullMethodName               = "/grpc.Bridge/CheckTokens"
-	Bridge_AddLogEntry_FullMethodName               = "/grpc.Bridge/AddLogEntry"
-	Bridge_GuiReady_FullMethodName                  = "/grpc.Bridge/GuiReady"
-	Bridge_Quit_FullMethodName                      = "/grpc.Bridge/Quit"
-	Bridge_Restart_FullMethodName                   = "/grpc.Bridge/Restart"
-	Bridge_ShowOnStartup_FullMethodName             = "/grpc.Bridge/ShowOnStartup"
-	Bridge_SetIsAutostartOn_FullMethodName          = "/grpc.Bridge/SetIsAutostartOn"
-	Bridge_IsAutostartOn_FullMethodName             = "/grpc.Bridge/IsAutostartOn"
-	Bridge_SetIsBetaEnabled_FullMethodName          = "/grpc.Bridge/SetIsBetaEnabled"
-	Bridge_IsBetaEnabled_FullMethodName             = "/grpc.Bridge/IsBetaEnabled"
-	Bridge_SetIsAllMailVisible_FullMethodName       = "/grpc.Bridge/SetIsAllMailVisible"
-	Bridge_IsAllMailVisible_FullMethodName          = "/grpc.Bridge/IsAllMailVisible"
-	Bridge_SetIsTelemetryDisabled_FullMethodName    = "/grpc.Bridge/SetIsTelemetryDisabled"
-	Bridge_IsTelemetryDisabled_FullMethodName       = "/grpc.Bridge/IsTelemetryDisabled"
-	Bridge_GoOs_FullMethodName                      = "/grpc.Bridge/GoOs"
-	Bridge_TriggerReset_FullMethodName              = "/grpc.Bridge/TriggerReset"
-	Bridge_Version_FullMethodName                   = "/grpc.Bridge/Version"
-	Bridge_LogsPath_FullMethodName                  = "/grpc.Bridge/LogsPath"
-	Bridge_LicensePath_FullMethodName               = "/grpc.Bridge/LicensePath"
-	Bridge_ReleaseNotesPageLink_FullMethodName      = "/grpc.Bridge/ReleaseNotesPageLink"
-	Bridge_DependencyLicensesLink_FullMethodName    = "/grpc.Bridge/DependencyLicensesLink"
-	Bridge_LandingPageLink_FullMethodName           = "/grpc.Bridge/LandingPageLink"
-	Bridge_SetColorSchemeName_FullMethodName        = "/grpc.Bridge/SetColorSchemeName"
-	Bridge_ColorSchemeName_FullMethodName           = "/grpc.Bridge/ColorSchemeName"
-	Bridge_CurrentEmailClient_FullMethodName        = "/grpc.Bridge/CurrentEmailClient"
-	Bridge_ReportBug_FullMethodName                 = "/grpc.Bridge/ReportBug"
-	Bridge_ForceLauncher_FullMethodName             = "/grpc.Bridge/ForceLauncher"
-	Bridge_SetMainExecutable_FullMethodName         = "/grpc.Bridge/SetMainExecutable"
-	Bridge_Login_FullMethodName                     = "/grpc.Bridge/Login"
-	Bridge_Login2FA_FullMethodName                  = "/grpc.Bridge/Login2FA"
-	Bridge_Login2Passwords_FullMethodName           = "/grpc.Bridge/Login2Passwords"
-	Bridge_LoginAbort_FullMethodName                = "/grpc.Bridge/LoginAbort"
-	Bridge_CheckUpdate_FullMethodName               = "/grpc.Bridge/CheckUpdate"
-	Bridge_InstallUpdate_FullMethodName             = "/grpc.Bridge/InstallUpdate"
-	Bridge_SetIsAutomaticUpdateOn_FullMethodName    = "/grpc.Bridge/SetIsAutomaticUpdateOn"
-	Bridge_IsAutomaticUpdateOn_FullMethodName       = "/grpc.Bridge/IsAutomaticUpdateOn"
-	Bridge_DiskCachePath_FullMethodName             = "/grpc.Bridge/DiskCachePath"
-	Bridge_SetDiskCachePath_FullMethodName          = "/grpc.Bridge/SetDiskCachePath"
-	Bridge_SetIsDoHEnabled_FullMethodName           = "/grpc.Bridge/SetIsDoHEnabled"
-	Bridge_IsDoHEnabled_FullMethodName              = "/grpc.Bridge/IsDoHEnabled"
-	Bridge_MailServerSettings_FullMethodName        = "/grpc.Bridge/MailServerSettings"
-	Bridge_SetMailServerSettings_FullMethodName     = "/grpc.Bridge/SetMailServerSettings"
-	Bridge_Hostname_FullMethodName                  = "/grpc.Bridge/Hostname"
-	Bridge_IsPortFree_FullMethodName                = "/grpc.Bridge/IsPortFree"
-	Bridge_AvailableKeychains_FullMethodName        = "/grpc.Bridge/AvailableKeychains"
-	Bridge_SetCurrentKeychain_FullMethodName        = "/grpc.Bridge/SetCurrentKeychain"
-	Bridge_CurrentKeychain_FullMethodName           = "/grpc.Bridge/CurrentKeychain"
-	Bridge_GetUserList_FullMethodName               = "/grpc.Bridge/GetUserList"
-	Bridge_GetUser_FullMethodName                   = "/grpc.Bridge/GetUser"
-	Bridge_SetUserSplitMode_FullMethodName          = "/grpc.Bridge/SetUserSplitMode"
-	Bridge_SendBadEventUserFeedback_FullMethodName  = "/grpc.Bridge/SendBadEventUserFeedback"
-	Bridge_LogoutUser_FullMethodName                = "/grpc.Bridge/LogoutUser"
-	Bridge_RemoveUser_FullMethodName                = "/grpc.Bridge/RemoveUser"
-	Bridge_ConfigureUserAppleMail_FullMethodName    = "/grpc.Bridge/ConfigureUserAppleMail"
-	Bridge_ReportBugClicked_FullMethodName          = "/grpc.Bridge/ReportBugClicked"
-	Bridge_AutoconfigClicked_FullMethodName         = "/grpc.Bridge/AutoconfigClicked"
-	Bridge_ExternalLinkClicked_FullMethodName       = "/grpc.Bridge/ExternalLinkClicked"
-	Bridge_IsTLSCertificateInstalled_FullMethodName = "/grpc.Bridge/IsTLSCertificateInstalled"
-	Bridge_InstallTLSCertificate_FullMethodName     = "/grpc.Bridge/InstallTLSCertificate"
-	Bridge_ExportTLSCertificates_FullMethodName     = "/grpc.Bridge/ExportTLSCertificates"
-	Bridge_RunEventStream_FullMethodName            = "/grpc.Bridge/RunEventStream"
-	Bridge_StopEventStream_FullMethodName           = "/grpc.Bridge/StopEventStream"
+	Bridge_CheckTokens_FullMethodName                     = "/grpc.Bridge/CheckTokens"
+	Bridge_AddLogEntry_FullMethodName                     = "/grpc.Bridge/AddLogEntry"
+	Bridge_GuiReady_FullMethodName                        = "/grpc.Bridge/GuiReady"
+	Bridge_Quit_FullMethodName                            = "/grpc.Bridge/Quit"
+	Bridge_Restart_FullMethodName                         = "/grpc.Bridge/Restart"
+	Bridge_ShowOnStartup_FullMethodName                   = "/grpc.Bridge/ShowOnStartup"
+	Bridge_SetIsAutostartOn_FullMethodName                = "/grpc.Bridge/SetIsAutostartOn"
+	Bridge_IsAutostartOn_FullMethodName                   = "/grpc.Bridge/IsAutostartOn"
+	Bridge_SetIsBetaEnabled_FullMethodName                = "/grpc.Bridge/SetIsBetaEnabled"
+	Bridge_IsBetaEnabled_FullMethodName                   = "/grpc.Bridge/IsBetaEnabled"
+	Bridge_SetIsAllMailVisible_FullMethodName             = "/grpc.Bridge/SetIsAllMailVisible"
+	Bridge_IsAllMailVisible_FullMethodName                = "/grpc.Bridge/IsAllMailVisible"
+	Bridge_SetIsTelemetryDisabled_FullMethodName          = "/grpc.Bridge/SetIsTelemetryDisabled"
+	Bridge_IsTelemetryDisabled_FullMethodName             = "/grpc.Bridge/IsTelemetryDisabled"
+	Bridge_GoOs_FullMethodName                            = "/grpc.Bridge/GoOs"
+	Bridge_TriggerReset_FullMethodName                    = "/grpc.Bridge/TriggerReset"
+	Bridge_Version_FullMethodName                         = "/grpc.Bridge/Version"
+	Bridge_LogsPath_FullMethodName                        = "/grpc.Bridge/LogsPath"
+	Bridge_LicensePath_FullMethodName                     = "/grpc.Bridge/LicensePath"
+	Bridge_ReleaseNotesPageLink_FullMethodName            = "/grpc.Bridge/ReleaseNotesPageLink"
+	Bridge_DependencyLicensesLink_FullMethodName          = "/grpc.Bridge/DependencyLicensesLink"
+	Bridge_LandingPageLink_FullMethodName                 = "/grpc.Bridge/LandingPageLink"
+	Bridge_SetColorSchemeName_FullMethodName              = "/grpc.Bridge/SetColorSchemeName"
+	Bridge_ColorSchemeName_FullMethodName                 = "/grpc.Bridge/ColorSchemeName"
+	Bridge_CurrentEmailClient_FullMethodName              = "/grpc.Bridge/CurrentEmailClient"
+	Bridge_ReportBug_FullMethodName                       = "/grpc.Bridge/ReportBug"
+	Bridge_ForceLauncher_FullMethodName                   = "/grpc.Bridge/ForceLauncher"
+	Bridge_SetMainExecutable_FullMethodName               = "/grpc.Bridge/SetMainExecutable"
+	Bridge_RequestKnowledgeBaseSuggestions_FullMethodName = "/grpc.Bridge/RequestKnowledgeBaseSuggestions"
+	Bridge_Login_FullMethodName                           = "/grpc.Bridge/Login"
+	Bridge_Login2FA_FullMethodName                        = "/grpc.Bridge/Login2FA"
+	Bridge_Login2Passwords_FullMethodName                 = "/grpc.Bridge/Login2Passwords"
+	Bridge_LoginAbort_FullMethodName                      = "/grpc.Bridge/LoginAbort"
+	Bridge_CheckUpdate_FullMethodName                     = "/grpc.Bridge/CheckUpdate"
+	Bridge_InstallUpdate_FullMethodName                   = "/grpc.Bridge/InstallUpdate"
+	Bridge_SetIsAutomaticUpdateOn_FullMethodName          = "/grpc.Bridge/SetIsAutomaticUpdateOn"
+	Bridge_IsAutomaticUpdateOn_FullMethodName             = "/grpc.Bridge/IsAutomaticUpdateOn"
+	Bridge_DiskCachePath_FullMethodName                   = "/grpc.Bridge/DiskCachePath"
+	Bridge_SetDiskCachePath_FullMethodName                = "/grpc.Bridge/SetDiskCachePath"
+	Bridge_SetIsDoHEnabled_FullMethodName                 = "/grpc.Bridge/SetIsDoHEnabled"
+	Bridge_IsDoHEnabled_FullMethodName                    = "/grpc.Bridge/IsDoHEnabled"
+	Bridge_MailServerSettings_FullMethodName              = "/grpc.Bridge/MailServerSettings"
+	Bridge_SetMailServerSettings_FullMethodName           = "/grpc.Bridge/SetMailServerSettings"
+	Bridge_Hostname_FullMethodName                        = "/grpc.Bridge/Hostname"
+	Bridge_IsPortFree_FullMethodName                      = "/grpc.Bridge/IsPortFree"
+	Bridge_AvailableKeychains_FullMethodName              = "/grpc.Bridge/AvailableKeychains"
+	Bridge_SetCurrentKeychain_FullMethodName              = "/grpc.Bridge/SetCurrentKeychain"
+	Bridge_CurrentKeychain_FullMethodName                 = "/grpc.Bridge/CurrentKeychain"
+	Bridge_GetUserList_FullMethodName                     = "/grpc.Bridge/GetUserList"
+	Bridge_GetUser_FullMethodName                         = "/grpc.Bridge/GetUser"
+	Bridge_SetUserSplitMode_FullMethodName                = "/grpc.Bridge/SetUserSplitMode"
+	Bridge_SendBadEventUserFeedback_FullMethodName        = "/grpc.Bridge/SendBadEventUserFeedback"
+	Bridge_LogoutUser_FullMethodName                      = "/grpc.Bridge/LogoutUser"
+	Bridge_RemoveUser_FullMethodName                      = "/grpc.Bridge/RemoveUser"
+	Bridge_ConfigureUserAppleMail_FullMethodName          = "/grpc.Bridge/ConfigureUserAppleMail"
+	Bridge_ReportBugClicked_FullMethodName                = "/grpc.Bridge/ReportBugClicked"
+	Bridge_AutoconfigClicked_FullMethodName               = "/grpc.Bridge/AutoconfigClicked"
+	Bridge_ExternalLinkClicked_FullMethodName             = "/grpc.Bridge/ExternalLinkClicked"
+	Bridge_IsTLSCertificateInstalled_FullMethodName       = "/grpc.Bridge/IsTLSCertificateInstalled"
+	Bridge_InstallTLSCertificate_FullMethodName           = "/grpc.Bridge/InstallTLSCertificate"
+	Bridge_ExportTLSCertificates_FullMethodName           = "/grpc.Bridge/ExportTLSCertificates"
+	Bridge_RunEventStream_FullMethodName                  = "/grpc.Bridge/RunEventStream"
+	Bridge_StopEventStream_FullMethodName                 = "/grpc.Bridge/StopEventStream"
 )
 
 // BridgeClient is the client API for Bridge service.
@@ -135,6 +136,7 @@ type BridgeClient interface {
 	ReportBug(ctx context.Context, in *ReportBugRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ForceLauncher(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SetMainExecutable(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	RequestKnowledgeBaseSuggestions(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// login
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Login2FA(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -434,6 +436,15 @@ func (c *bridgeClient) ForceLauncher(ctx context.Context, in *wrapperspb.StringV
 func (c *bridgeClient) SetMainExecutable(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, Bridge_SetMainExecutable_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *bridgeClient) RequestKnowledgeBaseSuggestions(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, Bridge_RequestKnowledgeBaseSuggestions_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -802,6 +813,7 @@ type BridgeServer interface {
 	ReportBug(context.Context, *ReportBugRequest) (*emptypb.Empty, error)
 	ForceLauncher(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	SetMainExecutable(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
+	RequestKnowledgeBaseSuggestions(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	// login
 	Login(context.Context, *LoginRequest) (*emptypb.Empty, error)
 	Login2FA(context.Context, *LoginRequest) (*emptypb.Empty, error)
@@ -935,6 +947,9 @@ func (UnimplementedBridgeServer) ForceLauncher(context.Context, *wrapperspb.Stri
 }
 func (UnimplementedBridgeServer) SetMainExecutable(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetMainExecutable not implemented")
+}
+func (UnimplementedBridgeServer) RequestKnowledgeBaseSuggestions(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RequestKnowledgeBaseSuggestions not implemented")
 }
 func (UnimplementedBridgeServer) Login(context.Context, *LoginRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
@@ -1551,6 +1566,24 @@ func _Bridge_SetMainExecutable_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BridgeServer).SetMainExecutable(ctx, req.(*wrapperspb.StringValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Bridge_RequestKnowledgeBaseSuggestions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrapperspb.StringValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).RequestKnowledgeBaseSuggestions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Bridge_RequestKnowledgeBaseSuggestions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).RequestKnowledgeBaseSuggestions(ctx, req.(*wrapperspb.StringValue))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2288,6 +2321,10 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetMainExecutable",
 			Handler:    _Bridge_SetMainExecutable_Handler,
+		},
+		{
+			MethodName: "RequestKnowledgeBaseSuggestions",
+			Handler:    _Bridge_RequestKnowledgeBaseSuggestions_Handler,
 		},
 		{
 			MethodName: "Login",

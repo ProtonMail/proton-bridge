@@ -17,6 +17,11 @@
 
 package grpc
 
+import (
+	"github.com/ProtonMail/proton-bridge/v3/internal/kb"
+	"github.com/bradenaw/juniper/xslices"
+)
+
 func NewInternetStatusEvent(connected bool) *StreamEvent {
 	return appEvent(&AppEvent{Event: &AppEvent_InternetStatus{InternetStatus: &InternetStatusEvent{Connected: connected}}})
 }
@@ -59,6 +64,20 @@ func NewCertInstallFailedEvent() *StreamEvent {
 
 func NewShowMainWindowEvent() *StreamEvent {
 	return appEvent(&AppEvent{Event: &AppEvent_ShowMainWindow{ShowMainWindow: &ShowMainWindowEvent{}}})
+}
+
+func NewRequestKnowledgeBaseSuggestionsEvent(suggestions kb.ArticleList) *StreamEvent {
+	s := xslices.Map(
+		suggestions,
+		func(article kb.Article) *KnowledgeBaseSuggestion {
+			return &KnowledgeBaseSuggestion{Url: article.URL, Title: article.Title}
+		},
+	)
+	return appEvent(&AppEvent{Event: &AppEvent_KnowledgeBaseSuggestions{
+		KnowledgeBaseSuggestions: &KnowledgeBaseSuggestionsEvent{
+			Suggestions: s,
+		},
+	}})
 }
 
 func NewLoginError(err LoginErrorType, message string) *StreamEvent {

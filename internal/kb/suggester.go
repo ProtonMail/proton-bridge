@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-package knowledgebase
+package kb
 
 import (
 	_ "embed"
@@ -44,6 +44,16 @@ func getArticleList() (ArticleList, error) {
 
 // GetSuggestions return a list of up to 3 suggestions for KB articles matching the given user input.
 func GetSuggestions(_ string) (ArticleList, error) {
-	// TBD
-	return ArticleList{}, nil
+	articles, err := getArticleList()
+	if err != nil {
+		return ArticleList{}, err
+	}
+
+	// note starting with go 1.21, we will be able to do:
+	// return articles[:min(3, len(articles))]
+	l := len(articles)
+	if l > 3 {
+		l = 3
+	}
+	return articles[:l], nil
 }
