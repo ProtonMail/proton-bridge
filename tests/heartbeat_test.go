@@ -43,7 +43,7 @@ func (s *scenario) bridgeSendsTheFollowingHeartbeat(text *godog.DocString) error
 		return err
 	}
 
-	return matchHeartbeat(s.t.heartbeat.heartbeat, wantHeartbeat)
+	return matchHeartbeat(s.t.heartbeat.GetRecordedHeartbeat(), wantHeartbeat)
 }
 
 func (s *scenario) bridgeNeedsToSendHeartbeat() error {

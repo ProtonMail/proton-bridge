@@ -19,15 +19,13 @@ package imapservice
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 )
 
-type syncReporter struct {
-	userID         string
-	eventPublisher events.EventPublisher
-
+type syncData struct {
 	start time.Time
 	total int64
 	count int64
@@ -36,8 +34,25 @@ type syncReporter struct {
 	freq time.Duration
 }
 
+type syncReporter struct {
+	userID         string
+	eventPublisher events.EventPublisher
+
+	dataLock sync.Mutex
+	data     syncData
+}
+
+func (rep *syncReporter) withData(f func(s *syncData)) {
+	rep.dataLock.Lock()
+	defer rep.dataLock.Unlock()
+
+	f(&rep.data)
+}
+
 func (rep *syncReporter) OnStart(ctx context.Context) {
-	rep.start = time.Now()
+	rep.withData(func(s *syncData) {
+		s.start = time.Now()
+	})
 	rep.eventPublisher.PublishEvent(ctx, events.SyncStarted{UserID: rep.userID})
 }
 
@@ -55,35 +70,38 @@ func (rep *syncReporter) OnError(ctx context.Context, err error) {
 }
 
 func (rep *syncReporter) OnProgress(ctx context.Context, delta int64) {
-	rep.count += delta
+	rep.withData(func(s *syncData) {
+		s.count += delta
+		var progress float64
+		var remaining time.Duration
 
-	var progress float64
-	var remaining time.Duration
+		// It's possible for count to be bigger or smaller than total depending on when the sync begins and whether new
+		// messages are added/removed during this period. When this happens just limited the progress to 100%.
+		if s.count > s.total {
+			progress = 1
+		} else {
+			progress = float64(s.count) / float64(s.total)
+			remaining = time.Since(s.start) * time.Duration(s.total-(s.count+1)) / time.Duration(s.count+1)
+		}
 
-	// It's possible for count to be bigger or smaller than total depending on when the sync begins and whether new
-	// messages are added/removed during this period. When this happens just limited the progress to 100%.
-	if rep.count > rep.total {
-		progress = 1
-	} else {
-		progress = float64(rep.count) / float64(rep.total)
-		remaining = time.Since(rep.start) * time.Duration(rep.total-(rep.count+1)) / time.Duration(rep.count+1)
-	}
+		if time.Since(s.last) > s.freq {
+			rep.eventPublisher.PublishEvent(ctx, events.SyncProgress{
+				UserID:    rep.userID,
+				Progress:  progress,
+				Elapsed:   time.Since(s.start),
+				Remaining: remaining,
+			})
 
-	if time.Since(rep.last) > rep.freq {
-		rep.eventPublisher.PublishEvent(ctx, events.SyncProgress{
-			UserID:    rep.userID,
-			Progress:  progress,
-			Elapsed:   time.Since(rep.start),
-			Remaining: remaining,
-		})
-
-		rep.last = time.Now()
-	}
+			s.last = time.Now()
+		}
+	})
 }
 
 func (rep *syncReporter) InitializeProgressCounter(_ context.Context, current int64, total int64) {
-	rep.count = current
-	rep.total = total
+	rep.withData(func(s *syncData) {
+		s.count = current
+		s.total = total
+	})
 }
 
 func newSyncReporter(userID string, eventsPublisher events.EventPublisher, freq time.Duration) *syncReporter {
@@ -91,7 +109,9 @@ func newSyncReporter(userID string, eventsPublisher events.EventPublisher, freq 
 		userID:         userID,
 		eventPublisher: eventsPublisher,
 
-		start: time.Now(),
-		freq:  freq,
+		data: syncData{
+			start: time.Now(),
+			freq:  freq,
+		},
 	}
 }

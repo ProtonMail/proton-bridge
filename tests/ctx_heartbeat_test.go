@@ -20,6 +20,7 @@ package tests
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -29,6 +30,7 @@ import (
 )
 
 type heartbeatRecorder struct {
+	lock      sync.Mutex
 	heartbeat telemetry.HeartbeatData
 	bridge    *bridge.Bridge
 	reject    bool
@@ -74,8 +76,17 @@ func (hb *heartbeatRecorder) SendHeartbeat(_ context.Context, metrics *telemetry
 	if hb.reject {
 		return false
 	}
+	hb.lock.Lock()
+	defer hb.lock.Unlock()
 	hb.heartbeat = *metrics
 	return true
+}
+
+func (hb *heartbeatRecorder) GetRecordedHeartbeat() telemetry.HeartbeatData {
+	hb.lock.Lock()
+	defer hb.lock.Unlock()
+
+	return hb.heartbeat
 }
 
 func (hb *heartbeatRecorder) SetLastHeartbeatSent(timestamp time.Time) error {
