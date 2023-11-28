@@ -85,6 +85,7 @@ require (
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-memdb v1.3.3 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/jeandeaual/go-locale v0.0.0-20220711133428-7de61946b173 // indirect
 	github.com/joeshaw/multierror v0.0.0-20140124173710-69b34d4ec901 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect

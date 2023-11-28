@@ -100,6 +100,7 @@ Proton Mail Bridge includes the following 3rd party software:
 * [go-immutable-radix](https://github.com/hashicorp/go-immutable-radix) available under [license](https://github.com/hashicorp/go-immutable-radix/blob/master/LICENSE) 
 * [go-memdb](https://github.com/hashicorp/go-memdb) available under [license](https://github.com/hashicorp/go-memdb/blob/master/LICENSE) 
 * [golang-lru](https://github.com/hashicorp/golang-lru) available under [license](https://github.com/hashicorp/golang-lru/blob/master/LICENSE) 
+* [go-locale](https://github.com/jeandeaual/go-locale) available under [license](https://github.com/jeandeaual/go-locale/blob/master/LICENSE) 
 * [multierror](https://github.com/joeshaw/multierror) available under [license](https://github.com/joeshaw/multierror/blob/master/LICENSE) 
 * [go](https://github.com/json-iterator/go) available under [license](https://github.com/json-iterator/go/blob/master/LICENSE) 
 * [cpuid](https://github.com/klauspost/cpuid/v2) available under [license](https://github.com/klauspost/cpuid/v2/blob/master/LICENSE) 

@@ -15,18 +15,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-//go:build !windows
-// +build !windows
-
 package sentry
 
-import "os"
+import (
+	"github.com/jeandeaual/go-locale"
+	"github.com/sirupsen/logrus"
+)
 
 func GetSystemLang() string {
-	lang := os.Getenv("LC_ALL")
-	if lang == "" {
-		lang = os.Getenv("LANG")
+	lang, err := locale.GetLanguage()
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get system language")
+		lang = "Unknown"
 	}
-
 	return lang
 }
