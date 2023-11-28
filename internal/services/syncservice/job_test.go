@@ -20,6 +20,7 @@ package syncservice
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 
 	"github.com/ProtonMail/gluon/async"
@@ -56,8 +57,7 @@ func TestJob_WaitsOnChildren(t *testing.T) {
 		tj.job.end()
 	}()
 
-	require.NoError(t, tj.job.wait(context.Background()))
-	tj.job.Close()
+	require.NoError(t, tj.job.waitAndClose(context.Background()))
 }
 
 func TestJob_WaitsOnAllChildrenOnError(t *testing.T) {
@@ -73,18 +73,22 @@ func TestJob_WaitsOnAllChildrenOnError(t *testing.T) {
 
 	jobErr := errors.New("failed")
 
+	startCh := make(chan struct{})
+
 	go func() {
 		job1 := tj.job.newChildJob("1", 0)
 		job2 := tj.job.newChildJob("2", 1)
+
+		<-startCh
 
 		job1.onFinished(context.Background())
 		job2.onError(jobErr)
 	}()
 
-	err := tj.job.wait(context.Background())
+	close(startCh)
+	err := tj.job.waitAndClose(context.Background())
 	require.Error(t, err)
 	require.ErrorIs(t, err, jobErr)
-	tj.job.Close()
 }
 
 func TestJob_MultipleChildrenReportError(t *testing.T) {
@@ -99,20 +103,22 @@ func TestJob_MultipleChildrenReportError(t *testing.T) {
 
 	startCh := make(chan struct{})
 
+	wg := sync.WaitGroup{}
 	for i := 0; i < 10; i++ {
+		wg.Add(1)
 		go func() {
 			job := tj.job.newChildJob("1", 0)
+			wg.Done()
 			<-startCh
-
 			job.onError(jobErr)
 		}()
 	}
 
+	wg.Wait()
 	close(startCh)
-	err := tj.job.wait(context.Background())
+	err := tj.job.waitAndClose(context.Background())
 	require.Error(t, err)
 	require.ErrorIs(t, err, jobErr)
-	tj.job.Close()
 }
 
 func TestJob_ChildFailureCancelsAllOtherChildJobs(t *testing.T) {
@@ -127,8 +133,12 @@ func TestJob_ChildFailureCancelsAllOtherChildJobs(t *testing.T) {
 
 	failJob := tj.job.newChildJob("0", 1)
 
+	tj.job.begin()
+	wg := sync.WaitGroup{}
 	for i := 0; i < 10; i++ {
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			job := tj.job.newChildJob("1", 0)
 			<-job.getContext().Done()
 			require.ErrorIs(t, job.getContext().Err(), context.Canceled)
@@ -137,12 +147,13 @@ func TestJob_ChildFailureCancelsAllOtherChildJobs(t *testing.T) {
 	}
 	go func() {
 		failJob.onError(jobErr)
+		wg.Wait()
+		tj.job.end()
 	}()
 
-	err := tj.job.wait(context.Background())
+	err := tj.job.waitAndClose(context.Background())
 	require.Error(t, err)
 	require.ErrorIs(t, err, jobErr)
-	tj.job.Close()
 }
 
 func TestJob_CtxCancelCancelsAllChildren(t *testing.T) {
@@ -154,9 +165,12 @@ func TestJob_CtxCancelCancelsAllChildren(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	tj := newTestJob(ctx, mockCtrl, "u", getTestLabels())
 
+	wg := sync.WaitGroup{}
 	for i := 0; i < 10; i++ {
+		wg.Add(1)
 		go func() {
 			job := tj.job.newChildJob("1", 0)
+			wg.Done()
 			<-job.getContext().Done()
 			require.ErrorIs(t, job.getContext().Err(), context.Canceled)
 			require.True(t, job.checkCancelled())
@@ -164,13 +178,35 @@ func TestJob_CtxCancelCancelsAllChildren(t *testing.T) {
 	}
 
 	go func() {
+		wg.Wait()
 		cancel()
 	}()
 
-	err := tj.job.wait(ctx)
+	err := tj.job.waitAndClose(ctx)
 	require.Error(t, err)
 	require.ErrorIs(t, err, context.Canceled)
-	tj.job.Close()
+}
+
+func TestJob_CtxCancelBeforeBegin(t *testing.T) {
+	options := setupGoLeak()
+	defer goleak.VerifyNone(t, options)
+
+	mockCtrl := gomock.NewController(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	tj := newTestJob(ctx, mockCtrl, "u", getTestLabels())
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		wg.Wait()
+		cancel()
+	}()
+
+	wg.Done()
+	err := tj.job.waitAndClose(ctx)
+	require.Error(t, err)
+	require.ErrorIs(t, err, context.Canceled)
 }
 
 func TestJob_WithoutChildJobsCanBeTerminated(t *testing.T) {
@@ -186,9 +222,8 @@ func TestJob_WithoutChildJobsCanBeTerminated(t *testing.T) {
 		tj.job.begin()
 		tj.job.end()
 	}()
-	err := tj.job.wait(ctx)
+	err := tj.job.waitAndClose(context.Background())
 	require.NoError(t, err)
-	tj.job.Close()
 }
 
 type tjob struct {

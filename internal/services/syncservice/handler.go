@@ -210,12 +210,10 @@ func (t *Handler) run(ctx context.Context,
 		stageContext.metadataFetched = syncStatus.NumSyncedMessages
 		stageContext.totalMessageCount = syncStatus.TotalMessageCount
 
-		defer stageContext.Close()
-
 		t.regulator.Sync(ctx, stageContext)
 
 		// Wait on reply
-		if err := stageContext.wait(ctx); err != nil {
+		if err := stageContext.waitAndClose(ctx); err != nil {
 			return fmt.Errorf("failed sync messages: %w", err)
 		}
 

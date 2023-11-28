@@ -269,7 +269,7 @@ func TestBuildStage_OtherErrorsFailJob(t *testing.T) {
 
 	input.Produce(ctx, BuildRequest{childJob: childJob, batch: []proton.FullMessage{msg}})
 
-	err := tj.job.wait(ctx)
+	err := tj.job.waitAndClose(ctx)
 	require.Equal(t, expectedErr, err)
 
 	cancel()

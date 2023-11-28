@@ -114,7 +114,7 @@ func TestMetadataStage_JobCorrectlyFinishesAfterCancel(t *testing.T) {
 		}
 	}()
 
-	err = tj.job.wait(context.Background())
+	err = tj.job.waitAndClose(ctx)
 	require.ErrorIs(t, err, context.Canceled)
 	cancel()
 }
@@ -165,8 +165,8 @@ func TestMetadataStage_RunInterleaved(t *testing.T) {
 		}
 	}()
 
-	require.NoError(t, tj1.job.wait(ctx))
-	require.NoError(t, tj2.job.wait(ctx))
+	require.NoError(t, tj1.job.waitAndClose(ctx))
+	require.NoError(t, tj2.job.waitAndClose(ctx))
 	cancel()
 }
 

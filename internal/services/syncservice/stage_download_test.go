@@ -313,7 +313,7 @@ func TestDownloadStage_JobAbortsOnMessageDownloadError(t *testing.T) {
 		ids:      []string{"foo"},
 	})
 
-	err := tj.job.wait(ctx)
+	err := tj.job.waitAndClose(ctx)
 	require.Equal(t, expectedErr, err)
 
 	cancel()
@@ -364,7 +364,7 @@ func TestDownloadStage_JobAbortsOnAttachmentDownloadError(t *testing.T) {
 		ids:      []string{"foo"},
 	})
 
-	err := tj.job.wait(ctx)
+	err := tj.job.waitAndClose(ctx)
 	require.Equal(t, expectedErr, err)
 
 	cancel()

@@ -87,6 +87,10 @@ func (m *MetadataStage) run(ctx context.Context, metadataPageSize int, maxMessag
 			return
 		}
 
+		if job.ctx.Err() != nil {
+			continue
+		}
+
 		job.begin()
 		state, err := newMetadataIterator(job.ctx, job, metadataPageSize, coolDown)
 		if err != nil {
