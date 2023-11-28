@@ -14,6 +14,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import Proton
+import ".."
 
 SettingsView {
     id: root

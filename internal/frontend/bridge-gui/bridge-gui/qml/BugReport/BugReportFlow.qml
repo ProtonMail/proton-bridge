@@ -15,6 +15,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Proton
 import Notifications
+import ".."
 
 Item {
     id: root
@@ -77,6 +78,7 @@ Item {
                     root.showBugCategory();
                 }
                 onQuestionAnswered: {
+                    Backend.requestKnowledgeBaseSuggestions();
                     root.showBugReport();
                 }
             }

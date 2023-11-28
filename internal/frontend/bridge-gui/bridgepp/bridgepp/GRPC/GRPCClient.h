@@ -102,7 +102,7 @@ public: // member functions.
     grpc::Status releaseNotesPageLink(QUrl &outUrl); ///< Performs the 'releaseNotesPageLink' call.
     grpc::Status landingPageLink(QUrl &outUrl); ///< Performs the 'landingPageLink' call.
     grpc::Status hostname(QString &outHostname); ///< Performs the 'Hostname' call.
-    grpc::Status RequestKnowledgeBaseSuggestions(QString const &input); ///< Performs the 'RequestKnowledgeBaseSuggestions' call.
+    grpc::Status requestKnowledgeBaseSuggestions(QString const &input); ///< Performs the 'RequestKnowledgeBaseSuggestions' call.
 
 signals: // app related signals
     void internetStatus(bool isOn);

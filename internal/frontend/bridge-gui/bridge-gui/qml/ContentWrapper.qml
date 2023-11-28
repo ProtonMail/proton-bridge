@@ -15,6 +15,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Proton
 import Notifications
+import "BugReport"
 
 Item {
     id: root

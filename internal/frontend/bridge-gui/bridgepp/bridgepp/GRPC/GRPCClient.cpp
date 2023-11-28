@@ -571,7 +571,7 @@ grpc::Status GRPCClient::hostname(QString &outHostname) {
 //****************************************************************************************************************************************************
 /// \param[in] input The user input to analyze.
 //****************************************************************************************************************************************************
-grpc::Status GRPCClient::RequestKnowledgeBaseSuggestions(QString const &input) {
+grpc::Status GRPCClient::requestKnowledgeBaseSuggestions(QString const &input) {
     return this->logGRPCCallStatus(this->setString(&Bridge::Stub::RequestKnowledgeBaseSuggestions, input), __FUNCTION__);
 }
 

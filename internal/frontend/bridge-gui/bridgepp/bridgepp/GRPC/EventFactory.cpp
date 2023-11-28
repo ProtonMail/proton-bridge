@@ -248,6 +248,22 @@ SPStreamEvent newCertificateInstallFailedEvent() {
 
 
 //****************************************************************************************************************************************************
+/// \param[in] suggestions the suggestions
+/// \return The event.
+//****************************************************************************************************************************************************
+SPStreamEvent newKnowledgeBaseSuggestionsEvent(QList<KnowledgeBaseSuggestion> const& suggestions) {
+    auto event = new grpc::KnowledgeBaseSuggestionsEvent;
+    for (KnowledgeBaseSuggestion const &suggestion: suggestions) {
+            grpc::KnowledgeBaseSuggestion *s = event->add_suggestions();
+            s->set_url(suggestion.url.toStdString());
+            s->set_title(suggestion.title.toStdString());
+    }
+    auto appEvent = new grpc::AppEvent;
+    appEvent->set_allocated_knowledgebasesuggestions(event);
+    return wrapAppEvent(appEvent);
+}
+
+//****************************************************************************************************************************************************
 /// \return The event.
 //****************************************************************************************************************************************************
 SPStreamEvent newShowMainWindowEvent() {

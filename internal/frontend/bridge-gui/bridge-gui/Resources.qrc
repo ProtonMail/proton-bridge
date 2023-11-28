@@ -5,11 +5,6 @@
         <file>qml/AccountView.qml</file>
         <file>qml/Banner.qml</file>
         <file>qml/Bridge.qml</file>
-        <file>qml/BugCategoryView.qml</file>
-        <file>qml/BugQuestionView.qml</file>
-        <file>qml/BugReportFlow.qml</file>
-        <file>qml/BugReportView.qml</file>
-        <file>qml/CategoryItem.qml</file>
         <file>qml/Configuration.qml</file>
         <file>qml/ConfigurationItem.qml</file>
         <file>qml/ContentWrapper.qml</file>
@@ -89,6 +84,11 @@
         <file>qml/Notifications/Notifications.qml</file>
         <file>qml/Notifications/qmldir</file>
         <file>qml/PortSettings.qml</file>
+        <file>qml/BugReport/BugCategoryView.qml</file>
+        <file>qml/BugReport/BugQuestionView.qml</file>
+        <file>qml/BugReport/BugReportFlow.qml</file>
+        <file>qml/BugReport/BugReportView.qml</file>
+        <file>qml/BugReport/CategoryItem.qml</file>
         <file>qml/Proton/Action.qml</file>
         <file>qml/Proton/ApplicationWindow.qml</file>
         <file>qml/Proton/Button.qml</file>

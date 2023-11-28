@@ -22,6 +22,7 @@
 
 #include "bridge.grpc.pb.h"
 #include "GRPCUtils.h"
+#include <bridgepp/GRPC/GRPCClient.h>
 
 
 namespace bridgepp {
@@ -39,6 +40,7 @@ SPStreamEvent newCertificateInstallSuccessEvent(); ///< Create a new Certificate
 SPStreamEvent newCertificateInstallCanceledEvent(); ///< Create a new CertificateInstallCanceledEvent event.
 SPStreamEvent newCertificateInstallFailedEvent(); ///< Create anew CertificateInstallFailedEvent event.
 SPStreamEvent newShowMainWindowEvent(); ///< Create a new ShowMainWindowEvent event.
+SPStreamEvent newKnowledgeBaseSuggestionsEvent(QList<KnowledgeBaseSuggestion> const& suggestions); ///< Create a new KnowledgeBaseSuggestions event.
 
 // Login events
 SPStreamEvent newLoginError(grpc::LoginErrorType error, QString const &message); ///< Create a new LoginError event.

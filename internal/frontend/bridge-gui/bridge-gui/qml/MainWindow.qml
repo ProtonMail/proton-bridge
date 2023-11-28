@@ -18,6 +18,7 @@ import QtQuick.Controls
 import Proton
 import Notifications
 import "SetupWizard"
+import "BugReport"
 
 ApplicationWindow {
     id: root

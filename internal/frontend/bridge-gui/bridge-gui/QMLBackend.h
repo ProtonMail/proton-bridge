@@ -66,6 +66,7 @@ public: // member functions.
     Q_INVOKABLE void clearAnswers(); ///< Clear all collected answers.
     Q_INVOKABLE bool isTLSCertificateInstalled(); ///< Check if the bridge certificate is installed in the OS keychain.
     Q_INVOKABLE void openExternalLink(QString const & url = QString()); ///< Open a knowledge base article.
+    Q_INVOKABLE void requestKnowledgeBaseSuggestions() const; ///< Request knowledgebase article suggestions.
 
 public: // Qt/QML properties. Note that the NOTIFY-er signal is required even for read-only properties (QML warning otherwise)
     Q_PROPERTY(bool showOnStartup READ showOnStartup NOTIFY showOnStartupChanged)

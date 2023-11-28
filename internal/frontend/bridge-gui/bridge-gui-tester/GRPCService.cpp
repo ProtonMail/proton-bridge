@@ -354,6 +354,23 @@ Status GRPCService::SetMainExecutable(ServerContext *, StringValue const *reques
     return Status::OK;
 }
 
+//****************************************************************************************************************************************************
+/// \param[in] request The request.
+/// \return The status for the call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCService::RequestKnowledgeBaseSuggestions(ServerContext*, StringValue const* request, Empty*) {
+    app().log().info(QString("RequestKnowledgeBaseSuggestions: %1").arg(QString::fromStdString(request->value()).left(10) + "..."));
+    QList<bridgepp::KnowledgeBaseSuggestion> suggestions(3);
+    for (qsizetype i = 0; i < 3; ++i) {
+        suggestions.push_back(        {
+            .title = QString("Suggested link %1").arg(i),
+            .url = "https://proton.me/support/bridge"
+        });
+    }
+    qtProxy_.sendDelayedEvent(newKnowledgeBaseSuggestionsEvent(suggestions));
+    return Status::OK;
+}
+
 
 //****************************************************************************************************************************************************
 /// \param[in] request The request
