@@ -458,3 +458,91 @@ Feature: IMAP import messages
       }
     }
     """
+
+
+  Scenario: Import message with inline image
+    When IMAP client "1" appends the following message to "Inbox":
+      """
+      Date: 01 Jan 1980 00:00:00 +0000
+      From: Bridge Second Test <bridge_second@test.com>
+      To: Bridge Test <bridge@test.com>
+      Subject: Html Inline Importing
+      Content-Disposition: inline
+      User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Thunderbird/60.5.0
+      MIME-Version: 1.0
+      Content-Language: en-US
+      Content-Type: multipart/related; boundary="61FA22A41A3F46E8E90EF528"
+
+      This is a multi-part message in MIME format.
+      --61FA22A41A3F46E8E90EF528
+      Content-Type: text/html; charset=utf-8
+      Content-Transfer-Encoding: 7bit
+
+      <html>
+      <head>
+      <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+      </head>
+      <body text="#000000" bgcolor="#FFFFFF">
+      <p><br>
+      </p>
+      <p>Behold! An inline <img moz-do-not-send="false"
+      src="cid:part1.D96BFAE9.E2E1CAE3@protonmail.com" alt=""
+      width="24" height="24"><br>
+      </p>
+      </body>
+      </html>
+
+      --61FA22A41A3F46E8E90EF528
+      Content-Type: image/gif; name="email-action-left.gif"
+      Content-Transfer-Encoding: base64
+      Content-ID: <part1.D96BFAE9.E2E1CAE3@protonmail.com>
+      Content-Disposition: inline; filename="email-action-left.gif"
+
+      R0lGODlhGAAYANUAACcsKOHs4kppTH6tgYWxiIq0jTVENpG5lDI/M7bRuEaJSkqOTk2RUU+P
+      U16lYl+lY2iva262cXS6d3rDfYLNhWeeamKTZGSVZkNbRGqhbOPt4////+7u7qioqFZWVlNT
+      UyIiIgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAGAAYAAAG
+      /8CNcLjRJAqVRqNSSGiI0GFgoKhar4NAdHioMhyRCYUyiTgY1cOWUH1ILgIDAGAQXCSPKgHa
+      XUAyGCCCg4IYGRALCmpCAVUQFgiEkiAIFhBVWhtUDxmRk5IIGXkDRQoMEoGfHpIYEmhGCg4X
+      nyAdHB+SFw4KRwoRArQdG7eEAhEKSAoTBoIdzs/Cw7iCBhMKSQoUAIJbQ8QgABQKStnbIN1C
+      3+HjFcrMtdDO6dMg1dcFvsCfwt+CxsgJYs3a10+QLl4aTKGitYpQq1eaFHDyREtQqFGMHEGq
+      SMkSJi4K/ACiZQiRIihsJL6JM6fOnTwK9kTpYgqMGDJm0JzsNuWKTw0FWdANMYJECRMnW4IA
+      ADs=
+
+      --61FA22A41A3F46E8E90EF528--
+
+      """
+    Then it succeeds
+    And IMAP client "1" eventually sees the following message in "Inbox" with this structure:
+    """
+    {
+      "date": "01 Jan 80 00:00 +0000",
+      "to": "Bridge Test <bridge@test.com>",
+      "from": "Bridge Second Test <bridge_second@test.com>",
+      "subject": "Html Inline Importing",
+      "content": {
+        "content-type": "multipart/mixed",
+        "sections":[
+          {
+            "content-type": "multipart/related",
+            "sections":[
+              {
+                "content-type": "text/html",
+                "content-type-charset": "utf-8",
+                "transfer-encoding": "quoted-printable",
+                "body-is": "<html>\r\n<head>\r\n<meta http-equiv=3D\"content-type\" content=3D\"text/html; charset=3DUTF-8\">\r\n</head>\r\n<body text=3D\"#000000\" bgcolor=3D\"#FFFFFF\">\r\n<p><br>\r\n</p>\r\n<p>Behold! An inline <img moz-do-not-send=3D\"false\"\r\nsrc=3D\"cid:part1.D96BFAE9.E2E1CAE3@protonmail.com\" alt=3D\"\"\r\nwidth=3D\"24\" height=3D\"24\"><br>\r\n</p>\r\n</body>\r\n</html>"
+              },
+              {
+                "content-type": "image/gif",
+                "content-type-name": "email-action-left.gif",
+                "content-disposition": "inline",
+                "content-disposition-filename": "email-action-left.gif",
+                "transfer-encoding": "base64",
+                "body-is": "R0lGODlhGAAYANUAACcsKOHs4kppTH6tgYWxiIq0jTVENpG5lDI/M7bRuEaJSkqOTk2RUU+PU16l\r\nYl+lY2iva262cXS6d3rDfYLNhWeeamKTZGSVZkNbRGqhbOPt4////+7u7qioqFZWVlNTUyIiIgAA\r\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\r\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAGAAYAAAG/8CNcLjRJAqVRqNS\r\nSGiI0GFgoKhar4NAdHioMhyRCYUyiTgY1cOWUH1ILgIDAGAQXCSPKgHaXUAyGCCCg4IYGRALCmpC\r\nAVUQFgiEkiAIFhBVWhtUDxmRk5IIGXkDRQoMEoGfHpIYEmhGCg4XnyAdHB+SFw4KRwoRArQdG7eE\r\nAhEKSAoTBoIdzs/Cw7iCBhMKSQoUAIJbQ8QgABQKStnbIN1C3+HjFcrMtdDO6dMg1dcFvsCfwt+C\r\nxsgJYs3a10+QLl4aTKGitYpQq1eaFHDyREtQqFGMHEGqSMkSJi4K/ACiZQiRIihsJL6JM6fOnTwK\r\n9kTpYgqMGDJm0JzsNuWKTw0FWdANMYJECRMnW4IAADs="
+              }
+            ]
+          }
+        ]
+      }
+    }
+    """
