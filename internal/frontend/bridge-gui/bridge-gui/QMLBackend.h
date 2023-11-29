@@ -279,6 +279,7 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void selectUser(QString const& userID, bool forceShowWindow); ///< Signal emitted in order to selected a user with a given ID in the list.
     void genericError(QString const &title, QString const &description); ///< Signal for the 'genericError' gRPC stream event.
     void imapLoginWhileSignedOut(QString const& username); ///< Signal for the notification of IMAP login attempt on a signed out account.
+    void receivedKnowledgeBaseSuggestions(QList<bridgepp::KnowledgeBaseSuggestion> const& suggestions); ///< Signal for the reception of knowledgebase article suggestions.
 
     // This signal is emitted when an exception is intercepted is calls triggered by QML. QML engine would intercept the exception otherwise.
     void fatalError(bridgepp::Exception const& e) const; ///< Signal emitted when an fatal error occurs.

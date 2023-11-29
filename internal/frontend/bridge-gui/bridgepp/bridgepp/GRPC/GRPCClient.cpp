@@ -1182,7 +1182,7 @@ void GRPCClient::processAppEvent(AppEvent const &event) {
                 .title = QString::fromUtf8(suggestion.title())
             });
         }
-        emit knowledgeBasSuggestions(suggestions);
+        emit knowledgeBasSuggestionsReceived(suggestions);
         break;
     }
     default:

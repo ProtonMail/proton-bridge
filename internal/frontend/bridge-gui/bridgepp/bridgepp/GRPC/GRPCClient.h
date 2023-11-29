@@ -46,6 +46,11 @@ typedef std::unique_ptr<grpc::ClientContext> UPClientContext;
 /// \brief A struct for knowledge base suggestion.
 //****************************************************************************************************************************************************
 struct KnowledgeBaseSuggestion {
+    //  The following lines make the type transmissible to QML (but not instanciable there)
+    Q_GADGET
+    Q_PROPERTY(QString url MEMBER url)
+    Q_PROPERTY(QString title MEMBER title)
+public:
     QString url; ///< The URL of the knowledge base article
     QString title; ///< The title of the knowledge base article.
 };
@@ -116,7 +121,7 @@ signals: // app related signals
     void certificateInstallCanceled();
     void certificateInstallFailed();
     void showMainWindow();
-    void knowledgeBasSuggestions(QList<KnowledgeBaseSuggestion> const& suggestions);
+    void knowledgeBasSuggestionsReceived(QList<KnowledgeBaseSuggestion> const& suggestions);
 
 
 public: // cache related calls

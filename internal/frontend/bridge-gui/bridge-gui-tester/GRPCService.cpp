@@ -360,11 +360,11 @@ Status GRPCService::SetMainExecutable(ServerContext *, StringValue const *reques
 //****************************************************************************************************************************************************
 grpc::Status GRPCService::RequestKnowledgeBaseSuggestions(ServerContext*, StringValue const* request, Empty*) {
     app().log().info(QString("RequestKnowledgeBaseSuggestions: %1").arg(QString::fromStdString(request->value()).left(10) + "..."));
-    QList<bridgepp::KnowledgeBaseSuggestion> suggestions(3);
-    for (qsizetype i = 0; i < 3; ++i) {
+    QList<bridgepp::KnowledgeBaseSuggestion> suggestions;
+    for (qsizetype i = 1; i <= 3; ++i) {
         suggestions.push_back(        {
             .title = QString("Suggested link %1").arg(i),
-            .url = "https://proton.me/support/bridge"
+            .url = QString("https://proton.me/support/bridge#%1").arg(i),
         });
     }
     qtProxy_.sendDelayedEvent(newKnowledgeBaseSuggestionsEvent(suggestions));

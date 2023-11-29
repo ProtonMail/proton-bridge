@@ -1315,6 +1315,7 @@ void QMLBackend::connectGrpcEvents() {
     connect(client, &GRPCClient::certificateInstallCanceled, this, &QMLBackend::certificateInstallCanceled);
     connect(client, &GRPCClient::certificateInstallFailed, this, &QMLBackend::certificateInstallFailed);
     connect(client, &GRPCClient::showMainWindow, [&]() { this->showMainWindow("gRPC showMainWindow event"); });
+    connect(client, &GRPCClient::knowledgeBasSuggestionsReceived, this, &QMLBackend::receivedKnowledgeBaseSuggestions);
 
     // cache events
     connect(client, &GRPCClient::cantMoveDiskCache, this, &QMLBackend::cantMoveDiskCache);

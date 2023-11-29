@@ -155,7 +155,12 @@ SettingsView {
             function onReportBugFinished() {
                 sendButton.loading = false;
             }
-
+            function onReceivedKnowledgeBaseSuggestions(suggestions) {
+                console.error("QML: onReceivedKnowledgeBaseSuggestions() - len = %1".arg(suggestions.length))
+                console.error("QML: %1: %2".arg(suggestions[0].title).arg(suggestions[0].url))
+                console.error("QML: %1: %2".arg(suggestions[1].title).arg(suggestions[1].url))
+                console.error("QML: %1: %2".arg(suggestions[2].title).arg(suggestions[2].url))
+            }
             target: Backend
         }
     }
