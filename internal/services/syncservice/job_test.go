@@ -83,6 +83,7 @@ func TestJob_WaitsOnAllChildrenOnError(t *testing.T) {
 
 		job1.onFinished(context.Background())
 		job2.onError(jobErr)
+		tj.job.end()
 	}()
 
 	close(startCh)
@@ -115,6 +116,7 @@ func TestJob_MultipleChildrenReportError(t *testing.T) {
 	}
 
 	wg.Wait()
+	tj.job.end()
 	close(startCh)
 	err := tj.job.waitAndClose(context.Background())
 	require.Error(t, err)
@@ -179,6 +181,7 @@ func TestJob_CtxCancelCancelsAllChildren(t *testing.T) {
 
 	go func() {
 		wg.Wait()
+		tj.job.end()
 		cancel()
 	}()
 
@@ -201,6 +204,7 @@ func TestJob_CtxCancelBeforeBegin(t *testing.T) {
 	go func() {
 		wg.Wait()
 		cancel()
+		tj.job.end()
 	}()
 
 	wg.Done()

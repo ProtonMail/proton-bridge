@@ -307,7 +307,7 @@ func newBridge(
 		bridge.heartbeat.init(bridge, heartbeatManager)
 	}
 
-	bridge.syncService.Run(bridge.tasks)
+	bridge.syncService.Run()
 
 	return bridge, nil
 }
@@ -450,6 +450,8 @@ func (bridge *Bridge) Close(ctx context.Context) {
 	if err := bridge.serverManager.CloseServers(ctx); err != nil {
 		logrus.WithError(err).Error("Failed to close servers")
 	}
+
+	bridge.syncService.Close()
 
 	// Stop all ongoing tasks.
 	bridge.tasks.CancelAndWait()

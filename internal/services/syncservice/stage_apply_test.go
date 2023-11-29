@@ -50,10 +50,10 @@ func TestApplyStage_CancelledJobIsDiscarded(t *testing.T) {
 	}()
 
 	jobCancel()
-	input.Produce(ctx, ApplyRequest{
+	require.NoError(t, input.Produce(ctx, ApplyRequest{
 		childJob: childJob,
 		messages: nil,
-	})
+	}))
 
 	err := tj.job.waitAndClose(ctx)
 	require.ErrorIs(t, err, context.Canceled)
@@ -84,10 +84,10 @@ func TestApplyStage_JobWithNoMessagesIsFinalized(t *testing.T) {
 		stage.run(ctx)
 	}()
 
-	input.Produce(ctx, ApplyRequest{
+	require.NoError(t, input.Produce(ctx, ApplyRequest{
 		childJob: childJob,
 		messages: nil,
-	})
+	}))
 
 	err := tj.job.waitAndClose(ctx)
 	cancel()
@@ -127,10 +127,10 @@ func TestApplyStage_ErrorOnApplyIsReportedAndJobFails(t *testing.T) {
 		stage.run(ctx)
 	}()
 
-	input.Produce(ctx, ApplyRequest{
+	require.NoError(t, input.Produce(ctx, ApplyRequest{
 		childJob: childJob,
 		messages: buildResults,
-	})
+	}))
 
 	err := tj.job.waitAndClose(ctx)
 	cancel()

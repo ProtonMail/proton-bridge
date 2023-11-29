@@ -33,7 +33,7 @@ type Service struct {
 	applyStage    *ApplyStage
 	limits        syncLimits
 	metaCh        *ChannelConsumerProducer[*Job]
-	panicHandler  async.PanicHandler
+	group         *async.Group
 }
 
 func NewService(reporter reporter.Reporter,
@@ -53,26 +53,22 @@ func NewService(reporter reporter.Reporter,
 		buildStage:    NewBuildStage(buildCh, applyCh, limits.MessageBuildMem, panicHandler, reporter),
 		applyStage:    NewApplyStage(applyCh),
 		metaCh:        metaCh,
-		panicHandler:  panicHandler,
+		group:         async.NewGroup(context.Background(), panicHandler),
 	}
 }
 
-func (s *Service) Run(group *async.Group) {
-	group.Once(func(ctx context.Context) {
-		syncGroup := async.NewGroup(ctx, s.panicHandler)
-
-		s.metadataStage.Run(syncGroup)
-		s.downloadStage.Run(syncGroup)
-		s.buildStage.Run(syncGroup)
-		s.applyStage.Run(syncGroup)
-
-		defer s.metaCh.Close()
-		defer syncGroup.CancelAndWait()
-
-		<-ctx.Done()
-	})
+func (s *Service) Run() {
+	s.metadataStage.Run(s.group)
+	s.downloadStage.Run(s.group)
+	s.buildStage.Run(s.group)
+	s.applyStage.Run(s.group)
 }
 
-func (s *Service) Sync(ctx context.Context, stage *Job) {
-	s.metaCh.Produce(ctx, stage)
+func (s *Service) Sync(ctx context.Context, stage *Job) error {
+	return s.metaCh.Produce(ctx, stage)
+}
+
+func (s *Service) Close() {
+	s.group.CancelAndWait()
+	s.metaCh.Close()
 }

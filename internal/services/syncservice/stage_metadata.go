@@ -20,6 +20,7 @@ package syncservice
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/logging"
@@ -87,10 +88,6 @@ func (m *MetadataStage) run(ctx context.Context, metadataPageSize int, maxMessag
 			return
 		}
 
-		if job.ctx.Err() != nil {
-			continue
-		}
-
 		job.begin()
 		state, err := newMetadataIterator(job.ctx, job, metadataPageSize, coolDown)
 		if err != nil {
@@ -119,7 +116,10 @@ func (m *MetadataStage) run(ctx context.Context, metadataPageSize int, maxMessag
 
 					output.onStageCompleted(ctx)
 
-					m.output.Produce(ctx, output)
+					if err := m.output.Produce(ctx, output); err != nil {
+						job.onError(fmt.Errorf("failed to produce output for next stage: %w", err))
+						return
+					}
 				}
 
 				// If this job has no more work left, signal completion.

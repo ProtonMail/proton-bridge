@@ -189,10 +189,10 @@ func TestDownloadStage_Run(t *testing.T) {
 		stage.run(ctx)
 	}()
 
-	input.Produce(ctx, DownloadRequest{
+	require.NoError(t, input.Produce(ctx, DownloadRequest{
 		childJob: childJob,
 		ids:      msgIDs,
-	})
+	}))
 
 	out, err := output.Consume(ctx)
 	require.NoError(t, err)
@@ -232,10 +232,10 @@ func TestDownloadStage_RunWith422(t *testing.T) {
 		stage.run(ctx)
 	}()
 
-	input.Produce(ctx, DownloadRequest{
+	require.NoError(t, input.Produce(ctx, DownloadRequest{
 		childJob: childJob,
 		ids:      msgIDs,
-	})
+	}))
 
 	out, err := output.Consume(ctx)
 	require.NoError(t, err)
@@ -271,10 +271,11 @@ func TestDownloadStage_CancelledJobIsDiscarded(t *testing.T) {
 	}()
 
 	jobCancel()
-	input.Produce(ctx, DownloadRequest{
+
+	require.NoError(t, input.Produce(ctx, DownloadRequest{
 		childJob: childJob,
 		ids:      nil,
-	})
+	}))
 
 	go func() { cancel() }()
 
@@ -308,10 +309,10 @@ func TestDownloadStage_JobAbortsOnMessageDownloadError(t *testing.T) {
 		stage.run(ctx)
 	}()
 
-	input.Produce(ctx, DownloadRequest{
+	require.NoError(t, input.Produce(ctx, DownloadRequest{
 		childJob: childJob,
 		ids:      []string{"foo"},
-	})
+	}))
 
 	err := tj.job.waitAndClose(ctx)
 	require.Equal(t, expectedErr, err)
@@ -359,10 +360,10 @@ func TestDownloadStage_JobAbortsOnAttachmentDownloadError(t *testing.T) {
 		stage.run(ctx)
 	}()
 
-	input.Produce(ctx, DownloadRequest{
+	require.NoError(t, input.Produce(ctx, DownloadRequest{
 		childJob: childJob,
 		ids:      []string{"foo"},
-	})
+	}))
 
 	err := tj.job.waitAndClose(ctx)
 	require.Equal(t, expectedErr, err)

@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"runtime"
 
 	"github.com/ProtonMail/gluon/async"
@@ -182,10 +183,12 @@ func (b *BuildStage) run(ctx context.Context) {
 
 				outJob.onStageCompleted(ctx)
 
-				b.output.Produce(ctx, ApplyRequest{
+				if err := b.output.Produce(ctx, ApplyRequest{
 					childJob: outJob,
 					messages: success,
-				})
+				}); err != nil {
+					return fmt.Errorf("failed to produce output for next stage: %w", err)
+				}
 			}
 
 			return nil

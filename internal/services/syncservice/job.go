@@ -119,7 +119,6 @@ func (j *Job) onJobFinished(ctx context.Context, lastMessageID string, count int
 // begin is expected to be called once the job enters the pipeline.
 func (j *Job) begin() {
 	j.log.Info("Job started")
-	j.jw.onTaskCreated()
 }
 
 // end is expected to be called once the job has no further work left.
@@ -133,7 +132,6 @@ func (j *Job) waitAndClose(ctx context.Context) error {
 	defer j.close()
 	select {
 	case <-ctx.Done():
-		j.jw.onContextCancelled()
 		<-j.jw.doneCh
 		return ctx.Err()
 	case e := <-j.jw.doneCh:
@@ -227,7 +225,6 @@ type JobWaiterMessage int
 const (
 	JobWaiterMessageCreated JobWaiterMessage = iota
 	JobWaiterMessageFinished
-	JobWaiterMessageCtxErr
 )
 
 type jobWaiterMessagePair struct {
@@ -248,7 +245,7 @@ type jobWaiter struct {
 func newJobWaiter(log *logrus.Entry, panicHandler async.PanicHandler) *jobWaiter {
 	return &jobWaiter{
 		ch:           make(chan jobWaiterMessagePair),
-		doneCh:       make(chan error),
+		doneCh:       make(chan error, 2),
 		log:          log,
 		panicHandler: panicHandler,
 	}
@@ -273,15 +270,11 @@ func (j *jobWaiter) onTaskCreated() {
 	j.sendMessage(JobWaiterMessageCreated, nil)
 }
 
-func (j *jobWaiter) onContextCancelled() {
-	j.sendMessage(JobWaiterMessageCtxErr, nil)
-}
-
 func (j *jobWaiter) begin() {
 	go func() {
 		defer async.HandlePanic(j.panicHandler)
 
-		total := 0
+		total := 1
 		var err error
 
 		defer func() {
@@ -296,8 +289,6 @@ func (j *jobWaiter) begin() {
 			}
 
 			switch m.m {
-			case JobWaiterMessageCtxErr:
-				// DO nothing
 			case JobWaiterMessageCreated:
 				total++
 			case JobWaiterMessageFinished:

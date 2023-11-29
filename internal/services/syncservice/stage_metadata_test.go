@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sync"
 	"testing"
 
 	"github.com/ProtonMail/gluon/async"
@@ -59,7 +60,7 @@ func TestMetadataStage_RunFinishesWith429(t *testing.T) {
 		metadata.run(ctx, TestMetadataPageSize, TestMaxMessages, &network.NoCoolDown{})
 	}()
 
-	input.Produce(ctx, tj.job)
+	require.NoError(t, input.Produce(ctx, tj.job))
 
 	for _, chunk := range xslices.Chunk(msgs, TestMaxMessages) {
 		tj.syncReporter.EXPECT().OnProgress(gomock.Any(), gomock.Eq(int64(len(chunk))))
@@ -93,7 +94,10 @@ func TestMetadataStage_JobCorrectlyFinishesAfterCancel(t *testing.T) {
 		metadata.run(ctx, TestMetadataPageSize, TestMaxMessages, &network.NoCoolDown{})
 	}()
 
-	input.Produce(ctx, tj.job)
+	{
+		err := input.Produce(ctx, tj.job)
+		require.NoError(t, err)
+	}
 
 	// read one output then cancel
 	request, err := output.Consume(ctx)
@@ -102,8 +106,11 @@ func TestMetadataStage_JobCorrectlyFinishesAfterCancel(t *testing.T) {
 	// cancel job context
 	jobCancel()
 
+	wg := sync.WaitGroup{}
+	wg.Add(1)
 	// The next stages should check whether the job has been cancelled or not. Here we need to do it manually.
 	go func() {
+		wg.Done()
 		for {
 			req, err := output.Consume(ctx)
 			if err != nil {
@@ -113,8 +120,9 @@ func TestMetadataStage_JobCorrectlyFinishesAfterCancel(t *testing.T) {
 			req.checkCancelled()
 		}
 	}()
-
+	wg.Wait()
 	err = tj.job.waitAndClose(ctx)
+	require.Error(t, err)
 	require.ErrorIs(t, err, context.Canceled)
 	cancel()
 }
@@ -149,8 +157,8 @@ func TestMetadataStage_RunInterleaved(t *testing.T) {
 	}()
 
 	go func() {
-		input.Produce(ctx, tj1.job)
-		input.Produce(ctx, tj2.job)
+		require.NoError(t, input.Produce(ctx, tj1.job))
+		require.NoError(t, input.Produce(ctx, tj2.job))
 	}()
 
 	go func() {

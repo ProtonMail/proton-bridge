@@ -64,7 +64,7 @@ func (s Status) InProgress() bool {
 
 // Regulator is an abstraction for the sync service, since it regulates the number of concurrent sync activities.
 type Regulator interface {
-	Sync(ctx context.Context, stage *Job)
+	Sync(ctx context.Context, stage *Job) error
 }
 
 type BuildResult struct {

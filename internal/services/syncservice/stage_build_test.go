@@ -111,7 +111,7 @@ func TestBuildStage_SuccessRemovesFailedMessage(t *testing.T) {
 		stage.run(ctx)
 	}()
 
-	input.Produce(ctx, BuildRequest{childJob: childJob, batch: []proton.FullMessage{msg}})
+	require.NoError(t, input.Produce(ctx, BuildRequest{childJob: childJob, batch: []proton.FullMessage{msg}}))
 
 	req, err := output.Consume(ctx)
 	cancel()
@@ -170,7 +170,7 @@ func TestBuildStage_BuildFailureIsReportedButDoesNotCancelJob(t *testing.T) {
 		stage.run(ctx)
 	}()
 
-	input.Produce(ctx, BuildRequest{childJob: childJob, batch: []proton.FullMessage{msg}})
+	require.NoError(t, input.Produce(ctx, BuildRequest{childJob: childJob, batch: []proton.FullMessage{msg}}))
 
 	req, err := output.Consume(ctx)
 	cancel()
@@ -222,7 +222,7 @@ func TestBuildStage_FailedToLocateKeyRingIsReportedButDoesNotFailBuild(t *testin
 		stage.run(ctx)
 	}()
 
-	input.Produce(ctx, BuildRequest{childJob: childJob, batch: []proton.FullMessage{msg}})
+	require.NoError(t, input.Produce(ctx, BuildRequest{childJob: childJob, batch: []proton.FullMessage{msg}}))
 
 	req, err := output.Consume(ctx)
 	cancel()
@@ -267,7 +267,7 @@ func TestBuildStage_OtherErrorsFailJob(t *testing.T) {
 		stage.run(ctx)
 	}()
 
-	input.Produce(ctx, BuildRequest{childJob: childJob, batch: []proton.FullMessage{msg}})
+	require.NoError(t, input.Produce(ctx, BuildRequest{childJob: childJob, batch: []proton.FullMessage{msg}}))
 
 	err := tj.job.waitAndClose(ctx)
 	require.Equal(t, expectedErr, err)
@@ -311,10 +311,10 @@ func TestBuildStage_CancelledJobIsDiscarded(t *testing.T) {
 	}()
 
 	jobCancel()
-	input.Produce(ctx, BuildRequest{
+	require.NoError(t, input.Produce(ctx, BuildRequest{
 		childJob: childJob,
 		batch:    []proton.FullMessage{msg},
-	})
+	}))
 
 	go func() { cancel() }()
 

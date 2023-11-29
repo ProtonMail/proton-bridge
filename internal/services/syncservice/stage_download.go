@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"sync/atomic"
 
 	"github.com/ProtonMail/gluon/async"
@@ -183,10 +184,12 @@ func (d *DownloadStage) run(ctx context.Context) {
 		// Step 5: Publish result.
 		request.onStageCompleted(ctx)
 
-		d.output.Produce(ctx, BuildRequest{
+		if err := d.output.Produce(ctx, BuildRequest{
 			batch:    result,
 			childJob: request.childJob,
-		})
+		}); err != nil {
+			request.job.onError(fmt.Errorf("failed to produce output for next stage: %w", err))
+		}
 	}
 }
 

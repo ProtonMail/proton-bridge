@@ -127,9 +127,11 @@ func (mr *MockBuildStageOutputMockRecorder) Close() *gomock.Call {
 }
 
 // Produce mocks base method.
-func (m *MockBuildStageOutput) Produce(arg0 context.Context, arg1 ApplyRequest) {
+func (m *MockBuildStageOutput) Produce(arg0 context.Context, arg1 ApplyRequest) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Produce", arg0, arg1)
+	ret := m.ctrl.Call(m, "Produce", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Produce indicates an expected call of Produce.
@@ -212,9 +214,11 @@ func (mr *MockDownloadStageOutputMockRecorder) Close() *gomock.Call {
 }
 
 // Produce mocks base method.
-func (m *MockDownloadStageOutput) Produce(arg0 context.Context, arg1 BuildRequest) {
+func (m *MockDownloadStageOutput) Produce(arg0 context.Context, arg1 BuildRequest) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Produce", arg0, arg1)
+	ret := m.ctrl.Call(m, "Produce", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Produce indicates an expected call of Produce.
@@ -297,9 +301,11 @@ func (mr *MockMetadataStageOutputMockRecorder) Close() *gomock.Call {
 }
 
 // Produce mocks base method.
-func (m *MockMetadataStageOutput) Produce(arg0 context.Context, arg1 DownloadRequest) {
+func (m *MockMetadataStageOutput) Produce(arg0 context.Context, arg1 DownloadRequest) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Produce", arg0, arg1)
+	ret := m.ctrl.Call(m, "Produce", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Produce indicates an expected call of Produce.
@@ -478,9 +484,11 @@ func (m *MockRegulator) EXPECT() *MockRegulatorMockRecorder {
 }
 
 // Sync mocks base method.
-func (m *MockRegulator) Sync(arg0 context.Context, arg1 *Job) {
+func (m *MockRegulator) Sync(arg0 context.Context, arg1 *Job) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Sync", arg0, arg1)
+	ret := m.ctrl.Call(m, "Sync", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Sync indicates an expected call of Sync.

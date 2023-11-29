@@ -23,7 +23,7 @@ import (
 )
 
 type StageOutputProducer[T any] interface {
-	Produce(ctx context.Context, value T)
+	Produce(ctx context.Context, value T) error
 	Close()
 }
 
@@ -41,10 +41,12 @@ func NewChannelConsumerProducer[T any]() *ChannelConsumerProducer[T] {
 	return &ChannelConsumerProducer[T]{ch: make(chan T)}
 }
 
-func (c ChannelConsumerProducer[T]) Produce(ctx context.Context, value T) {
+func (c ChannelConsumerProducer[T]) Produce(ctx context.Context, value T) error {
 	select {
 	case <-ctx.Done():
+		return ctx.Err()
 	case c.ch <- value:
+		return nil
 	}
 }
 
