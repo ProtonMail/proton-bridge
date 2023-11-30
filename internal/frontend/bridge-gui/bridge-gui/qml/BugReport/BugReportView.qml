@@ -22,6 +22,7 @@ SettingsView {
     property var selectedAddress
     property var categoryId:-1
     property string category: Backend.getBugCategory(root.categoryId)
+    property var suggestions: null
 
     signal bugReportWasSent
 
@@ -75,6 +76,29 @@ SettingsView {
         label: "Your answers to: " + qsTr(root.category);
         readOnly : true
     }
+
+    ColumnLayout {
+        id: suggestionBox
+        visible: suggestions && suggestions.length > 0
+        spacing: 8
+
+        Label {
+            colorScheme: root.colorScheme
+            text: qsTr("We believe these links might be relevant for your problem")
+            type: Label.Body_semibold
+        }
+        Repeater {
+            model: suggestions
+            LinkLabel {
+                required property var modelData
+                colorScheme: root.colorScheme
+                text: modelData.title
+                link: modelData.url
+                external: true
+            }
+        }
+    }
+
     TextField {
         id: address
         Layout.fillWidth: true
@@ -85,7 +109,6 @@ SettingsView {
             if (!isValidEmail(str)) {
                 return qsTr("Enter valid email address");
             }
-            return;
         }
     }
     TextField {
@@ -98,7 +121,6 @@ SettingsView {
             if (str.length === 0) {
                 return qsTr("Enter an email client name and version");
             }
-            return;
         }
     }
     RowLayout {
@@ -156,10 +178,7 @@ SettingsView {
                 sendButton.loading = false;
             }
             function onReceivedKnowledgeBaseSuggestions(suggestions) {
-                console.error("QML: onReceivedKnowledgeBaseSuggestions() - len = %1".arg(suggestions.length))
-                console.error("QML: %1: %2".arg(suggestions[0].title).arg(suggestions[0].url))
-                console.error("QML: %1: %2".arg(suggestions[1].title).arg(suggestions[1].url))
-                console.error("QML: %1: %2".arg(suggestions[2].title).arg(suggestions[2].url))
+                root.suggestions = suggestions
             }
             target: Backend
         }
