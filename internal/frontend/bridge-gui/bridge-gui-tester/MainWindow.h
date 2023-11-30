@@ -39,7 +39,9 @@ public: // member functions.
     MainWindow &operator=(MainWindow &&) = delete; ///< Disabled move assignment operator.
 
     SettingsTab &settingsTab(); ///< Returns a reference the 'Settings' tab.
-    UsersTab &usersTab(); ///< Returns a reference to the 'Users' tab.
+    UsersTab &usersTab() const; ///< Returns a reference to the 'Users' tab.
+    EventsTab &eventsTab() const; ///< Returns a reference to the 'Events' tab.
+    KnowledgeBaseTab &knowledgeBaseTab() const; ///< Returns a reference to the 'Knowledge Base' tab.
 
 public slots:
     void sendDelayedEvent(bridgepp::SPStreamEvent const &event); ///< Sends a gRPC event after the delay specified in the UI. The call is non blocking.

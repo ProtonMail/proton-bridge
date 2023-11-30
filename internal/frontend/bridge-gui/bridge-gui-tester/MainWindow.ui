@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1226</width>
-    <height>1086</height>
+    <width>1096</width>
+    <height>876</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,7 +22,7 @@
       </property>
       <widget class="QTabWidget" name="tabTop">
        <property name="currentIndex">
-        <number>0</number>
+        <number>3</number>
        </property>
        <widget class="SettingsTab" name="settingsTab">
         <attribute name="title">
@@ -32,6 +32,16 @@
        <widget class="UsersTab" name="usersTab">
         <attribute name="title">
          <string>Users</string>
+        </attribute>
+       </widget>
+       <widget class="EventsTab" name="eventsTab">
+        <attribute name="title">
+         <string>Events &amp;&amp; Errors</string>
+        </attribute>
+       </widget>
+       <widget class="KnowledgeBaseTab" name="knowledgeBaseTab">
+        <attribute name="title">
+         <string>Knowledge Base</string>
         </attribute>
        </widget>
       </widget>
@@ -94,6 +104,18 @@
    <class>UsersTab</class>
    <extends>QWidget</extends>
    <header>Tabs/UsersTab.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>EventsTab</class>
+   <extends>QWidget</extends>
+   <header>Tabs/EventsTab.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>KnowledgeBaseTab</class>
+   <extends>QWidget</extends>
+   <header>Tabs/KnowledgeBaseTab.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

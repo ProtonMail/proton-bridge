@@ -32,46 +32,11 @@ QString const colorSchemeLight = "light"; ///< THe light color scheme name.
 
 
 //****************************************************************************************************************************************************
-/// \brief Connect an address error button to the generation of an address error event.
-///
-/// \param[in] button The error button.
-/// \param[in] edit The edit containing the address.
-/// \param[in] eventGenerator The factory function creating the event.
-//****************************************************************************************************************************************************
-void connectAddressError(QPushButton *button, QLineEdit* edit, bridgepp::SPStreamEvent (*eventGenerator)(QString const &)) {
-    QObject::connect(button, &QPushButton::clicked, [edit, eventGenerator]() { app().grpc().sendEvent(eventGenerator(edit->text())); });
-}
-
-
-//****************************************************************************************************************************************************
 /// \param[in] parent The parent widget of the tab.
 //****************************************************************************************************************************************************
 SettingsTab::SettingsTab(QWidget *parent)
     : QWidget(parent) {
     ui_.setupUi(this);
-
-    connect(ui_.buttonInternetOn, &QPushButton::clicked, []() { app().grpc().sendEvent(newInternetStatusEvent(true)); });
-    connect(ui_.buttonInternetOff, &QPushButton::clicked, []() { app().grpc().sendEvent(newInternetStatusEvent(false)); });
-    connect(ui_.buttonShowMainWindow, &QPushButton::clicked, []() { app().grpc().sendEvent(newShowMainWindowEvent()); });
-    connect(ui_.buttonNoKeychain, &QPushButton::clicked, []() { app().grpc().sendEvent(newHasNoKeychainEvent()); });
-    connect(ui_.buttonAPICertIssue, &QPushButton::clicked, []() { app().grpc().sendEvent(newApiCertIssueEvent()); });
-    connectAddressError(ui_.buttonAddressChanged, ui_.editAddressErrors, newAddressChangedEvent);
-    connectAddressError(ui_.buttonAddressChangedLogout, ui_.editAddressErrors, newAddressChangedLogoutEvent);
-    connect(ui_.checkNextCacheChangeWillSucceed, &QCheckBox::toggled, this, &SettingsTab::updateGUIState);
-    connect(ui_.buttonUpdateError, &QPushButton::clicked, [&]() {
-        app().grpc().sendEvent(newUpdateErrorEvent(static_cast<grpc::UpdateErrorType>(ui_.comboUpdateError->currentIndex())));
-    });
-    connect(ui_.buttonUpdateManualReady, &QPushButton::clicked, [&] {
-        app().grpc().sendEvent(newUpdateManualReadyEvent(ui_.editUpdateVersion->text()));
-    });
-    connect(ui_.buttonUpdateForce, &QPushButton::clicked, [&] {
-        app().grpc().sendEvent(newUpdateForceEvent(ui_.editUpdateVersion->text()));
-    });
-    connect(ui_.buttonUpdateManualRestart, &QPushButton::clicked, []() { app().grpc().sendEvent(newUpdateManualRestartNeededEvent()); });
-    connect(ui_.buttonUpdateSilentRestart, &QPushButton::clicked, []() { app().grpc().sendEvent(newUpdateSilentRestartNeededEvent()); });
-    connect(ui_.buttonUpdateIsLatest, &QPushButton::clicked, []() { app().grpc().sendEvent(newUpdateIsLatestVersionEvent()); });
-    connect(ui_.buttonUpdateCheckFinished, &QPushButton::clicked, []() { app().grpc().sendEvent(newUpdateCheckFinishedEvent()); });
-    connect(ui_.buttonUpdateVersionChanged, &QPushButton::clicked, []() { app().grpc().sendEvent(newUpdateVersionChangedEvent()); });
 
     this->resetUI();
     this->updateGUIState();
@@ -236,14 +201,6 @@ void SettingsTab::setIsTelemetryDisabled(bool isDisabled) {
 
 
 //****************************************************************************************************************************************************
-/// \return The delay to apply before sending automatically generated events.
-//****************************************************************************************************************************************************
-qint32 SettingsTab::eventDelayMs() const {
-    return ui_.spinEventDelay->value();
-}
-
-
-//****************************************************************************************************************************************************
 /// \return The path
 //****************************************************************************************************************************************************
 QString SettingsTab::logsPath() const {
@@ -316,14 +273,6 @@ void SettingsTab::installTLSCertificate() {
 //****************************************************************************************************************************************************
 void SettingsTab::exportTLSCertificates(QString const &folderPath) {
     ui_.labeLastTLSCertExport->setText(QString("%1 Export to %2").arg(QDateTime::currentDateTime().toString(Qt::ISODateWithMs),folderPath));
-}
-
-
-//****************************************************************************************************************************************************
-/// \return The state of the check box.
-//****************************************************************************************************************************************************
-SettingsTab::BugReportResult SettingsTab::nextBugReportResult() const {
-    return BugReportResult(ui_.comboBugReportResult->currentIndex());
 }
 
 
@@ -430,14 +379,6 @@ void SettingsTab::setIsDoHEnabled(bool enabled) {
 
 
 //****************************************************************************************************************************************************
-/// \return The reply for the next IsPortFree gRPC call.
-//****************************************************************************************************************************************************
-bool SettingsTab::isPortFree() const {
-    return ui_.checkIsPortFree->isChecked();
-}
-
-
-//****************************************************************************************************************************************************
 /// \param[in] path The path of the local cache.
 //****************************************************************************************************************************************************
 void SettingsTab::setDiskCachePath(const QString &path) {
@@ -450,14 +391,6 @@ void SettingsTab::setDiskCachePath(const QString &path) {
 //****************************************************************************************************************************************************
 QString SettingsTab::diskCachePath() const {
     return ui_.editDiskCachePath->text();
-}
-
-
-//****************************************************************************************************************************************************
-/// \return The value for the 'Next Cache Change Will Succeed' check box.
-//****************************************************************************************************************************************************
-bool SettingsTab::nextCacheChangeWillSucceed() const {
-    return ui_.checkNextCacheChangeWillSucceed->isChecked();
 }
 
 
@@ -521,19 +454,16 @@ void SettingsTab::resetUI() {
     ui_.editAddress->setText(QString());
     ui_.editDescription->setPlainText(QString());
     ui_.labelIncludeLogsValue->setText(QString());
-    ui_.comboBugReportResult->setCurrentIndex(0);
 
     ui_.editHostname->setText("localhost");
     ui_.spinPortIMAP->setValue(1143);
     ui_.spinPortSMTP->setValue(1025);
     ui_.checkUseSSLForSMTP->setChecked(false);
     ui_.checkDoHEnabled->setChecked(true);
-    ui_.checkIsPortFree->setChecked(true);
 
     QString const cacheDir = QDir(tmpDir).absoluteFilePath("cache");
     QDir().mkpath(cacheDir);
     ui_.editDiskCachePath->setText(QDir::toNativeSeparators(cacheDir));
-    ui_.checkNextCacheChangeWillSucceed->setChecked(true);
 
     ui_.checkAutomaticUpdate->setChecked(true);
 

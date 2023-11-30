@@ -66,11 +66,13 @@ add_executable(bridge-gui-tester
     GRPCQtProxy.cpp GRPCQtProxy.h
     GRPCService.cpp GRPCService.h
     GRPCServerWorker.cpp GRPCServerWorker.h
+    Tabs/EventsTab.cpp Tabs/EventsTab.h
+    Tabs/KnowledgeBaseTab.cpp Tabs/KnowledgeBaseTab.h
     Tabs/SettingsTab.cpp Tabs/SettingsTab.h
     Tabs/UsersTab.cpp Tabs/UsersTab.h
     UserDialog.cpp UserDialog.h
     UserTable.cpp UserTable.h
-    )
+)
 
 target_precompile_headers(bridge-gui-tester PRIVATE Pch.h)
 target_include_directories(bridge-gui-tester PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

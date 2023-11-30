@@ -71,8 +71,24 @@ SettingsTab &MainWindow::settingsTab() {
 //****************************************************************************************************************************************************
 /// \return A reference to the users tab.
 //****************************************************************************************************************************************************
-UsersTab &MainWindow::usersTab() {
+UsersTab &MainWindow::usersTab() const {
     return *ui_.usersTab;
+}
+
+
+//****************************************************************************************************************************************************
+/// \return A reference to the events tab.
+//****************************************************************************************************************************************************
+EventsTab& MainWindow::eventsTab() const {
+    return *ui_.eventsTab;
+}
+
+
+//****************************************************************************************************************************************************
+/// \return A reference to the knowledge base tab.
+//****************************************************************************************************************************************************
+KnowledgeBaseTab& MainWindow::knowledgeBaseTab() const {
+    return *ui_.knowledgeBaseTab;
 }
 
 
@@ -98,7 +114,7 @@ void MainWindow::addBridgeGUILogEntry(bridgepp::Log::Level level, const QString 
 /// \param[in] event The event.
 //****************************************************************************************************************************************************
 void MainWindow::sendDelayedEvent(SPStreamEvent const &event) {
-    QTimer::singleShot(this->settingsTab().eventDelayMs(), [event] { app().grpc().sendEvent(event); });
+    QTimer::singleShot(this->eventsTab().eventDelayMs(), [event] { app().grpc().sendEvent(event); });
 }
 
 

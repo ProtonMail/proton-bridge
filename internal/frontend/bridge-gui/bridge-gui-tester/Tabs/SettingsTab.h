@@ -35,12 +35,6 @@ public: // data types.
         Failure = 2
     }; ///< Enumeration for the result of a TLS certificate installation.
 
-    enum class BugReportResult {
-        Success  = 0,
-        Error = 1,
-        DataSharingError = 2,
-    }; ///< Enumeration for the result of bug report sending
-
 public: // member functions.
     explicit SettingsTab(QWidget *parent = nullptr); ///< Default constructor.
     SettingsTab(SettingsTab const &) = delete; ///< Disabled copy-constructor.
@@ -60,13 +54,11 @@ public: // member functions.
     bool isAllMailVisible() const; ///< Get the value for the 'All Mail Visible' check.
     bool isTelemetryDisabled() const; ///< Get the value for the 'Disable Telemetry' check box.
     QString colorSchemeName() const; ///< Get the value of the 'Use Dark Theme' checkbox.
-    qint32 eventDelayMs() const; ///< Get the delay for sending automatically generated events.
     QString logsPath() const; ///< Get the content of the 'Logs Path' edit.
     QString licensePath() const; ///< Get the content of the 'License Path' edit.
     QString releaseNotesPageLink() const; ///< Get the content of the 'Release Notes Page Link' edit.
     QString dependencyLicenseLink() const; ///< Get the content of the 'Dependency License Link' edit.
     QString landingPageLink() const; ///< Get the content of the 'Landing Page Link' edit.
-    BugReportResult nextBugReportResult() const; ///< Get the value of the 'Next bug report result' combo box.
     bool isTLSCertificateInstalled() const; ///< Get the status of the 'TLS Certificate is installed' check box.
     TLSCertInstallResult nextTLSCertInstallResult() const; ///< Get the value of the 'Next TLS Certificate install result' combo box.
     bool nextTLSCertExportWillSucceed() const;  ///< Get the status of the 'Next TLS Cert export will succeed' check box.
@@ -77,9 +69,7 @@ public: // member functions.
     bool useSSLForSMTP() const; ///< Get the value for the 'Use SSL for SMTP' check box.
     bool useSSLForIMAP() const; ///< Get the value for the 'Use SSL for IMAP' check box.
     bool isDoHEnabled() const; ///< Get the value for the 'DoH Enabled' check box.
-    bool isPortFree() const; ///< Get the value for the "Is Port Free" check box.
     QString diskCachePath() const; ///< Get the value for the 'Disk Cache Path' edit.
-    bool nextCacheChangeWillSucceed() const; ///< Get the value for the 'Next Cache Change will succeed' edit.
     bool isAutomaticUpdateOn() const; ///<Get the value for the 'Automatic Update' check box.
 
 public slots:

@@ -367,7 +367,7 @@ grpc::Status GRPCService::RequestKnowledgeBaseSuggestions(ServerContext*, String
             .url = QString("https://proton.me/support/bridge#%1").arg(i),
         });
     }
-    qtProxy_.sendDelayedEvent(newKnowledgeBaseSuggestionsEvent(suggestions));
+    qtProxy_.sendDelayedEvent(newKnowledgeBaseSuggestionsEvent(app().mainWindow().knowledgeBaseTab().getSuggestions()));
     return Status::OK;
 }
 
@@ -377,19 +377,19 @@ grpc::Status GRPCService::RequestKnowledgeBaseSuggestions(ServerContext*, String
 //****************************************************************************************************************************************************
 Status GRPCService::ReportBug(ServerContext *, ReportBugRequest const *request, Empty *) {
     app().log().debug(__FUNCTION__);
-    SettingsTab &tab = app().mainWindow().settingsTab();
+    EventsTab const&eventsTab = app().mainWindow().eventsTab();
     qtProxy_.reportBug(QString::fromStdString(request->ostype()), QString::fromStdString(request->osversion()),
         QString::fromStdString(request->emailclient()), QString::fromStdString(request->address()), QString::fromStdString(request->description()),
         request->includelogs());
     SPStreamEvent event;
-    switch (tab.nextBugReportResult()) {
-    case SettingsTab::BugReportResult::Success:
+    switch (eventsTab.nextBugReportResult()) {
+    case EventsTab::BugReportResult::Success:
         event = newReportBugSuccessEvent();
         break;
-    case SettingsTab::BugReportResult::Error:
+    case EventsTab::BugReportResult::Error:
         event = newReportBugErrorEvent();
         break;
-    case SettingsTab::BugReportResult::DataSharingError:
+    case EventsTab::BugReportResult::DataSharingError:
         event = newReportBugFallbackEvent();
         break;
     }
@@ -559,11 +559,11 @@ Status GRPCService::DiskCachePath(ServerContext *, Empty const *, StringValue *r
 Status GRPCService::SetDiskCachePath(ServerContext *, StringValue const *path, Empty *) {
     app().log().debug(__FUNCTION__);
 
-    SettingsTab &tab = app().mainWindow().settingsTab();
+    EventsTab &eventsTab = app().mainWindow().eventsTab();
     QString const qPath = QString::fromStdString(path->value());
 
     // we mimic the behaviour of Bridge
-    if (!tab.nextCacheChangeWillSucceed()) {
+    if (!eventsTab.nextCacheChangeWillSucceed()) {
         qtProxy_.sendDelayedEvent(newDiskCacheErrorEvent(grpc::DiskCacheErrorType(CANT_MOVE_DISK_CACHE_ERROR)));
     } else {
         qtProxy_.setDiskCachePath(qPath);
@@ -643,7 +643,7 @@ Status GRPCService::Hostname(ServerContext *, Empty const *, StringValue *respon
 //****************************************************************************************************************************************************
 Status GRPCService::IsPortFree(ServerContext *, Int32Value const *request, BoolValue *response) {
     app().log().debug(__FUNCTION__);
-    response->set_value(app().mainWindow().settingsTab().isPortFree());
+    response->set_value(app().mainWindow().eventsTab().isPortFree());
     return Status::OK;
 }
 
