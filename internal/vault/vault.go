@@ -49,27 +49,31 @@ type Vault struct {
 	panicHandler async.PanicHandler
 }
 
+var ErrDecryptFailed = errors.New("failed to decrypt vault")
+var ErrUnmarshal = errors.New("vault contents are corrupt")
+
 // New constructs a new encrypted data vault at the given filepath using the given encryption key.
-func New(vaultDir, gluonCacheDir string, key []byte, panicHandler async.PanicHandler) (*Vault, bool, error) {
+// The first error is a corruption error for an existing vault, the second errors refrain to all other errors.
+func New(vaultDir, gluonCacheDir string, key []byte, panicHandler async.PanicHandler) (*Vault, error, error) {
 	if err := os.MkdirAll(vaultDir, 0o700); err != nil {
-		return nil, false, err
+		return nil, nil, err
 	}
 
 	hash256 := sha256.Sum256(key)
 
 	aes, err := aes.NewCipher(hash256[:])
 	if err != nil {
-		return nil, false, err
+		return nil, nil, err
 	}
 
 	gcm, err := cipher.NewGCM(aes)
 	if err != nil {
-		return nil, false, err
+		return nil, nil, err
 	}
 
 	vault, corrupt, err := newVault(filepath.Join(vaultDir, "vault.enc"), gluonCacheDir, gcm)
 	if err != nil {
-		return nil, false, err
+		return nil, corrupt, err
 	}
 
 	vault.panicHandler = panicHandler
@@ -341,28 +345,28 @@ func (vault *Vault) detachUser(userID string) error {
 	return nil
 }
 
-func newVault(path, gluonDir string, gcm cipher.AEAD) (*Vault, bool, error) {
+func newVault(path, gluonDir string, gcm cipher.AEAD) (*Vault, error, error) {
 	if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
 		if _, err := initVault(path, gluonDir, gcm); err != nil {
-			return nil, false, err
+			return nil, nil, err
 		}
 	}
 
 	enc, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {
-		return nil, false, err
+		return nil, nil, err
 	}
 
-	var corrupt bool
+	var corrupt error
 
 	if err := unmarshalFile(gcm, enc, new(Data)); err != nil {
-		corrupt = true
+		corrupt = err
 	}
 
-	if corrupt {
+	if corrupt != nil {
 		newEnc, err := initVault(path, gluonDir, gcm)
 		if err != nil {
-			return nil, false, err
+			return nil, corrupt, err
 		}
 
 		enc = newEnc

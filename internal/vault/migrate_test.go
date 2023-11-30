@@ -55,7 +55,7 @@ func TestMigrate(t *testing.T) {
 	// Migrate the vault.
 	s, corrupt, err := New(dir, "default-gluon-dir", []byte("my secret key"), async.NoopPanicHandler{})
 	require.NoError(t, err)
-	require.False(t, corrupt)
+	require.NoError(t, corrupt)
 
 	// Check the migrated vault.
 	require.Equal(t, "v2.3.x-gluon-dir", s.GetGluonCacheDir())

@@ -42,7 +42,7 @@ func TestMigratePrefsToVaultWithKeys(t *testing.T) {
 	// Create a new vault.
 	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"), async.NoopPanicHandler{})
 	require.NoError(t, err)
-	require.False(t, corrupt)
+	require.NoError(t, corrupt)
 
 	// load the old prefs file.
 	configDir := filepath.Join("testdata", "with_keys")
@@ -63,7 +63,7 @@ func TestMigratePrefsToVaultWithoutKeys(t *testing.T) {
 	// Create a new vault.
 	vault, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"), async.NoopPanicHandler{})
 	require.NoError(t, err)
-	require.False(t, corrupt)
+	require.NoError(t, corrupt)
 
 	// load the old prefs file.
 	configDir := filepath.Join("testdata", "without_keys")
@@ -173,7 +173,7 @@ func TestUserMigration(t *testing.T) {
 
 	v, corrupt, err := vault.New(settingsFolder, settingsFolder, token, async.NoopPanicHandler{})
 	require.NoError(t, err)
-	require.False(t, corrupt)
+	require.NoError(t, corrupt)
 
 	require.NoError(t, migrateOldAccounts(locations, kcl, v))
 	require.Equal(t, []string{wantCredentials.UserID}, v.GetUserIDs())

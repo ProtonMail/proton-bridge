@@ -34,19 +34,19 @@ func TestVault_Corrupt(t *testing.T) {
 	{
 		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), async.NoopPanicHandler{})
 		require.NoError(t, err)
-		require.False(t, corrupt)
+		require.NoError(t, corrupt)
 	}
 
 	{
 		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), async.NoopPanicHandler{})
 		require.NoError(t, err)
-		require.False(t, corrupt)
+		require.NoError(t, corrupt)
 	}
 
 	{
 		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("bad key"), async.NoopPanicHandler{})
 		require.NoError(t, err)
-		require.True(t, corrupt)
+		require.ErrorIs(t, corrupt, vault.ErrDecryptFailed)
 	}
 }
 
@@ -56,13 +56,13 @@ func TestVault_Corrupt_JunkData(t *testing.T) {
 	{
 		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), async.NoopPanicHandler{})
 		require.NoError(t, err)
-		require.False(t, corrupt)
+		require.NoError(t, corrupt)
 	}
 
 	{
 		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), async.NoopPanicHandler{})
 		require.NoError(t, err)
-		require.False(t, corrupt)
+		require.NoError(t, corrupt)
 	}
 
 	{
@@ -75,7 +75,7 @@ func TestVault_Corrupt_JunkData(t *testing.T) {
 
 		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), async.NoopPanicHandler{})
 		require.NoError(t, err)
-		require.True(t, corrupt)
+		require.ErrorIs(t, corrupt, vault.ErrUnmarshal)
 	}
 }
 
@@ -103,7 +103,7 @@ func newVault(t *testing.T) *vault.Vault {
 
 	s, corrupt, err := vault.New(t.TempDir(), t.TempDir(), []byte("my secret key"), async.NoopPanicHandler{})
 	require.NoError(t, err)
-	require.False(t, corrupt)
+	require.NoError(t, corrupt)
 
 	return s
 }

@@ -112,8 +112,8 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 	vault, corrupt, err := vault.New(vaultDir, gluonCacheDir, t.storeKey, async.NoopPanicHandler{})
 	if err != nil {
 		return nil, fmt.Errorf("could not create vault: %w", err)
-	} else if corrupt {
-		return nil, fmt.Errorf("vault is corrupt")
+	} else if corrupt != nil {
+		return nil, fmt.Errorf("vault is corrupt: %w", corrupt)
 	}
 	t.vault = vault
 

@@ -42,21 +42,25 @@ func WithVault(locations *locations.Locations, keychains *keychain.List, panicHa
 
 	logrus.WithFields(logrus.Fields{
 		"insecure": insecure,
-		"corrupt":  corrupt,
+		"corrupt":  corrupt != nil,
 	}).Debug("Vault created")
+
+	if corrupt != nil {
+		logrus.WithError(corrupt).Warn("Failed to load existing vault, vault has been reset")
+	}
 
 	cert, _ := encVault.GetBridgeTLSCert()
 	certs.NewInstaller().LogCertInstallStatus(cert)
 
 	// GODT-1950: Add teardown actions (e.g. to close the vault).
 
-	return fn(encVault, insecure, corrupt)
+	return fn(encVault, insecure, corrupt != nil)
 }
 
-func newVault(locations *locations.Locations, keychains *keychain.List, panicHandler async.PanicHandler) (*vault.Vault, bool, bool, error) {
+func newVault(locations *locations.Locations, keychains *keychain.List, panicHandler async.PanicHandler) (*vault.Vault, bool, error, error) {
 	vaultDir, err := locations.ProvideSettingsPath()
 	if err != nil {
-		return nil, false, false, fmt.Errorf("could not get vault dir: %w", err)
+		return nil, false, nil, fmt.Errorf("could not get vault dir: %w", err)
 	}
 
 	logrus.WithField("vaultDir", vaultDir).Debug("Loading vault from directory")
@@ -78,12 +82,12 @@ func newVault(locations *locations.Locations, keychains *keychain.List, panicHan
 
 	gluonCacheDir, err := locations.ProvideGluonCachePath()
 	if err != nil {
-		return nil, false, false, fmt.Errorf("could not provide gluon path: %w", err)
+		return nil, false, nil, fmt.Errorf("could not provide gluon path: %w", err)
 	}
 
 	vault, corrupt, err := vault.New(vaultDir, gluonCacheDir, vaultKey, panicHandler)
 	if err != nil {
-		return nil, false, false, fmt.Errorf("could not create vault: %w", err)
+		return nil, false, corrupt, fmt.Errorf("could not create vault: %w", err)
 	}
 
 	return vault, insecure, corrupt, nil

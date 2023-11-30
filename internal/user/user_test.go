@@ -133,7 +133,7 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 
 	v, corrupt, err := vault.New(tb.TempDir(), tb.TempDir(), []byte("my secret key"), nil)
 	require.NoError(tb, err)
-	require.False(tb, corrupt)
+	require.NoError(tb, corrupt)
 
 	vaultUser, err := v.AddUser(apiUser.ID, username, username+"@pm.me", apiAuth.UID, apiAuth.RefreshToken, saltedKeyPass)
 	require.NoError(tb, err)

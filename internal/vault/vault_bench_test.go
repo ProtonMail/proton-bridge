@@ -34,7 +34,7 @@ func BenchmarkVault(b *testing.B) {
 	// Create a new vault.
 	s, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), async.NoopPanicHandler{})
 	require.NoError(b, err)
-	require.False(b, corrupt)
+	require.NoError(b, corrupt)
 
 	// Add 10kB of cookies to the vault.
 	require.NoError(b, s.SetCookies(bytes.Repeat([]byte("a"), 10_000)))

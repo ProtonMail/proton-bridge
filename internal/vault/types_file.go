@@ -19,6 +19,7 @@ package vault
 
 import (
 	"crypto/cipher"
+	"fmt"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/vmihailenco/msgpack/v5"
@@ -34,12 +35,12 @@ func unmarshalFile[T any](gcm cipher.AEAD, b []byte, data *T) error {
 	var f File
 
 	if err := msgpack.Unmarshal(b, &f); err != nil {
-		return err
+		return fmt.Errorf("%w: %v", ErrUnmarshal, err)
 	}
 
 	dec, err := gcm.Open(nil, f.Data[:gcm.NonceSize()], f.Data[gcm.NonceSize():], nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %v", ErrDecryptFailed, err)
 	}
 
 	for v := f.Version; v < Current; v++ {
@@ -48,7 +49,11 @@ func unmarshalFile[T any](gcm cipher.AEAD, b []byte, data *T) error {
 		}
 	}
 
-	return msgpack.Unmarshal(dec, data)
+	if err := msgpack.Unmarshal(dec, data); err != nil {
+		return fmt.Errorf("%w: %v", ErrUnmarshal, err)
+	}
+
+	return nil
 }
 
 func marshalFile[T any](gcm cipher.AEAD, t T) ([]byte, error) {

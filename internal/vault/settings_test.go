@@ -68,7 +68,7 @@ func TestVault_Settings_GluonDir(t *testing.T) {
 	// create a new test vault.
 	s, corrupt, err := vault.New(t.TempDir(), "/path/to/gluon", []byte("my secret key"), async.NoopPanicHandler{})
 	require.NoError(t, err)
-	require.False(t, corrupt)
+	require.NoError(t, corrupt)
 
 	// Check the default gluon dir.
 	require.Equal(t, "/path/to/gluon", s.GetGluonCacheDir())
