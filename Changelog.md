@@ -3,6 +3,36 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Xikou Bridge 3.8.0
+
+### Added
+* Test: Add test scenarios to add an /Answered flag to a replied message and revert.
+* GODT-3046: Added links to KB in error messages.
+* Test(GODT-3113): Inline HTML message and HTML attachment is getting altered.
+* Test(GODT-3124): Attempt to fix 401 during login.
+
+### Changed
+* GODT-3134: Br tag triggers installer.
+* Added update events to bridge GUI tester.
+
+### Fixed
+* GODT-2851: Add empty text part if no text part when importing multipart.
+* GODT-3102: Distinguish Vault Decryption from Serialization Errors.
+* GODT-3124: Handling of sync child jobs.
+* GODT-3148: Bump go-sysinfo to get rid of linker warning on macOS Sonoma.
+* GODT-3124: Flaky tests.
+* GODT-3022: Handle multipart/related on fake server.
+* GODT-3133: Fix GetSystemLanguage.
+* GODT-3124: Race condition in sync task waiter.
+* GODT-3124: Race conditions reported by race check.
+* GODT-2797: Encode attached key name and use same pubkey name as web-app.
+* Fix case of IMAP login error.
+* GODT-3132: Do not allow sending on disabled accounts.
+* GODT-3046: fix typo spotted during KB article review.
+* GODT-3129: Bad Event during after address order change.
+* GODT-3117: Improve GetAllContacts and GetAllContactsEmail.
+
+
 ## Wakato Bridge 3.7.1
 
 ### Added
