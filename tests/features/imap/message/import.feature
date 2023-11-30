@@ -440,19 +440,24 @@ Feature: IMAP import messages
       "from": "Bridge Second Test <bridge_second@test.com>",
       "subject": "MESSAGE WITH REMOTE CONTENT",
       "content": {
-        "content-type": "multipart/alternative",
+        "content-type": "multipart/mixed",
         "sections":[
           {
-            "content-type": "text/plain",
-            "content-type-charset": "utf-8",
-            "transfer-encoding": "7bit",
-            "body-is": "Remote content\n\n\nBridge\n\n\nRemote content"
-          },
-          {
-            "content-type": "text/html",
-            "content-type-charset": "utf-8",
-            "transfer-encoding": "7bit",
-            "body-is": "<!DOCTYPE html>\n<html>\n  <head>\n\n    <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n  </head>\n  <body>\n    <p><tt>Remote content</tt></p>\n    <p><tt><br>\n      </tt></p>\n    <p><img\n        src=\"https://bridgeteam.protontech.ch/bridgeteam/tmp/bridge.jpg\"\n        alt=\"Bridge\" width=\"180\" height=\"180\"></p>\n    <p><br>\n    </p>\n    <p><tt>Remote content</tt><br>\n    </p>\n    <br>\n  </body>\n</html>"
+            "content-type": "multipart/alternative",
+            "sections":[
+              {
+                "content-type": "text/plain",
+                "content-type-charset": "utf-8",
+                "transfer-encoding": "7bit",
+                "body-is": "Remote content\n\n\nBridge\n\n\nRemote content"
+              },
+              {
+                "content-type": "text/html",
+                "content-type-charset": "utf-8",
+                "transfer-encoding": "7bit",
+                "body-is": "<!DOCTYPE html>\n<html>\n  <head>\n\n    <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n  </head>\n  <body>\n    <p><tt>Remote content</tt></p>\n    <p><tt><br>\n      </tt></p>\n    <p><img\n        src=\"https://bridgeteam.protontech.ch/bridgeteam/tmp/bridge.jpg\"\n        alt=\"Bridge\" width=\"180\" height=\"180\"></p>\n    <p><br>\n    </p>\n    <p><tt>Remote content</tt><br>\n    </p>\n    <br>\n  </body>\n</html>"
+              }
+            ]
           }
         ]
       }
@@ -529,8 +534,8 @@ Feature: IMAP import messages
               {
                 "content-type": "text/html",
                 "content-type-charset": "utf-8",
-                "transfer-encoding": "quoted-printable",
-                "body-is": "<html>\r\n<head>\r\n<meta http-equiv=3D\"content-type\" content=3D\"text/html; charset=3DUTF-8\">\r\n</head>\r\n<body text=3D\"#000000\" bgcolor=3D\"#FFFFFF\">\r\n<p><br>\r\n</p>\r\n<p>Behold! An inline <img moz-do-not-send=3D\"false\"\r\nsrc=3D\"cid:part1.D96BFAE9.E2E1CAE3@protonmail.com\" alt=3D\"\"\r\nwidth=3D\"24\" height=3D\"24\"><br>\r\n</p>\r\n</body>\r\n</html>"
+                "transfer-encoding": "7bit",
+                "body-is": "<html>\n<head>\n<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\n</head>\n<body text=\"#000000\" bgcolor=\"#FFFFFF\">\n<p><br>\n</p>\n<p>Behold! An inline <img moz-do-not-send=\"false\"\nsrc=\"cid:part1.D96BFAE9.E2E1CAE3@protonmail.com\" alt=\"\"\nwidth=\"24\" height=\"24\"><br>\n</p>\n</body>\n</html>"
               },
               {
                 "content-type": "image/gif",
@@ -546,3 +551,116 @@ Feature: IMAP import messages
       }
     }
     """
+
+  Scenario: Message import with text part and attachment
+    When IMAP client "1" appends the following message to "INBOX":
+      """
+      From: Bridge Test <bridgetest@pm.test>
+      Date: 01 Jan 1980 00:00:00 +0000
+      To: Internal Bridge <bridgetest@example.com>
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
+      Subject: Message import with text part
+      Content-Type: multipart/mixed; boundary="BOUNDARY"
+
+      This is a multi-part message in MIME format.
+
+      --BOUNDARY
+      Content-Type: text/plain; charset=utf-8; format=flowed
+      Content-Transfer-Encoding: 7bit
+
+      Hello World
+
+      --BOUNDARY
+      Content-Disposition: attachment; filename=image.png
+      Content-Transfer-Encoding: base64
+      Content-Type: image/png
+
+      iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAALVBMVEUAAAD/////////////////
+      //////////////////////////////////////+hSKubAAAADnRSTlMAgO8QQM+/IJ9gj1AwcIQd
+      OXUAAAGdSURBVDjLXJC9SgNBFIVPXDURTYhgIQghINgowyLYCAYtRFAIgtYhpAjYhC0srCRW6YIg
+      WNpoHVSsg/gEii+Qnfxq4DyDc3cyMfrBwl2+O+fOHTi8p7LS5RUf/9gpMKL7iT9sK47Q95ggpkzv
+      1cvRcsGYNMYsmP+zKN27NR2vcDyTNVdfkOuuniNPMWafvIbljt+YoMEvW8y7lt+ARwhvrgPjhA0I
+      BTng7S1GLPlypBvtIBPidY4YBDJFdtnkscQ5JGaGqxC9i7jSDwcwnB8qHWBaQjw1ABI8wYgtVoG6
+      9pFkH8iZIiJeulFt4JLvJq8I5N2GMWYbHWDWzM3JZTMdeSWla0kW86FcuI0mfStiNKQ/AhEeh8h0
+      YUTffFwrMTT5oSwdojIQ0UKcocgAKRH1HiqhFQmmJa5qRaYHNbRiSsOgslY0NdixItUTUWlZkedP
+      HXVyAgAIA1F0wP5btQZPIyTwvAqa/Fl4oacuP+e4XHAjSYpkQkxSiMX+T7FPoZJToSStzED70HCy
+      KE3NGCg4jJrC6Ti7AFwZLhnW0gMbzFZc0RmmeAAAAABJRU5ErkJggg==
+
+      --BOUNDARY--
+      """
+    Then it succeeds
+    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
+      """
+      {
+        "from": "Bridge Test <bridgetest@pm.test>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Internal Bridge <bridgetest@example.com>",
+        "subject": "Message import with text part",
+        "content": {
+          "content-type": "multipart/mixed",
+          "sections":[
+            {
+              "content-type": "text/plain",
+              "body-is": "Hello World"
+            },
+            {
+              "content-type": "image/png"
+            }
+          ]
+        }
+      }
+      """
+
+
+  Scenario: Message import without text part
+    When IMAP client "1" appends the following message to "INBOX":
+      """
+      From: Bridge Test <bridgetest@pm.test>
+      Date: 01 Jan 1980 00:00:00 +0000
+      To: Internal Bridge <bridgetest@example.com>
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
+      Subject: Message import without text part
+      Content-Type: multipart/mixed; boundary="BOUNDARY"
+
+      This is a multi-part message in MIME format.
+
+      --BOUNDARY
+      Content-Disposition: attachment; filename=image.png
+      Content-Transfer-Encoding: base64
+      Content-Type: image/png
+
+      iVBORw0KGgoAAAANSUhEUgAAADAAAAAwBAMAAAClLOS0AAAALVBMVEUAAAD/////////////////
+      //////////////////////////////////////+hSKubAAAADnRSTlMAgO8QQM+/IJ9gj1AwcIQd
+      OXUAAAGdSURBVDjLXJC9SgNBFIVPXDURTYhgIQghINgowyLYCAYtRFAIgtYhpAjYhC0srCRW6YIg
+      WNpoHVSsg/gEii+Qnfxq4DyDc3cyMfrBwl2+O+fOHTi8p7LS5RUf/9gpMKL7iT9sK47Q95ggpkzv
+      1cvRcsGYNMYsmP+zKN27NR2vcDyTNVdfkOuuniNPMWafvIbljt+YoMEvW8y7lt+ARwhvrgPjhA0I
+      BTng7S1GLPlypBvtIBPidY4YBDJFdtnkscQ5JGaGqxC9i7jSDwcwnB8qHWBaQjw1ABI8wYgtVoG6
+      9pFkH8iZIiJeulFt4JLvJq8I5N2GMWYbHWDWzM3JZTMdeSWla0kW86FcuI0mfStiNKQ/AhEeh8h0
+      YUTffFwrMTT5oSwdojIQ0UKcocgAKRH1HiqhFQmmJa5qRaYHNbRiSsOgslY0NdixItUTUWlZkedP
+      HXVyAgAIA1F0wP5btQZPIyTwvAqa/Fl4oacuP+e4XHAjSYpkQkxSiMX+T7FPoZJToSStzED70HCy
+      KE3NGCg4jJrC6Ti7AFwZLhnW0gMbzFZc0RmmeAAAAABJRU5ErkJggg==
+
+      --BOUNDARY--
+      """
+    Then it succeeds
+    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
+      """
+      {
+        "from": "Bridge Test <bridgetest@pm.test>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Internal Bridge <bridgetest@example.com>",
+        "subject": "Message import without text part",
+        "content": {
+          "content-type": "multipart/mixed",
+          "sections":[
+            {
+              "content-type": "text/plain",
+              "body-is": ""
+            },
+            {
+              "content-type": "image/png"
+            }
+          ]
+        }
+      }
+      """

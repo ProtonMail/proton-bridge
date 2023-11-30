@@ -84,7 +84,7 @@ func (p *Parser) AttachPublicKey(key, keyName string) {
 	})
 }
 
-func (p *Parser) AttachEmptyTextPartIfNoneExists() {
+func (p *Parser) AttachEmptyTextPartIfNoneExists() bool {
 	root := p.Root()
 	if root.isMultipartMixed() {
 		for _, v := range root.children {
@@ -95,14 +95,14 @@ func (p *Parser) AttachEmptyTextPartIfNoneExists() {
 			contentType, _, err := v.Header.ContentType()
 			if err == nil && strings.HasPrefix(contentType, "text/") {
 				// Message already has text part
-				return
+				return false
 			}
 		}
 	} else {
 		contentType, _, err := root.Header.ContentType()
 		if err == nil && strings.HasPrefix(contentType, "text/") {
 			// Message already has text part
-			return
+			return false
 		}
 	}
 
@@ -115,6 +115,7 @@ func (p *Parser) AttachEmptyTextPartIfNoneExists() {
 		Header: h,
 		Body:   nil,
 	})
+	return true
 }
 
 // Section returns the message part referred to by the given section. A section

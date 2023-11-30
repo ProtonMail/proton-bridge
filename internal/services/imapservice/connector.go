@@ -678,17 +678,27 @@ func (s *Connector) importMessage(
 
 	if err := s.identityState.WithAddrKR(s.addrID, func(_, addrKR *crypto.KeyRing) error {
 		var messageID string
-
+		p, err2 := parser.New(bytes.NewReader(literal))
+		if err2 != nil {
+			return fmt.Errorf("failed to parse literal: %w", err2)
+		}
 		if slices.Contains(labelIDs, proton.DraftsLabel) {
-			msg, err := s.createDraft(ctx, literal, addrKR, addr)
+			msg, err := s.createDraftWithParser(ctx, p, addrKR, addr)
 			if err != nil {
 				return fmt.Errorf("failed to create draft: %w", err)
 			}
 
 			// apply labels
-
 			messageID = msg.ID
 		} else {
+			// multipart body requires at least one text part to be properly encrypted.
+			if p.AttachEmptyTextPartIfNoneExists() {
+				buf := new(bytes.Buffer)
+				if err := p.NewWriter().Write(buf); err != nil {
+					return fmt.Errorf("failed build new MIMEBody: %w", err)
+				}
+				literal = buf.Bytes()
+			}
 			str, err := s.client.ImportMessages(ctx, addrKR, 1, 1, []proton.ImportReq{{
 				Metadata: proton.ImportMetadata{
 					AddressID: s.addrID,
@@ -728,13 +738,7 @@ func (s *Connector) importMessage(
 	return toIMAPMessage(full.MessageMetadata), literal, nil
 }
 
-func (s *Connector) createDraft(ctx context.Context, literal []byte, addrKR *crypto.KeyRing, sender proton.Address) (proton.Message, error) {
-	// Create a new message parser from the reader.
-	parser, err := parser.New(bytes.NewReader(literal))
-	if err != nil {
-		return proton.Message{}, fmt.Errorf("failed to create parser: %w", err)
-	}
-
+func (s *Connector) createDraftWithParser(ctx context.Context, parser *parser.Parser, addrKR *crypto.KeyRing, sender proton.Address) (proton.Message, error) {
 	message, err := message.ParseWithParser(parser, true)
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to parse message: %w", err)
