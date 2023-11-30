@@ -40,7 +40,7 @@ public: // member functions.
     GRPCServerWorker &operator=(GRPCServerWorker &&) = delete; ///< Disabled move assignment operator.
 
     void run() override; ///< Run the worker.
-    void stop();  ///< Stop the gRPC service.
+    void stop() const;  ///< Stop the gRPC service.
 
 private: // data members
     std::unique_ptr<grpc::Server> server_ { nullptr }; ///< The gRPC server.

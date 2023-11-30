@@ -31,10 +31,10 @@ GRPCQtProxy::GRPCQtProxy()
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void GRPCQtProxy::connectSignals() {
+void GRPCQtProxy::connectSignals() const {
     MainWindow &mainWindow = app().mainWindow();
-    SettingsTab &settingsTab = mainWindow.settingsTab();
-    UsersTab &usersTab = mainWindow.usersTab();
+    SettingsTab const &settingsTab = mainWindow.settingsTab();
+    UsersTab const &usersTab = mainWindow.usersTab();
     connect(this, &GRPCQtProxy::delayedEventRequested, &mainWindow, &MainWindow::sendDelayedEvent);
     connect(this, &GRPCQtProxy::setIsAutostartOnReceived, &settingsTab, &SettingsTab::setIsAutostartOn);
     connect(this, &GRPCQtProxy::setIsBetaEnabledReceived, &settingsTab, &SettingsTab::setIsBetaEnabled);
@@ -157,8 +157,8 @@ void GRPCQtProxy::setClientPlatform(QString const &clientPlatform) {
 /// \param[in] useSSLForIMAP The IMAP connexion mode.
 /// \param[in] useSSLForSMTP The IMAP connexion mode.
 //****************************************************************************************************************************************************
-void GRPCQtProxy::setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool userSSLForSMTP) {
-    emit setMailServerSettingsReceived(imapPort, smtpPort, useSSLForIMAP, userSSLForSMTP);
+void GRPCQtProxy::setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) {
+    emit setMailServerSettingsReceived(imapPort, smtpPort, useSSLForIMAP, useSSLForSMTP);
 }
 
 

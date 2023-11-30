@@ -39,6 +39,7 @@ KnowledgeBaseTab::KnowledgeBaseTab(QWidget* parent)
 
 }
 
+
 //****************************************************************************************************************************************************
 /// \param[in] checkbox The check box.
 /// \param[in] widgets The widgets to conditionally enable.

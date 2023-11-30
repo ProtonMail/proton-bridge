@@ -45,7 +45,6 @@ public: // member functions.
     EventsTab& operator=(EventsTab&&) = delete; ///< Disabled move assignment operator.
 
     qint32 eventDelayMs() const; ///< Get the delay for sending automatically generated events.
-    void updateGUIState(); ///< Update the GUI state.
     BugReportResult nextBugReportResult() const; ///< Get the value of the 'Next bug report result' combo box.
     bool isPortFree() const; ///< Get the value for the "Is Port Free" check box.
     bool nextCacheChangeWillSucceed() const; ///< Get the value for the 'Next Cache Change will succeed' edit.
@@ -53,7 +52,7 @@ public: // member functions.
     void resetUI() const; ///< Resets the UI.
 
 private: // data members
-    Ui::EventsTab ui_; ///< The UI for the widget.
+    Ui::EventsTab ui_ {}; ///< The UI for the widget.
 };
 
 

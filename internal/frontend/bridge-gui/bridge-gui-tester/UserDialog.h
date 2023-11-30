@@ -30,7 +30,7 @@
 class UserDialog : public QDialog {
 Q_OBJECT
 public: // member functions.
-    UserDialog(bridgepp::SPUser &user, QWidget *parent); ///< Default constructor.
+    UserDialog(const bridgepp::SPUser &user, QWidget *parent); ///< Default constructor.
     UserDialog(UserDialog const &) = delete; ///< Disabled copy-constructor.
     UserDialog(UserDialog &&) = delete; ///< Disabled assignment copy-constructor.
     ~UserDialog() override = default; ///< Destructor.
@@ -38,8 +38,8 @@ public: // member functions.
     UserDialog &operator=(UserDialog &&) = delete; ///< Disabled move assignment operator.
 
 private: // member functions
-    bridgepp::UserState state(); ///< Get the user state selected in the dialog.
-    void setState(bridgepp::UserState state); ///< Set the user state selected in the dialog
+    bridgepp::UserState state() const; ///< Get the user state selected in the dialog.
+    void setState(bridgepp::UserState state) const; ///< Set the user state selected in the dialog
 
 private slots:
     void onOK(); ///< Slot for the OK button.

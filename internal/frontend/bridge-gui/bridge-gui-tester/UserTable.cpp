@@ -35,7 +35,7 @@ UserTable::UserTable(QObject *parent)
 /// \return The number of rows in the table.
 //****************************************************************************************************************************************************
 int UserTable::rowCount(QModelIndex const &) const {
-    return users_.size();
+    return static_cast<int>(users_.size());
 }
 
 
@@ -111,7 +111,7 @@ QVariant UserTable::headerData(int section, Qt::Orientation orientation, int rol
 /// \param[in] user The user to add.
 //****************************************************************************************************************************************************
 void UserTable::append(SPUser const &user) {
-    qint32 const count = users_.size();
+    qint32 const count = static_cast<int>(users_.size());
     this->beginInsertRows(QModelIndex(), count, count);
     users_.append(user);
     this->endInsertRows();
@@ -122,7 +122,7 @@ void UserTable::append(SPUser const &user) {
 /// \return The number of users in the table.
 //****************************************************************************************************************************************************
 qint32 UserTable::userCount() const {
-    return users_.count();
+    return static_cast<qint32>(users_.count());
 }
 
 
@@ -141,7 +141,7 @@ bridgepp::SPUser UserTable::userAtIndex(qint32 index) {
 /// \return A null pointer if the user is not in the list.
 //****************************************************************************************************************************************************
 bridgepp::SPUser UserTable::userWithID(QString const &userID) {
-    QList<SPUser>::const_iterator it = std::find_if(users_.constBegin(), users_.constEnd(), [&userID](SPUser const &user) -> bool {
+    QList<SPUser>::const_iterator const it = std::find_if(users_.constBegin(), users_.constEnd(), [&userID](SPUser const &user) -> bool {
         return user->id() == userID;
     });
 
@@ -155,7 +155,7 @@ bridgepp::SPUser UserTable::userWithID(QString const &userID) {
 /// \return A null pointer if the user is not in the list.
 //****************************************************************************************************************************************************
 bridgepp::SPUser UserTable::userWithUsernameOrEmail(QString const &username) {
-    QList<SPUser>::const_iterator it = std::find_if(users_.constBegin(), users_.constEnd(), [&username](SPUser const &user) -> bool {
+    QList<SPUser>::const_iterator const it = std::find_if(users_.constBegin(), users_.constEnd(), [&username](SPUser const &user) -> bool {
         if (user->username().compare(username, Qt::CaseInsensitive) == 0) {
             return true;
         }
@@ -172,7 +172,7 @@ bridgepp::SPUser UserTable::userWithUsernameOrEmail(QString const &username) {
 /// \return -1 if the user could not be found.
 //****************************************************************************************************************************************************
 qint32 UserTable::indexOfUser(QString const &userID) {
-    QList<SPUser>::const_iterator it = std::find_if(users_.constBegin(), users_.constEnd(), [&userID](SPUser const &user) -> bool {
+    QList<SPUser>::const_iterator const it = std::find_if(users_.constBegin(), users_.constEnd(), [&userID](SPUser const &user) -> bool {
         return user->id() == userID;
     });
 

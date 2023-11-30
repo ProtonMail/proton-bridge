@@ -26,7 +26,7 @@ using namespace bridgepp;
 /// \param[in] user The user.
 /// \param[in] parent The parent widget of the dialog.
 //****************************************************************************************************************************************************
-UserDialog::UserDialog(bridgepp::SPUser &user, QWidget *parent)
+UserDialog::UserDialog(const bridgepp::SPUser &user, QWidget *parent)
     : QDialog(parent)
     , user_(user) {
     ui_.setupUi(this);
@@ -57,8 +57,8 @@ void UserDialog::onOK() {
     user_->setAvatarText(ui_.editAvatarText->text());
     user_->setState(this->state());
     user_->setSplitMode(ui_.checkSplitMode->isChecked());
-    user_->setUsedBytes(float(ui_.spinUsedBytes->value()));
-    user_->setTotalBytes(float(ui_.spinTotalBytes->value()));
+    user_->setUsedBytes(static_cast<float>(ui_.spinUsedBytes->value()));
+    user_->setTotalBytes(static_cast<float>(ui_.spinTotalBytes->value()));
 
     this->accept();
 }
@@ -67,14 +67,14 @@ void UserDialog::onOK() {
 //****************************************************************************************************************************************************
 /// \return The user state  that is currently selected in the dialog.
 //****************************************************************************************************************************************************
-UserState UserDialog::state() {
-    return UserState(ui_.comboState->currentIndex());
+UserState UserDialog::state() const {
+    return static_cast<UserState>(ui_.comboState->currentIndex());
 }
 
 
 //****************************************************************************************************************************************************
 /// \param[in] state The user state to select in the dialog.
 //****************************************************************************************************************************************************
-void UserDialog::setState(UserState state) {
-    ui_.comboState->setCurrentIndex(qint32(state));
+void UserDialog::setState(UserState state) const {
+    ui_.comboState->setCurrentIndex(static_cast<qint32>(state));
 }

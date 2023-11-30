@@ -18,7 +18,6 @@
 
 #include "AppController.h"
 #include "GRPCService.h"
-#include <bridgepp/GRPC/GRPCUtils.h>
 #include <bridgepp/Exception/Exception.h>
 #include "MainWindow.h"
 #include <bridgepp/Log/Log.h>
@@ -68,7 +67,7 @@ void AppController::setMainWindow(MainWindow *mainWindow) {
 //****************************************************************************************************************************************************
 /// \return The main window.
 //****************************************************************************************************************************************************
-MainWindow &AppController::mainWindow() {
+MainWindow &AppController::mainWindow() const {
     if (!mainWindow_) {
         throw Exception("mainWindow has not yet been registered.");
     }
@@ -79,7 +78,7 @@ MainWindow &AppController::mainWindow() {
 //****************************************************************************************************************************************************
 /// \return A reference to the log.
 //****************************************************************************************************************************************************
-bridgepp::Log &AppController::log() {
+bridgepp::Log &AppController::log() const {
     return *log_;
 }
 
@@ -87,7 +86,7 @@ bridgepp::Log &AppController::log() {
 //****************************************************************************************************************************************************
 /// \return A reference to the bridge-gui log.
 //****************************************************************************************************************************************************
-bridgepp::Log &AppController::bridgeGUILog() {
+bridgepp::Log &AppController::bridgeGUILog() const {
     return *bridgeGUILog_;
 }
 
@@ -95,6 +94,6 @@ bridgepp::Log &AppController::bridgeGUILog() {
 //****************************************************************************************************************************************************
 /// \return A reference to the gRPC service.
 //****************************************************************************************************************************************************
-GRPCService &AppController::grpc() {
+GRPCService &AppController::grpc() const {
     return *grpc_;
 }

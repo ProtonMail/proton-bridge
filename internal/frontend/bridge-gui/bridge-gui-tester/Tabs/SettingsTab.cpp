@@ -18,7 +18,6 @@
 
 #include "SettingsTab.h"
 #include "GRPCService.h"
-#include <bridgepp/GRPC/EventFactory.h>
 #include <bridgepp/BridgeUtils.h>
 
 
@@ -47,7 +46,7 @@ SettingsTab::SettingsTab(QWidget *parent)
 //
 //****************************************************************************************************************************************************
 void SettingsTab::updateGUIState() {
-    bool connected = app().grpc().isStreaming();
+    bool const connected = app().grpc().isStreaming();
     for (QWidget *widget: { ui_.groupVersion, ui_.groupGeneral, ui_.groupMail, ui_.groupPaths, ui_.groupCache }) {
         widget->setEnabled(!connected);
     }
@@ -66,7 +65,7 @@ void SettingsTab::setIsStreaming(bool isStreaming) {
 //****************************************************************************************************************************************************
 /// \param[in] clientPlatform The client platform.
 //****************************************************************************************************************************************************
-void SettingsTab::setClientPlatform(QString const &clientPlatform) {
+void SettingsTab::setClientPlatform(QString const &clientPlatform) const {
     ui_.labelClientPlatformValue->setText(clientPlatform);
 }
 
@@ -131,7 +130,7 @@ bool SettingsTab::isAutostartOn() const {
 //****************************************************************************************************************************************************
 /// \param[in] on Should autostart be turned on?
 //****************************************************************************************************************************************************
-void SettingsTab::setIsAutostartOn(bool on) {
+void SettingsTab::setIsAutostartOn(bool on) const {
     ui_.checkAutostart->setChecked(on);
 }
 
@@ -147,7 +146,7 @@ QString SettingsTab::colorSchemeName() const {
 //****************************************************************************************************************************************************
 /// \param[in] name True if the 'Use Dark Theme' check box should be checked.
 //****************************************************************************************************************************************************
-void SettingsTab::setColorSchemeName(QString const &name) {
+void SettingsTab::setColorSchemeName(QString const &name) const {
     ui_.checkDarkTheme->setChecked(name == colorSchemeDark);
 }
 
@@ -163,7 +162,7 @@ bool SettingsTab::isBetaEnabled() const {
 //****************************************************************************************************************************************************
 /// \param[in] enabled The new state for the 'Beta Enabled' check box.
 //****************************************************************************************************************************************************
-void SettingsTab::setIsBetaEnabled(bool enabled) {
+void SettingsTab::setIsBetaEnabled(bool enabled) const {
     ui_.checkBetaEnabled->setChecked(enabled);
 }
 
@@ -179,7 +178,7 @@ bool SettingsTab::isAllMailVisible() const {
 //****************************************************************************************************************************************************
 /// \param[in] visible The new value for the 'All Mail Visible' check box.
 //****************************************************************************************************************************************************
-void SettingsTab::setIsAllMailVisible(bool visible) {
+void SettingsTab::setIsAllMailVisible(bool visible) const {
     ui_.checkAllMailVisible->setChecked(visible);
 }
 
@@ -195,7 +194,7 @@ bool SettingsTab::isTelemetryDisabled() const {
 //****************************************************************************************************************************************************
 /// \param[in] isDisabled The new value for the 'Disable Telemetry' check box.
 //****************************************************************************************************************************************************
-void SettingsTab::setIsTelemetryDisabled(bool isDisabled) {
+void SettingsTab::setIsTelemetryDisabled(bool isDisabled) const {
     ui_.checkIsTelemetryDisabled->setChecked(isDisabled);
 }
 
@@ -249,7 +248,7 @@ QString SettingsTab::landingPageLink() const {
 /// \param[in] includeLogs Are the log included.
 //****************************************************************************************************************************************************
 void SettingsTab::setBugReport(QString const &osType, QString const &osVersion, QString const &emailClient, QString const &address,
-    QString const &description, bool includeLogs) {
+    QString const &description, bool includeLogs) const {
     ui_.editOSType->setText(osType);
     ui_.editOSVersion->setText(osVersion);
     ui_.editEmailClient->setText(emailClient);
@@ -262,7 +261,7 @@ void SettingsTab::setBugReport(QString const &osType, QString const &osVersion, 
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void SettingsTab::installTLSCertificate() {
+void SettingsTab::installTLSCertificate() const {
     ui_.labelLastTLSCertInstall->setText(QString("Last install: %1").arg(QDateTime::currentDateTime().toString(Qt::ISODateWithMs)));
     ui_.checkTLSCertIsInstalled->setChecked(this->nextTLSCertInstallResult() == TLSCertInstallResult::Success);
 }
@@ -271,7 +270,7 @@ void SettingsTab::installTLSCertificate() {
 //****************************************************************************************************************************************************
 /// \param[in] folderPath The folder path.
 //****************************************************************************************************************************************************
-void SettingsTab::exportTLSCertificates(QString const &folderPath) {
+void SettingsTab::exportTLSCertificates(QString const &folderPath) const {
     ui_.labeLastTLSCertExport->setText(QString("%1 Export to %2").arg(QDateTime::currentDateTime().toString(Qt::ISODateWithMs),folderPath));
 }
 
@@ -288,7 +287,7 @@ bool SettingsTab::isTLSCertificateInstalled() const {
 /// \return The value for the 'Next TLS cert install result'.
 //****************************************************************************************************************************************************
 SettingsTab::TLSCertInstallResult SettingsTab::nextTLSCertInstallResult() const {
-    return TLSCertInstallResult(ui_.comboNextTLSCertInstallResult->currentIndex());
+    return static_cast<TLSCertInstallResult>(ui_.comboNextTLSCertInstallResult->currentIndex());
 }
 
 
@@ -319,7 +318,7 @@ QString SettingsTab::hostname() const {
 //****************************************************************************************************************************************************
 /// \return The value of the IMAP port spin box.
 //****************************************************************************************************************************************************
-qint32 SettingsTab::imapPort() {
+qint32 SettingsTab::imapPort() const {
     return ui_.spinPortIMAP->value();
 }
 
@@ -327,7 +326,7 @@ qint32 SettingsTab::imapPort() {
 //****************************************************************************************************************************************************
 /// \return The value of the SMTP port spin box.
 //****************************************************************************************************************************************************
-qint32 SettingsTab::smtpPort() {
+qint32 SettingsTab::smtpPort() const {
     return ui_.spinPortSMTP->value();
 }
 
@@ -338,7 +337,7 @@ qint32 SettingsTab::smtpPort() {
 /// \param[in] useSSLForIMAP The IMAP connexion mode.
 /// \param[in] useSSLForSMTP The IMAP connexion mode.
 //****************************************************************************************************************************************************
-void SettingsTab::setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) {
+void SettingsTab::setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP) const {
     ui_.spinPortIMAP->setValue(imapPort);
     ui_.spinPortSMTP->setValue(smtpPort);
     ui_.checkUseSSLForIMAP->setChecked(useSSLForIMAP);
@@ -373,7 +372,7 @@ bool SettingsTab::isDoHEnabled() const {
 //****************************************************************************************************************************************************
 /// \param[in] enabled The state of the 'DoH enabled' check box.
 //****************************************************************************************************************************************************
-void SettingsTab::setIsDoHEnabled(bool enabled) {
+void SettingsTab::setIsDoHEnabled(bool enabled) const {
     ui_.checkDoHEnabled->setChecked(enabled);
 }
 
@@ -381,7 +380,7 @@ void SettingsTab::setIsDoHEnabled(bool enabled) {
 //****************************************************************************************************************************************************
 /// \param[in] path The path of the local cache.
 //****************************************************************************************************************************************************
-void SettingsTab::setDiskCachePath(const QString &path) {
+void SettingsTab::setDiskCachePath(const QString &path) const {
     ui_.editDiskCachePath->setText(path);
 }
 
@@ -405,7 +404,7 @@ bool SettingsTab::isAutomaticUpdateOn() const {
 //****************************************************************************************************************************************************
 /// \param[in] on The value for the 'Automatic Update' check.
 //****************************************************************************************************************************************************
-void SettingsTab::setIsAutomaticUpdateOn(bool on) {
+void SettingsTab::setIsAutomaticUpdateOn(bool on) const {
     ui_.checkAutomaticUpdate->setChecked(on);
 }
 

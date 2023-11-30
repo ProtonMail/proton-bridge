@@ -36,7 +36,7 @@ public: // member functions.
     GRPCQtProxy &operator=(GRPCQtProxy const &) = delete; ///< Disabled assignment operator.
     GRPCQtProxy &operator=(GRPCQtProxy &&) = delete; ///< Disabled move assignment operator.
 
-    void connectSignals(); // connect the signals to the main window.
+    void connectSignals() const; // connect the signals to the main window.
     void sendDelayedEvent(bridgepp::SPStreamEvent const &event); ///< Sends a delayed stream event.
     void setIsAutostartOn(bool on); ///< Forwards a SetIsAutostartOn call via a Qt signal.
     void setIsBetaEnabled(bool enabled); ///< Forwards a SetIsBetaEnabled call via a Qt signal.
@@ -49,7 +49,7 @@ public: // member functions.
     void exportTLSCertificates(QString const &folderPath); //< Forward an 'ExportTLSCertificates' call via a Qt signal.
     void setIsStreaming(bool isStreaming); ///< Forward a isStreaming internal messages via a Qt signal.
     void setClientPlatform(QString const &clientPlatform); ///< Forward a setClientPlatform call via a Qt signal.
-    void setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool userSSLForSMTP); ///< Forwards a setMailServerSettings' call via a Qt signal.
+    void setMailServerSettings(qint32 imapPort, qint32 smtpPort, bool useSSLForIMAP, bool useSSLForSMTP); ///< Forwards a setMailServerSettings' call via a Qt signal.
     void setIsDoHEnabled(bool enabled); ///< Forwards a setIsDoHEnabled call via a Qt signal.
     void setDiskCachePath(QString const &path); ///< Forwards a setDiskCachePath call via a Qt signal.
     void setIsAutomaticUpdateOn(bool on); ///< Forwards a SetIsAutomaticUpdateOn call via a Qt signal.

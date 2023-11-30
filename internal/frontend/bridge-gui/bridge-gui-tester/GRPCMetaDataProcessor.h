@@ -35,7 +35,7 @@ public: // member functions.
     GRPCMetadataProcessor &operator=(GRPCMetadataProcessor const &) = delete; ///< Disabled assignment operator.
     GRPCMetadataProcessor &operator=(GRPCMetadataProcessor &&) = delete; ///< Disabled move assignment operator.
     bool IsBlocking() const override; ///< Is the processor blocking?
-    grpc::Status Process(InputMetadata const &auth_metadata, grpc::AuthContext *context, OutputMetadata *consumed_auth_metadata,
+    grpc::Status Process(InputMetadata const &authMetadata, grpc::AuthContext *context, OutputMetadata *consumed_auth_metadata,
         OutputMetadata *response_metadata) override; ///< Process the metadata
 
 private:

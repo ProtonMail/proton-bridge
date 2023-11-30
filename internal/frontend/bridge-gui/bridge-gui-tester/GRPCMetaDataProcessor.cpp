@@ -26,7 +26,7 @@ using namespace grpc;
 
 
 //****************************************************************************************************************************************************
-/// \param[in] The server token expected from gRPC calls
+/// \param[in] serverToken The server token expected from gRPC calls
 //****************************************************************************************************************************************************
 GRPCMetadataProcessor::GRPCMetadataProcessor(QString const &serverToken)
     : serverToken_(serverToken.toStdString()) {
@@ -43,16 +43,16 @@ bool GRPCMetadataProcessor::IsBlocking() const {
 
 
 //****************************************************************************************************************************************************
-/// \param[in] inputMeta
+/// \param authMetadata The authentication metadata.
 /// \return the result of the metadata processing.
 //****************************************************************************************************************************************************
-Status GRPCMetadataProcessor::Process(AuthMetadataProcessor::InputMetadata const &auth_metadata, AuthContext *,
-    AuthMetadataProcessor::OutputMetadata *, AuthMetadataProcessor::OutputMetadata *) {
+Status GRPCMetadataProcessor::Process(InputMetadata const &authMetadata, AuthContext *,
+    OutputMetadata *, OutputMetadata *) {
     try {
-        AuthMetadataProcessor::InputMetadata::const_iterator pathIt = auth_metadata.find(":path");
-        QString const callName = (pathIt == auth_metadata.end()) ? ("unkown gRPC call") : QString::fromLocal8Bit(pathIt->second);
+        const InputMetadata::const_iterator pathIt = authMetadata.find(":path");
+        QString const callName = (pathIt == authMetadata.end()) ? ("unkown gRPC call") : QString::fromLocal8Bit(pathIt->second);
 
-        AuthMetadataProcessor::InputMetadata::size_type const count = auth_metadata.count(grpcMetadataServerTokenKey);
+        AuthMetadataProcessor::InputMetadata::size_type const count = authMetadata.count(grpcMetadataServerTokenKey);
         if (count == 0) {
             throw Exception(QString("Missing server token in gRPC client call '%1'.").arg(callName));
         }
@@ -61,7 +61,7 @@ Status GRPCMetadataProcessor::Process(AuthMetadataProcessor::InputMetadata const
             throw Exception(QString("Several server tokens were provided in gRPC client call '%1'.").arg(callName));
         }
 
-        if (auth_metadata.find(grpcMetadataServerTokenKey)->second != serverToken_) {
+        if (authMetadata.find(grpcMetadataServerTokenKey)->second != serverToken_) {
             throw Exception(QString("Invalid server token provided by gRPC client call '%1'.").arg(callName));
         }
 
@@ -70,7 +70,7 @@ Status GRPCMetadataProcessor::Process(AuthMetadataProcessor::InputMetadata const
     }
     catch (Exception const &e) {
         app().log().error(e.qwhat());
-        return Status(StatusCode::UNAUTHENTICATED, e.qwhat().toStdString());
+        return Status(UNAUTHENTICATED, e.qwhat().toStdString());
     }
 }
 

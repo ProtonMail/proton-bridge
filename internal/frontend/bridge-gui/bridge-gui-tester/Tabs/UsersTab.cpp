@@ -85,7 +85,7 @@ void UsersTab::onAddUserButton() {
 //
 //****************************************************************************************************************************************************
 void UsersTab::onEditUserButton() {
-    int index = selectedIndex();
+    const int index = selectedIndex();
     if ((index < 0) || (index >= users_.userCount())) {
         return;
     }
@@ -110,7 +110,7 @@ void UsersTab::onEditUserButton() {
 //
 //****************************************************************************************************************************************************
 void UsersTab::onRemoveUserButton() {
-    int index = selectedIndex();
+    const int index = selectedIndex();
     if ((index < 0) || (index >= users_.userCount())) {
         return;
     }
@@ -127,7 +127,7 @@ void UsersTab::onRemoveUserButton() {
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void UsersTab::onSelectionChanged(QItemSelection, QItemSelection) {
+void UsersTab::onSelectionChanged(QItemSelection const&, QItemSelection const&) {
     this->updateGUIState();
 }
 
@@ -137,7 +137,6 @@ void UsersTab::onSelectionChanged(QItemSelection, QItemSelection) {
 //****************************************************************************************************************************************************
 void UsersTab::onSendUserBadEvent() {
     SPUser const user = selectedUser();
-    int const index = this->selectedIndex();
 
     if (!user) {
         app().log().error(QString("%1 failed. Unkown user.").arg(__FUNCTION__));
@@ -175,8 +174,8 @@ void UsersTab::onSendUsedBytesChangedEvent() {
         app().log().error(QString("%1 failed. User is not connected").arg(__FUNCTION__));
     }
 
-    qint64 const usedBytes = qint64(ui_.spinUsedBytes->value());
-    user->setUsedBytes(usedBytes);
+    auto const usedBytes = static_cast<qint64>(ui_.spinUsedBytes->value());
+    user->setUsedBytes(static_cast<float>(usedBytes));
     users_.touch(index);
 
     GRPCService &grpc = app().grpc();
@@ -224,9 +223,10 @@ void UsersTab::updateGUIState() {
     QSignalBlocker b(ui_.checkSync);
     bool const syncing = user && user->isSyncing();
     ui_.checkSync->setChecked(syncing);
+    // ReSharper disable once CppDFAUnusedValue
     b = QSignalBlocker(ui_.sliderSync);
     ui_.sliderSync->setEnabled(syncing);
-    qint32 const progressPercent = syncing ? qint32(user->syncProgress() * 100.0f) : 0;
+    qint32 const progressPercent = syncing ? static_cast<qint32>(user->syncProgress() * 100.0f) : 0;
     ui_.sliderSync->setValue(progressPercent);
     ui_.labelSync->setText(syncing ? QString("%1%").arg(progressPercent) : "" );
 }
@@ -418,7 +418,7 @@ void UsersTab::processBadEventUserFeedback(QString const &userID, bool doResync)
         return; // we do not do any form of emulation for resync.
     }
 
-    SPUser user = users_.userWithID(userID);
+    SPUser const user = users_.userWithID(userID);
     if (!user) {
         app().log().error(QString("%1(): could not find user with id %1.").arg(__func__, userID));
     }
@@ -464,12 +464,12 @@ void UsersTab::onCheckSyncToggled(bool checked) {
 //****************************************************************************************************************************************************
 void UsersTab::onSliderSyncValueChanged(int value) {
     SPUser const user = this->selectedUser();
-    if ((!user) || (!user->isSyncing()) || user->syncProgress() == value) {
+    if ((!user) || (!user->isSyncing()) || user->syncProgress() == static_cast<float>(value)) {
         return;
     }
 
     double const progress = value / 100.0;
-    user->setSyncProgress(progress);
+    user->setSyncProgress(static_cast<float>(progress));
     app().grpc().sendEvent(newSyncProgressEvent(user->id(), progress, 1, 1));  // we do not simulate elapsed & remaining.
     this->updateGUIState();
 }

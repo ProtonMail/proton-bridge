@@ -38,17 +38,17 @@ public: // member functions.
     MainWindow &operator=(MainWindow const &) = delete; ///< Disabled assignment operator.
     MainWindow &operator=(MainWindow &&) = delete; ///< Disabled move assignment operator.
 
-    SettingsTab &settingsTab(); ///< Returns a reference the 'Settings' tab.
+    SettingsTab &settingsTab() const; ///< Returns a reference the 'Settings' tab.
     UsersTab &usersTab() const; ///< Returns a reference to the 'Users' tab.
     EventsTab &eventsTab() const; ///< Returns a reference to the 'Events' tab.
     KnowledgeBaseTab &knowledgeBaseTab() const; ///< Returns a reference to the 'Knowledge Base' tab.
 
 public slots:
-    void sendDelayedEvent(bridgepp::SPStreamEvent const &event); ///< Sends a gRPC event after the delay specified in the UI. The call is non blocking.
+    void sendDelayedEvent(bridgepp::SPStreamEvent const &event) const; ///< Sends a gRPC event after the delay specified in the UI. The call is non blocking.
 
 private slots:
-    void addLogEntry(bridgepp::Log::Level level, QString const &message); ///< Add an entry to the log.
-    void addBridgeGUILogEntry(bridgepp::Log::Level level, const QString &message); ///< Add an entry to the log.
+    void addLogEntry(bridgepp::Log::Level level, QString const &message) const; ///< Add an entry to the log.
+    void addBridgeGUILogEntry(bridgepp::Log::Level level, const QString &message) const; ///< Add an entry to the log.
 
 private:
     Ui::MainWindow ui_ {}; ///< The GUI for the window.

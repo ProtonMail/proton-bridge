@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
             app().log().error(message);
             qApp->exit(EXIT_FAILURE);
         });
-        UPOverseer overseer = std::make_unique<Overseer>(serverWorker, nullptr);
+        UPOverseer const overseer = std::make_unique<Overseer>(serverWorker, nullptr);
         overseer->startWorker(true);
 
         qint32 const exitCode = QApplication::exec();

@@ -39,7 +39,7 @@ QString const defaultKeychain = "defaultKeychain"; ///< The default keychain.
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void GRPCService::connectProxySignals() {
+void GRPCService::connectProxySignals() const {
     qtProxy_.connectSignals();
 }
 
@@ -185,7 +185,7 @@ Status GRPCService::SetIsAllMailVisible(ServerContext *, BoolValue const *reques
 /// \param[out] response The response.
 /// \return The status for the call.
 //****************************************************************************************************************************************************
-Status GRPCService::IsAllMailVisible(ServerContext *, Empty const *request, BoolValue *response) {
+Status GRPCService::IsAllMailVisible(ServerContext *, Empty const *, BoolValue *response) {
     app().log().debug(__FUNCTION__);
     response->set_value(app().mainWindow().settingsTab().isAllMailVisible());
     return Status::OK;
@@ -409,7 +409,7 @@ Status GRPCService::Login(ServerContext *, LoginRequest const *request, Empty *)
     UsersTab &usersTab = app().mainWindow().usersTab();
     loginUsername_ = QString::fromStdString(request->username());
 
-    SPUser const& user = usersTab.userTable().userWithUsernameOrEmail(QString::fromStdString(request->username()));
+    SPUser const &user = usersTab.userTable().userWithUsernameOrEmail(QString::fromStdString(request->username()));
     if (user) {
         qtProxy_.sendDelayedEvent(newLoginAlreadyLoggedInEvent(user->id()));
         return Status::OK;
@@ -444,7 +444,7 @@ Status GRPCService::Login(ServerContext *, LoginRequest const *request, Empty *)
 //****************************************************************************************************************************************************
 Status GRPCService::Login2FA(ServerContext *, LoginRequest const *request, Empty *) {
     app().log().debug(__FUNCTION__);
-    UsersTab &usersTab = app().mainWindow().usersTab();
+    UsersTab const &usersTab = app().mainWindow().usersTab();
     if (usersTab.nextUserTFAError()) {
         qtProxy_.sendDelayedEvent(newLoginError(LoginErrorType::TFA_ERROR, "2FA Error."));
         return Status::OK;
@@ -469,7 +469,7 @@ Status GRPCService::Login2FA(ServerContext *, LoginRequest const *request, Empty
 //****************************************************************************************************************************************************
 Status GRPCService::Login2Passwords(ServerContext *, LoginRequest const *request, Empty *) {
     app().log().debug(__FUNCTION__);
-    UsersTab &usersTab = app().mainWindow().usersTab();
+    UsersTab const &usersTab = app().mainWindow().usersTab();
 
     if (usersTab.nextUserTwoPasswordsError()) {
         qtProxy_.sendDelayedEvent(newLoginError(LoginErrorType::TWO_PASSWORDS_ERROR, "Two Passwords error."));
@@ -559,12 +559,12 @@ Status GRPCService::DiskCachePath(ServerContext *, Empty const *, StringValue *r
 Status GRPCService::SetDiskCachePath(ServerContext *, StringValue const *path, Empty *) {
     app().log().debug(__FUNCTION__);
 
-    EventsTab &eventsTab = app().mainWindow().eventsTab();
+    EventsTab const &eventsTab = app().mainWindow().eventsTab();
     QString const qPath = QString::fromStdString(path->value());
 
     // we mimic the behaviour of Bridge
     if (!eventsTab.nextCacheChangeWillSucceed()) {
-        qtProxy_.sendDelayedEvent(newDiskCacheErrorEvent(grpc::DiskCacheErrorType(CANT_MOVE_DISK_CACHE_ERROR)));
+        qtProxy_.sendDelayedEvent(newDiskCacheErrorEvent(static_cast<DiskCacheErrorType>(CANT_MOVE_DISK_CACHE_ERROR)));
     } else {
         qtProxy_.setDiskCachePath(qPath);
         qtProxy_.sendDelayedEvent(newDiskCachePathChangedEvent(qPath));
@@ -601,7 +601,7 @@ Status GRPCService::IsDoHEnabled(ServerContext *, Empty const *, BoolValue *resp
 /// \param[in] settings The IMAP/SMTP settings.
 /// \return The status for the call.
 //****************************************************************************************************************************************************
-Status GRPCService::SetMailServerSettings(::grpc::ServerContext *context, ImapSmtpSettings const *settings, Empty *) {
+Status GRPCService::SetMailServerSettings(ServerContext *, ImapSmtpSettings const *settings, Empty *) {
     app().log().debug(__FUNCTION__);
     qtProxy_.setMailServerSettings(settings->imapport(), settings->smtpport(), settings->usesslforimap(), settings->usesslforsmtp());
     qtProxy_.sendDelayedEvent(newMailServerSettingsChanged(*settings));
@@ -614,9 +614,9 @@ Status GRPCService::SetMailServerSettings(::grpc::ServerContext *context, ImapSm
 /// \param[out] outSettings The settings
 /// \return The status for the call.
 //****************************************************************************************************************************************************
-Status GRPCService::MailServerSettings(::grpc::ServerContext *, Empty const *, ImapSmtpSettings *outSettings) {
+Status GRPCService::MailServerSettings(ServerContext *, Empty const *, ImapSmtpSettings *outSettings) {
     app().log().debug(__FUNCTION__);
-    SettingsTab &tab = app().mainWindow().settingsTab();
+    SettingsTab const &tab = app().mainWindow().settingsTab();
     outSettings->set_imapport(tab.imapPort());
     outSettings->set_smtpport(tab.smtpPort());
     outSettings->set_usesslforimap(tab.useSSLForIMAP());
@@ -714,8 +714,8 @@ Status GRPCService::GetUserList(ServerContext *, Empty const *, UserListResponse
 //****************************************************************************************************************************************************
 Status GRPCService::GetUser(ServerContext *, StringValue const *request, grpc::User *response) {
     app().log().debug(__FUNCTION__);
-    QString userID = QString::fromStdString(request->value());
-    SPUser user = app().mainWindow().usersTab().userWithID(userID);
+    QString const userID = QString::fromStdString(request->value());
+    SPUser const user = app().mainWindow().usersTab().userWithID(userID);
     if (!user) {
         return Status(NOT_FOUND, QString("user not found %1").arg(userID).toStdString());
     }
@@ -783,14 +783,14 @@ Status GRPCService::ConfigureUserAppleMail(ServerContext *, ConfigureAppleMailRe
 /// \param[in] request The request
 /// \return The status for the call.
 //****************************************************************************************************************************************************
-Status GRPCService::ExportTLSCertificates(ServerContext *, StringValue const *request, Empty *response) {
+Status GRPCService::ExportTLSCertificates(ServerContext *, StringValue const *request, Empty *) {
     app().log().debug(__FUNCTION__);
-    SettingsTab &tab = app().mainWindow().settingsTab();
+    SettingsTab const &tab = app().mainWindow().settingsTab();
     if (!tab.nextTLSCertExportWillSucceed()) {
-        qtProxy_.sendDelayedEvent(newGenericErrorEvent(grpc::TLS_CERT_EXPORT_ERROR));
+        qtProxy_.sendDelayedEvent(newGenericErrorEvent(TLS_CERT_EXPORT_ERROR));
     }
     if (!tab.nextTLSKeyExportWillSucceed()) {
-        qtProxy_.sendDelayedEvent(newGenericErrorEvent(grpc::TLS_KEY_EXPORT_ERROR));
+        qtProxy_.sendDelayedEvent(newGenericErrorEvent(TLS_KEY_EXPORT_ERROR));
     }
     qtProxy_.exportTLSCertificates(QString::fromStdString(request->value()));
     return Status::OK;

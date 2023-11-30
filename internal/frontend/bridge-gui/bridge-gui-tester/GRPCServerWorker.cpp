@@ -50,7 +50,7 @@ void GRPCServerWorker::run() {
         SslServerCredentialsOptions ssl_opts;
         ssl_opts.pem_root_certs = "";
         ssl_opts.pem_key_cert_pairs.push_back(pair);
-        std::shared_ptr<ServerCredentials> credentials = grpc::SslServerCredentials(ssl_opts);
+        std::shared_ptr<ServerCredentials> const credentials = SslServerCredentials(ssl_opts);
 
         GRPCConfig config;
         config.cert = testTLSCert;
@@ -59,8 +59,7 @@ void GRPCServerWorker::run() {
         credentials->SetAuthMetadataProcessor(processor_); // gRPC interceptors are still experimental in C++, so we use AuthMetadataProcessor
         ServerBuilder builder;
         int port = 0; // Port will not be known until ServerBuilder::BuildAndStart() is called
-        bool const useFileSocket = useFileSocketForGRPC();
-        if (useFileSocket) {
+        if (useFileSocketForGRPC()) {
             QString const fileSocketPath = getAvailableFileSocketPath();
             if (fileSocketPath.isEmpty()) {
                 throw Exception("Could not get an available file socket.");
@@ -102,7 +101,7 @@ void GRPCServerWorker::run() {
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
-void GRPCServerWorker::stop() {
+void GRPCServerWorker::stop() const {
     if (server_) {
         server_->Shutdown();
     }

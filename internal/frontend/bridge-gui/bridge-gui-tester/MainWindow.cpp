@@ -63,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
 //****************************************************************************************************************************************************
 /// \return A reference to the 'General' tab.
 //****************************************************************************************************************************************************
-SettingsTab &MainWindow::settingsTab() {
+SettingsTab &MainWindow::settingsTab() const {
     return *ui_.settingsTab;
 }
 
@@ -96,7 +96,7 @@ KnowledgeBaseTab& MainWindow::knowledgeBaseTab() const {
 /// \param[in] level The log level.
 /// \param[in] message The log message
 //****************************************************************************************************************************************************
-void MainWindow::addLogEntry(bridgepp::Log::Level level, const QString &message) {
+void MainWindow::addLogEntry(bridgepp::Log::Level level, const QString &message) const {
     addEntryToLogEdit(level, message, *ui_.editLog);
 }
 
@@ -105,7 +105,7 @@ void MainWindow::addLogEntry(bridgepp::Log::Level level, const QString &message)
 /// \param[in] level The log level.
 /// \param[in] message The log message
 //****************************************************************************************************************************************************
-void MainWindow::addBridgeGUILogEntry(bridgepp::Log::Level level, const QString &message) {
+void MainWindow::addBridgeGUILogEntry(bridgepp::Log::Level level, const QString &message) const {
     addEntryToLogEdit(level, message, *ui_.editBridgeGUILog);
 }
 
@@ -113,7 +113,7 @@ void MainWindow::addBridgeGUILogEntry(bridgepp::Log::Level level, const QString 
 //****************************************************************************************************************************************************
 /// \param[in] event The event.
 //****************************************************************************************************************************************************
-void MainWindow::sendDelayedEvent(SPStreamEvent const &event) {
+void MainWindow::sendDelayedEvent(SPStreamEvent const &event) const {
     QTimer::singleShot(this->eventsTab().eventDelayMs(), [event] { app().grpc().sendEvent(event); });
 }
 

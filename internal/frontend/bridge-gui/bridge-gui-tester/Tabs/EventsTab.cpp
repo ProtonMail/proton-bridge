@@ -31,7 +31,7 @@ using namespace bridgepp;
 /// \param[in] edit The edit containing the address.
 /// \param[in] eventGenerator The factory function creating the event.
 //****************************************************************************************************************************************************
-void connectAddressError(QPushButton* button, QLineEdit* edit, bridgepp::SPStreamEvent (*eventGenerator)(QString const&)) {
+void connectAddressError(QPushButton const* button, QLineEdit* edit, SPStreamEvent (*eventGenerator)(QString const&)) {
     QObject::connect(button, &QPushButton::clicked, [edit, eventGenerator]() { app().grpc().sendEvent(eventGenerator(edit->text())); });
 }
 
@@ -74,13 +74,6 @@ EventsTab::EventsTab(QWidget* parent)
 //****************************************************************************************************************************************************
 qint32 EventsTab::eventDelayMs() const {
     return ui_.spinEventDelay->value();
-}
-
-
-//****************************************************************************************************************************************************
-//
-//****************************************************************************************************************************************************
-void EventsTab::updateGUIState() {
 }
 
 

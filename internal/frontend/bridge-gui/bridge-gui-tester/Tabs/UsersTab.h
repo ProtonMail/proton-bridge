@@ -53,14 +53,14 @@ public slots:
     void setUserSplitMode(QString const &userID, bool makeItActive); ///< Slot for the split mode.
     void logoutUser(QString const &userID); ///< slot for the logging out of a user.
     void removeUser(QString const &userID); ///< Slot for the removal of a user.
-    void configureUserAppleMail(QString const &userID, QString const &address); ///< Slot for the configuration of Apple mail.
+static void configureUserAppleMail(QString const &userID, QString const &address); ///< Slot for the configuration of Apple mail.
     void processBadEventUserFeedback(QString const& userID, bool doResync); ///< Slot for the reception of a bad event user feedback.
 
 private slots:
     void onAddUserButton(); ///< Add a user to the user list.
     void onEditUserButton(); ///< Edit the currently selected user.
     void onRemoveUserButton(); ///< Remove the currently selected user.
-    void onSelectionChanged(QItemSelection, QItemSelection); ///< Slot for the change of the selection.
+    void onSelectionChanged(QItemSelection const&, QItemSelection const&); ///< Slot for the change of the selection.
     void onSendUserBadEvent(); ///< Slot for the 'Send Bad Event Error' button.
     void onSendUsedBytesChangedEvent(); ///< Slot for the 'Send Used Bytes Changed Event' button.
     void onSendIMAPLoginFailedEvent(); ///< Slot for the 'Send IMAP Login failure Event' button.

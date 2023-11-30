@@ -33,7 +33,7 @@ public: // member functions.
     explicit UserTable(QObject *parent); ///< Default constructor.
     UserTable(UserTable const &) = delete; ///< Disabled copy-constructor.
     UserTable(UserTable &&) = delete; ///< Disabled assignment copy-constructor.
-    ~UserTable() = default; ///< Destructor.
+    ~UserTable() override = default; ///< Destructor.
     UserTable &operator=(UserTable const &) = delete; ///< Disabled assignment operator.
     UserTable &operator=(UserTable &&) = delete; ///< Disabled move assignment operator.
     qint32 userCount() const; ///< Return the number of users in the table.
