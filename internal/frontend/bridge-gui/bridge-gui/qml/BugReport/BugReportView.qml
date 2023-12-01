@@ -18,9 +18,8 @@ import ".."
 
 SettingsView {
     id: root
-
     property var selectedAddress
-    property var categoryId:-1
+    property var categoryId: -1
     property string category: Backend.getBugCategory(root.categoryId)
     property var suggestions: null
 
@@ -53,134 +52,144 @@ SettingsView {
         root.setDefaultValue();
     }
 
-    Label {
-        colorScheme: root.colorScheme
-        text: qsTr("Send report")
-        type: Label.Heading
-    }
-    TextArea {
-        id: description
-
-        KeyNavigation.priority: KeyNavigation.BeforeItem
-        KeyNavigation.tab: address
-        Layout.fillHeight: true
-        Layout.fillWidth: true
-        Layout.minimumHeight: heightForLinesVisible(4)
-        colorScheme: root.colorScheme
-        textFormat: Text.MarkdownText
-
-        // set implicitHeight to explicit height because se don't
-        // want TextArea implicitHeight (which is height of all text)
-        // to be considered in SettingsView internal scroll view
-        implicitHeight: height
-        label: "Your answers to: " + qsTr(root.category);
-        readOnly : true
-    }
-
     ColumnLayout {
-        id: suggestionBox
-        visible: suggestions && suggestions.length > 0
-        spacing: 8
+        spacing: 32
 
         Label {
             colorScheme: root.colorScheme
-            text: qsTr("We believe these links might be relevant for your problem")
-            type: Label.Body_semibold
+            text: qsTr("Send report")
+            type: Label.Heading
         }
-        Repeater {
-            model: suggestions
-            LinkLabel {
-                required property var modelData
+        TextArea {
+            id: description
+
+            KeyNavigation.priority: KeyNavigation.BeforeItem
+            KeyNavigation.tab: address
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.minimumHeight: heightForLinesVisible(4)
+            colorScheme: root.colorScheme
+            textFormat: Text.MarkdownText
+            // set implicitHeight to explicit height because se don't
+            // want TextArea implicitHeight (which is height of all text)
+            // to be considered in SettingsView internal scroll view
+            implicitHeight: height
+            label: "Your answers to: " + qsTr(root.category);
+            readOnly: true
+        }
+
+        ColumnLayout {
+            id: suggestionBox
+            visible: suggestions && suggestions.length > 0
+            spacing: 8
+
+            Label {
                 colorScheme: root.colorScheme
-                text: modelData.title
-                link: modelData.url
-                external: true
+                text: qsTr("We believe these links might be relevant for your problem")
+                type: Label.Body_semibold
+            }
+            Repeater {
+                model: suggestions
+                LinkLabel {
+                    required property var modelData
+                    colorScheme: root.colorScheme
+                    text: modelData.title
+                    link: modelData.url
+                    external: true
+                }
             }
         }
-    }
 
-    TextField {
-        id: address
-        Layout.fillWidth: true
-        colorScheme: root.colorScheme
-        label: qsTr("Your contact email")
-        placeholderText: qsTr("e.g. jane.doe@protonmail.com")
-        validator: function (str) {
-            if (!isValidEmail(str)) {
-                return qsTr("Enter valid email address");
+        RowLayout {
+            spacing: 12
+
+            TextField {
+                id: address
+                Layout.preferredWidth: 1
+                Layout.fillWidth: true
+                colorScheme: root.colorScheme
+                label: qsTr("Your contact email")
+                placeholderText: qsTr("e.g. jane.doe@protonmail.com")
+                validator: function (str) {
+                    if (!isValidEmail(str)) {
+                        return qsTr("Enter valid email address");
+                    }
+                }
+            }
+            TextField {
+                id: emailClient
+                Layout.preferredWidth: 1
+                Layout.fillWidth: true
+                colorScheme: root.colorScheme
+                label: qsTr("Your email client (including version)")
+                placeholderText: qsTr("e.g. Apple Mail 14.0")
+                validator: function (str) {
+                    if (str.length === 0) {
+                        return qsTr("Enter an email client name and version");
+                    }
+                }
             }
         }
-    }
-    TextField {
-        id: emailClient
-        Layout.fillWidth: true
-        colorScheme: root.colorScheme
-        label: qsTr("Your email client (including version)")
-        placeholderText: qsTr("e.g. Apple Mail 14.0")
-        validator: function (str) {
-            if (str.length === 0) {
-                return qsTr("Enter an email client name and version");
+        RowLayout {
+            spacing: 12
+
+            CheckBox {
+                id: includeLogs
+                checked: true
+                colorScheme: root.colorScheme
+                text: qsTr("Include my recent logs")
+            }
+
+            Button {
+                colorScheme: root.colorScheme
+                secondary: true
+                text: qsTr("View logs")
+
+                onClicked: Backend.openExternalLink(Backend.logsPath)
+            }
+
+            Label {
+                Layout.fillWidth: true
+                verticalAlignment: Qt.AlignVCenter
+                colorScheme: root.colorScheme
+                type: Label.Caption
+                color: root.colorScheme.text_weak
+                text: qsTr("Reports are not end-to-end encrypted, please do not send any sensitive information.")
+                wrapMode: Text.WordWrap
             }
         }
-    }
-    RowLayout {
-        CheckBox {
-            id: includeLogs
-            checked: true
-            colorScheme: root.colorScheme
-            text: qsTr("Include my recent logs")
-        }
+
         Button {
-            Layout.leftMargin: 12
+            id: sendButton
             colorScheme: root.colorScheme
-            secondary: true
-            text: qsTr("View logs")
+            enabled: !loading
+            text: qsTr("Send")
 
-            onClicked: Backend.openExternalLink(Backend.logsPath)
-        }
-    }
-    TextEdit {
-        Layout.fillWidth: true
-        color: root.colorScheme.text_weak
-        font.family: ProtonStyle.font_family
-        font.letterSpacing: ProtonStyle.caption_letter_spacing
-        font.pixelSize: ProtonStyle.caption_font_size
-        font.weight: ProtonStyle.fontWeight_400
-        readOnly: true
-        selectByMouse: true
-        selectedTextColor: root.colorScheme.text_invert
-        // No way to set lineHeight: ProtonStyle.caption_line_height
-        selectionColor: root.colorScheme.interaction_norm
-        text: qsTr("Reports are not end-to-end encrypted, please do not send any sensitive information.")
-        wrapMode: Text.WordWrap
-    }
-    Button {
-        id: sendButton
-        colorScheme: root.colorScheme
-        enabled: !loading
-        text: qsTr("Send")
+            onClicked: {
+                description.validate();
+                address.validate();
+                emailClient.validate();
+                if (description.error || address.error || emailClient.error) {
+                    return;
+                }
+                submit();
+            }
 
-        onClicked: {
-            description.validate();
-            address.validate();
-            emailClient.validate();
-            if (description.error || address.error || emailClient.error) {
-                return;
-            }
-            submit();
-        }
+            Connections {
+                function onBugReportSendSuccess() {
+                    root.bugReportWasSent();
+                }
 
-        Connections {
-            function onBugReportSendSuccess() {
-                root.bugReportWasSent();
+                function onReportBugFinished() {
+                    sendButton.loading = false;
+                }
+
+                function onReceivedKnowledgeBaseSuggestions(suggestions) {
+                    root.suggestions = suggestions
+                }
+
+                target: Backend
             }
-            function onReportBugFinished() {
-                sendButton.loading = false;
-            }
-            function onReceivedKnowledgeBaseSuggestions(suggestions) {
-                root.suggestions = suggestions
-            }
-            target: Backend
         }
     }
 }

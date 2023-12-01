@@ -30,7 +30,7 @@ Item {
     property bool fillHeight: false
     default property alias items: content.children
 
-    function positionViewAtBegining() {
+    function positionViewAtBeginning() {
         scrollView.ScrollBar.vertical.position = 0
     }
     signal back
