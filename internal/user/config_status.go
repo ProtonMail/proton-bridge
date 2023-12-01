@@ -219,13 +219,15 @@ func (user *User) ExternalLinkClicked(article string) {
 		"https://proton.me/support/why-you-need-bridge",
 	}
 
+	var reportToTelemetry bool
 	for id, url := range trackedLinks {
 		if url == article {
 			if err := user.configStatus.RecordLinkClicked(uint(id)); err != nil {
 				user.log.WithError(err).Error("Failed to log LinkClicked in config_status.")
 			}
-			return
+			reportToTelemetry = true
+			break
 		}
 	}
-	user.log.WithField("article", article).Error("Failed to find KB article id.")
+	user.log.WithField("report", reportToTelemetry).WithField("article", article).Debug("External link was clicked.")
 }
