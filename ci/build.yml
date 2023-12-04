@@ -61,6 +61,7 @@ trigger-qa-installer:
     APP: bridge
     WORKFLOW: build-all
     SRC_TAG: $CI_COMMIT_BRANCH
+    TAG: $CI_COMMIT_TAG
     SRC_HASH: $CI_COMMIT_SHA
   trigger:
     project: "jcuth/bridge-release"
