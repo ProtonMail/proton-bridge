@@ -24,14 +24,17 @@ import (
 )
 
 func Test_ArticleList(t *testing.T) {
-	articles, err := getArticleList()
+	articles, err := GetArticleList()
 	require.NoError(t, err)
 	require.NotEmpty(t, articles)
-
+	var bits uint64
 	for _, article := range articles {
-		require.NotEmpty(t, article.URL)
-		require.NotEmpty(t, article.Title)
-		require.NotEmpty(t, article.Keywords)
+		require.Truef(t, article.Index < 64, "Invalid KB article index %d, (must be < 64)", article.Index)
+		require.Zerof(t, bits&(1<<article.Index), "Duplicate index %d in knowledge base", article.Index)
+		bits |= bits | (1 << article.Index)
+		require.NotEmpty(t, article.URL, "KB article with index %d has no URL", article.Index)
+		require.NotEmpty(t, article.Title, "KB article with index %d has no title", article.Index)
+		require.NotEmpty(t, article.Keywords, "KB article with index %d has no keyword", article.Index)
 	}
 }
 

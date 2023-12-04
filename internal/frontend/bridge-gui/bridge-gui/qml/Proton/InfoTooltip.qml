@@ -19,17 +19,18 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 ColorImage {
+    id: root
+
     property var colorScheme
     property string text
-    id: root
-    Layout.alignment: Qt.AlignVCenter
-    Layout.bottomMargin: root._bottomMargin
+    property int size: 16
+
     color: root.colorScheme.interaction_norm
-    height: sourceSize.height
-    width: sourceSize.width
+    height: size
+    width: size
     source: "/qml/icons/ic-info-circle.svg"
-    sourceSize.height: 16
-    sourceSize.width: 16
+    sourceSize.height: size
+    sourceSize.width: size
     visible: root.hint !== ""
     MouseArea {
         id: imageArea

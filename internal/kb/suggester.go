@@ -27,6 +27,7 @@ var articleListString []byte
 
 // Article is a struct that holds information about a knowledge-base article.
 type Article struct {
+	Index    uint64   `json:"index"`
 	URL      string   `json:"url"`
 	Title    string   `json:"title"`
 	Keywords []string `json:"keywords"`
@@ -34,8 +35,8 @@ type Article struct {
 
 type ArticleList []Article
 
-// getArticleList returns the list of KB articles.
-func getArticleList() (ArticleList, error) {
+// GetArticleList returns the list of KB articles.
+func GetArticleList() (ArticleList, error) {
 	var articles ArticleList
 	err := json.Unmarshal(articleListString, &articles)
 
@@ -44,7 +45,7 @@ func getArticleList() (ArticleList, error) {
 
 // GetSuggestions return a list of up to 3 suggestions for KB articles matching the given user input.
 func GetSuggestions(_ string) (ArticleList, error) {
-	articles, err := getArticleList()
+	articles, err := GetArticleList()
 	if err != nil {
 		return ArticleList{}, err
 	}

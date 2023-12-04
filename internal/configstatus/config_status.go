@@ -135,7 +135,7 @@ func (status *ConfigurationStatus) ApplyProgress() error {
 	return status.Save()
 }
 
-func (status *ConfigurationStatus) RecordLinkClicked(link uint) error {
+func (status *ConfigurationStatus) RecordLinkClicked(link uint64) error {
 	status.DataLock.Lock()
 	defer status.DataLock.Unlock()
 
@@ -198,11 +198,11 @@ func (data *ConfigurationStatusData) init() {
 	data.DataV1.FailureDetails = ""
 }
 
-func (data *ConfigurationStatusData) setClickedLink(pos uint) {
+func (data *ConfigurationStatusData) setClickedLink(pos uint64) {
 	data.DataV1.ClickedLink |= 1 << pos
 }
 
-func (data *ConfigurationStatusData) hasLinkClicked(pos uint) bool {
+func (data *ConfigurationStatusData) hasLinkClicked(pos uint64) bool {
 	val := data.DataV1.ClickedLink & (1 << pos)
 	return val > 0
 }
@@ -211,7 +211,7 @@ func (data *ConfigurationStatusData) clickedLinkToString() string {
 	var str = ""
 	var first = true
 	for i := 0; i < 64; i++ {
-		if data.hasLinkClicked(uint(i)) {
+		if data.hasLinkClicked(uint64(i)) {
 			if !first {
 				str += ","
 			} else {

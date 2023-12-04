@@ -33,7 +33,7 @@ Item {
 
     RowLayout {
         anchors.fill: parent
-        spacing: 16
+        spacing: 12
 
         Label {
             id: mainLabel
@@ -45,42 +45,13 @@ Item {
             wrapMode: Text.WordWrap
         }
 
-        ColorImage {
-            id: infoImage
+        InfoTooltip {
             Layout.alignment: Qt.AlignVCenter
+            Layout.topMargin: 4
             Layout.bottomMargin: root._bottomMargin
-            color: root.colorScheme.interaction_norm
-            height: 21
-            width: 21
-            source: "/qml/icons/ic-info-circle.svg"
-            sourceSize.height: 21
-            sourceSize.width: 21
-            visible: root.hint !== ""
-            MouseArea {
-                id: imageArea
-                anchors.fill: infoImage
-                hoverEnabled: true
-            }
-            ToolTip {
-                id: toolTipinfo
-                text: root.hint
-                visible: imageArea.containsMouse
-                implicitWidth: Math.min(400, tooltipText.implicitWidth)
-                background: Rectangle {
-                    radius: 4
-                    border.color: root.colorScheme.border_weak
-                    color: root.colorScheme.background_weak
-                }
-                contentItem: Text {
-                    id: tooltipText
-                    color: root.colorScheme.text_hint
-                    text: toolTipinfo.text
-                    wrapMode: Text.WordWrap
-
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-            }
+            colorScheme: root.colorScheme
+            text: root.hint
+            size: 16
         }
 
         // fill height so the footer label will always be attached to the bottom

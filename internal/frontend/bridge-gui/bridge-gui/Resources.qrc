@@ -89,6 +89,7 @@
         <file>qml/BugReport/BugReportFlow.qml</file>
         <file>qml/BugReport/BugReportView.qml</file>
         <file>qml/BugReport/CategoryItem.qml</file>
+        <file>qml/BugReport/QuestionItem.qml</file>
         <file>qml/Proton/Action.qml</file>
         <file>qml/Proton/ApplicationWindow.qml</file>
         <file>qml/Proton/Button.qml</file>
@@ -109,7 +110,6 @@
         <file>qml/Proton/TextArea.qml</file>
         <file>qml/Proton/TextField.qml</file>
         <file>qml/Proton/Toggle.qml</file>
-        <file>qml/QuestionItem.qml</file>
         <file>qml/Resources/bug_report_flow.json</file>
         <file>qml/Resources/Help/Template.html</file>
         <file>qml/Resources/Help/WhyBridge.html</file>

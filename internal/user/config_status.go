@@ -20,9 +20,11 @@ package user
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/configstatus"
+	"github.com/ProtonMail/proton-bridge/v3/internal/kb"
 )
 
 func (user *User) SendConfigStatusSuccess(ctx context.Context) {
@@ -198,31 +200,16 @@ func (user *User) ExternalLinkClicked(article string) {
 		return
 	}
 
-	var trackedLinks = [...]string{
-		"https://proton.me/support/bridge",
-		"https://proton.me/support/protonmail-bridge-clients-apple-mail",
-		"https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019",
-		"https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
-		"https://proton.me/support/protonmail-bridge-clients-windows-thunderbird",
-		"https://proton.me/support/protonmail-bridge-configure-client",
-		"https://proton.me/support/bridge-address-list-has-changed",
-		"https://proton.me/blog/tls-ssl-certificate#Extra-security-precautions-taken-by-ProtonMail",
-		"https://proton.me/support/bridge-cant-move-cache",
-		"https://proton.me/support/difference-combined-addresses-mode-split-addresses-mode",
-		"https://proton.me/support/bridge-imap-login-failed",
-		"https://proton.me/support/port-already-occupied-error",
-		"https://proton.me/support/bridge-cannot-access-keychain",
-		"https://proton.me/support/protonmail-bridge-manual-update",
-		"https://proton.me/support/bridge-internal-error",
-		"https://proton.me/support/apple-mail-certificate",
-		"https://proton.me/support/macos-certificate-warning",
-		"https://proton.me/support/why-you-need-bridge",
+	articles, err := kb.GetArticleList()
+	if err != nil {
+		user.log.WithError(err).Error("Failed to retrieve list of KB articles.")
+		return
 	}
 
 	var reportToTelemetry bool
-	for id, url := range trackedLinks {
-		if url == article {
-			if err := user.configStatus.RecordLinkClicked(uint(id)); err != nil {
+	for _, a := range articles {
+		if strings.EqualFold(a.URL, article) {
+			if err := user.configStatus.RecordLinkClicked(a.Index); err != nil {
 				user.log.WithError(err).Error("Failed to log LinkClicked in config_status.")
 			}
 			reportToTelemetry = true

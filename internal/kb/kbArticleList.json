@@ -1,5 +1,6 @@
 [
   {
+    "index": 0,
     "url": "https://proton.me/support/automatically-start-bridge",
     "title": "Automatically start Bridge",
     "keywords": [
@@ -9,6 +10,7 @@
     ]
   },
   {
+    "index": 1,
     "url": "https://proton.me/support/bridge-automatic-update",
     "title": "Automatic Update and Bridge",
     "keywords": [
@@ -16,6 +18,7 @@
     ]
   },
   {
+    "index": 2,
     "url": "https://proton.me/support/messages-encrypted-via-bridge",
     "title": "Are my messages encrypted via Proton Mail Bridge?",
     "keywords": [
@@ -23,6 +26,7 @@
     ]
   },
   {
+    "index": 3,
     "url": "https://proton.me/support/labels-in-bridge",
     "title": "Labels in Bridge",
     "keywords": [
@@ -30,6 +34,7 @@
     ]
   },
   {
+    "index": 4,
     "url": "https://proton.me/support/bridge-ssl-connection-issue",
     "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail",
     "keywords": [
@@ -37,6 +42,7 @@
     ]
   },
   {
+    "index": 5,
     "url": "https://proton.me/support/sending-pgp-emails-bridge",
     "title": "Sending PGP emails in Proton Mail Bridge",
     "keywords": [
@@ -44,6 +50,7 @@
     ]
   },
   {
+    "index": 6,
     "url": "https://proton.me/support/difference-combined-addresses-mode-split-addresses-mode",
     "title": "Difference between combined addresses mode and split addresses mode",
     "keywords": [
@@ -51,6 +58,7 @@
     ]
   },
   {
+    "index": 7,
     "url": "https://proton.me/support/thunderbird-connection-server-timed-error",
     "title": "Thunderbird: 'Connection to server timed out' error",
     "keywords": [
@@ -58,6 +66,7 @@
     ]
   },
   {
+    "index": 8,
     "url": "https://proton.me/support/update-required",
     "title": "Update required",
     "keywords": [
@@ -65,6 +74,7 @@
     ]
   },
   {
+    "index": 9,
     "url": "https://proton.me/support/port-already-occupied-error",
     "title": "Port already occupied error",
     "keywords": [
@@ -72,6 +82,7 @@
     ]
   },
   {
+    "index": 10,
     "url": "https://proton.me/support/clients-supported-bridge",
     "title": "Email clients supported by Proton Mail Bridge",
     "keywords": [
@@ -79,6 +90,7 @@
     ]
   },
   {
+    "index": 11,
     "url": "https://proton.me/support/imap-smtp-and-pop3-setup",
     "title": "IMAP, SMTP, and POP3 setup",
     "keywords": [
@@ -86,6 +98,7 @@
     ]
   },
   {
+    "index": 12,
     "url": "https://proton.me/support/protonmail-bridge-install",
     "title": "How to install Proton Mail Bridge",
     "keywords": [
@@ -93,6 +106,7 @@
     ]
   },
   {
+    "index": 13,
     "url": "https://proton.me/support/bridge-for-linux",
     "title": "Proton Mail Bridge for Linux",
     "keywords": [
@@ -100,6 +114,7 @@
     ]
   },
   {
+    "index": 14,
     "url": "https://proton.me/support/operating-systems-supported-bridge",
     "title": "System requirements for Proton Mail Bridge",
     "keywords": [
@@ -107,6 +122,7 @@
     ]
   },
   {
+    "index": 15,
     "url": "https://proton.me/support/protonmail-bridge-configure-client",
     "title": "How to configure your email client for Proton Mail Bridge",
     "keywords": [
@@ -114,6 +130,7 @@
     ]
   },
   {
+    "index": 16,
     "url": "https://proton.me/support/invalid-password-error-setting-email-client",
     "title": "Invalid password error while setting up email client",
     "keywords": [
@@ -121,6 +138,7 @@
     ]
   },
   {
+    "index": 17,
     "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
     "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide",
     "keywords": [
@@ -128,6 +146,7 @@
     ]
   },
   {
+    "index": 18,
     "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2016",
     "title": "Proton Mail Bridge Microsoft Outlook 2016 for Windows setup guide",
     "keywords": [
@@ -135,6 +154,7 @@
     ]
   },
   {
+    "index": 19,
     "url": "https://proton.me/support/protonmail-bridge-clients-apple-mail",
     "title": "Proton Mail Bridge Apple Mail setup guide",
     "keywords": [
@@ -142,6 +162,7 @@
     ]
   },
   {
+    "index": 20,
     "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook",
     "title": "Proton Mail Bridge new Outlook for macOS setup guide",
     "keywords": [
@@ -149,6 +170,7 @@
     ]
   },
   {
+    "index": 21,
     "url": "https://proton.me/support/protonmail-bridge-clients-windows-thunderbird",
     "title": "Proton Mail Bridge Thunderbird setup guide for Windows, macOS, and Linux",
     "keywords": [
@@ -156,6 +178,7 @@
     ]
   },
   {
+    "index": 22,
     "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2016",
     "title": "Proton Mail Bridge Microsoft Outlook 2016 for macOS setup guide",
     "keywords": [
@@ -163,6 +186,7 @@
     ]
   },
   {
+    "index": 23,
     "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019",
     "title": "Proton Mail Bridge Microsoft Outlook 2019 for macOS setup guide",
     "keywords": [
@@ -170,6 +194,7 @@
     ]
   },
   {
+    "index": 24,
     "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2013",
     "title": "Proton Mail Bridge Microsoft Outlook 2013 for Windows setup guide",
     "keywords": [
@@ -177,6 +202,7 @@
     ]
   },
   {
+    "index": 25,
     "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2011",
     "title": "Proton Mail Bridge Microsoft Outlook 2011 for macOS setup guide",
     "keywords": [
@@ -184,6 +210,7 @@
     ]
   },
   {
+    "index": 26,
     "url": "https://proton.me/support/install-bridge-linux-pkgbuild-file",
     "title": "Installing Proton Mail Bridge for Linux using a PKGBUILD file",
     "keywords": [
@@ -191,6 +218,7 @@
     ]
   },
   {
+    "index": 27,
     "url": "https://proton.me/support/installing-bridge-linux-deb-file",
     "title": "Installing Proton Mail Bridge for Linux using a DEB file",
     "keywords": [
@@ -198,6 +226,7 @@
     ]
   },
   {
+    "index": 28,
     "url": "https://proton.me/support/verifying-bridge-package",
     "title": "Verifying the Proton Mail Bridge package for Linux",
     "keywords": [
@@ -205,6 +234,7 @@
     ]
   },
   {
+    "index": 29,
     "url": "https://proton.me/support/bridge-cli-guide",
     "title": "Bridge CLI (command line interface) guide",
     "keywords": [
@@ -212,6 +242,7 @@
     ]
   },
   {
+    "index": 30,
     "url": "https://proton.me/support/install-bridge-linux-rpm-file",
     "title": "Installing Proton Mail Bridge for Linux using an RPM file",
     "keywords": [
@@ -219,6 +250,7 @@
     ]
   },
   {
+    "index": 31,
     "url": "https://proton.me/support/bridge-linux-login-error",
     "title": "How to fix Proton Bridge login errors",
     "keywords": [
@@ -226,6 +258,7 @@
     ]
   },
   {
+    "index": 32,
     "url": "https://proton.me/support/bridge-linux-tray-icon",
     "title": "How to fix a missing system tray icon in Linux",
     "keywords": [
@@ -233,6 +266,7 @@
     ]
   },
   {
+    "index": 33,
     "url": "https://proton.me/support/why-you-need-bridge",
     "title": "Why you need Proton Mail Bridge",
     "keywords": [
@@ -240,6 +274,7 @@
     ]
   },
   {
+    "index": 34,
     "url": "https://proton.me/support/protonmail-bridge-manual-update",
     "title": "How to manually update Proton Mail Bridge",
     "keywords": [
@@ -247,6 +282,7 @@
     ]
   },
   {
+    "index": 35,
     "url": "https://proton.me/support/macos-certificate-warning",
     "title": "Warning when installing Proton Mail Bridge on macOS",
     "keywords": [
@@ -254,10 +290,11 @@
     ]
   },
   {
+    "index": 36,
     "url": "https://proton.me/support/apple-mail-certificate",
     "title": "Why you need to install a certificate for Apple Mail with Proton Mail Bridge",
     "keywords": [
       "TBD"
     ]
   }
-  ]
+]
