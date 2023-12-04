@@ -35,6 +35,7 @@ void GRPCQtProxy::connectSignals() const {
     MainWindow &mainWindow = app().mainWindow();
     SettingsTab const &settingsTab = mainWindow.settingsTab();
     UsersTab const &usersTab = mainWindow.usersTab();
+    KnowledgeBaseTab const &kbTab = mainWindow.knowledgeBaseTab();
     connect(this, &GRPCQtProxy::delayedEventRequested, &mainWindow, &MainWindow::sendDelayedEvent);
     connect(this, &GRPCQtProxy::setIsAutostartOnReceived, &settingsTab, &SettingsTab::setIsAutostartOn);
     connect(this, &GRPCQtProxy::setIsBetaEnabledReceived, &settingsTab, &SettingsTab::setIsBetaEnabled);
@@ -56,6 +57,7 @@ void GRPCQtProxy::connectSignals() const {
     connect(this, &GRPCQtProxy::setUserSplitModeReceived, &usersTab, &UsersTab::setUserSplitMode);
     connect(this, &GRPCQtProxy::configureUserAppleMailReceived, &usersTab, &UsersTab::configureUserAppleMail);
     connect(this, &GRPCQtProxy::sendBadEventUserFeedbackReceived, &usersTab, &UsersTab::processBadEventUserFeedback);
+    connect(this, &GRPCQtProxy::requestKnowledgeBaseSuggestionsReceived, &kbTab, &KnowledgeBaseTab::requestKnowledgeBaseSuggestions);
 }
 
 
@@ -117,6 +119,13 @@ void GRPCQtProxy::setColorSchemeName(QString const &name) {
 void GRPCQtProxy::reportBug(QString const &osType, QString const &osVersion, QString const &emailClient, QString const &address,
     QString const &description, bool includeLogs) {
     emit reportBugReceived(osType, osVersion, emailClient, address, description, includeLogs);
+}
+
+//****************************************************************************************************************************************************
+/// \param[in] userInput The user input.
+//****************************************************************************************************************************************************
+void GRPCQtProxy::requestKnowledgeBaseSuggestions(QString const& userInput) {
+    emit requestKnowledgeBaseSuggestionsReceived(userInput);
 }
 
 

@@ -85,3 +85,12 @@ void KnowledgeBaseTab::updateGuiState() {
     enableWidgetsIfChecked(ui_.checkSuggestion2, { ui_.labelTitle2, ui_.editTitle2, ui_.labelUrl2, ui_.editUrl2});
     enableWidgetsIfChecked(ui_.checkSuggestion3, { ui_.labelTitle3, ui_.editTitle3, ui_.labelUrl3, ui_.editUrl3});
 }
+
+
+//****************************************************************************************************************************************************
+/// \param[in] userInput The user input.
+//****************************************************************************************************************************************************
+void KnowledgeBaseTab::requestKnowledgeBaseSuggestions(QString const& userInput) const {
+    ui_.editUserInput->setPlainText(userInput);
+    ui_.labelLastReceived->setText(tr("Last received: %1").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz")));
+}

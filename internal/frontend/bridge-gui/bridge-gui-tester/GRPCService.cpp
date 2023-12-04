@@ -359,7 +359,10 @@ Status GRPCService::SetMainExecutable(ServerContext *, StringValue const *reques
 /// \return The status for the call.
 //****************************************************************************************************************************************************
 grpc::Status GRPCService::RequestKnowledgeBaseSuggestions(ServerContext*, StringValue const* request, Empty*) {
-    app().log().info(QString("RequestKnowledgeBaseSuggestions: %1").arg(QString::fromStdString(request->value()).left(10) + "..."));
+    QString const userInput = QString::fromUtf8(request->value());
+    app().log().info(QString("RequestKnowledgeBaseSuggestions: %1").arg(userInput.left(10) + "..."));
+    qtProxy_.requestKnowledgeBaseSuggestionsReceived(userInput);
+
     QList<bridgepp::KnowledgeBaseSuggestion> suggestions;
     for (qsizetype i = 1; i <= 3; ++i) {
         suggestions.push_back(        {

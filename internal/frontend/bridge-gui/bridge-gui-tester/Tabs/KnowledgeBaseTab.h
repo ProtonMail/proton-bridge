@@ -37,6 +37,9 @@ public: // member functions.
     KnowledgeBaseTab& operator=(KnowledgeBaseTab&&) = delete; ///< Disabled move assignment operator.
     QList<bridgepp::KnowledgeBaseSuggestion> getSuggestions() const; ///< Returns the suggestions.
 
+public slots:
+    void requestKnowledgeBaseSuggestions(QString const &userInput) const; ///< Slot for the 'RequestKnowledgeBaseSuggestions' gRPC call.
+
 private slots:
     void sendKnowledgeBaseSuggestions() const; ///< Send a KnowledgeBaseSuggestions event.
     void updateGuiState(); ///< Update the GUI state.
