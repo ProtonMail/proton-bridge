@@ -141,7 +141,7 @@ Feature: SMTP sending of plain messages
                 "content-type": "text/html",
                 "content-type-charset": "utf-8",
                 "transfer-encoding": "quoted-printable",
-                "body-is": "<html><head>\r\n<meta http-equiv=3D\"content-type\" content=3D\"text/html; charset=3DUTF-8\"/>\r\n</head>\r\n<body text=3D\"#000000\" bgcolor=3D\"#FFFFFF\">\r\n<p><br/>\r\n</p>\r\n<p>Behold! An inline <img moz-do-not-send=3D\"false\" src=3D\"cid:part1.D96BFA=\r\nE9.E2E1CAE3@protonmail.com\" alt=3D\"\" width=3D\"24\" height=3D\"24\"/><br/>\r\n</p>\r\n\r\n\r\n</body></html>"
+                "body-is": "<html>\r\n<head>\r\n<meta http-equiv=3D\"content-type\" content=3D\"text/html; charset=3DUTF-8\">\r\n</head>\r\n<body text=3D\"#000000\" bgcolor=3D\"#FFFFFF\">\r\n<p><br>\r\n</p>\r\n<p>Behold! An inline <img moz-do-not-send=3D\"false\"\r\nsrc=3D\"cid:part1.D96BFAE9.E2E1CAE3@protonmail.com\" alt=3D\"\"\r\nwidth=3D\"24\" height=3D\"24\"><br>\r\n</p>\r\n</body>\r\n</html>"
               },
               {
                 "content-type": "image/gif",
@@ -476,7 +476,7 @@ Feature: SMTP sending of plain messages
         "content-type": "text/html",
         "content-type-charset": "utf-8",
         "transfer-encoding": "quoted-printable",
-        "body-is": "<!DOCTYPE html><html><head>\n\n    <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\"/>\n  </head>\n  <body>\n    <p><tt>Remote content</tt></p>\n    <p><tt><br/>\n      </tt></p>\n    <p><img src=\"https://bridgeteam.protontech.ch/bridgeteam/tmp/bridge.jpg\" alt=\"Bridge\" width=\"180\" height=\"180\"/></p>\n    <p><br/>\n    </p>\n    <p><tt>Remote content</tt><br/>\n    </p>\n    <br/>\n  \n\n</body></html>"
+        "body-is": "<!DOCTYPE html><html><head>\r\n\r\n    <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\"/>\r\n  </head>\r\n  <body>\r\n    <p><tt>Remote content</tt></p>\r\n    <p><tt><br/>\r\n      </tt></p>\r\n    <p><img src=\"https://bridgeteam.protontech.ch/bridgeteam/tmp/bridge.jpg\" alt=\"Bridge\" width=\"180\" height=\"180\"/></p>\r\n    <p><br/>\r\n    </p>\r\n    <p><tt>Remote content</tt><br/>\r\n    </p>\r\n    <br/>\r\n  \r\n\r\n</body></html>"
       }
     }
     """
