@@ -16,6 +16,9 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Added update events to bridge GUI tester.
 
 ### Fixed
+* GODT-3142: Pass br tag if available.
+* GODT-3151: Fix feature test with non modified HTML part.
+* GODT-3151: Only modify HTML Meta content if UTF-8 charset override is needed.
 * GODT-2851: Add empty text part if no text part when importing multipart.
 * GODT-3102: Distinguish Vault Decryption from Serialization Errors.
 * GODT-3124: Handling of sync child jobs.
