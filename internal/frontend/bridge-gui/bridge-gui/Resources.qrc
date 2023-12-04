@@ -96,6 +96,7 @@
         <file>qml/Proton/ColorScheme.qml</file>
         <file>qml/Proton/ComboBox.qml</file>
         <file>qml/Proton/Dialog.qml</file>
+        <file>qml/Proton/InfoTooltip.qml</file>
         <file>qml/Proton/Label.qml</file>
         <file>qml/Proton/LinkLabel.qml</file>
         <file>qml/Proton/Menu.qml</file>

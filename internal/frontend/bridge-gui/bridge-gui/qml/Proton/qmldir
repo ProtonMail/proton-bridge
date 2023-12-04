@@ -27,6 +27,7 @@ Button 4.0 Button.qml
 CheckBox 4.0 CheckBox.qml
 ComboBox 4.0 ComboBox.qml
 Dialog 4.0 Dialog.qml
+InfoTooltip 4.0 InfoTooltip.qml
 Label 4.0 Label.qml
 LinkLabel 4.0 LinkLabel.qml
 Menu 4.0 Menu.qml

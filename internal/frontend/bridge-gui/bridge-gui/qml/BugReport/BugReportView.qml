@@ -82,11 +82,17 @@ SettingsView {
             id: suggestionBox
             visible: suggestions && suggestions.length > 0
             spacing: 8
-
-            Label {
-                colorScheme: root.colorScheme
-                text: qsTr("We believe these links might be relevant for your problem")
-                type: Label.Body_semibold
+            RowLayout {
+                Label {
+                    colorScheme: root.colorScheme
+                    text: qsTr("We believe these links may help you solve your problem")
+                    type: Label.Body_semibold
+                }
+                InfoTooltip {
+                    colorScheme: root.colorScheme
+                    text: qsTr("The links will open in an external browser. If you cancel the report, your input will be preserved until you restart Bridge.")
+                    Layout.bottomMargin: -4
+                }
             }
             Repeater {
                 model: suggestions
