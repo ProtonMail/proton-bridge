@@ -102,9 +102,6 @@ func TestMetadataStage_JobCorrectlyFinishesAfterCancel(t *testing.T) {
 	// read one output then cancel
 	request, err := output.Consume(ctx)
 	require.NoError(t, err)
-	request.onFinished(ctx)
-	// cancel job context
-	jobCancel()
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -117,10 +114,13 @@ func TestMetadataStage_JobCorrectlyFinishesAfterCancel(t *testing.T) {
 				return
 			}
 
+			// cancel job context
+			jobCancel()
 			req.checkCancelled()
 		}
 	}()
 	wg.Wait()
+	request.onFinished(ctx)
 	err = tj.job.waitAndClose(ctx)
 	require.Error(t, err)
 	require.ErrorIs(t, err, context.Canceled)
