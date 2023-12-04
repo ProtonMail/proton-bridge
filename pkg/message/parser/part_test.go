@@ -18,6 +18,7 @@
 package parser
 
 import (
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -70,4 +71,46 @@ func getSectionNumber(s string) (part []int) {
 	}
 
 	return
+}
+
+func TestPart_ConvertMetaCharset(t *testing.T) {
+	tests := []struct {
+		name     string
+		body     string
+		wantErr  bool
+		wantSame bool
+	}{
+		{
+			"html no meta",
+			"<body></body>",
+			false,
+			true,
+		},
+		{
+			"html meta no charset",
+			"<header><meta name=ProgId content=Word.Document></header><body><meta></body>",
+			false,
+			true,
+		},
+		{
+			"html meta UTF-8 charset",
+			"<header><meta charset=UTF-8></header><body><meta></body>",
+			false,
+			true,
+		},
+		{
+			"html meta not UTF-8 charset",
+			"<header><meta charset=UTF-7></header><body><meta></body>",
+			false,
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var p = Part{Body: []byte(tt.body)}
+			err := p.ConvertMetaCharset()
+			assert.Equal(t, tt.wantErr, err != nil)
+			assert.Equal(t, tt.wantSame, reflect.DeepEqual([]byte(tt.body), p.Body))
+		})
+	}
 }

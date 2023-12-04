@@ -261,13 +261,13 @@ func ParseMediaType(v string) (string, map[string]string, error) {
 	}
 	decoded, err := DecodeHeader(v)
 	if err != nil {
-		logrus.WithField("value", v).WithError(err).Error("Media Type parsing error.")
+		logrus.WithField("value", v).WithField("pkg", "mime").WithError(err).Error("Cannot decode Headers.")
 		return "", nil, err
 	}
 	v, _ = changeEncodingAndKeepLastParamDefinition(decoded)
 	mediatype, params, err := mime.ParseMediaType(v)
 	if err != nil {
-		logrus.WithField("value", v).WithError(err).Error("Media Type parsing error.")
+		logrus.WithField("value", v).WithField("pkg", "mime").WithError(err).Error("Media Type parsing error.")
 		return "", nil, err
 	}
 	return mediatype, params, err

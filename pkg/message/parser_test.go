@@ -552,14 +552,15 @@ func TestParseMultipartAlternative(t *testing.T) {
 	assert.Equal(t, `"schizofrenic" <schizofrenic@pm.me>`, m.Sender.String())
 	assert.Equal(t, `<pmbridgeietest@outlook.com>`, m.ToList[0].String())
 
-	assert.Equal(t, `<html><head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+	assert.Equal(t, `<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   </head>
   <body>
     <b>aoeuaoeu</b>
-  
-
-</body></html>`, string(m.RichBody))
+  </body>
+</html>
+`, string(m.RichBody))
 
 	assert.Equal(t, "*aoeuaoeu*\n\n", string(m.PlainBody))
 }
@@ -573,14 +574,15 @@ func TestParseMultipartAlternativeNested(t *testing.T) {
 	assert.Equal(t, `"schizofrenic" <schizofrenic@pm.me>`, m.Sender.String())
 	assert.Equal(t, `<pmbridgeietest@outlook.com>`, m.ToList[0].String())
 
-	assert.Equal(t, `<html><head>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+	assert.Equal(t, `<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   </head>
   <body>
     <b>multipart 2.2</b>
-  
-
-</body></html>`, string(m.RichBody))
+  </body>
+</html>
+`, string(m.RichBody))
 
 	assert.Equal(t, "*multipart 2.1*\n\n", string(m.PlainBody))
 }

@@ -137,15 +137,15 @@ func (p *Part) ConvertMetaCharset() error {
 		if val, ok := sel.Attr("content"); ok {
 			t, params, err := pmmime.ParseMediaType(val)
 			if err != nil {
+				logrus.WithField("pkg", "parser").WithError(err).Error("Meta tag parsing fails.")
 				return
 			}
 
 			if charset, ok := params["charset"]; ok && charset != utf8Charset {
 				params["charset"] = utf8Charset
+				sel.SetAttr("content", mime.FormatMediaType(t, params))
+				metaModified = true
 			}
-
-			sel.SetAttr("content", mime.FormatMediaType(t, params))
-			metaModified = true
 		}
 
 		if charset, ok := sel.Attr("charset"); ok && charset != utf8Charset {
