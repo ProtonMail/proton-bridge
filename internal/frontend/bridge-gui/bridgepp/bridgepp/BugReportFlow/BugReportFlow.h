@@ -28,7 +28,7 @@ namespace bridgepp {
 class BugReportFlow {
 
 public: // member functions.
-    BugReportFlow(); ///< Default constructor.
+    BugReportFlow() = default; ///< Default constructor.
     BugReportFlow(BugReportFlow const &) = delete; ///< Disabled copy-constructor.
     BugReportFlow(BugReportFlow &&) = delete; ///< Disabled assignment copy-constructor.
     ~BugReportFlow() = default; ///< Destructor.
@@ -42,6 +42,7 @@ public: // member functions.
     [[nodiscard]] QString getCategory(quint8 categoryId) const;  ///< Get category name.
     [[nodiscard]] QString getAnswer(quint8 questionId) const; ///< Get answer for a given question.
     [[nodiscard]] QString collectAnswers(quint8 categoryId) const; ///< Collect answer for a given set of questions.
+    [[nodiscard]] QString collectUserInput(quint8 categoryId) const; ///< Collect the user input (user answers without quesitons) for a given set of questions.
     void clearAnswers(); ///< Clear all collected answers.
 
 

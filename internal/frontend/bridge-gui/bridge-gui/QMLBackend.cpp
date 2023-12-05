@@ -304,11 +304,11 @@ void QMLBackend::openExternalLink(QString const &url) {
 
 
 //****************************************************************************************************************************************************
-//
+/// \param[in] categoryID The ID of the bug report category.
 //****************************************************************************************************************************************************
-void QMLBackend::requestKnowledgeBaseSuggestions() const {
+void QMLBackend::requestKnowledgeBaseSuggestions(qint8 categoryID) const {
     HANDLE_EXCEPTION(
-        app().grpc().requestKnowledgeBaseSuggestions("Test");
+        app().grpc().requestKnowledgeBaseSuggestions(reportFlow_.collectUserInput(categoryID));
     )
 }
 

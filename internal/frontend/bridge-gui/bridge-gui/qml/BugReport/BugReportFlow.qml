@@ -78,7 +78,7 @@ Item {
                     root.showBugCategory();
                 }
                 onQuestionAnswered: {
-                    Backend.requestKnowledgeBaseSuggestions();
+                    Backend.requestKnowledgeBaseSuggestions(categoryId);
                     root.showBugReport();
                 }
             }
