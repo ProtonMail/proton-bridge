@@ -107,3 +107,18 @@ test-coverage:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+
+go-vuln-check:
+  extends:
+    - .rules-branch-manual-MR-and-devel-always
+  stage: test
+  tags:
+    - shared-medium
+  script:
+    - apt-get -y install jq
+    - ./utils/govulncheck.sh
+  artifacts:
+    when: always
+    paths:
+      - vulns*
+
