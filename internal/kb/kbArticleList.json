@@ -6,7 +6,10 @@
     "keywords": [
       "start",
       "automatically",
-      "login"
+      "login",
+      "startup",
+      "start-up",
+      "boot"
     ]
   },
   {
@@ -14,7 +17,11 @@
     "url": "https://proton.me/support/bridge-automatic-update",
     "title": "Automatic Update and Bridge",
     "keywords": [
-      "TBD"
+      "update",
+      "upgrade",
+      "restart",
+      "automatic",
+      "manual"
     ]
   },
   {
@@ -22,7 +29,12 @@
     "url": "https://proton.me/support/messages-encrypted-via-bridge",
     "title": "Are my messages encrypted via Proton Mail Bridge?",
     "keywords": [
-      "TBD"
+      "encrypted",
+      "privacy",
+      "message",
+      "security",
+      "gpg",
+      "pgp"
     ]
   },
   {
@@ -70,7 +82,7 @@
     "url": "https://proton.me/support/update-required",
     "title": "Update required",
     "keywords": [
-      "TBD"
+      "update", "upgrade", "restart", "reboot"
     ]
   },
   {
@@ -78,7 +90,7 @@
     "url": "https://proton.me/support/port-already-occupied-error",
     "title": "Port already occupied error",
     "keywords": [
-      "TBD"
+      "Port", "occupied", "1143", "1025", "SMTP", "IMAP", "error"
     ]
   },
   {
@@ -86,7 +98,7 @@
     "url": "https://proton.me/support/clients-supported-bridge",
     "title": "Email clients supported by Proton Mail Bridge",
     "keywords": [
-      "TBD"
+      "client", "Outlook", "Thunderbird", "Apple Mail", "EM Client", "The Bat", "Eudora", "Postbox"
     ]
   },
   {
@@ -94,7 +106,7 @@
     "url": "https://proton.me/support/imap-smtp-and-pop3-setup",
     "title": "IMAP, SMTP, and POP3 setup",
     "keywords": [
-      "TBD"
+      "IMAP", "SMTP", "setup"
     ]
   },
   {
@@ -102,7 +114,7 @@
     "url": "https://proton.me/support/protonmail-bridge-install",
     "title": "How to install Proton Mail Bridge",
     "keywords": [
-      "TBD"
+      "install", "setup", "installer"
     ]
   },
   {
@@ -110,7 +122,7 @@
     "url": "https://proton.me/support/bridge-for-linux",
     "title": "Proton Mail Bridge for Linux",
     "keywords": [
-      "TBD"
+      "Linux", "Ubuntu", "Fedora", "Debian", "Unix", "deb", "rpm"
     ]
   },
   {
@@ -118,7 +130,8 @@
     "url": "https://proton.me/support/operating-systems-supported-bridge",
     "title": "System requirements for Proton Mail Bridge",
     "keywords": [
-      "TBD"
+      "requirement", "cpu", "memory", "Windows 7", "Windows XP", "Windows", "Windows 10", "Windows 11","Catalina", "Sonoma", "Ventura",
+      "Debian", "Ubuntu", "Fedora", "Redhat", "Big Sur", "Monterey"
     ]
   },
   {
@@ -126,7 +139,7 @@
     "url": "https://proton.me/support/protonmail-bridge-configure-client",
     "title": "How to configure your email client for Proton Mail Bridge",
     "keywords": [
-      "TBD"
+      "Client", "Outlook", "configure", "setup", "IMAP", "SMTP"
     ]
   },
   {
@@ -134,7 +147,7 @@
     "url": "https://proton.me/support/invalid-password-error-setting-email-client",
     "title": "Invalid password error while setting up email client",
     "keywords": [
-      "TBD"
+      "password", "invalid", "error"
     ]
   },
   {
@@ -142,7 +155,7 @@
     "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
     "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide",
     "keywords": [
-      "TBD"
+      "Outlook", "2019", "setup", "configuration"
     ]
   },
   {

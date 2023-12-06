@@ -18,6 +18,7 @@
 package kb
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -39,7 +40,18 @@ func Test_ArticleList(t *testing.T) {
 }
 
 func Test_GetSuggestions(t *testing.T) {
-	suggestions, err := GetSuggestions("")
+	suggestions, err := GetSuggestions("Thunderbird is not working, error during password")
+	require.NoError(t, err)
+	require.True(t, len(suggestions) <= 3)
+	for _, article := range suggestions {
+		fmt.Printf("Score: %v - %#v\n", article.Score, article.Title)
+	}
+
+	suggestions, err = GetSuggestions("Supercalifragilisticexpialidocious Sesquipedalian Worcestershire")
 	require.NoError(t, err)
 	require.Empty(t, suggestions)
+}
+
+func Test_simplifyUserInput(t *testing.T) {
+	require.Equal(t, "word1 ñóÄ don't déjà 33 pizza", simplifyUserInput("  \nword1    \n\tñóÄ   don't\n\n\ndéjà, 33    pizza=🍕\n,\n"))
 }

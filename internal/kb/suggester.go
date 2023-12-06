@@ -20,6 +20,11 @@ package kb
 import (
 	_ "embed"
 	"encoding/json"
+	"regexp"
+	"strings"
+
+	"github.com/bradenaw/juniper/xslices"
+	"golang.org/x/exp/slices"
 )
 
 //go:embed kbArticleList.json
@@ -31,9 +36,10 @@ type Article struct {
 	URL      string   `json:"url"`
 	Title    string   `json:"title"`
 	Keywords []string `json:"keywords"`
+	Score    int
 }
 
-type ArticleList []Article
+type ArticleList []*Article
 
 // GetArticleList returns the list of KB articles.
 func GetArticleList() (ArticleList, error) {
@@ -44,17 +50,35 @@ func GetArticleList() (ArticleList, error) {
 }
 
 // GetSuggestions return a list of up to 3 suggestions for KB articles matching the given user input.
-func GetSuggestions(_ string) (ArticleList, error) {
+func GetSuggestions(userInput string) (ArticleList, error) {
+	userInput = strings.ToUpper(userInput)
 	articles, err := GetArticleList()
 	if err != nil {
 		return ArticleList{}, err
 	}
 
-	// note starting with go 1.21, we will be able to do:
-	// return articles[:min(3, len(articles))]
-	l := len(articles)
-	if l > 3 {
-		l = 3
+	for _, article := range articles {
+		for _, keyword := range article.Keywords {
+			if strings.Contains(userInput, strings.ToUpper(keyword)) {
+				article.Score++
+			}
+		}
 	}
-	return articles[:l], nil
+
+	articles = xslices.Filter(articles, func(article *Article) bool { return article.Score > 0 })
+	slices.SortFunc(articles, func(lhs, rhs *Article) bool { return lhs.Score > rhs.Score })
+
+	if len(articles) > 3 {
+		return articles[:3], nil
+	}
+
+	return articles, nil
+}
+
+func simplifyUserInput(input string) string {
+	// replace any sequence not matching of the following with a single space:
+	// - letters in any language (accentuated or not)
+	// - numbers
+	// - the apostrophe character '
+	return strings.TrimSpace(regexp.MustCompile(`[^\p{L}\p{N}']+`).ReplaceAllString(input, " "))
 }

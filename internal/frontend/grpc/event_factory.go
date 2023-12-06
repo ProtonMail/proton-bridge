@@ -69,7 +69,7 @@ func NewShowMainWindowEvent() *StreamEvent {
 func NewRequestKnowledgeBaseSuggestionsEvent(suggestions kb.ArticleList) *StreamEvent {
 	s := xslices.Map(
 		suggestions,
-		func(article kb.Article) *KnowledgeBaseSuggestion {
+		func(article *kb.Article) *KnowledgeBaseSuggestion {
 			return &KnowledgeBaseSuggestion{Url: article.URL, Title: article.Title}
 		},
 	)
