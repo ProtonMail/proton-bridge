@@ -35,6 +35,7 @@ main(){
     ignore GO-2023-1840 "GODT-3160 update go to 1.21.4"
     ignore GO-2023-2185 "GODT-3160 update go to 1.21.4"
     ignore GO-2023-2186 "GODT-3160 update go to 1.21.4"
+    ignore GO-2023-2382 "GODT-3160 update go to 1.21.4"
     ignore GO-2023-2328 "GODT-3124 RESTY race condition"
 
     has_vulns
