@@ -18,8 +18,8 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/kb"
@@ -33,14 +33,17 @@ func checkErrors(err error) {
 }
 
 func main() {
-	var input string
-	fmt.Print("Type your input: ")
-
-	buffer := bufio.NewReader(os.Stdin)
-	input, err := buffer.ReadString('\n')
+	fi, err := os.Stdin.Stat()
 	checkErrors(err)
 
-	suggestions, err := kb.GetSuggestions(input)
+	if (fi.Mode() & os.ModeNamedPipe) == 0 {
+		fmt.Println("Type your input, Ctrl+D to finish: ")
+	}
+
+	bytes, err := io.ReadAll(os.Stdin)
+	checkErrors(err)
+
+	suggestions, err := kb.GetSuggestions(string(bytes))
 	checkErrors(err)
 
 	if len(suggestions) == 0 {
