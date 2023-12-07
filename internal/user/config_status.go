@@ -20,7 +20,7 @@ package user
 import (
 	"context"
 	"encoding/json"
-	"strings"
+	"errors"
 
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/configstatus"
@@ -195,26 +195,25 @@ func (user *User) AutoconfigUsed(client string) {
 	}
 }
 
-func (user *User) ExternalLinkClicked(article string) {
+func (user *User) ExternalLinkClicked(url string) {
 	if !user.configStatus.IsPending() {
 		return
 	}
 
-	articles, err := kb.GetArticleList()
+	const externalLinkWasClicked = "External link was clicked."
+	index, err := kb.GetArticleIndex(url)
 	if err != nil {
-		user.log.WithError(err).Error("Failed to retrieve list of KB articles.")
+		if errors.Is(err, kb.ErrArticleNotFound) {
+			user.log.WithField("report", false).WithField("url", url).Debug(externalLinkWasClicked)
+		} else {
+			user.log.WithError(err).Error("Failed to retrieve list of KB articles.")
+		}
 		return
 	}
 
-	var reportToTelemetry bool
-	for _, a := range articles {
-		if strings.EqualFold(a.URL, article) {
-			if err := user.configStatus.RecordLinkClicked(a.Index); err != nil {
-				user.log.WithError(err).Error("Failed to log LinkClicked in config_status.")
-			}
-			reportToTelemetry = true
-			break
-		}
+	if err := user.configStatus.RecordLinkClicked(index); err != nil {
+		user.log.WithError(err).Error("Failed to log LinkClicked in config_status.")
+	} else {
+		user.log.WithField("report", true).WithField("url", url).Debug(externalLinkWasClicked)
 	}
-	user.log.WithField("report", reportToTelemetry).WithField("article", article).Debug("External link was clicked.")
 }

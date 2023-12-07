@@ -52,6 +52,18 @@ func Test_GetSuggestions(t *testing.T) {
 	require.Empty(t, suggestions)
 }
 
+func Test_GetArticleIndex(t *testing.T) {
+	index1, err := GetArticleIndex("https://proton.me/support/bridge-for-linux")
+	require.NoError(t, err)
+
+	index2, err := GetArticleIndex("HTTPS://PROTON.ME/support/bridge-for-linux")
+	require.NoError(t, err)
+	require.Equal(t, index1, index2)
+
+	_, err = GetArticleIndex("https://proton.me")
+	require.ErrorIs(t, err, ErrArticleNotFound)
+}
+
 func Test_simplifyUserInput(t *testing.T) {
 	require.Equal(t, "word1 ñóÄ don't déjà 33 pizza", simplifyUserInput("  \nword1    \n\tñóÄ   don't\n\n\ndéjà, 33    pizza=🍕\n,\n"))
 }

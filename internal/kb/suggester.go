@@ -20,12 +20,15 @@ package kb
 import (
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"regexp"
 	"strings"
 
 	"github.com/bradenaw/juniper/xslices"
 	"golang.org/x/exp/slices"
 )
+
+var ErrArticleNotFound = errors.New("KB article not found")
 
 //go:embed kbArticleList.json
 var articleListString []byte
@@ -73,6 +76,20 @@ func GetSuggestions(userInput string) (ArticleList, error) {
 	}
 
 	return articles, nil
+}
+
+// GetArticleIndex retrieve the index of an article from its url. if the article is not found, ErrArticleNotFound is returned.
+func GetArticleIndex(url string) (uint64, error) {
+	articles, err := GetArticleList()
+	if err != nil {
+		return 0, err
+	}
+
+	index := xslices.IndexFunc(articles, func(article *Article) bool { return strings.EqualFold(article.URL, url) })
+	if index == -1 {
+		return 0, ErrArticleNotFound
+	}
+	return uint64(index), nil
 }
 
 func simplifyUserInput(input string) string {
