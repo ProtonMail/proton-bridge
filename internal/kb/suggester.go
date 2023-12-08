@@ -52,13 +52,19 @@ func GetArticleList() (ArticleList, error) {
 	return articles, err
 }
 
-// GetSuggestions return a list of up to 3 suggestions for KB articles matching the given user input.
+// GetSuggestions returns a list of up to 3 suggestions for the built-in list of KB articles matching the given user input.
 func GetSuggestions(userInput string) (ArticleList, error) {
-	userInput = strings.ToUpper(userInput)
 	articles, err := GetArticleList()
 	if err != nil {
 		return ArticleList{}, err
 	}
+
+	return GetSuggestionsFromArticleList(userInput, articles)
+}
+
+// GetSuggestionsFromArticleList returns a list of up to 3 suggestions for the given list of KB articles matching the given user input.
+func GetSuggestionsFromArticleList(userInput string, articles ArticleList) (ArticleList, error) {
+	userInput = strings.ToUpper(userInput)
 
 	for _, article := range articles {
 		for _, keyword := range article.Keywords {
@@ -78,7 +84,7 @@ func GetSuggestions(userInput string) (ArticleList, error) {
 	return articles, nil
 }
 
-// GetArticleIndex retrieve the index of an article from its url. if the article is not found, ErrArticleNotFound is returned.
+// GetArticleIndex retrieves the index of an article from its url. if the article is not found, ErrArticleNotFound is returned.
 func GetArticleIndex(url string) (uint64, error) {
 	articles, err := GetArticleList()
 	if err != nil {

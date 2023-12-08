@@ -18,7 +18,6 @@
 package kb
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -42,14 +41,37 @@ func Test_ArticleList(t *testing.T) {
 func Test_GetSuggestions(t *testing.T) {
 	suggestions, err := GetSuggestions("Thunderbird is not working, error during password")
 	require.NoError(t, err)
-	require.True(t, len(suggestions) <= 3)
-	for _, article := range suggestions {
-		fmt.Printf("Score: %v - %#v\n", article.Score, article.Title)
-	}
-
+	count := len(suggestions)
+	require.True(t, (count > 0) && (count <= 3))
 	suggestions, err = GetSuggestions("Supercalifragilisticexpialidocious Sesquipedalian Worcestershire")
 	require.NoError(t, err)
 	require.Empty(t, suggestions)
+}
+
+func Test_GetSuggestionsFromArticleList(t *testing.T) {
+	articleList := ArticleList{}
+	suggestions, err := GetSuggestionsFromArticleList("Thunderbird", articleList)
+	require.NoError(t, err)
+	require.Empty(t, suggestions)
+
+	articleList = ArticleList{
+		&Article{
+			Index:    0,
+			URL:      "https://proton.me",
+			Title:    "Proton home page",
+			Keywords: []string{"proton"},
+		},
+		&Article{
+			Index:    1,
+			URL:      "https://mozilla.org",
+			Title:    "Mozilla home page",
+			Keywords: []string{"mozilla"},
+		},
+	}
+	suggestions, err = GetSuggestionsFromArticleList("PRoToN", articleList)
+	require.NoError(t, err)
+	require.Len(t, suggestions, 1)
+	require.Equal(t, suggestions[0].URL, "https://proton.me")
 }
 
 func Test_GetArticleIndex(t *testing.T) {
