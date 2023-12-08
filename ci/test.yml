@@ -71,7 +71,11 @@ test-integration-nightly:
   needs:
     - test-integration
   script:
-    - make test-integration-nightly
+    - make test-integration-nightly | tee -a nightly-job.log
+  artifacts:
+    when: always
+    paths:
+      - nightly-job.log
 
 test-windows:
   extends:
