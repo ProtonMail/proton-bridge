@@ -3,6 +3,20 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Xikou Bridge 3.8.1
+
+### Added
+* GODT-3121: Suggest relevant KB articles in the in-app bug report form.
+* GODT-2001: Add govulncheck to scan for vulnerabilities.
+
+### Changed
+* Keep nighlty-job log as artifact.
+* Test: Improve TestMetadata_JobCorrectlyFinishesAfterCancel.
+
+### Fixed
+* GODT-3153: Do not take into account full address when hasing messages.
+
+
 ## Xikou Bridge 3.8.0
 
 ### Added
