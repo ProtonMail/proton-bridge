@@ -236,7 +236,7 @@ func run(c *cli.Context) error {
 
 						return withSingleInstance(settings, locations.GetLockFile(), version, func() error {
 							// Look for available keychains
-							return WithKeychainList(func(keychains *keychain.List) error {
+							return WithKeychainList(crashHandler, func(keychains *keychain.List) error {
 								// Unlock the encrypted vault.
 								return WithVault(locations, keychains, crashHandler, func(v *vault.Vault, insecure, corrupt bool) error {
 									if !v.Migrated() {
@@ -482,9 +482,10 @@ func withCookieJar(vault *vault.Vault, fn func(http.CookieJar) error) error {
 }
 
 // WithKeychainList init the list of usable keychains.
-func WithKeychainList(fn func(*keychain.List) error) error {
+func WithKeychainList(panicHandler async.PanicHandler, fn func(*keychain.List) error) error {
 	logrus.Debug("Creating keychain list")
 	defer logrus.Debug("Keychain list stop")
+	defer async.HandlePanic(panicHandler)
 	return fn(keychain.NewList())
 }
 

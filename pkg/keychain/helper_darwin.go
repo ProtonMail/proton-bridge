@@ -37,8 +37,9 @@ func listHelpers() (Helpers, string) {
 	// MacOS always provides a keychain.
 	if isUsable(newMacOSHelper("")) {
 		helpers[MacOSKeychain] = newMacOSHelper
+		logrus.WithField("keychain", "MacOSKeychain").Info("Keychain is usable.")
 	} else {
-		logrus.WithField("keychain", "MacOSKeychain").Warn("Keychain is not available.")
+		logrus.WithField("keychain", "MacOSKeychain").Debug("Keychain is not available.")
 	}
 
 	// Use MacOSKeychain by default.
