@@ -31,6 +31,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/kb"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/cucumber/godog"
 	"github.com/golang/mock/gomock"
@@ -234,6 +235,30 @@ func (s *scenario) theUserReportsABugWithDetails(value *godog.DocString) error {
 		return fmt.Errorf("cannot parse bug report details: %w", err)
 	}
 	return bugReport.report()
+}
+
+func (s *scenario) theDescriptionInputProvidesKnowledgeBaseArticles(description string, value *godog.DocString) error {
+	var wantSuggestions kb.ArticleList
+	if err := json.Unmarshal([]byte(value.Content), &wantSuggestions); err != nil {
+		return fmt.Errorf("Cannot parse wanted suggestions: %w", err)
+	}
+
+	haveSuggestions, err := s.t.bridge.GetKnowledgeBaseSuggestions(description)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(wantSuggestions); i++ {
+		if haveSuggestions[i].URL != wantSuggestions[i].URL {
+			return fmt.Errorf("Description \"%v\" has URL: \"%v\", want: \"%v\"", description, haveSuggestions[i].URL, wantSuggestions[i].URL)
+		}
+
+		if haveSuggestions[i].Title != wantSuggestions[i].Title {
+			return fmt.Errorf("Description \"%v\" has Title: \"%v\", want: \"%v\"", description, haveSuggestions[i].Title, wantSuggestions[i].Title)
+		}
+	}
+
+	return nil
 }
 
 func (s *scenario) bridgeSendsAConnectionUpEvent() error {

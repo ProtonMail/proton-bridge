@@ -76,6 +76,7 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the user reports a bug$`, s.theUserReportsABug)
 	ctx.Step(`^the user reports a bug with field "([^"]*)" set to "([^"]*)"$`, s.theUserReportsABugWithSingleHeaderChange)
 	ctx.Step(`^the user reports a bug with details:$`, s.theUserReportsABugWithDetails)
+	ctx.Step(`^the description "([^"]*)" provides the following KB suggestions:$`, s.theDescriptionInputProvidesKnowledgeBaseArticles)
 	ctx.Step(`^the user hides All Mail$`, s.theUserHidesAllMail)
 	ctx.Step(`^the user shows All Mail$`, s.theUserShowsAllMail)
 	ctx.Step(`^the user disables telemetry in bridge settings$`, s.theUserDisablesTelemetryInBridgeSettings)
