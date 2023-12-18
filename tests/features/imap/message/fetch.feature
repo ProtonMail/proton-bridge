@@ -1,6 +1,7 @@
 Feature: IMAP Fetch
   Background:
     Given there exists an account with username "[user:user]" and password "password"
+    And the account "[user:user]" has additional address "[user:alias]@[domain]"
     And the account "[user:user]" has the following custom mailboxes:
       | name  | type   |
       | mbox  | folder |
@@ -26,3 +27,48 @@ Feature: IMAP Fetch
     Then IMAP client "1" eventually sees the following messages in "INBOX":
       | from              | to                   | subject | date                  |
       | john.doe@mail.com | [user:user]@[domain] | foo     | 13 Aug 82 00:00 +0000 |
+
+  Scenario: Fetch messages sent from Web Client
+    When the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Sent":
+      | from                 | to                | subject |
+      | [user:user]@[domain] | john.doe@mail.com | foo     |
+    Then IMAP client "1" eventually sees the following messages in "Sent":
+      | from                 | to                | subject |
+      | [user:user]@[domain] | john.doe@mail.com | foo     |
+
+  @regression
+  Scenario: Fetch multiple messages sent from Web Client
+    When the address "[user:user]@[domain]" of account "[user:user]" has 5 messages in "Sent"
+    Then IMAP client "1" eventually sees 5 messages in "Sent"
+
+  @regression
+  Scenario: Fetch messages sent from Web Client in Split mode
+    When the user sets the address mode of user "[user:user]" to "split"
+    And user "[user:user]" finishes syncing
+    And user "[user:user]" connects and authenticates IMAP client "1" with address "[user:user]@[domain]"
+    And user "[user:user]" connects and authenticates IMAP client "2" with address "[user:alias]@[domain]"
+    Then it succeeds
+    When the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Sent":
+      | from                 | to                | subject |
+      | [user:user]@[domain] | john.doe@mail.com | foo     |
+    Then IMAP client "1" eventually sees the following messages in "Sent":
+      | from                 | to                | subject |
+      | [user:user]@[domain] | john.doe@mail.com | foo     |
+    When the address "[user:alias]@[domain]" of account "[user:user]" has the following messages in "Sent":
+      | from                 | to                 | subject |
+      | [user:alias]@[domain] | john.doe@mail.com | bar     |
+    Then IMAP client "2" eventually sees the following messages in "Sent":
+      | from                 | to                 | subject |
+      | [user:alias]@[domain] | john.doe@mail.com | bar     |
+
+  @regression
+  Scenario: Fetch multiple messages sent from Web Client in Split mode
+    When the user sets the address mode of user "[user:user]" to "split"
+    And user "[user:user]" finishes syncing
+    And user "[user:user]" connects and authenticates IMAP client "1" with address "[user:user]@[domain]"
+    And user "[user:user]" connects and authenticates IMAP client "2" with address "[user:alias]@[domain]"
+    Then it succeeds
+    When the address "[user:user]@[domain]" of account "[user:user]" has 5 messages in "Sent"
+    And the address "[user:alias]@[domain]" of account "[user:user]" has 10 messages in "Sent"
+    Then IMAP client "1" eventually sees 5 messages in "Sent"
+    Then IMAP client "2" eventually sees 10 messages in "Sent"
