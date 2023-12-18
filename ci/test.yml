@@ -55,14 +55,23 @@ test-integration:
   extends:
     - test-linux
   script:
-    - make test-integration
+    - make test-integration | tee -a integration-job.log
+  artifacts:
+    when: always
+    paths:
+      - integration-job.log
 
 test-integration-race:
   extends:
     - test-integration
     - .rules-branch-and-MR-manual
   script:
-    - make test-integration-race
+    - make test-integration-race | tee -a integration-race-job.log
+  artifacts:
+    when: always
+    paths:
+      - integration-race-job.log
+
 
 test-integration-nightly:
   extends:
