@@ -52,10 +52,7 @@ func numberOfDay(now, prev time.Time) int {
 		return 1
 	}
 	if now.Year() > prev.Year() {
-		if now.YearDay() > prev.YearDay() {
-			return 365 + (now.YearDay() - prev.YearDay()) + (365 * (now.Year() - prev.Year() - 1))
-		}
-		return (365 - prev.YearDay()) + now.YearDay() + (365 * (now.Year() - prev.Year() - 1))
+		return (365 * (now.Year() - prev.Year())) + now.YearDay() - prev.YearDay()
 	} else if now.YearDay() > prev.YearDay() {
 		return now.YearDay() - prev.YearDay()
 	}

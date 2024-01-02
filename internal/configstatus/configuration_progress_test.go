@@ -98,32 +98,3 @@ func TestConfigurationProgress_fed_year_change(t *testing.T) {
 	require.Equal(t, 370, req.Values.NbDay)
 	require.Equal(t, 2, req.Values.NbDaySinceLast)
 }
-
-func TestConfigurationProgress_fed_day_higher(t *testing.T) {
-	dir := t.TempDir()
-	file := filepath.Join(dir, "dummy.json")
-	var data = configstatus.ConfigurationStatusData{
-		Metadata: configstatus.Metadata{Version: "1.0.0"},
-		DataV1: configstatus.DataV1{
-			PendingSince:   time.Now().AddDate(-1, 0, -5),
-			LastProgress:   time.Now().AddDate(0, 0, -2),
-			Autoconf:       "Mr TBird",
-			ClickedLink:    42,
-			ReportSent:     false,
-			ReportClick:    true,
-			FailureDetails: "Not an error",
-		},
-	}
-	require.NoError(t, dumpConfigStatusInFile(&data, file))
-
-	config, err := configstatus.LoadConfigurationStatus(file)
-	require.NoError(t, err)
-
-	var builder = configstatus.ConfigProgressBuilder{}
-	req := builder.New(config)
-
-	require.Equal(t, "bridge.any.configuration", req.MeasurementGroup)
-	require.Equal(t, "bridge_config_progress", req.Event)
-	require.Equal(t, 370, req.Values.NbDay)
-	require.Equal(t, 2, req.Values.NbDaySinceLast)
-}
