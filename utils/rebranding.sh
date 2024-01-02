@@ -1,6 +1,6 @@
 ##!/bin/bash
 
-# Copyright (c) 2023 Proton AG
+# Copyright (c) 2024 Proton AG
 #
 # This file is part of Proton Mail Bridge.
 #
@@ -24,7 +24,7 @@ REPLACE_FILES=$(find . -not -path "./vendor/*" \
     -not -name "*mock*.go" \
     -regextype posix-egrep \
     -regex ".*\.go|.*\.qml|qmldir|.*\.qmlproject|.*\.txt|.*\.md|.*\.h|.*\.cpp|.*\.m|.*\.sh|.*\.py" \
-    -exec grep -L "Copyright (c) 2023 Proton AG" {} \;)
+    -exec grep -L "Copyright (c) 2024 Proton AG" {} \;)
 
 for f in ${REPLACE_FILES}
 do
@@ -35,16 +35,16 @@ do
     # Proton Mail Bridge is free software: you can redistribute it and/or modify
     # Proton Mail Bridge is distributed in the hope that it will be useful,
     # along with Proton Mail Bridge.  If not, see <https://www.gnu.org/licenses/>.
-    # Copyright (c) 2023 Proton AG
+    # Copyright (c) 2024 Proton AG
     for repl in  \
     "s/This file is part of ProtonMail Bridge./This file is part of Proton Mail Bridge./" \
     "s/ProtonMail Bridge is free software:/Proton Mail Bridge is free software:/" \
     "s/ProtonMail Bridge is distributed in the hope that it will be useful/Proton Mail Bridge is distributed in the hope that it will be useful/" \
     "s/along with ProtonMail Bridge. If not, see/along with Proton Mail Bridge. If not, see/" \
     "s/along with ProtonMail Bridge.  If not, see/along with Proton Mail Bridge. If not, see/" \
-    "s/Copyright (c) 2022 Proton Technologies AG/Copyright (c) 2023 Proton AG/" \
-    "s/Copyright (c) 2021 Proton Technologies AG/Copyright (c) 2023 Proton AG/" \
-    "s/Copyright (c) 2020 Proton Technologies AG/Copyright (c) 2023 Proton AG/"
+    "s/Copyright (c) 2022 Proton Technologies AG/Copyright (c) 2024 Proton AG/" \
+    "s/Copyright (c) 2021 Proton Technologies AG/Copyright (c) 2024 Proton AG/" \
+    "s/Copyright (c) 2020 Proton Technologies AG/Copyright (c) 2024 Proton AG/"
     do
         sed -i "$repl" "$f" || exit 3
     done

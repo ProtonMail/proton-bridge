@@ -1,5 +1,5 @@
 # Proton Mail Bridge and Import Export app
-Copyright (c) 2023 Proton AG
+Copyright (c) 2024 Proton AG
 
 This repository holds the Proton Mail Bridge and the Proton Mail Import-Export applications.
 For a detailed build information see [BUILDS](./BUILDS.md).

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2023 Proton AG
+# Copyright (c) 2024 Proton AG
 #
 # This file is part of Proton Mail Bridge.
 #
