@@ -104,14 +104,11 @@ func loadVaultKey(vaultDir string, keychains *keychain.List) ([]byte, error) {
 		return nil, fmt.Errorf("could not create keychain: %w", err)
 	}
 
-	has, err := vault.HasVaultKey(kc)
+	key, err := vault.GetVaultKey(kc)
 	if err != nil {
-		return nil, fmt.Errorf("could not check for vault key: %w", err)
+		logrus.WithError(err).Warn("Not possible to retrieve vault key, generating new")
+		return vault.NewVaultKey(kc)
 	}
 
-	if has {
-		return vault.GetVaultKey(kc)
-	}
-
-	return vault.NewVaultKey(kc)
+	return key, nil
 }

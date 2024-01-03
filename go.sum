@@ -107,8 +107,8 @@ github.com/cucumber/godog v0.12.5/go.mod h1:u6SD7IXC49dLpPN35kal0oYEjsXZWee4pW6T
 github.com/cucumber/messages-go/v16 v16.0.0/go.mod h1:EJcyR5Mm5ZuDsKJnT2N9KRnBK30BGjtYotDKpwQ0v6g=
 github.com/cucumber/messages-go/v16 v16.0.1 h1:fvkpwsLgnIm0qugftrw2YwNlio+ABe2Iu94Ap8GMYIY=
 github.com/cucumber/messages-go/v16 v16.0.1/go.mod h1:EJcyR5Mm5ZuDsKJnT2N9KRnBK30BGjtYotDKpwQ0v6g=
-github.com/cuthix/go-keychain v0.0.0-20230517073537-fc1740a83768 h1:Jrcoxtrk4qpuzKIYPlEkjIK0M+bABs0oW2QzrOuwlzk=
-github.com/cuthix/go-keychain v0.0.0-20230517073537-fc1740a83768/go.mod h1:ZoZU1fnBy3mOLWr3Pg+Y2+nTKtu6ypDte2kZg9HvSwY=
+github.com/cuthix/go-keychain v0.0.0-20240103134243-0b6a41580b77 h1:sdB/yJMbubPQothFl6KYCOrMBRgy0pZbBXIWoJqSFLo=
+github.com/cuthix/go-keychain v0.0.0-20240103134243-0b6a41580b77/go.mod h1:ZoZU1fnBy3mOLWr3Pg+Y2+nTKtu6ypDte2kZg9HvSwY=
 github.com/danieljoos/wincred v1.1.0/go.mod h1:XYlo+eRTsVA9aHGp7NGjFkPla4m+DCL7hqDjlFjiygg=
 github.com/danieljoos/wincred v1.1.2 h1:QLdCxFs1/Yl4zduvBdcHB8goaYk9RARS2SgLLRuAyr0=
 github.com/danieljoos/wincred v1.1.2/go.mod h1:GijpziifJoIBfYh+S7BbkdUTU4LfM+QnGqR5Vl2tAx0=

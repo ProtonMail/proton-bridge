@@ -28,7 +28,6 @@ import (
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
-	"golang.org/x/exp/slices"
 )
 
 const vaultSecretName = "bridge-vault-key"
@@ -67,15 +66,6 @@ func SetHelper(vaultDir, helper string) error {
 	}
 
 	return os.WriteFile(getKeychainPrefPath(vaultDir), b, 0o600)
-}
-
-func HasVaultKey(kc *keychain.Keychain) (bool, error) {
-	secrets, err := kc.List()
-	if err != nil {
-		return false, fmt.Errorf("could not list keychain: %w", err)
-	}
-
-	return slices.Contains(secrets, vaultSecretName), nil
 }
 
 func GetVaultKey(kc *keychain.Keychain) ([]byte, error) {

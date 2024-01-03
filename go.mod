@@ -124,5 +124,5 @@ replace (
 	github.com/emersion/go-message => github.com/ProtonMail/go-message v0.13.1-0.20230526094639-b62c999c85b7
 	github.com/emersion/go-smtp => github.com/ProtonMail/go-smtp v0.0.0-20231109081432-2b3d50599865
 	github.com/go-resty/resty/v2 => github.com/LBeernaertProton/resty/v2 v2.0.0-20231129100320-dddf8030d93a
-	github.com/keybase/go-keychain => github.com/cuthix/go-keychain v0.0.0-20230517073537-fc1740a83768
+	github.com/keybase/go-keychain => github.com/cuthix/go-keychain v0.0.0-20240103134243-0b6a41580b77
 )
