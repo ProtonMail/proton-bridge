@@ -217,7 +217,7 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0,0,0,1,0">
+           <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0,0,0,0,1">
             <item>
              <widget class="QLabel" name="labelMAP">
               <property name="text">
@@ -259,16 +259,16 @@
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="checkUseSSLForSMTP">
+             <widget class="QCheckBox" name="checkUseSSLForIMAP">
               <property name="text">
-               <string>Use SSL For SMTP</string>
+               <string>Use SSL For IMAP</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="checkUseSSLForIMAP">
+             <widget class="QCheckBox" name="checkUseSSLForSMTP">
               <property name="text">
-               <string>Use SSL For IMAP</string>
+               <string>Use SSL For SMTP</string>
               </property>
              </widget>
             </item>

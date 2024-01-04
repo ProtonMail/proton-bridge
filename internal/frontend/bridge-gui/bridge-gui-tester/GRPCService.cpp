@@ -623,7 +623,7 @@ Status GRPCService::MailServerSettings(ServerContext *, Empty const *, ImapSmtpS
     outSettings->set_imapport(tab.imapPort());
     outSettings->set_smtpport(tab.smtpPort());
     outSettings->set_usesslforimap(tab.useSSLForIMAP());
-    outSettings->set_usesslforimap(tab.useSSLForSMTP());
+    outSettings->set_usesslforsmtp(tab.useSSLForSMTP());
     return Status::OK;
 }
 
