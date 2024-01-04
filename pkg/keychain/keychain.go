@@ -41,7 +41,13 @@ var (
 
 	// ErrMacKeychainRebuild is returned on macOS with blocked or corrupted keychain.
 	ErrMacKeychainRebuild = errors.New("keychain error -25293")
+
+	ErrKeychainNoItem = errors.New("no such keychain item")
 )
+
+func IsErrKeychainNoItem(err error) bool {
+	return errors.Is(err, ErrKeychainNoItem) || credentials.IsErrCredentialsNotFound(err)
+}
 
 type Helpers map[string]helperConstructor
 
@@ -173,7 +179,16 @@ func (kc *Keychain) Get(userID string) (string, string, error) {
 	kc.locker.Lock()
 	defer kc.locker.Unlock()
 
-	return kc.helper.Get(kc.secretURL(userID))
+	id, key, err := kc.helper.Get(kc.secretURL(userID))
+	if err != nil {
+		return id, key, err
+	}
+
+	if key == "" {
+		return id, key, ErrKeychainNoItem
+	}
+
+	return id, key, err
 }
 
 func (kc *Keychain) Put(userID, secret string) error {

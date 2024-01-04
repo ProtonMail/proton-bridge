@@ -168,8 +168,12 @@ func (s *SecretServiceDBusHelper) Get(serverURL string) (string, string, error) 
 		serverAtt: serverURL,
 	})
 
-	if len(items) == 0 || err != nil {
+	if err != nil {
 		return "", "", err
+	}
+
+	if len(items) == 0 {
+		return "", "", ErrKeychainNoItem
 	}
 
 	item := items[0]

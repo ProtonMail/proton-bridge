@@ -125,7 +125,7 @@ func (h *macOSHelper) Get(secretURL string) (string, string, error) {
 	}
 
 	if len(results) == 0 {
-		return "", "", errors.New("no result")
+		return "", "", ErrKeychainNoItem
 	}
 
 	if len(results) != 1 {

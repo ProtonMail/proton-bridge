@@ -114,3 +114,16 @@ func TestInsertReadRemove(t *testing.T) {
 		require.NotContains(t, actualList, id)
 	}
 }
+
+func TestIsErrKeychainNoItem(t *testing.T) {
+	r := require.New(t)
+	helpers := NewList().GetHelpers()
+
+	for helperName := range helpers {
+		kc, err := NewKeychain(helperName, "bridge-test", helpers, helperName)
+		r.NoError(err)
+
+		_, _, err = kc.Get("non-existing")
+		r.True(IsErrKeychainNoItem(err), "failed for %s with error %w", helperName, err)
+	}
+}
