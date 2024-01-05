@@ -26,6 +26,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/gluon/async"
@@ -370,6 +371,12 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 		WithField("args", os.Args).
 		WithField("SentryID", sentry.GetProtectedHostname()).
 		Info("Run app")
+
+	now := time.Now()
+	logrus.
+		WithField("timeZone", now.Format("MST")).
+		WithField("offset", now.Format("-07:00:00")).
+		Info("Time zone info")
 
 	return fn(closer)
 }
