@@ -91,9 +91,11 @@ func (cs *coloredStdOutHook) Fire(entry *logrus.Entry) error {
 // the default pruning algorithm.
 func Init(logsPath string, sessionID SessionID, appName AppName, rotationSize, pruningSize int64, level string) (io.Closer, error) {
 	logrus.SetFormatter(&logrus.TextFormatter{
-		DisableColors:   true,
-		FullTimestamp:   true,
-		TimestampFormat: time.StampMilli,
+		DisableColors:    true,
+		ForceQuote:       true,
+		FullTimestamp:    true,
+		QuoteEmptyFields: true,
+		TimestampFormat:  "2006-01-02 15:04:05.000",
 	})
 
 	logrus.AddHook(newColoredStdOutHook())
