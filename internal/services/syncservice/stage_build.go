@@ -101,6 +101,23 @@ func (b *BuildStage) run(ctx context.Context) {
 			continue
 		}
 
+		if len(req.batch) == 0 {
+			// it is possible that if one does a mass delete on another client an entire download batch fails,
+			// and we reach this point without any messages to build.
+			req.onStageCompleted(ctx)
+
+			if err := b.output.Produce(ctx, ApplyRequest{
+				childJob: req.childJob,
+				messages: nil,
+			}); err != nil {
+				err = fmt.Errorf("failed to produce output for next stage: %w", err)
+				logrus.Errorf(err.Error())
+				req.job.onError(err)
+			}
+
+			continue
+		}
+
 		err = req.job.messageBuilder.WithKeys(func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
 			chunks := chunkSyncBuilderBatch(req.batch, b.maxBuildMem)
 

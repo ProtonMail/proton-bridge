@@ -321,3 +321,35 @@ func TestBuildStage_CancelledJobIsDiscarded(t *testing.T) {
 	_, err := output.Consume(context.Background())
 	require.ErrorIs(t, err, ErrNoMoreInput)
 }
+
+func TestTask_EmptyInputDoesNotCrash(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+
+	input := NewChannelConsumerProducer[BuildRequest]()
+	output := NewChannelConsumerProducer[ApplyRequest]()
+	reporter := mocks.NewMockReporter(mockCtrl)
+
+	labels := getTestLabels()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	tj := newTestJob(ctx, mockCtrl, "u", labels)
+
+	tj.syncReporter.EXPECT().OnProgress(gomock.Any(), gomock.Eq(int64(10)))
+
+	tj.job.begin()
+	childJob := tj.job.newChildJob("f", 10)
+	tj.job.end()
+
+	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, reporter)
+
+	go func() {
+		stage.run(ctx)
+	}()
+
+	require.NoError(t, input.Produce(ctx, BuildRequest{childJob: childJob, batch: []proton.FullMessage{}}))
+
+	req, err := output.Consume(ctx)
+	cancel()
+	require.NoError(t, err)
+	require.Len(t, req.messages, 0)
+}
