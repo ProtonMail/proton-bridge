@@ -25,7 +25,7 @@ main(){
     make gofiles
     govulncheck -json ./... > vulns.json
 
-    jq -r '.osv.id | select( . != null )' < vulns.json > vulns_osv_ids.txt
+    jq -r '.finding | select( (.osv != null) and (.trace[0].function != null) ) | .osv ' < vulns.json > vulns_osv_ids.txt
 
     ignore GO-2023-2102 "GODT-3160 update go to 1.21.4"
     ignore GO-2023-2043 "GODT-3160 update go to 1.21.4"
