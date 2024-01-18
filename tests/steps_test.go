@@ -101,6 +101,7 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 
 	// ==== USER ====
 	ctx.Step(`^the user logs in with username "([^"]*)" and password "([^"]*)"$`, s.userLogsInWithUsernameAndPassword)
+	ctx.Step(`^the user logs in with alias address "([^"]*)" and password "([^"]*)"$`, s.userLogsInWithAliasAddressAndPassword)
 	ctx.Step(`^user "([^"]*)" logs out$`, s.userLogsOut)
 	ctx.Step(`^user "([^"]*)" is deleted$`, s.userIsDeleted)
 	ctx.Step(`^the auth of user "([^"]*)" is revoked$`, s.theAuthOfUserIsRevoked)

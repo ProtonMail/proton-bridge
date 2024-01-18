@@ -367,6 +367,42 @@ func (s *scenario) userLogsInWithUsernameAndPassword(username, password string) 
 	return nil
 }
 
+func (s *scenario) userLogsInWithAliasAddressAndPassword(alias, password string) error {
+	smtpEvtCh, cancelSMTP := s.t.bridge.GetEvents(events.SMTPServerReady{})
+	defer cancelSMTP()
+	imapEvtCh, cancelIMAP := s.t.bridge.GetEvents(events.IMAPServerReady{})
+	defer cancelIMAP()
+
+	userID, err := s.t.bridge.LoginFull(context.Background(), s.t.getUserByAddress(alias).getName(), []byte(password), nil, nil)
+	if err != nil {
+		s.t.pushError(err)
+	} else {
+		// We need to wait for server to be up or we won't be able to connect. It should only happen once to avoid
+		// blocking on multiple Logins.
+		if !s.t.imapServerStarted {
+			<-imapEvtCh
+			s.t.imapServerStarted = true
+		}
+		if !s.t.smtpServerStarted {
+			<-smtpEvtCh
+			s.t.smtpServerStarted = true
+		}
+
+		if userID != s.t.getUserByAddress(alias).getUserID() {
+			return errors.New("user ID mismatch")
+		}
+
+		info, err := s.t.bridge.GetUserInfo(userID)
+		if err != nil {
+			return err
+		}
+
+		s.t.getUserByID(userID).setBridgePass(string(info.BridgePass))
+	}
+
+	return nil
+}
+
 func (s *scenario) userLogsOut(username string) error {
 	return s.t.bridge.LogoutUser(context.Background(), s.t.getUserByName(username).getUserID())
 }
