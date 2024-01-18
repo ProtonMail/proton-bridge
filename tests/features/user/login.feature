@@ -62,3 +62,4 @@ Feature: A user can login
     Then user "[user:user]" is not listed
     When the user logs in with alias address "[user:alias]@[domain]" and password "password2"
     Then it fails
+    
