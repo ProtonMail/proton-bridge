@@ -495,8 +495,30 @@ func TestParseTextHTMLWithImageInline(t *testing.T) {
 	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
 
 	require.Len(t, m.Attachments, 1)
+	require.Equal(t, m.Attachments[0].Disposition, proton.InlineDisposition)
 
 	assert.Equal(t, fmt.Sprintf(`<html><body>This is body of <b>HTML mail</b> with attachment</body></html><html><body><img src="cid:%v"/></body></html>`, m.Attachments[0].ContentID), string(m.RichBody))
+	assert.Equal(t, "This is body of *HTML mail* with attachment", string(m.PlainBody))
+
+	// The inline image is an 8x8 mic-dropping gopher.
+	img, err := png.DecodeConfig(bytes.NewReader(m.Attachments[0].Data))
+	require.NoError(t, err)
+	assert.Equal(t, 8, img.Width)
+	assert.Equal(t, 8, img.Height)
+}
+
+func TestParseTextHTMLWithImageInlineNoDisposition(t *testing.T) {
+	f := getFileReader("text_html_image_inline_no_disposition.eml")
+
+	m, err := Parse(f)
+	require.NoError(t, err)
+
+	assert.Equal(t, `"Sender" <sender@pm.me>`, m.Sender.String())
+	assert.Equal(t, `"Receiver" <receiver@pm.me>`, m.ToList[0].String())
+
+	require.Len(t, m.Attachments, 1)
+
+	assert.Equal(t, `<html><body>This is body of <b>HTML mail</b> with attachment</body></html>`, string(m.RichBody))
 	assert.Equal(t, "This is body of *HTML mail* with attachment", string(m.PlainBody))
 
 	// The inline image is an 8x8 mic-dropping gopher.
