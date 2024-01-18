@@ -47,12 +47,18 @@ Feature: A user can login
     Then user "[user:user]" is eventually listed and connected
     And user "[user:additional]" is eventually listed and connected
 
-  Scenario: Login to account with an alias address that no longer exists
+  Scenario: Login to account with an alias address
+    Given the account "[user:user]" has additional address "[user:alias]@[domain]"
+    When the user logs in with alias address "[user:alias]@[domain]" and password "password2"
+    Then user "[user:user]" is eventually listed and connected
+
+   Scenario: Login to account with an alias address that no longer exists
     Given the account "[user:user]" has additional address "[user:alias]@[domain]"
     And the user logs in with alias address "[user:alias]@[domain]" and password "password2"
     And user "[user:user]" is eventually listed and connected
     When user "[user:user]" is deleted
     Then user "[user:user]" is not listed
     When the account "[user:user]" no longer has additional address "[user:alias]@[domain]"
-    When the user logs in with username "[user:alias]@[domain]" and password "password2"
+    Then user "[user:user]" is not listed
+    When the user logs in with alias address "[user:alias]@[domain]" and password "password2"
     Then it fails
