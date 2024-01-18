@@ -290,6 +290,18 @@ func (t *testCtx) getUserByID(userID string) *testUser {
 	return t.userByID[userID]
 }
 
+func (t *testCtx) getUserByAddress(email string) *testUser {
+	for _, user := range t.userByID {
+		for _, addr := range user.addresses {
+			if addr.email == email {
+				return user
+			}
+		}
+	}
+
+	panic(fmt.Sprintf("unknown email %q", email))
+}
+
 func (t *testCtx) getMBoxID(userID string, name string) string {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
