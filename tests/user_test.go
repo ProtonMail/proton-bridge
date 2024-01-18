@@ -88,7 +88,6 @@ func (s *scenario) theAccountHasAdditionalAddressWithoutKeys(username, address s
 }
 
 func (s *scenario) theAccountNoLongerHasAdditionalAddress(username, address string) error {
-	userID := s.t.getUserByName(username).getUserID()
 	addrID := s.t.getUserByName(username).getAddrID(address)
 
 	if err := s.t.withClient(context.Background(), username, func(ctx context.Context, c *proton.Client) error {
@@ -100,8 +99,6 @@ func (s *scenario) theAccountNoLongerHasAdditionalAddress(username, address stri
 	}); err != nil {
 		return err
 	}
-
-	s.t.getUserByID(userID).remAddress(addrID)
 
 	return nil
 }
