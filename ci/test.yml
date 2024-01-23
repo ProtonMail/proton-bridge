@@ -4,15 +4,17 @@
 lint:
   stage: test
   extends:
+    - .image-linux-test
     - .rules-branch-manual-br-tag-and-MR-and-devel-always
   script:
     - make lint
   tags:
     - shared-medium
 
-bug-report-preview:
+lint-bug-report-preview:
   stage: test
   extends:
+    - .image-linux-test
     - .rules-branch-and-MR-manual
   script:
     - make lint-bug-report-preview
@@ -31,13 +33,25 @@ bug-report-preview:
 
 test-linux:
   extends:
+    - .image-linux-test
     - .script-test
   tags:
     - shared-large
 
+test-windows:
+  extends:
+    - .env-windows
+    - .script-test
+
+test-darwin:
+  extends:
+    - .env-darwin
+    - .script-test
+
 fuzz-linux:
   stage: test
   extends:
+    - .image-linux-test
     - .rules-branch-manual-MR-and-devel-always
   script:
     - make fuzz
@@ -86,19 +100,10 @@ test-integration-nightly:
     paths:
       - nightly-job.log
 
-test-windows:
-  extends:
-    - .env-windows
-    - .script-test
-
-test-darwin:
-  extends:
-    - .env-darwin
-    - .script-test
-
 test-coverage:
   stage: test
   extends:
+    - .image-linux-test
     - .rules-branch-manual-scheduled-and-test-branch-always
   script:
     - ./utils/coverage.sh
@@ -123,6 +128,7 @@ test-coverage:
 
 go-vuln-check:
   extends:
+    - .image-linux-test
     - .rules-branch-manual-MR-and-devel-always
   stage: test
   tags:

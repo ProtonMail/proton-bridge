@@ -1,0 +1,7 @@
+---
+
+include:
+  - project: 'go/bridge-internal'
+    ref: 'feat/godt-3160'
+    file: 'ci/runners-setup.yml'
+
