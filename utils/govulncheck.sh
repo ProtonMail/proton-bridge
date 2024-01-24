@@ -27,15 +27,6 @@ main(){
 
     jq -r '.finding | select( (.osv != null) and (.trace[0].function != null) ) | .osv ' < vulns.json > vulns_osv_ids.txt
 
-    ignore GO-2023-2102 "GODT-3160 update go to 1.21.4"
-    ignore GO-2023-2043 "GODT-3160 update go to 1.21.4"
-    ignore GO-2023-2041 "GODT-3160 update go to 1.21.4"
-    ignore GO-2023-1878 "GODT-3160 update go to 1.21.4"
-    ignore GO-2023-1987 "GODT-3160 update go to 1.21.4"
-    ignore GO-2023-1840 "GODT-3160 update go to 1.21.4"
-    ignore GO-2023-2185 "GODT-3160 update go to 1.21.4"
-    ignore GO-2023-2186 "GODT-3160 update go to 1.21.4"
-    ignore GO-2023-2382 "GODT-3160 update go to 1.21.4"
     ignore GO-2023-2328 "GODT-3124 RESTY race condition"
 
     has_vulns

@@ -134,7 +134,6 @@ go-vuln-check:
   tags:
     - shared-medium
   script:
-    - apt-get -y install jq
     - ./utils/govulncheck.sh
   artifacts:
     when: always

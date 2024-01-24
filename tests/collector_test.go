@@ -69,7 +69,7 @@ func awaitType[T events.Event](c *eventCollector, ofType T, timeout time.Duratio
 		return *new(T), false //nolint:gocritic
 	}
 
-	if eventT, ok := event.(T); !ok {
+	if eventT, ok := event.(T); ok {
 		return eventT, true
 	}
 

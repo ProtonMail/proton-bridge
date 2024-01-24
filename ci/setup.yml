@@ -2,6 +2,6 @@
 
 include:
   - project: 'go/bridge-internal'
-    ref: 'feat/godt-3160'
+    ref: 'master'
     file: 'ci/runners-setup.yml'
 
