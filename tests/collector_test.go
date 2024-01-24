@@ -63,13 +63,17 @@ func (c *eventCollector) collectFrom(eventCh <-chan events.Event) <-chan events.
 }
 
 func awaitType[T events.Event](c *eventCollector, ofType T, timeout time.Duration) (T, bool) {
-	if event := c.await(ofType, timeout); event == nil {
+	event := c.await(ofType, timeout)
+
+	if event == nil {
 		return *new(T), false //nolint:gocritic
-	} else if event, ok := event.(T); !ok {
-		panic(fmt.Errorf("unexpected event type %T", event))
-	} else {
-		return event, true
 	}
+
+	if eventT, ok := event.(T); !ok {
+		return eventT, true
+	}
+
+	panic(fmt.Errorf("unexpected event type %T", event))
 }
 
 func (c *eventCollector) await(ofType events.Event, timeout time.Duration) events.Event {

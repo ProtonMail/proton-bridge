@@ -30,6 +30,7 @@ import (
 )
 
 const sumFile = ".sum"
+const sigFile = ".sig"
 
 type Version struct {
 	version *semver.Version
@@ -83,7 +84,7 @@ func VerifyUpdateFolder(kr *crypto.KeyRing, path string) error {
 		return err
 	}
 
-	sigBytes, err := os.ReadFile(filepath.Join(path, sumFile+".sig")) //nolint:gosec
+	sigBytes, err := os.ReadFile(filepath.Join(path, sumFile+sigFile)) //nolint:gosec
 	if err != nil {
 		return err
 	}

@@ -185,7 +185,7 @@ ${RESOURCE_FILE}: ./dist/info.rc ./dist/${SRC_ICO} .FORCE
 
 ## Dev dependencies
 .PHONY: install-devel-tools install-linter install-go-mod-outdated install-git-hooks
-LINTVER:="v1.52.2"
+LINTVER:="v1.55.2"
 LINTSRC:="https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh"
 
 install-dev-dependencies: install-devel-tools install-linter install-go-mod-outdated
