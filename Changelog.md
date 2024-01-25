@@ -3,6 +3,37 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Ypsilon Bridge 3.9.0
+
+### Added
+* GODT-3195: Add OS info to the log.
+* GODT-3156: Add time zone info to the bridge log.
+* GODT-3162: Test: Add test scenarios for KB article suggestions.
+* Test: Add scenarios for checking messages sent from Web Client.
+* GODT-3162: Test: Add step definition for checking KB article suggestions.
+
+### Changed
+* GODT-3160: Bump version Go 1.21.6.
+* GODT-3169: Load pipeline env from bridge internal.
+* GODT-3052: Test: Replace attachments and inline content in feature tests with the smallest valid versions.
+* GODT-3155: Customize log formatter for easier parsing.
+* GODT-3172: Detect missing keychain item.
+* GODT-3172: Do not list, just retrieve vault key.
+* Log the message received time when handling message creation event.
+* Set log as artefact for all integration test.
+* Get better logging arround keychain list initialisation.
+
+### Fixed
+* GODT-3176: Assume inline if content id is present.
+* GODT-3160: Ignore non-called vulnerabilities.
+* GODT-3160: Updated external dependencies reported by govulncheck.
+* GODT-3203: Crash in chunkDivide.
+* Fix for SMTP connection mode toggle in bridge-gui-tester.
+* GODT-3183: Fix database indices.
+* GODT-3187: Fix numberOfDay computation when changing year and day.
+* GODT-3188: Happy new year.
+
+
 ## Xikou Bridge 3.8.1
 
 ### Added
