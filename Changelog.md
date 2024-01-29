@@ -14,7 +14,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 ### Changed
 * GODT-3160: Bump version Go 1.21.6.
-* GODT-3169: Load pipeline env from bridge internal.
+* GODT-3160: Load pipeline env from bridge internal.
 * GODT-3052: Test: Replace attachments and inline content in feature tests with the smallest valid versions.
 * GODT-3155: Customize log formatter for easier parsing.
 * GODT-3172: Detect missing keychain item.
@@ -24,6 +24,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Get better logging arround keychain list initialisation.
 
 ### Fixed
+* GODT-3228: Get rid of fork of docker-credential-helpers.
 * GODT-3176: Assume inline if content id is present.
 * GODT-3160: Ignore non-called vulnerabilities.
 * GODT-3160: Updated external dependencies reported by govulncheck.
