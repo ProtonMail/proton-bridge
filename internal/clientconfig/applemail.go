@@ -21,6 +21,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
@@ -70,24 +71,24 @@ func prepareMobileConfig(
 	password []byte,
 ) *mobileconfig.Config {
 	return &mobileconfig.Config{
-		DisplayName:        username,
-		EmailAddress:       addresses,
-		AccountName:        displayName,
-		AccountDescription: username,
-		Identifier:         "protonmail " + username + strconv.FormatInt(time.Now().Unix(), 10),
+		DisplayName:        escapeXMLString(username),
+		EmailAddress:       escapeXMLString(addresses),
+		AccountName:        escapeXMLString(displayName),
+		AccountDescription: escapeXMLString(username),
+		Identifier:         escapeXMLString("protonmail " + username + strconv.FormatInt(time.Now().Unix(), 10)),
 		IMAP: &mobileconfig.IMAP{
-			Hostname: hostname,
+			Hostname: escapeXMLString(hostname),
 			Port:     imapPort,
 			TLS:      imapSSL,
-			Username: username,
-			Password: string(password),
+			Username: escapeXMLString(username),
+			Password: escapeXMLString(string(password)),
 		},
 		SMTP: &mobileconfig.SMTP{
-			Hostname: hostname,
+			Hostname: escapeXMLString(hostname),
 			Port:     smtpPort,
 			TLS:      smtpSSL,
-			Username: username,
-			Password: string(password),
+			Username: escapeXMLString(username),
+			Password: escapeXMLString(string(password)),
 		},
 	}
 }
@@ -120,4 +121,14 @@ func saveConfigTemporarily(mc *mobileconfig.Config) (fname string, err error) {
 	_ = f.Close()
 
 	return
+}
+
+// escapeXMLString replace all occurrences of the 5 characters `&`, `<`, `>`, `"` and `'` by their respective escaped version as per the XML spec.
+// https://www.w3.org/TR/xml/#syntax
+func escapeXMLString(input string) string {
+	result := strings.ReplaceAll(input, `&`, `&amp;`)
+	result = strings.ReplaceAll(result, `<`, `&lt;`)
+	result = strings.ReplaceAll(result, `>`, `&gt;`)
+	result = strings.ReplaceAll(result, `"`, `&quot;`)
+	return strings.ReplaceAll(result, `'`, `&apos;`)
 }
