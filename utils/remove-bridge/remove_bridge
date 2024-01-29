@@ -1,0 +1,268 @@
+#!/bin/zsh
+
+# Copyright (c) 2024 Proton AG
+#
+# This file is part of Proton Mail Bridge.
+#
+# Proton Mail Bridge is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Proton Mail Bridge is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
+
+# remove_bridge is a script for quitting, uninstalling, and deleted all Bridge related files on macOS, and Linux distros.
+
+# Colours for prettying up the terminal output
+NC='\033[0m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+
+# Variables with path to Bridge files (vault, cache, etc)
+BRIDGE_PROCESS=bridge-gui
+MAC_BRIDGE_APP_NAME=(Proton\ Mail\ Bridge.app)
+MAC_SUPPORT_PROTONMAIL=~/Library/Application\ Support/protonmail
+MAC_CACHE_PROTONMAIL=~/Library/Caches/protonmail
+MAC_CACHE_PROTON=~/Library/Caches/Proton\ AG
+MAC_BRIDGE_CREDS_V2="Proton Mail Bridge"
+MAC_BRIDGE_CREDS_V3="Proton Mail Bridge-V3"
+MAC_LAUNCH_AGENTS=~/Library/LaunchAgents/Proton\ Mail\ Bridge.plist
+LINUX_CACHE_PROTON=~/.cache/Proton\ AG
+LINUX_CACHE_PROTONMAIL=~/.cache/protonmail
+LINUX_CONFIG_PROTONMAIL=~/.config/protonmail
+LINUX_LOCAL_PROTONMAIL=~/.local/share/protonmail
+LINUX_BRIDGE_USER_INFO=~/.config/protonmail/bridge/cache/c11/user_info.json
+LINUX_STARTUP_ENTRY=~/.config/autostart/Proton\ Mail\ Bridge.desktop
+
+
+quit_bridge() {
+# Quit a running Bridge
+    pkill $BRIDGE_PROCESS
+
+}
+
+
+uninstall_bridge() {
+# Uninstall Bridge
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+
+        rm -rf /Applications/"${MAC_BRIDGE_APP_NAME[@]}"
+
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+
+        if [ -f "/usr/bin/apt-get" ]; then
+
+            sudo dpkg -P protonmail-bridge
+
+        elif [ -f "/bin/dnf" ]; then
+
+            sudo dnf remove -y protonmail-bridge
+
+        fi
+
+    else
+    
+        echo -e "${RED}Unknown operating system!{$NC}"
+
+    fi
+
+}
+
+
+get_user_info() {
+# Get the UserID from `user_info.json` file to be used when
+# Deleting keychain entries from `gnome-keyring`
+
+    result=( $(cat $LINUX_BRIDGE_USER_INFO | jq -r '. | keys[]') )
+
+}
+
+
+delete_credentials() {
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+
+        while security delete-generic-password -s "${MAC_BRIDGE_CREDS_V2}" >/dev/null
+        do
+            true;
+        done
+
+        security delete-generic-password -s "${MAC_BRIDGE_CREDS_V3}"
+    
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+
+        if [[ $(which gnome-keyring | grep 'gnome-keyring') ]]; then
+
+            secret-tool clear username bridge-vault-key
+
+            get_user_info
+
+            for value in "${result[@]}"; do
+
+                secret-tool clear username "$value"
+
+            done
+
+        fi
+
+        if [[ $(which pass | grep 'pass') ]]; then
+
+            pass remove -rf protonmail-credentials
+        
+        fi
+
+    else
+    
+        echo -e "${RED}Unknown operating system!{$NC}"
+    
+    fi
+
+}
+
+
+delete_resource_folders() {
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+    
+        rm -rf $MAC_SUPPORT_PROTONMAIL
+        rm -rf $MAC_CACHE_PROTONMAIL
+        rm -rf $MAC_CACHE_PROTON
+        rm $MAC_LAUNCH_AGENTS
+    
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    
+        rm -rf $LINUX_CACHE_PROTON
+        rm -rf $LINUX_CACHE_PROTONMAIL
+        rm -rf $LINUX_CONFIG_PROTONMAIL
+        rm -rf $LINUX_LOCAL_PROTONMAIL
+        rm -rf $LINUX_STARTUP_ENTRY
+
+    else
+    
+        echo -e "${RED}Unknown operating system!{$NC}"
+
+    fi
+
+}
+
+
+check_resource_folders() {
+
+    FOLDER_EXISTS=false
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+    
+        if [ -d "$MAC_SUPPORT_PROTONMAIL" ]; then
+
+            echo -e "\n${RED}$MAC_SUPPORT_PROTONMAIL still exists!${NC}"
+            FOLDER_EXISTS=true
+        
+        fi
+
+        if [ -d "$MAC_CACHE_PROTONMAIL" ]; then
+        
+            echo -e "\n${RED}$MAC_CACHE_PROTONMAIL still exists!${NC}"
+            FOLDER_EXISTS=true
+        
+        fi
+
+        if [ -d "$MAC_CACHE_PROTON" ]; then
+
+            echo -e "\n${RED}$MAC_CACHE_PROTON still exists!${NC}"
+            FOLDER_EXISTS=true
+        
+        fi
+
+        if [ -f "$MAC_LAUNCH_AGENTS" ]; then
+
+            echo -e "\n${RED}$MAC_LAUNCH_AGENTS still exists!${NC}"
+            FOLDER_EXISTS=true
+        
+        fi
+
+        if [ "$FOLDER_EXISTS" = true ]; then
+
+            echo -e "\n${RED}Some directories were not deleted properly!${NC}\n"
+
+        else
+
+            echo -e "\n${GREEN}All Bridge resource folders deleted!${NC}\n"
+        
+        fi
+    
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+
+        if [ -d "$LINUX_CACHE_PROTON" ]; then
+
+            echo -e "\n${RED}$LINUX_CACHE_PROTON still exists!${NC}"
+            FOLDER_EXISTS=true
+        
+        fi
+
+        if [ -d "$LINUX_CACHE_PROTONMAIL" ]; then
+        
+            echo -e "\n${RED}$LINUX_CACHE_PROTONMAIL still exists!${NC}"
+            FOLDER_EXISTS=true
+        
+        fi
+
+        if [ -d "$LINUX_CONFIG_PROTONMAIL" ]; then
+
+            echo -e "\n${RED}$LINUX_CONFIG_PROTONMAIL still exists!${NC}"
+            FOLDER_EXISTS=true
+        
+        fi
+
+        if [ -d "$LINUX_LOCAL_PROTONMAIL" ]; then
+
+            echo -e "\n${RED}$LINUX_LOCAL_PROTONMAIL still exists!${NC}"
+            FOLDER_EXISTS=true
+        
+        fi
+
+        if [ -f "$LINUX_STARTUP_ENTRY" ]; then
+
+            echo -e "\n${RED}$LINUX_STARTUP_ENTRY still exists!${NC}"
+            FOLDER_EXISTS=true
+
+        fi
+
+        if [ "$FOLDER_EXISTS" = true ]; then
+
+            echo -e "\n${RED}Some directories were not deleted properly!${NC}\n"
+
+        else
+
+            echo -e "\n${GREEN}All Bridge resource folders deleted!${NC}\n"
+        
+        fi
+    
+    else
+    
+        echo -e "${RED}Unknown operating system!{$NC}"
+
+    fi
+
+}
+
+
+execute_script() {
+
+    echo -e "\n${GREEN}Quitting and uninstalling Bridge!${NC}\n"
+    quit_bridge
+    delete_credentials
+    uninstall_bridge
+    delete_resource_folders
+    check_resource_folders
+
+}
+
+
+execute_script
