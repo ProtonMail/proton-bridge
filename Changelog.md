@@ -6,6 +6,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## Ypsilon Bridge 3.9.0
 
 ### Added
+* GODT-3230: Scripts for removing Bridge from device.
 * GODT-3195: Add OS info to the log.
 * GODT-3156: Add time zone info to the bridge log.
 * GODT-3162: Test: Add test scenarios for KB article suggestions.
@@ -24,6 +25,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * Get better logging arround keychain list initialisation.
 
 ### Fixed
+* GODT-3229: Escape reserved XML characters in Apple configuration profile.
 * GODT-3228: Get rid of fork of docker-credential-helpers.
 * GODT-3176: Assume inline if content id is present.
 * GODT-3160: Ignore non-called vulnerabilities.
