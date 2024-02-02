@@ -65,5 +65,5 @@ trigger-qa-installer:
     SRC_HASH: $CI_COMMIT_SHA
   trigger:
     project: "jcuth/bridge-release"
-    branch: master
+    branch: release/xikou
 
