@@ -91,12 +91,6 @@ func (user *testUser) addAddress(addrID, email string) {
 	user.addresses = append(user.addresses, newTestAddr(addrID, email))
 }
 
-func (user *testUser) remAddress(addrID string) {
-	user.addresses = xslices.Filter(user.addresses, func(addr *testAddr) bool {
-		return addr.addrID != addrID
-	})
-}
-
 func (user *testUser) getUserPass() string {
 	return user.userPass
 }
