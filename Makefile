@@ -1,4 +1,5 @@
 export GO111MODULE=on
+export CGO_ENABLED=1
 
 # By default, the target OS is the same as the host OS,
 # but this can be overridden by setting TARGET_OS to "windows"/"darwin"/"linux".

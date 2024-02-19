@@ -7,6 +7,9 @@
   extends:
     - .rules-branch-and-MR-manual
   script:
+    - which go && go version
+    - which gcc && gcc --version
+    - which qmake && qmake --version
     - make build
     - git diff && git diff-index --quiet HEAD
     - make vault-editor

@@ -26,6 +26,8 @@ lint-bug-report-preview:
   extends:
     - .rules-branch-manual-MR-and-devel-always
   script:
+    - which go && go version
+    - which gcc && gcc --version
     - make test
   artifacts:
     paths:
