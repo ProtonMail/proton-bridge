@@ -150,7 +150,7 @@ func (s *scenario) smtpClientSendsTheFollowingEmlFromTo(clientID, file, from, to
 		return err
 	}
 
-	if err := clientSend(client, from, to, string(b)); err != nil {
+	if err := clientSend(client, from, to, s.t.replace(string(b))); err != nil {
 		s.t.pushError(err)
 	}
 

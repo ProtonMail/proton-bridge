@@ -33,7 +33,6 @@ Feature: Configuration Status Telemetry
     And config status event "bridge_config_success" is eventually send 1 time
 
 
-  @long-black
   Scenario: Config Status Success send only once
     Then bridge telemetry feature is enabled
     When the user logs in with username "[user:user]" and password "password"

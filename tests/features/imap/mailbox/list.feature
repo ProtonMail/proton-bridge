@@ -40,6 +40,8 @@ Feature: IMAP list mailboxes
     Then IMAP client "2" counts 20 mailboxes under "Folders"
     And  IMAP client "2" counts 60 mailboxes under "Labels"
 
+  # need to implement _schedule message_ test step for black
+  @skip-black
   Scenario: List with scheduled mail
     Given there exists an account with username "[user:user]" and password "password"
     And the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Scheduled":

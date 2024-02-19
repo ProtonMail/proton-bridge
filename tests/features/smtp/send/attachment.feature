@@ -11,7 +11,8 @@ Feature: SMTP sending with attachment
     And user "[user:user1]" connects and authenticates IMAP client "1"
     Then it succeeds
 
-  @long-black
+  # black has issues with cyrilic char
+  @skip-black
   Scenario: Sending with cyrillic PDF attachment
     When SMTP client "1" sends the following message from "[user:user1]@[domain]" to "[user:user2]@[domain]":
       """
@@ -77,7 +78,8 @@ Feature: SMTP sending with attachment
       """
 
 
-  @long-black
+  # black has issues with cyrilic char
+  @skip-black
   Scenario: Sending with cyrillic docx attachment
     When SMTP client "1" sends the following message from "[user:user1]@[domain]" to "[user:user2]@[domain]":
       """

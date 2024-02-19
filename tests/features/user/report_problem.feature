@@ -6,7 +6,7 @@ Feature: The user reports a problem
     And the user logs in with username "[user:user]" and password "password"
     And user "[user:user]" finishes syncing
     Then it succeeds
-  
+
   Scenario: User sends a problem report without logs attached
     When the user reports a bug
     Then the header in the "POST" multipart request to "/core/v4/reports/bug" has "Title" set to "[Bridge] Bug - title"
@@ -22,7 +22,7 @@ Feature: The user reports a problem
     And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Username" set to "[user:user]"
     And the header in the "POST" multipart request to "/core/v4/reports/bug" has file "logs.zip"
 
-  
+
   @regression
   Scenario: User sends a problem report while signed out of Bridge
     When user "[user:user]" logs out
@@ -30,7 +30,7 @@ Feature: The user reports a problem
     Then it succeeds
     And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Username" set to "[user:user]"
     And the header in the "POST" multipart request to "/core/v4/reports/bug" has "Email" set to "[user:user]@[domain]"
-  
+
   @regression
   Scenario: User sends a problem report with changed Title
     When the user reports a bug with field "Title" set to "Testing title"

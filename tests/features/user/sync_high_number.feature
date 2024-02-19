@@ -20,7 +20,9 @@ Feature: Bridge can fully synchronize an account with high number of messages, a
     Then it succeeds
     When bridge starts
     Then it succeeds
-  
+
+  # Too many messages need to use fixture on black
+  @skip-black
   Scenario: The account is synced when the user logs in and the number of messages is correct
     When the user logs in with username "[user:user]" and password "password"
     Then bridge sends sync started and finished events for user "[user:user]"

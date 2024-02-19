@@ -1,5 +1,5 @@
 @regression
-Feature: SMTP sending of HTMl messages to Internal recipient
+Feature: SMTP sending of HTML messages to Internal recipient
   Background:
     Given there exists an account with username "[user:user]" and password "password"
     And there exists an account with username "[user:to]" and password "password"
@@ -248,6 +248,8 @@ Feature: SMTP sending of HTMl messages to Internal recipient
       }
       """
 
+  # black is changing the order of attachments
+  @skip-black
   Scenario: HTML message with multiple attachments to Internal
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
       """
@@ -754,6 +756,8 @@ Feature: SMTP sending of HTMl messages to Internal recipient
       }
       """
 
+  # black is changing order of attachments
+  @skip-black
   Scenario: HTML message with multiple inline images to Internal
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
       """
@@ -1999,6 +2003,8 @@ Feature: SMTP sending of HTMl messages to Internal recipient
       }
       """
 
+  # black is changing order of attachments
+  @skip-black
   Scenario: HTML message with inline HTML and HTML attachment encoded in UTF-8
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
       """
@@ -2071,6 +2077,8 @@ Feature: SMTP sending of HTMl messages to Internal recipient
       }
       """
 
+  # black is changing order of attachments
+  @skip-black
   Scenario: HTML msg with inline HTML and HTML attachment not encoded in UTF-8
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
       """
@@ -2135,6 +2143,8 @@ Feature: SMTP sending of HTMl messages to Internal recipient
       }
       """
 
+  # black is changing order of attachments
+  @skip-black
   Scenario: HTML message and attachment not encoded in UTF-8 and without meta charset
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
       """

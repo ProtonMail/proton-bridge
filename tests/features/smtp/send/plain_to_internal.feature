@@ -164,6 +164,8 @@ Feature: SMTP sending of PLAIN messages to Internal recipient
       }
       """
 
+  # black changes order of attachments
+  @skip-black
   Scenario: Plain message with multiple attachments to Internal
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
       """
@@ -660,6 +662,8 @@ Feature: SMTP sending of PLAIN messages to Internal recipient
       }
       """
 
+  # black is changing order of attachments
+  @skip-black
   Scenario: Forward a Plain message containing various attachments
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
       """

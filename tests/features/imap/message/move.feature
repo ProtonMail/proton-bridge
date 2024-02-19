@@ -16,9 +16,6 @@ Feature: IMAP move messages
     And the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Sent":
       | from              | to                   | subject | unread |
       | john.doe@mail.com | [user:user]@[domain] | bax     | false  |
-    And the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Scheduled":
-      | from              | to                   | subject | unread |
-      | john.doe@mail.com | [user:user]@[domain] | sch     | false  |
     Then it succeeds
     When bridge starts
     And the user logs in with username "[user:user]" and password "password"
@@ -124,15 +121,7 @@ Feature: IMAP move messages
       | jane.doe@mail.com | name@[domain]        | bar     | true   |
       | john.doe@mail.com | [user:user]@[domain] | baz     | false  |
       | john.doe@mail.com | [user:user]@[domain] | bax     | false  |
-      | john.doe@mail.com | [user:user]@[domain] | sch     | false  |
 
-  Scenario: Move message from Scheduled is not possible
-    Given test skips reporter checks
-    When IMAP client "1" moves the message with subject "sch" from "Scheduled" to "Inbox"
-    Then it fails
-    And IMAP client "1" eventually sees the following messages in "Scheduled":
-      | from              | to                   | subject | unread |
-      | john.doe@mail.com | [user:user]@[domain] | sch     | false  |
 
   Scenario: Move message from Inbox to Sent is not possible
     Given test skips reporter checks

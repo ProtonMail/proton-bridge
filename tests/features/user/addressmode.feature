@@ -111,9 +111,9 @@ Feature: Address mode
       | b@[domain] | b@[domain] | two     | false  |
       | c@[domain] | c@[domain] | three   | true   |
       | d@[domain] | d@[domain] | four    | false  |
-    Given the account "[user:user]" has additional address "other@[domain]"
+    Given the account "[user:user]" has additional address "[user:other]@[domain]"
     And bridge sends an address created event for user "[user:user]"
-    When user "[user:user]" connects and authenticates IMAP client "3" with address "other@[domain]"
+    When user "[user:user]" connects and authenticates IMAP client "3" with address "[user:other]@[domain]"
     Then IMAP client "3" eventually sees the following messages in "All Mail":
       | from       | to         | subject | unread |
       | a@[domain] | a@[domain] | one     | true   |
@@ -134,11 +134,13 @@ Feature: Address mode
       | from       | to         | subject | unread |
       | c@[domain] | c@[domain] | three   | true   |
       | d@[domain] | d@[domain] | four    | false  |
-    Given the account "[user:user]" has additional address "other@[domain]"
+    Given the account "[user:user]" has additional address "[user:other]@[domain]"
     And bridge sends an address created event for user "[user:user]"
-    When user "[user:user]" connects and authenticates IMAP client "3" with address "other@[domain]"
+    When user "[user:user]" connects and authenticates IMAP client "3" with address "[user:other]@[domain]"
     Then IMAP client "3" eventually sees 0 messages in "All Mail"
 
+  # Cannot delete primary address on black
+  @skip-black
   Scenario: The user deletes an address while in combined mode
     When user "[user:user]" connects and authenticates IMAP client "1" with address "[user:user]@[domain]"
     Then IMAP client "1" eventually sees the following messages in "All Mail":
@@ -159,6 +161,8 @@ Feature: Address mode
     When user "[user:user]" connects IMAP client "3"
     Then IMAP client "3" cannot authenticate with address "[alias:alias]@[domain]"
 
+  # Cannot delete primary address on black
+  @skip-black
   Scenario: The user deletes an address while in split mode
     Given the user sets the address mode of user "[user:user]" to "split"
     And user "[user:user]" finishes syncing

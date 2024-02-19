@@ -26,14 +26,20 @@ import (
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/v3/internal/dialer"
 	"github.com/bradenaw/juniper/stream"
 )
 
 // withProton executes the given function with a proton manager configured to use the test API.
 func (t *testCtx) withProton(fn func(*proton.Manager) error) error {
+	tr := proton.InsecureTransport()
+	if isBlack() {
+		dialer.SetBasicTransportTimeouts(tr)
+	}
+
 	m := proton.New(
 		proton.WithHostURL(t.api.GetHostURL()),
-		proton.WithTransport(proton.InsecureTransport()),
+		proton.WithTransport(tr),
 		proton.WithAppVersion(t.api.GetAppVersion()),
 		proton.WithDebug(os.Getenv("FEATURE_API_DEBUG") != ""),
 	)
@@ -86,6 +92,15 @@ func (t *testCtx) runQuarkCmd(ctx context.Context, command string, args ...strin
 	}
 
 	return out, nil
+}
+
+func (t *testCtx) decryptID(id string) ([]byte, error) {
+	return t.runQuarkCmd(context.Background(),
+		"encryption:id",
+		"--decrypt",
+		"--",
+		id,
+	)
 }
 
 func (t *testCtx) withAddrKR(

@@ -448,19 +448,19 @@ func eventually(condition func() error) error {
 	var timerDuration = 30 * time.Second
 	// Extend to 5min for live API.
 	if hostURL := os.Getenv("FEATURE_TEST_HOST_URL"); hostURL != "" {
-		timerDuration = 600 * time.Second
+		timerDuration = 300 * time.Second
 	}
 
 	timer := time.NewTimer(timerDuration)
 	defer timer.Stop()
 
-	ticker := time.NewTicker(100 * time.Millisecond)
+	ticker := time.NewTicker(timerDuration / 300)
 	defer ticker.Stop()
 
 	for tick := ticker.C; ; {
 		select {
 		case <-timer.C:
-			return fmt.Errorf("timed out: %w", lastErr)
+			return fmt.Errorf("eventually timed out: %w", lastErr)
 
 		case <-tick:
 			tick = nil

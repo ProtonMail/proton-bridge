@@ -171,15 +171,13 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: Basic message with multiple different attachments to internal account
-    When there exists an account with username "bridgetest" and password "password"
-    And the user logs in with username "bridgetest" and password "password"
-    And user "bridgetest" connects and authenticates SMTP client "1"
-    And SMTP client "1" sends the following EML "plain/text_plain_multiple_attachments.eml" from "bridgetest@proton.local" to "internalbridgetest@proton.local"
+    When user "[user:user]" connects and authenticates SMTP client "1"
+    And SMTP client "1" sends the following EML "plain/text_plain_multiple_attachments.template.eml" from "[user:user]@[domain]" to "[user:to]@[domain]"
     Then it succeeds
-    When user "bridgetest" connects and authenticates IMAP client "1"
+    When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from                    | to                              | subject                                   |
-      | bridgetest@proton.local | internalbridgetest@proton.local | Plain with multiple different attachments |
+      | from                     | to                 | subject                                   |
+      | [user:user]@[domain]     | [user:to]@[domain] | Plain with multiple different attachments |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -190,7 +188,7 @@ Feature: SMTP sending of plain messages
           },
           "ToList": [
             {
-              "Address": "internalbridgetest@proton.local",
+              "Address": "[user:to]@[domain]",
               "Name": "Internal Bridge"
             }
           ],

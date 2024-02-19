@@ -29,27 +29,34 @@ type TLSDialer interface {
 	DialTLSContext(ctx context.Context, network, address string) (conn net.Conn, err error)
 }
 
+func SetBasicTransportTimeouts(t *http.Transport) {
+	t.MaxIdleConns = 100
+	t.MaxIdleConnsPerHost = 100
+	t.IdleConnTimeout = 5 * time.Minute
+
+	t.ExpectContinueTimeout = 500 * time.Millisecond
+
+	// GODT-126: this was initially 10s but logs from users showed a significant number
+	// were hitting this timeout, possibly due to flaky wifi taking >10s to reconnect.
+	// Bumping to 30s for now to avoid this problem.
+	t.ResponseHeaderTimeout = 30 * time.Second
+
+	// If we allow up to 30 seconds for response headers, it is reasonable to allow up
+	// to 30 seconds for the TLS handshake to take place.
+	t.TLSHandshakeTimeout = 30 * time.Second
+}
+
 // CreateTransportWithDialer creates an http.Transport that uses the given dialer to make TLS connections.
 func CreateTransportWithDialer(dialer TLSDialer) *http.Transport {
-	return &http.Transport{
+	t := &http.Transport{
 		DialTLSContext: dialer.DialTLSContext,
 
-		Proxy:               http.ProxyFromEnvironment,
-		MaxIdleConns:        100,
-		MaxIdleConnsPerHost: 100,
-		IdleConnTimeout:     5 * time.Minute,
-
-		ExpectContinueTimeout: 500 * time.Millisecond,
-
-		// GODT-126: this was initially 10s but logs from users showed a significant number
-		// were hitting this timeout, possibly due to flaky wifi taking >10s to reconnect.
-		// Bumping to 30s for now to avoid this problem.
-		ResponseHeaderTimeout: 30 * time.Second,
-
-		// If we allow up to 30 seconds for response headers, it is reasonable to allow up
-		// to 30 seconds for the TLS handshake to take place.
-		TLSHandshakeTimeout: 30 * time.Second,
+		Proxy: http.ProxyFromEnvironment,
 	}
+
+	SetBasicTransportTimeouts(t)
+
+	return t
 }
 
 // BasicTLSDialer implements TLSDialer.

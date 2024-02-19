@@ -223,7 +223,13 @@ func (t *testCtx) replace(value string) string {
 
 		// Create a new user if it doesn't exist yet.
 		if _, ok := t.userUUIDByName[name]; !ok {
-			t.userUUIDByName[name] = uuid.NewString()
+			val := uuid.NewString()
+
+			if name != strings.ToLower(name) {
+				val = "Mixed-Caps-" + val
+			}
+
+			t.userUUIDByName[name] = val
 		}
 
 		return t.userUUIDByName[name]

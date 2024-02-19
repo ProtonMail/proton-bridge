@@ -1,8 +1,6 @@
 Feature: A user can login
   Background:
     Given there exists an account with username "[user:user]" and password "password2"
-    And there exists an account with username "[user:MixedCaps]" and password "password3"
-    And there exists a disabled account with username "[user:disabled]" and password "password4"
     Then it succeeds
     And bridge starts
     Then it succeeds
@@ -24,11 +22,18 @@ Feature: A user can login
     When the user logs in with username "[user:user]" and password "password2"
     Then user "[user:user]" is not listed
 
+  # Mixed caps doesn't work on black
+  @skip-black
   Scenario: Login to account with caps
+    Given there exists an account with username "[user:MixedCaps]" and password "password3"
+    And it succeeds
     When the user logs in with username "[user:MixedCaps]" and password "password3"
     Then user "[user:MixedCaps]" is eventually listed and connected
 
+  # Mixed caps doesn't work on black
+  @skip-black
   Scenario: Login to account with disabled primary
+    Given there exists a disabled account with username "[user:disabled]" and password "password4"
     When the user logs in with username "[user:disabled]" and password "password4"
     Then user "[user:disabled]" is eventually listed and connected
 
@@ -51,5 +56,3 @@ Feature: A user can login
     Given the account "[user:user]" has additional address "[user:alias]@[domain]"
     When the user logs in with alias address "[user:alias]@[domain]" and password "password2"
     Then user "[user:user]" is eventually listed and connected
-    
-    

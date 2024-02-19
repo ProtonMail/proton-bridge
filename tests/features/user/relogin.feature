@@ -17,10 +17,10 @@ Feature: A logged out user can login again
     Then user "[user:user]" is not listed
 
   Scenario: Bridge password persists after logout/login
-    Given there exists an account with username "testUser" and password "password"
-    And the user logs in with username "testUser" and password "password"
-    And the bridge password of user "testUser" is changed to "YnJpZGdlcGFzc3dvcmQK"
-    And user "testUser" is deleted
-    And the user logs in with username "testUser" and password "password"
-    Then user "testUser" is eventually listed and connected
-    And the bridge password of user "testUser" is equal to "YnJpZGdlcGFzc3dvcmQK"
+    Given there exists an account with username "[user:test]" and password "password"
+    And the user logs in with username "[user:test]" and password "password"
+    And the bridge password of user "[user:test]" is changed to "YnJpZGdlcGFzc3dvcmQK"
+    And user "[user:test]" is deleted
+    And the user logs in with username "[user:test]" and password "password"
+    Then user "[user:test]" is eventually listed and connected
+    And the bridge password of user "[user:test]" is equal to "YnJpZGdlcGFzc3dvcmQK"

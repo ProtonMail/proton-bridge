@@ -2,7 +2,7 @@ Feature: SMTP sending two messages
   Background:
     Given there exists an account with username "[user:user]" and password "password"
     And there exists an account with username "[user:multi]" and password "password"
-    And the account "[user:multi]" has additional address "[user:multi-alias]@[domain]"
+    And the account "[user:multi]" has additional address "[alias:multi]@[domain]"
     And there exists an account with username "[user:to]" and password "password"
     Then it succeeds
     When bridge starts
@@ -34,7 +34,7 @@ Feature: SMTP sending two messages
 
   Scenario: Send with two addresses of the same user in split mode
     When user "[user:multi]" connects and authenticates SMTP client "1" with address "[user:multi]@[domain]"
-    And user "[user:multi]" connects and authenticates SMTP client "2" with address "[user:multi-alias]@[domain]"
+    And user "[user:multi]" connects and authenticates SMTP client "2" with address "[alias:multi]@[domain]"
     And SMTP client "1" sends the following message from "[user:multi]@[domain]" to "[user:to]@[domain]>":
       """
       From: Bridge Test <[user:multi]@[domain]>

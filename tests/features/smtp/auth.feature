@@ -2,15 +2,11 @@ Feature: A user can authenticate an SMTP client
   Background:
     Given there exists an account with username "[user:user]" and password "password"
     And there exists an account with username "[user:user2]" and password "password2"
-    And there exists a disabled account with username "[user:user3]" and password "password3"
     And the account "[user:user]" has additional address "[alias:alias]@[domain]"
-    And the account "[user:user2]" has additional disabled address "[alias:alias2]@[domain]"
-    And the account "[user:user3]" has additional address "[alias:alias3]@[domain]"
     Then it succeeds
     When bridge starts
     And the user logs in with username "[user:user]" and password "password"
     And the user logs in with username "[user:user2]" and password "password2"
-    And the user logs in with username "[user:user3]" and password "password3"
     Then it succeeds
 
   Scenario: SMTP client can authenticate successfully
@@ -40,8 +36,12 @@ Feature: A user can authenticate an SMTP client
     When user "[user:user]" connects and authenticates SMTP client "1" with address "[alias:alias]@[domain]"
     Then it succeeds
 
+  # Need to find  way to setup disabled address on black
+  @skip-black
   Scenario: SMTP client can not authenticate with disabled address
-    When user "[user:user2]" connects and authenticates SMTP client "1" with address "[alias:alias2]@[domain]"
+    Given the account "[user:user2]" has additional disabled address "[alias:disabled]@[domain]"
+    And it succeeds
+    When user "[user:user2]" connects and authenticates SMTP client "1" with address "[alias:disabled]@[domain]"
     Then it fails
 
   Scenario: SMTP Logs out user
@@ -55,7 +55,13 @@ Feature: A user can authenticate an SMTP client
     When user "[user:user2]" connects SMTP client "2"
     Then SMTP client "2" can authenticate
 
-  @ignore-live
+  # Need to find  way to setup disabled address on black
+  @skip-black
   Scenario: SMTP Authenticates with secondary address of account with disabled primary address
+    Given there exists a disabled account with username "[user:user3]" and password "password3"
+    And the account "[user:user3]" has additional address "[alias:alias3]@[domain]"
+    And it succeeds
+    And the user logs in with username "[user:user3]" and password "password3"
+    And it succeeds
     When user "[user:user3]" connects and authenticates SMTP client "1" with address "[alias:alias3]@[domain]"
     Then it succeeds

@@ -18,7 +18,6 @@
 package tests
 
 import (
-	"crypto/tls"
 	"net/http"
 	"net/url"
 	"os"
@@ -26,6 +25,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/go-proton-api/server"
+	"github.com/ProtonMail/proton-bridge/v3/internal/dialer"
 )
 
 type API interface {
@@ -73,13 +73,14 @@ func newLiveAPI(hostURL string) API {
 		panic(err)
 	}
 
+	tr := proton.InsecureTransport()
+	dialer.SetBasicTransportTimeouts(tr)
+	tr.Proxy = http.ProxyFromEnvironment
+
 	return &liveAPI{
 		Server: server.New(
 			server.WithProxyOrigin(hostURL),
-			server.WithProxyTransport(&http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-				Proxy:           http.ProxyFromEnvironment,
-			}),
+			server.WithProxyTransport(tr),
 		),
 		domain: url.Hostname(),
 	}

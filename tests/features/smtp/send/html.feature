@@ -9,6 +9,8 @@ Feature: SMTP sending of plain messages
     And user "[user:user]" connects and authenticates SMTP client "1"
     Then it succeeds
 
+  # black fails to get parent ID
+  @skip-black
   Scenario: HTML message to external account
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "pm.bridge.qa@gmail.com":
       """
@@ -49,6 +51,8 @@ Feature: SMTP sending of plain messages
       }
       """
 
+  # black is changing order of attachments
+  @skip-black
   Scenario: HTML message with inline image to external account
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "pm.bridge.qa@gmail.com":
       """
@@ -311,6 +315,8 @@ Feature: SMTP sending of plain messages
       }
       """
 
+  # black fails to get parent ID
+  @skip-black
   Scenario: HTML message with extremely long line (greater than default 2000 line limit) to external account
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "pm.bridge.qa@gmail.com":
       """
@@ -352,15 +358,13 @@ Feature: SMTP sending of plain messages
       """
 
   Scenario: HTML message with Foreign/Nonascii chars in Subject and Body to external
-    When there exists an account with username "bridgetest" and password "password"
-    And the user logs in with username "bridgetest" and password "password"
-    And user "bridgetest" connects and authenticates SMTP client "1"
-    And SMTP client "1" sends the following EML "html/foreign_ascii_subject_body.eml" from "bridgetest@proton.local" to "pm.bridge.qa@gmail.com"
+    When user "[user:user]" connects and authenticates SMTP client "1"
+    And SMTP client "1" sends the following EML "html/foreign_ascii_subject_body.template.eml" from "[user:user]@[domain]" to "pm.bridge.qa@gmail.com"
     Then it succeeds
-    When user "bridgetest" connects and authenticates IMAP client "1"
+    When user "[user:user]" connects and authenticates IMAP client "1"
     Then IMAP client "1" eventually sees the following messages in "Sent":
-      | from                    | to                     | subject        |
-      | bridgetest@proton.local | pm.bridge.qa@gmail.com | Subjεέςτ ¶ Ä È |
+      | from                     | to                     | subject        |
+      | [user:user]@[domain]     | pm.bridge.qa@gmail.com | Subjεέςτ ¶ Ä È |
     And the body in the "POST" request to "/mail/v4/messages" is:
       """
       {
@@ -384,11 +388,13 @@ Feature: SMTP sending of plain messages
 
   # It is expected for the structure check to look a bit different. More info on GODT-3011
   @regression
+  # Black changes order of attachments
+  @skip-black
   Scenario: HTML message with remote content in Body
-    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:to]@[domain]":
+    When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:user2]@[domain]":
     """
     Date: 01 Jan 1980 00:00:00 +0000
-    To: Internal Bridge Test <[user:to]@[domain]>
+    To: Internal Bridge Test <[user:user2]@[domain]>
     From: Bridge Test <[user:user]@[domain]>
     Subject: MESSAGE WITH REMOTE CONTENT SENT
     Content-Type: multipart/alternative;
@@ -442,7 +448,7 @@ Feature: SMTP sending of plain messages
     """
     {
       "date": "01 Jan 01 00:00 +0000",      
-      "to": "Internal Bridge Test <[user:to]@[domain]>",
+      "to": "Internal Bridge Test <[user:user2]@[domain]>",
       "from": "Bridge Test <[user:user]@[domain]>",
       "subject": "MESSAGE WITH REMOTE CONTENT SENT",
       "content": {

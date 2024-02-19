@@ -57,7 +57,7 @@ func (s *scenario) theAccountHasAdditionalAddressWithoutKeys(username, address s
 	userID := s.t.getUserByName(username).getUserID()
 
 	// Decrypt the user's encrypted ID for use with quark.
-	userDecID, err := s.t.runQuarkCmd(context.Background(), "encryption:id", "--decrypt", userID)
+	userDecID, err := s.t.decryptID(userID)
 	if err != nil {
 		return err
 	}
@@ -66,6 +66,7 @@ func (s *scenario) theAccountHasAdditionalAddressWithoutKeys(username, address s
 	if _, err := s.t.runQuarkCmd(
 		context.Background(),
 		"user:create:address",
+		"--",
 		string(userDecID),
 		s.t.getUserByID(userID).getUserPass(),
 
@@ -513,7 +514,7 @@ func (s *scenario) addAdditionalAddressToAccount(username, address string, disab
 	userID := s.t.getUserByName(username).getUserID()
 
 	// Decrypt the user's encrypted ID for use with quark.
-	userDecID, err := s.t.runQuarkCmd(context.Background(), "encryption:id", "--decrypt", userID)
+	userDecID, err := s.t.decryptID(userID)
 	if err != nil {
 		return err
 	}
@@ -527,6 +528,7 @@ func (s *scenario) addAdditionalAddressToAccount(username, address string, disab
 	}
 
 	args = append(args,
+		"--",
 		string(userDecID),
 		s.t.getUserByID(userID).getUserPass(),
 		address,
@@ -557,6 +559,14 @@ func (s *scenario) addAdditionalAddressToAccount(username, address string, disab
 func (s *scenario) createUserAccount(username, password string, disabled bool) error {
 	// Create the user and generate its default address (with keys).
 
+	if len(username) == 0 || username[0] == '-' {
+		panic("username must be non-empty and not start with minus")
+	}
+
+	if len(password) == 0 || password[0] == '-' {
+		panic("password must be non-empty and not start with minus")
+	}
+
 	args := []string{
 		"--name", username,
 		"--password", password,
@@ -582,7 +592,7 @@ func (s *scenario) createUserAccount(username, password string, disabled bool) e
 		}
 
 		// Decrypt the user's encrypted ID for use with quark.
-		userDecID, err := s.t.runQuarkCmd(context.Background(), "encryption:id", "--decrypt", user.ID)
+		userDecID, err := s.t.decryptID(user.ID)
 		if err != nil {
 			return err
 		}
@@ -592,6 +602,7 @@ func (s *scenario) createUserAccount(username, password string, disabled bool) e
 			context.Background(),
 			"user:create:subscription",
 			"--planID", "visionary2022",
+			"--",
 			string(userDecID),
 		); err != nil {
 			return err

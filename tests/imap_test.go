@@ -358,6 +358,24 @@ func (s *scenario) imapClientSeesMessageInMailboxWithStructure(clientID, mailbox
 			return err
 		}
 
+		debug := false
+		for iFetch := range fetch {
+			if !debug {
+				continue
+			}
+
+			fmt.Printf("\n\n\n fetch %d %#v\n evenlope %+v\n",
+				iFetch, fetch[iFetch],
+				fetch[iFetch].Envelope,
+			)
+
+			for _, v := range fetch[iFetch].Body {
+				fmt.Println("body literal", v)
+			}
+
+			fmt.Printf("\n\n\n")
+		}
+
 		haveMessages := xslices.Map(fetch, newMessageStructFromIMAP)
 
 		return matchStructure(haveMessages, msgStruct)

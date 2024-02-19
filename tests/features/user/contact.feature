@@ -12,6 +12,8 @@ Feature: user's contact
     Then it succeeds
 
 
+  # Implement contacts on black
+  @skip-black
   Scenario: Playing with contact settings
     When the contact "SuperTester@proton.me" of user "[user:user]" has message format "plain"
     When the contact "SuperTester@proton.me" of user "[user:user]" has message format "HTML"

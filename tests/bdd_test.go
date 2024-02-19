@@ -132,9 +132,19 @@ func getFeatureTags() string {
 		tags = ""
 	case "smoke": // Currently this is just a placeholder, as there are no scenarios tagged with @smoke
 		tags = "@smoke"
+	case "black": // Currently this is just a placeholder, as there are no scenarios tagged with @smoke
+		tags = "~@skip-black"
 	default:
 		tags = "~@regression && ~@smoke" // To exclude more add `&& ~@tag`
 	}
 
 	return tags
+}
+
+func isBlack() bool {
+	if len(os.Args) == 0 {
+		return false
+	}
+
+	return os.Args[len(os.Args)-1] == "black"
 }

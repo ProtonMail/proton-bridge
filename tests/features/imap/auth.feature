@@ -3,7 +3,6 @@ Feature: A user can authenticate an IMAP client
     Given there exists an account with username "[user:user]" and password "password"
     And there exists an account with username "[user:user2]" and password "password2"
     And the account "[user:user]" has additional address "[alias:alias]@[domain]"
-    And the account "[user:user2]" has additional disabled address "[alias:alias2]@[domain]"
     Then it succeeds
     When bridge starts
     And the user logs in with username "[user:user]" and password "password"
@@ -21,8 +20,12 @@ Feature: A user can authenticate an IMAP client
   Scenario: IMAP client can authenticate successfully with secondary address
     Given user "[user:user]" connects and authenticates IMAP client "1" with address "[alias:alias]@[domain]"
 
+  # Need to find  way to setup disabled address on black
+  @skip-black
   Scenario: IMAP client can not authenticate successfully with disable address
-    Given user "[user:user2]" connects and can not authenticate IMAP client "1" with address "[alias:alias2]@[domain]"
+    Given the account "[user:user2]" has additional disabled address "[alias:disabled]@[domain]"
+    And it succeeds
+    Then user "[user:user2]" connects and can not authenticate IMAP client "1" with address "[alias:disabled]@[domain]"
 
   Scenario: IMAP client can authenticate successfully
     When user "[user:user]" connects IMAP client "1"

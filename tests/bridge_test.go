@@ -168,7 +168,7 @@ func newTestBugReport(br *bridge.Bridge) *testBugReport {
 		Title:       "title",
 		Description: "description",
 		Username:    "username",
-		Email:       "email",
+		Email:       "email@pm.me",
 		EmailClient: "client",
 		IncludeLogs: false,
 	}

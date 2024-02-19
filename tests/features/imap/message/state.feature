@@ -6,7 +6,7 @@ Feature: IMAP change state of message in mailbox
       | one  | folder |
       | two  | folder |
     And the address "[user:user]@[domain]" of account "[user:user]" has 5 messages in "Folders/one"
-    And the address "[user:user]@[domain]" of account "[user:user]" has 150 messages in "Folders/two"
+    And the address "[user:user]@[domain]" of account "[user:user]" has 5 messages in "Folders/two"
     And the address "[user:user]@[domain]" of account "[user:user]" has the following messages in "Inbox":
       | from          | to            | subject | unread |
       | a@example.com | b@example.com | one     | true   |

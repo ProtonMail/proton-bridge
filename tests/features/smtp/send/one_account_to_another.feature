@@ -8,8 +8,6 @@ Feature: SMTP sending two messages
     And the user logs in with username "[user:recp]" and password "password"
     Then it succeeds
 
-
-  @long-black
   Scenario: Send from one account to the other
     When user "[user:user]" connects and authenticates SMTP client "1"
     And SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:recp]@[domain]":
@@ -64,8 +62,6 @@ Feature: SMTP sending two messages
       | from                 | to                   | subject                  | body  |
       | [user:user]@[domain] | [user:recp]@[domain] | One account to the other | hello |
 
-
-  @long-black
   Scenario: Send from one account to the other with attachments
     When user "[user:user]" connects and authenticates SMTP client "1"
     And SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:recp]@[domain]":

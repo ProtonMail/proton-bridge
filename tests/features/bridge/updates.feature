@@ -21,9 +21,9 @@ Feature: Bridge checks for updates
     Then bridge sends a manual update event for version "2.4.0"
 
   Scenario: Update is required to continue using bridge
-    Given there exists an account with username "user" and password "password"
+    Given there exists an account with username "[user:user]" and password "password"
     And bridge is version "2.3.0" and the latest available version is "2.3.0" reachable from "2.3.0"
     And the API requires bridge version at least "2.4.0"
     When bridge starts
-    And the user logs in with username "user" and password "password"
+    And the user logs in with username "[user:user]" and password "password"
     Then bridge sends a forced update event

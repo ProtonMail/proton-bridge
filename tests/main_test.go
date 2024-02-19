@@ -20,12 +20,29 @@ package tests
 import (
 	"os"
 	"testing"
+	"time"
 
+	"github.com/ProtonMail/go-proton-api/server/backend"
+	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
+	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/goleak"
 )
 
 func TestMain(m *testing.M) {
+	// Use the fast key generation for tests.
+	backend.GenerateKey = backend.FastGenerateKey
+
+	// Use the fast cert generation for tests.
+	certs.GenerateCert = FastGenerateCert
+
+	if !isBlack() {
+		// Set the event period to 1 second for more responsive tests.
+		user.EventPeriod = time.Second
+		// Don't use jitter during tests.
+		user.EventJitter = 0
+	}
+
 	level := os.Getenv("FEATURE_TEST_LOG_LEVEL")
 
 	if os.Getenv("BRIDGE_API_DEBUG") != "" {

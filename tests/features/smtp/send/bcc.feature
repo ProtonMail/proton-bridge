@@ -48,8 +48,6 @@ Feature: SMTP with bcc
       }
       """
 
-
-  @long-black
   Scenario: Send message only to bcc
     When SMTP client "1" sends the following message from "[user:user]@[domain]" to "[user:bcc]@[domain]":
       """
