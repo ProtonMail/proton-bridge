@@ -144,7 +144,8 @@ func TestProxyProvider_FindProxy_CanReachTimeout(t *testing.T) {
 	r.Error(t, err)
 }
 
-func TestProxyProvider_DoHLookup_Quad9(t *testing.T) {
+// DISABLED_TestProxyProvider_DoHLookup_Quad9 cannot run on CI, see GODT-3257.
+func DISABLED_TestProxyProvider_DoHLookup_Quad9(t *testing.T) {
 	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{Quad9Provider, GoogleProvider}, async.NoopPanicHandler{})
 
 	records, err := p.dohLookup(context.Background(), proxyQuery, Quad9Provider)
