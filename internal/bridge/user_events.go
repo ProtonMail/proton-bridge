@@ -58,7 +58,7 @@ func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User, e
 			"error":        event.Error,
 			"error_type":   internal.ErrCauseType(event.Error),
 		}); rerr != nil {
-			logrus.WithError(rerr).Error("Failed to report failed event handling")
+			logrus.WithField("pkg", "bridge/event").WithError(rerr).Error("Failed to report failed event handling")
 		}
 
 		user.OnBadEvent(ctx)
@@ -70,6 +70,6 @@ func (bridge *Bridge) handleUncategorizedErrorEvent(event events.UncategorizedEv
 		"error_type": internal.ErrCauseType(event.Error),
 		"error":      event.Error,
 	}); rerr != nil {
-		logrus.WithError(rerr).Error("Failed to report failed event handling")
+		logrus.WithField("pkg", "bridge/event").WithError(rerr).Error("Failed to report failed event handling")
 	}
 }

@@ -34,7 +34,7 @@ import (
 // ConfigureAppleMail configures Apple Mail for the given userID and address.
 // If configuring Apple Mail for Catalina or newer, it ensures Bridge is using SSL.
 func (bridge *Bridge) ConfigureAppleMail(ctx context.Context, userID, address string) error {
-	logrus.WithFields(logrus.Fields{
+	logPkg.WithFields(logrus.Fields{
 		"userID":  userID,
 		"address": logging.Sensitive(address),
 	}).Info("Configuring Apple Mail")

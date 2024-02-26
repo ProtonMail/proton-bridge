@@ -39,6 +39,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var logIMAP = logrus.WithField("pkg", "server/imap") //nolint:gochecknoglobals
+
 type IMAPSettingsProvider interface {
 	TLSConfig() *tls.Config
 	LogClient() bool
@@ -79,7 +81,7 @@ func newIMAPServer(
 	gluonCacheDir = ApplyGluonCachePathSuffix(gluonCacheDir)
 	gluonConfigDir = ApplyGluonConfigPathSuffix(gluonConfigDir)
 
-	logrus.WithFields(logrus.Fields{
+	logIMAP.WithFields(logrus.Fields{
 		"gluonStore": gluonCacheDir,
 		"gluonDB":    gluonConfigDir,
 		"version":    version,
@@ -88,10 +90,9 @@ func newIMAPServer(
 	}).Info("Creating IMAP server")
 
 	if logClient || logServer {
-		log := logrus.WithField("protocol", "IMAP")
-		log.Warning("================================================")
-		log.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
-		log.Warning("================================================")
+		logIMAP.Warning("================================================")
+		logIMAP.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
+		logIMAP.Warning("================================================")
 	}
 
 	var imapClientLog io.Writer
@@ -143,7 +144,7 @@ func newIMAPServer(
 
 	tasks.Once(func(ctx context.Context) {
 		async.RangeContext(ctx, imapServer.GetErrorCh(), func(err error) {
-			logrus.WithError(err).Error("IMAP server error")
+			logIMAP.WithError(err).Error("IMAP server error")
 		})
 	})
 
@@ -176,7 +177,7 @@ func (*storeBuilder) Delete(path, userID string) error {
 }
 
 func moveGluonCacheDir(settings IMAPSettingsProvider, oldGluonDir, newGluonDir string) error {
-	logrus.Infof("gluon cache moving from %s to %s", oldGluonDir, newGluonDir)
+	logIMAP.WithField("pkg", "service/imap").Infof("gluon cache moving from %s to %s", oldGluonDir, newGluonDir)
 	oldCacheDir := ApplyGluonCachePathSuffix(oldGluonDir)
 	if err := files.CopyDir(oldCacheDir, ApplyGluonCachePathSuffix(newGluonDir)); err != nil {
 		return fmt.Errorf("failed to copy gluon dir: %w", err)
@@ -187,7 +188,7 @@ func moveGluonCacheDir(settings IMAPSettingsProvider, oldGluonDir, newGluonDir s
 	}
 
 	if err := os.RemoveAll(oldCacheDir); err != nil {
-		logrus.WithError(err).Error("failed to remove old gluon cache dir")
+		logIMAP.WithError(err).Error("failed to remove old gluon cache dir")
 	}
 
 	return nil

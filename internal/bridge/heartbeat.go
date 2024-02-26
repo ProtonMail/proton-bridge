@@ -97,7 +97,7 @@ func (h *heartBeatState) start() {
 	h.taskStarted = true
 
 	h.task.PeriodicOrTrigger(h.taskInterval, 0, func(ctx context.Context) {
-		logrus.Debug("Checking for heartbeat")
+		logrus.WithField("pkg", "bridge/heartbeat").Debug("Checking for heartbeat")
 
 		h.TrySending(ctx)
 	})
@@ -135,7 +135,7 @@ func (bridge *Bridge) SendHeartbeat(ctx context.Context, heartbeat *telemetry.He
 		if err := bridge.reporter.ReportMessageWithContext("Cannot parse heartbeat data.", reporter.Context{
 			"error": err,
 		}); err != nil {
-			logrus.WithError(err).Error("Failed to parse heartbeat data.")
+			logrus.WithField("pkg", "bridge/heartbeat").WithError(err).Error("Failed to parse heartbeat data.")
 		}
 		return false
 	}

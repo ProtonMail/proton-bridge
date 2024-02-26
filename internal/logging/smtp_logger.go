@@ -27,7 +27,7 @@ type SMTPErrorLogger struct {
 }
 
 func NewSMTPLogger() *SMTPErrorLogger {
-	return &SMTPErrorLogger{l: logrus.WithField("pkg", "SMTP")}
+	return &SMTPErrorLogger{l: logrus.WithField("pkg", "log/SMTP")}
 }
 
 func (s *SMTPErrorLogger) Printf(format string, args ...interface{}) {
@@ -44,7 +44,7 @@ type SMTPDebugLogger struct {
 }
 
 func NewSMTPDebugLogger() *SMTPDebugLogger {
-	return &SMTPDebugLogger{l: logrus.WithField("pkg", "SMTP")}
+	return &SMTPDebugLogger{l: logrus.WithField("pkg", "log/SMTP")}
 }
 
 func (l *SMTPDebugLogger) Write(p []byte) (n int, err error) {

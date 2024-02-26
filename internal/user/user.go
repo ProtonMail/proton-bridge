@@ -294,7 +294,7 @@ func newImpl(
 
 	// Log all requests made by the user.
 	user.client.AddPostRequestHook(func(_ *resty.Client, r *resty.Response) error {
-		user.log.Infof("%v: %v %v", r.Status(), r.Request.Method, r.Request.URL)
+		user.log.WithField("pkg", "gpa/client").Infof("%v: %v %v", r.Status(), r.Request.Method, r.Request.URL)
 		return nil
 	})
 

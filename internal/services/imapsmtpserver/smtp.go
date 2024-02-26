@@ -29,6 +29,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var logSMTP = logrus.WithField("pkg", "server/smtp") //nolint:gochecknoglobals
+
 type SMTPSettingsProvider interface {
 	TLSConfig() *tls.Config
 	Log() bool
@@ -39,7 +41,7 @@ type SMTPSettingsProvider interface {
 }
 
 func newSMTPServer(accounts *smtpservice.Accounts, settings SMTPSettingsProvider) *smtp.Server {
-	logrus.WithField("logSMTP", settings.Log()).Info("Creating SMTP server")
+	logSMTP.WithField("logSMTP", settings.Log()).Info("Creating SMTP server")
 
 	smtpServer := smtp.NewServer(smtpservice.NewBackend(accounts, settings.Identifier()))
 
@@ -57,10 +59,9 @@ func newSMTPServer(accounts *smtpservice.Accounts, settings SMTPSettingsProvider
 	})
 
 	if settings.Log() {
-		log := logrus.WithField("protocol", "SMTP")
-		log.Warning("================================================")
-		log.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
-		log.Warning("================================================")
+		logSMTP.Warning("================================================")
+		logSMTP.Warning("THIS LOG WILL CONTAIN **DECRYPTED** MESSAGE DATA")
+		logSMTP.Warning("================================================")
 
 		smtpServer.Debug = logging.NewSMTPDebugLogger()
 	}

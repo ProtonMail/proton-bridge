@@ -132,6 +132,8 @@ type Bridge struct {
 	syncService   *syncservice.Service
 }
 
+var logPkg = logrus.WithField("pkg", "bridge") //nolint:gochecknoglobals
+
 // New creates a new bridge.
 func New(
 	locator Locator, // the locator to provide paths to store data
@@ -322,7 +324,7 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 
 	// Handle connection up/down events.
 	bridge.api.AddStatusObserver(func(status proton.Status) {
-		logrus.Info("API status changed: ", status)
+		logPkg.Info("API status changed: ", status)
 
 		switch {
 		case status == proton.StatusUp:
@@ -337,7 +339,7 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 
 	// If any call returns a bad version code, we need to update.
 	bridge.api.AddErrorHandler(proton.AppVersionBadCode, func() {
-		logrus.Warn("App version is bad")
+		logPkg.Warn("App version is bad")
 		bridge.publish(events.UpdateForced{})
 	})
 
@@ -350,7 +352,7 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	// Log all manager API requests (client requests are logged separately).
 	bridge.api.AddPostRequestHook(func(_ *resty.Client, r *resty.Response) error {
 		if _, ok := proton.ClientIDFromContext(r.Request.Context()); !ok {
-			logrus.Infof("[MANAGER] %v: %v %v", r.Status(), r.Request.Method, r.Request.URL)
+			logrus.WithField("pkg", "gpa/manager").Infof("%v: %v %v", r.Status(), r.Request.Method, r.Request.URL)
 		}
 
 		return nil
@@ -359,7 +361,7 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	// Publish a TLS issue event if a TLS issue is encountered.
 	bridge.tasks.Once(func(ctx context.Context) {
 		async.RangeContext(ctx, tlsReporter.GetTLSIssueCh(), func(struct{}) {
-			logrus.Warn("TLS issue encountered")
+			logPkg.Warn("TLS issue encountered")
 			bridge.publish(events.TLSIssue{})
 		})
 	})
@@ -367,7 +369,7 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	// Publish a raise event if the focus service is called.
 	bridge.tasks.Once(func(ctx context.Context) {
 		async.RangeContext(ctx, bridge.focusService.GetRaiseCh(), func(struct{}) {
-			logrus.Info("Focus service requested raise")
+			logPkg.Info("Focus service requested raise")
 			bridge.publish(events.Raise{})
 		})
 	})
@@ -375,7 +377,7 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	// Handle any IMAP events that are forwarded to the bridge from gluon.
 	bridge.tasks.Once(func(ctx context.Context) {
 		async.RangeContext(ctx, bridge.imapEventCh, func(event imapEvents.Event) {
-			logrus.WithField("event", fmt.Sprintf("%T", event)).Debug("Received IMAP event")
+			logPkg.WithField("event", fmt.Sprintf("%T", event)).Debug("Received IMAP event")
 			bridge.handleIMAPEvent(event)
 		})
 	})
@@ -383,7 +385,7 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 	// Attempt to load users from the vault when triggered.
 	bridge.goLoad = bridge.tasks.Trigger(func(ctx context.Context) {
 		if err := bridge.loadUsers(ctx); err != nil {
-			logrus.WithError(err).Error("Failed to load users")
+			logPkg.WithError(err).Error("Failed to load users")
 			if netErr := new(proton.NetError); !errors.As(err, &netErr) {
 				sentry.ReportError(bridge.reporter, "Failed to load users", err)
 			}
@@ -396,7 +398,7 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 
 	// Check for updates when triggered.
 	bridge.goUpdate = bridge.tasks.PeriodicOrTrigger(constants.UpdateCheckInterval, 0, func(ctx context.Context) {
-		logrus.Info("Checking for updates")
+		logPkg.Info("Checking for updates")
 
 		version, err := bridge.updater.GetVersionInfo(ctx, bridge.api, bridge.vault.GetUpdateChannel())
 		if err != nil {
@@ -434,7 +436,7 @@ func (bridge *Bridge) GetErrors() []error {
 }
 
 func (bridge *Bridge) Close(ctx context.Context) {
-	logrus.Info("Closing bridge")
+	logPkg.Info("Closing bridge")
 
 	// Stop heart beat before closing users.
 	bridge.heartbeat.stop()
@@ -448,7 +450,7 @@ func (bridge *Bridge) Close(ctx context.Context) {
 
 	// Close the servers
 	if err := bridge.serverManager.CloseServers(ctx); err != nil {
-		logrus.WithError(err).Error("Failed to close servers")
+		logPkg.WithError(err).Error("Failed to close servers")
 	}
 
 	bridge.syncService.Close()
@@ -474,12 +476,12 @@ func (bridge *Bridge) publish(event events.Event) {
 	bridge.watchersLock.RLock()
 	defer bridge.watchersLock.RUnlock()
 
-	logrus.WithField("event", event).Debug("Publishing event")
+	logPkg.WithField("event", event).Debug("Publishing event")
 
 	for _, watcher := range bridge.watchers {
 		if watcher.IsWatching(event) {
 			if ok := watcher.Send(event); !ok {
-				logrus.WithField("event", event).Warn("Failed to send event to watcher")
+				logPkg.WithField("event", event).Warn("Failed to send event to watcher")
 			}
 		}
 	}
@@ -512,13 +514,13 @@ func (bridge *Bridge) remWatcher(watcher *watcher.Watcher[events.Event]) {
 }
 
 func (bridge *Bridge) onStatusUp(_ context.Context) {
-	logrus.Info("Handling API status up")
+	logPkg.Info("Handling API status up")
 
 	bridge.goLoad()
 }
 
 func (bridge *Bridge) onStatusDown(ctx context.Context) {
-	logrus.Info("Handling API status down")
+	logPkg.Info("Handling API status down")
 
 	for backoff := time.Second; ; backoff = min(backoff*2, 30*time.Second) {
 		select {
@@ -526,10 +528,10 @@ func (bridge *Bridge) onStatusDown(ctx context.Context) {
 			return
 
 		case <-time.After(backoff):
-			logrus.Info("Pinging API")
+			logPkg.Info("Pinging API")
 
 			if err := bridge.api.Ping(ctx); err != nil {
-				logrus.WithError(err).Warn("Ping failed, API is still unreachable")
+				logPkg.WithError(err).Warn("Ping failed, API is still unreachable")
 			} else {
 				return
 			}

@@ -38,6 +38,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var logUser = logrus.WithField("pkg", "bridge/user") //nolint:gochecknoglobals
+
 type UserState int
 
 const (
@@ -122,7 +124,7 @@ func (bridge *Bridge) QueryUserInfo(query string) (UserInfo, error) {
 
 // LoginAuth begins the login process. It returns an authorized client that might need 2FA.
 func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password []byte) (*proton.Client, proton.Auth, error) {
-	logrus.WithField("username", logging.Sensitive(username)).Info("Authorizing user for login")
+	logUser.WithField("username", logging.Sensitive(username)).Info("Authorizing user for login")
 
 	if username == "crash@bandicoot" {
 		panic("Your wish is my command.. I crash!")
@@ -134,10 +136,10 @@ func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password [
 	}
 
 	if ok := safe.RLockRet(func() bool { return mapHas(bridge.users, auth.UserID) }, bridge.usersLock); ok {
-		logrus.WithField("userID", auth.UserID).Warn("User already logged in")
+		logUser.WithField("userID", auth.UserID).Warn("User already logged in")
 
 		if err := client.AuthDelete(ctx); err != nil {
-			logrus.WithError(err).Warn("Failed to delete auth")
+			logUser.WithError(err).Warn("Failed to delete auth")
 		}
 
 		return nil, proton.Auth{}, ErrUserAlreadyLoggedIn
@@ -153,7 +155,7 @@ func (bridge *Bridge) LoginUser(
 	auth proton.Auth,
 	keyPass []byte,
 ) (string, error) {
-	logrus.WithField("userID", auth.UserID).Info("Logging in authorized user")
+	logUser.WithField("userID", auth.UserID).Info("Logging in authorized user")
 
 	userID, err := try.CatchVal(
 		func() (string, error) {
@@ -165,7 +167,7 @@ func (bridge *Bridge) LoginUser(
 		// Failure to unlock will allow retries, so we do not delete auth.
 		if !errors.Is(err, ErrFailedToUnlock) {
 			if deleteErr := client.AuthDelete(ctx); deleteErr != nil {
-				logrus.WithError(deleteErr).Error("Failed to delete auth")
+				logUser.WithError(deleteErr).Error("Failed to delete auth")
 			}
 		}
 		return "", fmt.Errorf("failed to login user: %w", err)
@@ -188,7 +190,7 @@ func (bridge *Bridge) LoginFull(
 	getTOTP func() (string, error),
 	getKeyPass func() ([]byte, error),
 ) (string, error) {
-	logrus.WithField("username", logging.Sensitive(username)).Info("Performing full user login")
+	logUser.WithField("username", logging.Sensitive(username)).Info("Performing full user login")
 
 	client, auth, err := bridge.LoginAuth(ctx, username, password)
 	if err != nil {
@@ -196,7 +198,7 @@ func (bridge *Bridge) LoginFull(
 	}
 
 	if auth.TwoFA.Enabled&proton.HasTOTP != 0 {
-		logrus.WithField("userID", auth.UserID).Info("Requesting TOTP")
+		logUser.WithField("userID", auth.UserID).Info("Requesting TOTP")
 
 		totp, err := getTOTP()
 		if err != nil {
@@ -211,7 +213,7 @@ func (bridge *Bridge) LoginFull(
 	var keyPass []byte
 
 	if auth.PasswordMode == proton.TwoPasswordMode {
-		logrus.WithField("userID", auth.UserID).Info("Requesting mailbox password")
+		logUser.WithField("userID", auth.UserID).Info("Requesting mailbox password")
 
 		userKeyPass, err := getKeyPass()
 		if err != nil {
@@ -226,7 +228,7 @@ func (bridge *Bridge) LoginFull(
 	userID, err := bridge.LoginUser(ctx, client, auth, keyPass)
 	if err != nil {
 		if deleteErr := client.AuthDelete(ctx); deleteErr != nil {
-			logrus.WithError(err).Error("Failed to delete auth")
+			logUser.WithError(err).Error("Failed to delete auth")
 		}
 
 		return "", err
@@ -237,7 +239,7 @@ func (bridge *Bridge) LoginFull(
 
 // LogoutUser logs out the given user.
 func (bridge *Bridge) LogoutUser(ctx context.Context, userID string) error {
-	logrus.WithField("userID", userID).Info("Logging out user")
+	logUser.WithField("userID", userID).Info("Logging out user")
 
 	return safe.LockRet(func() error {
 		user, ok := bridge.users[userID]
@@ -257,7 +259,7 @@ func (bridge *Bridge) LogoutUser(ctx context.Context, userID string) error {
 
 // DeleteUser deletes the given user.
 func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
-	logrus.WithField("userID", userID).Info("Deleting user")
+	logUser.WithField("userID", userID).Info("Deleting user")
 
 	syncConfigDir, err := bridge.locator.ProvideIMAPSyncConfigPath()
 	if err != nil {
@@ -278,7 +280,7 @@ func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
 		}
 
 		if err := bridge.vault.DeleteUser(userID); err != nil {
-			logrus.WithError(err).Error("Failed to delete vault user")
+			logUser.WithError(err).Error("Failed to delete vault user")
 		}
 
 		bridge.publish(events.UserDeleted{
@@ -291,7 +293,7 @@ func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
 
 // SetAddressMode sets the address mode for the given user.
 func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode vault.AddressMode) error {
-	logrus.WithField("userID", userID).WithField("mode", mode).Info("Setting address mode")
+	logUser.WithField("userID", userID).WithField("mode", mode).Info("Setting address mode")
 
 	return safe.RLockRet(func() error {
 		user, ok := bridge.users[userID]
@@ -327,7 +329,7 @@ func (bridge *Bridge) SetAddressMode(ctx context.Context, userID string, mode va
 
 // SendBadEventUserFeedback passes the feedback to the given user.
 func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string, doResync bool) error {
-	logrus.WithField("userID", userID).WithField("doResync", doResync).Info("Passing bad event feedback to user")
+	logUser.WithField("userID", userID).WithField("doResync", doResync).Info("Passing bad event feedback to user")
 
 	return safe.RLockRet(func() error {
 		ctx := context.Background()
@@ -338,7 +340,7 @@ func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string,
 				"Failed to handle event: feedback failed: no such user",
 				reporter.Context{"user_id": userID},
 			); rerr != nil {
-				logrus.WithError(rerr).Error("Failed to report feedback failure")
+				logUser.WithError(rerr).Error("Failed to report feedback failure")
 			}
 
 			return ErrNoSuchUser
@@ -349,7 +351,7 @@ func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string,
 				"Failed to handle event: feedback resync",
 				reporter.Context{"user_id": userID},
 			); rerr != nil {
-				logrus.WithError(rerr).Error("Failed to report feedback failure")
+				logUser.WithError(rerr).Error("Failed to report feedback failure")
 			}
 
 			return user.BadEventFeedbackResync(ctx)
@@ -359,7 +361,7 @@ func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string,
 			"Failed to handle event: feedback logout",
 			reporter.Context{"user_id": userID},
 		); rerr != nil {
-			logrus.WithError(rerr).Error("Failed to report feedback failure")
+			logUser.WithError(rerr).Error("Failed to report feedback failure")
 		}
 
 		bridge.logoutUser(ctx, user, true, false, false)
@@ -403,11 +405,11 @@ func (bridge *Bridge) loginUser(ctx context.Context, client *proton.Client, auth
 
 // loadUsers tries to load each user in the vault that isn't already loaded.
 func (bridge *Bridge) loadUsers(ctx context.Context) error {
-	logrus.WithField("count", len(bridge.vault.GetUserIDs())).Info("Loading users")
-	defer logrus.Info("Finished loading users")
+	logUser.WithField("count", len(bridge.vault.GetUserIDs())).Info("Loading users")
+	defer logUser.Info("Finished loading users")
 
 	return bridge.vault.ForUser(runtime.NumCPU(), func(user *vault.User) error {
-		log := logrus.WithField("userID", user.UserID())
+		log := logUser.WithField("userID", user.UserID())
 
 		if user.AuthUID() == "" {
 			log.Info("User is not connected (skipping)")
@@ -451,7 +453,7 @@ func (bridge *Bridge) loadUser(ctx context.Context, user *vault.User) error {
 		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && (apiErr.Code == proton.AuthRefreshTokenInvalid) {
 			// The session cannot be refreshed, we sign out the user by clearing his auth secrets.
 			if err := user.Clear(); err != nil {
-				logrus.WithError(err).Warn("Failed to clear user secrets")
+				logUser.WithError(err).Warn("Failed to clear user secrets")
 			}
 		}
 
@@ -496,24 +498,24 @@ func (bridge *Bridge) addUser(
 
 	if err := bridge.addUserWithVault(ctx, client, apiUser, vaultUser, isNew); err != nil {
 		if _, ok := err.(*resty.ResponseError); ok || isLogin {
-			logrus.WithError(err).Error("Failed to add user, clearing its secrets from vault")
+			logUser.WithError(err).Error("Failed to add user, clearing its secrets from vault")
 
 			if err := vaultUser.Clear(); err != nil {
-				logrus.WithError(err).Error("Failed to clear user secrets")
+				logUser.WithError(err).Error("Failed to clear user secrets")
 			}
 		} else {
-			logrus.WithError(err).Error("Failed to add user")
+			logUser.WithError(err).Error("Failed to add user")
 		}
 
 		if err := vaultUser.Close(); err != nil {
-			logrus.WithError(err).Error("Failed to close vault user")
+			logUser.WithError(err).Error("Failed to close vault user")
 		}
 
 		if isNew {
-			logrus.Warn("Deleting newly added vault user")
+			logUser.Warn("Deleting newly added vault user")
 
 			if err := bridge.vault.DeleteUser(apiUser.ID); err != nil {
-				logrus.WithError(err).Error("Failed to delete vault user")
+				logUser.WithError(err).Error("Failed to delete vault user")
 			}
 		}
 
@@ -567,7 +569,7 @@ func (bridge *Bridge) addUserWithVault(
 	// For example, if the user's addresses change, we need to update them in gluon.
 	bridge.tasks.Once(func(ctx context.Context) {
 		async.RangeContext(ctx, user.GetEventCh(), func(event events.Event) {
-			logrus.WithFields(logrus.Fields{
+			logUser.WithFields(logrus.Fields{
 				"userID": apiUser.ID,
 				"event":  event,
 			}).Debug("Received user event")
@@ -618,14 +620,14 @@ func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, 
 		user.SendConfigStatusAbort(ctx, withTelemetry)
 	}
 
-	logrus.WithFields(logrus.Fields{
+	logUser.WithFields(logrus.Fields{
 		"userID":   user.ID(),
 		"withAPI":  withAPI,
 		"withData": withData,
 	}).Debug("Logging out user")
 
 	if err := user.Logout(ctx, withAPI); err != nil {
-		logrus.WithError(err).Error("Failed to logout user")
+		logUser.WithError(err).Error("Failed to logout user")
 	}
 
 	bridge.heartbeat.SetNbAccount(len(bridge.users))

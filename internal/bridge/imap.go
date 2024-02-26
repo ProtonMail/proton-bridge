@@ -35,10 +35,12 @@ func (bridge *Bridge) restartIMAP(ctx context.Context) error {
 }
 
 func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
+	log := logrus.WithField("pkg", "bridge/event/imap")
+
 	switch event := event.(type) {
 	case imapEvents.UserAdded:
 		for labelID, count := range event.Counts {
-			logrus.WithFields(logrus.Fields{
+			log.WithFields(logrus.Fields{
 				"gluonID": event.UserID,
 				"labelID": labelID,
 				"count":   count,
@@ -46,7 +48,7 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 		}
 
 	case imapEvents.IMAPID:
-		logrus.WithFields(logrus.Fields{
+		log.WithFields(logrus.Fields{
 			"sessionID": event.SessionID,
 			"name":      event.IMAPID.Name,
 			"version":   event.IMAPID.Version,
@@ -57,7 +59,7 @@ func (bridge *Bridge) handleIMAPEvent(event imapEvents.Event) {
 		}
 
 	case imapEvents.LoginFailed:
-		logrus.WithFields(logrus.Fields{
+		log.WithFields(logrus.Fields{
 			"sessionID": event.SessionID,
 			"username":  event.Username,
 			"pkg":       "imap",

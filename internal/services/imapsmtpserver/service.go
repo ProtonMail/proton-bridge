@@ -190,16 +190,16 @@ func (sm *Service) run(ctx context.Context, subscription events.Subscription) {
 		case evt := <-eventSub.GetChannel():
 			switch evt.(type) {
 			case events.ConnStatusDown:
-				logrus.Info("Server Manager, network down stopping listeners")
+				sm.log.Info("Server Manager, network down stopping listeners")
 				if err := sm.closeSMTPServer(ctx); err != nil {
-					logrus.WithError(err).Error("Failed to close SMTP server")
+					sm.log.WithError(err).Error("Failed to close SMTP server")
 				}
 
 				if err := sm.stopIMAPListener(ctx); err != nil {
-					logrus.WithError(err)
+					sm.log.WithError(err)
 				}
 			case events.ConnStatusUp:
-				logrus.Info("Server Manager, network up starting listeners")
+				sm.log.Info("Server Manager, network up starting listeners")
 				sm.handleLoadedUserCountChange(ctx)
 			}
 
@@ -241,12 +241,12 @@ func (sm *Service) run(ctx context.Context, subscription events.Subscription) {
 				request.Reply(ctx, nil, err)
 
 			case *smRequestAddSMTPAccount:
-				logrus.WithField("user", r.account.UserID()).Debug("Adding SMTP Account")
+				sm.log.WithField("user", r.account.UserID()).Debug("Adding SMTP Account")
 				sm.smtpAccounts.AddAccount(r.account)
 				request.Reply(ctx, nil, nil)
 
 			case *smRequestRemoveSMTPAccount:
-				logrus.WithField("user", r.account.UserID()).Debug("Removing SMTP Account")
+				sm.log.WithField("user", r.account.UserID()).Debug("Removing SMTP Account")
 				sm.smtpAccounts.RemoveAccount(r.account)
 				request.Reply(ctx, nil, nil)
 			}
@@ -255,29 +255,29 @@ func (sm *Service) run(ctx context.Context, subscription events.Subscription) {
 }
 
 func (sm *Service) handleLoadedUserCountChange(ctx context.Context) {
-	logrus.Infof("Validating Listener State %v", sm.loadedUserCount)
+	sm.log.Infof("Validating Listener State %v", sm.loadedUserCount)
 	if sm.shouldStartServers() {
 		if sm.imapListener == nil {
 			if err := sm.serveIMAP(ctx); err != nil {
-				logrus.WithError(err).Error("Failed to start IMAP server")
+				sm.log.WithError(err).Error("Failed to start IMAP server")
 			}
 		}
 
 		if sm.smtpListener == nil {
 			if err := sm.restartSMTP(ctx); err != nil {
-				logrus.WithError(err).Error("Failed to start SMTP server")
+				sm.log.WithError(err).Error("Failed to start SMTP server")
 			}
 		}
 	} else {
 		if sm.imapListener != nil {
 			if err := sm.stopIMAPListener(ctx); err != nil {
-				logrus.WithError(err).Error("Failed to stop IMAP server")
+				sm.log.WithError(err).Error("Failed to stop IMAP server")
 			}
 		}
 
 		if sm.smtpListener != nil {
 			if err := sm.closeSMTPServer(ctx); err != nil {
-				logrus.WithError(err).Error("Failed to stop SMTP server")
+				sm.log.WithError(err).Error("Failed to stop SMTP server")
 			}
 		}
 	}
@@ -286,12 +286,12 @@ func (sm *Service) handleLoadedUserCountChange(ctx context.Context) {
 func (sm *Service) handleClose(ctx context.Context) {
 	// Close the IMAP server.
 	if err := sm.closeIMAPServer(ctx); err != nil {
-		logrus.WithError(err).Error("Failed to close IMAP server")
+		sm.log.WithError(err).Error("Failed to close IMAP server")
 	}
 
 	// Close the SMTP server.
 	if err := sm.closeSMTPServer(ctx); err != nil {
-		logrus.WithError(err).Error("Failed to close SMTP server")
+		sm.log.WithError(err).Error("Failed to close SMTP server")
 	}
 
 	// Cancel and wait needs to be called here since the SMTP server does not have a way to exit
@@ -325,7 +325,7 @@ func (sm *Service) handleAddIMAPUserImpl(ctx context.Context,
 		return fmt.Errorf("no imap server instance running")
 	}
 
-	log := logrus.WithFields(logrus.Fields{
+	log := sm.log.WithFields(logrus.Fields{
 		"addrID": addrID,
 	})
 	log.Info("Adding user to imap server")
@@ -341,7 +341,7 @@ func (sm *Service) handleAddIMAPUserImpl(ctx context.Context,
 
 		if isNew {
 			// If the DB was newly created, clear the sync status; gluon's DB was not found.
-			logrus.Warn("IMAP user DB was newly created, clearing sync status")
+			sm.log.Warn("IMAP user DB was newly created, clearing sync status")
 
 			// Remove the user from IMAP so we can clear the sync status.
 			if err := sm.imapServer.RemoveUser(ctx, gluonID, false); err != nil {
@@ -415,7 +415,7 @@ func (sm *Service) handleRemoveIMAPUser(ctx context.Context, withData bool, idPr
 		return fmt.Errorf("no imap server instance running")
 	}
 
-	logrus.WithFields(logrus.Fields{
+	sm.log.WithFields(logrus.Fields{
 		"withData":  withData,
 		"addresses": addrIDs,
 	}).Debug("Removing IMAP user")
@@ -423,7 +423,7 @@ func (sm *Service) handleRemoveIMAPUser(ctx context.Context, withData bool, idPr
 	for _, addrID := range addrIDs {
 		gluonID, ok := idProvider.GetGluonID(addrID)
 		if !ok {
-			logrus.Warnf("Could not find Gluon ID for addrID %v", addrID)
+			sm.log.Warnf("Could not find Gluon ID for addrID %v", addrID)
 			continue
 		}
 
@@ -480,7 +480,7 @@ func (sm *Service) closeSMTPServer(ctx context.Context) error {
 	// even after the server has been closed. So we close the listener ourselves to unblock it.
 
 	if sm.smtpListener != nil {
-		logrus.Info("Closing SMTP Listener")
+		sm.log.Info("Closing SMTP Listener")
 		if err := sm.smtpListener.Close(); err != nil {
 			return fmt.Errorf("failed to close SMTP listener: %w", err)
 		}
@@ -489,9 +489,9 @@ func (sm *Service) closeSMTPServer(ctx context.Context) error {
 	}
 
 	if sm.smtpServer != nil {
-		logrus.Info("Closing SMTP server")
+		sm.log.Info("Closing SMTP server")
 		if err := sm.smtpServer.Close(); err != nil {
-			logrus.WithError(err).Debug("Failed to close SMTP server (expected -- we close the listener ourselves)")
+			sm.log.WithError(err).Debug("Failed to close SMTP server (expected -- we close the listener ourselves)")
 		}
 
 		sm.smtpServer = nil
@@ -504,7 +504,7 @@ func (sm *Service) closeSMTPServer(ctx context.Context) error {
 
 func (sm *Service) closeIMAPServer(ctx context.Context) error {
 	if sm.imapListener != nil {
-		logrus.Info("Closing IMAP Listener")
+		sm.log.Info("Closing IMAP Listener")
 
 		if err := sm.imapListener.Close(); err != nil {
 			return fmt.Errorf("failed to close IMAP listener: %w", err)
@@ -516,7 +516,7 @@ func (sm *Service) closeIMAPServer(ctx context.Context) error {
 	}
 
 	if sm.imapServer != nil {
-		logrus.Info("Closing IMAP server")
+		sm.log.Info("Closing IMAP server")
 		if err := sm.imapServer.Close(ctx); err != nil {
 			return fmt.Errorf("failed to close IMAP server: %w", err)
 		}
@@ -530,7 +530,7 @@ func (sm *Service) closeIMAPServer(ctx context.Context) error {
 }
 
 func (sm *Service) restartIMAP(ctx context.Context) error {
-	logrus.Info("Restarting IMAP server")
+	sm.log.Info("Restarting IMAP server")
 
 	if sm.imapListener != nil {
 		if err := sm.imapListener.Close(); err != nil {
@@ -550,7 +550,7 @@ func (sm *Service) restartIMAP(ctx context.Context) error {
 }
 
 func (sm *Service) restartSMTP(ctx context.Context) error {
-	logrus.Info("Restarting SMTP server")
+	sm.log.Info("Restarting SMTP server")
 
 	if err := sm.closeSMTPServer(ctx); err != nil {
 		return fmt.Errorf("failed to close SMTP: %w", err)
@@ -569,7 +569,7 @@ func (sm *Service) restartSMTP(ctx context.Context) error {
 
 func (sm *Service) serveSMTP(ctx context.Context) error {
 	port, err := func() (int, error) {
-		logrus.WithFields(logrus.Fields{
+		sm.log.WithFields(logrus.Fields{
 			"port": sm.smtpSettings.Port(),
 			"ssl":  sm.smtpSettings.UseSSL(),
 		}).Info("Starting SMTP server")
@@ -583,7 +583,7 @@ func (sm *Service) serveSMTP(ctx context.Context) error {
 
 		sm.tasks.Once(func(context.Context) {
 			if err := sm.smtpServer.Serve(smtpListener); err != nil {
-				logrus.WithError(err).Info("SMTP server stopped")
+				sm.log.WithError(err).Info("SMTP server stopped")
 			}
 		})
 
@@ -615,7 +615,7 @@ func (sm *Service) serveIMAP(ctx context.Context) error {
 			return 0, fmt.Errorf("no IMAP server instance running")
 		}
 
-		logrus.WithFields(logrus.Fields{
+		sm.log.WithFields(logrus.Fields{
 			"port": sm.imapSettings.Port(),
 			"ssl":  sm.imapSettings.UseSSL(),
 		}).Info("Starting IMAP server")
@@ -654,7 +654,7 @@ func (sm *Service) serveIMAP(ctx context.Context) error {
 }
 
 func (sm *Service) stopIMAPListener(ctx context.Context) error {
-	logrus.Info("Stopping IMAP listener")
+	sm.log.Info("Stopping IMAP listener")
 	if sm.imapListener != nil {
 		if err := sm.imapListener.Close(); err != nil {
 			return err
@@ -682,7 +682,7 @@ func (sm *Service) handleSetGluonDir(ctx context.Context, newGluonDir string) er
 	sm.loadedUserCount = 0
 
 	if err := moveGluonCacheDir(sm.imapSettings, currentGluonDir, newGluonDir); err != nil {
-		logrus.WithError(err).Error("failed to move GluonCacheDir")
+		sm.log.WithError(err).Error("failed to move GluonCacheDir")
 
 		if err := sm.imapSettings.SetCacheDirectory(currentGluonDir); err != nil {
 			return fmt.Errorf("failed to revert GluonCacheDir: %w", err)
