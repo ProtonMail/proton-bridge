@@ -677,13 +677,18 @@ func (s *Connector) importMessage(
 	}
 
 	if err := s.identityState.WithAddrKR(s.addrID, func(_, addrKR *crypto.KeyRing) error {
+		primaryKey, errKey := addrKR.FirstKey()
+		if errKey != nil {
+			return fmt.Errorf("failed to get primary key for import: %w", errKey)
+		}
+
 		var messageID string
 		p, err2 := parser.New(bytes.NewReader(literal))
 		if err2 != nil {
 			return fmt.Errorf("failed to parse literal: %w", err2)
 		}
 		if slices.Contains(labelIDs, proton.DraftsLabel) {
-			msg, err := s.createDraftWithParser(ctx, p, addrKR, addr)
+			msg, err := s.createDraftWithParser(ctx, p, primaryKey, addr)
 			if err != nil {
 				return fmt.Errorf("failed to create draft: %w", err)
 			}
@@ -699,7 +704,7 @@ func (s *Connector) importMessage(
 				}
 				literal = buf.Bytes()
 			}
-			str, err := s.client.ImportMessages(ctx, addrKR, 1, 1, []proton.ImportReq{{
+			str, err := s.client.ImportMessages(ctx, primaryKey, 1, 1, []proton.ImportReq{{
 				Metadata: proton.ImportMetadata{
 					AddressID: s.addrID,
 					LabelIDs:  labelIDs,
@@ -726,7 +731,7 @@ func (s *Connector) importMessage(
 			return fmt.Errorf("failed to fetch message: %w", err)
 		}
 
-		if literal, err = message.DecryptAndBuildRFC822(addrKR, full.Message, full.AttData, defaultMessageJobOpts()); err != nil {
+		if literal, err = message.DecryptAndBuildRFC822(primaryKey, full.Message, full.AttData, defaultMessageJobOpts()); err != nil {
 			return fmt.Errorf("failed to build message: %w", err)
 		}
 
