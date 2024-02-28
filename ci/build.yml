@@ -10,7 +10,7 @@
     - which go && go version
     - which gcc && gcc --version
     - which qmake && qmake --version
-    - make build
+    - make -d build
     - git diff && git diff-index --quiet HEAD
     - make vault-editor
     - make bridge-rollout

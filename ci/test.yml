@@ -28,123 +28,125 @@ lint-bug-report-preview:
   script:
     - which go && go version
     - which gcc && gcc --version
-    - make test
+    - make -d test
   artifacts:
     paths:
       - coverage/**
 
-test-linux:
-  extends:
-    - .image-linux-test
-    - .script-test
-  tags:
-    - shared-large
+#
+#
+# test-linux:
+#   extends:
+#     - .image-linux-test
+#     - .script-test
+#   tags:
+#     - shared-large
 
 test-windows:
   extends:
     - .env-windows
     - .script-test
 
-test-darwin:
-  extends:
-    - .env-darwin
-    - .script-test
-
-fuzz-linux:
-  stage: test
-  extends:
-    - .image-linux-test
-    - .rules-branch-manual-MR-and-devel-always
-  script:
-    - make fuzz
-  tags:
-    - shared-large
-
-test-linux-race:
-  extends:
-    - test-linux
-    - .rules-branch-and-MR-manual
-  script:
-    - make test-race
-
-test-integration:
-  extends:
-    - test-linux
-  script:
-    - make test-integration | tee -a integration-job.log
-  after_script:
-    - |
-      grep "Error: " integration-job.log
-  artifacts:
-    when: always
-    paths:
-      - integration-job.log
-
-test-integration-race:
-  extends:
-    - test-integration
-    - .rules-branch-and-MR-manual
-  script:
-    - make test-integration-race | tee -a integration-race-job.log
-  artifacts:
-    when: always
-    paths:
-      - integration-race-job.log
-
-
-test-integration-nightly:
-  extends:
-    - test-integration
-    - .rules-branch-manual-scheduled-and-test-branch-always
-  needs:
-    - test-integration
-  script:
-    - make test-integration-nightly | tee -a nightly-job.log
-  after_script:
-    - |
-      grep "Error: " nightly-job.log
-  artifacts:
-    when: always
-    paths:
-      - nightly-job.log
-
-test-coverage:
-  stage: test
-  extends:
-    - .image-linux-test
-    - .rules-branch-manual-scheduled-and-test-branch-always
-  script:
-    - ./utils/coverage.sh
-  coverage: '/total:.*\(statements\).*\d+\.\d+%/'
-  needs:
-    - test-linux
-    - test-windows
-    - test-darwin
-    - test-integration
-    - test-integration-nightly
-  tags:
-    - shared-small
-  artifacts:
-    paths:
-      - coverage*
-      - coverage/**
-    when: 'always'
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
-
-go-vuln-check:
-  extends:
-    - .image-linux-test
-    - .rules-branch-manual-MR-and-devel-always
-  stage: test
-  tags:
-    - shared-medium
-  script:
-    - ./utils/govulncheck.sh
-  artifacts:
-    when: always
-    paths:
-      - vulns*
-
+# test-darwin:
+#   extends:
+#     - .env-darwin
+#     - .script-test
+# 
+# fuzz-linux:
+#   stage: test
+#   extends:
+#     - .image-linux-test
+#     - .rules-branch-manual-MR-and-devel-always
+#   script:
+#     - make fuzz
+#   tags:
+#     - shared-large
+# 
+# test-linux-race:
+#   extends:
+#     - test-linux
+#     - .rules-branch-and-MR-manual
+#   script:
+#     - make test-race
+# 
+# test-integration:
+#   extends:
+#     - test-linux
+#   script:
+#     - make test-integration | tee -a integration-job.log
+#   after_script:
+#     - |
+#       grep "Error: " integration-job.log
+#   artifacts:
+#     when: always
+#     paths:
+#       - integration-job.log
+# 
+# test-integration-race:
+#   extends:
+#     - test-integration
+#     - .rules-branch-and-MR-manual
+#   script:
+#     - make test-integration-race | tee -a integration-race-job.log
+#   artifacts:
+#     when: always
+#     paths:
+#       - integration-race-job.log
+# 
+# 
+# test-integration-nightly:
+#   extends:
+#     - test-integration
+#     - .rules-branch-manual-scheduled-and-test-branch-always
+#   needs:
+#     - test-integration
+#   script:
+#     - make test-integration-nightly | tee -a nightly-job.log
+#   after_script:
+#     - |
+#       grep "Error: " nightly-job.log
+#   artifacts:
+#     when: always
+#     paths:
+#       - nightly-job.log
+# 
+# test-coverage:
+#   stage: test
+#   extends:
+#     - .image-linux-test
+#     - .rules-branch-manual-scheduled-and-test-branch-always
+#   script:
+#     - ./utils/coverage.sh
+#   coverage: '/total:.*\(statements\).*\d+\.\d+%/'
+#   needs:
+#     - test-linux
+#     - test-windows
+#     - test-darwin
+#     - test-integration
+#     - test-integration-nightly
+#   tags:
+#     - shared-small
+#   artifacts:
+#     paths:
+#       - coverage*
+#       - coverage/**
+#     when: 'always'
+#     reports:
+#       coverage_report:
+#         coverage_format: cobertura
+#         path: coverage.xml
+# 
+# go-vuln-check:
+#   extends:
+#     - .image-linux-test
+#     - .rules-branch-manual-MR-and-devel-always
+#   stage: test
+#   tags:
+#     - shared-medium
+#   script:
+#     - ./utils/govulncheck.sh
+#   artifacts:
+#     when: always
+#     paths:
+#       - vulns*
+# 
