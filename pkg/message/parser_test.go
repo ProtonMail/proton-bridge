@@ -837,6 +837,17 @@ func TestPatchNewLineWithHtmlBreaks(t *testing.T) {
 	}
 }
 
+func TestParseCp1250Attachment(t *testing.T) {
+	r := require.New(t)
+	f := getFileReader("text_plain_xml_attachment_cp1250.eml")
+
+	m, err := Parse(f)
+	r.NoError(err)
+
+	r.Len(m.Attachments, 1)
+	r.Equal("text/xml; charset=windows-1250; name=\"cp1250.xml\"", m.Attachments[0].Header.Get("Content-Type"))
+}
+
 func getFileReader(filename string) io.Reader {
 	f, err := os.Open(filepath.Join("testdata", filename))
 	if err != nil {

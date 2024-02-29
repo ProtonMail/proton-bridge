@@ -1,0 +1,22 @@
+From: Sender <sender@pm.me>
+To: Receiver <receiver@pm.me>
+Content-Type: multipart/mixed; boundary="------------iOaeSk0jVHjMucH3kQFwS1LB"
+
+This is a multi-part message in MIME format.
+--------------iOaeSk0jVHjMucH3kQFwS1LB
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+
+created by me đźŽ
+
+--------------iOaeSk0jVHjMucH3kQFwS1LB
+Content-Type: text/xml; charset=windows-1250; name="cp1250.xml"
+Content-Disposition: attachment; filename="cp1250.xml"
+Content-Transfer-Encoding: 8bit
+
+<?xml version="1.0" encoding="WINDOWS-1250" ?>
+<pvpoj xmlns="http://schemas.cssz.cz/POJ/PVPOJ2023">
+<ulice>Horní náměstí</ulice>
+<prijmeni>ŠCheckCharsá</prijmeni>
+</pvpoj>
+--------------iOaeSk0jVHjMucH3kQFwS1LB--

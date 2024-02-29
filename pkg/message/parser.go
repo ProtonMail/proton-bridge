@@ -205,6 +205,10 @@ func convertForeignEncodings(p *parser.Parser) error {
 			return p.ConvertMetaCharset()
 		}).
 		RegisterContentTypeHandler("text/.*", func(p *parser.Part) error {
+			if p.IsAttachment() {
+				return nil
+			}
+
 			return p.ConvertToUTF8()
 		}).
 		Walk()
