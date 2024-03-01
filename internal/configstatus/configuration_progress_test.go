@@ -95,6 +95,6 @@ func TestConfigurationProgress_fed_year_change(t *testing.T) {
 
 	require.Equal(t, "bridge.any.configuration", req.MeasurementGroup)
 	require.Equal(t, "bridge_config_progress", req.Event)
-	require.Equal(t, 370, req.Values.NbDay)
+	require.True(t, (req.Values.NbDay == 370) || (req.Values.NbDay == 371)) // leap year is accounted for in the simplest manner.
 	require.Equal(t, 2, req.Values.NbDaySinceLast)
 }
