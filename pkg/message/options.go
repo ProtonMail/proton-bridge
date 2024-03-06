@@ -24,4 +24,5 @@ type JobOptions struct {
 	AddExternalID          bool // Whether to include ExternalID as X-Pm-External-Id.
 	AddMessageDate         bool // Whether to include message time as X-Pm-Date.
 	AddMessageIDReference  bool // Whether to include the MessageID in References.
+	SanitizeMBOXHeaderLine bool // Whether to ignore header line representing MBOX delimiter
 }

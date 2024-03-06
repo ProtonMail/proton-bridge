@@ -18,6 +18,7 @@
 package message
 
 import (
+	"bytes"
 	"net/mail"
 	"os"
 	"path/filepath"
@@ -1297,4 +1298,97 @@ func TestBuildComplexMIMEType(t *testing.T) {
 		expectTransferEncoding(is(`base64`)).
 		expectContentTypeParam(`name`, is(`Cat_August_2010-4.jpeg`)).
 		expectContentDispositionParam(`filename`, is(`Cat_August_2010-4.jpeg`))
+}
+
+func TestHasMBOXHeaderLine(t *testing.T) {
+	cases := map[string]struct {
+		index, indexCRLF int
+	}{
+		"From: ok\nTo: Ok":                 {-1, -1},
+		"From: ok\nTo: Ok\n\nFrom - 123":   {-1, -1},
+		"From: ok\nTo: Ok\n\n>From - 123":  {-1, -1},
+		">From: ok\nTo: Ok":                {-1, -1},
+		">From: ok\nTo: Ok\n\nFrom - 123":  {-1, -1},
+		">From: ok\nTo: Ok\n\n>From - 123": {-1, -1},
+
+		"From - 123\nFrom: ok\nTo: Ok":                {0, 0},
+		"From - 123\nFrom: ok\nTo: Ok\n\nFrom - 123":  {0, 0},
+		"From - 123\nFrom: ok\nTo: Ok\n\n>From - 123": {0, 0},
+
+		"From: ok\nFrom - 123\nTo: Ok":                {9, 10},
+		"From: ok\nFrom - 123\nTo: Ok\n\nFrom - 123":  {9, 10},
+		"From: ok\nFrom - 123\nTo: Ok\n\n>From - 123": {9, 10},
+
+		">From - 123\nFrom: ok\nTo: Ok":                {0, 0},
+		">From - 123\nFrom: ok\nTo: Ok\n\nFrom - 123":  {0, 0},
+		">From - 123\nFrom: ok\nTo: Ok\n\n>From - 123": {0, 0},
+
+		"From: ok\n>From - 123\nTo: Ok":                {9, 10},
+		"From: ok\n>From - 123\nTo: Ok\n\nFrom - 123":  {9, 10},
+		"From: ok\n>From - 123\nTo: Ok\n\n>From - 123": {9, 10},
+	}
+
+	test := func(t *testing.T, wantIndex int, given string, useCRLF bool) {
+		decrypted := &DecryptedMessage{}
+
+		if useCRLF {
+			decrypted.Body = *bytes.NewBufferString(strings.ReplaceAll(given, "\n", "\r\n"))
+		} else {
+			decrypted.Body = *bytes.NewBufferString(given)
+		}
+
+		require.Equal(t, wantIndex, indexMBOXHeaderLine(decrypted))
+	}
+
+	for given, want := range cases {
+		t.Run("LF-"+given, func(t *testing.T) { test(t, want.index, given, false) })
+		t.Run("CRLF-"+given, func(t *testing.T) { test(t, want.indexCRLF, given, true) })
+	}
+}
+
+func TestSanitizeMBOXHeaderLine(t *testing.T) {
+	cases := map[string]string{
+		"From: ok\nTo: Ok":                "From: ok\nTo: Ok",
+		"From: ok\nTo: Ok\n\nFrom - 123":  "From: ok\nTo: Ok\n\nFrom - 123",
+		"From: ok\nTo: Ok\n\n>From - 123": "From: ok\nTo: Ok\n\n>From - 123",
+
+		">From: ok\nTo: Ok":                ">From: ok\nTo: Ok",
+		">From: ok\nTo: Ok\n\nFrom - 123":  ">From: ok\nTo: Ok\n\nFrom - 123",
+		">From: ok\nTo: Ok\n\n>From - 123": ">From: ok\nTo: Ok\n\n>From - 123",
+
+		"From - 123\nFrom: ok\nTo: Ok":                "From: ok\nTo: Ok",
+		"From - 123\nFrom: ok\nTo: Ok\n\nFrom - 123":  "From: ok\nTo: Ok\n\nFrom - 123",
+		"From - 123\nFrom: ok\nTo: Ok\n\n>From - 123": "From: ok\nTo: Ok\n\n>From - 123",
+
+		"From: ok\nFrom - 123\nTo: Ok":                "From: ok\nTo: Ok",
+		"From: ok\nFrom - 123\nTo: Ok\n\nFrom - 123":  "From: ok\nTo: Ok\n\nFrom - 123",
+		"From: ok\nFrom - 123\nTo: Ok\n\n>From - 123": "From: ok\nTo: Ok\n\n>From - 123",
+
+		">From - 123\nFrom: ok\nTo: Ok":                "From: ok\nTo: Ok",
+		">From - 123\nFrom: ok\nTo: Ok\n\nFrom - 123":  "From: ok\nTo: Ok\n\nFrom - 123",
+		">From - 123\nFrom: ok\nTo: Ok\n\n>From - 123": "From: ok\nTo: Ok\n\n>From - 123",
+
+		"From: ok\n>From - 123\nTo: Ok":                "From: ok\nTo: Ok",
+		"From: ok\n>From - 123\nTo: Ok\n\nFrom - 123":  "From: ok\nTo: Ok\n\nFrom - 123",
+		"From: ok\n>From - 123\nTo: Ok\n\n>From - 123": "From: ok\nTo: Ok\n\n>From - 123",
+	}
+
+	test := func(t *testing.T, given, want string, useCRLF bool) {
+		decrypted := &DecryptedMessage{}
+
+		if useCRLF {
+			decrypted.Body = *bytes.NewBufferString(strings.ReplaceAll(given, "\n", "\r\n"))
+			want = strings.ReplaceAll(want, "\n", "\r\n")
+		} else {
+			decrypted.Body = *bytes.NewBufferString(given)
+		}
+
+		require.NoError(t, sanitizeMBOXHeaderLine(decrypted))
+		require.Equal(t, []byte(want), decrypted.Body.Bytes())
+	}
+
+	for given, want := range cases {
+		t.Run("LF"+given, func(t *testing.T) { test(t, given, want, false) })
+		t.Run("CRLF"+given, func(t *testing.T) { test(t, given, want, true) })
+	}
 }

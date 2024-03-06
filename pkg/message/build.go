@@ -19,6 +19,7 @@ package message
 
 import (
 	"bytes"
+	"fmt"
 	"mime"
 	"net/mail"
 	"strings"
@@ -46,6 +47,12 @@ var (
 const InternalIDDomain = `protonmail.internalid`
 
 func BuildRFC822Into(kr *crypto.KeyRing, decrypted *DecryptedMessage, opts JobOptions, buf *bytes.Buffer) error {
+	if opts.SanitizeMBOXHeaderLine {
+		if err := sanitizeMBOXHeaderLine(decrypted); err != nil {
+			return fmt.Errorf("failed to sanitize MBOX header: %w", err)
+		}
+	}
+
 	switch {
 	case len(decrypted.Msg.Attachments) > 0:
 		return buildMultipartRFC822(decrypted, opts, buf)
@@ -559,4 +566,81 @@ func newBoundary(seed string) *boundary {
 func (bw *boundary) gen() string {
 	bw.val = algo.HashHexSHA256(bw.val)
 	return bw.val
+}
+
+func mboxFrom() []byte {
+	return []byte("From ")
+}
+
+func mboxGtFrom() []byte {
+	return []byte(">From ")
+}
+
+func sanitizeMBOXHeaderLine(decrypted *DecryptedMessage) error {
+	if decrypted == nil {
+		return nil
+	}
+
+	if decrypted.Body.Len() == 0 {
+		return nil
+	}
+
+	i := indexMBOXHeaderLine(decrypted)
+	for i >= 0 {
+		var buf bytes.Buffer
+
+		// copy until mbox line
+		if i > 0 {
+			if _, err := buf.Write(decrypted.Body.Next(i)); err != nil {
+				return fmt.Errorf("cannot copy first lines: %w", err)
+			}
+		}
+
+		// dump mbox line
+		eol := bytes.IndexRune(decrypted.Body.Bytes(), '\n')
+		if eol == 0 || eol == -1 {
+			return errors.New("cannot find end of mbox line")
+		}
+
+		_ = decrypted.Body.Next(eol + 1)
+
+		// copy rest
+		if _, err := buf.Write(decrypted.Body.Bytes()); err != nil {
+			return fmt.Errorf("cannot rest of message: %w", err)
+		}
+
+		decrypted.Body = buf
+		i = indexMBOXHeaderLine(decrypted)
+	}
+
+	return nil
+}
+
+func indexMBOXHeaderLine(decrypted *DecryptedMessage) int {
+	b := decrypted.Body.Bytes()
+
+	headerEnd := bytes.Index(b, []byte("\n\n"))
+	if headerEnd < 0 {
+		headerEnd = bytes.Index(b, []byte("\r\n\r\n"))
+	}
+	if headerEnd < 0 {
+		headerEnd = len(b)
+	}
+
+	for i := 0; i < headerEnd; i++ {
+		if i != 0 && b[i] != '\n' {
+			continue
+		}
+
+		j := 0
+		if i != 0 {
+			j = i + 1
+		}
+
+		if bytes.HasPrefix(b[j:], mboxFrom()) || bytes.HasPrefix(b[j:], mboxGtFrom()) {
+			return j
+		}
+	}
+
+	return -1
 }
