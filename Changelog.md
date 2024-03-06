@@ -43,6 +43,12 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * GODT-3188: Happy new year.
 
 
+## Xikou Bridge 3.8.2
+
+### Fixed
+* GODT-3235: Update bridge update key.
+
+
 ## Xikou Bridge 3.8.1
 
 ### Added
