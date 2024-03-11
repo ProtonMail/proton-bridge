@@ -140,7 +140,7 @@ if (WIN32) # on Windows, we add a (non-Qt) resource file that contains the appli
 endif()
 
 target_precompile_headers(bridge-gui PRIVATE Pch.h)
-target_include_directories(bridge-gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${SENTRY_CONFIG_GENERATED_FILE_DIR})
+target_include_directories(bridge-gui PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" ${SENTRY_CONFIG_GENERATED_FILE_DIR})
 target_link_libraries(bridge-gui
     Qt6::Widgets
     Qt6::Core

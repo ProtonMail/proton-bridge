@@ -91,7 +91,7 @@ ifeq "${TARGET_OS}" "darwin"
 	mv ${BRIDGE_EXE} ${BRIDGE_EXE_NAME}
 endif
 
-go-build=go build $(1) -o "$(2)" "$(3)"
+go-build=go build $(1) -o $(2) $(3)
 go-build-finalize=${go-build}
 ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
 	go-build-finalize= \
@@ -118,7 +118,7 @@ versioner:
 	go build ${BUILD_FLAGS} -o versioner utils/versioner/main.go
 
 vault-editor:
-	$(call go-build-finalize,"-tags=debug","vault-editor","./utils/vault-editor/main.go")
+	$(call go-build-finalize,-tags=debug,"vault-editor","./utils/vault-editor/main.go")
 
 bridge-rollout:
 	$(call go-build-finalize,, "bridge-rollout","./utils/bridge-rollout/bridge-rollout.go")

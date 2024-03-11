@@ -31,7 +31,7 @@ macro( AppendLib LIB_NAME HINT_PATH)
     if( ${PATH_${UP_NAME}} STREQUAL "PATH_${UP_NAME}-NOTFOUND")
         message(SEND_ERROR "${LIB_NAME} was not found in ${HINT_PATH}")
     else()
-        list(APPEND DEPLOY_LIBS ${PATH_${UP_NAME}})
+        list(APPEND DEPLOY_LIBS "${PATH_${UP_NAME}}")
     endif()
 endmacro()
 

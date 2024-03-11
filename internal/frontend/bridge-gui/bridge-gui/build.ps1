@@ -102,6 +102,7 @@ git submodule update --init --recursive $vcpkgRoot
                                        -S . -B $buildDir
 
 check_exit "CMake failed"
+
 . $cmakeExe --build $buildDir --config "$buildConfig"
 check_exit "Build failed"
 
@@ -109,7 +110,7 @@ if  ($($args.count) -gt 0 )
 {
     if ($args[0] = "install")
     {
-        . $cmakeExe --install $buildDir
+        . $cmakeExe --install "$buildDir" -v
         check_exit "Install failed"
     }
 }
