@@ -6,7 +6,7 @@ export CGO_ENABLED=1
 GOOS:=$(shell go env GOOS)
 TARGET_CMD?=Desktop-Bridge
 TARGET_OS?=${GOOS}
-ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+ROOT_DIR:=$(realpath .)
 
 ## Build
 .PHONY: build build-gui build-nogui build-launcher versioner hasher
@@ -20,8 +20,8 @@ SRC_ICO:=bridge.ico
 SRC_ICNS:=Bridge.icns
 SRC_SVG:=bridge.svg
 EXE_NAME:=proton-bridge
-REVISION:=$(shell ./utils/get_revision.sh)
-TAG:=$(shell ./utils/get_revision.sh tag)
+REVISION:=$(shell "${ROOT_DIR}/utils/get_revision.sh")
+TAG:=$(shell "${ROOT_DIR}/utils/get_revision.sh" tag)
 BUILD_TIME:=$(shell date +%FT%T%z)
 MACOS_MIN_VERSION_ARM64=11.0
 MACOS_MIN_VERSION_AMD64=10.15
@@ -91,7 +91,7 @@ ifeq "${TARGET_OS}" "darwin"
 	mv ${BRIDGE_EXE} ${BRIDGE_EXE_NAME}
 endif
 
-go-build=go build $(1) -o $(2) $(3)
+go-build=go build $(1) -o "$(2)" "$(3)"
 go-build-finalize=${go-build}
 ifeq "${GOOS}-$(shell uname -m)" "darwin-arm64"
 	go-build-finalize= \
@@ -102,9 +102,9 @@ endif
 
 ifeq "${GOOS}" "windows"
 	go-build-finalize= \
-		$(if $(4),powershell Copy-Item ${ROOT_DIR}/${RESOURCE_FILE} ${4}  &&,) \
+		$(if $(4),cp "${ROOT_DIR}/${RESOURCE_FILE}" ${4}  &&,) \
 		$(call go-build,$(1),$(2),$(3)) \
-		$(if $(4), && powershell Remove-Item ${4} -Force,)
+		$(if $(4), && rm -f ${4},)
 endif
 
 ${EXE_NAME}: gofiles  ${RESOURCE_FILE}
@@ -168,7 +168,7 @@ ${EXE_TARGET}: check-build-essentials ${EXE_NAME}
  		BRIDGE_BUILD_TIME=${BUILD_TIME} \
 		BRIDGE_GUI_BUILD_CONFIG=Release \
 		BRIDGE_BUILD_ENV=${BUILD_ENV} \
-		BRIDGE_INSTALL_PATH=${ROOT_DIR}/${DEPLOY_DIR}/${GOOS} \
+		BRIDGE_INSTALL_PATH="${ROOT_DIR}/${DEPLOY_DIR}/${GOOS}" \
 		./build.sh install
 	mv "${ROOT_DIR}/${BRIDGE_EXE}" "$(ROOT_DIR)/${EXE_TARGET}"
 
