@@ -55,9 +55,8 @@ type Service struct {
 	panicHandler   async.PanicHandler
 	reporter       reporter.Reporter
 
-	loadedUserCount int
-	log             *logrus.Entry
-	tasks           *async.Group
+	log   *logrus.Entry
+	tasks *async.Group
 
 	uidValidityGenerator imap.UIDValidityGenerator
 	telemetry            Telemetry
@@ -265,30 +264,16 @@ func (sm *Service) run(ctx context.Context, subscription events.Subscription) {
 }
 
 func (sm *Service) handleLoadedUserCountChange(ctx context.Context) {
-	sm.log.Infof("Validating Listener State %v", sm.loadedUserCount)
-	if sm.shouldStartServers() {
-		if sm.imapListener == nil {
-			if err := sm.serveIMAP(ctx); err != nil {
-				sm.log.WithError(err).Error("Failed to start IMAP server")
-			}
+	sm.log.Infof("Validating Listener State")
+	if sm.imapListener == nil {
+		if err := sm.serveIMAP(ctx); err != nil {
+			sm.log.WithError(err).Error("Failed to start IMAP server")
 		}
+	}
 
-		if sm.smtpListener == nil {
-			if err := sm.restartSMTP(ctx); err != nil {
-				sm.log.WithError(err).Error("Failed to start SMTP server")
-			}
-		}
-	} else {
-		if sm.imapListener != nil {
-			if err := sm.stopIMAPListener(ctx); err != nil {
-				sm.log.WithError(err).Error("Failed to stop IMAP server")
-			}
-		}
-
-		if sm.smtpListener != nil {
-			if err := sm.closeSMTPServer(ctx); err != nil {
-				sm.log.WithError(err).Error("Failed to stop SMTP server")
-			}
+	if sm.smtpListener == nil {
+		if err := sm.restartSMTP(ctx); err != nil {
+			sm.log.WithError(err).Error("Failed to start SMTP server")
 		}
 	}
 }
@@ -317,12 +302,7 @@ func (sm *Service) handleAddIMAPUser(ctx context.Context,
 ) error {
 	// Due to the many different error exits, performer user count change at this stage rather we split the incrementing
 	// of users from the logic.
-	err := sm.handleAddIMAPUserImpl(ctx, connector, addrID, idProvider, syncStateProvider)
-	if err == nil {
-		sm.loadedUserCount++
-	}
-
-	return err
+	return sm.handleAddIMAPUserImpl(ctx, connector, addrID, idProvider, syncStateProvider)
 }
 
 func (sm *Service) handleAddIMAPUserImpl(ctx context.Context,
@@ -446,8 +426,6 @@ func (sm *Service) handleRemoveIMAPUser(ctx context.Context, withData bool, idPr
 				return fmt.Errorf("failed to remove IMAP user ID: %w", err)
 			}
 		}
-
-		sm.loadedUserCount--
 	}
 
 	return nil
@@ -552,11 +530,7 @@ func (sm *Service) restartIMAP(ctx context.Context) error {
 		sm.eventPublisher.PublishEvent(ctx, events.IMAPServerStopped{})
 	}
 
-	if sm.shouldStartServers() {
-		return sm.serveIMAP(ctx)
-	}
-
-	return nil
+	return sm.serveIMAP(ctx)
 }
 
 func (sm *Service) restartSMTP(ctx context.Context) error {
@@ -570,11 +544,7 @@ func (sm *Service) restartSMTP(ctx context.Context) error {
 
 	sm.smtpServer = newSMTPServer(sm.smtpAccounts, sm.smtpSettings)
 
-	if sm.shouldStartServers() {
-		return sm.serveSMTP(ctx)
-	}
-
-	return nil
+	return sm.serveSMTP(ctx)
 }
 
 func (sm *Service) serveSMTP(ctx context.Context) error {
@@ -689,8 +659,6 @@ func (sm *Service) handleSetGluonDir(ctx context.Context, newGluonDir string) er
 		return fmt.Errorf("failed to close IMAP: %w", err)
 	}
 
-	sm.loadedUserCount = 0
-
 	if err := moveGluonCacheDir(sm.imapSettings, currentGluonDir, newGluonDir); err != nil {
 		sm.log.WithError(err).Error("failed to move GluonCacheDir")
 
@@ -710,17 +678,11 @@ func (sm *Service) handleSetGluonDir(ctx context.Context, newGluonDir string) er
 
 	sm.imapServer = imapServer
 
-	if sm.shouldStartServers() {
-		if err := sm.serveIMAP(ctx); err != nil {
-			return fmt.Errorf("failed to serve IMAP: %w", err)
-		}
+	if err := sm.serveIMAP(ctx); err != nil {
+		return fmt.Errorf("failed to serve IMAP: %w", err)
 	}
 
 	return nil
-}
-
-func (sm *Service) shouldStartServers() bool {
-	return true // sm.loadedUserCount >= 1
 }
 
 type smRequestClose struct{}
