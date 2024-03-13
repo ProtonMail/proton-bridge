@@ -203,3 +203,35 @@ func TestFixGODT3003Labels_Noop(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, applied)
 }
+
+func TestStripPlusAlias(t *testing.T) {
+	cases := map[string]string{
+		"one@three.com":     "one@three.com",
+		"one+two@three.com": "one@three.com",
+		"one@three+two.com": "one@three+two.com",
+		"+one@three.com":    "+one@three.com",
+		"@three.com":        "@three.com",
+	}
+
+	for given, want := range cases {
+		require.Equal(t, want, stripPlusAlias(given), "input was %q", given)
+	}
+}
+
+func TestEqualAddresse(t *testing.T) {
+	cases := []struct {
+		a, b string
+		want bool
+	}{
+		{"one@three.com", "one@three.com", true},
+		{"one@three.com", "one+two@three.com", true},
+		{"OnE@thReE.com", "One@THree.com", true},
+		{"one@three.com", "two@three.com", false},
+		{"one+two@three.com", "two@three.com", false},
+		{"one@three.com", "one@three+two.com", false},
+	}
+
+	for _, c := range cases {
+		require.Equal(t, c.want, equalAddresses(c.a, c.b), "input was %q and %q", c.a, c.b)
+	}
+}

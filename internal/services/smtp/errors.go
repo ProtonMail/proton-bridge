@@ -27,14 +27,14 @@ var ErrInvalidReturnPath = errors.New("invalid return path")
 var ErrNoSuchUser = errors.New("no such user")
 var ErrTooManyErrors = errors.New("too many failed requests, please try again later")
 
-type ErrCanNotSendOnAddress struct {
+type ErrCannotSendFromAddress struct {
 	address string
 }
 
-func NewErrCanNotSendOnAddress(address string) *ErrCanNotSendOnAddress {
-	return &ErrCanNotSendOnAddress{address: address}
+func NewErrCannotSendFromAddress(address string) *ErrCannotSendFromAddress {
+	return &ErrCannotSendFromAddress{address: address}
 }
 
-func (e ErrCanNotSendOnAddress) Error() string {
-	return fmt.Sprintf("can't send on address: %v", e.address)
+func (e ErrCannotSendFromAddress) Error() string {
+	return fmt.Sprintf("cannot send from address: %v", e.address)
 }

@@ -20,5 +20,5 @@ Feature: SMTP wrong messages
 
       Hello
       """
-    And it fails with error "Error: can't send on address: [user:disabled]@[domain]"
+    And it fails with error "Error: cannot send from address: [user:disabled]@[domain]"
 

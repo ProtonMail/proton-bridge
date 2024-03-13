@@ -205,3 +205,30 @@ func (s *scenario) theBodyInTheResponseToIs(method, path string, value *godog.Do
 
 	return nil
 }
+
+func (s *scenario) theMessageUsedKeyForSending(address string) error {
+	addrID := s.t.getUserByAddress(address).getAddrID(address)
+
+	call, err := s.t.getLastCallExcludingHTTPOverride("POST", "/mail/v4/messages")
+	if err != nil {
+		return err
+	}
+
+	var body, want map[string]any
+
+	if err := json.Unmarshal(call.ResponseBody, &body); err != nil {
+		return err
+	}
+
+	want = map[string]any{
+		"Message": map[string]any{
+			"AddressID": addrID,
+		},
+	}
+
+	if !IsSub(body, want) {
+		return fmt.Errorf("have body %v, want %v", body, want)
+	}
+
+	return nil
+}

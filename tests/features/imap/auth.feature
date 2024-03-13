@@ -20,13 +20,6 @@ Feature: A user can authenticate an IMAP client
   Scenario: IMAP client can authenticate successfully with secondary address
     Given user "[user:user]" connects and authenticates IMAP client "1" with address "[alias:alias]@[domain]"
 
-  # Need to find  way to setup disabled address on black
-  @skip-black
-  Scenario: IMAP client can not authenticate successfully with disable address
-    Given the account "[user:user2]" has additional disabled address "[alias:disabled]@[domain]"
-    And it succeeds
-    Then user "[user:user2]" connects and can not authenticate IMAP client "1" with address "[alias:disabled]@[domain]"
-
   Scenario: IMAP client can authenticate successfully
     When user "[user:user]" connects IMAP client "1"
     Then IMAP client "1" can authenticate

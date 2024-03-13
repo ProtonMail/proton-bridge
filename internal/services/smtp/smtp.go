@@ -103,8 +103,8 @@ func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, 
 	}
 
 	if !fromAddr.Send || fromAddr.Status != proton.AddressStatusEnabled {
-		s.log.Errorf("Can't send emails on address: %v", fromAddr.Email)
-		return &ErrCanNotSendOnAddress{address: fromAddr.Email}
+		s.log.Errorf("Cannot send emails from address: %v", fromAddr.Email)
+		return &ErrCannotSendFromAddress{address: fromAddr.Email}
 	}
 
 	// Load the user's mail settings.

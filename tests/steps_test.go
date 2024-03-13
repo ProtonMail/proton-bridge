@@ -38,6 +38,8 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the network port range (\d+)-(\d+) is busy$`, s.networkPortRangeIsBusy)
 	ctx.Step(`^bridge IMAP port is (\d+)`, s.bridgeIMAPPortIs)
 	ctx.Step(`^bridge SMTP port is (\d+)`, s.bridgeSMTPPortIs)
+	ctx.Step(`^the message used "([^"]*)" key for sending$`, s.theMessageUsedKeyForSending)
+
 	// ==== SETUP ====
 	ctx.Step(`^there exists an account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPassword)
 	ctx.Step(`^there exists a disabled account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPasswordWithDisablePrimary)

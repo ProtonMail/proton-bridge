@@ -750,7 +750,7 @@ func TestBridge_SendAddressDisabled(t *testing.T) {
 				strings.NewReader("Subject: Test 1\r\n\r\nHello world!"),
 			)
 
-			smtpErr := smtpservice.NewErrCanNotSendOnAddress(senderInfo.Addresses[0])
+			smtpErr := smtpservice.NewErrCannotSendFromAddress(senderInfo.Addresses[0])
 			require.Equal(t, fmt.Sprintf("Error: %v", smtpErr.Error()), err.Error())
 		})
 	})

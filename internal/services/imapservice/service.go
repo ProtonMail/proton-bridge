@@ -508,6 +508,7 @@ func (s *Service) buildConnectors() (map[string]*Connector, error) {
 			s.sendRecorder,
 			s.panicHandler,
 			s.telemetry,
+			s.reporter,
 			s.showAllMail,
 			s.syncStateProvider,
 		)
@@ -525,6 +526,7 @@ func (s *Service) buildConnectors() (map[string]*Connector, error) {
 			s.sendRecorder,
 			s.panicHandler,
 			s.telemetry,
+			s.reporter,
 			s.showAllMail,
 			s.syncStateProvider,
 		)

@@ -23,12 +23,15 @@ import (
 	"errors"
 	"fmt"
 	"net/mail"
+	"strings"
 	"sync/atomic"
 	"time"
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/connector"
 	"github.com/ProtonMail/gluon/imap"
+	"github.com/ProtonMail/gluon/reporter"
+	"github.com/ProtonMail/gluon/rfc5322"
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
@@ -54,6 +57,7 @@ type Connector struct {
 	identityState sharedIdentity
 	client        APIClient
 	telemetry     Telemetry
+	reporter      reporter.Reporter
 	panicHandler  async.PanicHandler
 	sendRecorder  *sendrecorder.SendRecorder
 
@@ -75,6 +79,7 @@ func NewConnector(
 	sendRecorder *sendrecorder.SendRecorder,
 	panicHandler async.PanicHandler,
 	telemetry Telemetry,
+	reporter reporter.Reporter,
 	showAllMail bool,
 	syncState *SyncState,
 ) *Connector {
@@ -90,6 +95,7 @@ func NewConnector(
 
 		client:       apiClient,
 		telemetry:    telemetry,
+		reporter:     reporter,
 		panicHandler: panicHandler,
 		sendRecorder: sendRecorder,
 
@@ -279,7 +285,7 @@ func (s *Connector) CreateMessage(ctx context.Context, _ connector.IMAPStateWrit
 	if messageID, ok, err := s.sendRecorder.HasEntryWait(ctx, hash, time.Now().Add(90*time.Second), toList); err != nil {
 		return imap.Message{}, nil, fmt.Errorf("failed to check send hash: %w", err)
 	} else if ok {
-		s.log.WithField("messageID", messageID).Warn("Message already sent")
+		s.log.WithField("messageID", messageID).Warn("Message already in sent mailbox")
 
 		// Query the server-side message.
 		full, err := s.client.GetFullMessage(ctx, messageID, usertypes.NewProtonAPIScheduler(s.panicHandler), proton.NewDefaultAttachmentAllocator())
@@ -671,10 +677,20 @@ func (s *Connector) importMessage(
 ) (imap.Message, []byte, error) {
 	var full proton.FullMessage
 
+	// addr is primary for combined mode or active for split mode
 	addr, ok := s.identityState.GetAddress(s.addrID)
 	if !ok {
 		return imap.Message{}, nil, fmt.Errorf("could not find address")
 	}
+
+	p, err2 := parser.New(bytes.NewReader(literal))
+	if err2 != nil {
+		return imap.Message{}, nil, fmt.Errorf("failed to parse literal: %w", err2)
+	}
+
+	isDraft := slices.Contains(labelIDs, proton.DraftsLabel)
+
+	s.reportGODT3185(isDraft, addr.Email, p, s.addressMode == usertypes.AddressModeCombined)
 
 	if err := s.identityState.WithAddrKR(s.addrID, func(_, addrKR *crypto.KeyRing) error {
 		primaryKey, errKey := addrKR.FirstKey()
@@ -683,11 +699,8 @@ func (s *Connector) importMessage(
 		}
 
 		var messageID string
-		p, err2 := parser.New(bytes.NewReader(literal))
-		if err2 != nil {
-			return fmt.Errorf("failed to parse literal: %w", err2)
-		}
-		if slices.Contains(labelIDs, proton.DraftsLabel) {
+
+		if isDraft {
 			msg, err := s.createDraftWithParser(ctx, p, primaryKey, addr)
 			if err != nil {
 				return fmt.Errorf("failed to create draft: %w", err)
@@ -849,4 +862,95 @@ func defaultMailboxPermanentFlags() imap.FlagSet {
 
 func defaultMailboxAttributes() imap.FlagSet {
 	return imap.NewFlagSet()
+}
+
+func stripPlusAlias(a string) string {
+	iPlus := strings.Index(a, "+")
+	iAt := strings.Index(a, "@")
+	if iPlus <= 0 || iAt <= 0 || iPlus >= iAt {
+		return a
+	}
+
+	return a[:iPlus] + a[iAt:]
+}
+
+func equalAddresses(a, b string) bool {
+	return strings.EqualFold(stripPlusAlias(a), stripPlusAlias(b))
+}
+
+func (s *Connector) reportGODT3185(isDraft bool, defaultAddr string, p *parser.Parser, isCombinedMode bool) {
+	reportAction := "draft"
+	if !isDraft {
+		reportAction = "import"
+	}
+
+	reportMode := "combined"
+	if isCombinedMode {
+		reportMode = "split"
+	}
+
+	senderAddr := ""
+	if p != nil && p.Root() != nil && p.Root().Header.Len() != 0 {
+		addrField := p.Root().Header.Get("From")
+		if addrField == "" {
+			addrField = p.Root().Header.Get("Sender")
+		}
+		if addrField != "" {
+			sender, err := rfc5322.ParseAddressList(addrField)
+			if err == nil && len(sender) > 0 {
+				senderAddr = sender[0].Address
+			} else {
+				s.log.WithError(err).Warn("Invalid sender address in reporter")
+			}
+		}
+	}
+
+	if equalAddresses(defaultAddr, senderAddr) {
+		return
+	}
+
+	isDisabled := false
+	isUserAddress := false
+	for _, a := range s.identityState.GetAddresses() {
+		if !equalAddresses(a.Email, senderAddr) {
+			continue
+		}
+
+		isUserAddress = true
+		isDisabled = !bool(a.Send) || (a.Status != proton.AddressStatusEnabled)
+		break
+	}
+
+	if !isUserAddress && senderAddr != "" {
+		return
+	}
+
+	reportResult := "using sender address"
+
+	if !isCombinedMode {
+		reportResult = "error address not match"
+	}
+
+	reportAddress := ""
+	if senderAddr == "" {
+		reportAddress = " invalid"
+		reportResult = "error import/draft"
+	}
+
+	if isDisabled {
+		reportAddress = " disabled"
+		if isDraft {
+			reportResult = "error draft"
+		}
+	}
+
+	report := fmt.Sprintf(
+		"GODT-3185: %s with non-default%s address in %s mode: %s",
+		reportAction, reportAddress, reportMode, reportResult,
+	)
+
+	s.log.Warn(report)
+	if s.reporter != nil {
+		_ = s.reporter.ReportMessage(report)
+	}
 }
