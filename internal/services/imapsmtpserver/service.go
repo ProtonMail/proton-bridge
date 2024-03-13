@@ -108,6 +108,16 @@ func (sm *Service) Init(ctx context.Context, group *async.Group, subscription ev
 		})
 	})
 
+	if err := sm.serveIMAP(ctx); err != nil {
+		sm.log.WithError(err).Error("Failed to start IMAP server")
+		return err
+	}
+
+	if err := sm.serveSMTP(ctx); err != nil {
+		sm.log.WithError(err).Error("Failed to start SMTP server")
+		return err
+	}
+
 	return nil
 }
 
@@ -710,7 +720,7 @@ func (sm *Service) handleSetGluonDir(ctx context.Context, newGluonDir string) er
 }
 
 func (sm *Service) shouldStartServers() bool {
-	return sm.loadedUserCount >= 1
+	return true // sm.loadedUserCount >= 1
 }
 
 type smRequestClose struct{}
