@@ -119,6 +119,9 @@ versioner:
 vault-editor:
 	$(call go-build-finalize,"-tags=debug","vault-editor","./utils/vault-editor/main.go")
 
+bridge-rollout:
+	$(call go-build-finalize,, "bridge-rollout","./utils/bridge-rollout/bridge-rollout.go")
+
 hasher:
 	go build -o hasher utils/hasher/main.go
 

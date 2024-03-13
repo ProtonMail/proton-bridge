@@ -10,6 +10,7 @@
     - make build
     - git diff && git diff-index --quiet HEAD
     - make vault-editor
+    - make bridge-rollout
   artifacts:
     expire_in: 1 day
     when: always
@@ -17,7 +18,7 @@
     paths:
       - bridge_*.tgz
       - vault-editor
-
+      - bridge-rollout
 build-linux:
   extends:
     - .script-build
