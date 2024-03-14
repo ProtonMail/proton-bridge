@@ -139,9 +139,6 @@ func test_badMessage_badEvent(userFeedback func(t *testing.T, ctx context.Contex
 			})
 
 			withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-				smtpWaiter := waitForSMTPServerReady(bridge)
-				defer smtpWaiter.Done()
-
 				userLoginAndSync(ctx, t, bridge, "user", password)
 
 				var messageIDs []string
@@ -177,8 +174,6 @@ func test_badMessage_badEvent(userFeedback func(t *testing.T, ctx context.Contex
 
 				userFeedback(t, ctx, bridge, badUserID)
 
-				smtpWaiter.Wait()
-
 				userContinueEventProcess(ctx, t, s, bridge)
 			})
 		})
@@ -197,9 +192,6 @@ func TestBridge_User_BadMessage_NoBadEvent(t *testing.T) {
 		})
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			smtpWaiter := waitForSMTPServerReady(bridge)
-			defer smtpWaiter.Done()
-
 			userLoginAndSync(ctx, t, bridge, "user", password)
 
 			var messageIDs []string
@@ -223,7 +215,6 @@ func TestBridge_User_BadMessage_NoBadEvent(t *testing.T) {
 				require.NoError(t, c.DeleteMessage(ctx, messageIDs...))
 			})
 
-			smtpWaiter.Wait()
 			userContinueEventProcess(ctx, t, s, bridge)
 		})
 	})
@@ -776,19 +767,10 @@ func TestBridge_User_CreateDisabledAddress(t *testing.T) {
 func TestBridge_User_HandleParentLabelRename(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			imapWaiter := waitForIMAPServerReady(bridge)
-			defer imapWaiter.Done()
-
-			smtpWaiter := waitForSMTPServerReady(bridge)
-			defer smtpWaiter.Done()
-
 			require.NoError(t, getErr(bridge.LoginFull(ctx, username, password, nil, nil)))
 
 			info, err := bridge.QueryUserInfo(username)
 			require.NoError(t, err)
-
-			imapWaiter.Wait()
-			smtpWaiter.Wait()
 
 			cli, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 			require.NoError(t, err)

@@ -28,7 +28,6 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"github.com/bradenaw/juniper/iterator"
@@ -330,25 +329,14 @@ func (s *scenario) drafAtIndexWasMovedToTrashForAddressOfAccount(draftIndex int,
 }
 
 func (s *scenario) userLogsInWithUsernameAndPassword(username, password string) error {
-	smtpEvtCh, cancelSMTP := s.t.bridge.GetEvents(events.SMTPServerReady{})
-	defer cancelSMTP()
-	imapEvtCh, cancelIMAP := s.t.bridge.GetEvents(events.IMAPServerReady{})
-	defer cancelIMAP()
-
 	userID, err := s.t.bridge.LoginFull(context.Background(), username, []byte(password), nil, nil)
 	if err != nil {
 		s.t.pushError(err)
 	} else {
 		// We need to wait for server to be up or we won't be able to connect. It should only happen once to avoid
 		// blocking on multiple Logins.
-		if !s.t.imapServerStarted {
-			<-imapEvtCh
-			s.t.imapServerStarted = true
-		}
-		if !s.t.smtpServerStarted {
-			<-smtpEvtCh
-			s.t.smtpServerStarted = true
-		}
+		s.t.imapServerStarted = true
+		s.t.smtpServerStarted = true
 
 		if userID != s.t.getUserByName(username).getUserID() {
 			return errors.New("user ID mismatch")
@@ -366,25 +354,14 @@ func (s *scenario) userLogsInWithUsernameAndPassword(username, password string) 
 }
 
 func (s *scenario) userLogsInWithAliasAddressAndPassword(alias, password string) error {
-	smtpEvtCh, cancelSMTP := s.t.bridge.GetEvents(events.SMTPServerReady{})
-	defer cancelSMTP()
-	imapEvtCh, cancelIMAP := s.t.bridge.GetEvents(events.IMAPServerReady{})
-	defer cancelIMAP()
-
 	userID, err := s.t.bridge.LoginFull(context.Background(), s.t.getUserByAddress(alias).getName(), []byte(password), nil, nil)
 	if err != nil {
 		s.t.pushError(err)
 	} else {
 		// We need to wait for server to be up or we won't be able to connect. It should only happen once to avoid
 		// blocking on multiple Logins.
-		if !s.t.imapServerStarted {
-			<-imapEvtCh
-			s.t.imapServerStarted = true
-		}
-		if !s.t.smtpServerStarted {
-			<-smtpEvtCh
-			s.t.smtpServerStarted = true
-		}
+		s.t.imapServerStarted = true
+		s.t.smtpServerStarted = true
 
 		if userID != s.t.getUserByAddress(alias).getUserID() {
 			return errors.New("user ID mismatch")

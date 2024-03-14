@@ -184,19 +184,10 @@ func TestBridge_UserAgent_Persistence(t *testing.T) {
 		require.NoError(t, err)
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
-			imapWaiter := waitForIMAPServerReady(b)
-			defer imapWaiter.Done()
-
-			smtpWaiter := waitForSMTPServerReady(b)
-			defer smtpWaiter.Done()
-
 			currentUserAgent := b.GetCurrentUserAgent()
 			require.Contains(t, currentUserAgent, useragent.DefaultUserAgent)
 
 			require.NoError(t, getErr(b.LoginFull(ctx, otherUser, otherPassword, nil, nil)))
-
-			imapWaiter.Wait()
-			smtpWaiter.Wait()
 
 			imapClient, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
@@ -235,20 +226,11 @@ func TestBridge_UserAgentFromUnknownClient(t *testing.T) {
 		require.NoError(t, err)
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
-			imapWaiter := waitForIMAPServerReady(b)
-			defer imapWaiter.Done()
-
-			smtpWaiter := waitForSMTPServerReady(b)
-			defer smtpWaiter.Done()
-
 			currentUserAgent := b.GetCurrentUserAgent()
 			require.Contains(t, currentUserAgent, useragent.DefaultUserAgent)
 
 			userID, err := b.LoginFull(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
-
-			imapWaiter.Wait()
-			smtpWaiter.Wait()
 
 			imapClient, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
@@ -274,20 +256,11 @@ func TestBridge_UserAgentFromSMTPClient(t *testing.T) {
 		require.NoError(t, err)
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
-			imapWaiter := waitForIMAPServerReady(b)
-			defer imapWaiter.Done()
-
-			smtpWaiter := waitForSMTPServerReady(b)
-			defer smtpWaiter.Done()
-
 			currentUserAgent := b.GetCurrentUserAgent()
 			require.Contains(t, currentUserAgent, useragent.DefaultUserAgent)
 
 			userID, err := b.LoginFull(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
-
-			imapWaiter.Wait()
-			smtpWaiter.Wait()
 
 			client, err := smtp.Dial(net.JoinHostPort(constants.Host, fmt.Sprint(b.GetSMTPPort())))
 			require.NoError(t, err)
@@ -333,16 +306,7 @@ func TestBridge_UserAgentFromIMAPID(t *testing.T) {
 		require.NoError(t, err)
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
-			imapWaiter := waitForIMAPServerReady(b)
-			defer imapWaiter.Done()
-
-			smtpWaiter := waitForSMTPServerReady(b)
-			defer smtpWaiter.Done()
-
 			require.NoError(t, getErr(b.LoginFull(ctx, otherUser, otherPassword, nil, nil)))
-
-			imapWaiter.Wait()
-			smtpWaiter.Wait()
 
 			imapClient, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
@@ -715,20 +679,11 @@ func TestBridge_InitGluonDirectory(t *testing.T) {
 func TestBridge_LoginFailed(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
-			imapWaiter := waitForIMAPServerReady(bridge)
-			defer imapWaiter.Done()
-
-			smtpWaiter := waitForSMTPServerReady(bridge)
-			defer smtpWaiter.Done()
-
 			failCh, done := chToType[events.Event, events.IMAPLoginFailed](bridge.GetEvents(events.IMAPLoginFailed{}))
 			defer done()
 
 			_, err := bridge.LoginFull(ctx, username, password, nil, nil)
 			require.NoError(t, err)
-
-			imapWaiter.Wait()
-			smtpWaiter.Wait()
 
 			imapClient, err := eventuallyDial(net.JoinHostPort(constants.Host, fmt.Sprint(bridge.GetIMAPPort())))
 			require.NoError(t, err)
@@ -756,12 +711,6 @@ func TestBridge_ChangeCacheDirectory(t *testing.T) {
 			currentCacheDir := b.GetGluonCacheDir()
 			configDir, err := b.GetGluonDataDir()
 			require.NoError(t, err)
-
-			imapWaiter := waitForIMAPServerReady(b)
-			defer imapWaiter.Done()
-
-			smtpWaiter := waitForSMTPServerReady(b)
-			defer smtpWaiter.Done()
 
 			// Login the user.
 			syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
@@ -795,9 +744,6 @@ func TestBridge_ChangeCacheDirectory(t *testing.T) {
 			info, err := b.GetUserInfo(userID)
 			require.NoError(t, err)
 			require.True(t, info.State == bridge.Connected)
-
-			imapWaiter.Wait()
-			smtpWaiter.Wait()
 
 			client, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
