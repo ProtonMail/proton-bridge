@@ -182,6 +182,7 @@ TrayIcon::TrayIcon()
     , notificationErrorIcon_(loadIconFromSVG(":/qml/icons/ic-alert.svg")) {
     this->generateDotIcons();
     this->setContextMenu(menu_.get());
+    this->setToolTip(PROJECT_FULL_NAME);
 
     connect(menu_.get(), &QMenu::aboutToShow, this, &TrayIcon::onMenuAboutToShow);
     connect(this, &TrayIcon::selectUser, &app().backend(), [](QString const& userID, bool forceShowWindow) {
