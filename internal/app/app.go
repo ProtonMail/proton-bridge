@@ -83,7 +83,7 @@ const (
 	flagNoWindow         = "no-window"
 	flagParentPID        = "parent-pid"
 	flagSoftwareRenderer = "software-renderer"
-	flagSessionID        = "session-id"
+	FlagSessionID        = "session-id"
 )
 
 const (
@@ -165,7 +165,7 @@ func New() *cli.App {
 			Value:  false,
 		},
 		&cli.StringFlag{
-			Name:   flagSessionID,
+			Name:   FlagSessionID,
 			Hidden: true,
 		},
 	}
@@ -346,7 +346,7 @@ func withLogging(c *cli.Context, crashHandler *crash.Handler, locations *locatio
 	logrus.WithField("path", logsPath).Debug("Received logs path")
 
 	// Initialize logging.
-	sessionID := logging.NewSessionIDFromString(c.String(flagSessionID))
+	sessionID := logging.NewSessionIDFromString(c.String(FlagSessionID))
 	var closer io.Closer
 	if closer, err = logging.Init(
 		logsPath,
