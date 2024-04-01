@@ -23,7 +23,6 @@
 #include "../ProcessMonitor.h"
 #include "../Log/LogUtils.h"
 
-
 using namespace google::protobuf;
 using namespace grpc;
 
@@ -605,6 +604,20 @@ grpc::Status GRPCClient::login(QString const &username, QString const &password)
     request.set_password(password.toStdString());
     return this->logGRPCCallStatus(stub_->Login(this->clientContext().get(), request, &empty), __FUNCTION__);
 }
+
+
+//****************************************************************************************************************************************************
+/// \param[in] username The username.
+/// \param[in] password The password.
+/// \return the status for the gRPC call.
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::loginHv(QString const &username, QString const &password) {
+        LoginRequest request;
+        request.set_username(username.toStdString());
+        request.set_password(password.toStdString());
+        request.set_usehvdetails(true);
+        return this->logGRPCCallStatus(stub_->Login(this->clientContext().get(), request, &empty), __FUNCTION__);
+    }
 
 
 //****************************************************************************************************************************************************
@@ -1221,6 +1234,9 @@ void GRPCClient::processLoginEvent(LoginEvent const &event) {
         case TWO_PASSWORDS_ABORT:
             emit login2PasswordErrorAbort(QString::fromStdString(error.message()));
             break;
+        case HV_ERROR:
+            emit loginHvError(QString::fromStdString(error.message()));
+            break;
         default:
             this->logError("Unknown login error event received.");
             break;
@@ -1244,6 +1260,10 @@ void GRPCClient::processLoginEvent(LoginEvent const &event) {
     case LoginEvent::kAlreadyLoggedIn:
         this->logTrace("Login event received: AlreadyLoggedIn.");
         emit loginAlreadyLoggedIn(QString::fromStdString(event.finished().userid()));
+        break;
+    case LoginEvent::kHvRequested:
+        this->logTrace("Login event Received: HvRequested");
+        emit loginHvRequested(QString::fromStdString(event.hvrequested().hvurl()));
         break;
     default:
         this->logError("Unknown Login event received.");

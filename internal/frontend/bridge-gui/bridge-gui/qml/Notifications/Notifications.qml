@@ -60,7 +60,7 @@ QtObject {
             target: Backend
         }
     }
-    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.bugReportSendFallback, root.cacheCantMove, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion]
+    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.bugReportSendFallback, root.cacheCantMove, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion, root.hvErrorEvent]
     property Notification alreadyLoggedIn: Notification {
         brief: qsTr("Already signed in")
         description: qsTr("This account is already signed in.")
@@ -1129,6 +1129,27 @@ QtObject {
 
             target: Backend
         }
+    }
+    property Notification hvErrorEvent: Notification {
+        group: Notifications.Group.Configuration
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        type: Notification.NotificationType.Danger
+
+        action: Action {
+            text: qsTr("OK")
+            onTriggered: {
+                root.hvErrorEvent.active = false;
+            }
+        }
+
+        Connections {
+            function onLoginHvError(errorMsg) {
+                root.hvErrorEvent.active = true;
+                root.hvErrorEvent.description = errorMsg;
+            }
+            target: Backend
+        }
+
     }
 
     signal askChangeAllMailVisibility(var isVisibleNow)

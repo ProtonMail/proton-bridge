@@ -168,6 +168,7 @@ message ReportBugRequest {
 message LoginRequest {
   string username = 1;
   bytes password = 2;
+  optional bool useHvDetails = 3;
 }
 
 message LoginAbortRequest {
@@ -308,6 +309,7 @@ message LoginEvent {
     LoginTwoPasswordsRequestedEvent twoPasswordRequested = 3;
     LoginFinishedEvent finished = 4;
     LoginFinishedEvent alreadyLoggedIn = 5;
+    LoginHvRequestedEvent hvRequested = 6;
   }
 }
 
@@ -319,6 +321,7 @@ enum LoginErrorType {
   TFA_ABORT = 4;
   TWO_PASSWORDS_ERROR = 5;
   TWO_PASSWORDS_ABORT = 6;
+  HV_ERROR = 7;
 }
 
 message LoginErrorEvent {
@@ -337,6 +340,10 @@ message LoginTwoPasswordsRequestedEvent {
 message LoginFinishedEvent {
   string userID = 1;
   bool wasSignedOut = 2;
+}
+
+message LoginHvRequestedEvent {
+  string hvUrl = 1;
 }
 
 //**********************************************************

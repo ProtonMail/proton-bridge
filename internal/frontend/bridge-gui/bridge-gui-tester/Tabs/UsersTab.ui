@@ -291,6 +291,20 @@
          </layout>
         </item>
         <item>
+         <widget class="QCheckBox" name="checkHV3Required">
+          <property name="text">
+           <string>HV3 required</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkHV3Error">
+          <property name="text">
+           <string>HV3 error</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QCheckBox" name="checkFreeUserError">
           <property name="text">
            <string>Free user error</string>

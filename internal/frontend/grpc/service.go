@@ -38,6 +38,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/hv"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/service"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
@@ -95,6 +96,9 @@ type Service struct { // nolint:structcheck
 	parentPID          int
 	parentPIDDoneCh    chan struct{}
 	showOnStartup      bool
+
+	hvDetails    *proton.APIHVDetails
+	useHvDetails bool
 }
 
 // NewService returns a new instance of the service.
@@ -412,6 +416,7 @@ func (s *Service) loginClean() {
 		s.password[i] = '\x00'
 	}
 	s.password = s.password[0:0]
+	s.useHvDetails = false
 }
 
 func (s *Service) finishLogin() {
@@ -423,6 +428,11 @@ func (s *Service) finishLogin() {
 	}()
 
 	wasSignedOut := s.bridge.HasUser(s.auth.UserID)
+
+	var hvDetails *proton.APIHVDetails
+	if s.useHvDetails {
+		hvDetails = s.hvDetails
+	}
 
 	if len(s.password) == 0 || s.auth.UID == "" || s.authClient == nil {
 		s.log.
@@ -439,8 +449,20 @@ func (s *Service) finishLogin() {
 	defer done()
 
 	ctx := context.Background()
-	userID, err := s.bridge.LoginUser(ctx, s.authClient, s.auth, s.password)
+	userID, err := s.bridge.LoginUser(ctx, s.authClient, s.auth, s.password, hvDetails)
 	if err != nil {
+		if hv.IsHvRequest(err) {
+			s.handleHvRequest(err)
+			performCleanup = false
+			return
+		}
+
+		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Code == proton.HumanValidationInvalidToken {
+			s.hvDetails = nil
+			_ = s.SendEvent(NewLoginError(LoginErrorType_HV_ERROR, err.Error()))
+			return
+		}
+
 		s.log.WithError(err).Errorf("Finish login failed")
 		s.twoPasswordAttemptCount++
 		errType := LoginErrorType_TWO_PASSWORDS_ABORT
@@ -612,6 +634,18 @@ func (s *Service) monitorParentPID() {
 			return
 		}
 	}
+}
+
+func (s *Service) handleHvRequest(err error) {
+	hvDet, hvErr := hv.VerifyAndExtractHvRequest(err)
+	if hvErr != nil {
+		_ = s.SendEvent(NewLoginError(LoginErrorType_HV_ERROR, hvErr.Error()))
+		return
+	}
+
+	s.hvDetails = hvDet
+	hvChallengeURL := hv.FormatHvURL(hvDet)
+	_ = s.SendEvent(NewLoginHvRequestedEvent(hvChallengeURL))
 }
 
 // computeFileSocketPath Return an available path for a socket file in the temp folder.

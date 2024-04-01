@@ -100,6 +100,10 @@ func NewLoginAlreadyLoggedInEvent(userID string) *StreamEvent {
 	return loginEvent(&LoginEvent{Event: &LoginEvent_AlreadyLoggedIn{AlreadyLoggedIn: &LoginFinishedEvent{UserID: userID}}})
 }
 
+func NewLoginHvRequestedEvent(hvChallengeURL string) *StreamEvent {
+	return loginEvent(&LoginEvent{Event: &LoginEvent_HvRequested{HvRequested: &LoginHvRequestedEvent{HvUrl: hvChallengeURL}}})
+}
+
 func NewUpdateErrorEvent(errorType UpdateErrorType) *StreamEvent {
 	return updateEvent(&UpdateEvent{Event: &UpdateEvent_Error{Error: &UpdateErrorEvent{Type: errorType}}})
 }

@@ -28,6 +28,7 @@ import (
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/hv"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
@@ -123,15 +124,20 @@ func (bridge *Bridge) QueryUserInfo(query string) (UserInfo, error) {
 }
 
 // LoginAuth begins the login process. It returns an authorized client that might need 2FA.
-func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password []byte) (*proton.Client, proton.Auth, error) {
+func (bridge *Bridge) LoginAuth(ctx context.Context, username string, password []byte, hvDetails *proton.APIHVDetails) (*proton.Client, proton.Auth, error) {
 	logUser.WithField("username", logging.Sensitive(username)).Info("Authorizing user for login")
 
 	if username == "crash@bandicoot" {
 		panic("Your wish is my command.. I crash!")
 	}
-
-	client, auth, err := bridge.api.NewClientWithLogin(ctx, username, password)
+	client, auth, err := bridge.api.NewClientWithLoginWithHVToken(ctx, username, password, hvDetails)
 	if err != nil {
+		if hv.IsHvRequest(err) {
+			logUser.WithFields(logrus.Fields{"username": logging.Sensitive(username),
+				"loginError": err.Error()}).Info("Human Verification requested for login")
+			return nil, proton.Auth{}, err
+		}
+
 		return nil, proton.Auth{}, fmt.Errorf("failed to create new API client: %w", err)
 	}
 
@@ -154,12 +160,13 @@ func (bridge *Bridge) LoginUser(
 	client *proton.Client,
 	auth proton.Auth,
 	keyPass []byte,
+	hvDetails *proton.APIHVDetails,
 ) (string, error) {
 	logUser.WithField("userID", auth.UserID).Info("Logging in authorized user")
 
 	userID, err := try.CatchVal(
 		func() (string, error) {
-			return bridge.loginUser(ctx, client, auth.UID, auth.RefreshToken, keyPass)
+			return bridge.loginUser(ctx, client, auth.UID, auth.RefreshToken, keyPass, hvDetails)
 		},
 	)
 
@@ -192,7 +199,8 @@ func (bridge *Bridge) LoginFull(
 ) (string, error) {
 	logUser.WithField("username", logging.Sensitive(username)).Info("Performing full user login")
 
-	client, auth, err := bridge.LoginAuth(ctx, username, password)
+	// (atanas) the following may need to be modified once HV is merged (its used only for testing; and depends on whether we will test HV related logic)
+	client, auth, err := bridge.LoginAuth(ctx, username, password, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to begin login process: %w", err)
 	}
@@ -225,7 +233,7 @@ func (bridge *Bridge) LoginFull(
 		keyPass = password
 	}
 
-	userID, err := bridge.LoginUser(ctx, client, auth, keyPass)
+	userID, err := bridge.LoginUser(ctx, client, auth, keyPass, nil)
 	if err != nil {
 		if deleteErr := client.AuthDelete(ctx); deleteErr != nil {
 			logUser.WithError(err).Error("Failed to delete auth")
@@ -374,8 +382,8 @@ func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string,
 	}, bridge.usersLock)
 }
 
-func (bridge *Bridge) loginUser(ctx context.Context, client *proton.Client, authUID, authRef string, keyPass []byte) (string, error) {
-	apiUser, err := client.GetUser(ctx)
+func (bridge *Bridge) loginUser(ctx context.Context, client *proton.Client, authUID, authRef string, keyPass []byte, hvDetails *proton.APIHVDetails) (string, error) {
+	apiUser, err := client.GetUserWithHV(ctx, hvDetails)
 	if err != nil {
 		return "", fmt.Errorf("failed to get API user: %w", err)
 	}

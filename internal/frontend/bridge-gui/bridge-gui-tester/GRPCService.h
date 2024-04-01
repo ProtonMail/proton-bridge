@@ -106,6 +106,7 @@ public: // member functions.
 
 private: // member functions
     void finishLogin(); ///< finish the login procedure once the credentials have been validated.
+    void resetHv(); ///< Resets the human verification state.
 
 private: // data member
     mutable QMutex eventStreamMutex_; ///< Mutex used to access eventQueue_, isStreaming_ and shouldStopStreaming_;
@@ -113,6 +114,8 @@ private: // data member
     bool isStreaming_; ///< Is the gRPC stream running. Access protected by eventStreamMutex_;
     bool eventStreamShouldStop_; ///< Should the stream be stopped? Access protected by eventStreamMutex
     QString loginUsername_; ///< The username used for the current login procedure.
+    QString previousHvUsername_; ///< The previous username used for HV.
+    bool hvWasRequested_ {false}; ///< Was human verification requested.
     GRPCQtProxy qtProxy_; ///< Qt Proxy used to send signals, as this class is not a QObject.
 };
 

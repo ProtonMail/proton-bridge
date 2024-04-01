@@ -155,6 +155,7 @@ public: // login related calls
     grpc::Status login2FA(QString const &username, QString const &code); ///< Performs the 'login2FA' call.
     grpc::Status login2Passwords(QString const &username, QString const &password); ///< Performs the 'login2Passwords' call.
     grpc::Status loginAbort(QString const &username); ///< Performs the 'loginAbort' call.
+    grpc::Status loginHv(QString const &username, QString const &password); ///< Performs the 'login' call with additional useHv flag
 
 signals:
     void loginUsernamePasswordError(QString const &errMsg);
@@ -168,6 +169,8 @@ signals:
     void login2PasswordErrorAbort(QString const &errMsg);
     void loginFinished(QString const &userID, bool wasSignedOut);
     void loginAlreadyLoggedIn(QString const &userID);
+    void loginHvRequested(QString const &hvUrl);
+    void loginHvError(QString const &errMsg);
 
 public: // Update related calls
     grpc::Status checkUpdate();

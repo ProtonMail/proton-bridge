@@ -810,6 +810,18 @@ void QMLBackend::login(QString const &username, QString const &password) const {
     )
 }
 
+void QMLBackend::loginHv(QString const &username, QString const &password) const {
+    HANDLE_EXCEPTION(
+            if (username.compare("coco@bandicoot", Qt::CaseInsensitive) == 0) {
+                throw Exception("User requested bridge-gui to crash by trying to log as coco@bandicoot",
+                                "This error exists for test purposes and should be ignored.", __func__, tailOfLatestBridgeLog(app().sessionID()));
+            }
+            app().grpc().loginHv(username, password);
+    )
+}
+
+
+
 
 //****************************************************************************************************************************************************
 /// \param[in] username The username.
@@ -1334,6 +1346,8 @@ void QMLBackend::connectGrpcEvents() {
     connect(client, &GRPCClient::login2PasswordErrorAbort, this, &QMLBackend::login2PasswordErrorAbort);
     connect(client, &GRPCClient::loginFinished, this, &QMLBackend::onLoginFinished);
     connect(client, &GRPCClient::loginAlreadyLoggedIn, this, &QMLBackend::onLoginAlreadyLoggedIn);
+    connect(client, &GRPCClient::loginHvRequested, this, &QMLBackend::loginHvRequested);
+    connect(client, &GRPCClient::loginHvError, this, &QMLBackend::loginHvError);
 
     // update events
     connect(client, &GRPCClient::updateManualError, this, &QMLBackend::updateManualError);

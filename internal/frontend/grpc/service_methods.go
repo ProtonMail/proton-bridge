@@ -396,6 +396,14 @@ func (s *Service) RequestKnowledgeBaseSuggestions(_ context.Context, userInput *
 func (s *Service) Login(_ context.Context, login *LoginRequest) (*emptypb.Empty, error) {
 	s.log.WithField("username", login.Username).Debug("Login")
 
+	var hvDetails *proton.APIHVDetails
+	if login.UseHvDetails != nil && *login.UseHvDetails {
+		hvDetails = s.hvDetails
+		s.useHvDetails = true
+	} else {
+		s.useHvDetails = false
+	}
+
 	go func() {
 		defer async.HandlePanic(s.panicHandler)
 
@@ -407,7 +415,7 @@ func (s *Service) Login(_ context.Context, login *LoginRequest) (*emptypb.Empty,
 			return
 		}
 
-		client, auth, err := s.bridge.LoginAuth(context.Background(), login.Username, password)
+		client, auth, err := s.bridge.LoginAuth(context.Background(), login.Username, password, hvDetails)
 		if err != nil {
 			defer s.loginClean()
 
@@ -420,6 +428,13 @@ func (s *Service) Login(_ context.Context, login *LoginRequest) (*emptypb.Empty,
 
 				case proton.PaidPlanRequired:
 					_ = s.SendEvent(NewLoginError(LoginErrorType_FREE_USER, ""))
+
+				case proton.HumanVerificationRequired:
+					s.handleHvRequest(apiErr)
+
+				case proton.HumanValidationInvalidToken:
+					s.hvDetails = nil
+					_ = s.SendEvent(NewLoginError(LoginErrorType_HV_ERROR, err.Error()))
 
 				default:
 					_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, err.Error()))
@@ -522,7 +537,6 @@ func (s *Service) LoginAbort(_ context.Context, loginAbort *LoginAbortRequest) (
 
 	go func() {
 		defer async.HandlePanic(s.panicHandler)
-
 		s.loginAbort()
 	}()
 

@@ -29,12 +29,10 @@ using namespace bridgepp;
 
 namespace {
 
-
 QString const defaultKeychain = "defaultKeychain"; ///< The default keychain.
-
+QString const HV_ERROR_TEMPLATE = "failed to create new API client: 422 POST https://mail-api.proton.me/auth/v4: CAPTCHA validation failed (Code=12087, Status=422)";
 
 }
-
 
 //****************************************************************************************************************************************************
 //
@@ -349,6 +347,7 @@ Status GRPCService::ForceLauncher(ServerContext *, StringValue const *request, E
 /// \return The status for the call.
 //****************************************************************************************************************************************************
 Status GRPCService::SetMainExecutable(ServerContext *, StringValue const *request, Empty *) {
+    resetHv();
     app().log().debug(__FUNCTION__);
     app().log().info(QString("SetMainExecutable: %1").arg(QString::fromStdString(request->value())));
     return Status::OK;
@@ -418,7 +417,19 @@ Status GRPCService::Login(ServerContext *, LoginRequest const *request, Empty *)
         return Status::OK;
     }
 
-
+    if (usersTab.nextUserHvRequired() && !hvWasRequested_ && previousHvUsername_ != QString::fromStdString(request->username())) {
+        hvWasRequested_ = true;
+        previousHvUsername_ = QString::fromStdString(request->username());
+        qtProxy_.sendDelayedEvent(newLoginHvRequestedEvent());
+        return Status::OK;
+    } else {
+        hvWasRequested_ = false;
+        previousHvUsername_ = "";
+    }
+    if (usersTab.nextUserHvError()) {
+        qtProxy_.sendDelayedEvent(newLoginError(LoginErrorType::HV_ERROR, HV_ERROR_TEMPLATE));
+        return Status::OK;
+    }
     if (usersTab.nextUserUsernamePasswordError()) {
         qtProxy_.sendDelayedEvent(newLoginError(LoginErrorType::USERNAME_PASSWORD_ERROR, usersTab.usernamePasswordErrorMessage()));
         return Status::OK;
@@ -495,6 +506,7 @@ Status GRPCService::Login2Passwords(ServerContext *, LoginRequest const *request
 //****************************************************************************************************************************************************
 Status GRPCService::LoginAbort(ServerContext *, LoginAbortRequest const *request, Empty *) {
     app().log().debug(__FUNCTION__);
+    this->resetHv();
     loginUsername_ = QString();
     return Status::OK;
 }
@@ -952,4 +964,12 @@ void GRPCService::finishLogin() {
     }
 
     qtProxy_.sendDelayedEvent(newLoginFinishedEvent(user->id(), alreadyExist));
+}
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+void GRPCService::resetHv() {
+    hvWasRequested_ = false;
+    previousHvUsername_ = "";
 }

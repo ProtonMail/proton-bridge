@@ -19,12 +19,14 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"github.com/ProtonMail/proton-bridge/v3/internal/hv"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/abiosoft/ishell"
 )
@@ -116,6 +118,13 @@ func (f *frontendCLI) showAccountAddressInfo(user bridge.UserInfo, address strin
 	f.Println("")
 }
 
+func (f *frontendCLI) promptHvURL(details *proton.APIHVDetails) {
+	hvURL := hv.FormatHvURL(details)
+	fmt.Print("\nHuman Verification requested. Please open the URL below in a browser and press ENTER when the challenge has been completed.\n\n", hvURL+"\n")
+	f.ReadLine()
+	fmt.Println("Authenticating ...")
+}
+
 func (f *frontendCLI) loginAccount(c *ishell.Context) {
 	f.ShowPrompt(false)
 	defer f.ShowPrompt(true)
@@ -144,7 +153,19 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) {
 
 	f.Println("Authenticating ... ")
 
-	client, auth, err := f.bridge.LoginAuth(context.Background(), loginName, []byte(password))
+	client, auth, err := f.bridge.LoginAuth(context.Background(), loginName, []byte(password), nil)
+
+	var hvDetails *proton.APIHVDetails
+	hvDetails, hvErr := hv.VerifyAndExtractHvRequest(err)
+	if hvErr != nil || hvDetails != nil {
+		if hvErr != nil {
+			f.printAndLogError("Cannot login", hvErr)
+			return
+		}
+		f.promptHvURL(hvDetails)
+		client, auth, err = f.bridge.LoginAuth(context.Background(), loginName, []byte(password), hvDetails)
+	}
+
 	if err != nil {
 		f.printAndLogError("Cannot login: ", err)
 		return
@@ -175,7 +196,55 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) {
 		keyPass = []byte(password)
 	}
 
-	userID, err := f.bridge.LoginUser(context.Background(), client, auth, keyPass)
+	userID, err := f.bridge.LoginUser(context.Background(), client, auth, keyPass, hvDetails)
+
+	hvDetails, hvErr = hv.VerifyAndExtractHvRequest(err)
+	if hvDetails != nil || hvErr != nil {
+		if hvErr != nil {
+			f.printAndLogError("Cannot login: ", hvErr)
+			return
+		}
+		f.loginAccountHv(c, loginName, password, keyPass, hvDetails)
+		return
+	}
+
+	if err != nil {
+		f.processAPIError(err)
+		return
+	}
+
+	user, err := f.bridge.GetUserInfo(userID)
+	if err != nil {
+		panic(err)
+	}
+
+	f.Printf("Account %s was added successfully.\n", bold(user.Username))
+}
+
+func (f *frontendCLI) loginAccountHv(c *ishell.Context, loginName string, password string, keyPass []byte, hvDetails *proton.APIHVDetails) {
+	f.promptHvURL(hvDetails)
+	client, auth, err := f.bridge.LoginAuth(context.Background(), loginName, []byte(password), hvDetails)
+
+	if err != nil {
+		f.printAndLogError("Cannot login: ", err)
+		return
+	}
+
+	if auth.TwoFA.Enabled&proton.HasTOTP != 0 {
+		code := f.readStringInAttempts("Two factor code", c.ReadLine, isNotEmpty)
+		if code == "" {
+			f.printAndLogError("Cannot login: need two factor code")
+			return
+		}
+
+		if err := client.Auth2FA(context.Background(), proton.Auth2FAReq{TwoFactorCode: code}); err != nil {
+			f.printAndLogError("Cannot login: ", err)
+			return
+		}
+	}
+
+	userID, err := f.bridge.LoginUser(context.Background(), client, auth, keyPass, hvDetails)
+
 	if err != nil {
 		f.processAPIError(err)
 		return

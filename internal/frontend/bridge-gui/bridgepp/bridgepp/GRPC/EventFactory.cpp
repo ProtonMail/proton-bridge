@@ -303,6 +303,18 @@ SPStreamEvent newLoginTfaRequestedEvent(QString const &username) {
 
 
 //****************************************************************************************************************************************************
+/// \return The event.
+//****************************************************************************************************************************************************
+SPStreamEvent newLoginHvRequestedEvent() {
+        auto event = new ::grpc::LoginHvRequestedEvent;
+        event->set_hvurl("https://verify.proton.me/?methods=captcha&token=SOME_RANDOM_TOKEN");
+        auto loginEvent = new grpc::LoginEvent;
+        loginEvent->set_allocated_hvrequested(event);
+        return wrapLoginEvent(loginEvent);
+}
+
+
+//****************************************************************************************************************************************************
 /// \param[in] username The username.
 /// \return The event.
 //****************************************************************************************************************************************************

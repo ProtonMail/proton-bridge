@@ -278,6 +278,22 @@ bridgepp::SPUser UsersTab::userWithUsernameOrEmail(QString const &username) {
 
 
 //****************************************************************************************************************************************************
+/// \return true if the next login attempt should trigger a human verification request
+//****************************************************************************************************************************************************
+bool UsersTab::nextUserHvRequired() const {
+    return ui_.checkHV3Required->isChecked();
+}
+
+
+//****************************************************************************************************************************************************
+/// \return true if the next login attempt should trigger a human verification error
+//****************************************************************************************************************************************************
+bool UsersTab::nextUserHvError() const {
+    return ui_.checkHV3Error->isChecked();
+}
+
+
+//****************************************************************************************************************************************************
 /// \return true iff the next login attempt should trigger a username/password error.
 //****************************************************************************************************************************************************
 bool UsersTab::nextUserUsernamePasswordError() const {

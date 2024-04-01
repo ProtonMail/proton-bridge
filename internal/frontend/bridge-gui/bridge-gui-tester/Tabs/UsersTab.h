@@ -39,6 +39,8 @@ public: // member functions.
     UserTable &userTable(); ///< Returns a reference to the user table.
     bridgepp::SPUser userWithID(QString const &userID); ///< Get the user with the given ID.
     bridgepp::SPUser userWithUsernameOrEmail(QString const &username); ///< Get the user with the given username.
+    bool nextUserHvRequired() const; ///< Check if next user login should trigger HV
+    bool nextUserHvError() const; ///< Check if next user login should trigger HV error
     bool nextUserUsernamePasswordError() const; ///< Check if next user login should trigger a username/password error.
     bool nextUserFreeUserError() const; ///< Check if next user login should trigger a Free user error.
     bool nextUserTFARequired() const; ///< Check if next user login should requires 2FA.

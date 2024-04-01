@@ -183,6 +183,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void changeColorScheme(QString const &scheme); ///< Slot for the change of the theme.
     void setDiskCachePath(QUrl const &path) const; ///< Slot for the change of the disk cache path.
     void login(QString const &username, QString const &password) const; ///< Slot for the login button (initial login).
+    void loginHv(QString const &username, QString const &password) const; ///< Slot for the login button (after HV challenge completed).
     void login2FA(QString const &username, QString const &code) const; ///< Slot for the login button (2FA login).
     void login2Password(QString const &username, QString const &password) const; ///< Slot for the login button (mailbox password login).
     void loginAbort(QString const &username) const; ///< Slot for the login abort procedure.
@@ -238,6 +239,8 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void login2PasswordErrorAbort(QString const &errorMsg); ///< Signal for the 'login2PasswordErrorAbort' gRPC stream event.
     void loginFinished(int index, bool wasSignedOut); ///< Signal for the 'loginFinished' gRPC stream event.
     void loginAlreadyLoggedIn(int index); ///< Signal for the 'loginAlreadyLoggedIn' gRPC stream event.
+    void loginHvRequested(QString const &hvUrl); ///< Signal for the 'loginHvRequested' gRPC stream event.
+    void loginHvError(QString const &errorMsg); ///< Signal for the 'loginHvError' gRPC stream event.
     void updateManualReady(QString const &version); ///< Signal for the 'updateManualReady' gRPC stream event.
     void updateManualRestartNeeded(); ///< Signal for the 'updateManualRestartNeeded' gRPC stream event.
     void updateManualError(); ///< Signal for the 'updateManualError' gRPC stream event.

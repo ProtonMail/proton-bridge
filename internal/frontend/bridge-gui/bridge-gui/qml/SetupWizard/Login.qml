@@ -20,12 +20,14 @@ FocusScope {
     enum RootStack {
         Login,
         TOTP,
-        MailboxPassword
+        MailboxPassword,
+        HV
     }
 
     property alias currentIndex: stackLayout.currentIndex
     property alias username: usernameTextField.text
     property var wizard
+    property string hvLinkUrl: ""
 
     signal loginAbort(string username, bool wasSignedOut)
 
@@ -46,6 +48,14 @@ FocusScope {
         }
         passwordTextField.hidePassword();
         secondPasswordTextField.hidePassword();
+    }
+    function resetViaHv() {
+        usernameTextField.enabled = false;
+        passwordTextField.enabled = false;
+        signInButton.loading = true;
+        secondPasswordButton.loading = false;
+        secondPasswordTextField.enabled = true;
+        totpLayout.reset();
     }
 
     StackLayout {
@@ -123,6 +133,18 @@ FocusScope {
                     errorLabel.text = errorMsg;
                 else
                     errorLabel.text = qsTr("Incorrect login credentials");
+            }
+            function onLoginHvRequested(hvUrl) {
+                console.assert(stackLayout.currentIndex === Login.RootStack.Login || stackLayout.currentIndex === Login.RootStack.MailboxPassword, "Unexpected loginHvRequested");
+                stackLayout.currentIndex = Login.RootStack.HV;
+                hvUsernameLabel.text = usernameTextField.text;
+                hvLinkUrl = hvUrl;
+            }
+            function onLoginHvError(_) {
+                console.assert(stackLayout.currentIndex === Login.RootStack.Login || stackLayout.currentIndex === Login.RootStack.MailboxPassword, "Unexpected onLoginHvInvalidTokenError");
+                stackLayout.currentIndex = Login.RootStack.Login;
+                root.resetViaHv();
+                root.reset()
             }
 
             target: Backend
@@ -471,6 +493,113 @@ FocusScope {
 
                     onClicked: {
                         root.abort();
+                    }
+                }
+            }
+        }
+        Item {
+            id: hvLayout
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: ProtonStyle.wizard_spacing_extra_large
+
+                ColumnLayout {
+                    spacing: ProtonStyle.wizard_spacing_medium
+
+                    ColumnLayout {
+                        spacing: ProtonStyle.wizard_spacing_small
+
+                        Label {
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.fillWidth: true
+                            colorScheme: wizard.colorScheme
+                            horizontalAlignment: Text.AlignHCenter
+                            text: qsTr("Human verification")
+                            type: Label.LabelType.Title
+                            wrapMode: Text.WordWrap
+                        }
+
+                        Label {
+                            id: hvUsernameLabel
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.fillWidth: true
+                            color: wizard.colorScheme.text_weak
+                            colorScheme: wizard.colorScheme
+                            horizontalAlignment: Text.AlignHCenter
+                            type: Label.LabelType.Body
+                        }
+
+                    }
+
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        horizontalAlignment: Text.AlignHCenter
+                        text: qsTr("Please open the following link in your favourite web browser to verify you are human.")
+                        type: Label.LabelType.Body
+                        wrapMode: Text.WordWrap
+                    }
+
+                }
+
+
+                Label {
+                    id: hvRequestedUrlText
+                    type: Label.LabelType.Lead
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.fillWidth: true
+                    colorScheme: wizard.colorScheme
+                    horizontalAlignment: Text.AlignLeft
+                    text: "<a href='" + hvLinkUrl + "'>" + hvLinkUrl.replace("&", "&amp;")+ "</a>"
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            Qt.openUrlExternally(hvLinkUrl);
+                        }
+                    }
+                }
+
+
+                ColumnLayout {
+                    spacing: ProtonStyle.wizard_spacing_medium
+
+                    Button {
+                        id: hVContinueButton
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        text: qsTr("Continue")
+
+                        function checkAndSignInHv() {
+                            console.assert(stackLayout.currentIndex === Login.RootStack.HV ||  stackLayout.currentIndex === Login.RootStack.MailboxPassword, "Unexpected checkInAndSignInHv")
+                            stackLayout.currentIndex = Login.RootStack.Login
+                            usernameTextField.validate();
+                            passwordTextField.validate();
+                            if (usernameTextField.error || passwordTextField.error) {
+                                return;
+                            }
+                            root.resetViaHv();
+                            Backend.loginHv(usernameTextField.text, Qt.btoa(passwordTextField.text));
+                        }
+
+                        onClicked: {
+                            checkAndSignInHv()
+                        }
+                    }
+                    Button {
+                        Layout.fillWidth: true
+                        colorScheme: wizard.colorScheme
+                        secondary: true
+                        secondaryIsOpaque: true
+                        text: qsTr("Cancel")
+                        onClicked: {
+                            root.abort();
+                        }
                     }
                 }
             }
