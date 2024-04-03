@@ -47,6 +47,10 @@ Item {
 
             onClicked: {
                 wizard.client = SetupWizard.Client.AppleMail;
+                if (!Backend.isTLSCertificateInstalled()) {
+                    wizard.showCertInstall();
+                    return
+                }
                 wizard.showAppleMailAutoConfig();
             }
         }
@@ -59,6 +63,10 @@ Item {
 
             onClicked: {
                 wizard.client = SetupWizard.Client.MicrosoftOutlook;
+                if (root.onMacOS && !Backend.isTLSCertificateInstalled()) {
+                    wizard.showCertInstall();
+                    return
+                }
                 wizard.showClientParams();
             }
         }

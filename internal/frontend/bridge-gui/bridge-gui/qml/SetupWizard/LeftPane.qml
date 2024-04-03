@@ -34,13 +34,23 @@ Item {
 
     signal startSetup()
 
-    function showAppleMailAutoconfigCertificateInstall() {
-        showAppleMailAutoconfigCommon();
-        descriptionLabel.text = qsTr("Apple Mail configuration is mostly automated, but in order to work, Bridge needs to install a certificate in your keychain.");
-        linkLabel1.setCallback(function() { Backend.openExternalLink("https://proton.me/support/apple-mail-certificate"); }, qsTr("Why is this certificate needed?"), true);
+    function showCertificateInstall() {
+        showClientConfigCommon();
+        if (wizard.client === SetupWizard.Client.AppleMail) {
+            descriptionLabel.text = qsTr("Apple Mail configuration is mostly automated, but in order to work, Bridge needs to install a certificate in your keychain.");
+            linkLabel1.setCallback(function () {
+                Backend.openExternalLink("https://proton.me/support/apple-mail-certificate");
+            }, qsTr("Why is this certificate needed?"), true);
+        } else {
+            descriptionLabel.text = qsTr("In order for Outlook to work, Bridge needs to install a certificate in your keychain.");
+            linkLabel1.setCallback(function () {
+                Backend.openExternalLink("https://proton.me/support/apple-mail-certificate");
+            }, qsTr("Why is this certificate needed?"), true);
+        }
         linkLabel2.clear();
     }
-    function showAppleMailAutoconfigCommon() {
+
+    function showClientConfigCommon() {
         titleLabel.text = "";
         linkLabel1.clear();
         linkLabel2.clear();
@@ -49,7 +59,7 @@ Item {
         iconWidth = 80;
     }
     function showAppleMailAutoconfigProfileInstall() {
-        showAppleMailAutoconfigCommon();
+        showClientConfigCommon();
         descriptionLabel.text = qsTr("The final step before you can start using Apple Mail is to install the Bridge server profile in the system preferences.\n\nAdding a server profile is necessary to ensure that your Mac can receive and send Proton Mails.");
         linkLabel1.setCallback(function() { Backend.openExternalLink("https://proton.me/support/macos-certificate-warning"); }, qsTr("Why is there a yellow warning sign?"), true);
         linkLabel2.setCallback(wizard.showClientParams, qsTr("Configure Apple Mail manually"), false);

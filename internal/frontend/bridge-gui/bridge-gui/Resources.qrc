@@ -117,6 +117,7 @@
         <file>qml/Resources/Help/WhyProfileWarning.html</file>
         <file>qml/SettingsItem.qml</file>
         <file>qml/SettingsView.qml</file>
+        <file>qml/SetupWizard/ClientConfigCertInstall.qml</file>
         <file>qml/SetupWizard/ClientListItem.qml</file>
         <file>qml/SetupWizard/LeftPane.qml</file>
         <file>qml/SetupWizard/ClientConfigAppleMail.qml</file>
