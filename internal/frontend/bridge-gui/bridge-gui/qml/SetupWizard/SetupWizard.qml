@@ -253,13 +253,13 @@ Item {
                         wizard: root
                     }
 
-                    // rightContent stack index 2
+                    // rightContent stack index 3
                     ClientConfigCertInstall {
                         id: clientConfigCertInstall
                         wizard: root
                     }
 
-                    // rightContent stack index 3
+                    // rightContent stack index 4
                     ClientConfigAppleMail {
                         id: clientConfigAppleMail
                         wizard: root
