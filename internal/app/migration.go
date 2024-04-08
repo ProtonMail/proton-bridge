@@ -43,7 +43,7 @@ import (
 
 // nolint:gosec
 func migrateKeychainHelper(locations *locations.Locations) error {
-	logrus.Info("Migrating keychain helper")
+	logrus.Trace("Checking if keychain helper needs to be migrated")
 
 	settings, err := locations.ProvideSettingsPath()
 	if err != nil {
@@ -75,7 +75,11 @@ func migrateKeychainHelper(locations *locations.Locations) error {
 		return fmt.Errorf("failed to unmarshal old prefs file: %w", err)
 	}
 
-	return vault.SetHelper(settings, prefs.Helper)
+	err = vault.SetHelper(settings, prefs.Helper)
+	if err == nil {
+		logrus.Info("Keychain helper has been migrated")
+	}
+	return err
 }
 
 // nolint:gosec

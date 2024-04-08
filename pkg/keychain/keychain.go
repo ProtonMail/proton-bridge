@@ -22,9 +22,11 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"runtime"
 	"sync"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/sirupsen/logrus"
 )
@@ -216,10 +218,14 @@ func isUsable(helper credentials.Helper, err error) bool {
 		return false
 	}
 
-	creds := &credentials.Credentials{
-		ServerURL: "bridge/check",
-		Username:  "check",
-		Secret:    "check",
+	creds := getTestCredentials()
+
+	// If the test entry is already present from an interrupted previous test, we must wipe it first.
+	if _, _, err := helper.Get(creds.ServerURL); err == nil {
+		if err := helper.Delete(creds.ServerURL); err != nil {
+			l.WithError(err).Warn("Failed to delete existing test credentials from keychain")
+			return false
+		}
 	}
 
 	if err := retry(func() error {
@@ -240,6 +246,23 @@ func isUsable(helper credentials.Helper, err error) bool {
 	}
 
 	return true
+}
+
+func getTestCredentials() *credentials.Credentials {
+	// On macOS, a handful of users experience failures of the test credentials.
+	if runtime.GOOS == "darwin" {
+		return &credentials.Credentials{
+			ServerURL: hostURL(constants.KeyChainName) + "/check",
+			Username:  "", // username is ignored on macOS, it's extracted from splitting the server URL
+			Secret:    "check",
+		}
+	}
+
+	return &credentials.Credentials{
+		ServerURL: "bridge/check",
+		Username:  "check",
+		Secret:    "check",
+	}
 }
 
 func retry(condition func() error) error {
