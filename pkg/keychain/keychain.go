@@ -220,14 +220,6 @@ func isUsable(helper credentials.Helper, err error) bool {
 
 	creds := getTestCredentials()
 
-	// If the test entry is already present from an interrupted previous test, we must wipe it first.
-	if _, _, err := helper.Get(creds.ServerURL); err == nil {
-		if err := helper.Delete(creds.ServerURL); err != nil {
-			l.WithError(err).Warn("Failed to delete existing test credentials from keychain")
-			return false
-		}
-	}
-
 	if err := retry(func() error {
 		return helper.Add(creds)
 	}); err != nil {
@@ -252,7 +244,7 @@ func getTestCredentials() *credentials.Credentials {
 	// On macOS, a handful of users experience failures of the test credentials.
 	if runtime.GOOS == "darwin" {
 		return &credentials.Credentials{
-			ServerURL: hostURL(constants.KeyChainName) + "/check",
+			ServerURL: hostURL(constants.KeyChainName) + fmt.Sprintf("/check_%v", time.Now().UTC().UnixMicro()),
 			Username:  "", // username is ignored on macOS, it's extracted from splitting the server URL
 			Secret:    "check",
 		}
