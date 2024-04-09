@@ -20,18 +20,11 @@ package main
 import (
 	"testing"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/exp/slices"
 )
-
-func TestSliceContains(t *testing.T) {
-	assert.True(t, sliceContains([]string{"a", "b", "c"}, "a"))
-	assert.True(t, sliceContains([]int{1, 2, 3}, 2))
-	assert.False(t, sliceContains([]string{"a", "b", "c"}, "A"))
-	assert.False(t, sliceContains([]int{1, 2, 3}, 4))
-	assert.False(t, sliceContains([]string{}, "a"))
-	assert.True(t, sliceContains([]string{"a", "a"}, "a"))
-}
 
 func TestFindAndStrip(t *testing.T) {
 	list := []string{"a", "b", "c", "c", "b", "c"}
@@ -77,4 +70,14 @@ func TestFindAndStripWait(t *testing.T) {
 	assert.True(t, found)
 	assert.True(t, xslices.Equal(result, []string{"a"}))
 	assert.True(t, xslices.Equal(values, []string{"b", "c", "d"}))
+}
+
+func TestAppendOrModifySessionID(t *testing.T) {
+	sessionID := string(logging.NewSessionID())
+	assert.True(t, slices.Equal(appendOrModifySessionID(nil, sessionID), []string{"--session-id", sessionID}))
+	assert.True(t, slices.Equal(appendOrModifySessionID([]string{}, sessionID), []string{"--session-id", sessionID}))
+	assert.True(t, slices.Equal(appendOrModifySessionID([]string{"--cli"}, sessionID), []string{"--cli", "--session-id", sessionID}))
+	assert.True(t, slices.Equal(appendOrModifySessionID([]string{"--cli", "--session-id"}, sessionID), []string{"--cli", "--session-id", sessionID}))
+	assert.True(t, slices.Equal(appendOrModifySessionID([]string{"--cli", "--session-id"}, sessionID), []string{"--cli", "--session-id", sessionID}))
+	assert.True(t, slices.Equal(appendOrModifySessionID([]string{"--session-id", "<oldID>", "--cli"}, sessionID), []string{"--session-id", sessionID, "--cli"}))
 }

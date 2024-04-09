@@ -40,6 +40,7 @@ import (
 	"github.com/elastic/go-sysinfo/types"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 	"golang.org/x/sys/execabs"
 )
 
@@ -53,9 +54,12 @@ const (
 	FlagCLIShort            = "c"
 	FlagNonInteractive      = "noninteractive"
 	FlagNonInteractiveShort = "n"
-	FlagLauncher            = "--launcher"
-	FlagWait                = "--wait"
-	FlagSessionID           = "--session-id"
+	FlagLauncher            = "launcher"
+	FlagWait                = "wait"
+	FlagSessionID           = "session-id"
+	HyphenatedFlagLauncher  = "--" + FlagLauncher
+	HyphenatedFlagWait      = "--" + FlagWait
+	HyphenatedFlagSessionID = "--" + FlagSessionID
 )
 
 func main() { //nolint:funlen
@@ -151,7 +155,7 @@ func main() { //nolint:funlen
 		}
 	}
 
-	cmd := execabs.Command(exe, appendLauncherPath(launcher, append(args, FlagSessionID, string(sessionID)))...) //nolint:gosec
+	cmd := execabs.Command(exe, appendLauncherPath(launcher, appendOrModifySessionID(args, string(sessionID)))...) //nolint:gosec
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -173,17 +177,12 @@ func main() { //nolint:funlen
 
 // appendLauncherPath add launcher path if missing.
 func appendLauncherPath(path string, args []string) []string {
-	if !sliceContains(args, FlagLauncher) {
+	if !slices.Contains(args, HyphenatedFlagLauncher) {
 		res := append([]string{}, args...)
-		res = append(res, FlagLauncher, path)
+		res = append(res, HyphenatedFlagLauncher, path)
 		return res
 	}
 	return args
-}
-
-// sliceContains checks if a value is present in a list.
-func sliceContains[T comparable](list []T, s T) bool {
-	return xslices.Any(list, func(arg T) bool { return arg == s })
 }
 
 // inCLIMode detect if CLI mode is asked.
@@ -193,7 +192,12 @@ func inCLIMode(args []string) bool {
 
 // hasFlag checks if a flag is present in a list.
 func hasFlag(args []string, flag string) bool {
-	return xslices.Any(args, func(arg string) bool { return (arg == "-"+flag) || (arg == "--"+flag) })
+	return flagIndex(args, flag) >= 0
+}
+
+// flagIndex returns the position of the first occurrence of a flag int args, or -1 if the flag is not present.
+func flagIndex(args []string, flag string) int {
+	return slices.IndexFunc(args, func(arg string) bool { return (arg == "-"+flag) || (arg == "--"+flag) })
 }
 
 // findAndStrip check if a value is present in s list and remove all occurrences of the value from this list.
@@ -211,7 +215,7 @@ func findAndStripWait(args []string) ([]string, bool, []string) {
 	hasFlag := false
 	values := make([]string, 0)
 	for k, v := range res {
-		if v != FlagWait {
+		if v != HyphenatedFlagWait {
 			continue
 		}
 		if k+1 >= len(res) {
@@ -222,12 +226,29 @@ func findAndStripWait(args []string) ([]string, bool, []string) {
 	}
 
 	if hasFlag {
-		res, _ = findAndStrip(res, FlagWait)
+		res, _ = findAndStrip(res, HyphenatedFlagWait)
 		for _, v := range values {
 			res, _ = findAndStrip(res, v)
 		}
 	}
 	return res, hasFlag, values
+}
+
+// return args with the sessionID flag and value added or modified. The original slice is not modified.
+func appendOrModifySessionID(args []string, sessionID string) []string {
+	index := flagIndex(args, FlagSessionID)
+	if index < 0 {
+		return append(args, HyphenatedFlagSessionID, sessionID)
+	}
+
+	if index == len(args)-1 {
+		return append(args, sessionID)
+	}
+
+	res := slices.Clone(args)
+	res[index+1] = sessionID
+
+	return res
 }
 
 func getPathToUpdatedExecutable(
