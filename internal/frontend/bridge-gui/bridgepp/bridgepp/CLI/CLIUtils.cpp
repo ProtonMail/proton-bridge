@@ -42,4 +42,51 @@ QStringList stripStringParameterFromCommandLine(QString const &paramName, QStrin
 }
 
 
+//****************************************************************************************************************************************************
+/// The flags may be present more than once in the args. All values are returned in order of appearance.
+///
+/// \param[in] args The arguments
+/// \param[in] paramNames the list of names for the parameter, without any prefix hypen.
+/// \return The values found for the flag.
+//****************************************************************************************************************************************************
+QStringList parseGoCLIStringArgument(QStringList const &args, QStringList const& paramNames) {
+    // go cli package is pretty permissive when it comes to parsing arguments. For each name 'param', all the following seems to be accepted:
+    // -param value
+    // --param value
+    // -param=value
+    // --param=value
+
+    QStringList result;
+    qsizetype const argCount = args.count();
+    for (qsizetype i = 0; i < args.size(); ++i) {
+        for (QString const &paramName: paramNames) {
+            if ((i < argCount - 1) && ((args[i] == "-" + paramName) || (args[i] == "--" + paramName))) {
+                result.append(args[i + 1]);
+                i += 1;
+                continue;
+            }
+            if (QRegularExpressionMatch match = QRegularExpression(QString("^-{1,2}%1=(.+)$").arg(paramName)).match(args[i]); match.hasMatch()) {
+                result.append(match.captured(1));
+                continue;
+            }
+        }
+    }
+
+    return result;
+}
+
+//****************************************************************************************************************************************************
+/// \param[in] argc The number of command-line arguments.
+/// \param[in] argv The list of command-line arguments.
+/// \return A QStringList representing the arguments list.
+//****************************************************************************************************************************************************
+QStringList cliArgsToStringList(int argc, char **argv) {
+    QStringList result;
+    result.reserve(argc);
+    for (qsizetype i = 0; i < argc; ++i) {
+        result.append(QString::fromLocal8Bit(argv[i]));
+    }
+    return result;
+}
+
 } // namespace bridgepp

@@ -21,9 +21,7 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
-	"github.com/bradenaw/juniper/xslices"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/exp/slices"
 )
 
 func TestFindAndStrip(t *testing.T) {
@@ -31,53 +29,53 @@ func TestFindAndStrip(t *testing.T) {
 
 	result, found := findAndStrip(list, "a")
 	assert.True(t, found)
-	assert.True(t, xslices.Equal(result, []string{"b", "c", "c", "b", "c"}))
+	assert.Equal(t, result, []string{"b", "c", "c", "b", "c"})
 
 	result, found = findAndStrip(list, "c")
 	assert.True(t, found)
-	assert.True(t, xslices.Equal(result, []string{"a", "b", "b"}))
+	assert.Equal(t, result, []string{"a", "b", "b"})
 
 	result, found = findAndStrip([]string{"c", "c", "c"}, "c")
 	assert.True(t, found)
-	assert.True(t, xslices.Equal(result, []string{}))
+	assert.Equal(t, result, []string{})
 
 	result, found = findAndStrip(list, "A")
 	assert.False(t, found)
-	assert.True(t, xslices.Equal(result, list))
+	assert.Equal(t, result, list)
 
 	result, found = findAndStrip([]string{}, "a")
 	assert.False(t, found)
-	assert.True(t, xslices.Equal(result, []string{}))
+	assert.Equal(t, result, []string{})
 }
 
 func TestFindAndStripWait(t *testing.T) {
 	result, found, values := findAndStripWait([]string{"a", "b", "c"})
 	assert.False(t, found)
-	assert.True(t, xslices.Equal(result, []string{"a", "b", "c"}))
-	assert.True(t, xslices.Equal(values, []string{}))
+	assert.Equal(t, result, []string{"a", "b", "c"})
+	assert.Equal(t, values, []string{})
 
 	result, found, values = findAndStripWait([]string{"a", "--wait", "b"})
 	assert.True(t, found)
-	assert.True(t, xslices.Equal(result, []string{"a"}))
-	assert.True(t, xslices.Equal(values, []string{"b"}))
+	assert.Equal(t, result, []string{"a"})
+	assert.Equal(t, values, []string{"b"})
 
 	result, found, values = findAndStripWait([]string{"a", "--wait", "b", "--wait", "c"})
 	assert.True(t, found)
-	assert.True(t, xslices.Equal(result, []string{"a"}))
-	assert.True(t, xslices.Equal(values, []string{"b", "c"}))
+	assert.Equal(t, result, []string{"a"})
+	assert.Equal(t, values, []string{"b", "c"})
 
 	result, found, values = findAndStripWait([]string{"a", "--wait", "b", "--wait", "c", "--wait", "d"})
 	assert.True(t, found)
-	assert.True(t, xslices.Equal(result, []string{"a"}))
-	assert.True(t, xslices.Equal(values, []string{"b", "c", "d"}))
+	assert.Equal(t, result, []string{"a"})
+	assert.Equal(t, values, []string{"b", "c", "d"})
 }
 
 func TestAppendOrModifySessionID(t *testing.T) {
 	sessionID := string(logging.NewSessionID())
-	assert.True(t, slices.Equal(appendOrModifySessionID(nil, sessionID), []string{"--session-id", sessionID}))
-	assert.True(t, slices.Equal(appendOrModifySessionID([]string{}, sessionID), []string{"--session-id", sessionID}))
-	assert.True(t, slices.Equal(appendOrModifySessionID([]string{"--cli"}, sessionID), []string{"--cli", "--session-id", sessionID}))
-	assert.True(t, slices.Equal(appendOrModifySessionID([]string{"--cli", "--session-id"}, sessionID), []string{"--cli", "--session-id", sessionID}))
-	assert.True(t, slices.Equal(appendOrModifySessionID([]string{"--cli", "--session-id"}, sessionID), []string{"--cli", "--session-id", sessionID}))
-	assert.True(t, slices.Equal(appendOrModifySessionID([]string{"--session-id", "<oldID>", "--cli"}, sessionID), []string{"--session-id", sessionID, "--cli"}))
+	assert.Equal(t, appendOrModifySessionID(nil, sessionID), []string{"--session-id", sessionID})
+	assert.Equal(t, appendOrModifySessionID([]string{}, sessionID), []string{"--session-id", sessionID})
+	assert.Equal(t, appendOrModifySessionID([]string{"--cli"}, sessionID), []string{"--cli", "--session-id", sessionID})
+	assert.Equal(t, appendOrModifySessionID([]string{"--cli", "--session-id"}, sessionID), []string{"--cli", "--session-id", sessionID})
+	assert.Equal(t, appendOrModifySessionID([]string{"--cli", "--session-id"}, sessionID), []string{"--cli", "--session-id", sessionID})
+	assert.Equal(t, appendOrModifySessionID([]string{"--session-id", "<oldID>", "--cli"}, sessionID), []string{"--session-id", sessionID, "--cli"})
 }

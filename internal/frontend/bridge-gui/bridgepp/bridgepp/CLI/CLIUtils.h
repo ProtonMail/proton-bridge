@@ -15,18 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-
 #ifndef BRIDGEPP_CLI_UTILS_H
 #define BRIDGEPP_CLI_UTILS_H
 
-
 namespace bridgepp {
 
-
 QStringList stripStringParameterFromCommandLine(QString const &paramName, QStringList const &commandLineParams); ///< Remove a string parameter from a list of command-line parameters.
-
+QStringList parseGoCLIStringArgument(QStringList const &args, QStringList const &paramNames); ///< Parse a command-line string argument as expected by go's CLI package.
+QStringList cliArgsToStringList(int argc, char **argv); ///< Converts C-style command-line arguments to a string list.
 
 }
-
 
 #endif // BRIDGEPP_CLI_UTILS_H

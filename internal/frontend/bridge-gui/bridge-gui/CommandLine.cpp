@@ -15,113 +15,104 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-
 #include "Pch.h"
 #include "CommandLine.h"
 #include "Settings.h"
+#include <bridgepp/CLI/CLIUtils.h>
 #include <bridgepp/SessionID/SessionID.h>
-
 
 using namespace bridgepp;
 
-
 namespace {
 
-
-QString const launcherFlag = "--launcher"; ///< launcher flag parameter used for bridge.
-QString const noWindowFlag = "--no-window"; ///< The no-window command-line flag.
-QString const softwareRendererFlag = "--software-renderer"; ///< The 'software-renderer' command-line flag. enable software rendering for a single execution
-QString const setSoftwareRendererFlag = "--set-software-renderer"; ///< The 'set-software-renderer' command-line flag. Software rendering will be used for all subsequent executions of the application.
-QString const setHardwareRendererFlag = "--set-hardware-renderer"; ///< The 'set-hardware-renderer' command-line flag. Hardware rendering will be used for all subsequent executions of the application.
-
-
-//****************************************************************************************************************************************************
-/// \brief parse a command-line string argument as expected by go's CLI package.
-/// \param[in] argc The number of arguments passed to the application.
-/// \param[in] argv The list of arguments passed to the application.
-/// \param[in] paramNames the list of names for the parameter
-//****************************************************************************************************************************************************
-QString parseGoCLIStringArgument(int argc, char *argv[], QStringList paramNames) {
-    // go cli package is pretty permissive when it comes to parsing arguments. For each name 'param', all the following seems to be accepted:
-    // -param value
-    // --param value
-    // -param=value
-    // --param=value
-    for (QString const &paramName: paramNames) {
-        for (qsizetype i = 1; i < argc; ++i) {
-            QString const arg(QString::fromLocal8Bit(argv[i]));
-            if ((i < argc - 1) && ((arg == "-" + paramName) || (arg == "--" + paramName))) {
-                return QString(argv[i + 1]);
-            }
-
-            QRegularExpressionMatch match = QRegularExpression(QString("^-{1,2}%1=(.+)$").arg(paramName)).match(arg);
-            if (match.hasMatch()) {
-                return match.captured(1);
-            }
-        }
-    }
-
-    return QString();
-}
-
+QString const hyphenatedLauncherFlag = "--launcher"; ///< launcher flag parameter used for bridge.
+QString const hyphenatedWindowFlag = "--no-window"; ///< The no-window command-line flag.
+QString const hyphenatedSoftwareRendererFlag = "--software-renderer"; ///< The 'software-renderer' command-line flag. enable software rendering for a single execution
+QString const hyphenatedSetSoftwareRendererFlag = "--set-software-renderer"; ///< The 'set-software-renderer' command-line flag. Software rendering will be used for all subsequent executions of the application.
+QString const hyphenatedSetHardwareRendererFlag = "--set-hardware-renderer"; ///< The 'set-hardware-renderer' command-line flag. Hardware rendering will be used for all subsequent executions of the application.
+QString const sessionIDFlag = "session-id";
+QString const hyphenatedSessionIDFlag = "--" + sessionIDFlag;
 
 //****************************************************************************************************************************************************
 /// \brief Parse the log level from the command-line arguments.
 ///
-/// \param[in] argc The number of arguments passed to the application.
-/// \param[in] argv The list of arguments passed to the application.
+/// \param[in] args The command-line arguments.
 /// \return The log level. if not specified on the command-line, the default log level is returned.
 //****************************************************************************************************************************************************
-Log::Level parseLogLevel(int argc, char *argv[]) {
-    QString levelStr = parseGoCLIStringArgument(argc, argv, { "l", "log-level" });
+Log::Level parseLogLevel(QStringList const &args) {
+    QStringList levelStr = parseGoCLIStringArgument(args, {"l", "log-level"});
     if (levelStr.isEmpty()) {
         return Log::defaultLevel;
     }
 
     Log::Level level = Log::defaultLevel;
-    Log::stringToLevel(levelStr, level);
+    Log::stringToLevel(levelStr.back(), level);
     return level;
 }
 
+//****************************************************************************************************************************************************
+/// \brief Return the most recent sessionID parsed in command-line arguments
+///
+/// \param[in] args The command-line arguments.
+/// \return The most recent sessionID in the list. If the list is empty, a new sessionID is created.
+//****************************************************************************************************************************************************
+QString mostRecentSessionID(QStringList const& args) {
+    QStringList const sessionIDs = parseGoCLIStringArgument(args, {sessionIDFlag});
+    if (sessionIDs.isEmpty()) {
+        return newSessionID();
+    }
+
+    return std::ranges::max(sessionIDs, [](QString const &lhs, QString const &rhs) -> bool {
+        return sessionIDToDateTime(lhs) < sessionIDToDateTime(rhs);
+    });
+}
 
 } // anonymous namespace
 
-
 //****************************************************************************************************************************************************
-/// \param[in]  argc number of arguments passed to the application.
-/// \param[in]  argv list of arguments passed to the application.
+/// \param[in]  argv list of arguments passed to the application, including the exe name/path at index 0.
 /// \return The parsed options.
 //****************************************************************************************************************************************************
-CommandLineOptions parseCommandLine(int argc, char *argv[]) {
+CommandLineOptions parseCommandLine(QStringList const &argv) {
     CommandLineOptions options;
-    bool flagFound = false;
-    options.launcher = QString::fromLocal8Bit(argv[0]);
+    bool launcherFlagFound = false;
+    options.launcher = argv[0];
     // for unknown reasons, on Windows QCoreApplication::arguments() frequently returns an empty list, which is incorrect, so we rebuild the argument
     // list from the original argc and argv values.
-    for (int i = 1; i < argc; i++) {
-        QString const &arg = QString::fromLocal8Bit(argv[i]);
+    for (int i = 1; i < argv.count(); i++) {
+        QString const &arg = argv[i];
         // we can't use QCommandLineParser here since it will fail on unknown options.
+
+        // we skip session-id for now we'll process it later, with a special treatment for duplicates
+        if (arg == hyphenatedSessionIDFlag) {
+            i++; // we skip the next param, which if the flag's value.
+            continue;
+        }
+        if (arg.startsWith(hyphenatedSessionIDFlag + "=")) {
+            continue;
+        }
+        
         // Arguments may contain some bridge flags.
-        if (arg == softwareRendererFlag) {
+        if (arg == hyphenatedSoftwareRendererFlag) {
             options.bridgeGuiArgs.append(arg);
             options.useSoftwareRenderer = true;
         }
-        if (arg == setSoftwareRendererFlag) {
+        if (arg == hyphenatedSetSoftwareRendererFlag) {
             app().settings().setUseSoftwareRenderer(true);
             continue; // setting is permanent. no need to keep/pass it to bridge for restart.
         }
-        if (arg == setHardwareRendererFlag) {
+        if (arg == hyphenatedSetHardwareRendererFlag) {
             app().settings().setUseSoftwareRenderer(false);
             continue; // setting is permanent. no need to keep/pass it to bridge for restart.
         }
-        if (arg == noWindowFlag) {
+        if (arg == hyphenatedWindowFlag) {
             options.noWindow = true;
         }
-        if (arg == launcherFlag) {
+        if (arg == hyphenatedLauncherFlag) {
             options.bridgeArgs.append(arg);
-            options.launcher = QString::fromLocal8Bit(argv[++i]);
+            options.launcher = argv[++i];
             options.bridgeArgs.append(options.launcher);
-            flagFound = true;
+            launcherFlagFound = true;
         }
 #ifdef QT_DEBUG
         else if (arg == "--attach" || arg == "-a") {
@@ -135,22 +126,24 @@ CommandLineOptions parseCommandLine(int argc, char *argv[]) {
             options.bridgeGuiArgs.append(arg);
         }
     }
-    if (!flagFound) {
+    if (!launcherFlagFound) {
         // add bridge-gui as launcher
-        options.bridgeArgs.append(launcherFlag);
+        options.bridgeArgs.append(hyphenatedLauncherFlag);
         options.bridgeArgs.append(options.launcher);
     }
 
-    options.logLevel = parseLogLevel(argc, argv);
-
-    QString sessionID = parseGoCLIStringArgument(argc, argv, { "session-id" });
-    if (sessionID.isEmpty()) {
-        // The session ID was not passed to us on the command-line -> create one and add to the command-line for bridge
-        sessionID = newSessionID();
-        options.bridgeArgs.append("--session-id");
-        options.bridgeArgs.append(sessionID);
+    QStringList args;
+    if (!argv.isEmpty()) {
+        args = argv.last(argv.count() - 1);
     }
+
+    options.logLevel = parseLogLevel(args);
+
+    QString const sessionID = mostRecentSessionID(args);
+    options.bridgeArgs.append(hyphenatedSessionIDFlag);
+    options.bridgeArgs.append(sessionID);
     app().setSessionID(sessionID);
 
     return options;
 }
+

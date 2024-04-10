@@ -23,16 +23,15 @@
 using namespace bridgepp;
 
 
-
 //****************************************************************************************************************************************************
 //
 //****************************************************************************************************************************************************
 TEST(CLI, stripStringParameterFromCommandLine) {
-    struct Test {
+    struct TestData {
         QStringList input;
         QStringList expectedOutput;
     };
-    QList<Test> const tests = {
+    QList<TestData> const tests = {
         {{}, {}},
         {{ "--a", "-b", "--C" }, { "--a", "-b", "--C" } },
         {{ "--string", "value" }, {} },
@@ -44,7 +43,36 @@ TEST(CLI, stripStringParameterFromCommandLine) {
         {{ "--string", "--string", "value", "-b", "--string"}, { "value", "-b" } },
     };
 
-    for (Test const& test: tests) {
+    for (TestData const& test: tests) {
         EXPECT_EQ(stripStringParameterFromCommandLine("--string", test.input), test.expectedOutput);
     }
+}
+
+
+TEST(CLI, parseGoCLIStringArgument) {
+    struct TestData {
+        QStringList args;
+        QStringList params;
+        QStringList expectedOutput;
+    };
+
+    QList<TestData> const tests = {
+        { {}, {}, {} },
+        { {"-param"}, {"param"}, {} },
+        { {"--param", "1"}, {"param"}, { "1" } },
+        { {"--param", "1","p", "-p", "2", "-flag", "-param=3", "--p=4"}, {"param", "p"}, { "1", "2", "3", "4" } },
+        { {"--param", "--param", "1"}, {"param"}, { "--param" } },
+    };
+
+    for (TestData const& test: tests) {
+        EXPECT_EQ(parseGoCLIStringArgument(test.args, test.params), test.expectedOutput);
+    }
+}
+
+TEST(CLI, cliArgsToStringList) {
+    int constexpr argc = 3;
+    char *argv[] = { const_cast<char *>("1"), const_cast<char *>("2"), const_cast<char *>("3") };
+    QStringList const strList { "1", "2", "3" };
+    EXPECT_EQ(cliArgsToStringList(argc,argv), strList);
+    EXPECT_EQ(cliArgsToStringList(0, nullptr), QStringList {});
 }

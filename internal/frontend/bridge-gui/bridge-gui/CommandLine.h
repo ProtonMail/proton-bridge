@@ -37,7 +37,7 @@ struct CommandLineOptions {
 };
 
 
-CommandLineOptions parseCommandLine(int argc, char *argv[]); ///< Parse the command-line arguments
+CommandLineOptions parseCommandLine(QStringList const &argv); ///< Parse the command-line arguments
 
 
 #endif //BRIDGE_GUI_COMMAND_LINE_H

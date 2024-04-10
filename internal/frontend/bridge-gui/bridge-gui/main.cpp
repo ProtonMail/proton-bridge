@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-
 #include "BridgeApp.h"
 #include "BuildConfig.h"
 #include "CommandLine.h"
@@ -30,12 +29,11 @@
 #include <bridgepp/Log/LogUtils.h>
 #include <bridgepp/ProcessMonitor.h>
 
+#include "bridgepp/CLI/CLIUtils.h"
 
 #ifdef Q_OS_MACOS
 
-
 #include "MacOS/SecondInstance.h"
-
 
 #endif
 
@@ -50,16 +48,13 @@ QString const exeSuffix = ".exe";
 QString const exeSuffix;
 #endif
 
-
 QString const bridgeLock = "bridge-v3.lock"; ///< The file name used for the bridge-gui lock file.
 QString const bridgeGUILock = "bridge-v3-gui.lock"; ///< The file name used for the bridge-gui lock file.
 QString const exeName = "bridge" + exeSuffix; ///< The bridge executable file name.*
-qint64 const grpcServiceConfigWaitDelayMs = 180000; ///< The wait delay for the gRPC config file in milliseconds.
+qint64 constexpr grpcServiceConfigWaitDelayMs = 180000; ///< The wait delay for the gRPC config file in milliseconds.
 QString const waitFlag = "--wait"; ///< The wait command-line flag.
 
-
 } // anonymous namespace
-
 
 //****************************************************************************************************************************************************
 /// \return The path of the bridge executable.
@@ -69,7 +64,6 @@ QString locateBridgeExe() {
     QFileInfo const fileInfo(QDir(QCoreApplication::applicationDirPath()).absoluteFilePath(exeName));
     return (fileInfo.exists() && fileInfo.isFile() && fileInfo.isExecutable()) ? fileInfo.absoluteFilePath() : QString();
 }
-
 
 //****************************************************************************************************************************************************
 /// // initialize the Qt application.
@@ -97,8 +91,6 @@ void initQtApplication() {
 #endif // #ifdef Q_OS_MACOS
 }
 
-
-
 //****************************************************************************************************************************************************
 /// \param[in] engine The QML component.
 //****************************************************************************************************************************************************
@@ -118,12 +110,11 @@ QQmlComponent *createRootQmlComponent(QQmlApplicationEngine &engine) {
     rootComponent->loadUrl(QUrl(qrcQmlDir + "/Bridge.qml"));
     if (rootComponent->status() != QQmlComponent::Status::Ready) {
         QString const &err = rootComponent->errorString();
-            app().log().error(err);
+        app().log().error(err);
         throw Exception("Could not load QML component", err);
     }
     return rootComponent;
 }
-
 
 //****************************************************************************************************************************************************
 /// \param[in] lock The lock file to be checked.
@@ -155,7 +146,6 @@ bool checkSingleInstance(QLockFile &lock) {
     return true;
 }
 
-
 //****************************************************************************************************************************************************
 /// \return QUrl to reach the bridge API.
 //****************************************************************************************************************************************************
@@ -184,7 +174,6 @@ QUrl getApiUrl() {
     return url;
 }
 
-
 //****************************************************************************************************************************************************
 /// \brief Check if bridge is running.
 ///
@@ -199,7 +188,6 @@ bool isBridgeRunning() {
     return (!lockFile.tryLock()) && (lockFile.error() == QLockFile::LockFailedError);
 }
 
-
 //****************************************************************************************************************************************************
 /// \brief Use api to bring focus on existing bridge instance.
 //****************************************************************************************************************************************************
@@ -213,8 +201,7 @@ void focusOtherInstance() {
             if (!sc.load(path)) {
                 throw Exception("The gRPC focus service configuration file is invalid.");
             }
-        }
-        else {
+        } else {
             throw Exception("Server did not provide gRPC Focus service configuration.");
         }
 
@@ -225,20 +212,18 @@ void focusOtherInstance() {
         if (!client.raise("focusOtherInstance").ok()) {
             throw Exception(QString("The raise call to the bridge focus service failed."));
         }
-    }
-    catch (Exception const &e) {
+    } catch (Exception const &e) {
         app().log().error(e.qwhat());
         auto uuid = reportSentryException("Exception occurred during focusOtherInstance()", e);
         app().log().fatal(QString("reportID: %1 Captured exception: %2").arg(QByteArray(uuid.bytes, 16).toHex(), e.qwhat()));
     }
 }
 
-
 //****************************************************************************************************************************************************
 /// \param [in] args list of arguments to pass to bridge.
 /// \return bridge executable path
 //****************************************************************************************************************************************************
-const QString launchBridge(QStringList const &args) {
+QString launchBridge(QStringList const &args) {
     UPOverseer &overseer = app().bridgeOverseer();
     overseer.reset();
 
@@ -251,13 +236,12 @@ const QString launchBridge(QStringList const &args) {
     }
 
     qint64 const pid = qApp->applicationPid();
-    QStringList const params = QStringList { "--grpc", "--parent-pid", QString::number(pid) } + args;
+    QStringList const params = QStringList{"--grpc", "--parent-pid", QString::number(pid)} + args;
     app().log().info(QString("Launching bridge process with command \"%1\" %2").arg(bridgeExePath, params.join(" ")));
     overseer = std::make_unique<Overseer>(new ProcessMonitor(bridgeExePath, params, nullptr), nullptr);
     overseer->startWorker(true);
     return bridgeExePath;
 }
-
 
 //****************************************************************************************************************************************************
 //
@@ -265,12 +249,25 @@ const QString launchBridge(QStringList const &args) {
 void closeBridgeApp() {
     app().grpc().quit(); // this will cause the grpc service and the bridge app to close.
 
-    UPOverseer &overseer = app().bridgeOverseer();
-    if (overseer) {  // A null overseer means the app was run in 'attach' mode. We're not monitoring it.
+    UPOverseer const &overseer = app().bridgeOverseer();
+    if (overseer) {
+        // A null overseer means the app was run in 'attach' mode. We're not monitoring it.
+        // ReSharper disable once CppExpressionWithoutSideEffects
         overseer->wait(Overseer::maxTerminationWaitTimeMs);
     }
 }
 
+//****************************************************************************************************************************************************
+/// \param[in] argv The command-line argments, including the application name at index 0.
+//****************************************************************************************************************************************************
+void logCommandLineInvocation(QStringList argv) {
+    Log &log = app().log();
+    if (argv.isEmpty()) {
+        log.error("The command line is empty");
+    }
+    log.info("bridge-gui executable: " + argv.front());
+    log.info("Command-line invocation: " + (argv.size() > 1 ? argv.last(argv.size() - 1).join(" ") : "<none>"));
+}
 
 //****************************************************************************************************************************************************
 /// \param[in] argc The number of command-line arguments.
@@ -289,12 +286,11 @@ int main(int argc, char *argv[]) {
     auto sentryCloser = qScopeGuard([] { sentry_close(); });
 
     try {
-        QString const& configDir = bridgepp::userConfigDir();
-
+        QString const &configDir = bridgepp::userConfigDir();
 
         initQtApplication();
-
-        CommandLineOptions const cliOptions = parseCommandLine(argc, argv);
+        QStringList const argvList = cliArgsToStringList(argc, argv);
+        CommandLineOptions const cliOptions = parseCommandLine(argvList);
         Log &log = initLog();
         log.setLevel(cliOptions.logLevel);
 
@@ -308,6 +304,8 @@ int main(int argc, char *argv[]) {
         registerSecondInstanceHandler();
         setDockIconVisibleState(!cliOptions.noWindow);
 #endif
+
+        logCommandLineInvocation(argvList);
 
         // In attached mode, we do not intercept stderr and stdout of bridge, as we did not launch it ourselves, so we output the log to the console.
         // When not in attached mode, log entries are forwarded to bridge, which output it on stdout/stderr. bridge-gui's process monitor intercept
@@ -348,7 +346,6 @@ int main(int argc, char *argv[]) {
         QQuickWindow::setSceneGraphBackend((app().settings().useSoftwareRenderer() || cliOptions.useSoftwareRenderer) ? "software" : "rhi");
         log.info(QString("Qt Quick renderer: %1").arg(QQuickWindow::sceneGraphBackend()));
 
-
         QQmlApplicationEngine engine;
         std::unique_ptr<QQmlComponent> rootComponent(createRootQmlComponent(engine));
         std::unique_ptr<QObject> rootObject(rootComponent->create(engine.rootContext()));
@@ -374,7 +371,7 @@ int main(int argc, char *argv[]) {
                 app().log().debug(QString("Monitoring Bridge PID : %1").arg(status.pid));
 
                 connection = QObject::connect(bridgeMonitor, &ProcessMonitor::processExited, [&](int returnCode) {
-                    bridgeExited = true;// clazy:exclude=lambda-in-connect
+                    bridgeExited = true; // clazy:exclude=lambda-in-connect
                     qGuiApp->exit(returnCode);
                 });
             }
@@ -383,7 +380,7 @@ int main(int argc, char *argv[]) {
         int result = 0;
         if (!startError) {
             // we succeeded in launching bridge, so we can be set as mainExecutable.
-            QString mainexec = QString::fromLocal8Bit(argv[0]);
+            QString const mainexec = argvList[0];
             app().grpc().setMainExecutable(mainexec);
             QStringList args = cliOptions.bridgeGuiArgs;
             args.append(waitFlag);
@@ -412,8 +409,7 @@ int main(int argc, char *argv[]) {
         // release the lock file
         lock.unlock();
         return result;
-    }
-    catch (Exception const &e) {
+    } catch (Exception const &e) {
         sentry_uuid_s const uuid = reportSentryException("Exception occurred during main", e);
         QString message = e.qwhat();
         if (e.showSupportLink()) {
