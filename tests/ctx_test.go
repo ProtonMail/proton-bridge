@@ -45,7 +45,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var defaultVersion = semver.MustParse("3.0.6")
+var defaultVersion = semver.MustParse("3.10.0")
 
 type testUser struct {
 	name       string      // the test user name
