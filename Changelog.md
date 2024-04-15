@@ -3,6 +3,31 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Alcantara Bridge 3.11.1
+
+### Fixed
+* BRIDGE-70: Hotfix for blocked smtp/imap port causing bridge to quit.
+
+
+## Alcantara Bridge 3.11.0
+
+### Added
+* GODT-3185: Report cases which leads to wrong address key used.
+
+### Changed
+* BRIDGE-14: HV3 implementation.
+* BRIDGE-15: Certificate install is now also done during Outlook setup on macOS.
+* GODT-3146: Start servers on startup, keep running even when no users are active.
+* BRIDGE-19: Update checksum validation use warning instead of error on non-existing files.
+
+### Fixed
+* BRIDGE-8: Fix bridge double sessionID issue in logs.
+* BRIDGE-7: Modify keychain test on macOS.
+* BRIDGE-4: Logs not being created when invalid flag is passed.
+* BRIDGE-5: Add tooltip to tray icon.
+* GODT-3163: Filter MBOX format delimiter.
+
+
 ## Zaehringen Bridge 3.10.0
 
 ### Added
