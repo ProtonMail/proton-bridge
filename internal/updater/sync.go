@@ -146,7 +146,7 @@ func mkdirAllClear(path string) error {
 func checksum(path string) (hash string) {
 	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
-		logrus.WithError(err).WithField("path", path).Error("Cannot open file for checksum")
+		logrus.WithError(err).WithField("path", path).Warn("Cannot open file for checksum")
 		return
 	}
 	defer file.Close() //nolint:errcheck,gosec
