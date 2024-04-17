@@ -885,7 +885,7 @@ func (s *Connector) reportGODT3185(isDraft bool, defaultAddr string, p *parser.P
 	}
 
 	reportMode := "combined"
-	if isCombinedMode {
+	if !isCombinedMode {
 		reportMode = "split"
 	}
 
