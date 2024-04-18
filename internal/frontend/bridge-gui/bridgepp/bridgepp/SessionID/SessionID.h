@@ -23,6 +23,10 @@
 namespace bridgepp {
 
 
+extern QString const sessionIDFlag; ///< The sessionID command-line flag (without hyphens)
+extern QString const hyphenatedSessionIDFlag; ///< The sessionID command-line flag (with two hyphens)
+
+
 QString newSessionID(); ///< Create a new sessions
 QDateTime sessionIDToDateTime(QString const &sessionID); ///< Parse the date/time from a sessionID.
 

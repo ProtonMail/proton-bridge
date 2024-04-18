@@ -17,6 +17,7 @@
 
 
 #include <bridgepp/CLI/CLIUtils.h>
+#include <bridgepp/SessionID/SessionID.h>
 #include <gtest/gtest.h>
 
 
@@ -75,4 +76,13 @@ TEST(CLI, cliArgsToStringList) {
     QStringList const strList { "1", "2", "3" };
     EXPECT_EQ(cliArgsToStringList(argc,argv), strList);
     EXPECT_EQ(cliArgsToStringList(0, nullptr), QStringList {});
+}
+
+TEST(CLI, mostRecentSessionID) {
+    QStringList const sessionIDs { "20220411_155931148", "20230411_155931148", "20240411_155931148" };
+    EXPECT_EQ(mostRecentSessionID({ hyphenatedSessionIDFlag, sessionIDs[0] }), sessionIDs[0]);
+    EXPECT_EQ(mostRecentSessionID({ hyphenatedSessionIDFlag, sessionIDs[1], hyphenatedSessionIDFlag, sessionIDs[2] }), sessionIDs[2]);
+    EXPECT_EQ(mostRecentSessionID({ hyphenatedSessionIDFlag, sessionIDs[2], hyphenatedSessionIDFlag, sessionIDs[1] }), sessionIDs[2]);
+    EXPECT_EQ(mostRecentSessionID({ hyphenatedSessionIDFlag, sessionIDs[1], hyphenatedSessionIDFlag, sessionIDs[2], hyphenatedSessionIDFlag,
+        sessionIDs[0] }), sessionIDs[2]);
 }

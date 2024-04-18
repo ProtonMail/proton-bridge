@@ -16,7 +16,7 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
 #include "CLIUtils.h"
-
+#include "../SessionID/SessionID.h"
 
 namespace bridgepp {
 
@@ -88,5 +88,21 @@ QStringList cliArgsToStringList(int argc, char **argv) {
     }
     return result;
 }
+
+//****************************************************************************************************************************************************
+/// \param[in] args The command-line arguments.
+/// \return The most recent sessionID in the list. If the list is empty, a new sessionID is created.
+//****************************************************************************************************************************************************
+    QString mostRecentSessionID(QStringList const& args) {
+    QStringList const sessionIDs = parseGoCLIStringArgument(args, {sessionIDFlag});
+    if (sessionIDs.isEmpty()) {
+        return newSessionID();
+    }
+
+    return *std::max_element(sessionIDs.constBegin(), sessionIDs.constEnd(), [](QString const &lhs, QString const &rhs) -> bool {
+        return sessionIDToDateTime(lhs) < sessionIDToDateTime(rhs);
+    });
+}
+
 
 } // namespace bridgepp

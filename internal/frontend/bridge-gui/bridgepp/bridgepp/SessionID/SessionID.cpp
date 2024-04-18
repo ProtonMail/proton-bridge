@@ -32,6 +32,10 @@ QString const dateTimeFormat = "yyyyMMdd_hhmmsszzz"; ///< The format string for 
 namespace bridgepp {
 
 
+QString const sessionIDFlag = "session-id";
+QString const hyphenatedSessionIDFlag = "--" + sessionIDFlag;
+
+
 //****************************************************************************************************************************************************
 /// \return a new session ID based on the current local date/time
 //****************************************************************************************************************************************************

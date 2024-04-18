@@ -30,8 +30,6 @@ QString const hyphenatedWindowFlag = "--no-window"; ///< The no-window command-l
 QString const hyphenatedSoftwareRendererFlag = "--software-renderer"; ///< The 'software-renderer' command-line flag. enable software rendering for a single execution
 QString const hyphenatedSetSoftwareRendererFlag = "--set-software-renderer"; ///< The 'set-software-renderer' command-line flag. Software rendering will be used for all subsequent executions of the application.
 QString const hyphenatedSetHardwareRendererFlag = "--set-hardware-renderer"; ///< The 'set-hardware-renderer' command-line flag. Hardware rendering will be used for all subsequent executions of the application.
-QString const sessionIDFlag = "session-id";
-QString const hyphenatedSessionIDFlag = "--" + sessionIDFlag;
 
 //****************************************************************************************************************************************************
 /// \brief Parse the log level from the command-line arguments.
@@ -48,23 +46,6 @@ Log::Level parseLogLevel(QStringList const &args) {
     Log::Level level = Log::defaultLevel;
     Log::stringToLevel(levelStr.back(), level);
     return level;
-}
-
-//****************************************************************************************************************************************************
-/// \brief Return the most recent sessionID parsed in command-line arguments
-///
-/// \param[in] args The command-line arguments.
-/// \return The most recent sessionID in the list. If the list is empty, a new sessionID is created.
-//****************************************************************************************************************************************************
-QString mostRecentSessionID(QStringList const& args) {
-    QStringList const sessionIDs = parseGoCLIStringArgument(args, {sessionIDFlag});
-    if (sessionIDs.isEmpty()) {
-        return newSessionID();
-    }
-
-    return std::ranges::max(sessionIDs, [](QString const &lhs, QString const &rhs) -> bool {
-        return sessionIDToDateTime(lhs) < sessionIDToDateTime(rhs);
-    });
 }
 
 } // anonymous namespace
