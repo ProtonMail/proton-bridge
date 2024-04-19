@@ -1,4 +1,3 @@
-
 ---
 
 .script-build:
@@ -10,6 +9,7 @@
     - which go && go version
     - which gcc && gcc --version
     - which qmake && qmake --version
+    - git rev-parse --short=10 HEAD
     - make build
     - git diff && git diff-index --quiet HEAD
     - make vault-editor
@@ -70,4 +70,3 @@ trigger-qa-installer:
   trigger:
     project: "jcuth/bridge-release"
     branch: master
-
