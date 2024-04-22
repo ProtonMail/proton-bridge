@@ -12,6 +12,7 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 * BRIDGE-14: HV3 implementation.
 * BRIDGE-15: Certificate install is now also done during Outlook setup on macOS.
 * GODT-3146: Start servers on startup, keep running when even when no users are active.
+* BRIDGE-19: Update checksum validation use warning instead of error on non-existing files.
 
 ### Fixed
 * BRIDGE-8: Fix bridge double sessionID issue in logs.
