@@ -96,6 +96,7 @@ Item {
     function showAppleMailAutoConfig() {
         backAction = _showClientConfig;
         rootStackLayout.currentIndex = SetupWizard.RootStack.TwoPanesView;
+        clientConfigAppleMail.reset()
         rightContent.currentIndex = SetupWizard.ContentStack.ClientConfigAppleMail;
         leftContent.showAppleMailAutoconfigProfileInstall();
     }
