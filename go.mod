@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/0xAX/notificator v0.0.0-20220220101646-ee9b8921e557
 	github.com/Masterminds/semver/v3 v3.2.0
-	github.com/ProtonMail/gluon v0.17.1-0.20240422155717-890426e17745
+	github.com/ProtonMail/gluon v0.17.1-0.20240423123310-0266b0f75d41
 	github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a
 	github.com/ProtonMail/go-proton-api v0.4.1-0.20240423123404-a6163268401c
 	github.com/ProtonMail/gopenpgp/v2 v2.7.4-proton
@@ -93,7 +93,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
-	github.com/mattn/go-sqlite3 v1.14.17 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
