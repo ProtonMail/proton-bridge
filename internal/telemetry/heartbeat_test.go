@@ -65,8 +65,10 @@ func TestHeartbeat_default_heartbeat(t *testing.T) {
 func TestHeartbeat_already_sent_heartbeat(t *testing.T) {
 	withHeartbeat(t, 1143, 1025, "/tmp", "defaultKeychain", func(hb *telemetry.Heartbeat, mock *mocks.MockHeartbeatManager) {
 		mock.EXPECT().IsTelemetryAvailable(context.Background()).Return(true)
-		mock.EXPECT().GetLastHeartbeatSent().Return(time.Now().Truncate(24 * time.Hour))
-
+		mock.EXPECT().GetLastHeartbeatSent().DoAndReturn(func() time.Time {
+			curTime := time.Now()
+			return time.Date(curTime.Year(), curTime.Month(), curTime.Day(), 0, 0, 0, 0, curTime.Location())
+		})
 		hb.TrySending(context.Background())
 	})
 }
