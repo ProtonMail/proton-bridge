@@ -29,6 +29,7 @@ import (
 )
 
 func (s *Service) GetUserList(_ context.Context, _ *emptypb.Empty) (*UserListResponse, error) {
+	defer async.HandlePanic(s.panicHandler)
 	s.log.Debug("GetUserList")
 
 	userIDs := s.bridge.GetUserIDs()
@@ -52,6 +53,7 @@ func (s *Service) GetUserList(_ context.Context, _ *emptypb.Empty) (*UserListRes
 }
 
 func (s *Service) GetUser(_ context.Context, userID *wrapperspb.StringValue) (*User, error) {
+	defer async.HandlePanic(s.panicHandler)
 	s.log.WithField("userID", userID).Debug("GetUser")
 
 	user, err := s.bridge.GetUserInfo(userID.Value)
@@ -63,6 +65,7 @@ func (s *Service) GetUser(_ context.Context, userID *wrapperspb.StringValue) (*U
 }
 
 func (s *Service) SetUserSplitMode(_ context.Context, splitMode *UserSplitModeRequest) (*emptypb.Empty, error) {
+	defer async.HandlePanic(s.panicHandler)
 	s.log.WithField("UserID", splitMode.UserID).WithField("Active", splitMode.Active).Debug("SetUserSplitMode")
 
 	user, err := s.bridge.GetUserInfo(splitMode.UserID)
@@ -97,6 +100,7 @@ func (s *Service) SetUserSplitMode(_ context.Context, splitMode *UserSplitModeRe
 }
 
 func (s *Service) SendBadEventUserFeedback(_ context.Context, feedback *UserBadEventFeedbackRequest) (*emptypb.Empty, error) {
+	defer async.HandlePanic(s.panicHandler)
 	l := s.log.WithField("UserID", feedback.UserID).WithField("doResync", feedback.DoResync)
 	l.Debug("SendBadEventUserFeedback")
 
@@ -115,6 +119,7 @@ func (s *Service) SendBadEventUserFeedback(_ context.Context, feedback *UserBadE
 }
 
 func (s *Service) LogoutUser(_ context.Context, userID *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	defer async.HandlePanic(s.panicHandler)
 	s.log.WithField("UserID", userID.Value).Debug("LogoutUser")
 
 	if _, err := s.bridge.GetUserInfo(userID.Value); err != nil {
@@ -133,6 +138,7 @@ func (s *Service) LogoutUser(_ context.Context, userID *wrapperspb.StringValue) 
 }
 
 func (s *Service) RemoveUser(_ context.Context, userID *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	defer async.HandlePanic(s.panicHandler)
 	s.log.WithField("UserID", userID.Value).Debug("RemoveUser")
 
 	go func() {
@@ -148,6 +154,7 @@ func (s *Service) RemoveUser(_ context.Context, userID *wrapperspb.StringValue) 
 }
 
 func (s *Service) ConfigureUserAppleMail(ctx context.Context, request *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
+	defer async.HandlePanic(s.panicHandler)
 	s.log.WithField("UserID", request.UserID).WithField("Address", request.Address).Debug("ConfigureUserAppleMail")
 
 	sslWasEnabled := s.bridge.GetSMTPSSL()

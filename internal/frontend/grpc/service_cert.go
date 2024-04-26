@@ -30,6 +30,8 @@ import (
 )
 
 func (s *Service) IsTLSCertificateInstalled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
+	defer async.HandlePanic(s.panicHandler)
+
 	s.log.Info("IsTLSCertificateInstalled")
 
 	cert, _ := s.bridge.GetBridgeTLSCert()

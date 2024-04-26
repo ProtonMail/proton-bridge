@@ -20,21 +20,25 @@ package grpc
 import (
 	"context"
 
+	"github.com/ProtonMail/gluon/async"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func (s *Service) ReportBugClicked(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	defer async.HandlePanic(s.panicHandler)
 	s.bridge.ReportBugClicked()
 	return &emptypb.Empty{}, nil
 }
 
 func (s *Service) AutoconfigClicked(_ context.Context, client *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	defer async.HandlePanic(s.panicHandler)
 	s.bridge.AutoconfigUsed(client.Value)
 	return &emptypb.Empty{}, nil
 }
 
 func (s *Service) ExternalLinkClicked(_ context.Context, article *wrapperspb.StringValue) (*emptypb.Empty, error) {
+	defer async.HandlePanic(s.panicHandler)
 	s.bridge.ExternalLinkClicked(article.Value)
 	return &emptypb.Empty{}, nil
 }
