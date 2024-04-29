@@ -25,10 +25,14 @@ variables:
   GOMAXPROCS: $(( ${CI_TAG_CPU} / 2 ))
 
 before_script:
-  - apt update && apt-get -y install libsecret-1-dev
-  - git config --global url.https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}.insteadOf https://${CI_SERVER_HOST}
+  - |
+    if [ "$CI_JOB_NAME" != "grype-scan-code-dependencies" ]; then
+      apt update && apt-get -y install libsecret-1-dev
+      git config --global url.https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}.insteadOf https://${CI_SERVER_HOST}
+    fi
 
 stages:
+  - analyse
   - test
   - build
 
@@ -38,4 +42,10 @@ include:
   - local: ci/env.yml
   - local: ci/test.yml
   - local: ci/build.yml
+  - component: gitlab.protontech.ch/proton/devops/cicd-components/devsecops/gitleaks/scan-repository@~latest
+    inputs: 
+      stage: analyse 
+  - component: gitlab.protontech.ch/proton/devops/cicd-components/devsecops/grype/scan-code@0.0.12
+    inputs:
+      stage: analyse
 
