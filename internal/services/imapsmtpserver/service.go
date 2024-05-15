@@ -108,13 +108,13 @@ func (sm *Service) Init(ctx context.Context, group *async.Group, subscription ev
 	})
 
 	if err := sm.serveIMAP(ctx); err != nil {
-		sm.log.WithError(err).Error("Failed to start IMAP server")
-		return err
+		sm.log.WithError(err).Error("Failed to start IMAP server on bridge start")
+		sm.imapListener = nil
 	}
 
 	if err := sm.serveSMTP(ctx); err != nil {
-		sm.log.WithError(err).Error("Failed to start SMTP server")
-		return err
+		sm.log.WithError(err).Error("Failed to start SMTP server on bridge start")
+		sm.smtpListener = nil
 	}
 
 	return nil
