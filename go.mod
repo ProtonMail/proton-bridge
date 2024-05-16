@@ -2,6 +2,8 @@ module github.com/ProtonMail/proton-bridge/v3
 
 go 1.21
 
+toolchain go1.21.9
+
 require (
 	github.com/0xAX/notificator v0.0.0-20220220101646-ee9b8921e557
 	github.com/Masterminds/semver/v3 v3.2.0

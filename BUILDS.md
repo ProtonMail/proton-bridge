@@ -3,7 +3,7 @@
 ## Prerequisites
 * 64-bit OS:
     - the go-rfc5322 module cannot currently be compiled for 32-bit OSes
-* Go 1.21.6
+* Go 1.21.9
 * Bash with basic build utils: make, gcc, sed, find, grep, ...
   - For Windows, it is recommended to use MinGW 64bit shell from [MSYS2](https://www.msys2.org/)
 * GCC (Linux), msvc (Windows) or Xcode (macOS)
