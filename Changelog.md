@@ -3,6 +3,12 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Alcantara Bridge 3.11.1
+
+### Fixed
+* BRIDGE-70: Hotfix for blocked smtp/imap port causing bridge to quit.
+
+
 ## Alcantara Bridge 3.11.0
 
 ### Added
