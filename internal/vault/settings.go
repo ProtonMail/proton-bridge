@@ -18,11 +18,13 @@
 package vault
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/sirupsen/logrus"
@@ -200,7 +202,14 @@ func (vault *Vault) SetTelemetryDisabled(telemetryDisabled bool) error {
 
 // GetLastVersion returns the last version of the bridge that was run.
 func (vault *Vault) GetLastVersion() *semver.Version {
-	return semver.MustParse(vault.getSafe().Settings.LastVersion)
+	lastVersion := vault.getSafe().Settings.LastVersion
+	version, err := semver.NewVersion(lastVersion)
+	if err != nil {
+		logrus.WithError(err).Error(fmt.Sprintf("Error encountered when trying to get last version from vault: %s", lastVersion))
+		version, _ = semver.NewVersion(constants.Version)
+	}
+
+	return version
 }
 
 // SetLastVersion sets the last version of the bridge that was run.
