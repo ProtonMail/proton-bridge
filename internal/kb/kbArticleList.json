@@ -262,7 +262,8 @@
     "keywords": [
       "Outlook",
       "setup",
-      "configuration"
+      "configuration",
+      "We encountered an error while adding account"
     ]
   },
   {
@@ -420,6 +421,30 @@
       "certificate",
       "Apple Mail",
       "macOS"
+    ]
+  },
+  {
+    "index": 37,
+    "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook#may-17",
+    "title": "Important notice regarding the New Outlook for Mac and issues you might face",
+    "keywords": [
+      "Receiving",
+      "Sending",
+      "Outlook",
+      "Configuration",
+      "Sync"
+    ]
+  },
+  {
+    "index": 38,
+    "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
+    "title": "Proton Mail Bridge New Outlook for Windows set up guide",
+    "keywords": [
+      "Outlook",
+      "New Outlook",
+      "Configuration",
+      "Configure",
+      "Setup"
     ]
   }
 ]
