@@ -1328,6 +1328,8 @@ void QMLBackend::connectGrpcEvents() {
     connect(client, &GRPCClient::certificateInstallFailed, this, &QMLBackend::certificateInstallFailed);
     connect(client, &GRPCClient::showMainWindow, [&]() { this->showMainWindow("gRPC showMainWindow event"); });
     connect(client, &GRPCClient::knowledgeBasSuggestionsReceived, this, &QMLBackend::receivedKnowledgeBaseSuggestions);
+    connect(client, &GRPCClient::repairStarted, this, &QMLBackend::repairStarted);
+    connect(client, &GRPCClient::allUsersLoaded, this, &QMLBackend::allUsersLoaded);
 
     // cache events
     connect(client, &GRPCClient::cantMoveDiskCache, this, &QMLBackend::cantMoveDiskCache);
@@ -1408,5 +1410,11 @@ void QMLBackend::displayBadEventDialog(QString const &userID) {
                " to do it later. Synchronization time depends on the size of your mailbox.").arg(elideLongString(user->primaryEmailOrUsername(), 30)));
         emit selectUser(userID, true);
         emit showMainWindow();
+    )
+}
+
+void QMLBackend::triggerRepair() const {
+    HANDLE_EXCEPTION(
+            app().grpc().triggerRepair();
     )
 }

@@ -1198,6 +1198,14 @@ void GRPCClient::processAppEvent(AppEvent const &event) {
         emit knowledgeBasSuggestionsReceived(suggestions);
         break;
     }
+    case AppEvent::kRepairStarted:
+        this->logTrace("App event received: RepairStarted.");
+        emit repairStarted();
+        break;
+    case AppEvent::kAllUsersLoaded:
+        this->logTrace("App event received: AllUsersLoaded");
+        emit allUsersLoaded();
+        break;
     default:
         this->logError("Unknown App event received.");
     }
@@ -1578,6 +1586,13 @@ grpc::Status GRPCClient::externalLinkClicked(QString const &link) {
     StringValue s;
     s.set_value(link.toStdString());
     return this->logGRPCCallStatus(stub_->ExternalLinkClicked(this->clientContext().get(), s, &empty), __FUNCTION__);
+}
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+grpc::Status GRPCClient::triggerRepair()  {
+    return this->logGRPCCallStatus(stub_->TriggerRepair(this->clientContext().get(), empty, &empty), __FUNCTION__ );
 }
 
 

@@ -232,3 +232,13 @@ func (user *User) Clear() error {
 func (user *User) Close() error {
 	return user.vault.detachUser(user.userID)
 }
+
+func (user *User) SetShouldSync(shouldResync bool) error {
+	return user.vault.modUser(user.userID, func(data *UserData) {
+		data.ShouldResync = shouldResync
+	})
+}
+
+func (user *User) GetShouldResync() bool {
+	return user.vault.getUser(user.userID).ShouldResync
+}

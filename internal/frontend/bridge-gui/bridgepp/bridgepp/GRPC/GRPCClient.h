@@ -108,6 +108,7 @@ public: // member functions.
     grpc::Status landingPageLink(QUrl &outUrl); ///< Performs the 'landingPageLink' call.
     grpc::Status hostname(QString &outHostname); ///< Performs the 'Hostname' call.
     grpc::Status requestKnowledgeBaseSuggestions(QString const &input); ///< Performs the 'RequestKnowledgeBaseSuggestions' call.
+    grpc::Status triggerRepair(); ///< Performs the triggerRepair gRPC call.
 
 signals: // app related signals
     void internetStatus(bool isOn);
@@ -122,6 +123,8 @@ signals: // app related signals
     void certificateInstallFailed();
     void showMainWindow();
     void knowledgeBasSuggestionsReceived(QList<KnowledgeBaseSuggestion> const& suggestions);
+    void repairStarted();
+    void allUsersLoaded();
 
 
 public: // cache related calls

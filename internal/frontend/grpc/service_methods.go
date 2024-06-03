@@ -838,6 +838,20 @@ func (s *Service) CurrentKeychain(_ context.Context, _ *emptypb.Empty) (*wrapper
 	return wrapperspb.String(helper), nil
 }
 
+func (s *Service) TriggerRepair(_ context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+	s.log.Debug("TriggerRepair")
+	go func() {
+		defer func() {
+			async.HandlePanic(s.panicHandler)
+			_ = s.SendEvent(NewRepairStartedEvent())
+		}()
+
+		s.bridge.Repair()
+	}()
+
+	return &emptypb.Empty{}, nil
+}
+
 func base64Decode(in []byte) ([]byte, error) {
 	out := make([]byte, base64.StdEncoding.DecodedLen(len(in)))
 

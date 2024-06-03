@@ -539,6 +539,49 @@ func (bridge *Bridge) onStatusDown(ctx context.Context) {
 	}
 }
 
+func (bridge *Bridge) Repair() {
+	var wg sync.WaitGroup
+	userIDS := bridge.GetUserIDs()
+
+	for _, userID := range userIDS {
+		logPkg.Info("Initiating repair for userID:", userID)
+
+		userInfo, err := bridge.GetUserInfo(userID)
+		if err != nil {
+			logPkg.WithError(err).Error("Failed getting user info for repair; ID:", userID)
+			continue
+		}
+
+		if userInfo.State != Connected {
+			logPkg.Info("User is not connected. Repair will be executed on following successful log in.", userID)
+			if err := bridge.vault.GetUser(userID, func(user *vault.User) {
+				if err := user.SetShouldSync(true); err != nil {
+					logPkg.WithError(err).Error("Failed setting vault should sync for user:", userID)
+				}
+			}); err != nil {
+				logPkg.WithError(err).Error("Unable to get user vault when scheduling repair:", userID)
+			}
+			continue
+		}
+
+		bridgeUser, ok := bridge.users[userID]
+		if !ok {
+			logPkg.Info("UserID does not exist in bridge user map", userID)
+			continue
+		}
+
+		wg.Add(1)
+		go func(userID string) {
+			defer wg.Done()
+			if err = bridgeUser.ResyncIMAP(); err != nil {
+				logPkg.WithError(err).Error("Failed re-syncing IMAP for userID", userID)
+			}
+		}(userID)
+	}
+
+	wg.Wait()
+}
+
 func loadTLSConfig(vault *vault.Vault) (*tls.Config, error) {
 	cert, err := tls.X509KeyPair(vault.GetBridgeTLSCert())
 	if err != nil {

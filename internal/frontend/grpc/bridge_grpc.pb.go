@@ -101,6 +101,7 @@ const (
 	Bridge_ExportTLSCertificates_FullMethodName           = "/grpc.Bridge/ExportTLSCertificates"
 	Bridge_RunEventStream_FullMethodName                  = "/grpc.Bridge/RunEventStream"
 	Bridge_StopEventStream_FullMethodName                 = "/grpc.Bridge/StopEventStream"
+	Bridge_TriggerRepair_FullMethodName                   = "/grpc.Bridge/TriggerRepair"
 )
 
 // BridgeClient is the client API for Bridge service.
@@ -180,6 +181,8 @@ type BridgeClient interface {
 	// Server -> Client event stream
 	RunEventStream(ctx context.Context, in *EventStreamRequest, opts ...grpc.CallOption) (Bridge_RunEventStreamClient, error)
 	StopEventStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Repair
+	TriggerRepair(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type bridgeClient struct {
@@ -780,6 +783,15 @@ func (c *bridgeClient) StopEventStream(ctx context.Context, in *emptypb.Empty, o
 	return out, nil
 }
 
+func (c *bridgeClient) TriggerRepair(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, Bridge_TriggerRepair_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BridgeServer is the server API for Bridge service.
 // All implementations must embed UnimplementedBridgeServer
 // for forward compatibility
@@ -857,6 +869,8 @@ type BridgeServer interface {
 	// Server -> Client event stream
 	RunEventStream(*EventStreamRequest, Bridge_RunEventStreamServer) error
 	StopEventStream(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	// Repair
+	TriggerRepair(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	mustEmbedUnimplementedBridgeServer()
 }
 
@@ -1052,6 +1066,9 @@ func (UnimplementedBridgeServer) RunEventStream(*EventStreamRequest, Bridge_RunE
 }
 func (UnimplementedBridgeServer) StopEventStream(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StopEventStream not implemented")
+}
+func (UnimplementedBridgeServer) TriggerRepair(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TriggerRepair not implemented")
 }
 func (UnimplementedBridgeServer) mustEmbedUnimplementedBridgeServer() {}
 
@@ -2203,6 +2220,24 @@ func _Bridge_StopEventStream_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Bridge_TriggerRepair_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BridgeServer).TriggerRepair(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Bridge_TriggerRepair_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BridgeServer).TriggerRepair(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Bridge_ServiceDesc is the grpc.ServiceDesc for Bridge service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2457,6 +2492,10 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StopEventStream",
 			Handler:    _Bridge_StopEventStream_Handler,
+		},
+		{
+			MethodName: "TriggerRepair",
+			Handler:    _Bridge_TriggerRepair_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

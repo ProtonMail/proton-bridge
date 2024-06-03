@@ -40,6 +40,8 @@ type UserData struct {
 
 	// **WARNING**: This value can't be removed until we have vault migration support.
 	UIDValidity map[string]imap.UID
+
+	ShouldResync bool // Whether user should re-sync on log-in (this is triggered by the `repair` button)
 }
 
 type AddressMode int
@@ -88,5 +90,7 @@ func newDefaultUser(userID, username, primaryEmail, authUID, authRef string, key
 		AuthUID: authUID,
 		AuthRef: authRef,
 		KeyPass: keyPass,
+
+		ShouldResync: false,
 	}
 }

@@ -202,3 +202,13 @@ type UncategorizedEventError struct {
 func (event UncategorizedEventError) String() string {
 	return fmt.Sprintf("UncategorizedEventError: UserID: %s, Source:%T, Error: %s", event.UserID, event.Error, event.Error)
 }
+
+type UserLoadedCheckResync struct {
+	eventBase
+
+	UserID string
+}
+
+func (event UserLoadedCheckResync) String() string {
+	return fmt.Sprintf("UserLoadedCheckResync: UserID: %s", event.UserID)
+}

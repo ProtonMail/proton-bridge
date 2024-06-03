@@ -306,6 +306,12 @@ func New(
 		Aliases:   []string{"del", "rm", "remove"},
 		Completer: fe.completeUsernames,
 	})
+	fe.AddCmd(&ishell.Cmd{
+		Name:    "repair",
+		Help:    "reload all accounts and cached data, re-download emails. Email clients remain connected. Logged out users will be repaired on next login. (aliases: rep)",
+		Func:    fe.repair,
+		Aliases: []string{"rep"},
+	})
 
 	badEventCmd := &ishell.Cmd{
 		Name: "bad-event",

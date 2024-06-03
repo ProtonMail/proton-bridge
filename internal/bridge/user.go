@@ -606,6 +606,8 @@ func (bridge *Bridge) addUserWithVault(
 	// As we need at least one user to send heartbeat, try to send it.
 	bridge.heartbeat.start()
 
+	user.PublishEvent(ctx, events.UserLoadedCheckResync{UserID: user.ID()})
+
 	return nil
 }
 

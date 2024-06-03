@@ -36,6 +36,9 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 	case events.UserBadEvent:
 		bridge.handleUserBadEvent(ctx, user, event)
 
+	case events.UserLoadedCheckResync:
+		user.VerifyResyncAndExecute()
+
 	case events.UncategorizedEventError:
 		bridge.handleUncategorizedErrorEvent(event)
 	}

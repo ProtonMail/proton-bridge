@@ -111,6 +111,9 @@ service Bridge {
   // Server -> Client event stream
   rpc RunEventStream(EventStreamRequest) returns (stream StreamEvent); // Keep streaming until StopEventStream is called.
   rpc StopEventStream(google.protobuf.Empty) returns (google.protobuf.Empty);
+
+  // Repair
+  rpc TriggerRepair(google.protobuf.Empty) returns (google.protobuf.Empty);
 }
 
 //**********************************************************************************************************************
@@ -272,6 +275,8 @@ message AppEvent {
     CertificateInstallCanceledEvent certificateInstallCanceled = 10;
     CertificateInstallFailedEvent certificateInstallFailed = 11;
     KnowledgeBaseSuggestionsEvent knowledgeBaseSuggestions = 12;
+    RepairStartedEvent repairStarted = 13;
+    AllUsersLoadedEvent allUsersLoaded = 14;
   }
 }
 
@@ -289,6 +294,8 @@ message ReportBugFallbackEvent {}
 message CertificateInstallSuccessEvent {}
 message CertificateInstallCanceledEvent {}
 message CertificateInstallFailedEvent {}
+message RepairStartedEvent {}
+message AllUsersLoadedEvent {}
 
 message KnowledgeBaseSuggestion {
   string url = 1;

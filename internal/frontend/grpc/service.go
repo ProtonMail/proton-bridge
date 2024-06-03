@@ -401,6 +401,9 @@ func (s *Service) watchEvents() {
 
 		case events.TLSIssue:
 			_ = s.SendEvent(NewMailApiCertIssue())
+
+		case events.AllUsersLoaded:
+			_ = s.SendEvent(NewAllUsersLoadedEvent())
 		}
 	}
 }

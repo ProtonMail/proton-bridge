@@ -61,6 +61,7 @@ func TestUser_New(t *testing.T) {
 	// Check the user's initial sync status.
 	require.False(t, user.SyncStatus().HasLabels)
 	require.False(t, user.SyncStatus().HasMessages)
+	require.False(t, user.GetShouldResync())
 }
 
 func TestUser_Clear(t *testing.T) {
@@ -238,4 +239,35 @@ func TestUser_ForEach(t *testing.T) {
 
 	// The store should have no users again.
 	require.Empty(t, s.GetUserIDs())
+}
+
+func TestUser_ShouldResync(t *testing.T) {
+	// Replace the token generator with a dummy one.
+	vault.RandomToken = func(size int) ([]byte, error) {
+		return []byte("token"), nil
+	}
+
+	// Create a new test vault.
+	s := newVault(t)
+
+	// There should be no users in the store.
+	require.Empty(t, s.GetUserIDs())
+
+	// Create a new user.
+	user, err := s.AddUser("userID", "username", "username@pm.me", "authUID", "authRef", []byte("keyPass"))
+	require.NoError(t, err)
+
+	// The user should be listed in the store.
+	require.ElementsMatch(t, []string{"userID"}, s.GetUserIDs())
+
+	// The shouldResync field is supposed to be false for new users.
+	require.False(t, user.GetShouldResync())
+
+	// Set it to true
+	if err := user.SetShouldSync(true); err != nil {
+		t.Fatalf("Failed to set should-sync: %v", err)
+	}
+
+	// Check whether it matches the correct value
+	require.True(t, user.GetShouldResync())
 }

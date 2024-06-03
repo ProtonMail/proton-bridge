@@ -21,6 +21,7 @@ SettingsView {
 
     property bool _isAdvancedShown: false
     property var notifications
+    property var allUsersLoaded: false
 
     fillHeight: false
 
@@ -217,6 +218,28 @@ SettingsView {
 
         onClicked: {
             Backend.exportTLSCertificates();
+        }
+    }
+    SettingsItem {
+        id: repair
+        Layout.fillWidth: true
+        actionText: qsTr("Repair")
+        colorScheme: root.colorScheme
+        description: qsTr("Reload all accounts, cached data, and download all emails again. Email clients stay connected to Bridge.")
+        text: qsTr("Repair Bridge")
+        type: SettingsItem.Button
+        visible: root._isAdvancedShown
+        enabled: root.allUsersLoaded && Backend.users.count
+
+        onClicked: {
+            root.notifications.askRepairBridge();
+        }
+
+        Connections {
+            function onAllUsersLoaded() {
+                root.allUsersLoaded = true;
+            }
+            target: Backend
         }
     }
     SettingsItem {

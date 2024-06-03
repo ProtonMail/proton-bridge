@@ -208,6 +208,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void notifyReportBugClicked() const; ///< Slot for the ReportBugClicked gRPC event.
     void notifyAutoconfigClicked(QString const &client) const; ///< Slot for gAutoconfigClicked gRPC event.
     void notifyExternalLinkClicked(QString const &article) const; ///< Slot for KBArticleClicked gRPC event.
+    void triggerRepair() const; ///< Slot for the triggering of the bridge repair function i.e. 'resync'.
 
 public slots: // slots for functions that need to be processed locally.
     void setNormalTrayIcon(); ///< Set the tray icon to normal.
@@ -282,7 +283,9 @@ signals: // Signals received from the Go backend, to be forwarded to QML
     void selectUser(QString const& userID, bool forceShowWindow); ///< Signal emitted in order to selected a user with a given ID in the list.
     void genericError(QString const &title, QString const &description); ///< Signal for the 'genericError' gRPC stream event.
     void imapLoginWhileSignedOut(QString const& username); ///< Signal for the notification of IMAP login attempt on a signed out account.
-    void receivedKnowledgeBaseSuggestions(QList<bridgepp::KnowledgeBaseSuggestion> const& suggestions); ///< Signal for the reception of knowledgebase article suggestions.
+    void receivedKnowledgeBaseSuggestions(QList<bridgepp::KnowledgeBaseSuggestion> const& suggestions); ///< Signal for the reception of knowledge base article suggestions.
+    void repairStarted(); ///< Signal for the 'repairStarted' gRPC stream event.
+    void allUsersLoaded(); ///< Signal for the 'allUsersLoaded' gRPC stream event
 
     // This signal is emitted when an exception is intercepted is calls triggered by QML. QML engine would intercept the exception otherwise.
     void fatalError(bridgepp::Exception const& e) const; ///< Signal emitted when an fatal error occurs.

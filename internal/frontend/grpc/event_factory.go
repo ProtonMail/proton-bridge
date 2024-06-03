@@ -241,6 +241,14 @@ func NewGenericErrorEvent(errorCode ErrorCode) *StreamEvent {
 	return genericErrorEvent(&GenericErrorEvent{Code: errorCode})
 }
 
+func NewRepairStartedEvent() *StreamEvent {
+	return appEvent(&AppEvent{Event: &AppEvent_RepairStarted{RepairStarted: &RepairStartedEvent{}}})
+}
+
+func NewAllUsersLoadedEvent() *StreamEvent {
+	return appEvent(&AppEvent{Event: &AppEvent_AllUsersLoaded{AllUsersLoaded: &AllUsersLoadedEvent{}}})
+}
+
 // Event category factory functions.
 
 func appEvent(appEvent *AppEvent) *StreamEvent {

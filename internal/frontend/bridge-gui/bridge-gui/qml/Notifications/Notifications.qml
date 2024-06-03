@@ -13,6 +13,8 @@
 import QtQml
 import Qt.labs.platform
 import QtQuick.Controls
+import QtQuick.Layouts
+import QtQuick
 import "../"
 
 QtObject {
@@ -60,7 +62,7 @@ QtObject {
             target: Backend
         }
     }
-    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.bugReportSendFallback, root.cacheCantMove, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion, root.hvErrorEvent]
+    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.bugReportSendFallback, root.cacheCantMove, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion, root.hvErrorEvent, root.repairBridge]
     property Notification alreadyLoggedIn: Notification {
         brief: qsTr("Already signed in")
         description: qsTr("This account is already signed in.")
@@ -1151,6 +1153,52 @@ QtObject {
         }
 
     }
+    property Notification repairBridge: Notification {
+        brief: title
+        description: qsTr("This action will reload all accounts, cached data, and re-download emails. Messages may temporarily disappear but will reappear progressively. Email clients stay connected to Bridge.")
+        group: Notifications.Group.Configuration | Notifications.Group.Dialogs
+        icon: "./icons/ic-exclamation-circle-filled.svg"
+        title: qsTr("Repair Bridge?")
+        type: Notification.NotificationType.Danger
+
+        action: [
+            Action {
+                id: repairBridge_cancel
+                text: qsTr("Cancel")
+                onTriggered: {
+                    root.repairBridge.active = false;
+                }
+            },
+            Action {
+                id: repairBridge_repair
+                text: qsTr("Repair")
+                onTriggered: {
+                    repairBridge_repair.loading = true;
+                    repairBridge_repair.enabled = false;
+                    repairBridge_cancel.enabled = false;
+                    Backend.triggerRepair();
+                }
+            }
+        ]
+
+        Connections {
+            function onAskRepairBridge() {
+                root.repairBridge.active = true;
+            }
+            target: root
+        }
+        
+        Connections {
+            function onRepairStarted() {
+                root.repairBridge.active = false;
+                repairBridge_repair.loading = false;
+                repairBridge_repair.enabled = true;
+                repairBridge_cancel.enabled = true;
+            }
+            target: Backend
+        }
+
+    }
 
     signal askChangeAllMailVisibility(var isVisibleNow)
     signal askDeleteAccount(var user)
@@ -1158,4 +1206,5 @@ QtObject {
     signal askEnableSplitMode(var user)
     signal askQuestion(var title, var description, var option1, var option2, var action1, var action2)
     signal askResetBridge
+    signal askRepairBridge
 }
