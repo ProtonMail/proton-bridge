@@ -515,7 +515,6 @@ func (bridge *Bridge) remWatcher(watcher *watcher.Watcher[events.Event]) {
 
 func (bridge *Bridge) onStatusUp(_ context.Context) {
 	logPkg.Info("Handling API status up")
-
 	bridge.goLoad()
 }
 
@@ -600,4 +599,8 @@ func min(a, b time.Duration) time.Duration {
 	}
 
 	return b
+}
+
+func (bridge *Bridge) HasAPIConnection() bool {
+	return bridge.api.GetStatus() == proton.StatusUp
 }

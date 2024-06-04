@@ -22,6 +22,7 @@ SettingsView {
     property bool _isAdvancedShown: false
     property var notifications
     property var allUsersLoaded: false
+    property var hasInternetConnection: true
 
     fillHeight: false
 
@@ -229,13 +230,22 @@ SettingsView {
         text: qsTr("Repair Bridge")
         type: SettingsItem.Button
         visible: root._isAdvancedShown
-        enabled: root.allUsersLoaded && Backend.users.count
+        enabled: root.allUsersLoaded && Backend.users.count && root.hasInternetConnection
 
         onClicked: {
             root.notifications.askRepairBridge();
         }
 
         Connections {
+            function onInternetOff() {
+                root.hasInternetConnection = false;
+                repair.description = qsTr("This feature requires internet access to the Proton servers.")
+
+            }
+            function onInternetOn() {
+                root.hasInternetConnection = true;
+                repair.description = qsTr("Reload all accounts, cached data, and download all emails again. Email clients stay connected to Bridge.")
+            }
             function onAllUsersLoaded() {
                 root.allUsersLoaded = true;
             }
