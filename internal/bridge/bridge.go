@@ -515,6 +515,7 @@ func (bridge *Bridge) remWatcher(watcher *watcher.Watcher[events.Event]) {
 
 func (bridge *Bridge) onStatusUp(_ context.Context) {
 	logPkg.Info("Handling API status up")
+
 	bridge.goLoad()
 }
 
