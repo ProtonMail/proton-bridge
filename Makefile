@@ -12,7 +12,7 @@ ROOT_DIR:=$(realpath .)
 .PHONY: build build-gui build-nogui build-launcher versioner hasher
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=3.11.1+git
+BRIDGE_APP_VERSION?=3.12.0+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 APP_FULL_NAME:=Proton Mail Bridge
 APP_VENDOR:=Proton AG
