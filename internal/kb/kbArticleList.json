@@ -432,19 +432,28 @@
       "Sending",
       "Outlook",
       "Configuration",
-      "Sync"
+      "Sync",
+      "New Outlook"
     ]
   },
   {
     "index": 38,
     "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
+    "title": "What is the Recovered Messages folder in Bridge (and your email client)?",
+    "keywords": [
+      "recovered messages",
+      "recovered messages folder"
+    ]
+  },
+  {
+    "index": 39,
+    "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
     "title": "Proton Mail Bridge New Outlook for Windows set up guide",
     "keywords": [
-      "Outlook",
-      "New Outlook",
-      "Configuration",
-      "Configure",
-      "Setup"
+      "app password",
+      "INVALIDCREDENTIALS",
+      "TEMPORARILYUNAVAILABLE",
+      "New Outlook"
     ]
   }
 ]
