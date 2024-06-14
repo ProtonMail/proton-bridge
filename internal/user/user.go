@@ -727,12 +727,18 @@ func (user *User) VerifyResyncAndExecute() {
 			user.log.WithError(err).Error("Failed to disable re-sync flag in user vault. UserID:", user.ID())
 		}
 
-		if err := user.ResyncIMAP(); err != nil {
+		user.SendRepairDeferredTrigger(context.Background())
+		if err := user.resyncIMAP(); err != nil {
 			user.log.WithError(err).Error("Failed re-syncing IMAP for userID", user.ID())
 		}
 	}
 }
 
-func (user *User) ResyncIMAP() error {
+func (user *User) TriggerRepair() error {
+	user.SendRepairTrigger(context.Background())
+	return user.resyncIMAP()
+}
+
+func (user *User) resyncIMAP() error {
 	return user.imapService.Resync(context.Background())
 }

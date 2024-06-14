@@ -582,7 +582,7 @@ func (bridge *Bridge) Repair() {
 		wg.Add(1)
 		go func(userID string) {
 			defer wg.Done()
-			if err = bridgeUser.ResyncIMAP(); err != nil {
+			if err = bridgeUser.TriggerRepair(); err != nil {
 				logPkg.WithError(err).Error("Failed re-syncing IMAP for userID", userID)
 			}
 		}(userID)
