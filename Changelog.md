@@ -6,10 +6,10 @@ Changelog [format](http://keepachangelog.com/en/1.0.0/)
 ## Bastei Bridge 3.12.0
 
 ### Added
+* BRIDGE-75: Bridge repair button.
 * BRIDGE-79: Add New Outlook for Mac KB disclaimer.
 
 ### Changed
-* BRIDGE-75: Bridge repair button.
 * BRIDGE-16: Bump version Go 1.21.9 Qt 6.4.3.
 * BRIDGE-23: Update gluon to go 1.21.
 * BRIDGE-22: Update gpa to go 1.21.
