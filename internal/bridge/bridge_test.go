@@ -1077,3 +1077,57 @@ func waitForIMAPServerStopped(b *bridge.Bridge) *eventWaiter {
 		cancel: cancel,
 	}
 }
+
+func TestBridge_GetUpdatedCachePath(t *testing.T) {
+	type TestData struct {
+		gluonDBPath    string
+		gluonCachePath string
+		shouldChange   bool
+	}
+
+	dataArr := []TestData{
+		{
+			gluonDBPath:    "/Users/test/",
+			gluonCachePath: "/Users/test/gluon",
+			shouldChange:   false,
+		}, {
+			gluonDBPath:    "/Users/test/",
+			gluonCachePath: "/Users/tester/gluon",
+			shouldChange:   true,
+		}, {
+			gluonDBPath:    "/Users/testing/",
+			gluonCachePath: "/Users/test/gluon",
+			shouldChange:   true,
+		},
+		{
+			gluonDBPath:    "/Users/testing/",
+			gluonCachePath: "/Users/test/gluon",
+			shouldChange:   true,
+		},
+		{
+			gluonDBPath:    "/Users/testing/",
+			gluonCachePath: "/Volumes/test/gluon",
+			shouldChange:   false,
+		},
+		{
+			gluonDBPath:    "/Volumes/test/",
+			gluonCachePath: "/Users/test/gluon",
+			shouldChange:   false,
+		},
+		{
+			gluonDBPath:    "/XXX/test/",
+			gluonCachePath: "/Users/test/gluon",
+			shouldChange:   false,
+		},
+		{
+			gluonDBPath:    "/XXX/test/",
+			gluonCachePath: "/YYY/test/gluon",
+			shouldChange:   false,
+		},
+	}
+
+	for _, el := range dataArr {
+		newCachePath := bridge.GetUpdatedCachePath(el.gluonDBPath, el.gluonCachePath)
+		require.Equal(t, el.shouldChange, newCachePath != "" && newCachePath != el.gluonCachePath)
+	}
+}

@@ -24,6 +24,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"regexp"
+	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -50,6 +54,8 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 )
+
+var usernameChangeRegex = regexp.MustCompile(`^/Users/([^/]+)/`)
 
 type Bridge struct {
 	// vault holds bridge-specific data, such as preferences and known users (authorized or not).
@@ -298,6 +304,9 @@ func newBridge(
 		uidValidityGenerator,
 		&bridgeIMAPSMTPTelemetry{b: bridge},
 	)
+
+	// Check whether username has changed and correct (macOS only)
+	bridge.verifyUsernameChange()
 
 	if err := bridge.serverManager.Init(context.Background(), bridge.tasks, &bridgeEventSubscription{b: bridge}); err != nil {
 		return nil, err
@@ -604,4 +613,64 @@ func min(a, b time.Duration) time.Duration {
 
 func (bridge *Bridge) HasAPIConnection() bool {
 	return bridge.api.GetStatus() == proton.StatusUp
+}
+
+// verifyUsernameChange - works only on macOS
+// it attempts to check whether a username change has taken place by comparing the gluon DB path (which is static and provided by bridge)
+// to the gluon Cache path - which can be modified by the user and is stored in the vault;
+// if a username discrepancy is detected, and the cache folder does not exist with the "old" username
+// then we verify whether the gluon cache exists using the "new" username (provided by the DB path in this case)
+// if so we modify the cache directory in the user vault.
+func (bridge *Bridge) verifyUsernameChange() {
+	if runtime.GOOS != "darwin" {
+		return
+	}
+
+	gluonDBPath, err := bridge.GetGluonDataDir()
+	if err != nil {
+		logPkg.WithError(err).Error("Failed to get gluon db path")
+		return
+	}
+
+	gluonCachePath := bridge.GetGluonCacheDir()
+	// If the cache folder exists even on another user account or is in `/Users/Shared` we would still be able to access it
+	// though it depends on the permissions; this is an edge-case.
+	if _, err := os.Stat(gluonCachePath); err == nil {
+		return
+	}
+
+	newCacheDir := GetUpdatedCachePath(gluonDBPath, gluonCachePath)
+	if newCacheDir == "" {
+		return
+	}
+
+	if _, err := os.Stat(newCacheDir); err == nil {
+		logPkg.Info("Username change detected. Trying to restore gluon cache directory")
+		if err = bridge.vault.SetGluonDir(newCacheDir); err != nil {
+			logPkg.WithError(err).Error("Failed to restore gluon cache directory")
+			return
+		}
+		logPkg.Info("Successfully restored gluon cache directory")
+	}
+}
+
+func GetUpdatedCachePath(gluonDBPath, gluonCachePath string) string {
+	// If gluon cache is moved to an external drive; regex find will fail; as is expected
+	cachePathMatches := usernameChangeRegex.FindStringSubmatch(gluonCachePath)
+	if cachePathMatches == nil || len(cachePathMatches) < 2 {
+		return ""
+	}
+
+	cacheUsername := cachePathMatches[1]
+	dbPathMatches := usernameChangeRegex.FindStringSubmatch(gluonDBPath)
+	if dbPathMatches == nil || len(dbPathMatches) < 2 {
+		return ""
+	}
+
+	dbUsername := dbPathMatches[1]
+	if cacheUsername == dbUsername {
+		return ""
+	}
+
+	return strings.Replace(gluonCachePath, "/Users/"+cacheUsername+"/", "/Users/"+dbUsername+"/", 1)
 }
