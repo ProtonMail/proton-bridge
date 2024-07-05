@@ -13,12 +13,12 @@ Feature: The user reports a problem
           "title": "How to configure your email client for Proton Mail Bridge"
         },
         {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
-        },
-        {
           "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
           "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-install",
+          "title": "How to install Proton Mail Bridge"
         }
       ]
       """
@@ -655,8 +655,8 @@ Feature: The user reports a problem
           "title": "Proton Mail Bridge Apple Mail setup guide"
         },
         {
-          "url": "https://proton.me/support/bridge-ssl-connection-issue",
-          "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
+          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2016",
+          "title": "Proton Mail Bridge Microsoft Outlook 2016 for Windows setup guide"
         }
       ]
       """ 
@@ -670,12 +670,12 @@ Feature: The user reports a problem
           "title": "Proton Mail Bridge Apple Mail setup guide"
         },
         {
-          "url": "https://proton.me/support/imap-smtp-and-pop3-setup",
-          "title": "IMAP, SMTP, and POP3 setup"
+        "url": "https://proton.me/support/protonmail-bridge-clients-windows-thunderbird",
+        "title": "Proton Mail Bridge Thunderbird setup guide for Windows, macOS, and Linux"
         },
         {
-          "url": "https://proton.me/support/protonmail-bridge-configure-client",
-          "title": "How to configure your email client for Proton Mail Bridge"
+          "url": "https://proton.me/support/imap-smtp-and-pop3-setup",
+          "title": "IMAP, SMTP, and POP3 setup"
         }
       ]
       """ 
@@ -689,12 +689,12 @@ Feature: The user reports a problem
           "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
         },
         {
-          "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook",
-          "title": "Proton Mail Bridge new Outlook for macOS setup guide"
+          "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
+          "title": "Proton Mail Bridge New Outlook for Windows set up guide"
         },
         {
-          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2016",
-          "title": "Proton Mail Bridge Microsoft Outlook 2016 for Windows setup guide"
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook#may-17",
+          "title": "Important notice regarding the New Outlook for Mac and issues you might face"
         }
       ]
       """
@@ -731,8 +731,8 @@ Feature: The user reports a problem
           "title": "Proton Mail Bridge Microsoft Outlook 2016 for macOS setup guide"
         },
         {
-          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2016",
-          "title": "Proton Mail Bridge Microsoft Outlook 2016 for Windows setup guide"
+          "url": "https://proton.me/support/protonmail-bridge-configure-client",
+          "title": "How to configure your email client for Proton Mail Bridge"
         }
       ]
       """ 
@@ -742,12 +742,12 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019",
-          "title": "Proton Mail Bridge Microsoft Outlook 2019 for macOS setup guide"
-        },
-        {
           "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
           "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019",
+          "title": "Proton Mail Bridge Microsoft Outlook 2019 for macOS setup guide"
         },
         {
           "url": "https://proton.me/support/protonmail-bridge-install",
@@ -765,12 +765,12 @@ Feature: The user reports a problem
           "title": "How to configure your email client for Proton Mail Bridge"
         },
         {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
-        },
-        {
           "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
           "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-install",
+          "title": "How to install Proton Mail Bridge"
         }
       ]
       """ 
@@ -784,12 +784,12 @@ Feature: The user reports a problem
           "title": "How to install Proton Mail Bridge"
         },
         {
-          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2016",
-          "title": "Proton Mail Bridge Microsoft Outlook 2016 for Windows setup guide"
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2016",
+          "title": "Proton Mail Bridge Microsoft Outlook 2016 for macOS setup guide"
         },
         {
-          "url": "https://proton.me/support/clients-supported-bridge",
-          "title": "Email clients supported by Proton Mail Bridge"
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019",
+          "title": "Proton Mail Bridge Microsoft Outlook 2019 for macOS setup guide"
         }
       ]
       """ 
