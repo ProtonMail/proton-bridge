@@ -31,7 +31,7 @@ import (
 
 func TestBridge_Settings_GluonDir(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			// Create a user.
 			_, err := bridge.LoginFull(context.Background(), username, password, nil, nil)
 			require.NoError(t, err)
@@ -57,7 +57,7 @@ func TestBridge_Settings_GluonDirWithOnGoingEvents(t *testing.T) {
 		userID, addrID, err := s.CreateUser("imap", password)
 		require.NoError(t, err)
 
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
 			defer done()
 
@@ -74,7 +74,7 @@ func TestBridge_Settings_GluonDirWithOnGoingEvents(t *testing.T) {
 			createNumMessages(ctx, t, c, addrID, labelID, 200)
 		})
 
-		withBridgeWaitForServers(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridgeWaitForServers(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			// Create a new location for the Gluon data.
 			newGluonDir := t.TempDir()
 
@@ -93,7 +93,7 @@ func TestBridge_Settings_GluonDirWithOnGoingEvents(t *testing.T) {
 
 func TestBridge_Settings_IMAPPort(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			curPort := bridge.GetIMAPPort()
 
 			// Set the port to 1144.
@@ -110,7 +110,7 @@ func TestBridge_Settings_IMAPPort(t *testing.T) {
 
 func TestBridge_Settings_IMAPSSL(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			// By default, IMAP SSL is disabled.
 			require.False(t, bridge.GetIMAPSSL())
 
@@ -125,7 +125,7 @@ func TestBridge_Settings_IMAPSSL(t *testing.T) {
 
 func TestBridge_Settings_SMTPPort(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			curPort := bridge.GetSMTPPort()
 
 			// Set the port to 1024.
@@ -142,7 +142,7 @@ func TestBridge_Settings_SMTPPort(t *testing.T) {
 
 func TestBridge_Settings_SMTPSSL(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			// By default, SMTP SSL is disabled.
 			require.False(t, bridge.GetSMTPSSL())
 
@@ -198,7 +198,7 @@ func TestBridge_Settings_Autostart(t *testing.T) {
 
 func TestBridge_Settings_FirstStart(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			// By default, first start is true.
 			require.True(t, bridge.GetFirstStart())
 

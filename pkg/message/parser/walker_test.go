@@ -104,11 +104,11 @@ func TestWalkerDispositionAndTypeHandler_TypeDefinedFirst(t *testing.T) {
 	var typeCalled, dispCalled bool
 
 	walker := p.NewWalker().
-		RegisterContentTypeHandler("application/octet-stream", func(p *Part) (err error) {
+		RegisterContentTypeHandler("application/octet-stream", func(_ *Part) (err error) {
 			typeCalled = true
 			return
 		}).
-		RegisterContentDispositionHandler("attachment", func(p *Part) (err error) {
+		RegisterContentDispositionHandler("attachment", func(_ *Part) (err error) {
 			dispCalled = true
 			return
 		})

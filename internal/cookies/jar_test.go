@@ -151,7 +151,7 @@ func getClientWithJar(t *testing.T, persister Persister) (*http.Client, *Jar) {
 func getTestServer(t *testing.T, wantCookies []testCookie) *httptest.Server {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/set", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/set", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		for _, cookie := range wantCookies {
 			http.SetCookie(w, &http.Cookie{
 				Name:   cookie.name,

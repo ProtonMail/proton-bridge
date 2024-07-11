@@ -136,7 +136,7 @@ func (b *BuildStage) run(ctx context.Context) {
 					return nil
 				}
 
-				result, err := parallel.MapContext(ctx, maxMessagesInParallel, chunk, func(ctx context.Context, msg proton.FullMessage) (BuildResult, error) {
+				result, err := parallel.MapContext(ctx, maxMessagesInParallel, chunk, func(_ context.Context, msg proton.FullMessage) (BuildResult, error) {
 					defer async.HandlePanic(b.panicHandler)
 
 					kr, ok := addrKRs[msg.AddressID]

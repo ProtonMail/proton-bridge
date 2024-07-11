@@ -191,7 +191,7 @@ func TestService_OnBadEventServiceIsPaused(t *testing.T) {
 		NewEventID: secondEventID,
 		EventInfo:  secondEvent[0].String(),
 		Error:      fmt.Errorf("failed to apply message events: %w", badEventErr),
-	}).Do(func(_ context.Context, event events.Event) {
+	}).Do(func(_ context.Context, _ events.Event) {
 		group.Go(context.Background(), "", "", func(_ context.Context) {
 			// Use background context to avoid having the request cancelled
 			require.True(t, service.IsPaused())

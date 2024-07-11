@@ -2,11 +2,12 @@
 run:
   timeout: 10m
   skip-dirs:
-    - pkg/mime
-    - extern
 
 issues:
   exclude-use-default: false
+  exclude-dirs:
+    - pkg/mime
+    - extern
   exclude:
     - Using the variable on range scope `tt` in function literal
     # For now we are missing a lot of comments.

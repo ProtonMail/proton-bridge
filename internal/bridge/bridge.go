@@ -550,9 +550,9 @@ func (bridge *Bridge) onStatusDown(ctx context.Context) {
 
 func (bridge *Bridge) Repair() {
 	var wg sync.WaitGroup
-	userIDS := bridge.GetUserIDs()
+	userIDs := bridge.GetUserIDs()
 
-	for _, userID := range userIDS {
+	for _, userID := range userIDs {
 		logPkg.Info("Initiating repair for userID:", userID)
 
 		userInfo, err := bridge.GetUserInfo(userID)

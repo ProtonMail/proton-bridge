@@ -241,7 +241,7 @@ func collectAttachments(p *parser.Parser) ([]Attachment, error) {
 
 			return nil
 		}).
-		RegisterContentTypeHandler("text/.*", func(p *parser.Part) error {
+		RegisterContentTypeHandler("text/.*", func(_ *parser.Part) error {
 			return nil
 		}).
 		RegisterDefaultHandler(func(p *parser.Part) error {
@@ -317,14 +317,14 @@ func collectBodyParts(p *parser.Parser, preferredContentType string) (parser.Par
 
 			return bestChoice(childParts, preferredContentType), nil
 		}).
-		RegisterRule("text/plain", func(p *parser.Part, visit parser.Visit) (interface{}, error) {
+		RegisterRule("text/plain", func(p *parser.Part, _ parser.Visit) (interface{}, error) {
 			if p.IsAttachment() {
 				return parser.Parts{}, nil
 			}
 
 			return parser.Parts{p}, nil
 		}).
-		RegisterRule("text/html", func(p *parser.Part, visit parser.Visit) (interface{}, error) {
+		RegisterRule("text/html", func(p *parser.Part, _ parser.Visit) (interface{}, error) {
 			if p.IsAttachment() {
 				return parser.Parts{}, nil
 			}
@@ -404,7 +404,7 @@ func determineBodyMIMEType(p *parser.Parser) (string, error) {
 	var isHTML bool
 
 	w := p.NewWalker().
-		RegisterContentTypeHandler("text/html", func(p *parser.Part) (err error) {
+		RegisterContentTypeHandler("text/html", func(_ *parser.Part) (err error) {
 			isHTML = true
 			return
 		})

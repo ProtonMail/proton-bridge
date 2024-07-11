@@ -32,7 +32,7 @@ func BenchmarkAddrKeyRing(b *testing.B) {
 	b.StopTimer()
 
 	withAPI(b, context.Background(), func(ctx context.Context, s *server.Server, m *proton.Manager) {
-		withAccount(b, s, "username", "password", []string{"email@pm.me"}, func(userID string, addrIDs []string) {
+		withAccount(b, s, "username", "password", []string{"email@pm.me"}, func(_ string, _ []string) {
 			withUser(b, ctx, s, m, "username", "password", func(user *User) {
 				b.StartTimer()
 
@@ -43,7 +43,7 @@ func BenchmarkAddrKeyRing(b *testing.B) {
 				require.NoError(b, err)
 
 				for i := 0; i < b.N; i++ {
-					require.NoError(b, usertypes.WithAddrKRs(apiUser, apiAddrs, user.vault.KeyPass(), func(_ *crypto.KeyRing, addrKRs map[string]*crypto.KeyRing) error {
+					require.NoError(b, usertypes.WithAddrKRs(apiUser, apiAddrs, user.vault.KeyPass(), func(_ *crypto.KeyRing, _ map[string]*crypto.KeyRing) error {
 						return nil
 					}))
 				}

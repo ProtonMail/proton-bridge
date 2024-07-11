@@ -62,7 +62,7 @@ func FuzzNewParser(f *testing.F) {
 	f.Add(inSeed1)
 	f.Add(inSeed2)
 
-	f.Fuzz(func(t *testing.T, data []byte) {
+	f.Fuzz(func(_ *testing.T, data []byte) {
 		_, _ = New(bytes.NewReader(data))
 	})
 }

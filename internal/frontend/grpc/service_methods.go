@@ -110,10 +110,11 @@ func (s *Service) GuiReady(_ context.Context, _ *emptypb.Empty) (*GuiReadyRespon
 func (s *Service) Quit(_ context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
 	defer async.HandlePanic(s.panicHandler)
 	s.log.Debug("Quit")
-	return &emptypb.Empty{}, s.quit()
+	s.quit()
+	return &emptypb.Empty{}, nil
 }
 
-func (s *Service) quit() error {
+func (s *Service) quit() {
 	// Windows is notably slow at Quitting. We do it in a goroutine to speed things up a bit.
 	go func() {
 		defer async.HandlePanic(s.panicHandler)
@@ -132,8 +133,6 @@ func (s *Service) quit() error {
 		// The following call is launched as a goroutine, as it will wait for current calls to end, including this one.
 		s.grpcServer.GracefulStop() // gRPC does clean up and remove the file socket if used.
 	}()
-
-	return nil
 }
 
 // Restart implement the Restart gRPC service call.

@@ -315,7 +315,7 @@ func (s *scenario) drafAtIndexWasMovedToTrashForAddressOfAccount(draftIndex int,
 	defer cancel()
 
 	return s.t.withClient(ctx, username, func(ctx context.Context, c *proton.Client) error {
-		return s.t.withAddrKR(ctx, c, username, s.t.getUserByName(username).getAddrID(address), func(_ context.Context, addrKR *crypto.KeyRing) error {
+		return s.t.withAddrKR(ctx, c, username, s.t.getUserByName(username).getAddrID(address), func(_ context.Context, _ *crypto.KeyRing) error {
 			if err := c.UnlabelMessages(ctx, []string{draftID}, proton.DraftsLabel); err != nil {
 				return fmt.Errorf("failed to unlabel draft")
 			}

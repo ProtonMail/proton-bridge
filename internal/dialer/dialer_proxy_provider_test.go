@@ -33,7 +33,7 @@ func TestProxyProvider_FindProxy(t *testing.T) {
 	defer closeServer(proxy)
 
 	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"}, async.NoopPanicHandler{})
-	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{proxy.URL}, nil }
+	p.dohLookup = func(_ context.Context, _, _ string) ([]string, error) { return []string{proxy.URL}, nil }
 
 	url, err := p.findReachableServer()
 	r.NoError(t, err)
@@ -49,7 +49,7 @@ func TestProxyProvider_FindProxy_ChooseReachableProxy(t *testing.T) {
 	closeServer(unreachableProxy)
 
 	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"}, async.NoopPanicHandler{})
-	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) {
+	p.dohLookup = func(_ context.Context, _, _ string) ([]string, error) {
 		return []string{reachableProxy.URL, unreachableProxy.URL}, nil
 	}
 
@@ -70,7 +70,7 @@ func TestProxyProvider_FindProxy_ChooseTrustedProxy(t *testing.T) {
 	dialer := NewPinningTLSDialer(NewBasicTLSDialer(""), reporter, checker)
 
 	p := newProxyProvider(dialer, "", []string{"not used"}, async.NoopPanicHandler{})
-	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) {
+	p.dohLookup = func(_ context.Context, _, _ string) ([]string, error) {
 		return []string{untrustedProxy.URL, trustedProxy.URL}, nil
 	}
 
@@ -87,7 +87,7 @@ func TestProxyProvider_FindProxy_FailIfNoneReachable(t *testing.T) {
 	closeServer(unreachableProxy2)
 
 	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"}, async.NoopPanicHandler{})
-	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) {
+	p.dohLookup = func(_ context.Context, _, _ string) ([]string, error) {
 		return []string{unreachableProxy1.URL, unreachableProxy2.URL}, nil
 	}
 
@@ -107,7 +107,7 @@ func TestProxyProvider_FindProxy_FailIfNoneTrusted(t *testing.T) {
 	dialer := NewPinningTLSDialer(NewBasicTLSDialer(""), reporter, checker)
 
 	p := newProxyProvider(dialer, "", []string{"not used"}, async.NoopPanicHandler{})
-	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) {
+	p.dohLookup = func(_ context.Context, _, _ string) ([]string, error) {
 		return []string{untrustedProxy1.URL, untrustedProxy2.URL}, nil
 	}
 
@@ -118,7 +118,7 @@ func TestProxyProvider_FindProxy_FailIfNoneTrusted(t *testing.T) {
 func TestProxyProvider_FindProxy_RefreshCacheTimeout(t *testing.T) {
 	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"}, async.NoopPanicHandler{})
 	p.cacheRefreshTimeout = 1 * time.Second
-	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { time.Sleep(2 * time.Second); return nil, nil }
+	p.dohLookup = func(_ context.Context, _, _ string) ([]string, error) { time.Sleep(2 * time.Second); return nil, nil }
 
 	// We should fail to refresh the proxy cache because the doh provider
 	// takes 2 seconds to respond but we timeout after just 1 second.
@@ -135,7 +135,7 @@ func TestProxyProvider_FindProxy_CanReachTimeout(t *testing.T) {
 
 	p := newProxyProvider(NewBasicTLSDialer(""), "", []string{"not used"}, async.NoopPanicHandler{})
 	p.canReachTimeout = 1 * time.Second
-	p.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{slowProxy.URL}, nil }
+	p.dohLookup = func(_ context.Context, _, _ string) ([]string, error) { return []string{slowProxy.URL}, nil }
 
 	// We should fail to reach the returned proxy because it takes 2 seconds
 	// to reach it and we only allow 1.

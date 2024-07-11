@@ -232,7 +232,7 @@ func TestBridge_SyncWithOngoingEvents(t *testing.T) {
 		var total uint64
 
 		// The initial user should be fully synced.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
 			defer done()
 
@@ -246,7 +246,7 @@ func TestBridge_SyncWithOngoingEvents(t *testing.T) {
 		})
 
 		// Now let's remove the user and stop the network at 2/3 of the data.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			require.NoError(t, bridge.DeleteUser(ctx, userID))
 		})
 
@@ -254,7 +254,7 @@ func TestBridge_SyncWithOngoingEvents(t *testing.T) {
 		netCtl.SetReadLimit(2 * total / 3)
 
 		// Login the user; its sync should fail.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, _ *bridge.Mocks) {
 			syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
 			defer done()
 
@@ -592,7 +592,7 @@ func TestBridge_CorruptedVaultClearsPreviousIMAPSyncState(t *testing.T) {
 			createNumMessages(ctx, t, c, addrID, labelID, 100)
 		})
 
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			syncCh, done := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
 			defer done()
 
@@ -625,7 +625,7 @@ func TestBridge_CorruptedVaultClearsPreviousIMAPSyncState(t *testing.T) {
 		require.NoError(t, os.WriteFile(filepath.Join(settingsPath, "vault.enc"), []byte("Trash!"), 0o600))
 
 		// Bridge starts but can't find the gluon database dir; there should be no error.
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			_, err := bridge.LoginFull(context.Background(), "imap", password, nil, nil)
 			require.NoError(t, err)
 		})

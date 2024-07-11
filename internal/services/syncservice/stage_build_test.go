@@ -253,7 +253,7 @@ func TestBuildStage_OtherErrorsFailJob(t *testing.T) {
 
 	expectedErr := errors.New("something went wrong")
 
-	tj.messageBuilder.EXPECT().WithKeys(gomock.Any()).DoAndReturn(func(f func(*crypto.KeyRing, map[string]*crypto.KeyRing) error) error {
+	tj.messageBuilder.EXPECT().WithKeys(gomock.Any()).DoAndReturn(func(_ func(*crypto.KeyRing, map[string]*crypto.KeyRing) error) error {
 		return expectedErr
 	})
 

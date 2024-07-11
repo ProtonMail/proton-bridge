@@ -27,7 +27,7 @@ import (
 
 func TestUser_New(t *testing.T) {
 	// Replace the token generator with a dummy one.
-	vault.RandomToken = func(size int) ([]byte, error) {
+	vault.RandomToken = func(_ int) ([]byte, error) {
 		return []byte("token"), nil
 	}
 
@@ -243,7 +243,7 @@ func TestUser_ForEach(t *testing.T) {
 
 func TestUser_ShouldResync(t *testing.T) {
 	// Replace the token generator with a dummy one.
-	vault.RandomToken = func(size int) ([]byte, error) {
+	vault.RandomToken = func(_ int) ([]byte, error) {
 		return []byte("token"), nil
 	}
 

@@ -26,7 +26,7 @@ import (
 // ShowErrorNotification shows a system notification that the app with the given appName has crashed.
 // NOTE: Icons shouldn't be hardcoded.
 func ShowErrorNotification(appName string) RecoveryAction {
-	return func(r interface{}) error {
+	return func(_ interface{}) error {
 		notify := notificator.New(notificator.Options{
 			DefaultIcon: "../frontend/ui/icon/icon.png",
 			AppName:     appName,

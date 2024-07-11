@@ -78,7 +78,7 @@ func FuzzUnmarshal(f *testing.F) {
 	str := strings.Join(items, sep)
 	f.Add([]byte(str))
 
-	f.Fuzz(func(t *testing.T, secret []byte) {
+	f.Fuzz(func(_ *testing.T, secret []byte) {
 		encodedSecret := base64.StdEncoding.EncodeToString(secret)
 
 		creds := &Credentials{}

@@ -112,7 +112,7 @@ vwRMog6lPhlRhHh/FZ43Cg==
 
 // getUntrustedServer returns a server but it doesn't add its public key to the list of pinned ones.
 func getUntrustedServer() *httptest.Server {
-	server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	server := httptest.NewUnstartedServer(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
 
 	cert, err := tls.X509KeyPair([]byte(servercrt), []byte(serverkey))
 	if err != nil {
@@ -145,7 +145,7 @@ func TestProxyDialer_UseProxy(t *testing.T) {
 	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, async.NoopPanicHandler{})
 	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", async.NoopPanicHandler{})
 	d.proxyProvider = provider
-	provider.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{trustedProxy.URL}, nil }
+	provider.dohLookup = func(_ context.Context, _, _ string) ([]string, error) { return []string{trustedProxy.URL}, nil }
 
 	err := d.switchToReachableServer()
 	require.NoError(t, err)
@@ -163,7 +163,7 @@ func TestProxyDialer_UseProxy_MultipleTimes(t *testing.T) {
 	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, async.NoopPanicHandler{})
 	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", async.NoopPanicHandler{})
 	d.proxyProvider = provider
-	provider.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{proxy1.URL}, nil }
+	provider.dohLookup = func(_ context.Context, _, _ string) ([]string, error) { return []string{proxy1.URL}, nil }
 
 	err := d.switchToReachableServer()
 	require.NoError(t, err)
@@ -172,7 +172,7 @@ func TestProxyDialer_UseProxy_MultipleTimes(t *testing.T) {
 	// Have to wait so as to not get rejected.
 	time.Sleep(proxyLookupWait)
 
-	provider.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{proxy2.URL}, nil }
+	provider.dohLookup = func(_ context.Context, _, _ string) ([]string, error) { return []string{proxy2.URL}, nil }
 	err = d.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, formatAsAddress(proxy2.URL), d.proxyAddress)
@@ -180,7 +180,7 @@ func TestProxyDialer_UseProxy_MultipleTimes(t *testing.T) {
 	// Have to wait so as to not get rejected.
 	time.Sleep(proxyLookupWait)
 
-	provider.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{proxy3.URL}, nil }
+	provider.dohLookup = func(_ context.Context, _, _ string) ([]string, error) { return []string{proxy3.URL}, nil }
 	err = d.switchToReachableServer()
 	require.NoError(t, err)
 	require.Equal(t, formatAsAddress(proxy3.URL), d.proxyAddress)
@@ -195,7 +195,7 @@ func TestProxyDialer_UseProxy_RevertAfterTime(t *testing.T) {
 	d.proxyProvider = provider
 	d.proxyUseDuration = time.Second
 
-	provider.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{trustedProxy.URL}, nil }
+	provider.dohLookup = func(_ context.Context, _, _ string) ([]string, error) { return []string{trustedProxy.URL}, nil }
 	err := d.switchToReachableServer()
 	require.NoError(t, err)
 
@@ -216,7 +216,7 @@ func TestProxyDialer_UseProxy_RevertIfProxyStopsWorkingAndOriginalAPIIsReachable
 	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, async.NoopPanicHandler{})
 	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", async.NoopPanicHandler{})
 	d.proxyProvider = provider
-	provider.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{trustedProxy.URL}, nil }
+	provider.dohLookup = func(_ context.Context, _, _ string) ([]string, error) { return []string{trustedProxy.URL}, nil }
 
 	err := d.switchToReachableServer()
 	require.NoError(t, err)
@@ -246,7 +246,7 @@ func TestProxyDialer_UseProxy_FindSecondAlternativeIfFirstFailsAndAPIIsStillBloc
 	provider := newProxyProvider(NewBasicTLSDialer(""), "", DoHProviders, async.NoopPanicHandler{})
 	d := NewProxyTLSDialer(NewBasicTLSDialer(""), "", async.NoopPanicHandler{})
 	d.proxyProvider = provider
-	provider.dohLookup = func(ctx context.Context, q, p string) ([]string, error) { return []string{proxy1.URL, proxy2.URL}, nil }
+	provider.dohLookup = func(_ context.Context, _, _ string) ([]string, error) { return []string{proxy1.URL, proxy2.URL}, nil }
 
 	err := d.switchToReachableServer()
 	require.NoError(t, err)

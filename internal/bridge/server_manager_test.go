@@ -34,7 +34,7 @@ import (
 
 func TestServerManager_ServersStartWithBridge(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			imapClient, err := eventuallyDial(fmt.Sprintf("%v:%v", constants.Host, bridge.GetIMAPPort()))
 			require.NoError(t, err)
 			require.NoError(t, imapClient.Logout())
@@ -48,7 +48,7 @@ func TestServerManager_ServersStartWithBridge(t *testing.T) {
 
 func TestServerManager_ServersKeepsRunningfterUserLogsOut(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			userID, err := bridge.LoginFull(ctx, username, password, nil, nil)
 			require.NoError(t, err)
 
@@ -72,7 +72,7 @@ func TestServerManager_ServersDoNotStopWhenThereIsStillOneActiveUser(t *testing.
 		_, _, err := s.CreateUser(otherUser, otherPassword)
 		require.NoError(t, err)
 
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			_, err := bridge.LoginFull(ctx, username, password, nil, nil)
 			require.NoError(t, err)
 
@@ -99,7 +99,7 @@ func TestServerManager_ServersDoNotStopWhenThereIsStillOneActiveUser(t *testing.
 
 func TestServerManager_NetworkLossStopsServers(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			imapWaiter := waitForIMAPServerReady(bridge)
 			defer imapWaiter.Done()
 

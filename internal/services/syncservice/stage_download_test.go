@@ -119,12 +119,12 @@ func TestAutoDownloadScale_429or500x(t *testing.T) {
 	for _, d := range data {
 		switch d {
 		case "m7":
-			call429 := client.EXPECT().GetMessage(gomock.Any(), gomock.Eq("m7")).DoAndReturn(func(_ context.Context, id string) (proton.Message, error) {
+			call429 := client.EXPECT().GetMessage(gomock.Any(), gomock.Eq("m7")).DoAndReturn(func(_ context.Context, _ string) (proton.Message, error) {
 				return proton.Message{}, &proton.APIError{Status: 429}
 			})
 			client.EXPECT().GetMessage(gomock.Any(), gomock.Eq("m7")).After(call429).DoAndReturn(autoDownloadScaleClientDoAndReturn)
 		case "m23":
-			call503 := client.EXPECT().GetMessage(gomock.Any(), gomock.Eq("m23")).DoAndReturn(func(_ context.Context, id string) (proton.Message, error) {
+			call503 := client.EXPECT().GetMessage(gomock.Any(), gomock.Eq("m23")).DoAndReturn(func(_ context.Context, _ string) (proton.Message, error) {
 				return proton.Message{}, &proton.APIError{Status: 503}
 			})
 			client.EXPECT().GetMessage(gomock.Any(), gomock.Eq("m23")).After(call503).DoAndReturn(autoDownloadScaleClientDoAndReturn)
