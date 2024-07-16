@@ -108,6 +108,7 @@ test-integration-nightly:
   artifacts:
     when: always
     paths:
+      - tests/result/feature-tests.xml
       - nightly-job.log
 
 test-coverage:

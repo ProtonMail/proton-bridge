@@ -1,0 +1,25 @@
+
+---
+
+include:
+  - project: 'tpe/testmo-reporter'
+    ref: master
+    file: '/scenarios/testmo-script.yml'
+
+testmo-upload:
+    stage: report
+    extends:
+      - .testmo-upload
+      - .rules-branch-manual-scheduled-and-test-branch-always
+    needs:
+      - test-integration-nightly
+    before_script: []
+    variables:
+      TESTMO_TOKEN: "$TESTMO_TOKEN"
+      TESTMO_URL: "https://proton.testmo.net"
+      PROJECT_ID: "9"
+      NAME: "Nightly integration tests"
+      MILESTONE: "Nightly integration tests"
+      SOURCE: "test-integration-nightly"
+      TAGS: "$CI_COMMIT_REF_SLUG"
+      RESULT_FOLDER: "tests/result/*.xml"

@@ -34,6 +34,7 @@ before_script:
 stages:
   - analyse
   - test
+  - report
   - build
 
 include:
@@ -41,6 +42,7 @@ include:
   - local: ci/rules.yml
   - local: ci/env.yml
   - local: ci/test.yml
+  - local: ci/report.yml
   - local: ci/build.yml
   - component: gitlab.protontech.ch/proton/devops/cicd-components/devsecops/gitleaks/scan-repository@~latest
     inputs: 
