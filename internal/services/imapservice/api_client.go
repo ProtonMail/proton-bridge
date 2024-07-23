@@ -23,7 +23,6 @@ import (
 
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/bradenaw/juniper/stream"
 )
 
 type APIClient interface {
@@ -41,7 +40,7 @@ type APIClient interface {
 	GetAllMessageIDs(ctx context.Context, afterID string) ([]string, error)
 	CreateDraft(ctx context.Context, addrKR *crypto.KeyRing, req proton.CreateDraftReq) (proton.Message, error)
 	UploadAttachment(ctx context.Context, addrKR *crypto.KeyRing, req proton.CreateAttachmentReq) (proton.Attachment, error)
-	ImportMessages(ctx context.Context, addrKR *crypto.KeyRing, workers, buffer int, req ...proton.ImportReq) (stream.Stream[proton.ImportRes], error)
+	ImportMessages(ctx context.Context, addrKR *crypto.KeyRing, workers, buffer int, req ...proton.ImportReq) (proton.ImportResStream, error)
 	GetFullMessage(ctx context.Context, messageID string, scheduler proton.Scheduler, storageProvider proton.AttachmentAllocator) (proton.FullMessage, error)
 	GetAttachmentInto(ctx context.Context, attachmentID string, reader io.ReaderFrom) error
 	GetAttachment(ctx context.Context, attachmentID string) ([]byte, error)
