@@ -28,44 +28,50 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestVault_DecryptFailed(t *testing.T) {
+	vaultDir, gluonDir := t.TempDir(), t.TempDir()
+
+	{
+		// Create
+		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), async.NoopPanicHandler{})
+		require.NoError(t, err)
+		require.NoError(t, corrupt)
+	}
+
+	{
+		// Load
+		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), async.NoopPanicHandler{})
+		require.NoError(t, err)
+		require.NoError(t, corrupt)
+	}
+
+	{
+		// Load with bad key
+		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("bad key"), async.NoopPanicHandler{})
+		require.ErrorIs(t, err, vault.ErrDecryptFailed)
+		require.NoError(t, corrupt)
+	}
+}
+
 func TestVault_Corrupt(t *testing.T) {
 	vaultDir, gluonDir := t.TempDir(), t.TempDir()
 
 	{
+		// Create
 		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), async.NoopPanicHandler{})
 		require.NoError(t, err)
 		require.NoError(t, corrupt)
 	}
 
 	{
+		// Load
 		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), async.NoopPanicHandler{})
 		require.NoError(t, err)
 		require.NoError(t, corrupt)
 	}
 
 	{
-		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("bad key"), async.NoopPanicHandler{})
-		require.NoError(t, err)
-		require.ErrorIs(t, corrupt, vault.ErrDecryptFailed)
-	}
-}
-
-func TestVault_Corrupt_JunkData(t *testing.T) {
-	vaultDir, gluonDir := t.TempDir(), t.TempDir()
-
-	{
-		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), async.NoopPanicHandler{})
-		require.NoError(t, err)
-		require.NoError(t, corrupt)
-	}
-
-	{
-		_, corrupt, err := vault.New(vaultDir, gluonDir, []byte("my secret key"), async.NoopPanicHandler{})
-		require.NoError(t, err)
-		require.NoError(t, corrupt)
-	}
-
-	{
+		// Load with junk data
 		f, err := os.OpenFile(filepath.Join(vaultDir, "vault.enc"), os.O_WRONLY, 0o600)
 		require.NoError(t, err)
 		defer f.Close() //nolint:errcheck
