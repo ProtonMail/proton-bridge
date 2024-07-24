@@ -44,7 +44,7 @@ include:
   - local: ci/test.yml
   - local: ci/report.yml
   - local: ci/build.yml
-  - component: gitlab.protontech.ch/proton/devops/cicd-components/kits/devsecops/go@0.0.5
+  - component: gitlab.protontech.ch/proton/devops/cicd-components/kits/devsecops/go@~latest
     inputs:
       stage: analyse
 
