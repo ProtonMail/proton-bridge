@@ -132,5 +132,6 @@
         <file>qml/ConnectionModeSettings.qml</file>
         <file>qml/SplashScreen.qml</file>
         <file>qml/Status.qml</file>
+        <file>qml/Proton/ContextMenu.qml</file>
     </qresource>
 </RCC>

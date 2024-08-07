@@ -39,3 +39,4 @@ TextArea 4.0 TextArea.qml
 TextField 4.0 TextField.qml
 Toggle 4.0 Toggle.qml
 WebFrame 4.0 WebFrame.qml
+ContextMenu 4.0 ContextMenu.qml

@@ -28,6 +28,7 @@
 #include <bridgepp/Log/Log.h>
 #include <bridgepp/Log/LogUtils.h>
 #include <bridgepp/ProcessMonitor.h>
+#include <ClipboardProxy.h>
 
 #include "bridgepp/CLI/CLIUtils.h"
 
@@ -347,6 +348,8 @@ int main(int argc, char *argv[]) {
         log.info(QString("Qt Quick renderer: %1").arg(QQuickWindow::sceneGraphBackend()));
 
         QQmlApplicationEngine engine;
+        // Set up clipboard
+        engine.rootContext()->setContextProperty("clipboard", new ClipboardProxy(QGuiApplication::clipboard()));
         std::unique_ptr<QQmlComponent> rootComponent(createRootQmlComponent(engine));
         std::unique_ptr<QObject> rootObject(rootComponent->create(engine.rootContext()));
         if (!rootObject) {

@@ -75,7 +75,7 @@ if(NOT UNIX)
     set(CMAKE_INSTALL_BINDIR ".")
 endif(NOT UNIX)
 
-find_package(Qt6 COMPONENTS Core Quick Qml QuickControls2 Widgets Svg REQUIRED)
+find_package(Qt6 COMPONENTS Core Quick Qml QuickControls2 Widgets Svg Gui REQUIRED)
 qt_standard_project_setup()
 set(CMAKE_AUTORCC ON)
 message(STATUS "Using Qt ${Qt6_VERSION}")
@@ -120,6 +120,7 @@ add_executable(bridge-gui
     UserList.cpp UserList.h
     SentryUtils.cpp SentryUtils.h
     Settings.cpp Settings.h
+    ClipboardProxy.cpp ClipboardProxy.h
     ${DOCK_ICON_SRC_FILE} MacOS/DockIcon.h
     )
 
@@ -148,6 +149,7 @@ target_link_libraries(bridge-gui
     Qt6::Qml
     Qt6::QuickControls2
     Qt6::Svg
+    Qt6::Gui
     sentry::sentry
     bridgepp
     )

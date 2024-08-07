@@ -331,6 +331,15 @@ FocusScope {
                         x: control.leftPadding
                         y: control.topPadding
                     }
+
+                    Proton.ContextMenu {
+                        parentObject: control
+                        colorScheme: root.colorScheme
+                        isPassword: control.echoMode === TextInput.Password
+                        readOnly: control.readOnly
+                    }
+
+
                 }
                 Proton.Button {
                     id: eyeButton

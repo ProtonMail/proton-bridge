@@ -362,4 +362,9 @@ FocusScope {
             }
         }
     }
+
+    Proton.ContextMenu {
+        parentObject: root
+        colorScheme: root.colorScheme
+    }
 }
