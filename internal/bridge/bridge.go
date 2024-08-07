@@ -47,6 +47,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapsmtpserver"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
+	"github.com/ProtonMail/proton-bridge/v3/internal/unleash"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
@@ -136,6 +137,8 @@ type Bridge struct {
 
 	serverManager *imapsmtpserver.Service
 	syncService   *syncservice.Service
+	// unleashService is responsible for polling the feature flags and caching
+	unleashService *unleash.Service
 }
 
 var logPkg = logrus.WithField("pkg", "bridge") //nolint:gochecknoglobals
@@ -253,6 +256,8 @@ func newBridge(
 		return nil, fmt.Errorf("failed to create focus service: %w", err)
 	}
 
+	unleashService := unleash.NewBridgeService(ctx, api, locator, panicHandler)
+
 	bridge := &Bridge{
 		vault: vault,
 
@@ -293,6 +298,8 @@ func newBridge(
 
 		tasks:       tasks,
 		syncService: syncservice.NewService(reporter, panicHandler),
+
+		unleashService: unleashService,
 	}
 
 	bridge.serverManager = imapsmtpserver.NewService(context.Background(),
@@ -319,6 +326,8 @@ func newBridge(
 	}
 
 	bridge.syncService.Run()
+
+	bridge.unleashService.Run()
 
 	return bridge, nil
 }
@@ -469,6 +478,9 @@ func (bridge *Bridge) Close(ctx context.Context) {
 
 	// Close the focus service.
 	bridge.focusService.Close()
+
+	// Close the unleash service.
+	bridge.unleashService.Close()
 
 	// Close the watchers.
 	bridge.watchersLock.Lock()
@@ -673,4 +685,8 @@ func GetUpdatedCachePath(gluonDBPath, gluonCachePath string) string {
 	}
 
 	return strings.Replace(gluonCachePath, "/Users/"+cacheUsername+"/", "/Users/"+dbUsername+"/", 1)
+}
+
+func (bridge *Bridge) GetFeatureFlagValue(key string) bool {
+	return bridge.unleashService.GetFlagValue(key)
 }

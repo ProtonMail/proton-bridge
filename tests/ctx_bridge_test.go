@@ -149,6 +149,11 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 	}
 
 	rt := t.netCtl.NewRoundTripper(&tls.Config{InsecureSkipVerify: true})
+
+	// We store the round tripper in the testing context so we can cancel the connection
+	// when we're turning it down/up
+	t.rt = &rt
+
 	if isBlack() {
 		// GODT-1602 make sure we don't time out test server
 		t, ok := rt.(*http.Transport)

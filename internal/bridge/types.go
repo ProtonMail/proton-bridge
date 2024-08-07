@@ -33,6 +33,7 @@ type Locator interface {
 	GetDependencyLicensesLink() string
 	Clear(...string) error
 	ProvideIMAPSyncConfigPath() (string, error)
+	ProvideUnleashCachePath() (string, error)
 }
 
 type ProxyController interface {

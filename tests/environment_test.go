@@ -59,11 +59,19 @@ func (s *scenario) itFailsWithError(wantErr string) error {
 
 func (s *scenario) internetIsTurnedOff() error {
 	s.t.netCtl.SetCanDial(false)
+	t, ok := (*s.t.rt).(*http.Transport)
+	if ok {
+		t.CloseIdleConnections()
+	}
 	return nil
 }
 
 func (s *scenario) internetIsTurnedOn() error {
 	s.t.netCtl.SetCanDial(true)
+	t, ok := (*s.t.rt).(*http.Transport)
+	if ok {
+		t.CloseIdleConnections()
+	}
 	return nil
 }
 

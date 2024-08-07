@@ -19,4 +19,5 @@ package service
 
 type Locator interface {
 	ProvideSettingsPath() (string, error)
+	ProvideUnleashCachePath() (string, error)
 }

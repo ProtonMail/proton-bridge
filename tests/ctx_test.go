@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"net/smtp"
 	"net/url"
 	"regexp"
@@ -164,6 +165,8 @@ type testCtx struct {
 
 	imapServerStarted bool
 	smtpServerStarted bool
+
+	rt *http.RoundTripper
 }
 
 type imapClient struct {

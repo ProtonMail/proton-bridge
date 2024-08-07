@@ -206,6 +206,16 @@ func (l *Locations) ProvideIMAPSyncConfigPath() (string, error) {
 	return l.getIMAPSyncConfigPath(), nil
 }
 
+// ProvideUnleashCachePath returns a location for the unleash cache data (e.g. ~/.cache/protonmail/bridge-v3).
+// It creates it if it doesn't already exist.
+func (l *Locations) ProvideUnleashCachePath() (string, error) {
+	if err := os.MkdirAll(l.getUnleashCachePath(), 0o700); err != nil {
+		return "", err
+	}
+
+	return l.getUnleashCachePath(), nil
+}
+
 func (l *Locations) getGluonCachePath() string {
 	return filepath.Join(l.userData, "gluon")
 }
@@ -241,6 +251,8 @@ func (l *Locations) getUpdatesPath() string {
 func (l *Locations) getStatsPath() string {
 	return filepath.Join(l.userData, "stats")
 }
+
+func (l *Locations) getUnleashCachePath() string { return filepath.Join(l.userCache, "unleash_cache") }
 
 // Clear removes everything except the lock and update files.
 func (l *Locations) Clear(except ...string) error {
