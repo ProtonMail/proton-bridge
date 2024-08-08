@@ -15,29 +15,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-package keychain
+package vault
 
 import (
-	"github.com/docker/docker-credential-helpers/credentials"
-	"github.com/docker/docker-credential-helpers/wincred"
-	"github.com/sirupsen/logrus"
+	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
-const WindowsCredentials = "windows-credentials"
-
-func listHelpers(_ bool) (Helpers, string) {
-	helpers := make(Helpers)
-	// Windows always provides a keychain.
-	if isUsable(newWinCredHelper("")) {
-		helpers[WindowsCredentials] = newWinCredHelper
-		logrus.WithField("keychain", "WindowsCredentials").Info("Keychain is usable.")
-	} else {
-		logrus.WithField("keychain", "WindowsCredentials").Debug("Keychain is not available.")
-	}
-	// Use WindowsCredentials by default.
-	return helpers, WindowsCredentials
+func TestShouldSkipKeychainTestAccessors(t *testing.T) {
+	dir := t.TempDir()
+	skip, err := GetShouldSkipKeychainTest(dir)
+	require.NoError(t, err)
+	require.False(t, skip)
+	require.NoError(t, SetShouldSkipKeychainTest(dir, true))
+	skip, err = GetShouldSkipKeychainTest(dir)
+	require.NoError(t, err)
+	require.True(t, skip)
 }
 
-func newWinCredHelper(string) (credentials.Helper, error) {
-	return &wincred.Wincred{}, nil
+func TestHelperAccessors(t *testing.T) {
+	dir := t.TempDir()
+	helper, err := GetHelper(dir)
+	require.NoError(t, err)
+	require.Zero(t, len(helper))
+	require.NoError(t, SetHelper(dir, "keychain"))
+	helper, err = GetHelper(dir)
+	require.NoError(t, err)
+	require.Equal(t, "keychain", helper)
 }

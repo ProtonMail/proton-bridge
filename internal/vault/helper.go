@@ -19,53 +19,57 @@ package vault
 
 import (
 	"encoding/base64"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io/fs"
-	"os"
-	"path/filepath"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
+	"github.com/sirupsen/logrus"
 )
 
 const vaultSecretName = "bridge-vault-key"
 
-type Keychain struct {
-	Helper string
-}
-
-func getKeychainPrefPath(vaultDir string) string {
-	return filepath.Clean(filepath.Join(vaultDir, "keychain.json"))
-}
-
-func GetHelper(vaultDir string) (string, error) {
-	if _, err := os.Stat(getKeychainPrefPath(vaultDir)); errors.Is(err, fs.ErrNotExist) {
-		return "", nil
-	}
-
-	b, err := os.ReadFile(getKeychainPrefPath(vaultDir))
+func GetShouldSkipKeychainTest(vaultDir string) (bool, error) {
+	settings, err := LoadKeychainSettings(vaultDir)
 	if err != nil {
-		return "", err
+		return false, err
 	}
 
-	var keychain Keychain
-
-	if err := json.Unmarshal(b, &keychain); err != nil {
-		return "", err
-	}
-
-	return keychain.Helper, nil
+	return settings.DisableTest, nil
 }
 
-func SetHelper(vaultDir, helper string) error {
-	b, err := json.MarshalIndent(Keychain{Helper: helper}, "", "  ")
+func SetShouldSkipKeychainTest(vaultDir string, skip bool) error {
+	settings, err := LoadKeychainSettings(vaultDir)
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(getKeychainPrefPath(vaultDir), b, 0o600)
+	log := logrus.WithFields(logrus.Fields{"pkg": "vault", "skipKeychainTest": skip})
+	if skip == settings.DisableTest {
+		log.Info("Skipping change of keychain test setting as value is not modified")
+		return nil
+	}
+
+	logrus.WithFields(logrus.Fields{"pkg": "vault", "skipKeychainTest": skip}).Info("Setting keychain test skip option")
+	settings.DisableTest = skip
+	return settings.Save(vaultDir)
+}
+
+func GetHelper(vaultDir string) (string, error) {
+	settings, err := LoadKeychainSettings(vaultDir)
+	if err != nil {
+		return "", err
+	}
+	return settings.Helper, nil
+}
+
+func SetHelper(vaultDir, helper string) error {
+	settings, err := LoadKeychainSettings(vaultDir)
+	if err != nil {
+		return err
+	}
+
+	settings.Helper = helper
+	return settings.Save(vaultDir)
 }
 
 func GetVaultKey(kc *keychain.Keychain) ([]byte, error) {

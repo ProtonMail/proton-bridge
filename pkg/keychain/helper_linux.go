@@ -31,7 +31,7 @@ const (
 	SecretServiceDBus = "secret-service-dbus"
 )
 
-func listHelpers() (Helpers, string) {
+func listHelpers(_ bool) (Helpers, string) {
 	helpers := make(Helpers)
 
 	if isUsable(newDBusHelper("")) {

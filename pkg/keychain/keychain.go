@@ -62,9 +62,9 @@ type List struct {
 // NewList checks availability of every keychains detected on the User Operating System
 // This will ask the user to unlock keychain(s) to check their usability.
 // This should only be called once.
-func NewList() *List {
+func NewList(skipKeychainTest bool) *List {
 	var list = List{locker: &sync.Mutex{}}
-	list.helpers, list.defaultHelper = listHelpers()
+	list.helpers, list.defaultHelper = listHelpers(skipKeychainTest)
 	return &list
 }
 

@@ -117,7 +117,7 @@ func TestInsertReadRemove(t *testing.T) {
 
 func TestIsErrKeychainNoItem(t *testing.T) {
 	r := require.New(t)
-	helpers := NewList().GetHelpers()
+	helpers := NewList(false).GetHelpers()
 
 	for helperName := range helpers {
 		kc, err := NewKeychain(helperName, "bridge-test", helpers, helperName)
