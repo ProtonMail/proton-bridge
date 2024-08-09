@@ -4,46 +4,45 @@
     "url": "https://proton.me/support/automatically-start-bridge",
     "title": "Automatically start Bridge",
     "keywords": [
-      "automatic",
+      "autostart",
       "login",
-      "start",
+      "startup",
       "boot"
     ]
   },
   {
     "index": 1,
-    "url": "https://proton.me/support/bridge-automatic-update",
-    "title": "Automatic Update and Bridge",
+    "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
+    "title": "Proton Mail Bridge New Outlook for Windows set up guide",
     "keywords": [
-      "update",
-      "upgrade",
-      "restart",
-      "automatic",
-      "manual"
+      "app password",
+      "INVALIDCREDENTIALS",
+      "TEMPORARILYUNAVAILABLE",
+      "New Outlook",
+      "Outlook",
+      "Sign in failed"
     ]
   },
   {
     "index": 2,
-    "url": "https://proton.me/support/messages-encrypted-via-bridge",
-    "title": "Are my messages encrypted via Proton Mail Bridge?",
+    "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
+    "title": "What is the Recovered Messages folder in Bridge (and your email client)?",
     "keywords": [
-      "encrypted",
-      "privacy",
-      "message",
-      "security",
-      "gpg",
-      "pgp",
-      "crypto"
+      "recovered messages",
+      "recovered messages folder"
     ]
   },
   {
     "index": 3,
-    "url": "https://proton.me/support/labels-in-bridge",
-    "title": "Labels in Bridge",
+    "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook#may-17",
+    "title": "Important notice regarding the New Outlook for Mac and issues you might face",
     "keywords": [
-      "labels",
-      "folders",
-      "directories"
+      "Receiving",
+      "Sending",
+      "Outlook",
+      "Configuration",
+      "Sync",
+      "New Outlook"
     ]
   },
   {
@@ -51,14 +50,15 @@
     "url": "https://proton.me/support/bridge-ssl-connection-issue",
     "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail",
     "keywords": [
+      "setup",
+      "disconnected",
       "connect",
-      "SSL",
-      "STARTTLS",
-      "client",
-      "program",
       "Outlook",
       "Apple Mail",
-      "Thunderbird"
+      "Thunderbird",
+      "Mac Mail",
+      "Could not connect to server",
+      "The attempt to read data from the server “127.0.0.1"
     ]
   },
   {
@@ -81,7 +81,6 @@
       "split",
       "address",
       "mode"
-
     ]
   },
   {
@@ -91,14 +90,14 @@
     "keywords": [
       "Thunderbird",
       "Connection to server timed out",
-      "Connection",
+      "Connection timed out",
       "Timeout"
     ]
   },
   {
     "index": 8,
     "url": "https://proton.me/support/update-required",
-    "title": "Update required",
+    "title": "Update required and how to update Proton Mail Bridge",
     "keywords": [
       "update required",
       "update",
@@ -110,7 +109,7 @@
   {
     "index": 9,
     "url": "https://proton.me/support/port-already-occupied-error",
-    "title": "Port already occupied error",
+    "title": "How to fix “IMAP or SMTP port error” on Proton Mail Bridge",
     "keywords": [
       "Port",
       "occupied",
@@ -123,256 +122,28 @@
   },
   {
     "index": 10,
-    "url": "https://proton.me/support/clients-supported-bridge",
-    "title": "Email clients supported by Proton Mail Bridge",
+    "url": "https://proton.me/support/apple-mail-certificate",
+    "title": "Why you need to install a certificate for Apple Mail with Proton Mail Bridge",
     "keywords": [
-      "client",
-      "Outlook",
-      "Thunderbird",
+      "certificate",
       "Apple Mail",
-      "EM Client",
-      "The Bat",
-      "Eudora",
-      "Postbox",
-      "Canary",
-      "Spark"
+      "mac",
+      "unsigned"
     ]
   },
   {
     "index": 11,
-    "url": "https://proton.me/support/imap-smtp-and-pop3-setup",
-    "title": "IMAP, SMTP, and POP3 setup",
+    "url": "https://proton.me/support/macos-certificate-warning",
+    "title": "Warning when installing Proton Mail Bridge on macOS",
     "keywords": [
-      "IMAP",
-      "SMTP",
-      "setup",
-      "set up",
-      "configure",
-      "configuration",
-      "parameters"
+      "install",
+      "mac",
+      "warning",
+      "certificate"
     ]
   },
   {
     "index": 12,
-    "url": "https://proton.me/support/protonmail-bridge-install",
-    "title": "How to install Proton Mail Bridge",
-    "keywords": [
-      "install",
-      "installer",
-      "setup",
-      "download",
-      "windows",
-      "mac",
-      "macos",
-      "linux"
-    ]
-  },
-  {
-    "index": 13,
-    "url": "https://proton.me/support/bridge-for-linux",
-    "title": "Proton Mail Bridge for Linux",
-    "keywords": [
-      "Linux",
-      "Ubuntu",
-      "Fedora",
-      "Debian",
-      "Unix",
-      "deb",
-      "rpm",
-      "CentOS",
-      "Arch",
-      "Mint"
-    ]
-  },
-  {
-    "index": 14,
-    "url": "https://proton.me/support/operating-systems-supported-bridge",
-    "title": "System requirements for Proton Mail Bridge",
-    "keywords": [
-      "requirement",
-      "cpu",
-      "memory",
-      "Windows",
-      "macOS",
-      "linux"
-    ]
-  },
-  {
-    "index": 15,
-    "url": "https://proton.me/support/protonmail-bridge-configure-client",
-    "title": "How to configure your email client for Proton Mail Bridge",
-    "keywords": [
-      "Client",
-      "Outlook",
-      "configure",
-      "setup",
-      "application",
-      "setup",
-      "IMAP",
-      "SMTP"
-
-    ]
-  },
-  {
-    "index": 16,
-    "url": "https://proton.me/support/invalid-password-error-setting-email-client",
-    "title": "Invalid password error while setting up email client",
-    "keywords": [
-      "password",
-      "invalid",
-      "error"
-    ]
-  },
-  {
-    "index": 17,
-    "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
-    "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide",
-    "keywords": [
-      "Outlook",
-      "2019",
-      "setup",
-      "configuration"
-    ]
-  },
-  {
-    "index": 18,
-    "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2016",
-    "title": "Proton Mail Bridge Microsoft Outlook 2016 for Windows setup guide",
-    "keywords": [
-      "Outlook",
-      "2019",
-      "setup",
-      "configuration"
-    ]
-  },
-  {
-    "index": 19,
-    "url": "https://proton.me/support/protonmail-bridge-clients-apple-mail",
-    "title": "Proton Mail Bridge Apple Mail setup guide",
-    "keywords": [
-      "Apple Mail",
-      "setup",
-      "configuration"
-    ]
-  },
-  {
-    "index": 20,
-    "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook",
-    "title": "Proton Mail Bridge new Outlook for macOS setup guide",
-    "keywords": [
-      "Outlook",
-      "setup",
-      "configuration",
-      "We encountered an error while adding account"
-    ]
-  },
-  {
-    "index": 21,
-    "url": "https://proton.me/support/protonmail-bridge-clients-windows-thunderbird",
-    "title": "Proton Mail Bridge Thunderbird setup guide for Windows, macOS, and Linux",
-    "keywords": [
-      "Thunderbird",
-      "setup",
-      "configuration"
-    ]
-  },
-  {
-    "index": 22,
-    "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2016",
-    "title": "Proton Mail Bridge Microsoft Outlook 2016 for macOS setup guide",
-    "keywords": [
-      "Outlook 2016",
-      "macOS"
-    ]
-  },
-  {
-    "index": 23,
-    "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019",
-    "title": "Proton Mail Bridge Microsoft Outlook 2019 for macOS setup guide",
-    "keywords": [
-      "Outlook 2019",
-      "macOS"
-    ]
-  },
-  {
-    "index": 24,
-    "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2013",
-    "title": "Proton Mail Bridge Microsoft Outlook 2013 for Windows setup guide",
-    "keywords": [
-      "Outlook 2013",
-      "macOS"
-    ]
-  },
-  {
-    "index": 25,
-    "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2011",
-    "title": "Proton Mail Bridge Microsoft Outlook 2011 for macOS setup guide",
-    "keywords": [
-      "Outlook 2011",
-      "macOS"
-    ]
-  },
-  {
-    "index": 26,
-    "url": "https://proton.me/support/install-bridge-linux-pkgbuild-file",
-    "title": "Installing Proton Mail Bridge for Linux using a PKGBUILD file",
-    "keywords": [
-      "Linux",
-      "pkgbuild"
-    ]
-  },
-  {
-    "index": 27,
-    "url": "https://proton.me/support/installing-bridge-linux-deb-file",
-    "title": "Installing Proton Mail Bridge for Linux using a DEB file",
-    "keywords": [
-      "Linux",
-      "deb"
-    ]
-  },
-  {
-    "index": 28,
-    "url": "https://proton.me/support/verifying-bridge-package",
-    "title": "Verifying the Proton Mail Bridge package for Linux",
-    "keywords": [
-      "Linux",
-      "Package",
-      "Verify"
-    ]
-  },
-  {
-    "index": 29,
-    "url": "https://proton.me/support/bridge-cli-guide",
-    "title": "Bridge CLI (command line interface) guide",
-    "keywords": [
-      "CLI",
-      "Terminal",
-      "Command-line",
-      "Powershell"
-    ]
-  },
-  {
-    "index": 30,
-    "url": "https://proton.me/support/install-bridge-linux-rpm-file",
-    "title": "Installing Proton Mail Bridge for Linux using an RPM file",
-    "keywords": [
-      "Linux",
-      "Install",
-      "RPM"
-    ]
-  },
-  {
-    "index": 31,
-    "url": "https://proton.me/support/bridge-linux-login-error",
-    "title": "How to fix Proton Bridge login errors",
-    "keywords": [
-      "login",
-      "error",
-      "connection"
-    ]
-  },
-  {
-    "index": 32,
     "url": "https://proton.me/support/bridge-linux-tray-icon",
     "title": "How to fix a missing system tray icon in Linux",
     "keywords": [
@@ -382,78 +153,237 @@
     ]
   },
   {
-    "index": 33,
-    "url": "https://proton.me/support/why-you-need-bridge",
-    "title": "Why you need Proton Mail Bridge",
+    "index": 13,
+    "url": "https://proton.me/support/bridge-linux-login-error",
+    "title": "How to fix Proton Bridge login errors",
     "keywords": [
-      "Bridge",
-      "email",
-      "client"
+      "login",
+      "error",
+      "sign in"
+    ]
+  },
+  {
+    "index": 14,
+    "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019",
+    "title": "Proton Mail Bridge Microsoft Outlook 2019 for macOS setup guide",
+    "keywords": [
+      "Outlook",
+      "mac"
+    ]
+  },
+  {
+    "index": 15,
+    "url": "https://proton.me/support/protonmail-bridge-configure-client",
+    "title": "How to configure your email client for Proton Mail Bridge",
+    "keywords": [
+      "Client",
+      "configure",
+      "configuration",
+      "setup",
+      "application",
+      "setup"
+    ]
+  },
+  {
+    "index": 16,
+    "url": "https://proton.me/support/invalid-password-error-setting-email-client",
+    "title": "Invalid password error while setting up email client",
+    "keywords": [
+      "password",
+      "invalid",
+      "error",
+      "incorrect",
+      "verify account name",
+      "login"
+    ]
+  },
+  {
+    "index": 17,
+    "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
+    "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide",
+    "keywords": [
+      "Outlook",
+      "setup",
+      "configure",
+      "connect",
+      "Outlook 365"
+    ]
+  },
+  {
+    "index": 18,
+    "url": "https://proton.me/support/protonmail-bridge-clients-windows-thunderbird",
+    "title": "Proton Mail Bridge Thunderbird setup guide for Windows, macOS, and Linux",
+    "keywords": [
+      "Thunderbird",
+      "setup",
+      "configuration",
+      "connect"
+    ]
+  },
+  {
+    "index": 19,
+    "url": "https://proton.me/support/protonmail-bridge-clients-apple-mail",
+    "title": "Proton Mail Bridge Apple Mail setup guide",
+    "keywords": [
+      "Apple Mail",
+      "setup",
+      "configure",
+      "configuration",
+      "connect"
+    ]
+  },
+  {
+    "index": 20,
+    "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook",
+    "title": "Proton Mail Bridge new Outlook for macOS setup guide",
+    "keywords": [
+      "Outlook",
+      "New Outlook",
+      "setup",
+      "configuration",
+      "We encountered an error while adding the account",
+      "error",
+      "mac"
+    ]
+  },
+  {
+    "index": 21,
+    "url": "https://proton.me/support/how-to-resolve-connection-issues-in-bridge",
+    "title": "How to resolve connection issues in Bridge",
+    "keywords": [
+      "Bridge is not able to contact the server",
+      "connection",
+      "error",
+      "red banner",
+      "No Connection",
+      "issue",
+      "lost connection"
+    ]
+  },
+  {
+    "index": 22,
+    "url": "https://proton.me/support/bridge-internal-error",
+    "title": "How to fix an “internal error” warning on Proton Mail Bridge",
+    "keywords": [
+      "internal error"
+    ]
+  },
+  {
+    "index": 23,
+    "url": "https://proton.me/support/bridge-cant-move-cache",
+    "title": "How to fix a “can’t move cache” error on Proton Mail Bridge",
+    "keywords": [
+      "Can’t move cache",
+      "local cache"
+    ]
+  },
+  {
+    "index": 24,
+    "url": "https://proton.me/support/how-to-troubleshoot-messages-received-with-a-delay-in-your-email-client",
+    "title": "How to troubleshoot messages received with a delay in your email client",
+    "keywords": [
+      "messages arriving slowly",
+      "New emails are not arriving",
+      "Emails arrive with a delay",
+      "messages not appearing",
+      "emails not appearing",
+      "I cannot find emails in my email client"
+    ]
+  },
+  {
+    "index": 25,
+    "url": "https://proton.me/support/not-receiving-messages-email-client",
+    "title": "How to troubleshoot not receiving new messages in your email client",
+    "keywords": [
+      "emails are not arriving",
+      "emails missing",
+      "missing emails",
+      "emails not appearing",
+      "I cannot find emails in my email client"
+    ]
+  },
+  {
+    "index": 26,
+    "url": "https://proton.me/support/resolve-invalid-return-path-error",
+    "title": "How to resolve the “Invalid Return Path” error when sending messages from your email client",
+    "keywords": [
+      "Invalid return path",
+      "I am not able to send emails",
+      "sending error",
+      "unable to send",
+      "send"
+    ]
+  },
+  {
+    "index": 27,
+    "url": "https://proton.me/support/this-computer-only-folder-outlook",
+    "title": "How to troubleshoot “This computer only” folders in Outlook for Windows",
+    "keywords": [
+      "This computer only"
+    ]
+  },
+  {
+    "index": 28,
+    "url": "https://proton.me/support/missing-messages-in-email-client-using-proton-bridge",
+    "title": "How to troubleshoot missing messages in your email client",
+    "keywords": [
+      "emails are missing",
+      "missing emails"
+    ]
+  },
+  {
+    "index": 29,
+    "url": "https://proton.me/support/bridge-cannot-access-keychain",
+    "title": "How to fix “cannot access keychain” on Proton Mail Bridge",
+    "keywords": [
+      "cannot access keychain",
+      "No keychain available"
+    ]
+  },
+  {
+    "index": 30,
+    "url": "https://pme.protonblog.tech/support/bridge-address-list-has-changed",
+    "title": "How to fix “the address list has changed” warning on Proton Mail Bridge",
+    "keywords": [
+      "address list has changed",
+      "address list changed"
+    ]
+  },
+  {
+    "index": 31,
+    "url": "https://pme.protonblog.tech/support/bridge-address-list-has-changed",
+    "title": "How to fix “the address list has changed” warning on Proton Mail Bridge",
+    "keywords": [
+      "address list has changed",
+      "address list changed"
+    ]
+  },
+  {
+    "index": 32,
+    "url": "https://pme.protonblog.tech/support/bridge-imap-login-failed",
+    "title": "How to fix an “IMAP Login failed” warning on Proton Mail Bridge",
+    "keywords": [
+      "imap login failed",
+      "login failed"
+    ]
+  },
+  {
+    "index": 33,
+    "url": "https://pme.protonblog.tech/support/resolve-checking-server-notice",
+    "title": "How to resolve issues with “Checking mail server capabilities” notice in Thunderbird",
+    "keywords": [
+      "Checking mail server capabilities",
+      "checking capabilities",
+      "checking",
+      "capabilities"
     ]
   },
   {
     "index": 34,
-    "url": "https://proton.me/support/protonmail-bridge-manual-update",
-    "title": "How to manually update Proton Mail Bridge",
+    "url": "https://pme.protonblog.tech/support/failed-to-parse-message-error",
+    "title": "Troubleshooting “failed to parse message” errors",
     "keywords": [
-      "update",
-      "upgrade",
-      "manual",
-      "download"
+      "failed to parse message"
     ]
-  },
-  {
-    "index": 35,
-    "url": "https://proton.me/support/macos-certificate-warning",
-    "title": "Warning when installing Proton Mail Bridge on macOS",
-    "keywords": [
-      "install",
-      "macOS",
-      "warning",
-      "certificate"
-    ]
-  },
-  {
-    "index": 36,
-    "url": "https://proton.me/support/apple-mail-certificate",
-    "title": "Why you need to install a certificate for Apple Mail with Proton Mail Bridge",
-    "keywords": [
-      "certificate",
-      "Apple Mail",
-      "macOS"
-    ]
-  },
-  {
-    "index": 37,
-    "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook#may-17",
-    "title": "Important notice regarding the New Outlook for Mac and issues you might face",
-    "keywords": [
-      "Receiving",
-      "Sending",
-      "Outlook",
-      "Configuration",
-      "Sync",
-      "New Outlook"
-    ]
-  },
-  {
-    "index": 38,
-    "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
-    "title": "What is the Recovered Messages folder in Bridge (and your email client)?",
-    "keywords": [
-      "recovered messages",
-      "recovered messages folder"
-    ]
-  },
-  {
-    "index": 39,
-    "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
-    "title": "Proton Mail Bridge New Outlook for Windows set up guide",
-    "keywords": [
-      "app password",
-      "INVALIDCREDENTIALS",
-      "TEMPORARILYUNAVAILABLE",
-      "New Outlook"
-    ]
-  }
+  } 
 ]

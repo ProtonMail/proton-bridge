@@ -69,7 +69,11 @@ func GetSuggestionsFromArticleList(userInput string, articles ArticleList) (Arti
 	for _, article := range articles {
 		for _, keyword := range article.Keywords {
 			if strings.Contains(userInput, strings.ToUpper(keyword)) {
-				article.Score++
+				if len(keyword) > 12 {
+					article.Score += 2
+				} else {
+					article.Score++
+				}
 			}
 		}
 	}

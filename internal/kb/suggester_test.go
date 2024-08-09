@@ -42,7 +42,7 @@ func Test_GetSuggestions(t *testing.T) {
 	suggestions, err := GetSuggestions("Thunderbird is not working, error during password")
 	require.NoError(t, err)
 	count := len(suggestions)
-	require.True(t, (count > 0) && (count <= 3))
+	require.True(t, (count > 0) && (count <= 5))
 	suggestions, err = GetSuggestions("Supercalifragilisticexpialidocious Sesquipedalian Worcestershire")
 	require.NoError(t, err)
 	require.Empty(t, suggestions)
@@ -75,10 +75,10 @@ func Test_GetSuggestionsFromArticleList(t *testing.T) {
 }
 
 func Test_GetArticleIndex(t *testing.T) {
-	index1, err := GetArticleIndex("https://proton.me/support/bridge-for-linux")
+	index1, err := GetArticleIndex("https://proton.me/support/apple-mail-certificate")
 	require.NoError(t, err)
 
-	index2, err := GetArticleIndex("HTTPS://PROTON.ME/support/bridge-for-linux")
+	index2, err := GetArticleIndex("HTTPS://PROTON.ME/support/apple-mail-certificate")
 	require.NoError(t, err)
 	require.Equal(t, index1, index2)
 
