@@ -566,6 +566,7 @@ func (bridge *Bridge) addUserWithVault(
 		bridge.serverManager,
 		&bridgeEventSubscription{b: bridge},
 		bridge.syncService,
+		bridge.observabilityService,
 		syncSettingsPath,
 		isNew,
 	)

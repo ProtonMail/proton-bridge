@@ -45,6 +45,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapsmtpserver"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/unleash"
@@ -137,8 +138,12 @@ type Bridge struct {
 
 	serverManager *imapsmtpserver.Service
 	syncService   *syncservice.Service
+
 	// unleashService is responsible for polling the feature flags and caching
 	unleashService *unleash.Service
+
+	// observabilityService is responsible for handling calls to the observability system
+	observabilityService *observability.Service
 }
 
 var logPkg = logrus.WithField("pkg", "bridge") //nolint:gochecknoglobals
@@ -300,6 +305,8 @@ func newBridge(
 		syncService: syncservice.NewService(reporter, panicHandler),
 
 		unleashService: unleashService,
+
+		observabilityService: observability.NewService(ctx, panicHandler),
 	}
 
 	bridge.serverManager = imapsmtpserver.NewService(context.Background(),
@@ -328,6 +335,8 @@ func newBridge(
 	bridge.syncService.Run()
 
 	bridge.unleashService.Run()
+
+	bridge.observabilityService.Run()
 
 	return bridge, nil
 }
@@ -455,6 +464,9 @@ func (bridge *Bridge) GetErrors() []error {
 
 func (bridge *Bridge) Close(ctx context.Context) {
 	logPkg.Info("Closing bridge")
+
+	// Stop observability service
+	bridge.observabilityService.Stop()
 
 	// Stop heart beat before closing users.
 	bridge.heartbeat.stop()
@@ -689,4 +701,8 @@ func GetUpdatedCachePath(gluonDBPath, gluonCachePath string) string {
 
 func (bridge *Bridge) GetFeatureFlagValue(key string) bool {
 	return bridge.unleashService.GetFlagValue(key)
+}
+
+func (bridge *Bridge) PushObservabilityMetric(metric proton.ObservabilityMetric) {
+	bridge.observabilityService.AddMetric(metric)
 }

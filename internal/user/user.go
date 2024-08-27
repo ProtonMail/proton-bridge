@@ -31,6 +31,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/orderedtasks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
@@ -86,6 +87,8 @@ type User struct {
 	imapService      *imapservice.Service
 	telemetryService *telemetryservice.Service
 
+	observabilityService *observability.Service
+
 	serviceGroup *orderedtasks.OrderedCancelGroup
 }
 
@@ -104,6 +107,7 @@ func New(
 	smtpServerManager smtp.ServerManager,
 	eventSubscription events.Subscription,
 	syncService syncservice.Regulator,
+	observabilityService *observability.Service,
 	syncConfigDir string,
 	isNew bool,
 ) (*User, error) {
@@ -122,6 +126,7 @@ func New(
 		smtpServerManager,
 		eventSubscription,
 		syncService,
+		observabilityService,
 		syncConfigDir,
 		isNew,
 	)
@@ -153,6 +158,7 @@ func newImpl(
 	smtpServerManager smtp.ServerManager,
 	eventSubscription events.Subscription,
 	syncService syncservice.Regulator,
+	observabilityService *observability.Service,
 	syncConfigDir string,
 	isNew bool,
 ) (*User, error) {
@@ -215,6 +221,8 @@ func newImpl(
 
 		serviceGroup: orderedtasks.NewOrderedCancelGroup(crashHandler),
 		smtpService:  nil,
+
+		observabilityService: observabilityService,
 	}
 
 	user.eventService = userevents.NewService(
@@ -317,6 +325,9 @@ func newImpl(
 
 	// Start Identity Service
 	user.identityService.Start(ctx, user.serviceGroup)
+
+	// Add user client to observability service
+	observabilityService.RegisterUserClient(user.id, client, user.telemetryService)
 
 	// Start SMTP Service
 	if err := user.smtpService.Start(ctx, user.serviceGroup); err != nil {
@@ -586,6 +597,9 @@ func (user *User) Logout(ctx context.Context, withAPI bool) error {
 
 	user.tasks.CancelAndWait()
 
+	// Close user observability service.
+	user.observabilityService.DeregisterUserClient(user.id)
+
 	// Stop Services
 	user.serviceGroup.CancelAndWait()
 
@@ -618,6 +632,9 @@ func (user *User) Close() {
 
 	// Stop any ongoing background tasks.
 	user.tasks.CancelAndWait()
+
+	// Close user observability service.
+	user.observabilityService.DeregisterUserClient(user.id)
 
 	// Stop Services
 	user.serviceGroup.CancelAndWait()
