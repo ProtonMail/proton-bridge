@@ -331,6 +331,15 @@ void TrayIcon::showErrorPopupNotification(QString const &title, QString const &m
     this->showMessage(title, message, notificationErrorIcon_);
 }
 
+//****************************************************************************************************************************************************
+/// Used only by user notifications received from the event loop
+/// \param[in] title The title.
+/// \param[in] subtitle The subtitle.
+//****************************************************************************************************************************************************
+void TrayIcon::showUserNotification(QString const &title, QString const &subtitle) {
+    this->showMessage(title, subtitle, QSystemTrayIcon::NoIcon);
+}
+
 
 //****************************************************************************************************************************************************
 /// \param[in] svgPath The path of the SVG file for the icon.

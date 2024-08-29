@@ -729,4 +729,23 @@ SPStreamEvent newGenericErrorEvent(grpc::ErrorCode errorCode) {
 }
 
 
+//****************************************************************************************************************************************************
+/// \param[in] userID The user ID that received the notification.
+/// \param[in] title The title of the notification.
+/// \param[in] subtitle The subtitle of the notification.
+/// \param[in] body The body of the notification.
+/// \return The event.
+//****************************************************************************************************************************************************
+SPStreamEvent newUserNotificationEvent(QString const &userID, QString const title, QString const subtitle, QString const body) {
+    auto event = new grpc::UserNotificationEvent;
+    event->set_userid(userID.toStdString());
+    event->set_body(body.toStdString());
+    event->set_subtitle(subtitle.toStdString());
+    event->set_title(title.toStdString());
+    auto appEvent = new grpc::AppEvent;
+    appEvent->set_allocated_usernotification(event);
+    return wrapAppEvent(appEvent);
+}
+
+
 } // namespace bridgepp

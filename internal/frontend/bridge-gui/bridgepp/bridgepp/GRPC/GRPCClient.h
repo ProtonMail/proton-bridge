@@ -57,6 +57,24 @@ public:
 
 
 //****************************************************************************************************************************************************
+/// \brief A struct for user notitifications.
+//****************************************************************************************************************************************************
+    struct UserNotification {
+        //  The following lines make the type transmissible to QML (but not instanciable there)
+    Q_GADGET
+        Q_PROPERTY(QString title MEMBER title)
+        Q_PROPERTY(QString subtitle MEMBER subtitle)
+        Q_PROPERTY(QString body MEMBER body)
+        Q_PROPERTY(QString userID MEMBER userID)
+    public:
+        QString title; ///< The title of the notification.
+        QString subtitle; ///< The subtitle of the notification.
+        QString body; ///< The body of the notification.
+        QString userID; ///< The userID that received the notification.
+    };
+
+
+//****************************************************************************************************************************************************
 /// \brief gRPC client class. This class encapsulate the gRPC service, abstracting all data type conversions.
 //****************************************************************************************************************************************************
 class GRPCClient : public QObject {
@@ -125,6 +143,7 @@ signals: // app related signals
     void knowledgeBasSuggestionsReceived(QList<KnowledgeBaseSuggestion> const& suggestions);
     void repairStarted();
     void allUsersLoaded();
+    void userNotificationReceived(UserNotification const& notification);
 
 
 public: // cache related calls

@@ -23,11 +23,13 @@ import (
 	"fmt"
 	"net/mail"
 	"strings"
+	"time"
 
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/notifications"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"github.com/bradenaw/juniper/iterator"
@@ -689,4 +691,25 @@ func matchSettings(have proton.MailSettings, want MailSettings) error {
 	}
 
 	return nil
+}
+
+func (s *scenario) userRemoteNotificationMetricTest(username string, metricName string) error {
+	var metricToTest proton.ObservabilityMetric
+	switch strings.ToLower(metricName) {
+	case "processed":
+		metricToTest = notifications.GenerateProcessedMetric(1)
+	case "received":
+		metricToTest = notifications.GenerateReceivedMetric(1)
+	default:
+		return fmt.Errorf("invalid metric name specified")
+	}
+
+	// Account for endpoint throttle
+	time.Sleep(time.Second * 5)
+
+	return s.t.withClientPass(context.Background(), username, s.t.getUserByName(username).userPass, func(ctx context.Context, c *proton.Client) error {
+		batch := proton.ObservabilityBatch{Metrics: []proton.ObservabilityMetric{metricToTest}}
+		err := c.SendObservabilityBatch(ctx, batch)
+		return err
+	})
 }

@@ -71,6 +71,7 @@
         <file>qml/icons/systray-mono-update.png</file>
         <file>qml/icons/systray-mono-warn.png</file>
         <file>qml/icons/systray.svg</file>
+        <file>qml/icons/ic-notification-bell.svg</file>
         <file alias="bridge.svg">../../../../dist/bridge.svg</file>
         <file alias="bridgeMacOS.svg">../../../../dist/bridgeMacOS.svg</file>
         <file>qml/KeychainSettings.qml</file>
@@ -78,6 +79,7 @@
         <file>qml/MainWindow.qml</file>
         <file>qml/NoAccountView.qml</file>
         <file>qml/NotificationDialog.qml</file>
+        <file>qml/UserNotificationDialog.qml</file>
         <file>qml/NotificationPopups.qml</file>
         <file>qml/Notifications/Notification.qml</file>
         <file>qml/Notifications/NotificationFilter.qml</file>

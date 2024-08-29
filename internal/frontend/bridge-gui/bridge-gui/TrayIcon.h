@@ -42,6 +42,8 @@ public: // data members
     TrayIcon& operator=(TrayIcon&&) = delete; ///< Disabled move assignment operator.
     void setState(State state, QString const& stateString, QString const &statusIconPath); ///< Set the state of the icon
     void showErrorPopupNotification(QString const& title, QString const &message); ///< Display a pop up notification.
+    void showUserNotification(QString const& title, QString const &subtitle); ///< Display an OS pop up notification (without icon).
+
 
 signals:
     void selectUser(QString const& userID, bool forceShowWindow); ///< Signal for selecting a user with a given userID

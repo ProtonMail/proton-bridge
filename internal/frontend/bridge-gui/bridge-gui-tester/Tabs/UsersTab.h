@@ -23,7 +23,6 @@
 #include "Tabs/ui_UsersTab.h"
 #include "UserTable.h"
 
-
 //****************************************************************************************************************************************************
 /// \brief The 'Users' tab of the main window.
 //****************************************************************************************************************************************************
@@ -50,12 +49,15 @@ public: // member functions.
     bool nextUserTwoPasswordsError() const; ///< Check if next user login should trigger 2nd password error.
     bool nextUserTwoPasswordsAbort() const; ///< Check if next user login should trigger 2nd password abort.
     QString usernamePasswordErrorMessage() const; ///< Return the username password error message.
+    QString notificationTitle() const; ///< Return the user notification title.
+    QString notificationSubtitle() const; ///< Return the user notification subtitle.
+    QString notificationBody() const; ///< Return the user notification body.
 
 public slots:
     void setUserSplitMode(QString const &userID, bool makeItActive); ///< Slot for the split mode.
     void logoutUser(QString const &userID); ///< slot for the logging out of a user.
     void removeUser(QString const &userID); ///< Slot for the removal of a user.
-static void configureUserAppleMail(QString const &userID, QString const &address); ///< Slot for the configuration of Apple mail.
+    static void configureUserAppleMail(QString const &userID, QString const &address); ///< Slot for the configuration of Apple mail.
     void processBadEventUserFeedback(QString const& userID, bool doResync); ///< Slot for the reception of a bad event user feedback.
 
 private slots:
@@ -69,6 +71,7 @@ private slots:
     void onCheckSyncToggled(bool checked); ///< Slot for the 'Synchronizing' check box.
     void onSliderSyncValueChanged(int value); ///< Slot for the sync 'Progress' slider.
     void updateGUIState(); ///< Update the GUI state.
+    void onSendUserNotification(); ///< Send a user notification event to the GUI.
 
 private: // member functions.
     qint32 selectedIndex() const; ///< Get the index of the selected row.

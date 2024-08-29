@@ -1206,6 +1206,17 @@ void GRPCClient::processAppEvent(AppEvent const &event) {
         this->logTrace("App event received: AllUsersLoaded");
         emit allUsersLoaded();
         break;
+    case AppEvent::kUserNotification: {
+        this->logTrace("App event received: UserNotification");
+        UserNotification notification{
+                .title = QString::fromStdString(event.usernotification().title()),
+                .subtitle = QString::fromStdString(event.usernotification().subtitle()),
+                .body = QString::fromStdString(event.usernotification().body()),
+                .userID = QString::fromStdString(event.usernotification().userid()),
+        };
+        emit userNotificationReceived(notification);
+        break;
+    }
     default:
         this->logError("Unknown App event received.");
     }

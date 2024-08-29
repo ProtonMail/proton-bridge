@@ -73,6 +73,11 @@ T.ApplicationWindow {
             if (obj.shouldShow === false) {
                 continue;
             }
+            // User notifications should have display priority
+            if (obj.shouldShow && obj.isUserNotification) {
+                topmost = obj;
+                break;
+            }
             if (topmost && (topmost.popupType > obj.popupType)) {
                 continue;
             }

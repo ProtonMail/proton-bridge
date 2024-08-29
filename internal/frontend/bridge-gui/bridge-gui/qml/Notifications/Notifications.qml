@@ -62,7 +62,7 @@ QtObject {
             target: Backend
         }
     }
-    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.bugReportSendFallback, root.cacheCantMove, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion, root.hvErrorEvent, root.repairBridge]
+    property var all: [root.noInternet, root.imapPortStartupError, root.smtpPortStartupError, root.imapPortChangeError, root.smtpPortChangeError, root.imapConnectionModeChangeError, root.smtpConnectionModeChangeError, root.updateManualReady, root.updateManualRestartNeeded, root.updateManualError, root.updateForce, root.updateForceError, root.updateSilentRestartNeeded, root.updateSilentError, root.updateIsLatestVersion, root.loginConnectionError, root.onlyPaidUsers, root.alreadyLoggedIn, root.enableBeta, root.bugReportSendSuccess, root.bugReportSendError, root.bugReportSendFallback, root.cacheCantMove, root.cacheLocationChangeSuccess, root.enableSplitMode, root.resetBridge, root.changeAllMailVisibility, root.deleteAccount, root.noKeychain, root.rebuildKeychain, root.addressChanged, root.apiCertIssue, root.userBadEvent, root.imapLoginWhileSignedOut, root.genericError, root.genericQuestion, root.hvErrorEvent, root.repairBridge, root.userNotification]
     property Notification alreadyLoggedIn: Notification {
         brief: qsTr("Already signed in")
         description: qsTr("This account is already signed in.")
@@ -1187,7 +1187,7 @@ QtObject {
             }
             target: root
         }
-        
+
         Connections {
             function onRepairStarted() {
                 root.repairBridge.active = false;
@@ -1198,6 +1198,35 @@ QtObject {
             target: Backend
         }
 
+    }
+
+    property Notification userNotification: Notification {
+        brief: title
+        group: Notifications.Group.Dialogs
+        type: Notification.NotificationType.UserNotification
+        icon: "./icons/ic-exclamation-circle-filled.svg" // If it's not included QML complains
+
+        action: [
+            Action {
+                text: qsTr("Okay")
+                onTriggered: {
+                    root.userNotification.active = false;
+                    Backend.userNotificationDismissed();
+                }
+            }
+        ]
+
+        Connections {
+            function onReceivedUserNotification(notification) {
+                const userPrimaryEmailOrUsername = Backend.users.primaryEmailOrUsername(notification.userID)
+                root.userNotification.title = notification.title
+                root.userNotification.subtitle = notification.subtitle
+                root.userNotification.description = notification.body
+                root.userNotification.username = userPrimaryEmailOrUsername
+                root.userNotification.active = true
+            }
+            target: Backend
+        }
     }
 
     signal askChangeAllMailVisibility(var isVisibleNow)

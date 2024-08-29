@@ -37,6 +37,7 @@ var pollJitter = 2 * time.Minute  //nolint:gochecknoglobals
 const filename = "unleash_flags"
 
 type requestFeaturesFn func(ctx context.Context) (proton.FeatureFlagResult, error)
+type GetFlagValueFn func(key string) bool
 
 type Service struct {
 	panicHandler async.PanicHandler

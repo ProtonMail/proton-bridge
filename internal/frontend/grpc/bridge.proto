@@ -277,6 +277,7 @@ message AppEvent {
     KnowledgeBaseSuggestionsEvent knowledgeBaseSuggestions = 12;
     RepairStartedEvent repairStarted = 13;
     AllUsersLoadedEvent allUsersLoaded = 14;
+    UserNotificationEvent userNotification = 15;
   }
 }
 
@@ -544,6 +545,14 @@ message SyncProgressEvent {
   int64 elapsedMs = 3;
   int64 remainingMs = 4;
 }
+
+message UserNotificationEvent {
+  string title = 1;
+  string subtitle = 2;
+  string body = 3;
+  string userID = 4;
+}
+
 
 //**********************************************************
 // Generic errors

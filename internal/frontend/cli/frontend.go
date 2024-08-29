@@ -20,6 +20,7 @@ package cli
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"runtime"
 
@@ -500,6 +501,18 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:gocyc
 
 		case events.Raise:
 			f.Printf("Hello!")
+
+		case events.UserNotification:
+			user, err := f.bridge.GetUserInfo(event.UserID)
+			if err != nil {
+				return
+			}
+
+			fmt.Printf("\n--- NOTIFICATION ---\n\n")
+			fmt.Printf("Sent to: %s\n", user.Username)
+			fmt.Printf("Title: %s\n", event.Title)
+			fmt.Printf("Subtitle: %s\n", event.Subtitle)
+			fmt.Printf("Message: %s\n\n", event.Body)
 		}
 	}
 

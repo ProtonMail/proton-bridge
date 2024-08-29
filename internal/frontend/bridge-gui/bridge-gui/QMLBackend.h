@@ -28,6 +28,7 @@
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/GRPC/GRPCUtils.h>
 #include <bridgepp/Worker/Overseer.h>
+#include <stack>
 
 
 //****************************************************************************************************************************************************
@@ -174,6 +175,8 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void isAutostartOnChanged(bool value); ///<Signal for the change of the 'isAutostartOn' property.
     void usersChanged(UserList *users); ///<Signal for the change of the 'users' property.
     void dockIconVisibleChanged(bool value); ///<Signal for the change of the 'dockIconVisible' property.
+    void receivedUserNotification(bridgepp::UserNotification const& notification); ///< Signal to display the userNotification modal
+
 
 public slots: // slot for signals received from QML -> To be forwarded to Bridge via RPC Client calls.
     void toggleAutostart(bool active); ///< Slot for the autostart toggle.
@@ -209,6 +212,7 @@ public slots: // slot for signals received from QML -> To be forwarded to Bridge
     void notifyAutoconfigClicked(QString const &client) const; ///< Slot for gAutoconfigClicked gRPC event.
     void notifyExternalLinkClicked(QString const &article) const; ///< Slot for KBArticleClicked gRPC event.
     void triggerRepair() const; ///< Slot for the triggering of the bridge repair function i.e. 'resync'.
+    void userNotificationDismissed(); ///< Slot to pop the notification from the stack and display the rest.
 
 public slots: // slots for functions that need to be processed locally.
     void setNormalTrayIcon(); ///< Set the tray icon to normal.
@@ -224,6 +228,7 @@ public slots: // slot for signals received from gRPC that need transformation in
     void onLoginAlreadyLoggedIn(QString const &userID); ///< Slot for the LoginAlreadyLoggedIn gRPC event.
     void onUserBadEvent(QString const& userID, QString const& errorMessage); ///< Slot for the userBadEvent gRPC event.
     void onIMAPLoginFailed(QString const& username); ///< Slot the the imapLoginFailed event.
+    void processUserNotification(bridgepp::UserNotification const& notification); ///< Slot for the userNotificationReceived gRCP event.
 
 signals: // Signals received from the Go backend, to be forwarded to QML
     void toggleAutostartFinished(); ///< Signal for the 'toggleAutostartFinished' gRPC stream event.
@@ -310,6 +315,7 @@ private: // data members
     QList<QString> badEventDisplayQueue_; ///< THe queue for displaying 'bad event feedback request dialog'.
     std::unique_ptr<TrayIcon> trayIcon_; ///< The tray icon for the application.
     bridgepp::BugReportFlow reportFlow_;  ///< The bug report flow.
+    std::stack<bridgepp::UserNotification> userNotificationStack_; ///< The stack which holds all of the active notifications that the user needs to acknowledge.
     friend class AppController;
 };
 

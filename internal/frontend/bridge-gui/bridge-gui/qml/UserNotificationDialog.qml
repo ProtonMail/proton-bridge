@@ -20,9 +20,9 @@ import Notifications
 Dialog {
     id: root
 
-    default property alias data: additionalChildrenContainer.children
     property var notification
-    property bool isUserNotification: false
+    property bool isUserNotification: true
+    padding: 40
 
     modal: true
     shouldShow: notification && notification.active && !notification.dismissed
@@ -40,31 +40,55 @@ Dialog {
                     return "";
                 }
                 switch (root.notification.type) {
-                    case Notification.NotificationType.Info:
-                        return "/qml/icons/ic-info.svg";
-                    case Notification.NotificationType.Success:
-                        return "/qml/icons/ic-success.svg";
-                    case Notification.NotificationType.Warning:
-                    case Notification.NotificationType.Danger:
-                        return "/qml/icons/ic-alert.svg";
+                    case Notification.NotificationType.UserNotification:
+                        return "/qml/icons/ic-notification-bell.svg"
                 }
             }
             sourceSize.height: 64
             sourceSize.width: 64
             visible: source != ""
         }
+        // Title Label
         Label {
             Layout.alignment: Qt.AlignHCenter
-            Layout.bottomMargin: 8
+            Layout.bottomMargin: 4
+            Layout.preferredWidth: 320
             colorScheme: root.colorScheme
             horizontalAlignment: Text.AlignHCenter
             text: root.notification.title
+            wrapMode: Text.WordWrap
             type: Label.LabelType.Title
         }
+        // Username or primary email
         Label {
-            Layout.bottomMargin: 16
+            Layout.alignment: Qt.AlignHCenter
+            Layout.bottomMargin: 24
+            Layout.preferredWidth: 320
+            colorScheme: root.colorScheme
+            horizontalAlignment: Text.AlignHCenter
+            text: root.notification.username
+            wrapMode: Text.WordWrap
+            visible: root.notification.username.length > 0
+            type: Label.LabelType.Caption
+        }
+        // Subtitle
+        Label {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.bottomMargin: 24
             Layout.fillWidth: true
-            Layout.preferredWidth: 240
+            Layout.preferredWidth: 320
+            colorScheme: root.colorScheme
+            horizontalAlignment: Text.AlignHCenter
+            text: root.notification.subtitle
+            wrapMode: Text.WordWrap
+            visible: root.notification.subtitle.length > 0
+            type: Label.LabelType.Lead
+            color: root.colorScheme.text_weak
+        }
+        Label {
+            Layout.bottomMargin: 24
+            Layout.fillWidth: true
+            Layout.preferredWidth: 320
             colorScheme: root.colorScheme
             horizontalAlignment: Text.AlignHCenter
             text: root.notification.description
@@ -75,27 +99,10 @@ Dialog {
                 Backend.openExternalLink(link);
             }
         }
-        Item {
-            id: additionalChildrenContainer
-            Layout.bottomMargin: 16
-            Layout.fillWidth: true
-            implicitHeight: additionalChildrenContainer.childrenRect.height
-            implicitWidth: additionalChildrenContainer.childrenRect.width
-            visible: children.length > 0
-        }
-        LinkLabel {
-            Layout.alignment: Qt.AlignHCenter
-            Layout.bottomMargin: 32
-            colorScheme: root.colorScheme
-            external: true
-            link: notification.linkUrl
-            text: notification.linkText
-            visible: notification.linkUrl.length > 0
 
-        }
 
         ColumnLayout {
-            spacing: 8
+            spacing: 40
 
             Repeater {
                 model: root.notification.action

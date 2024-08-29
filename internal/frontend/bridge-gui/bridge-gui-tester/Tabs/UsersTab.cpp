@@ -57,6 +57,7 @@ UsersTab::UsersTab(QWidget *parent)
     connect(ui_.checkUsernamePasswordError, &QCheckBox::toggled, this, &UsersTab::updateGUIState);
     connect(ui_.checkSync, &QCheckBox::toggled, this, &UsersTab::onCheckSyncToggled);
     connect(ui_.sliderSync, &QSlider::valueChanged, this, &UsersTab::onSliderSyncValueChanged);
+    connect(ui_.sendNotificationButton, &QPushButton::clicked, this, &UsersTab::onSendUserNotification);
 
     users_.append(defaultUser());
 
@@ -216,6 +217,7 @@ void UsersTab::updateGUIState() {
     ui_.editUsernamePasswordError->setEnabled(ui_.checkUsernamePasswordError->isChecked());
     ui_.spinUsedBytes->setValue(user ? user->usedBytes() : 0.0);
     ui_.groupboxSync->setEnabled(user.get());
+    ui_.groupBoxNotification->setEnabled(hasSelectedUser && (UserState::Connected == state));
 
     if (user)
         ui_.editIMAPLoginFailedUsername->setText(user->primaryEmailOrUsername());
@@ -489,3 +491,41 @@ void UsersTab::onSliderSyncValueChanged(int value) {
     app().grpc().sendEvent(newSyncProgressEvent(user->id(), progress, 1, 1));  // we do not simulate elapsed & remaining.
     this->updateGUIState();
 }
+
+//****************************************************************************************************************************************************
+/// \return the title for the notification.
+//****************************************************************************************************************************************************
+QString UsersTab::notificationTitle() const {
+    return ui_.notificationTitle->text();
+}
+
+//****************************************************************************************************************************************************
+/// \return the subtitle for the notification.
+//****************************************************************************************************************************************************
+QString UsersTab::notificationSubtitle() const {
+    return ui_.notificationSubtitleText->text();
+}
+
+//****************************************************************************************************************************************************
+/// \return the body for the notification.
+//****************************************************************************************************************************************************
+QString UsersTab::notificationBody() const {
+    return ui_.notticationBodyText->text();
+}
+
+
+void UsersTab::onSendUserNotification() {
+    SPUser const user = selectedUser();
+    if (!user) {
+        app().log().error(QString("%1 failed. Unkown user.").arg(__FUNCTION__));
+        return;
+    }
+
+    GRPCService &grpc = app().grpc();
+
+    if (grpc.isStreaming()) {
+        QString const userID = user->id();
+        grpc.sendEvent(newUserNotificationEvent(userID, notificationTitle(), notificationSubtitle(), notificationBody()));
+    }
+}
+

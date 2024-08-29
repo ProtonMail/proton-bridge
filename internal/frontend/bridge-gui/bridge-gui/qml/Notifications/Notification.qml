@@ -19,7 +19,8 @@ QtObject {
         Info,
         Success,
         Warning,
-        Danger
+        Danger,
+        UserNotification
     }
 
     property list<Action> action
@@ -36,6 +37,9 @@ QtObject {
     readonly property var occurred: active ? new Date() : undefined
     property string title // title is used in dialogs only
     property int type
+    property string subtitle
+    property string username
+
 
     onActiveChanged: {
         dismissed = false;

@@ -212,3 +212,16 @@ type UserLoadedCheckResync struct {
 func (event UserLoadedCheckResync) String() string {
 	return fmt.Sprintf("UserLoadedCheckResync: UserID: %s", event.UserID)
 }
+
+type UserNotification struct {
+	eventBase
+
+	UserID   string
+	Title    string
+	Subtitle string
+	Body     string
+}
+
+func (event UserNotification) String() string {
+	return fmt.Sprintf("UserNotification: UserID: %s, Title: %s, Subtitle: %s, Body: %s", event.UserID, event.Title, event.Subtitle, event.Body)
+}

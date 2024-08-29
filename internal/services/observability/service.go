@@ -36,6 +36,8 @@ const (
 	maxBatchSize   = 1000
 )
 
+type PushObsMetricFn func(metric proton.ObservabilityMetric)
+
 type client struct {
 	isTelemetryEnabled func(context.Context) bool
 	sendMetrics        func(context.Context, proton.ObservabilityBatch) error

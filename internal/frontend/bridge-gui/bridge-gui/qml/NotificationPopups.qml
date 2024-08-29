@@ -109,4 +109,8 @@ Item {
         colorScheme: root.colorScheme
         notification: root.notifications.repairBridge
     }
+    UserNotificationDialog {
+        colorScheme: root.colorScheme
+        notification: root.notifications.userNotification
+    }
 }

@@ -94,6 +94,9 @@ SPStreamEvent newSyncProgressEvent(QString const &userID, double progress, qint6
 // Generic error event
 SPStreamEvent newGenericErrorEvent(grpc::ErrorCode errorCode); ///< Create a new GenericErrrorEvent event.
 
+// User notification event
+SPStreamEvent newUserNotificationEvent(QString const &userID, QString const title, QString const subtitle, QString const body);
+
 } // namespace bridgepp
 
 

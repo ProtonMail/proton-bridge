@@ -1330,6 +1330,7 @@ void QMLBackend::connectGrpcEvents() {
     connect(client, &GRPCClient::knowledgeBasSuggestionsReceived, this, &QMLBackend::receivedKnowledgeBaseSuggestions);
     connect(client, &GRPCClient::repairStarted, this, &QMLBackend::repairStarted);
     connect(client, &GRPCClient::allUsersLoaded, this, &QMLBackend::allUsersLoaded);
+    connect(client, &GRPCClient::userNotificationReceived, this, &QMLBackend::processUserNotification);
 
     // cache events
     connect(client, &GRPCClient::cantMoveDiskCache, this, &QMLBackend::cantMoveDiskCache);
@@ -1418,3 +1419,25 @@ void QMLBackend::triggerRepair() const {
             app().grpc().triggerRepair();
     )
 }
+
+//****************************************************************************************************************************************************
+/// \param[in] notification The user notification received from the event loop.
+//****************************************************************************************************************************************************
+void QMLBackend::processUserNotification(bridgepp::UserNotification const& notification) {
+    this->userNotificationStack_.push(notification);
+    trayIcon_->showUserNotification(notification.title, notification.subtitle);
+    emit receivedUserNotification(notification);
+}
+
+void QMLBackend::userNotificationDismissed() {
+    if (!this->userNotificationStack_.size()) return;
+
+    // Remove the user notification from the top of the queue as it has been dismissed.
+    this->userNotificationStack_.pop();
+    if (!this->userNotificationStack_.size()) return;
+
+    // Display the user notification that is on top of the queue, if there is one.
+    auto notification = this->userNotificationStack_.top();
+    emit receivedUserNotification(notification);
+}
+

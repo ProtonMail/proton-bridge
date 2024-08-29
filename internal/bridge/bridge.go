@@ -45,6 +45,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapsmtpserver"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/notifications"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
@@ -144,6 +145,9 @@ type Bridge struct {
 
 	// observabilityService is responsible for handling calls to the observability system
 	observabilityService *observability.Service
+
+	// notificationStore is used for notification deduplication
+	notificationStore *notifications.Store
 }
 
 var logPkg = logrus.WithField("pkg", "bridge") //nolint:gochecknoglobals
@@ -307,6 +311,8 @@ func newBridge(
 		unleashService: unleashService,
 
 		observabilityService: observability.NewService(ctx, panicHandler),
+
+		notificationStore: notifications.NewStore(locator.ProvideNotificationsCachePath),
 	}
 
 	bridge.serverManager = imapsmtpserver.NewService(context.Background(),

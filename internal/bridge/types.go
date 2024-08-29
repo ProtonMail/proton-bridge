@@ -34,6 +34,7 @@ type Locator interface {
 	Clear(...string) error
 	ProvideIMAPSyncConfigPath() (string, error)
 	ProvideUnleashCachePath() (string, error)
+	ProvideNotificationsCachePath() (string, error)
 }
 
 type ProxyController interface {

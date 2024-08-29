@@ -216,4 +216,8 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has encryption "([^"]*)"$`, s.contactOfUserHasEncryption)
 	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has public key:$`, s.contactOfUserHasPubKey)
 	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has public key from file "([^"]*)"$`, s.contactOfUserHasPubKeyFromFile)
+
+	// ==== OBSERVABILITY METRICS ====
+	ctx.Step(`^the user with username "([^"]*)" sends the following remote notification observability metric "([^"]*)"`,
+		s.userRemoteNotificationMetricTest)
 }

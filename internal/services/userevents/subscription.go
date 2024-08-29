@@ -38,6 +38,7 @@ type EventHandler struct {
 	MessageHandler      MessageEventHandler
 	UsedSpaceHandler    UserUsedSpaceEventHandler
 	UserSettingsHandler UserSettingsHandler
+	NotificationHandler NotificationEventHandler
 }
 
 func (e EventHandler) OnEvent(ctx context.Context, event proton.Event) error {
@@ -87,6 +88,12 @@ func (e EventHandler) OnEvent(ctx context.Context, event proton.Event) error {
 		}
 	}
 
+	if len(event.Notifications) != 0 && e.NotificationHandler != nil {
+		if err := e.NotificationHandler.HandleNotificationEvents(ctx, event.Notifications); err != nil {
+			return fmt.Errorf("failed to apply notification events: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -115,4 +122,8 @@ type LabelEventHandler interface {
 
 type MessageEventHandler interface {
 	HandleMessageEvents(ctx context.Context, events []proton.MessageEvent) error
+}
+
+type NotificationEventHandler interface {
+	HandleNotificationEvents(ctx context.Context, events []proton.NotificationEvent) error
 }

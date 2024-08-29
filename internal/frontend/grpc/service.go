@@ -404,6 +404,9 @@ func (s *Service) watchEvents() {
 
 		case events.AllUsersLoaded:
 			_ = s.SendEvent(NewAllUsersLoadedEvent())
+
+		case events.UserNotification:
+			_ = s.SendEvent(NewUserNotificationEvent(event))
 		}
 	}
 }
