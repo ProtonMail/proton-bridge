@@ -25,7 +25,7 @@
   },
   {
     "index": 2,
-    "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
+    "url": "https://proton.me/support/what-is-the-recovered-messages-folder-in-bridge",
     "title": "What is the Recovered Messages folder in Bridge (and your email client)?",
     "keywords": [
       "recovered messages",
@@ -97,7 +97,7 @@
   {
     "index": 8,
     "url": "https://proton.me/support/update-required",
-    "title": "Update required and how to update Proton Mail Bridge",
+    "title": "Update required",
     "keywords": [
       "update required",
       "update",
@@ -342,7 +342,7 @@
   },
   {
     "index": 30,
-    "url": "https://pme.protonblog.tech/support/bridge-address-list-has-changed",
+    "url": "https://proton.me/support/bridge-address-list-has-changed",
     "title": "How to fix “the address list has changed” warning on Proton Mail Bridge",
     "keywords": [
       "address list has changed",
@@ -351,16 +351,15 @@
   },
   {
     "index": 31,
-    "url": "https://pme.protonblog.tech/support/bridge-address-list-has-changed",
-    "title": "How to fix “the address list has changed” warning on Proton Mail Bridge",
+    "url": "https://proton.me/support/failed-to-parse-message-error",
+    "title": "Troubleshooting “failed to parse message” errors",
     "keywords": [
-      "address list has changed",
-      "address list changed"
+      "failed to parse message"
     ]
   },
   {
     "index": 32,
-    "url": "https://pme.protonblog.tech/support/bridge-imap-login-failed",
+    "url": "https://proton.me/support/bridge-imap-login-failed",
     "title": "How to fix an “IMAP Login failed” warning on Proton Mail Bridge",
     "keywords": [
       "imap login failed",
@@ -369,21 +368,13 @@
   },
   {
     "index": 33,
-    "url": "https://pme.protonblog.tech/support/resolve-checking-server-notice",
+    "url": "https://proton.me/support/resolve-checking-server-notice",
     "title": "How to resolve issues with “Checking mail server capabilities” notice in Thunderbird",
     "keywords": [
       "Checking mail server capabilities",
       "checking capabilities",
       "checking",
       "capabilities"
-    ]
-  },
-  {
-    "index": 34,
-    "url": "https://pme.protonblog.tech/support/failed-to-parse-message-error",
-    "title": "Troubleshooting “failed to parse message” errors",
-    "keywords": [
-      "failed to parse message"
     ]
   } 
 ]
