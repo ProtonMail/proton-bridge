@@ -3,78 +3,6 @@ Feature: The user reports a problem
   Background:
     Given bridge starts
     And it succeeds
-  
-  Scenario: The user wants to report a problem
-    Then the description "Setup Outlook Windows" provides the following KB suggestions:
-      """
-      [
-        {
-          "url": "https://proton.me/support/protonmail-bridge-configure-client",
-          "title": "How to configure your email client for Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
-          "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
-        }
-      ]
-      """
-
-  Scenario: The user wants to report a problem
-    Then the description "Manual update" provides the following KB suggestions: 
-      """
-      [
-        {
-          "url": "https://proton.me/support/bridge-automatic-update",
-          "title": "Automatic Update and Bridge"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-manual-update",
-          "title": "How to manually update Proton Mail Bridge"
-        }
-      ]
-      """
-
-  Scenario: The user wants to report a problem
-    Then the description "How to update" provides the following KB suggestions:
-      """
-      [
-        {
-          "url": "https://proton.me/support/bridge-automatic-update",
-          "title": "Automatic Update and Bridge"
-        },
-        {
-          "url": "https://proton.me/support/update-required",
-          "title": "Update required"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-manual-update",
-           "title": "How to manually update Proton Mail Bridge"
-        }
-      ]
-      """
-
-  Scenario: The user wants to report a problem
-    Then the description "automatic update" provides the following KB suggestions:
-      """
-      [
-        {
-          "url": "https://proton.me/support/bridge-automatic-update",
-          "title": "Automatic Update and Bridge"
-        },
-        {
-          "url": "https://proton.me/support/automatically-start-bridge",
-          "title": "Automatically start Bridge"
-        },
-        {
-          "url": "https://proton.me/support/update-required",
-           "title": "Update required"
-        }
-      ]
-      """ 
 
   Scenario: The user wants to report a problem
     Then the description "login on Bridge" provides the following KB suggestions:
@@ -89,24 +17,99 @@ Feature: The user reports a problem
           "title": "How to fix Proton Bridge login errors"
         },
         {
-          "url": "https://proton.me/support/why-you-need-bridge",
-           "title": "Why you need Proton Mail Bridge"
+          "url": "https://proton.me/support/invalid-password-error-setting-email-client",
+          "title": "Invalid password error while setting up email client"
         }
       ]
-      """ 
+      """
 
   Scenario: The user wants to report a problem
-    Then the description "start Bridge" provides the following KB suggestions:
+    Then the description "New Outlook for Windows" provides the following KB suggestions:
       """
       [
         {
-          "url": "https://proton.me/support/automatically-start-bridge",
-          "title": "Automatically start Bridge"
+          "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
+          "title": "Proton Mail Bridge New Outlook for Windows set up guide"
         },
         {
-          "url": "https://proton.me/support/why-you-need-bridge",
-          "title": "Why you need Proton Mail Bridge"
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook#may-17",
+          "title": "Important notice regarding the New Outlook for Mac and issues you might face"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook",
+          "title": "Proton Mail Bridge new Outlook for macOS setup guide"
         }
+      ]
+      """
+  
+  Scenario: The user wants to report a problem
+    Then the description "Setup Outlook Windows" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/bridge-ssl-connection-issue",
+          "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
+        },
+        {
+           "url": "https://proton.me/support/protonmail-bridge-configure-client",
+          "title": "How to configure your email client for Proton Mail Bridge"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
+          "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "I am seeing recovered messages folder in the email client" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/what-is-the-recovered-messages-folder-in-bridge",
+          "title": "What is the Recovered Messages folder in Bridge (and your email client)?"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "New Outlook for macOS" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook",
+          "title": "Proton Mail Bridge new Outlook for macOS setup guide"
+        },
+        {
+           "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
+          "title": "Proton Mail Bridge New Outlook for Windows set up guide"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook#may-17",
+          "title": "Important notice regarding the New Outlook for Mac and issues you might face"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "How to update Bridge" provides the following KB suggestions:
+      """
+      [
+        {
+         "url":"https://proton.me/support/update-required",
+         "title":"Update required"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "automatic update" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/update-required",
+          "title": "Update required"
+        } 
       ]
       """ 
 
@@ -114,14 +117,6 @@ Feature: The user reports a problem
     Then the description "restart Bridge" provides the following KB suggestions:
       """
       [
-        {
-          "url": "https://proton.me/support/automatically-start-bridge",
-          "title": "Automatically start Bridge"
-        },
-        {
-          "url": "https://proton.me/support/bridge-automatic-update",
-          "title": "Automatic Update and Bridge"
-        },
         {
           "url": "https://proton.me/support/update-required",
           "title": "Update required"
@@ -133,10 +128,6 @@ Feature: The user reports a problem
     Then the description "message encryption" provides the following KB suggestions:
       """
       [
-        {
-          "url": "https://proton.me/support/messages-encrypted-via-bridge",
-          "title": "Are my messages encrypted via Proton Mail Bridge?"
-        },
         {
           "url": "https://proton.me/support/sending-pgp-emails-bridge",
           "title": "Sending PGP emails in Proton Mail Bridge"
@@ -151,10 +142,6 @@ Feature: The user reports a problem
         {
           "url": "https://proton.me/support/sending-pgp-emails-bridge",
           "title": "Sending PGP emails in Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/messages-encrypted-via-bridge",
-          "title": "Are my messages encrypted via Proton Mail Bridge?"
         }
       ]
       """ 
@@ -166,73 +153,9 @@ Feature: The user reports a problem
         {
           "url": "https://proton.me/support/sending-pgp-emails-bridge",
           "title": "Sending PGP emails in Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/messages-encrypted-via-bridge",
-          "title": "Are my messages encrypted via Proton Mail Bridge?"
         }
       ]
-      """ 
-
-  Scenario: The user wants to report a problem
-    Then the description "privacy and security in Bridge" provides the following KB suggestions:
       """
-      [
-        {
-          "url": "https://proton.me/support/messages-encrypted-via-bridge",
-          "title": "Are my messages encrypted via Proton Mail Bridge?"
-        },
-        {
-          "url": "https://proton.me/support/why-you-need-bridge",
-          "title": "Why you need Proton Mail Bridge"
-        }
-      ]
-      """ 
-
-  Scenario: The user wants to report a problem
-    Then the description "labels in Bridge" provides the following KB suggestions:
-      """
-      [
-        {
-          "url": "https://proton.me/support/labels-in-bridge",
-          "title": "Labels in Bridge"
-        },
-        {
-          "url": "https://proton.me/support/why-you-need-bridge",
-          "title": "Why you need Proton Mail Bridge"
-        }
-      ]
-      """ 
-
-  Scenario: The user wants to report a problem
-    Then the description "folders in Bridge" provides the following KB suggestions:
-      """
-      [
-        {
-          "url": "https://proton.me/support/labels-in-bridge",
-          "title": "Labels in Bridge"
-        },
-        {
-          "url": "https://proton.me/support/why-you-need-bridge",
-          "title": "Why you need Proton Mail Bridge"
-        }
-      ]
-      """ 
-
-  Scenario: The user wants to report a problem
-    Then the description "directories in Bridge" provides the following KB suggestions:
-      """
-      [
-        {
-          "url": "https://proton.me/support/labels-in-bridge",
-          "title": "Labels in Bridge"
-        },
-        {
-          "url": "https://proton.me/support/why-you-need-bridge",
-          "title": "Why you need Proton Mail Bridge"
-        }
-      ]
-      """ 
 
   Scenario: The user wants to report a problem
     Then the description "connection issue with Thunderbird" provides the following KB suggestions:
@@ -243,12 +166,12 @@ Feature: The user reports a problem
           "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
         },
         {
-          "url": "https://proton.me/support/thunderbird-connection-server-timed-error",
-          "title": "Thunderbird: 'Connection to server timed out' error"
+          "url": "https://proton.me/support/protonmail-bridge-clients-windows-thunderbird",
+          "title": "Proton Mail Bridge Thunderbird setup guide for Windows, macOS, and Linux"
         },
         {
-          "url": "https://proton.me/support/clients-supported-bridge",
-          "title": "Email clients supported by Proton Mail Bridge"
+          "url": "https://proton.me/support/how-to-resolve-connection-issues-in-bridge",
+          "title": "How to resolve connection issues in Bridge"
         }
       ]
       """ 
@@ -262,12 +185,12 @@ Feature: The user reports a problem
           "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
         },
         {
-          "url": "https://proton.me/support/thunderbird-connection-server-timed-error",
-          "title": "Thunderbird: 'Connection to server timed out' error"
+          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
+          "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
         },
         {
-          "url": "https://proton.me/support/clients-supported-bridge",
-          "title": "Email clients supported by Proton Mail Bridge"
+          "url": "https://proton.me/support/how-to-resolve-connection-issues-in-bridge",
+          "title": "How to resolve connection issues in Bridge"
         }
       ]
       """ 
@@ -281,12 +204,12 @@ Feature: The user reports a problem
           "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
         },
         {
-          "url": "https://proton.me/support/thunderbird-connection-server-timed-error",
-          "title": "Thunderbird: 'Connection to server timed out' error"
+          "url": "https://proton.me/support/protonmail-bridge-clients-apple-mail",
+          "title": "Proton Mail Bridge Apple Mail setup guide"
         },
         {
-          "url": "https://proton.me/support/clients-supported-bridge",
-          "title": "Email clients supported by Proton Mail Bridge"
+          "url": "https://proton.me/support/how-to-resolve-connection-issues-in-bridge",
+          "title": "How to resolve connection issues in Bridge"
         }
       ]
       """ 
@@ -326,27 +249,19 @@ Feature: The user reports a problem
           "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
         },
         {
-          "url": "https://proton.me/support/bridge-linux-login-error",
-          "title": "How to fix Proton Bridge login errors"
+          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
+          "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
         }
       ]
       """ 
 
   Scenario: The user wants to report a problem
-    Then the description "update required" provides the following KB suggestions:
+    Then the description "Update required" provides the following KB suggestions:
       """
       [
         {
           "url": "https://proton.me/support/update-required",
           "title": "Update required"
-        },
-        {
-          "url": "https://proton.me/support/bridge-automatic-update",
-          "title": "Automatic Update and Bridge"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-manual-update",
-          "title": "How to manually update Proton Mail Bridge"
         }
       ]
       """ 
@@ -357,15 +272,15 @@ Feature: The user reports a problem
       [
         {
           "url": "https://proton.me/support/port-already-occupied-error",
-          "title": "Port already occupied error"
-        },
-        {
-          "url": "https://proton.me/support/invalid-password-error-setting-email-client",
-          "title": "Invalid password error while setting up email client"
+          "title": "How to fix “IMAP or SMTP port error” on Proton Mail Bridge"
         },
         {
           "url": "https://proton.me/support/bridge-linux-login-error",
           "title": "How to fix Proton Bridge login errors"
+        },
+        {
+          "url": "https://proton.me/support/invalid-password-error-setting-email-client",
+          "title": "Invalid password error while setting up email client"
         }
       ]
       """ 
@@ -376,10 +291,10 @@ Feature: The user reports a problem
       [
         {
           "url": "https://proton.me/support/port-already-occupied-error",
-          "title": "Port already occupied error"
+          "title": "How to fix “IMAP or SMTP port error” on Proton Mail Bridge"
         }
       ]
-      """ 
+      """
 
   Scenario: The user wants to report a problem
     Then the description "1025 port" provides the following KB suggestions:
@@ -387,7 +302,7 @@ Feature: The user reports a problem
       [
         {
           "url": "https://proton.me/support/port-already-occupied-error",
-          "title": "Port already occupied error"
+          "title": "How to fix “IMAP or SMTP port error” on Proton Mail Bridge"
         }
       ]
       """ 
@@ -398,15 +313,7 @@ Feature: The user reports a problem
       [
         {
           "url": "https://proton.me/support/port-already-occupied-error",
-          "title": "Port already occupied error"
-        },
-        {
-          "url": "https://proton.me/support/imap-smtp-and-pop3-setup",
-          "title": "IMAP, SMTP, and POP3 setup"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-configure-client",
-          "title": "How to configure your email client for Proton Mail Bridge"
+          "title": "How to fix “IMAP or SMTP port error” on Proton Mail Bridge"
         }
       ]
       """ 
@@ -417,15 +324,7 @@ Feature: The user reports a problem
       [
         {
           "url": "https://proton.me/support/port-already-occupied-error",
-          "title": "Port already occupied error"
-        },
-        {
-          "url": "https://proton.me/support/imap-smtp-and-pop3-setup",
-          "title": "IMAP, SMTP, and POP3 setup"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-configure-client",
-          "title": "How to configure your email client for Proton Mail Bridge"
+          "title": "How to fix “IMAP or SMTP port error” on Proton Mail Bridge"
         }
       ]
       """ 
@@ -436,45 +335,45 @@ Feature: The user reports a problem
       [
         {
           "url": "https://proton.me/support/port-already-occupied-error",
-          "title": "Port already occupied error"
-        },
-        {
-          "url": "https://proton.me/support/clients-supported-bridge",
-          "title": "Email clients supported by Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/why-you-need-bridge",
-          "title": "Why you need Proton Mail Bridge"
+          "title": "How to fix “IMAP or SMTP port error” on Proton Mail Bridge"
         }
       ]
       """ 
-
+  
   Scenario: The user wants to report a problem
-    Then the description "Eudora" provides the following KB suggestions:
+    Then the description "install a certificate for Apple Mail" provides the following KB suggestions:
       """
       [
         {
-          "url": "https://proton.me/support/clients-supported-bridge",
-          "title": "Email clients supported by Proton Mail Bridge"
+          "url": "https://proton.me/support/apple-mail-certificate",
+          "title": "Why you need to install a certificate for Apple Mail with Proton Mail Bridge"
+        },
+        {
+          "url": "https://proton.me/support/macos-certificate-warning",
+          "title": "Warning when installing Proton Mail Bridge on macOS"
+        },
+        {
+          "url": "https://proton.me/support/bridge-ssl-connection-issue",
+          "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
         }
       ]
-      """ 
-
+      """
+  
   Scenario: The user wants to report a problem
     Then the description "configure Bridge" provides the following KB suggestions:
       """
       [
         {
-          "url": "https://proton.me/support/imap-smtp-and-pop3-setup",
-          "title": "IMAP, SMTP, and POP3 setup"
-        },
-        {
           "url": "https://proton.me/support/protonmail-bridge-configure-client",
           "title": "How to configure your email client for Proton Mail Bridge"
         },
         {
-          "url": "https://proton.me/support/why-you-need-bridge",
-          "title": "Why you need Proton Mail Bridge"
+          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
+          "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-clients-apple-mail",
+          "title": "Proton Mail Bridge Apple Mail setup guide"
         }
       ]
       """ 
@@ -484,16 +383,8 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/install-bridge-linux-rpm-file",
-          "title": "Installing Proton Mail Bridge for Linux using an RPM file"
-        },
-        {
-          "url": "https://proton.me/support/why-you-need-bridge",
-          "title": "Why you need Proton Mail Bridge"
+          "url": "https://proton.me/support/macos-certificate-warning",
+          "title": "Warning when installing Proton Mail Bridge on macOS"
         }
       ]
       """ 
@@ -503,34 +394,11 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/bridge-for-linux",
-          "title": "Proton Mail Bridge for Linux"
-        },
-        {
-          "url": "https://proton.me/support/operating-systems-supported-bridge",
-          "title": "System requirements for Proton Mail Bridge"
+          "url": "https://proton.me/support/bridge-linux-tray-icon",
+          "title": "How to fix a missing system tray icon in Linux"
         }
       ]
-      """ 
-
-  Scenario: The user wants to report a problem
-    Then the description "requirements for Bridge" provides the following KB suggestions:
       """
-      [
-        {
-          "url": "https://proton.me/support/operating-systems-supported-bridge",
-          "title": "System requirements for Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/why-you-need-bridge",
-          "title": "Why you need Proton Mail Bridge"
-        }
-      ]
-      """ 
 
   Scenario: The user wants to report a problem
     Then the description "Configure email client" provides the following KB suggestions:
@@ -541,12 +409,12 @@ Feature: The user reports a problem
           "title": "How to configure your email client for Proton Mail Bridge"
         },
         {
-          "url": "https://proton.me/support/why-you-need-bridge",
-          "title": "Why you need Proton Mail Bridge"
+          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
+          "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
         },
         {
-          "url": "https://proton.me/support/bridge-ssl-connection-issue",
-          "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
+          "url": "https://proton.me/support/protonmail-bridge-clients-apple-mail",
+          "title": "Proton Mail Bridge Apple Mail setup guide"
         }
       ]
       """ 
@@ -558,10 +426,6 @@ Feature: The user reports a problem
         {
           "url": "https://proton.me/support/protonmail-bridge-configure-client",
           "title": "How to configure your email client for Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/why-you-need-bridge",
-          "title": "Why you need Proton Mail Bridge"
         }
       ]
       """ 
@@ -576,7 +440,7 @@ Feature: The user reports a problem
         },
         {
           "url": "https://proton.me/support/port-already-occupied-error",
-          "title": "Port already occupied error"
+          "title": "How to fix “IMAP or SMTP port error” on Proton Mail Bridge"
         },
         {
           "url": "https://proton.me/support/bridge-linux-login-error",
@@ -590,16 +454,16 @@ Feature: The user reports a problem
       """
       [
         {
+          "url": "https://proton.me/support/bridge-ssl-connection-issue",
+          "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
+        },
+        {
           "url": "https://proton.me/support/protonmail-bridge-configure-client",
           "title": "How to configure your email client for Proton Mail Bridge"
         },
         {
           "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
           "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2016",
-          "title": "Proton Mail Bridge Microsoft Outlook 2016 for Windows setup guide"
         }
       ]
       """ 
@@ -609,16 +473,16 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
-          "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2016",
-          "title": "Proton Mail Bridge Microsoft Outlook 2016 for Windows setup guide"
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook#may-17",
+          "title": "Important notice regarding the New Outlook for Mac and issues you might face"
         },
         {
           "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook",
           "title": "Proton Mail Bridge new Outlook for macOS setup guide"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-configure-client",
+          "title": "How to configure your email client for Proton Mail Bridge"
         }
       ]
       """ 
@@ -628,16 +492,16 @@ Feature: The user reports a problem
       """
       [
         {
+          "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
+          "title": "Proton Mail Bridge New Outlook for Windows set up guide"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook#may-17",
+          "title": "Important notice regarding the New Outlook for Mac and issues you might face"
+        },
+        {
           "url": "https://proton.me/support/bridge-ssl-connection-issue",
           "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
-        },
-        {
-          "url": "https://proton.me/support/clients-supported-bridge",
-          "title": "Email clients supported by Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-configure-client",
-          "title": "How to configure your email client for Proton Mail Bridge"
         }
       ]
       """ 
@@ -647,16 +511,16 @@ Feature: The user reports a problem
       """
       [
         {
+          "url": "https://proton.me/support/bridge-ssl-connection-issue",
+          "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
+        },
+        {
           "url": "https://proton.me/support/protonmail-bridge-configure-client",
           "title": "How to configure your email client for Proton Mail Bridge"
         },
         {
           "url": "https://proton.me/support/protonmail-bridge-clients-apple-mail",
           "title": "Proton Mail Bridge Apple Mail setup guide"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2016",
-          "title": "Proton Mail Bridge Microsoft Outlook 2016 for Windows setup guide"
         }
       ]
       """ 
@@ -666,16 +530,16 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/protonmail-bridge-clients-apple-mail",
-          "title": "Proton Mail Bridge Apple Mail setup guide"
+          "url": "https://proton.me/support/protonmail-bridge-configure-client",
+          "title": "How to configure your email client for Proton Mail Bridge"
         },
         {
-        "url": "https://proton.me/support/protonmail-bridge-clients-windows-thunderbird",
-        "title": "Proton Mail Bridge Thunderbird setup guide for Windows, macOS, and Linux"
+        "url": "https://proton.me/support/protonmail-bridge-clients-apple-mail",
+        "title": "Proton Mail Bridge Apple Mail setup guide"
         },
         {
-          "url": "https://proton.me/support/imap-smtp-and-pop3-setup",
-          "title": "IMAP, SMTP, and POP3 setup"
+          "url": "https://proton.me/support/protonmail-bridge-clients-windows-thunderbird",
+          "title": "Proton Mail Bridge Thunderbird setup guide for Windows, macOS, and Linux"
         }
       ]
       """ 
@@ -685,16 +549,16 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
-          "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
-        },
-        {
-          "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
-          "title": "Proton Mail Bridge New Outlook for Windows set up guide"
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook",
+          "title": "Proton Mail Bridge new Outlook for macOS setup guide"
         },
         {
           "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook#may-17",
           "title": "Important notice regarding the New Outlook for Mac and issues you might face"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019",
+          "title": "Proton Mail Bridge Microsoft Outlook 2019 for macOS setup guide"
         }
       ]
       """
@@ -708,12 +572,12 @@ Feature: The user reports a problem
           "title": "Proton Mail Bridge Thunderbird setup guide for Windows, macOS, and Linux"
         },
         {
-          "url": "https://proton.me/support/bridge-ssl-connection-issue",
-          "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook#may-17",
+          "title": "Important notice regarding the New Outlook for Mac and issues you might face"
         },
         {
-          "url": "https://proton.me/support/thunderbird-connection-server-timed-error",
-          "title": "Thunderbird: 'Connection to server timed out' error"
+          "url": "https://proton.me/support/protonmail-bridge-configure-client",
+          "title": "How to configure your email client for Proton Mail Bridge"
         }
       ]
       """ 
@@ -723,16 +587,16 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019",
+          "title": "Proton Mail Bridge Microsoft Outlook 2019 for macOS setup guide"
         },
         {
-          "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2016",
-          "title": "Proton Mail Bridge Microsoft Outlook 2016 for macOS setup guide"
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook",
+          "title": "Proton Mail Bridge new Outlook for macOS setup guide"
         },
         {
-          "url": "https://proton.me/support/protonmail-bridge-configure-client",
-          "title": "How to configure your email client for Proton Mail Bridge"
+          "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
+          "title": "Proton Mail Bridge New Outlook for Windows set up guide"
         }
       ]
       """ 
@@ -742,16 +606,16 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
-          "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
-        },
-        {
           "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019",
           "title": "Proton Mail Bridge Microsoft Outlook 2019 for macOS setup guide"
         },
         {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook",
+          "title": "Proton Mail Bridge new Outlook for macOS setup guide"
+        },
+        {
+          "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
+          "title": "Proton Mail Bridge New Outlook for Windows set up guide"
         }
       ]
       """ 
@@ -761,16 +625,16 @@ Feature: The user reports a problem
       """
       [
         {
+          "url": "https://proton.me/support/bridge-ssl-connection-issue",
+          "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
+        },
+        {
           "url": "https://proton.me/support/protonmail-bridge-configure-client",
           "title": "How to configure your email client for Proton Mail Bridge"
         },
         {
           "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
           "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
         }
       ]
       """ 
@@ -780,16 +644,16 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2016",
-          "title": "Proton Mail Bridge Microsoft Outlook 2016 for macOS setup guide"
-        },
-        {
           "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019",
           "title": "Proton Mail Bridge Microsoft Outlook 2019 for macOS setup guide"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-new-outlook",
+          "title": "Proton Mail Bridge new Outlook for macOS setup guide"
+        },
+        {
+          "url": "https://proton.me/support/proton-mail-bridge-new-outlook-for-windows-set-up-guide",
+          "title": "Proton Mail Bridge New Outlook for Windows set up guide"
         }
       ]
       """ 
@@ -799,16 +663,8 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/install-bridge-linux-pkgbuild-file",
-          "title": "Installing Proton Mail Bridge for Linux using a PKGBUILD file"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/bridge-for-linux",
-          "title": "Proton Mail Bridge for Linux"
+          "url": "https://proton.me/support/bridge-linux-tray-icon",
+          "title": "How to fix a missing system tray icon in Linux"
         }
       ]
       """ 
@@ -818,16 +674,8 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/bridge-for-linux",
-          "title": "Proton Mail Bridge for Linux"
-        },
-        {
-          "url": "https://proton.me/support/installing-bridge-linux-deb-file",
-          "title": "Installing Proton Mail Bridge for Linux using a DEB file"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
+          "url": "https://proton.me/support/bridge-linux-tray-icon",
+          "title": "How to fix a missing system tray icon in Linux"
         }
       ]
       """ 
@@ -837,50 +685,23 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/verifying-bridge-package",
-          "title": "Verifying the Proton Mail Bridge package for Linux"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/bridge-for-linux",
-          "title": "Proton Mail Bridge for Linux"
+          "url": "https://proton.me/support/bridge-linux-tray-icon",
+          "title": "How to fix a missing system tray icon in Linux"
         }
       ]
-      """ 
-
-  Scenario: The user wants to report a problem
-    Then the description "Bridge CLI guide" provides the following KB suggestions:
       """
-      [
-        {
-          "url": "https://proton.me/support/bridge-cli-guide",
-          "title": "Bridge CLI (command line interface) guide"
-        },
-        {
-          "url": "https://proton.me/support/why-you-need-bridge",
-          "title": "Why you need Proton Mail Bridge"
-        }
-      ]
-      """ 
 
   Scenario: The user wants to report a problem
     Then the description "Install Bridge for Linux using an RPM file" provides the following KB suggestions:
       """
       [
         {
-          "url": "https://proton.me/support/install-bridge-linux-rpm-file",
-          "title": "Installing Proton Mail Bridge for Linux using an RPM file"
+          "url": "https://proton.me/support/macos-certificate-warning",
+          "title": "Warning when installing Proton Mail Bridge on macOS"
         },
         {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/bridge-for-linux",
-          "title": "Proton Mail Bridge for Linux"
+          "url": "https://proton.me/support/bridge-linux-tray-icon",
+          "title": "How to fix a missing system tray icon in Linux"
         }
       ]
       """
@@ -894,12 +715,12 @@ Feature: The user reports a problem
           "title": "How to fix Proton Bridge login errors"
         },
         {
-          "url": "https://proton.me/support/automatically-start-bridge",
-          "title": "Automatically start Bridge"
+          "url": "https://proton.me/support/invalid-password-error-setting-email-client",
+          "title": "Invalid password error while setting up email client"
         },
         {
-          "url": "https://proton.me/support/port-already-occupied-error",
-          "title": "Port already occupied error"
+          "url": "https://proton.me/support/automatically-start-bridge",
+          "title": "Automatically start Bridge"
         }
       ]
       """ 
@@ -911,14 +732,6 @@ Feature: The user reports a problem
         {
           "url": "https://proton.me/support/bridge-linux-tray-icon",
           "title": "How to fix a missing system tray icon in Linux"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
-        },
-        {
-          "url": "https://proton.me/support/bridge-for-linux",
-          "title": "Proton Mail Bridge for Linux"
         }
       ]
       """ 
@@ -935,28 +748,9 @@ Feature: The user reports a problem
       """ 
 
   Scenario: The user wants to report a problem
-    Then the description "Why you need Proton Mail Bridge" provides the following KB suggestions:
-      """
-      [
-        {
-          "url": "https://proton.me/support/why-you-need-bridge",
-          "title": "Why you need Proton Mail Bridge"
-        }
-      ]
-      """ 
-
-  Scenario: The user wants to report a problem
     Then the description "Bridge Manual update" provides the following KB suggestions:
       """
       [
-        {
-          "url": "https://proton.me/support/bridge-automatic-update",
-          "title": "Automatic Update and Bridge"
-        },
-        {
-          "url": "https://proton.me/support/protonmail-bridge-manual-update",
-          "title": "How to manually update Proton Mail Bridge"
-        },
         {
           "url": "https://proton.me/support/update-required",
           "title": "Update required"
@@ -969,16 +763,16 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
-        },
-        {
           "url": "https://proton.me/support/macos-certificate-warning",
           "title": "Warning when installing Proton Mail Bridge on macOS"
         },
         {
-          "url": "https://proton.me/support/operating-systems-supported-bridge",
-          "title": "System requirements for Proton Mail Bridge"
+          "url": "https://proton.me/support/apple-mail-certificate",
+          "title": "Why you need to install a certificate for Apple Mail with Proton Mail Bridge"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-clients-macos-outlook-2019",
+          "title": "Proton Mail Bridge Microsoft Outlook 2019 for macOS setup guide"
         }
       ]
       """ 
@@ -1003,23 +797,224 @@ Feature: The user reports a problem
       """
       [
         {
-          "url": "https://proton.me/support/protonmail-bridge-install",
-          "title": "How to install Proton Mail Bridge"
+          "url": "https://proton.me/support/apple-mail-certificate",
+          "title": "Why you need to install a certificate for Apple Mail with Proton Mail Bridge"
         },
         {
           "url": "https://proton.me/support/macos-certificate-warning",
           "title": "Warning when installing Proton Mail Bridge on macOS"
         },
         {
-          "url": "https://proton.me/support/apple-mail-certificate",
-          "title": "Why you need to install a certificate for Apple Mail with Proton Mail Bridge"
+          "url": "https://proton.me/support/bridge-ssl-connection-issue",
+          "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
         }
       ]
-      """ 
+      """
 
+  Scenario: The user wants to report a problem
+    Then the description "Bridge is not able to contact the server" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/how-to-resolve-connection-issues-in-bridge",
+          "title": "How to resolve connection issues in Bridge"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "lost connection" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/how-to-resolve-connection-issues-in-bridge",
+          "title": "How to resolve connection issues in Bridge"
+        },
+        {
+          "url": "https://proton.me/support/bridge-ssl-connection-issue",
+          "title": "Proton Mail Bridge connection issues with Thunderbird, Outlook, and Apple Mail"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-clients-windows-outlook-2019",
+          "title": "Proton Mail Bridge Microsoft Outlook for Windows 2019 setup guide"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "internal error" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/bridge-internal-error",
+          "title": "How to fix an “internal error” warning on Proton Mail Bridge"
+        },
+        {
+          "url": "https://proton.me/support/port-already-occupied-error",
+          "title": "How to fix “IMAP or SMTP port error” on Proton Mail Bridge"
+        },
+        {
+          "url": "https://proton.me/support/bridge-linux-login-error",
+          "title": "How to fix Proton Bridge login errors"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "local cache" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/bridge-cant-move-cache",
+          "title": "How to fix a “can’t move cache” error on Proton Mail Bridge"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "new emails are not arriving" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/how-to-troubleshoot-messages-received-with-a-delay-in-your-email-client",
+          "title": "How to troubleshoot messages received with a delay in your email client"
+        },
+        {
+          "url": "https://proton.me/support/not-receiving-messages-email-client",
+          "title": "How to troubleshoot not receiving new messages in your email client"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "I cannot find emails in my email client" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/how-to-troubleshoot-messages-received-with-a-delay-in-your-email-client",
+          "title": "How to troubleshoot messages received with a delay in your email client"
+        },
+        {
+          "url": "https://proton.me/support/not-receiving-messages-email-client",
+          "title": "How to troubleshoot not receiving new messages in your email client"
+        },
+        {
+          "url": "https://proton.me/support/protonmail-bridge-configure-client",
+          "title": "How to configure your email client for Proton Mail Bridge"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "emails are not arriving" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/not-receiving-messages-email-client",
+          "title": "How to troubleshoot not receiving new messages in your email client"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "invalid return path" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/resolve-invalid-return-path-error",
+          "title": "How to resolve the “Invalid Return Path” error when sending messages from your email client"
+        },
+        {
+          "url": "https://proton.me/support/invalid-password-error-setting-email-client",
+          "title": "Invalid password error while setting up email client"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "I get This computer only folder in Outlook" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/this-computer-only-folder-outlook",
+          "title": "How to troubleshoot “This computer only” folders in Outlook for Windows"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "I cannot access keychain on Proton Mail Bridge" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/bridge-cannot-access-keychain",
+          "title": "How to fix “cannot access keychain” on Proton Mail Bridge"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "I get an address list has changed warning" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/bridge-address-list-has-changed",
+          "title": "How to fix “the address list has changed” warning on Proton Mail Bridge"
+        },
+        {
+          "url": "https://proton.me/support/difference-combined-addresses-mode-split-addresses-mode",
+          "title": "Difference between combined addresses mode and split addresses mode"
+        },
+        {
+          "url": "https://proton.me/support/macos-certificate-warning",
+          "title": "Warning when installing Proton Mail Bridge on macOS"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "failed to parse message" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/failed-to-parse-message-error",
+          "title": "Troubleshooting “failed to parse message” errors"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "I get an IMAP login failed warning" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/bridge-imap-login-failed",
+          "title": "How to fix an “IMAP Login failed” warning on Proton Mail Bridge"
+        },
+        {
+          "url": "https://proton.me/support/automatically-start-bridge",
+          "title": "Automatically start Bridge"
+        },
+        {
+          "url": "https://proton.me/support/port-already-occupied-error",
+          "title": "How to fix “IMAP or SMTP port error” on Proton Mail Bridge"
+        }
+      ]
+      """
+
+  Scenario: The user wants to report a problem
+    Then the description "Checking mail server capabilities notice" provides the following KB suggestions:
+      """
+      [
+        {
+          "url": "https://proton.me/support/resolve-checking-server-notice",
+          "title": "How to resolve issues with “Checking mail server capabilities” notice in Thunderbird"
+        }
+      ]
+      """
+  
   Scenario: The user wants to report a problem
     Then the description "xoxoxo" provides the following KB suggestions:
       """
       []
-      """ 
-
+      """
