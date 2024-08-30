@@ -3,6 +3,23 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Colorado Bridge 3.13.0
+
+### Added
+* BRIDGE-37: added message broadcasting functionality.
+* BRIDGE-122: added observability service.
+* BRIDGE-119: added support for Feature Flags.
+* BRIDGE-116: added command-line switches to enable/disable keychain check on macOS.
+* BRIDGE-88: added context menu for quick actions on input labels: cut, copy, paste.
+
+### Changed
+* BRIDGE-81: KB article suggestion updates + more weight for long keywords.
+
+### Fixed
+* BRIDGE-67: Added detection for username changes on macOS & automatic reconfiguration.
+* BRIDGE-138: Remove deprecated doc.
+
+
 ## Bastei Bridge 3.12.0
 
 ### Added
