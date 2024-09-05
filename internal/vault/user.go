@@ -19,6 +19,7 @@ package vault
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/bradenaw/juniper/xslices"
 	"golang.org/x/exp/slices"
@@ -35,6 +36,10 @@ func (user *User) UserID() string {
 
 func (user *User) Username() string {
 	return user.vault.getUser(user.userID).Username
+}
+
+func (user *User) usernameUnsafe() string {
+	return user.vault.getUserUnsafe(user.userID).Username
 }
 
 // PrimaryEmail returns the user's primary email address.
@@ -241,4 +246,16 @@ func (user *User) SetShouldSync(shouldResync bool) error {
 
 func (user *User) GetShouldResync() bool {
 	return user.vault.getUser(user.userID).ShouldResync
+}
+
+// updateUsernameUnsafe - updates the username of the relevant user, provided that the new username is not empty
+// and differs from the previous. Writes are not performed if this case is not met.
+// Should only be called from contexts where the vault mutex is already locked.
+func (user *User) updateUsernameUnsafe(username string) error {
+	if strings.TrimSpace(username) == "" || user.usernameUnsafe() == username {
+		return nil
+	}
+	return user.vault.modUserUnsafe(user.userID, func(userData *UserData) {
+		userData.Username = username
+	})
 }

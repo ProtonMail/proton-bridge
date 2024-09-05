@@ -34,6 +34,11 @@ var (
 // getInitials based on webapp implementation:
 // https://github.com/ProtonMail/WebClients/blob/55d96a8b4afaaa4372fc5f1ef34953f2070fd7ec/packages/shared/lib/helpers/string.ts#L145
 func getInitials(fullName string) string {
+	fullName = strings.TrimSpace(fullName)
+	if fullName == "" {
+		return "?"
+	}
+
 	words := strings.Split(
 		reMultiSpaces.ReplaceAllString(fullName, " "),
 		" ",
