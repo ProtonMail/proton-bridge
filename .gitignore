@@ -7,6 +7,7 @@
 *~
 .idea
 .vscode
+.vs
 
 # Test files
 godog.test
@@ -35,6 +36,8 @@ cmd/Import-Export/deploy
 proton-bridge
 cmd/Desktop-Bridge/*.exe
 cmd/launcher/*.exe
+bin/
+obj/
 
 # Jetbrains (CLion, Golang) cmake build dirs
 cmake-build-*/
