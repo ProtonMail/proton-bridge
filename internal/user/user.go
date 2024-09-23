@@ -115,7 +115,6 @@ func New(
 	isNew bool,
 	notificationStore *notifications.Store,
 	getFlagValFn unleash.GetFlagValueFn,
-	pushObservabilityMetric observability.PushObsMetricFn,
 ) (*User, error) {
 	user, err := newImpl(
 		ctx,
@@ -137,7 +136,6 @@ func New(
 		isNew,
 		notificationStore,
 		getFlagValFn,
-		pushObservabilityMetric,
 	)
 	if err != nil {
 		// Cleanup any pending resources on error
@@ -172,7 +170,6 @@ func newImpl(
 	isNew bool,
 	notificationStore *notifications.Store,
 	getFlagValueFn unleash.GetFlagValueFn,
-	pushObservabilityMetric observability.PushObsMetricFn,
 ) (*User, error) {
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
 
@@ -288,9 +285,10 @@ func newImpl(
 		syncConfigDir,
 		user.maxSyncMemory,
 		showAllMail,
+		observabilityService,
 	)
 
-	user.notificationService = notifications.NewService(user.id, user.eventService, user, notificationStore, getFlagValueFn, pushObservabilityMetric)
+	user.notificationService = notifications.NewService(user.id, user.eventService, user, notificationStore, getFlagValueFn, observabilityService)
 
 	// Check for status_progress when triggered.
 	user.goStatusProgress = user.tasks.PeriodicOrTrigger(configstatus.ProgressCheckInterval, 0, func(ctx context.Context) {

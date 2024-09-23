@@ -36,11 +36,16 @@ const (
 	maxBatchSize   = 1000
 )
 
-type PushObsMetricFn func(metric proton.ObservabilityMetric)
-
 type client struct {
 	isTelemetryEnabled func(context.Context) bool
 	sendMetrics        func(context.Context, proton.ObservabilityBatch) error
+}
+
+// Sender - interface maps to the observability service methods,
+// so we can easily pass them down to relevant components.
+type Sender interface {
+	AddMetrics(metrics ...proton.ObservabilityMetric)
+	AddDistinctMetrics(errType DistinctionErrorTypeEnum, metrics ...proton.ObservabilityMetric)
 }
 
 type Service struct {
@@ -62,6 +67,8 @@ type Service struct {
 
 	userClientStore     map[string]*client
 	userClientStoreLock sync.Mutex
+
+	distinctionUtility *distinctionUtility
 }
 
 func NewService(ctx context.Context, panicHandler async.PanicHandler) *Service {
@@ -85,11 +92,19 @@ func NewService(ctx context.Context, panicHandler async.PanicHandler) *Service {
 		userClientStore: make(map[string]*client),
 	}
 
+	service.distinctionUtility = newDistinctionUtility(ctx, panicHandler, service)
+
 	return service
 }
 
-func (s *Service) Run() {
+// Run starts the observability service goroutine.
+// The function also sets some utility functions to a helper struct aimed at differentiating the amount of users sending metric updates.
+func (s *Service) Run(settingsGetter settingsGetter) {
 	s.log.Info("Starting service")
+
+	s.distinctionUtility.setSettingsGetter(settingsGetter)
+	s.distinctionUtility.runHeartbeat()
+
 	go func() {
 		s.start()
 	}()
@@ -200,7 +215,7 @@ func (s *Service) scheduleDispatch() {
 	}()
 }
 
-func (s *Service) AddMetric(metric proton.ObservabilityMetric) {
+func (s *Service) addMetrics(metric ...proton.ObservabilityMetric) {
 	s.withMetricStoreLock(func() {
 		metricStoreLength := len(s.metricStore)
 		if metricStoreLength >= maxStorageSize {
@@ -209,10 +224,30 @@ func (s *Service) AddMetric(metric proton.ObservabilityMetric) {
 			dropCount := metricStoreLength - maxStorageSize + 1
 			s.metricStore = s.metricStore[dropCount:]
 		}
-		s.metricStore = append(s.metricStore, metric)
+		s.metricStore = append(s.metricStore, metric...)
 	})
 
+	// If the context has been cancelled i.e. the service has been stopped then we should be free to exit.
+	if s.ctx.Err() != nil {
+		return
+	}
+
 	s.sendSignal(s.signalDataArrived)
+}
+
+// addMetricsIfClients - will append a metric only if there are authenticated clients
+// via which we can reach the endpoint.
+func (s *Service) addMetricsIfClients(metric ...proton.ObservabilityMetric) {
+	hasClients := false
+	s.withUserClientStoreLock(func() {
+		hasClients = len(s.userClientStore) > 0
+	})
+
+	if !hasClients {
+		return
+	}
+
+	s.addMetrics(metric...)
 }
 
 func (s *Service) RegisterUserClient(userID string, protonClient *proton.Client, telemetryService *telemetry.Service) {
@@ -224,6 +259,8 @@ func (s *Service) RegisterUserClient(userID string, protonClient *proton.Client,
 			sendMetrics:        protonClient.SendObservabilityBatch,
 		}
 	})
+
+	s.distinctionUtility.registerUserPlan(s.ctx, protonClient, s.panicHandler)
 
 	// There may be a case where we already have metric updates stored, so try to flush;
 	s.sendSignal(s.signalDataArrived)
@@ -278,4 +315,26 @@ func (s *Service) sendSignal(channel chan struct{}) {
 // ModifyThrottlePeriod - used for testing.
 func ModifyThrottlePeriod(duration time.Duration) {
 	throttleDuration = duration
+}
+
+func (s *Service) AddMetrics(metrics ...proton.ObservabilityMetric) {
+	s.addMetrics(metrics...)
+}
+
+// AddDistinctMetrics - sends an additional metric related to the user, so we can determine
+// what number of events come from what number of users.
+// As the binning interval is what allows us to do this we
+// should not send these if there are no logged-in users at that moment.
+func (s *Service) AddDistinctMetrics(errType DistinctionErrorTypeEnum, metrics ...proton.ObservabilityMetric) {
+	metrics = s.distinctionUtility.generateDistinctMetrics(errType, metrics...)
+	s.addMetricsIfClients(metrics...)
+}
+
+// ModifyHeartbeatInterval - should only be used for testing. Resets the heartbeat ticker.
+func (s *Service) ModifyHeartbeatInterval(duration time.Duration) {
+	s.distinctionUtility.heartbeatTicker.Reset(duration)
+}
+
+func ModifyUserMetricInterval(duration time.Duration) {
+	updateInterval = duration
 }

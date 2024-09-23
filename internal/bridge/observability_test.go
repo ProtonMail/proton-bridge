@@ -95,3 +95,70 @@ func TestBridge_Observability(t *testing.T) {
 		})
 	})
 }
+
+func TestBridge_Observability_Heartbeat(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		throttlePeriod := time.Millisecond * 300
+		observability.ModifyThrottlePeriod(throttlePeriod)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			require.NoError(t, getErr(bridge.LoginFull(ctx, username, password, nil, nil)))
+			bridge.ModifyObservabilityHeartbeatInterval(throttlePeriod)
+
+			require.Equal(t, 0, len(s.GetObservabilityStatistics().Metrics))
+			time.Sleep(time.Millisecond * 150)
+			require.Equal(t, 0, len(s.GetObservabilityStatistics().Metrics))
+			time.Sleep(time.Millisecond * 200)
+			require.Equal(t, 1, len(s.GetObservabilityStatistics().Metrics))
+			time.Sleep(time.Millisecond * 350)
+			require.Equal(t, 2, len(s.GetObservabilityStatistics().Metrics))
+			time.Sleep(time.Millisecond * 350)
+			require.Equal(t, 3, len(s.GetObservabilityStatistics().Metrics))
+		})
+	})
+}
+
+func TestBridge_Observability_UserMetric(t *testing.T) {
+	testMetric := proton.ObservabilityMetric{
+		Name:      "test1",
+		Version:   1,
+		Timestamp: time.Now().Unix(),
+		Data:      nil,
+	}
+
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		userMetricPeriod := time.Millisecond * 200
+		heartbeatPeriod := time.Second * 10
+		throttlePeriod := time.Millisecond * 100
+		observability.ModifyUserMetricInterval(userMetricPeriod)
+		observability.ModifyThrottlePeriod(throttlePeriod)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			require.NoError(t, getErr(bridge.LoginFull(ctx, username, password, nil, nil)))
+			bridge.ModifyObservabilityHeartbeatInterval(heartbeatPeriod)
+
+			time.Sleep(throttlePeriod)
+			require.Equal(t, 0, len(s.GetObservabilityStatistics().Metrics))
+
+			bridge.PushDistinctObservabilityMetrics(observability.SyncError, testMetric)
+			time.Sleep(throttlePeriod)
+			// We're expecting two observability metrics to be sent, the actual metric + the user metric.
+			require.Equal(t, 2, len(s.GetObservabilityStatistics().Metrics))
+
+			bridge.PushDistinctObservabilityMetrics(observability.SyncError, testMetric)
+			time.Sleep(throttlePeriod)
+			// We're expecting only a single metric to be sent, since the user metric update has been sent already within the predefined period.
+			require.Equal(t, 3, len(s.GetObservabilityStatistics().Metrics))
+
+			bridge.PushDistinctObservabilityMetrics(observability.SyncError, testMetric)
+			time.Sleep(throttlePeriod)
+			// Two metric updates should be sent again.
+			require.Equal(t, 5, len(s.GetObservabilityStatistics().Metrics))
+
+			bridge.PushDistinctObservabilityMetrics(observability.SyncError, testMetric)
+			time.Sleep(throttlePeriod)
+			// Only a single one should be sent.
+			require.Equal(t, 6, len(s.GetObservabilityStatistics().Metrics))
+		})
+	})
+}

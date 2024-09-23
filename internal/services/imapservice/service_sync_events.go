@@ -23,6 +23,8 @@ import (
 
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
+	obsMetrics "github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice/observabilitymetrics/syncmsgevents"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
 )
 
@@ -55,7 +57,7 @@ func (s syncMessageEventHandler) HandleMessageEvents(ctx context.Context, events
 				true,
 			)
 			if err != nil {
-				reportError(s.service.reporter, s.service.log, "Failed to apply create message event", err)
+				s.service.observabilitySender.AddDistinctMetrics(observability.SyncError, obsMetrics.GenerateSyncFailureCreateMessageEventMetric())
 				return fmt.Errorf("failed to handle create message event: %w", err)
 			}
 
@@ -71,6 +73,7 @@ func (s syncMessageEventHandler) HandleMessageEvents(ctx context.Context, events
 			)
 
 			if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+				s.service.observabilitySender.AddDistinctMetrics(observability.SyncError, obsMetrics.GenerateSyncFailureDeleteMessageEventMetric())
 				return fmt.Errorf("failed to handle delete message event in gluon: %w", err)
 			}
 		default:

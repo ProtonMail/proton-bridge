@@ -267,6 +267,8 @@ func newBridge(
 
 	unleashService := unleash.NewBridgeService(ctx, api, locator, panicHandler)
 
+	observabilityService := observability.NewService(ctx, panicHandler)
+
 	bridge := &Bridge{
 		vault: vault,
 
@@ -306,11 +308,11 @@ func newBridge(
 		lastVersion: lastVersion,
 
 		tasks:       tasks,
-		syncService: syncservice.NewService(reporter, panicHandler),
+		syncService: syncservice.NewService(panicHandler, observabilityService),
 
 		unleashService: unleashService,
 
-		observabilityService: observability.NewService(ctx, panicHandler),
+		observabilityService: observabilityService,
 
 		notificationStore: notifications.NewStore(locator.ProvideNotificationsCachePath),
 	}
@@ -342,7 +344,7 @@ func newBridge(
 
 	bridge.unleashService.Run()
 
-	bridge.observabilityService.Run()
+	bridge.observabilityService.Run(bridge)
 
 	return bridge, nil
 }
@@ -710,5 +712,13 @@ func (bridge *Bridge) GetFeatureFlagValue(key string) bool {
 }
 
 func (bridge *Bridge) PushObservabilityMetric(metric proton.ObservabilityMetric) {
-	bridge.observabilityService.AddMetric(metric)
+	bridge.observabilityService.AddMetrics(metric)
+}
+
+func (bridge *Bridge) PushDistinctObservabilityMetrics(errType observability.DistinctionErrorTypeEnum, metrics ...proton.ObservabilityMetric) {
+	bridge.observabilityService.AddDistinctMetrics(errType, metrics...)
+}
+
+func (bridge *Bridge) ModifyObservabilityHeartbeatInterval(duration time.Duration) {
+	bridge.observabilityService.ModifyHeartbeatInterval(duration)
 }

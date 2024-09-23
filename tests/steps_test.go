@@ -218,6 +218,12 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the contact "([^"]*)" of user "([^"]*)" has public key from file "([^"]*)"$`, s.contactOfUserHasPubKeyFromFile)
 
 	// ==== OBSERVABILITY METRICS ====
-	ctx.Step(`^the user with username "([^"]*)" sends the following remote notification observability metric "([^"]*)"`,
+	ctx.Step(`^the user with username "([^"]*)" sends the following remote notification observability metric "([^"]*)"$`,
 		s.userRemoteNotificationMetricTest)
+	ctx.Step(`^the user with username "([^"]*)" sends all possible observability heartbeat metrics$`, s.userHeartbeatPermutationsObservability)
+	ctx.Step(`^the user with username "([^"]*)" sends all possible user distinction metrics$`, s.userDistinctionMetricsPermutationsObservability)
+	ctx.Step(`^the user with username "([^"]*)" sends all possible sync message event failure observability metrics$`, s.syncFailureMessageEventsObservability)
+	ctx.Step(`^the user with username "([^"]*)" sends all possible event loop message events observability metrics$`, s.eventLoopFailureMessageEventsObservability)
+	ctx.Step(`^the user with username "([^"]*)" sends all possible sync message building failure observability metrics$`, s.syncFailureMessageBuiltObservability)
+	ctx.Step(`^the user with username "([^"]*)" sends all possible sync message building success observability metrics$`, s.syncSuccessMessageBuiltObservability)
 }

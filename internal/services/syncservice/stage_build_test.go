@@ -24,10 +24,11 @@ import (
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/gluon/imap"
-	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge/mocks"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
+	obsMetrics "github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice/observabilitymetrics"
 	"github.com/bradenaw/juniper/xslices"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -67,7 +68,6 @@ func TestBuildStage_SuccessRemovesFailedMessage(t *testing.T) {
 
 	input := NewChannelConsumerProducer[BuildRequest]()
 	output := NewChannelConsumerProducer[ApplyRequest]()
-	reporter := mocks.NewMockReporter(mockCtrl)
 
 	labels := getTestLabels()
 
@@ -105,7 +105,10 @@ func TestBuildStage_SuccessRemovesFailedMessage(t *testing.T) {
 	tj.messageBuilder.EXPECT().BuildMessage(gomock.Eq(labels), gomock.Eq(msg), gomock.Any(), gomock.Any()).Return(buildResult, nil)
 	tj.state.EXPECT().RemFailedMessageID(gomock.Any(), gomock.Eq("MSG"))
 
-	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, reporter)
+	observabilityService := mocks.NewMockObservabilitySender(mockCtrl)
+	observabilityService.EXPECT().AddMetrics(obsMetrics.GenerateMessageBuiltSuccessMetric())
+
+	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, observabilityService)
 
 	go func() {
 		stage.run(ctx)
@@ -125,7 +128,7 @@ func TestBuildStage_BuildFailureIsReportedButDoesNotCancelJob(t *testing.T) {
 
 	input := NewChannelConsumerProducer[BuildRequest]()
 	output := NewChannelConsumerProducer[ApplyRequest]()
-	mockReporter := mocks.NewMockReporter(mockCtrl)
+	mockObservabilityService := mocks.NewMockObservabilitySender(mockCtrl)
 
 	labels := getTestLabels()
 
@@ -156,15 +159,12 @@ func TestBuildStage_BuildFailureIsReportedButDoesNotCancelJob(t *testing.T) {
 
 	tj.messageBuilder.EXPECT().BuildMessage(gomock.Eq(labels), gomock.Eq(msg), gomock.Any(), gomock.Any()).Return(BuildResult{}, buildError)
 	tj.state.EXPECT().AddFailedMessageID(gomock.Any(), gomock.Eq([]string{"MSG"}))
-	mockReporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Eq(reporter.Context{
-		"userID":    "u",
-		"messageID": "MSG",
-		"error":     buildError,
-	})).Return(nil)
 
 	tj.syncReporter.EXPECT().OnProgress(gomock.Any(), gomock.Eq(int64(10)))
 
-	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, mockReporter)
+	mockObservabilityService.EXPECT().AddDistinctMetrics(observability.SyncError, obsMetrics.GenerateNoUnlockedKeyringMetric())
+
+	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, mockObservabilityService)
 
 	go func() {
 		stage.run(ctx)
@@ -183,7 +183,6 @@ func TestBuildStage_FailedToLocateKeyRingIsReportedButDoesNotFailBuild(t *testin
 
 	input := NewChannelConsumerProducer[BuildRequest]()
 	output := NewChannelConsumerProducer[ApplyRequest]()
-	mockReporter := mocks.NewMockReporter(mockCtrl)
 
 	labels := getTestLabels()
 
@@ -209,14 +208,13 @@ func TestBuildStage_FailedToLocateKeyRingIsReportedButDoesNotFailBuild(t *testin
 	tj.job.end()
 
 	tj.state.EXPECT().AddFailedMessageID(gomock.Any(), gomock.Eq([]string{"MSG"}))
-	mockReporter.EXPECT().ReportMessageWithContext(gomock.Any(), gomock.Eq(reporter.Context{
-		"userID":    "u",
-		"messageID": "MSG",
-	})).Return(nil)
 
 	tj.syncReporter.EXPECT().OnProgress(gomock.Any(), gomock.Eq(int64(10)))
 
-	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, mockReporter)
+	observabilitySender := mocks.NewMockObservabilitySender(mockCtrl)
+	observabilitySender.EXPECT().AddDistinctMetrics(observability.SyncError)
+
+	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, observabilitySender)
 
 	go func() {
 		stage.run(ctx)
@@ -235,7 +233,6 @@ func TestBuildStage_OtherErrorsFailJob(t *testing.T) {
 
 	input := NewChannelConsumerProducer[BuildRequest]()
 	output := NewChannelConsumerProducer[ApplyRequest]()
-	mockReporter := mocks.NewMockReporter(mockCtrl)
 
 	labels := getTestLabels()
 
@@ -261,7 +258,7 @@ func TestBuildStage_OtherErrorsFailJob(t *testing.T) {
 	childJob := tj.job.newChildJob("f", 10)
 	tj.job.end()
 
-	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, mockReporter)
+	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, mocks.NewMockObservabilitySender(mockCtrl))
 
 	go func() {
 		stage.run(ctx)
@@ -283,7 +280,6 @@ func TestBuildStage_CancelledJobIsDiscarded(t *testing.T) {
 
 	input := NewChannelConsumerProducer[BuildRequest]()
 	output := NewChannelConsumerProducer[ApplyRequest]()
-	mockReporter := mocks.NewMockReporter(mockCtrl)
 
 	msg := proton.FullMessage{
 		Message: proton.Message{
@@ -294,7 +290,7 @@ func TestBuildStage_CancelledJobIsDiscarded(t *testing.T) {
 		},
 	}
 
-	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, mockReporter)
+	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, mocks.NewMockObservabilitySender(mockCtrl))
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -327,7 +323,6 @@ func TestTask_EmptyInputDoesNotCrash(t *testing.T) {
 
 	input := NewChannelConsumerProducer[BuildRequest]()
 	output := NewChannelConsumerProducer[ApplyRequest]()
-	reporter := mocks.NewMockReporter(mockCtrl)
 
 	labels := getTestLabels()
 
@@ -340,7 +335,7 @@ func TestTask_EmptyInputDoesNotCrash(t *testing.T) {
 	childJob := tj.job.newChildJob("f", 10)
 	tj.job.end()
 
-	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, reporter)
+	stage := NewBuildStage(input, output, 1024, &async.NoopPanicHandler{}, mocks.NewMockObservabilitySender(mockCtrl))
 
 	go func() {
 		stage.run(ctx)

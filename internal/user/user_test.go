@@ -175,7 +175,6 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 		func(_ string) bool {
 			return false
 		},
-		func(_ proton.ObservabilityMetric) {},
 	)
 	require.NoError(tb, err)
 	defer user.Close()

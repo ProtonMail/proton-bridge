@@ -44,15 +44,16 @@ type Service struct {
 
 	store *Store
 
-	getFlagValueFn            unleash.GetFlagValueFn
-	pushObservabilityMetricFn observability.PushObsMetricFn
+	getFlagValueFn unleash.GetFlagValueFn
+
+	observabilitySender observability.Sender
 }
 
 const bitfieldRegexPattern = `^\\\d+`
 const disableNotificationsKillSwitch = "InboxBridgeEventLoopNotificationDisabled"
 
 func NewService(userID string, service userevents.Subscribable, eventPublisher events.EventPublisher, store *Store,
-	getFlagFn unleash.GetFlagValueFn, pushMetricFn observability.PushObsMetricFn) *Service {
+	getFlagFn unleash.GetFlagValueFn, observabilitySender observability.Sender) *Service {
 	return &Service{
 		userID: userID,
 
@@ -68,8 +69,8 @@ func NewService(userID string, service userevents.Subscribable, eventPublisher e
 
 		store: store,
 
-		getFlagValueFn:            getFlagFn,
-		pushObservabilityMetricFn: pushMetricFn,
+		getFlagValueFn:      getFlagFn,
+		observabilitySender: observabilitySender,
 	}
 }
 
@@ -110,7 +111,7 @@ func (s *Service) HandleNotificationEvents(ctx context.Context, notificationEven
 	s.log.Debug("Handling notification events")
 
 	// Publish observability metrics that we've received notifications
-	s.pushObservabilityMetricFn(GenerateReceivedMetric(len(notificationEvents)))
+	s.observabilitySender.AddMetrics(GenerateReceivedMetric(len(notificationEvents)))
 
 	for _, event := range notificationEvents {
 		ctx = logging.WithLogrusField(ctx, "notificationID", event.ID)
@@ -133,7 +134,7 @@ func (s *Service) HandleNotificationEvents(ctx context.Context, notificationEven
 					Subtitle: event.Payload.Subtitle, Body: event.Payload.Body})
 
 				// Publish observability metric that we've successfully processed notifications
-				s.pushObservabilityMetricFn(GenerateProcessedMetric(1))
+				s.observabilitySender.AddMetrics(GenerateProcessedMetric(1))
 			}
 
 		default:

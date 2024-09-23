@@ -21,7 +21,7 @@ import (
 	"context"
 
 	"github.com/ProtonMail/gluon/async"
-	"github.com/ProtonMail/gluon/reporter"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 )
 
 // Service which mediates IMAP syncing in Bridge.
@@ -36,8 +36,9 @@ type Service struct {
 	group         *async.Group
 }
 
-func NewService(reporter reporter.Reporter,
+func NewService(
 	panicHandler async.PanicHandler,
+	observabilitySender observability.Sender,
 ) *Service {
 	limits := newSyncLimits(2 * Gigabyte)
 
@@ -50,7 +51,7 @@ func NewService(reporter reporter.Reporter,
 		limits:        limits,
 		metadataStage: NewMetadataStage(metaCh, downloadCh, limits.DownloadRequestMem, panicHandler),
 		downloadStage: NewDownloadStage(downloadCh, buildCh, limits.MaxParallelDownloads, panicHandler),
-		buildStage:    NewBuildStage(buildCh, applyCh, limits.MessageBuildMem, panicHandler, reporter),
+		buildStage:    NewBuildStage(buildCh, applyCh, limits.MessageBuildMem, panicHandler, observabilitySender),
 		applyStage:    NewApplyStage(applyCh),
 		metaCh:        metaCh,
 		group:         async.NewGroup(context.Background(), panicHandler),

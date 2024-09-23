@@ -26,11 +26,11 @@ import (
 
 	"github.com/ProtonMail/gluon"
 	"github.com/ProtonMail/gluon/imap"
-	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	"github.com/ProtonMail/proton-bridge/v3/internal"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
+	obsMetrics "github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice/observabilitymetrics/evtloopmsgevents"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/maps"
@@ -46,7 +46,7 @@ func (s *Service) HandleMessageEvents(ctx context.Context, events []proton.Messa
 		case proton.EventCreate:
 			updates, err := onMessageCreated(logging.WithLogrusField(ctx, "action", "create message"), s, event.Message, false)
 			if err != nil {
-				reportError(s.reporter, s.log, "Failed to apply create message event", err)
+				s.observabilitySender.AddDistinctMetrics(observability.EventLoopError, obsMetrics.GenerateMessageEventFailureCreateMessageMetric())
 				return fmt.Errorf("failed to handle create message event: %w", err)
 			}
 
@@ -64,7 +64,7 @@ func (s *Service) HandleMessageEvents(ctx context.Context, events []proton.Messa
 					event,
 				)
 				if err != nil {
-					reportError(s.reporter, s.log, "Failed to apply update draft message event", err)
+					s.observabilitySender.AddDistinctMetrics(observability.EventLoopError, obsMetrics.GenerateMessageEventFailureUpdateMetric())
 					return fmt.Errorf("failed to handle update draft event: %w", err)
 				}
 
@@ -85,7 +85,7 @@ func (s *Service) HandleMessageEvents(ctx context.Context, events []proton.Messa
 				event.Message,
 			)
 			if err != nil {
-				reportError(s.reporter, s.log, "Failed to apply update message event", err)
+				s.observabilitySender.AddDistinctMetrics(observability.EventLoopError, obsMetrics.GenerateMessageEventFailureUpdateMetric())
 				return fmt.Errorf("failed to handle update message event: %w", err)
 			}
 
@@ -113,6 +113,7 @@ func (s *Service) HandleMessageEvents(ctx context.Context, events []proton.Messa
 			)
 
 			if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+				s.observabilitySender.AddDistinctMetrics(observability.EventLoopError, obsMetrics.GenerateMessageEventFailureDeleteMessageMetric())
 				return fmt.Errorf("failed to handle delete message event in gluon: %w", err)
 			}
 		}
@@ -158,8 +159,7 @@ func onMessageCreated(
 				s.log.WithError(err).Error("Failed to add failed message ID to vault")
 			}
 
-			reportErrorAndMessageID(s.reporter, s.log, "Failed to build message (event create)", res.err, res.messageID)
-
+			s.observabilitySender.AddDistinctMetrics(observability.EventLoopError, obsMetrics.GenerateMessageEventFailedToBuildMessage())
 			return nil
 		}
 
@@ -221,8 +221,7 @@ func onMessageUpdateDraftOrSent(ctx context.Context, s *Service, event proton.Me
 				s.log.WithError(err).Error("Failed to add failed message ID to vault")
 			}
 
-			reportErrorAndMessageID(s.reporter, s.log, "Failed to build draft message (event update)", res.err, res.messageID)
-
+			s.observabilitySender.AddDistinctMetrics(observability.EventLoopError, obsMetrics.GenerateMessageEventFailedToBuildDraft())
 			return nil
 		}
 
@@ -299,24 +298,6 @@ func onMessageDeleted(ctx context.Context, s *Service, event proton.MessageEvent
 	return updates
 }
 
-func reportError(r reporter.Reporter, entry *logrus.Entry, title string, err error) {
-	reportErrorNoContextCancel(r, entry, title, err, reporter.Context{})
-}
-
-func reportErrorAndMessageID(r reporter.Reporter, entry *logrus.Entry, title string, err error, messgeID string) {
-	reportErrorNoContextCancel(r, entry, title, err, reporter.Context{"messageID": messgeID})
-}
-
-func reportErrorNoContextCancel(r reporter.Reporter, entry *logrus.Entry, title string, err error, reportContext reporter.Context) {
-	if !errors.Is(err, context.Canceled) {
-		reportContext["error"] = err
-		reportContext["error_type"] = internal.ErrCauseType(err)
-		if rerr := r.ReportMessageWithContext(title, reportContext); rerr != nil {
-			entry.WithError(err).WithField("title", title).Error("Failed to report message")
-		}
-	}
-}
-
 // safePublishMessageUpdate handles the rare case where the address' update channel may have been deleted in the same
 // event. This rare case can take place if in the same event fetch request there is an update for delete address and
 // create/update message.
@@ -341,7 +322,7 @@ func safePublishMessageUpdate(ctx context.Context, s *Service, addressID string,
 		}
 
 		logrus.Warnf("Update channel not found for address %v, it may have been already deleted", addressID)
-		_ = s.reporter.ReportMessage("Message Update channel does not exist")
+		s.observabilitySender.AddDistinctMetrics(observability.EventLoopError, obsMetrics.GenerateMessageEventUpdateChannelDoesNotExist())
 
 		return false, nil
 	}

@@ -160,10 +160,6 @@ func (s *childJob) onError(err error) {
 	s.job.onError(err)
 }
 
-func (s *childJob) userID() string {
-	return s.job.userID
-}
-
 func (s *childJob) chunkDivide(chunks [][]proton.FullMessage) []childJob {
 	numChunks := len(chunks)
 

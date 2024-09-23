@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/gluon/watcher"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/orderedtasks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
@@ -96,6 +97,8 @@ type Service struct {
 	syncConfigPath     string
 	lastHandledEventID string
 	isSyncing          atomic.Bool
+
+	observabilitySender observability.Sender
 }
 
 func NewService(
@@ -116,6 +119,7 @@ func NewService(
 	syncConfigDir string,
 	maxSyncMemory uint64,
 	showAllMail bool,
+	observabilitySender observability.Sender,
 ) *Service {
 	subscriberName := fmt.Sprintf("imap-%v", identityState.User.ID)
 
@@ -160,6 +164,8 @@ func NewService(
 		syncMessageBuilder: syncMessageBuilder,
 		syncReporter:       syncReporter,
 		syncConfigPath:     GetSyncConfigPath(syncConfigDir, identityState.User.ID),
+
+		observabilitySender: observabilitySender,
 	}
 }
 
