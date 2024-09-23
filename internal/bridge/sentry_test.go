@@ -29,13 +29,12 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestBridge_Report(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(b *bridge.Bridge, _ *bridge.Mocks) {
 			syncCh, done := chToType[events.Event, events.SyncFinished](b.GetEvents(events.SyncFinished{}))
 			defer done()
 
@@ -55,12 +54,6 @@ func TestBridge_Report(t *testing.T) {
 			conn, err := net.Dial("tcp", fmt.Sprintf("%v:%v", constants.Host, b.GetIMAPPort()))
 			require.NoError(t, err)
 			defer func() { require.NoError(t, conn.Close()) }()
-
-			// Sending garbage to the IMAP port should cause the bridge to report it.
-			mocks.Reporter.EXPECT().ReportMessageWithContext(
-				gomock.Eq("Failed to parse IMAP command"),
-				gomock.Any(),
-			).Return(nil)
 
 			// Read lines from the IMAP port.
 			lineCh := liner.New(conn).Lines(func() error { return nil })

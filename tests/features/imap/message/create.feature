@@ -57,7 +57,6 @@ Feature: IMAP create messages
     And IMAP client "1" eventually sees the following messages in "All Mail":
       | from                   | to                 | subject | body |
       | [alias:alias]@[domain] | john.doe@email.com | foo     | bar  |
-    And bridge reports a message with "GODT-3185: import with non-default address in combined mode: using sender address"
 
   Scenario: Imports an unrelated message to inbox
     When IMAP client "1" appends the following messages to "INBOX":

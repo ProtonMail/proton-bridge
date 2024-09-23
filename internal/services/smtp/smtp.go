@@ -30,7 +30,6 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/async"
-	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/gluon/rfc5322"
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
@@ -197,13 +196,7 @@ func (s *Service) sendWithKey(
 	}
 	parentID, draftsToDelete, err := getParentID(ctx, s.client, authAddrID, addrMode, references)
 	if err != nil {
-		if err := s.reporter.ReportMessageWithContext("Failed to get parent ID", reporter.Context{
-			"error":      err,
-			"references": message.References,
-		}); err != nil {
-			logrus.WithError(err).Error("Failed to report error")
-		}
-
+		// Sentry event has been removed; should be replaced with observability - BRIDGE-206.
 		s.log.WithError(err).Warn("Failed to get parent ID")
 	}
 

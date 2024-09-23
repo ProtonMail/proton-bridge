@@ -164,7 +164,6 @@ Feature: IMAP Draft messages
     And IMAP client "1" eventually sees the following messages in "Drafts":
       | to                  | subject            | body                                   |
       | someone@example.com | Draft without From | This is a Draft without From in header |
-    And bridge reports a message with "GODT-3185: draft with non-default invalid address in combined mode: error import/draft"
 
   @regression
   Scenario: Only one draft in Drafts and All Mail after editing it locally multiple times

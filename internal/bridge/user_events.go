@@ -38,9 +38,6 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 
 	case events.UserLoadedCheckResync:
 		user.VerifyResyncAndExecute()
-
-	case events.UncategorizedEventError:
-		bridge.handleUncategorizedErrorEvent(event)
 	}
 }
 
@@ -66,13 +63,4 @@ func (bridge *Bridge) handleUserBadEvent(ctx context.Context, user *user.User, e
 
 		user.OnBadEvent(ctx)
 	}, bridge.usersLock)
-}
-
-func (bridge *Bridge) handleUncategorizedErrorEvent(event events.UncategorizedEventError) {
-	if rerr := bridge.reporter.ReportMessageWithContext("Failed to handle due to uncategorized error", reporter.Context{
-		"error_type": internal.ErrCauseType(event.Error),
-		"error":      event.Error,
-	}); rerr != nil {
-		logrus.WithField("pkg", "bridge/event").WithError(rerr).Error("Failed to report failed event handling")
-	}
 }

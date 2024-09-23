@@ -54,6 +54,7 @@ QString const bridgeGUILock = "bridge-v3-gui.lock"; ///< The file name used for 
 QString const exeName = "bridge" + exeSuffix; ///< The bridge executable file name.*
 qint64 constexpr grpcServiceConfigWaitDelayMs = 180000; ///< The wait delay for the gRPC config file in milliseconds.
 QString const waitFlag = "--wait"; ///< The wait command-line flag.
+QString const orphanInstanceException =  "An orphan instance of bridge is already running. Please terminate it and relaunch the application.";
 
 } // anonymous namespace
 
@@ -317,7 +318,7 @@ int main(int argc, char *argv[]) {
         QString bridgeExe;
         if (!cliOptions.attach) {
             if (isBridgeRunning()) {
-                throw Exception("An orphan instance of bridge is already running. Please terminate it and relaunch the application.",
+                throw Exception(orphanInstanceException,
                     QString(), __FUNCTION__, tailOfLatestBridgeLog(sessionID));
             }
 
@@ -413,13 +414,18 @@ int main(int argc, char *argv[]) {
         lock.unlock();
         return result;
     } catch (Exception const &e) {
-        sentry_uuid_s const uuid = reportSentryException("Exception occurred during main", e);
         QString message = e.qwhat();
         if (e.showSupportLink()) {
             message += R"(<br/><br/>If the issue persists, please contact our <a href="https://proton.me/support/contact">customer support</a>.)";
         }
         QMessageBox::critical(nullptr, "Error", message);
-        QTextStream(stderr) << "reportID: " << QByteArray(uuid.bytes, 16).toHex() << " Captured exception :" << e.detailedWhat() << "\n";
+
+        if (e.qwhat() != orphanInstanceException) {
+            sentry_uuid_s const uuid = reportSentryException("Exception occurred during main", e);
+            QTextStream(stderr) << "reportID: " << QByteArray(uuid.bytes, 16).toHex() << " Captured exception :"
+                                << e.detailedWhat() << "\n";
+        }
+
         return EXIT_FAILURE;
     }
 }
