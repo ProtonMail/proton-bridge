@@ -1,0 +1,13 @@
+Date: Mon, 01 Jan 2000 00:00:00 +0000 (UTC)
+From: Daniel at Test <daniel@test.com>
+Mime-Version: 1.0
+Subject: Test incorrect original boundary w. invalid character
+To: david@test.com
+Content-Type: multipart/related; boundary="------------1234567890@tutanota"
+
+--------------1234567890@tutanota
+Content-Type: text/html; charset=UTF-8
+Content-transfer-encoding: base64
+
+PGh0bWw+PGgxPkhlbGxvIFdvcmxkITwvaDE+PC9odG1sPg==
+--------------1234567890@tutanota--

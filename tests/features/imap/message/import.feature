@@ -651,3 +651,83 @@ Feature: IMAP import messages
         }
       }
       """
+
+  Scenario: Message import multipart/related with invalid boundary character
+    When IMAP client "1" appends the following message to "INBOX":
+      """
+      From: Bridge Test <bridgetest@pm.test>
+      Date: 01 Jan 1980 00:00:00 +0000
+      To: Internal Bridge <bridgetest@example.com>
+      Received: by 2002:0:0:0:0:0:0:0 with SMTP id 0123456789abcdef; Wed, 30 Dec 2020 01:23:45 0000
+      Subject: Message with invalid boundary
+      Content-Type: multipart/related; boundary="------------123456789@tutanota"
+
+      --------------123456789@tutanota
+      Content-Type: text/html; charset=UTF-8
+      Content-transfer-encoding: base64
+
+      PGRpdiBjbGFzcz0iIj4KPHAgY2xhc3M9IiI+PGEgbmFtZT0iX0hsazE5MDA1NjM2IiByZWw9Im5vb3
+      BlbmVyIG5vcmVmZXJyZXIiIHRhcmdldD0iX2JsYW5rIj48c3BhbiBzdHlsZT0ibXNvLWZhcmVhc3Qt
+
+      --------------123456789@tutanota
+      Content-Type: image/png;
+       name==?UTF-8?B?MC5wbmc=?=
+      Content-Transfer-Encoding: base64
+      Content-Disposition: attachment;
+       filename=image1.png
+
+      iVBORw0KGgoAAAANSUhEUgAAACsAAAArCAYAAADhXXHAAAAPq3pUWHRSYXcgcHJvZmlsZSB0eXBlIG
+      V4aWYAAHjarZlrliOpkoT/s4pZAuCAw3J4njM7mOXP54SUlZmV1bd7plNVEVIoAhx/mJsht//nv4/7
+
+      --------------123456789@tutanota
+      Content-Type: image/png;
+       name==?UTF-8?B?Mi5wbmc=?=
+      Content-Transfer-Encoding: base64
+      Content-Disposition: attachment;
+       filename=img2.png
+
+      iVBORw0KGgoAAAANSUhEUgAAACsAAAArCAYAAADhXXHAAAAR+HpUWHRSYXcgcHJvZmlsZSB0eXBlIG
+      V4aWYAAHjarZprdhs5DoX/cxWzBD4Bcjl8njM7mOXPB5bsOI49SU+3nViKLFWxgIv7YMXt//z7uH/x
+
+      --------------123456789@tutanota--
+
+      """
+    Then it succeeds
+    And IMAP client "1" eventually sees the following message in "INBOX" with this structure:
+    """
+      {
+        "from": "Bridge Test <bridgetest@pm.test>",
+        "date": "01 Jan 80 00:00 +0000",
+        "to": "Internal Bridge <bridgetest@example.com>",
+        "subject": "Message with invalid boundary",
+        "content": {
+          "content-type": "multipart/mixed",
+          "sections":[
+            {
+              "content-type": "multipart/related",
+              "sections": [
+                {
+                  "content-type": "text/html",
+                  "transfer-encoding": "base64",
+                  "body-is": "PGRpdiBjbGFzcz0iIj4KPHAgY2xhc3M9IiI+PGEgbmFtZT0iX0hsazE5MDA1NjM2IiByZWw9Im5v\r\nb3BlbmVyIG5vcmVmZXJyZXIiIHRhcmdldD0iX2JsYW5rIj48c3BhbiBzdHlsZT0ibXNvLWZhcmVh\r\nc3Qt"
+                },
+                {
+                  "content-type": "image/png",
+                  "transfer-encoding": "base64",
+                  "content-disposition": "attachment",
+                  "content-disposition-filename": "image1.png",
+                  "body-is": "iVBORw0KGgoAAAANSUhEUgAAACsAAAArCAYAAADhXXHAAAAPq3pUWHRSYXcgcHJvZmlsZSB0eXBl\r\nIGV4aWYAAHjarZlrliOpkoT/s4pZAuCAw3J4njM7mOXP54SUlZmV1bd7plNVEVIoAhx/mJsht//n\r\nv4/7"
+                },
+                {
+                  "content-type": "image/png",
+                  "transfer-encoding": "base64",
+                  "content-disposition": "attachment",
+                  "content-disposition-filename": "img2.png",
+                  "body-is": "iVBORw0KGgoAAAANSUhEUgAAACsAAAArCAYAAADhXXHAAAAR+HpUWHRSYXcgcHJvZmlsZSB0eXBl\r\nIGV4aWYAAHjarZprdhs5DoX/cxWzBD4Bcjl8njM7mOXPB5bsOI49SU+3nViKLFWxgIv7YMXt//z7\r\nuH/x"
+                }
+              ]
+            }
+          ]
+        }
+      }
+      """

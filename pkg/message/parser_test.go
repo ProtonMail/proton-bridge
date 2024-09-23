@@ -857,6 +857,23 @@ func getFileReader(filename string) io.Reader {
 	return f
 }
 
+func TestParseInvalidOriginalBoundary(t *testing.T) {
+	f := getFileReader("incorrect_boundary_w_invalid_character_tuta.eml")
+
+	p, err := parser.New(f)
+	require.NoError(t, err)
+
+	require.Equal(t, true, p.Root().Header.Get("Content-Type") == `multipart/related; boundary="------------1234567890@tutanota"`)
+
+	m, err := ParseWithParser(p, false)
+	require.NoError(t, err)
+
+	require.Equal(t, true, strings.HasPrefix(string(m.MIMEBody), "Content-Type: multipart/related;\r\n boundary="))
+	require.Equal(t, false, strings.HasPrefix(string(m.MIMEBody), `Content-Type: multipart/related;\n boundary="------------1234567890@tutanota"`))
+	require.Equal(t, false, strings.HasPrefix(string(m.MIMEBody), `Content-Type: multipart/related;\n boundary=------------1234567890@tutanota`))
+	require.Equal(t, false, strings.HasPrefix(string(m.MIMEBody), `Content-Type: multipart/related;\n boundary=1234567890@tutanota`))
+}
+
 type panicReader struct{}
 
 func (panicReader) Read(_ []byte) (int, error) {
