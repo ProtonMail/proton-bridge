@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
@@ -115,6 +116,17 @@ func (bridge *Bridge) installUpdate(ctx context.Context, job installJob) {
 		err := bridge.updater.InstallUpdate(ctx, bridge.api, job.version)
 
 		switch {
+		case errors.Is(err, updater.ErrDownloadVerify):
+			// BRIDGE-207: if download or verification fails, we do not want to trigger a manual update. We report in the log and to Sentry
+			// and we fail silently.
+			log.WithError(err).Error("The update could not be installed, but we will fail silently")
+			if reporterErr := bridge.reporter.ReportMessageWithContext(
+				"Cannot download or verify update",
+				reporter.Context{"error": err},
+			); reporterErr != nil {
+				log.WithError(reporterErr).Error("Failed to report update error")
+			}
+
 		case errors.Is(err, updater.ErrUpdateAlreadyInstalled):
 			log.Info("The update was already installed")
 
