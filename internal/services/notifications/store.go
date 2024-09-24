@@ -109,7 +109,7 @@ func (s *Store) readCache() {
 
 	file, err := os.Open(s.cacheFilepath)
 	if err != nil {
-		s.log.WithError(err).Error("Unable to open cache file")
+		s.log.WithError(err).Info("Unable to open cache file")
 		return
 	}
 
