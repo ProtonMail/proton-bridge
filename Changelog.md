@@ -3,6 +3,19 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Dragon Bridge 3.14.0
+
+### Changed
+* BRIDGE-207: Failure to download or verify an update now fails silently.
+* BRIDGE-204: Removed redundant Sentry events.
+* BRIDGE-150: Observability service modification.
+* BRIDGE-210: Reduced log level of cache events so they won't be printed to stdout.
+
+### Fixed
+* BRIDGE-106: Fixed import of multipart-related messages.
+* BRIDGE-108: Fixed GetInitials when empty username is passed.
+
+
 ## Colorado Bridge 3.13.0
 
 ### Added
