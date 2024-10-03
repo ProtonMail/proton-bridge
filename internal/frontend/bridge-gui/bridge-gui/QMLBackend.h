@@ -102,6 +102,7 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     Q_PROPERTY(QVariantList bugQuestions READ bugQuestions NOTIFY bugQuestionsChanged)
     Q_PROPERTY(UserList *users MEMBER users_ NOTIFY usersChanged)
     Q_PROPERTY(bool dockIconVisible READ dockIconVisible WRITE setDockIconVisible NOTIFY dockIconVisibleChanged)
+    Q_PROPERTY(bool trayIconVisible READ trayIconVisible WRITE setTrayIconVisible NOTIFY trayIconVisibleChanged)
 
     // Qt Property system setters & getters.
     bool showOnStartup() const; ///< Getter for the 'showOnStartup' property.
@@ -141,6 +142,9 @@ public: // Qt/QML properties. Note that the NOTIFY-er signal is required even fo
     QVariantList bugQuestions() const; ///< Getter for the 'bugQuestions' property.
     void setDockIconVisible(bool visible); ///< Setter for the 'dockIconVisible' property.
     bool dockIconVisible() const;; ///< Getter for the 'dockIconVisible' property.
+    void setTrayIconVisible(bool visible); ///< Setter for the 'trayIconVisible' property.
+    bool trayIconVisible() const; ///< Getter for the 'trayIconVisible' property.
+
 
 signals: // Signal used by the Qt property system. Many of them are unused but required to avoid warning from the QML engine.
     void showSplashScreenChanged(bool value); ///<Signal for the change of the 'showSplashScreen' property.
@@ -175,6 +179,7 @@ signals: // Signal used by the Qt property system. Many of them are unused but r
     void isAutostartOnChanged(bool value); ///<Signal for the change of the 'isAutostartOn' property.
     void usersChanged(UserList *users); ///<Signal for the change of the 'users' property.
     void dockIconVisibleChanged(bool value); ///<Signal for the change of the 'dockIconVisible' property.
+    void trayIconVisibleChanged(bool value); ///< Signal for the change of the 'trayIconVisible' property.
     void receivedUserNotification(bridgepp::UserNotification const& notification); ///< Signal to display the userNotification modal
 
 

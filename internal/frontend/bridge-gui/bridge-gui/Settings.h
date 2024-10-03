@@ -33,6 +33,8 @@ public: // member functions.
 
     bool useSoftwareRenderer() const; ///< Get the 'Use software renderer' settings value.
     void setUseSoftwareRenderer(bool value); ///< Set the 'Use software renderer' settings value.
+    void setTrayIconVisible(bool value);  ///< Get the 'Tray icon visible' setting value.
+    bool trayIconVisible() const; ///< Set the 'Tray icon visible' setting value.
 
 private: // member functions.
     Settings(); ///< Default constructor.

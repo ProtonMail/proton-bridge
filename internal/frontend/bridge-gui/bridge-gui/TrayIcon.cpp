@@ -21,6 +21,7 @@
 #include <bridgepp/Exception/Exception.h>
 #include <bridgepp/BridgeUtils.h>
 
+#include "Settings.h"
 
 using namespace bridgepp;
 
@@ -195,7 +196,7 @@ TrayIcon::TrayIcon()
     }
 
     this->setIcon();
-    this->show();
+    this->setVisible(app().settings().trayIconVisible());
 
     // TrayIcon does not expose its screen, so we connect relevant screen events to our DPI change handler.
     for (QScreen *screen: QGuiApplication::screens()) {
@@ -208,7 +209,6 @@ TrayIcon::TrayIcon()
     iconRefreshTimer_.setInterval(iconRefreshTimerIntervalMs);
     connect(&iconRefreshTimer_, &QTimer::timeout, this, &TrayIcon::onIconRefreshTimer);
 }
-
 
 //****************************************************************************************************************************************************
 //
@@ -322,14 +322,30 @@ void TrayIcon::setState(TrayIcon::State state, QString const &stateString, QStri
     this->generateStatusIcon(statusIconPath, stateColor(state));
 }
 
+//****************************************************************************************************************************************************
+/// \brief A helper struct to temporarily force the tray to be visible. Useful for operations that do not work when the tray is not visible,
+///  such as showMessage().
+//****************************************************************************************************************************************************
+struct ScopedTrayVisibility {
+    explicit ScopedTrayVisibility(TrayIcon& trayIcon) : trayIcon_(trayIcon), wasVisible_(app().settings().trayIconVisible()) {
+        trayIcon_.setVisible(true);
+    }
+    ~ScopedTrayVisibility() { trayIcon_.setVisible(wasVisible_); }
+
+private:
+    TrayIcon &trayIcon_;
+    bool wasVisible_;
+};
 
 //****************************************************************************************************************************************************
 /// \param[in] title The title.
 /// \param[in] message The message.
 //****************************************************************************************************************************************************
 void TrayIcon::showErrorPopupNotification(QString const &title, QString const &message) {
+    ScopedTrayVisibility visible(*this);
     this->showMessage(title, message, notificationErrorIcon_);
 }
+
 
 //****************************************************************************************************************************************************
 /// Used only by user notifications received from the event loop
@@ -337,6 +353,7 @@ void TrayIcon::showErrorPopupNotification(QString const &title, QString const &m
 /// \param[in] subtitle The subtitle.
 //****************************************************************************************************************************************************
 void TrayIcon::showUserNotification(QString const &title, QString const &subtitle) {
+    ScopedTrayVisibility visible(*this);
     this->showMessage(title, subtitle, QSystemTrayIcon::NoIcon);
 }
 

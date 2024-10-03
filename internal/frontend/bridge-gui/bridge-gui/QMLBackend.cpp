@@ -25,6 +25,7 @@
 #include <bridgepp/GRPC/GRPCClient.h>
 #include <bridgepp/Worker/Overseer.h>
 
+#include "Settings.h"
 
 #define HANDLE_EXCEPTION(x) try { x } \
     catch (Exception const &e) { emit fatalError(e); } \
@@ -59,15 +60,19 @@ QMLBackend::QMLBackend()
 /// \param[in] serviceConfig
 //****************************************************************************************************************************************************
 void QMLBackend::init(GRPCConfig const &serviceConfig) {
+    Log &log = app().log();
+    log.info(QString("Connecting to gRPC service"));
+
     trayIcon_.reset(new TrayIcon());
+    connect(this, &QMLBackend::trayIconVisibleChanged, trayIcon_.get(), &TrayIcon::setVisible);
+    log.info(QString("Tray icon is visible: %1").arg(trayIcon_->isVisible() ? "true" : "false"));
     this->setNormalTrayIcon();
+
 
     connect(this, &QMLBackend::fatalError, &app(), &AppController::onFatalError);
 
     users_ = new UserList(this);
 
-    Log &log = app().log();
-    log.info(QString("Connecting to gRPC service"));
     app().grpc().setLog(&log);
     this->connectGrpcEvents();
 
@@ -727,6 +732,32 @@ bool QMLBackend::dockIconVisible() const {
 void QMLBackend::setDockIconVisible(bool visible) {
     HANDLE_EXCEPTION(
         setDockIconVisibleState(visible); emit dockIconVisibleChanged(visible);
+    )
+}
+
+
+//****************************************************************************************************************************************************
+/// \param[in] visible Should the tray icon be visible.
+//****************************************************************************************************************************************************
+void QMLBackend::setTrayIconVisible(bool visible) {
+    HANDLE_EXCEPTION(
+        AppController& app = ::app();
+        if (visible == app.settings().trayIconVisible()) {
+            return;
+        }
+        app.settings().setTrayIconVisible(visible);
+        emit trayIconVisibleChanged(visible);
+        app.log().info(QString("Changing tray icon visibility to %1").arg(visible ? "true" : "false"));
+    )
+}
+
+
+//****************************************************************************************************************************************************
+//
+//****************************************************************************************************************************************************
+bool QMLBackend::trayIconVisible() const {
+    HANDLE_EXCEPTION_RETURN_BOOL(
+        return app().settings().trayIconVisible();
     )
 }
 

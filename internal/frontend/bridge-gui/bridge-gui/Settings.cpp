@@ -28,6 +28,7 @@ namespace {
 
 QString const settingsFileName = "bridge-gui.ini"; ///< The name of the settings file.
 QString const keyUseSoftwareRenderer = "UseSoftwareRenderer"; ///< The key for storing the 'Use software rendering' setting.
+QString const keyTrayIconVisible = "TrayIconVisible"; ///< The key for storing the 'Tray icon visible' setting.
 
 
 }
@@ -36,7 +37,7 @@ QString const keyUseSoftwareRenderer = "UseSoftwareRenderer"; ///< The key for s
 //
 //****************************************************************************************************************************************************
 Settings::Settings()
-    : settings_(QDir(userConfigDir()).absoluteFilePath("bridge-gui.ini"), QSettings::Format::IniFormat) {
+    : settings_(QDir(userConfigDir()).absoluteFilePath(settingsFileName), QSettings::Format::IniFormat) {
 }
 
 
@@ -53,4 +54,18 @@ bool Settings::useSoftwareRenderer() const {
 //****************************************************************************************************************************************************
 void Settings::setUseSoftwareRenderer(bool value) {
     settings_.setValue(keyUseSoftwareRenderer, value);
+}
+
+//****************************************************************************************************************************************************
+/// \param[in] value The value for the 'Tray icon visible' setting.
+//****************************************************************************************************************************************************
+void Settings::setTrayIconVisible(bool value) {
+    settings_.setValue(keyTrayIconVisible, value);
+}
+
+//****************************************************************************************************************************************************
+/// \return The value for the 'Tray icon visible' setting.
+//****************************************************************************************************************************************************
+bool Settings::trayIconVisible() const {
+    return settings_.value(keyTrayIconVisible, true).toBool();
 }

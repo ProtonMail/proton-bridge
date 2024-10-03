@@ -148,6 +148,19 @@ SettingsView {
         onClicked: Backend.changeColorScheme(darkMode.checked ? "light" : "dark")
     }
     SettingsItem {
+        id: trayIconVisible
+        Layout.fillWidth: true
+        checked: Backend.trayIconVisible
+        colorScheme: root.colorScheme
+        description: qsTr("Show the Bridge icon in the menu bar. When the Bridge icon is not visible, launch the " +
+        "application again to display the main window.")
+        text: qsTr("Show the Bridge icon in the menu bar")
+        type: SettingsItem.Toggle
+        visible: (Backend.goos === "darwin") && root._isAdvancedShown
+
+        onClicked: Backend.trayIconVisible = !trayIconVisible.checked
+    }
+    SettingsItem {
         id: allMail
         Layout.fillWidth: true
         checked: Backend.isAllMailVisible
