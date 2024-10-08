@@ -18,6 +18,7 @@
 package observability
 
 import (
+	gluonMetrics "github.com/ProtonMail/gluon/observability/metrics"
 	"github.com/ProtonMail/go-proton-api"
 )
 
@@ -85,16 +86,19 @@ func GenerateAllHeartbeatMetricPermutations() []proton.ObservabilityMetric {
 					for _, receivedOtherError := range trueFalseValues {
 						for _, receivedSyncError := range trueFalseValues {
 							for _, receivedEventLoopError := range trueFalseValues {
-								metrics = append(metrics,
-									generateHeartbeatMetric(plan,
-										mailClient,
-										dohEnabled,
-										betaAccess,
-										receivedOtherError,
-										receivedSyncError,
-										receivedEventLoopError,
-									),
-								)
+								for _, receivedGluonError := range trueFalseValues {
+									metrics = append(metrics,
+										generateHeartbeatMetric(plan,
+											mailClient,
+											dohEnabled,
+											betaAccess,
+											receivedOtherError,
+											receivedSyncError,
+											receivedEventLoopError,
+											receivedGluonError,
+										),
+									)
+								}
 							}
 						}
 					}
@@ -102,5 +106,21 @@ func GenerateAllHeartbeatMetricPermutations() []proton.ObservabilityMetric {
 			}
 		}
 	}
+	return metrics
+}
+
+func GenerateAllGluonMetrics() []map[string]interface{} {
+	var metrics []map[string]interface{}
+	metrics = append(metrics,
+		gluonMetrics.GenerateFailedParseIMAPCommandMetric(),
+		gluonMetrics.GenerateFailedToCreateMailbox(),
+		gluonMetrics.GenerateFailedToDeleteMailboxMetric(),
+		gluonMetrics.GenerateFailedToCopyMessagesMetric(),
+		gluonMetrics.GenerateFailedToMoveMessagesFromMailboxMetric(),
+		gluonMetrics.GenerateFailedToRemoveDeletedMessagesMetric(),
+		gluonMetrics.GenerateFailedToCommitDatabaseTransactionMetric(),
+		gluonMetrics.GenerateAppendToDraftsMustNotReturnExistingRemoteID(),
+		gluonMetrics.GenerateDatabaseMigrationFailed(),
+	)
 	return metrics
 }

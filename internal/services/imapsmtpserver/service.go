@@ -31,6 +31,7 @@ import (
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 	bridgesmtp "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
@@ -60,6 +61,8 @@ type Service struct {
 
 	uidValidityGenerator imap.UIDValidityGenerator
 	telemetry            Telemetry
+
+	observabilitySender observability.Sender
 }
 
 func NewService(
@@ -71,6 +74,7 @@ func NewService(
 	reporter reporter.Reporter,
 	uidValidityGenerator imap.UIDValidityGenerator,
 	telemetry Telemetry,
+	observabilitySender observability.Sender,
 ) *Service {
 	return &Service{
 		requests:     cpc.NewCPC(),
@@ -85,6 +89,8 @@ func NewService(
 		tasks:                async.NewGroup(ctx, panicHandler),
 		uidValidityGenerator: uidValidityGenerator,
 		telemetry:            telemetry,
+
+		observabilitySender: observabilitySender,
 	}
 }
 
@@ -449,6 +455,7 @@ func (sm *Service) createIMAPServer(ctx context.Context) (*gluon.Server, error) 
 		sm.tasks,
 		sm.uidValidityGenerator,
 		sm.panicHandler,
+		sm.observabilitySender,
 	)
 	if err == nil {
 		sm.eventPublisher.PublishEvent(ctx, events.IMAPServerCreated{})

@@ -35,6 +35,14 @@ github.com/ProtonMail/gluon v0.17.1-0.20240923094038-e319bf6047c5 h1:LzaUpUj6M2P
 github.com/ProtonMail/gluon v0.17.1-0.20240923094038-e319bf6047c5/go.mod h1:0/c03TzZPNiSgY5UDJK1iRDkjlDPwWugxTT6et2qDu8=
 github.com/ProtonMail/gluon v0.17.1-0.20240923151549-d23b4bec3602 h1:EoMjWlC32tg46L/07hWoiZfLkqJyxVMcsq4Cyn+Ofqc=
 github.com/ProtonMail/gluon v0.17.1-0.20240923151549-d23b4bec3602/go.mod h1:0/c03TzZPNiSgY5UDJK1iRDkjlDPwWugxTT6et2qDu8=
+github.com/ProtonMail/gluon v0.17.1-0.20241002092751-3bbeea9053af h1:iMxTQUg2cB47cXqpMev3cZmQoGBOef3cSUjBbdEl33M=
+github.com/ProtonMail/gluon v0.17.1-0.20241002092751-3bbeea9053af/go.mod h1:0/c03TzZPNiSgY5UDJK1iRDkjlDPwWugxTT6et2qDu8=
+github.com/ProtonMail/gluon v0.17.1-0.20241002111651-173859b80060 h1:dcu3tT84GjoXb++n7crv8UJeG8eRwogjTYdkoJ+MjQI=
+github.com/ProtonMail/gluon v0.17.1-0.20241002111651-173859b80060/go.mod h1:0/c03TzZPNiSgY5UDJK1iRDkjlDPwWugxTT6et2qDu8=
+github.com/ProtonMail/gluon v0.17.1-0.20241002142736-ef4153d156d8 h1:YxPHSJUA87i1hc6s1YrW89++V7HpcR7LSFQ6XM0TsAE=
+github.com/ProtonMail/gluon v0.17.1-0.20241002142736-ef4153d156d8/go.mod h1:0/c03TzZPNiSgY5UDJK1iRDkjlDPwWugxTT6et2qDu8=
+github.com/ProtonMail/gluon v0.17.1-0.20241008123701-ddf4a459d0b4 h1:xE+V17O9HIttMpVymNCORQILk9OKpSekrrPbX7YGnF8=
+github.com/ProtonMail/gluon v0.17.1-0.20241008123701-ddf4a459d0b4/go.mod h1:0/c03TzZPNiSgY5UDJK1iRDkjlDPwWugxTT6et2qDu8=
 github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a h1:D+aZah+k14Gn6kmL7eKxoo/4Dr/lK3ChBcwce2+SQP4=
 github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a/go.mod h1:oTGdE7/DlWIr23G0IKW3OXK9wZ5Hw1GGiaJFccTvZi4=
 github.com/ProtonMail/go-crypto v0.0.0-20230321155629-9a39f2531310/go.mod h1:8TI4H3IbrackdNgv+92dI+rhpCaLqM0IfpgCgenFvRE=

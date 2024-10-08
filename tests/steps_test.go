@@ -226,4 +226,6 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the user with username "([^"]*)" sends all possible event loop message events observability metrics$`, s.eventLoopFailureMessageEventsObservability)
 	ctx.Step(`^the user with username "([^"]*)" sends all possible sync message building failure observability metrics$`, s.syncFailureMessageBuiltObservability)
 	ctx.Step(`^the user with username "([^"]*)" sends all possible sync message building success observability metrics$`, s.syncSuccessMessageBuiltObservability)
+	// Gluon related metrics
+	ctx.Step(`^the user with username "([^"]*)" sends all possible gluon error observability metrics$`, s.testGluonErrorObservabilityMetrics)
 }

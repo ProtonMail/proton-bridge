@@ -26,17 +26,20 @@ import (
 )
 
 const genericHeartbeatSchemaName = "bridge_generic_user_heartbeat_total"
+const genericHeartbeatVersion = 2
 
 type heartbeatData struct {
 	receivedSyncError      bool
 	receivedEventLoopError bool
 	receivedOtherError     bool
+	receivedGluonError     bool
 }
 
 func (d *distinctionUtility) resetHeartbeatData() {
 	d.heartbeatData.receivedSyncError = false
 	d.heartbeatData.receivedOtherError = false
 	d.heartbeatData.receivedEventLoopError = false
+	d.heartbeatData.receivedGluonError = false
 }
 
 func (d *distinctionUtility) updateHeartbeatData(errType DistinctionErrorTypeEnum) {
@@ -46,6 +49,8 @@ func (d *distinctionUtility) updateHeartbeatData(errType DistinctionErrorTypeEnu
 			d.heartbeatData.receivedSyncError = true
 		case EventLoopError:
 			d.heartbeatData.receivedEventLoopError = true
+		case GluonMessageError, GluonImapError, GluonOtherError:
+			d.heartbeatData.receivedGluonError = true
 		}
 	})
 }
@@ -95,13 +100,14 @@ func (d *distinctionUtility) generateHeartbeatUserMetric() proton.ObservabilityM
 		formatBool(d.heartbeatData.receivedOtherError),
 		formatBool(d.heartbeatData.receivedSyncError),
 		formatBool(d.heartbeatData.receivedEventLoopError),
+		formatBool(d.heartbeatData.receivedGluonError),
 	)
 }
 
-func generateHeartbeatMetric(plan, mailClient, dohEnabled, betaAccess, otherError, syncError, eventLoopError string) proton.ObservabilityMetric {
+func generateHeartbeatMetric(plan, mailClient, dohEnabled, betaAccess, otherError, syncError, eventLoopError, gluonError string) proton.ObservabilityMetric {
 	return proton.ObservabilityMetric{
 		Name:      genericHeartbeatSchemaName,
-		Version:   1,
+		Version:   genericHeartbeatVersion,
 		Timestamp: time.Now().Unix(),
 		Data: map[string]interface{}{
 			"Value": 1,
@@ -113,6 +119,7 @@ func generateHeartbeatMetric(plan, mailClient, dohEnabled, betaAccess, otherErro
 				"receivedOtherError":     otherError,
 				"receivedSyncError":      syncError,
 				"receivedEventLoopError": eventLoopError,
+				"receivedGluonError":     gluonError,
 			},
 		},
 	}

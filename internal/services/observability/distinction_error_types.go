@@ -25,13 +25,19 @@ type DistinctionErrorTypeEnum int
 
 const (
 	SyncError DistinctionErrorTypeEnum = iota
-	EventLoopError
+	GluonImapError
+	GluonMessageError
+	GluonOtherError
+	EventLoopError // EventLoopError - should always be kept last when inserting new keys.
 )
 
 // errorSchemaMap - maps between the DistinctionErrorTypeEnum and the relevant schema name.
 var errorSchemaMap = map[DistinctionErrorTypeEnum]string{ //nolint:gochecknoglobals
-	SyncError:      "bridge_sync_errors_users_total",
-	EventLoopError: "bridge_event_loop_events_errors_users_total",
+	SyncError:         "bridge_sync_errors_users_total",
+	EventLoopError:    "bridge_event_loop_events_errors_users_total",
+	GluonImapError:    "bridge_gluon_imap_errors_users_total",
+	GluonMessageError: "bridge_gluon_message_errors_users_total",
+	GluonOtherError:   "bridge_gluon_other_errors_users_total",
 }
 
 // createLastSentMap - needs to be updated whenever we make changes to the enum.

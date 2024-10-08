@@ -19,6 +19,7 @@ package tests
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice/observabilitymetrics/evtloopmsgevents"
@@ -27,18 +28,35 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice/observabilitymetrics"
 )
 
-// userHeartbeatPermutationsObservability - corresponds to bridge_generic_user_heartbeat_total_v1.schema.json.
+// userHeartbeatPermutationsObservability corresponds to bridge_generic_user_heartbeat_total_v1.schema.json.
 func (s *scenario) userHeartbeatPermutationsObservability(username string) error {
+	const batchSize = 1000
 	metrics := observability.GenerateAllHeartbeatMetricPermutations()
+	metricLen := len(metrics)
+
 	return s.t.withClientPass(context.Background(), username, s.t.getUserByName(username).userPass, func(ctx context.Context, c *proton.Client) error {
-		batch := proton.ObservabilityBatch{Metrics: metrics}
-		return c.SendObservabilityBatch(ctx, batch)
+		for i := 0; i < len(metrics); i += batchSize {
+			end := i + batchSize
+			if end > metricLen {
+				end = metricLen
+			}
+
+			batch := proton.ObservabilityBatch{Metrics: metrics[i:end]}
+			if err := c.SendObservabilityBatch(ctx, batch); err != nil {
+				return err
+			}
+		}
+
+		return nil
 	})
 }
 
-// userDistinctionMetricsPermutationsObservability - corresponds to:
-// bridge_sync_errors_users_total_v1.schema.json
-// bridge_event_loop_events_errors_users_total_v1.schema.json.
+// userDistinctionMetricsPermutationsObservability corresponds to:
+//   - bridge_sync_errors_users_total_v1.schema.json
+//   - bridge_gluon_imap_errors_users_total_v1.schema.json
+//   - bridge_gluon_message_errors_users_total_v1.schema.json
+//   - bridge_gluon_other_errors_users_total_v1.schema.json
+//   - bridge_event_loop_events_errors_users_total_v1.schema.json.
 func (s *scenario) userDistinctionMetricsPermutationsObservability(username string) error {
 	batch := proton.ObservabilityBatch{
 		Metrics: observability.GenerateAllUsedDistinctionMetricPermutations()}
@@ -48,7 +66,7 @@ func (s *scenario) userDistinctionMetricsPermutationsObservability(username stri
 	})
 }
 
-// syncFailureMessageEventsObservability - corresponds to bridge_sync_message_event_failures_total_v1.schema.json.
+// syncFailureMessageEventsObservability corresponds to bridge_sync_message_event_failures_total_v1.schema.json.
 func (s *scenario) syncFailureMessageEventsObservability(username string) error {
 	batch := proton.ObservabilityBatch{
 		Metrics: []proton.ObservabilityMetric{
@@ -62,7 +80,7 @@ func (s *scenario) syncFailureMessageEventsObservability(username string) error 
 	})
 }
 
-// eventLoopFailureMessageEventsObservability - corresponds to bridge_event_loop_message_event_failures_total_v1.schema.json.
+// eventLoopFailureMessageEventsObservability corresponds to bridge_event_loop_message_event_failures_total_v1.schema.json.
 func (s *scenario) eventLoopFailureMessageEventsObservability(username string) error {
 	batch := proton.ObservabilityBatch{
 		Metrics: []proton.ObservabilityMetric{
@@ -81,7 +99,7 @@ func (s *scenario) eventLoopFailureMessageEventsObservability(username string) e
 	})
 }
 
-// syncFailureMessageBuiltObservability - corresponds to bridge_sync_message_event_failures_total_v1.schema.json.
+// syncFailureMessageBuiltObservability corresponds to bridge_sync_message_event_failures_total_v1.schema.json.
 func (s *scenario) syncFailureMessageBuiltObservability(username string) error {
 	batch := proton.ObservabilityBatch{
 		Metrics: []proton.ObservabilityMetric{
@@ -96,13 +114,34 @@ func (s *scenario) syncFailureMessageBuiltObservability(username string) error {
 	})
 }
 
-// syncSuccessMessageBuiltObservability - corresponds to bridge_sync_message_build_success_total_v1.schema.json.
+// syncSuccessMessageBuiltObservability corresponds to bridge_sync_message_build_success_total_v1.schema.json.
 func (s *scenario) syncSuccessMessageBuiltObservability(username string) error {
 	batch := proton.ObservabilityBatch{
 		Metrics: []proton.ObservabilityMetric{
 			observabilitymetrics.GenerateMessageBuiltSuccessMetric(),
 		},
 	}
+
+	return s.t.withClientPass(context.Background(), username, s.t.getUserByName(username).userPass, func(ctx context.Context, c *proton.Client) error {
+		err := c.SendObservabilityBatch(ctx, batch)
+		return err
+	})
+}
+
+// testGluonErrorObservabilityMetrics corresponds to bridge_gluon_errors_total_v1.schema.json.
+func (s *scenario) testGluonErrorObservabilityMetrics(username string) error {
+	allMetrics := observability.GenerateAllGluonMetrics()
+
+	parsedMetrics := []proton.ObservabilityMetric{}
+	for _, el := range allMetrics {
+		ok, parsedMetric := observability.VerifyAndParseGenericMetrics(el)
+		if !ok {
+			return fmt.Errorf("failed to parse generic gluon metric")
+		}
+		parsedMetrics = append(parsedMetrics, parsedMetric)
+	}
+
+	batch := proton.ObservabilityBatch{Metrics: parsedMetrics}
 
 	return s.t.withClientPass(context.Background(), username, s.t.getUserByName(username).userPass, func(ctx context.Context, c *proton.Client) error {
 		err := c.SendObservabilityBatch(ctx, batch)
