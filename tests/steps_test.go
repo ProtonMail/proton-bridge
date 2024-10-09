@@ -190,6 +190,12 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^SMTP client "([^"]*)" sends the following EML "([^"]*)" from "([^"]*)" to "([^"]*)"$`, s.smtpClientSendsTheFollowingEmlFromTo)
 	ctx.Step(`^SMTP client "([^"]*)" logs out$`, s.smtpClientLogsOut)
 
+	// ==== EXTERNAL ====
+	ctx.Step(`^external client deletes all messages`, s.externalClientDeletesAllMessages)
+	ctx.Step(`^external client sends the following message from "([^"]*)" to "([^"]*)":$`, s.externalClientSendsTheFollowingMessageFromTo)
+	ctx.Step(`^external client fetches the following message with subject "([^"]*)" and sender "([^"]*)" and state "([^"]*)"$`, s.externalClientFetchesTheFollowingMessage)
+	ctx.Step(`^external client fetches the following message with subject "([^"]*)" and sender "([^"]*)" and state "([^"]*)" with this structure:$`, s.externalClientSeesMessageWithStructure)
+
 	// ==== TELEMETRY ====
 	ctx.Step(`^bridge eventually sends the following heartbeat:$`, s.bridgeEventuallySendsTheFollowingHeartbeat)
 	ctx.Step(`^bridge needs to send heartbeat`, s.bridgeNeedsToSendHeartbeat)

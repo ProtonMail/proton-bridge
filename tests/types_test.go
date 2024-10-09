@@ -411,6 +411,89 @@ func matchContent(have MessageSection, want MessageSection) (bool, string) {
 	return true, ""
 }
 
+func matchStructureRecursive(have []MessageStruct, want MessageStruct) error {
+	mismatches := make([]string, 0)
+	for _, msg := range have {
+		if want.From != "" && msg.From != want.From {
+			mismatches = append(mismatches, "From")
+			continue
+		}
+		if want.To != "" && msg.To != want.To {
+			mismatches = append(mismatches, "To")
+			continue
+		}
+		if want.BCC != "" && msg.BCC != want.BCC {
+			mismatches = append(mismatches, "BCC")
+			continue
+		}
+		if want.CC != "" && msg.CC != want.CC {
+			mismatches = append(mismatches, "CC")
+			continue
+		}
+		if want.Subject != "" && msg.Subject != want.Subject {
+			mismatches = append(mismatches, "Subject")
+			continue
+		}
+		if want.Date != "" && want.Date != msg.Date {
+			mismatches = append(mismatches, "Date")
+			continue
+		}
+
+		if ok, mismatch := matchContentRecursive(msg.Content, want.Content); !ok {
+			mismatches = append(mismatches, "Content: "+mismatch)
+			continue
+		}
+		return nil
+	}
+	return fmt.Errorf("missing messages: have %#v, want %#v with mismatch list %#v", have, want, mismatches)
+}
+
+func matchContentRecursive(have MessageSection, want MessageSection) (bool, string) {
+	if want.ContentType != "" && !strings.EqualFold(want.ContentType, have.ContentType) {
+		return false, "ContentType"
+	}
+	if want.ContentTypeBoundary != "" && !strings.EqualFold(want.ContentTypeBoundary, have.ContentTypeBoundary) {
+		return false, "ContentTypeBoundary"
+	}
+	if want.ContentTypeCharset != "" && !strings.EqualFold(want.ContentTypeCharset, have.ContentTypeCharset) {
+		return false, "ContentTypeCharset"
+	}
+	if want.ContentTypeName != "" && !strings.EqualFold(want.ContentTypeName, have.ContentTypeName) {
+		return false, "ContentTypeName"
+	}
+	if want.ContentDisposition != "" && !strings.EqualFold(want.ContentDisposition, have.ContentDisposition) {
+		return false, "ContentDisposition"
+	}
+	if want.ContentDispositionFilename != "" && !strings.EqualFold(want.ContentDispositionFilename, have.ContentDispositionFilename) {
+		return false, "ContentDispositionFilename"
+	}
+	if want.TransferEncoding != "" && !strings.EqualFold(want.TransferEncoding, have.TransferEncoding) {
+		return false, "TransferEncoding"
+	}
+	if want.BodyContains != "" && !strings.Contains(strings.TrimSpace(have.BodyContains), strings.TrimSpace(want.BodyContains)) {
+		return false, "BodyContains"
+	}
+	if want.BodyIs != "" && strings.TrimSpace(have.BodyIs) != strings.TrimSpace(want.BodyIs) {
+		return false, "BodyIs"
+	}
+
+	for _, wantSection := range want.Sections {
+		didPass := false
+		for _, haveSection := range have.Sections {
+			ok, _ := matchContentRecursive(haveSection, wantSection)
+			if ok {
+				didPass = true
+				break
+			}
+		}
+		if !didPass {
+			return false, "recursive mismatch found"
+		}
+	}
+
+	return true, ""
+}
+
 type Mailbox struct {
 	Name   string `bdd:"name"`
 	Total  int    `bdd:"total"`

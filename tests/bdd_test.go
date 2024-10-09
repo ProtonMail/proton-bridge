@@ -129,13 +129,15 @@ func getFeatureTags() string {
 
 	switch arguments := os.Args; arguments[len(arguments)-1] {
 	case "nightly":
-		tags = ""
+		tags = "~@gmail-integration"
 	case "smoke": // Currently this is just a placeholder, as there are no scenarios tagged with @smoke
 		tags = "@smoke"
 	case "black": // Currently this is just a placeholder, as there are no scenarios tagged with @smoke
 		tags = "~@skip-black"
+	case "gmail-integration":
+		tags = "@gmail-integration"
 	default:
-		tags = "~@regression && ~@smoke" // To exclude more add `&& ~@tag`
+		tags = "~@regression && ~@smoke && ~@gmail-integration" // To exclude more add `&& ~@tag`
 	}
 
 	return tags

@@ -54,6 +54,7 @@ generate_dep_licenses(){
 
     ## add license file to github links, and others
     sed -i -r '/github.com/s|^(.*(https://[^)]+).*)$|\1 available under [license](\2/blob/master/LICENSE) |g' "$tmpDepLicenses"
+    sed -i -r '/gitlab.com/s|^(.*(https://[^)]+).*)$|\1 available under [license](\2/blob/master/LICENSE) |g' "$tmpDepLicenses"
     sed -i -r '/go.etcd.io\/bbolt/s|^(.*)$|\1 available under [license](https://github.com/etcd-io/bbolt/blob/master/LICENSE) |g' "$tmpDepLicenses"
     sed -i -r '/howett.net\/plist/s|^(.*)$|\1 available under [license](https://github.com/DHowett/go-plist/blob/main/LICENSE) |g' "$tmpDepLicenses"
     sed -i -r '/golang.org\/x/s|^(.*golang.org/x/([^)]+).*)$|\1 available under [license](https://cs.opensource.google/go/x/\2/+/master:LICENSE) |g' "$tmpDepLicenses"
@@ -63,6 +64,12 @@ generate_dep_licenses(){
     sed -i -r '/ariga.io\/atlas/s|^(.*)$|\1 available under [license](https://github.com/ariga/atlas/blob/master/LICENSE) |g' "$tmpDepLicenses"
     sed -i -r '/entgo.io\/ent/s|^(.*)$|\1 available under [license](https://pkg.go.dev/entgo.io/ent?tab=licenses) |g' "$tmpDepLicenses"
     sed -i -r '/google.golang.org\/genproto/s|^(.*)$|\1 available under [license](https://pkg.go.dev/google.golang.org/genproto?tab=licenses) |g' "$tmpDepLicenses"
+    sed -i -r '/gopkg.in\/yaml\.v3/s|^(.*)$|\1 available under [license](https://github.com/go-yaml/yaml/blob/v3.0.1/LICENSE) |g' "$tmpDepLicenses"
+    sed -i -r '/google.golang.org\/appengine/s|^(.*)$|\1 available under [license](https://pkg.go.dev/google.golang.org/appengine?tab=licenses) |g' "$tmpDepLicenses"
+    sed -i -r '/go.opencensus.io/s|^(.*)$|* [go.opencensus.io](https://pkg.go.dev/go.opencensus.io?tab=licenses) available under [license](https://pkg.go.dev/go.opencensus.io?tab=licenses) |g' "$tmpDepLicenses"
+    sed -i -r '/google.golang.org\/api/s|^(.*)$|\1 available under [license](https://pkg.go.dev/google.golang.org/api?tab=licenses) |g' "$tmpDepLicenses"
+    sed -i -r '/cloud.google.com\/go\/compute\/metadata/s|^(.*)$|\1 available under [license](https://pkg.go.dev/cloud.google.com/go/compute/metadata?tab=licenses) |g' "$tmpDepLicenses"
+    sed -i -r '/cloud.google.com\/go\/compute\/metadata/!{/cloud.google.com\/go\/compute/s|^(.*)$|\1 available under [license](https://pkg.go.dev/cloud.google.com/go/compute?tab=licenses) |g}' "$tmpDepLicenses"
     sed -i -r '/gopkg.in\/yaml\.v3/s|^(.*)$|\1 available under [license](https://github.com/go-yaml/yaml/blob/v3.0.1/LICENSE) |g' "$tmpDepLicenses"
 }
 
