@@ -31,7 +31,7 @@ type CoolDownProvider interface {
 	Reset()
 }
 
-func jitter(max int) time.Duration {
+func jitter(max int) time.Duration { //nolint:predeclared
 	return time.Duration(rand.Intn(max)) * time.Second //nolint:gosec
 }
 

@@ -156,9 +156,9 @@ func newIMAPServer(
 
 func getGluonVersionInfo(version *semver.Version) gluon.Option {
 	return gluon.WithVersionInfo(
-		int(version.Major()),
-		int(version.Minor()),
-		int(version.Patch()),
+		int(version.Major()), //nolint:gosec // disable G115
+		int(version.Minor()), //nolint:gosec // disable G115
+		int(version.Patch()), //nolint:gosec // disable G115
 		constants.FullAppName,
 		"TODO",
 		"TODO",

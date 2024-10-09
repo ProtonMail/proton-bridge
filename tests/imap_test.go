@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -658,7 +659,7 @@ func (s *scenario) imapClientsMoveMessageWithSubjectUserFromToByOrderedOperation
 		case "EXPUNGE":
 			expungeErr = sourceClient.Expunge(nil)
 		default:
-			return fmt.Errorf("unknown IMAP operation " + op)
+			return errors.New("unknown IMAP operation " + op)
 		}
 		time.Sleep(100 * time.Millisecond)
 	}

@@ -217,7 +217,7 @@ func (m *metadataIterator) Next(maxDownloadMem uint64, metadataPageSize int, max
 		}
 
 		for idx, meta := range m.remaining {
-			nextSize := m.expectedSize + uint64(meta.Size)
+			nextSize := m.expectedSize + uint64(meta.Size) //nolint:gosec // disable G115
 			if nextSize >= maxDownloadMem || len(m.downloadReqIDs) >= maxMessages {
 				m.expectedSize = 0
 				m.remaining = m.remaining[idx:]

@@ -636,7 +636,7 @@ func loadTLSConfig(vault *vault.Vault) (*tls.Config, error) {
 	}, nil
 }
 
-func min(a, b time.Duration) time.Duration {
+func min(a, b time.Duration) time.Duration { //nolint:predeclared
 	if a < b {
 		return a
 	}

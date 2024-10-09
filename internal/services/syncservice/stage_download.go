@@ -231,7 +231,7 @@ func downloadAttachment(ctx context.Context, cache *DownloadCache, client APICli
 }
 
 type DownloadRateModifier interface {
-	Apply(wasSuccess bool, current int, max int) int
+	Apply(wasSuccess bool, current int, max int) int //nolint:predeclared
 }
 
 func autoDownloadRate[T any, R any](
@@ -285,7 +285,7 @@ func autoDownloadRate[T any, R any](
 
 type DefaultDownloadRateModifier struct{}
 
-func (d DefaultDownloadRateModifier) Apply(wasSuccess bool, current int, max int) int {
+func (d DefaultDownloadRateModifier) Apply(wasSuccess bool, current int, max int) int { //nolint:predeclared
 	if !wasSuccess {
 		return 2
 	}

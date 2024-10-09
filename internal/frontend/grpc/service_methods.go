@@ -717,8 +717,8 @@ func (s *Service) MailServerSettings(_ context.Context, _ *emptypb.Empty) (*Imap
 		state:         protoimpl.MessageState{},
 		sizeCache:     0,
 		unknownFields: nil,
-		ImapPort:      int32(s.bridge.GetIMAPPort()),
-		SmtpPort:      int32(s.bridge.GetSMTPPort()),
+		ImapPort:      int32(s.bridge.GetIMAPPort()), //nolint:gosec // disable G115
+		SmtpPort:      int32(s.bridge.GetSMTPPort()), //nolint:gosec // disable G115
 		UseSSLForImap: s.bridge.GetIMAPSSL(),
 		UseSSLForSmtp: s.bridge.GetSMTPSSL(),
 	}, nil
@@ -864,8 +864,8 @@ func base64Decode(in []byte) ([]byte, error) {
 
 func (s *Service) getMailServerSettings() *ImapSmtpSettings {
 	return &ImapSmtpSettings{
-		ImapPort:      int32(s.bridge.GetIMAPPort()),
-		SmtpPort:      int32(s.bridge.GetSMTPPort()),
+		ImapPort:      int32(s.bridge.GetIMAPPort()), //nolint:gosec // disable G115
+		SmtpPort:      int32(s.bridge.GetSMTPPort()), //nolint:gosec // disable G115
 		UseSSLForImap: s.bridge.GetIMAPSSL(),
 		UseSSLForSmtp: s.bridge.GetSMTPSSL(),
 	}

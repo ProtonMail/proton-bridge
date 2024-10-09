@@ -96,7 +96,7 @@ func (status *ConfigurationStatus) IsPending() bool {
 }
 
 func (status *ConfigurationStatus) isPendingSinceMin() int {
-	if min := int(time.Since(status.Data.DataV1.PendingSince).Minutes()); min > 0 {
+	if min := int(time.Since(status.Data.DataV1.PendingSince).Minutes()); min > 0 { //nolint:predeclared
 		return min
 	}
 	return 0
@@ -211,7 +211,7 @@ func (data *ConfigurationStatusData) clickedLinkToString() string {
 	var str = ""
 	var first = true
 	for i := 0; i < 64; i++ {
-		if data.hasLinkClicked(uint64(i)) {
+		if data.hasLinkClicked(uint64(i)) { //nolint:gosec // disable G115
 			if !first {
 				str += ","
 			} else {
