@@ -20,11 +20,15 @@ package tests
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/cucumber/godog"
 )
 
@@ -116,7 +120,7 @@ func (s *scenario) checkParsedMultipartFormForFile(method, path, file string, ha
 	}
 
 	if _, ok := req.MultipartForm.File[file]; hasFile != ok {
-		return fmt.Errorf("Multipart file in bug report is %t, want it to be %t", ok, hasFile)
+		return fmt.Errorf("multipart file in bug report is %t, want it to be %t", ok, hasFile)
 	}
 
 	return nil
@@ -239,4 +243,58 @@ func (s *scenario) theMessageUsedKeyForSending(address string) error {
 	}
 
 	return nil
+}
+
+func (s *scenario) theKeyForAddressWasUsedToImport(address string) error {
+	// Response does not include the address ID, only the messageID, so we extract the messageID from the response body
+	call, err := s.t.getLastCallExcludingHTTPOverride("POST", "/mail/v4/messages/import")
+	if err != nil {
+		return err
+	}
+
+	var resp struct {
+		Responses []struct{ Response struct{ MessageID string } }
+	}
+
+	if err := json.Unmarshal(call.ResponseBody, &resp); err != nil {
+		return err
+	}
+
+	return s.checkMessageIsEncryptedForAddress(resp.Responses[0].Response.MessageID, address)
+}
+
+func (s *scenario) theKeyForAddressWasUsedToCreateDraft(address string) error {
+	call, err := s.t.getLastCallExcludingHTTPOverride("POST", "/mail/v4/messages")
+	if err != nil {
+		return err
+	}
+
+	var resp struct{ Message struct{ ID string } }
+	if err := json.Unmarshal(call.ResponseBody, &resp); err != nil {
+		return err
+	}
+
+	return s.checkMessageIsEncryptedForAddress(resp.Message.ID, address)
+}
+
+func (s *scenario) checkMessageIsEncryptedForAddress(messageID string, address string) error {
+	user := s.t.getUserByAddress(address)
+	addrID := user.getAddrID(address)
+	return s.t.withClient(context.Background(), user.getName(), func(ctx context.Context, client *proton.Client) error {
+		message, err := client.GetMessage(ctx, messageID)
+		if err != nil {
+			return err
+		}
+
+		// Check 1: the address associated with the message is the one we expect.
+		if message.AddressID != addrID {
+			return errors.New("the message is not encrypted with the specified address")
+		}
+
+		// Check 2: we indeed encrypted the message with this address' key ring.
+		return s.t.withAddrKR(ctx, client, user.name, addrID, func(_ context.Context, kr *crypto.KeyRing) error {
+			_, err := message.Decrypt(kr)
+			return err
+		})
+	})
 }

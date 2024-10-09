@@ -39,6 +39,8 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^bridge IMAP port is (\d+)`, s.bridgeIMAPPortIs)
 	ctx.Step(`^bridge SMTP port is (\d+)`, s.bridgeSMTPPortIs)
 	ctx.Step(`^the message used "([^"]*)" key for sending$`, s.theMessageUsedKeyForSending)
+	ctx.Step(`^the key for address "([^"]*)" was used to import`, s.theKeyForAddressWasUsedToImport)
+	ctx.Step(`^the key for address "([^"]*)" was used to create draft`, s.theKeyForAddressWasUsedToCreateDraft)
 
 	// ==== SETUP ====
 	ctx.Step(`^there exists an account with username "([^"]*)" and password "([^"]*)"$`, s.thereExistsAnAccountWithUsernameAndPassword)
