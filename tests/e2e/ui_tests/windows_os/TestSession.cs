@@ -20,7 +20,7 @@ namespace ProtonMailBridge.UI.Tests
             App.Kill();
             App.Dispose();
             // Give some time to properly exit the app
-            Thread.Sleep(2000);
+            Thread.Sleep(5000);
         }
 
         public static void LaunchApp()
