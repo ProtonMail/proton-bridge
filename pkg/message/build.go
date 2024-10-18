@@ -369,30 +369,30 @@ func getMessageHeader(msg proton.Message, opts JobOptions) message.Header {
 
 	// SetText will RFC2047-encode.
 	if msg.Subject != "" {
-		hdr.SetText("Subject", msg.Subject)
+		setUTF8EncodedHeaderIfNeeded(&hdr, "Subject", msg.Subject)
 	}
 
 	// mail.Address.String() will RFC2047-encode if necessary.
 	if !addressEmpty(msg.Sender) {
-		hdr.Set("From", msg.Sender.String())
+		setHeaderIfNeeded(&hdr, "From", msg.Sender.String())
 	}
 
 	if len(msg.ReplyTos) > 0 && !msg.IsDraft() {
 		if !(len(msg.ReplyTos) == 1 && addressEmpty(msg.ReplyTos[0])) {
-			hdr.Set("Reply-To", toAddressList(msg.ReplyTos))
+			setHeaderIfNeeded(&hdr, "Reply-To", toAddressList(msg.ReplyTos))
 		}
 	}
 
 	if len(msg.ToList) > 0 {
-		hdr.Set("To", toAddressList(msg.ToList))
+		setHeaderIfNeeded(&hdr, "To", toAddressList(msg.ToList))
 	}
 
 	if len(msg.CCList) > 0 {
-		hdr.Set("Cc", toAddressList(msg.CCList))
+		setHeaderIfNeeded(&hdr, "Cc", toAddressList(msg.CCList))
 	}
 
 	if len(msg.BCCList) > 0 {
-		hdr.Set("Bcc", toAddressList(msg.BCCList))
+		setHeaderIfNeeded(&hdr, "Bcc", toAddressList(msg.BCCList))
 	}
 
 	setMessageIDIfNeeded(msg, &hdr)
@@ -401,7 +401,7 @@ func getMessageHeader(msg proton.Message, opts JobOptions) message.Header {
 	if opts.SanitizeDate {
 		if date, err := rfc5322.ParseDateTime(hdr.Get("Date")); err != nil || date.Before(time.Unix(0, 0)) {
 			msgDate := SanitizeMessageDate(msg.Time)
-			hdr.Set("Date", msgDate.In(time.UTC).Format(time.RFC1123Z))
+			setHeaderIfNeeded(&hdr, "Date", msgDate.In(time.UTC).Format(time.RFC1123Z))
 			// We clobbered the date so we save it under X-Original-Date only if no such value exists.
 			if !hdr.Has("X-Original-Date") {
 				hdr.Set("X-Original-Date", date.In(time.UTC).Format(time.RFC1123Z))
@@ -412,7 +412,7 @@ func getMessageHeader(msg proton.Message, opts JobOptions) message.Header {
 	// Set our internal ID if requested.
 	// This is important for us to detect whether APPENDed things are actually "move like outlook".
 	if opts.AddInternalID {
-		hdr.Set("X-Pm-Internal-Id", msg.ID)
+		setHeaderIfNeeded(&hdr, "X-Pm-Internal-Id", msg.ID)
 	}
 
 	// Set our external ID if requested.
@@ -426,7 +426,7 @@ func getMessageHeader(msg proton.Message, opts JobOptions) message.Header {
 	// Set our server date if requested.
 	// Can be useful to see how long it took for a message to arrive.
 	if opts.AddMessageDate {
-		hdr.Set("X-Pm-Date", time.Unix(msg.Time, 0).In(time.UTC).Format(time.RFC1123Z))
+		setHeaderIfNeeded(&hdr, "X-Pm-Date", time.Unix(msg.Time, 0).In(time.UTC).Format(time.RFC1123Z))
 	}
 
 	// Include the message ID in the references (supposedly this somehow improves outlook support...).
@@ -461,6 +461,25 @@ func setMessageIDIfNeeded(msg proton.Message, hdr *message.Header) {
 			hdr.Set("Message-Id", "<"+msg.ID+"@"+InternalIDDomain+">")
 		}
 	}
+}
+
+// setTextHeaderIfNeeded sets a text (UTF-encoded) header entry if its does not exists or if value is changed.
+// Not systematically overwriting the value prevents it from being moved to the top (Del + Add) if not changed.
+func setUTF8EncodedHeaderIfNeeded(header *message.Header, k, v string) {
+	encoded := mime.QEncoding.Encode("utf-8", v)
+	if header.Has(k) && (header.Get(k) == encoded) {
+		return
+	}
+	header.Set(k, encoded)
+}
+
+// setHeaderIfNeeded sets a header entry if its does not exists or if value is changed.
+// Not systematically overwriting the value prevents it from being moved to the top (Del + Add) if not changed.
+func setHeaderIfNeeded(header *message.Header, key, value string) {
+	if header.Has(key) && (header.Get(key) == value) {
+		return
+	}
+	header.Set(key, value)
 }
 
 func getTextPartHeader(hdr message.Header, body []byte, mimeType rfc822.MIMEType) message.Header {
@@ -509,8 +528,9 @@ func getAttachmentPartHeader(att proton.Attachment) message.Header {
 
 func toMessageHeader(hdr proton.Headers) message.Header {
 	var res message.Header
-
-	for _, key := range hdr.Order {
+	// go-message's message.Header are in reversed order (you should only add fields at the top, so storing in reverse order offer faster performances).
+	for i := len(hdr.Order) - 1; i >= 0; i-- {
+		key := hdr.Order[i]
 		for _, val := range hdr.Values[key] {
 			// Using AddRaw instead of Add to save key-value pair as byte buffer within Header.
 			// This buffer is used latter on in message writer to construct message and avoid crash

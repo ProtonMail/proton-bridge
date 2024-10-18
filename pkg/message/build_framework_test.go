@@ -21,6 +21,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/base64"
+	"net/mail"
 	"strings"
 	"testing"
 	"time"
@@ -90,6 +91,67 @@ func newRawTestMessageWithHeaders(messageID, addressID, mimeType, body string, d
 		MIMEType:      rfc822.MIMEType(mimeType),
 		Body:          body,
 	}
+}
+
+func newTestMessageFromRFC822(t *testing.T, literal []byte) proton.Message {
+	// Note attachment are not supported.
+	p := rfc822.Parse(literal)
+	h, err := p.ParseHeader()
+	require.NoError(t, err)
+	var parsedHeaders proton.Headers
+	parsedHeaders.Values = make(map[string][]string)
+	h.Entries(func(key, val string) {
+		parsedHeaders.Values[key] = []string{val}
+		parsedHeaders.Order = append(parsedHeaders.Order, key)
+	})
+	var mailHeaders = mail.Header(parsedHeaders.Values)
+	require.True(t, h.Has("Content-Type"))
+	mime, _, err := rfc822.ParseMIMEType(h.Get("Content-Type"))
+	require.NoError(t, err)
+	date, err := mailHeaders.Date()
+	require.NoError(t, err)
+	sender, err := mail.ParseAddress(parsedHeaders.Values["From"][0])
+	require.NoError(t, err)
+
+	return proton.Message{
+		MessageMetadata: proton.MessageMetadata{
+			ID:             "messageID",
+			AddressID:      "addressID",
+			LabelIDs:       []string{},
+			ExternalID:     "",
+			Subject:        parsedHeaders.Values["Subject"][0],
+			Sender:         sender,
+			ToList:         parseAddressList(t, mailHeaders, "To"),
+			CCList:         parseAddressList(t, mailHeaders, "Cc"),
+			BCCList:        parseAddressList(t, mailHeaders, "Bcc"),
+			ReplyTos:       parseAddressList(t, mailHeaders, "Reply-To"),
+			Flags:          0,
+			Time:           date.Unix(),
+			Size:           0,
+			Unread:         false,
+			IsReplied:      false,
+			IsRepliedAll:   false,
+			IsForwarded:    false,
+			NumAttachments: 0,
+		},
+		Header:        string(h.Raw()),
+		ParsedHeaders: parsedHeaders,
+		Body:          string(p.Body()),
+		MIMEType:      mime,
+		Attachments:   nil,
+	}
+}
+
+func parseAddressList(t *testing.T, header mail.Header, key string) []*mail.Address {
+	var result []*mail.Address
+	if len(header.Get(key)) == 0 {
+		return nil
+	}
+
+	result, err := header.AddressList(key)
+	require.NoError(t, err)
+
+	return result
 }
 
 func addTestAttachment(
