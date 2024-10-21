@@ -114,6 +114,7 @@ Item {
                         colorScheme: leftBar.colorScheme
                         horizontalPadding: 0
                         icon.source: "/qml/icons/ic-question-circle.svg"
+                        Accessible.name: qsTr("Help")
 
                         onClicked: rightContent.showHelpView()
                     }
@@ -130,6 +131,7 @@ Item {
                         colorScheme: leftBar.colorScheme
                         horizontalPadding: 0
                         icon.source: "/qml/icons/ic-cog-wheel.svg"
+                        Accessible.name: qsTr("Settings")
 
                         onClicked: rightContent.showGeneralSettings()
                     }
@@ -147,6 +149,7 @@ Item {
                         colorScheme: leftBar.colorScheme
                         horizontalPadding: 0
                         icon.source: "/qml/icons/ic-three-dots-vertical.svg"
+                        Accessible.name: "..."
 
                         onClicked: {
                             dotMenu.open();
@@ -319,6 +322,7 @@ Item {
                         horizontalPadding: 0
                         icon.source: "/qml/icons/ic-plus.svg"
                         width: 36
+                        Accessible.name: qsTr("Add account")
 
                         onClicked: {
                             root.showLogin("");

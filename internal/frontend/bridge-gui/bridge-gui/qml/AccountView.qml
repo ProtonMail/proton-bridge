@@ -86,11 +86,13 @@ Item {
                                 }
                             }
                             Button {
+                                id: signIn
                                 Layout.alignment: Qt.AlignTop
                                 colorScheme: root.colorScheme
                                 secondary: true
                                 text: qsTr("Sign in")
                                 visible: root.user ? (root.user.state === EUserState.SignedOut) : false
+                                Accessible.name: text
 
                                 onClicked: {
                                     if (user) {
@@ -99,11 +101,13 @@ Item {
                                 }
                             }
                             Button {
+                                id: removeAccount
                                 Layout.alignment: Qt.AlignTop
                                 colorScheme: root.colorScheme
                                 icon.source: "/qml/icons/ic-trash.svg"
                                 secondary: true
                                 visible: root.user ? root.user.state !== EUserState.Locked : false
+                                Accessible.name: qsTr("Remove account")
 
                                 onClicked: {
                                     if (!root.user)
@@ -118,6 +122,7 @@ Item {
                             height: root._lineThickness
                         }
                         SettingsItem {
+                            id: configureEmailClient
                             Layout.fillWidth: true
                             actionText: qsTr("Configure email client")
                             colorScheme: root.colorScheme
@@ -126,6 +131,7 @@ Item {
                             text: qsTr("Email clients")
                             type: SettingsItem.PrimaryButton
                             visible: _connected && ((!root.user.splitMode) || (root.user.addresses.length === 1))
+                            Accessible.name: actionText
 
                             onClicked: {
                                 if (!root.user)
@@ -143,6 +149,7 @@ Item {
                             text: qsTr("Split addresses")
                             type: SettingsItem.Toggle
                             visible: _connected && root.user.addresses.length > 1
+                            Accessible.name: text
 
                             onClicked: {
                                 if (!splitMode.checked) {

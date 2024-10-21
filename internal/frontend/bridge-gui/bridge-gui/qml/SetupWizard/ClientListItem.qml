@@ -37,6 +37,8 @@ Rectangle {
     }
     height: 68
     radius: ProtonStyle.banner_radius
+    Accessible.role: Accessible.Button
+    Accessible.name: root.text
 
     RowLayout {
         anchors.fill: parent

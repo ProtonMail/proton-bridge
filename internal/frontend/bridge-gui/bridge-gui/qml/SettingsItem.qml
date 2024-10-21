@@ -41,6 +41,8 @@ Item {
 
     implicitHeight: children[0].implicitHeight + children[0].anchors.topMargin + children[0].anchors.bottomMargin
     implicitWidth: children[0].implicitWidth + children[0].anchors.leftMargin + children[0].anchors.rightMargin
+    Accessible.name: text
+    Accessible.role: Accessible.Grouping
 
     RowLayout {
         anchors.fill: parent
@@ -77,6 +79,8 @@ Item {
             colorScheme: root.colorScheme
             loading: root.loading
             visible: root.type === SettingsItem.ActionType.Toggle
+            Accessible.role: Accessible.CheckBox
+            Accessible.name: root.Accessible.name + " toggle"
 
             onClicked: {
                 if (!root.loading)
@@ -92,6 +96,8 @@ Item {
             secondary: root.type !== SettingsItem.PrimaryButton
             text: root.actionText
             visible: root.type === SettingsItem.Button || root.type === SettingsItem.PrimaryButton
+            Accessible.role: Accessible.Button
+            Accessible.name: root.Accessible.name + " button"
 
             onClicked: {
                 if (!root.loading)

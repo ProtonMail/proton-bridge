@@ -80,6 +80,7 @@ Item {
         horizontalPadding: 8
         icon.source: "/qml/icons/ic-arrow-left.svg"
         secondary: true
+        Accessible.name: qsTr("Back")
 
         onClicked: root.back()
 

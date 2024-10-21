@@ -33,6 +33,7 @@ Button {
     icon.source: "/qml/icons/ic-question-circle.svg"
     icon.width: _iconSize
     verticalPadding: 0
+    Accessible.name: qsTr("Help")
 
     onClicked: {
         menu.popup(-menu.width + root.width, -menu.height);
