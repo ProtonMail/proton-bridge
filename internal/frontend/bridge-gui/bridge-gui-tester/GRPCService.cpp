@@ -364,9 +364,9 @@ grpc::Status GRPCService::RequestKnowledgeBaseSuggestions(ServerContext*, String
 
     QList<bridgepp::KnowledgeBaseSuggestion> suggestions;
     for (qsizetype i = 1; i <= 3; ++i) {
-        suggestions.push_back(        {
-            .title = QString("Suggested link %1").arg(i),
+        suggestions.push_back({
             .url = QString("https://proton.me/support/bridge#%1").arg(i),
+            .title = QString("Suggested link %1").arg(i),
         });
     }
     qtProxy_.sendDelayedEvent(newKnowledgeBaseSuggestionsEvent(app().mainWindow().knowledgeBaseTab().getSuggestions()));
