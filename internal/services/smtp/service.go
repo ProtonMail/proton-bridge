@@ -29,6 +29,7 @@ import (
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	bridgelogging "github.com/ProtonMail/proton-bridge/v3/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/orderedtasks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
@@ -63,6 +64,8 @@ type Service struct {
 
 	addressMode   usertypes.AddressMode
 	serverManager ServerManager
+
+	observabilitySender observability.Sender
 }
 
 func NewService(
@@ -78,6 +81,7 @@ func NewService(
 	mode usertypes.AddressMode,
 	identityState *useridentity.State,
 	serverManager ServerManager,
+	observabilitySender observability.Sender,
 ) *Service {
 	subscriberName := fmt.Sprintf("smpt-%v", userID)
 
@@ -103,6 +107,8 @@ func NewService(
 
 		addressMode:   mode,
 		serverManager: serverManager,
+
+		observabilitySender: observabilitySender,
 	}
 }
 

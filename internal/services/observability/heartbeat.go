@@ -44,6 +44,7 @@ func (d *distinctionUtility) resetHeartbeatData() {
 
 func (d *distinctionUtility) updateHeartbeatData(errType DistinctionErrorTypeEnum) {
 	d.withUpdateHeartbeatDataLock(func() {
+		//nolint:exhaustive
 		switch errType {
 		case SyncError:
 			d.heartbeatData.receivedSyncError = true

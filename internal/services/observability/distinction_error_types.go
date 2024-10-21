@@ -28,6 +28,7 @@ const (
 	GluonImapError
 	GluonMessageError
 	GluonOtherError
+	SMTPError
 	EventLoopError // EventLoopError - should always be kept last when inserting new keys.
 )
 
@@ -37,6 +38,7 @@ var errorSchemaMap = map[DistinctionErrorTypeEnum]string{ //nolint:gochecknoglob
 	EventLoopError:    "bridge_event_loop_events_errors_users_total",
 	GluonImapError:    "bridge_gluon_imap_errors_users_total",
 	GluonMessageError: "bridge_gluon_message_errors_users_total",
+	SMTPError:         "bridge_smtp_errors_users_total",
 	GluonOtherError:   "bridge_gluon_other_errors_users_total",
 }
 

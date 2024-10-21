@@ -35,7 +35,9 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/smtp/observabilitymetrics"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/message/parser"
@@ -166,6 +168,10 @@ func (s *Service) smtpSendMail(ctx context.Context, authID string, from string, 
 
 		// If the message was successfully sent, we can update the message ID in the record.
 		s.log.Debug("Message sent successfully, signaling recorder")
+
+		// Send SMTP success observability metric
+		s.observabilitySender.AddMetrics(observabilitymetrics.GenerateSMTPSendSuccess())
+
 		s.recorder.SignalMessageSent(hash, srID, sent.ID)
 
 		return nil
@@ -196,7 +202,7 @@ func (s *Service) sendWithKey(
 	}
 	parentID, draftsToDelete, err := getParentID(ctx, s.client, authAddrID, addrMode, references)
 	if err != nil {
-		// Sentry event has been removed; should be replaced with observability - BRIDGE-206.
+		s.observabilitySender.AddDistinctMetrics(observability.SMTPError, observabilitymetrics.GenerateFailedGetParentID())
 		s.log.WithError(err).Warn("Failed to get parent ID")
 	}
 
@@ -211,6 +217,7 @@ func (s *Service) sendWithKey(
 		decBody = string(message.PlainBody)
 
 	default:
+		s.observabilitySender.AddDistinctMetrics(observability.SMTPError, observabilitymetrics.GenerateUnsupportedMIMEType())
 		return proton.Message{}, fmt.Errorf("unsupported MIME type: %v", message.MIMEType)
 	}
 
@@ -227,32 +234,38 @@ func (s *Service) sendWithKey(
 		ExternalID: message.ExternalID,
 	})
 	if err != nil {
+		s.observabilitySender.AddDistinctMetrics(observability.SMTPError, observabilitymetrics.GenerateFailedCreateDraft())
 		return proton.Message{}, fmt.Errorf("failed to create draft: %w", err)
 	}
 
 	attKeys, err := s.createAttachments(ctx, s.client, addrKR, draft.ID, message.Attachments)
 	if err != nil {
+		s.observabilitySender.AddDistinctMetrics(observability.SMTPError, observabilitymetrics.GenerateFailedCreateAttachments())
 		return proton.Message{}, fmt.Errorf("failed to create attachments: %w", err)
 	}
 
 	recipients, err := s.getRecipients(ctx, s.client, userKR, settings, draft)
 	if err != nil {
+		s.observabilitySender.AddDistinctMetrics(observability.SMTPError, observabilitymetrics.GenerateFailedToGetRecipients())
 		return proton.Message{}, fmt.Errorf("failed to get recipients: %w", err)
 	}
 
 	req, err := createSendReq(addrKR, message.MIMEBody, message.RichBody, message.PlainBody, recipients, attKeys)
 	if err != nil {
+		s.observabilitySender.AddDistinctMetrics(observability.SMTPError, observabilitymetrics.GenerateFailedCreatePackages())
 		return proton.Message{}, fmt.Errorf("failed to create packages: %w", err)
 	}
 
 	res, err := s.client.SendDraft(ctx, draft.ID, req)
 	if err != nil {
+		s.observabilitySender.AddDistinctMetrics(observability.SMTPError, observabilitymetrics.GenerateFailedSendDraft())
 		return proton.Message{}, fmt.Errorf("failed to send draft: %w", err)
 	}
 
 	// Only delete the drafts, if any, after message was successfully sent.
 	if len(draftsToDelete) != 0 {
 		if err := s.client.DeleteMessage(ctx, draftsToDelete...); err != nil {
+			s.observabilitySender.AddDistinctMetrics(observability.SMTPError, observabilitymetrics.GenerateFailedDeleteFromDrafts())
 			s.log.WithField("ids", draftsToDelete).WithError(err).Errorf("Failed to delete requested messages from Drafts")
 		}
 	}

@@ -265,6 +265,7 @@ func newImpl(
 		addressMode,
 		identityState.Clone(),
 		smtpServerManager,
+		observabilityService,
 	)
 
 	user.imapService = imapservice.NewService(

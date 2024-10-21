@@ -234,6 +234,10 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the user with username "([^"]*)" sends all possible event loop message events observability metrics$`, s.eventLoopFailureMessageEventsObservability)
 	ctx.Step(`^the user with username "([^"]*)" sends all possible sync message building failure observability metrics$`, s.syncFailureMessageBuiltObservability)
 	ctx.Step(`^the user with username "([^"]*)" sends all possible sync message building success observability metrics$`, s.syncSuccessMessageBuiltObservability)
+	// SMTP metrics
+	ctx.Step(`^the user with username "([^"]*)" sends all possible SMTP error observability metrics$`, s.SMTPErrorObservabilityMetrics)
+	ctx.Step(`^the user with username "([^"]*)" sends SMTP send success observability metric$`, s.SMTPSendSuccessObservabilityMetric)
+
 	// Gluon related metrics
 	ctx.Step(`^the user with username "([^"]*)" sends all possible gluon error observability metrics$`, s.testGluonErrorObservabilityMetrics)
 }
