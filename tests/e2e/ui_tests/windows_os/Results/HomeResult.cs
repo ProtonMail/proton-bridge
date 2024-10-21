@@ -22,7 +22,7 @@ namespace ProtonMailBridge.UI.Tests.Results
         private TextBox EnterEmailOrUsernameErrorText => Window.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName("Enter email or username"))).AsTextBox();
         private TextBox EnterPasswordErrorText => Window.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName("Enter password"))).AsTextBox();
         private TextBox ConnectedStateText => Window.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName("Connected"))).AsTextBox();
-       
+        
         public HomeResult CheckConnectedState()
         {
             Assert.That(ConnectedStateText.IsAvailable, Is.True);
