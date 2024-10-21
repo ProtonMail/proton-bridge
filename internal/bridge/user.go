@@ -355,21 +355,7 @@ func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string,
 		}
 
 		if doResync {
-			if rerr := bridge.reporter.ReportMessageWithContext(
-				"Failed to handle event: feedback resync",
-				reporter.Context{"user_id": userID},
-			); rerr != nil {
-				logUser.WithError(rerr).Error("Failed to report feedback failure")
-			}
-
 			return user.BadEventFeedbackResync(ctx)
-		}
-
-		if rerr := bridge.reporter.ReportMessageWithContext(
-			"Failed to handle event: feedback logout",
-			reporter.Context{"user_id": userID},
-		); rerr != nil {
-			logUser.WithError(rerr).Error("Failed to report feedback failure")
 		}
 
 		bridge.logoutUser(ctx, user, true, false, false)

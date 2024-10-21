@@ -121,6 +121,7 @@ func GenerateAllGluonMetrics() []map[string]interface{} {
 		gluonMetrics.GenerateFailedToCommitDatabaseTransactionMetric(),
 		gluonMetrics.GenerateAppendToDraftsMustNotReturnExistingRemoteID(),
 		gluonMetrics.GenerateDatabaseMigrationFailed(),
+		gluonMetrics.GenerateFailedToStoreFlagsOnMessages(),
 	)
 	return metrics
 }
