@@ -18,7 +18,6 @@
 package app
 
 import (
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -44,12 +43,12 @@ func TestCheckSkipKeychainTest(t *testing.T) {
 	disableArgs := []string{"appName", "-" + flagDisableKeychainTest}
 	bothArgs := []string{"appName", "-" + flagDisableKeychainTest, "-" + flagEnableKeychainTest}
 
-	const trueOnlyOnMac = runtime.GOOS == "darwin"
+	onMac := onMacOS()
 
 	expectedResult = false
 	require.NoError(t, app.Run(noArgs))
 
-	expectedResult = trueOnlyOnMac
+	expectedResult = onMac
 	require.NoError(t, app.Run(disableArgs))
 	require.NoError(t, app.Run(noArgs))
 
@@ -57,7 +56,7 @@ func TestCheckSkipKeychainTest(t *testing.T) {
 	require.NoError(t, app.Run(enableArgs))
 	require.NoError(t, app.Run(noArgs))
 
-	expectedResult = trueOnlyOnMac
+	expectedResult = onMac
 	require.NoError(t, app.Run(disableArgs))
 
 	expectedResult = false

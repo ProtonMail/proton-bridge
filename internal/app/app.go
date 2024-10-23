@@ -75,17 +75,21 @@ const (
 
 	flagLogIMAP = "log-imap"
 	flagLogSMTP = "log-smtp"
+
+	flagEnableKeychainTest  = "enable-keychain-test"
+	flagDisableKeychainTest = "disable-keychain-test"
+
+	flagSoftwareRenderer    = "software-renderer"
+	flagSetSoftwareRenderer = "set-software-renderer"
+	flagSetHardwareRenderer = "set-hardware-renderer"
 )
 
 // Hidden flags.
 const (
-	flagLauncher            = "launcher"
-	flagNoWindow            = "no-window"
-	flagParentPID           = "parent-pid"
-	flagSoftwareRenderer    = "software-renderer"
-	flagEnableKeychainTest  = "enable-keychain-test"
-	flagDisableKeychainTest = "disable-keychain-test"
-	FlagSessionID           = "session-id"
+	flagLauncher  = "launcher"
+	flagNoWindow  = "no-window"
+	flagParentPID = "parent-pid"
+	FlagSessionID = "session-id"
 )
 
 const (
@@ -94,17 +98,17 @@ const (
 )
 
 var cliFlagEnableKeychainTest = &cli.BoolFlag{ //nolint:gochecknoglobals
-	Name:   flagEnableKeychainTest,
-	Usage:  "Enable the keychain test",
-	Hidden: true,
-	Value:  false,
+	Name:               flagEnableKeychainTest,
+	Usage:              "Enable the keychain test for the current and future executions of the application",
+	Value:              false,
+	DisableDefaultText: true,
 } //nolint:gochecknoglobals
 
 var cliFlagDisableKeychainTest = &cli.BoolFlag{ //nolint:gochecknoglobals
-	Name:   flagDisableKeychainTest,
-	Usage:  "Disable the keychain test",
-	Hidden: true,
-	Value:  false,
+	Name:               flagDisableKeychainTest,
+	Usage:              "Disable the keychain test for the current and future executions of the application",
+	Value:              false,
+	DisableDefaultText: true,
 }
 
 func New() *cli.App {
@@ -156,6 +160,24 @@ func New() *cli.App {
 			Name:  flagLogSMTP,
 			Usage: "Enable logging of SMTP communications (may contain decrypted data!)",
 		},
+		&cli.BoolFlag{
+			Name:               flagSoftwareRenderer, // This flag is ignored by bridge, but should be passed to launcher in case of restart, so it need to be accepted by the CLI parser.
+			Usage:              "Use software rendering of the GUI for the current execution of the application",
+			Value:              false,
+			DisableDefaultText: true,
+		},
+		&cli.BoolFlag{
+			Name:               flagSetSoftwareRenderer, // This flag is ignored by bridge, we just want it to be shown in the help (BRIDGE-217).
+			Usage:              "Toggle software rendering of the GUI for the current and future executions of the application",
+			Value:              false,
+			DisableDefaultText: true,
+		},
+		&cli.BoolFlag{
+			Name:               flagSetHardwareRenderer, // This flag is ignored by bridge, we just want it to be shown in the help (BRIDGE-217).
+			Usage:              "Toggle hardware rendering of the GUI for the current and future executions of the application",
+			Value:              false,
+			DisableDefaultText: true,
+		},
 
 		// Hidden flags
 		&cli.BoolFlag{
@@ -174,19 +196,22 @@ func New() *cli.App {
 			Hidden: true,
 			Value:  -1,
 		},
-		&cli.BoolFlag{
-			Name:   flagSoftwareRenderer, // This flag is ignored by bridge, but should be passed to launcher in case of restart, so it need to be accepted by the CLI parser.
-			Usage:  "GUI is using software renderer",
-			Hidden: true,
-			Value:  false,
-		},
 		&cli.StringFlag{
 			Name:   FlagSessionID,
 			Hidden: true,
 		},
-		// the two flags below were introduced by BRIDGE-116
-		cliFlagEnableKeychainTest,
-		cliFlagDisableKeychainTest,
+	}
+
+	// We override the default help value because we want "Show" to be capitalized
+	cli.HelpFlag = &cli.BoolFlag{
+		Name:               "help",
+		Usage:              "Show help",
+		DisableDefaultText: true,
+	}
+
+	if onMacOS() {
+		// The two flags below were introduced for BRIDGE-116, and are available only on macOS.
+		app.Flags = append(app.Flags, cliFlagEnableKeychainTest, cliFlagDisableKeychainTest)
 	}
 
 	app.Action = run
@@ -548,7 +573,7 @@ func setDeviceCookies(jar *cookies.Jar) error {
 }
 
 func checkSkipKeychainTest(c *cli.Context, settingsDir string) bool {
-	if runtime.GOOS != "darwin" {
+	if !onMacOS() {
 		return false
 	}
 
@@ -577,4 +602,8 @@ func checkSkipKeychainTest(c *cli.Context, settingsDir string) bool {
 	}
 
 	return skip
+}
+
+func onMacOS() bool {
+	return runtime.GOOS == "darwin"
 }
