@@ -12,6 +12,7 @@
 // along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
 
 RowLayout {
