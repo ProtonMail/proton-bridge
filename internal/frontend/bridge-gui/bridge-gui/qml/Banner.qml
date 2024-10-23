@@ -28,7 +28,7 @@ Popup {
     implicitWidth: 600 // contentLayout.implicitWidth + contentLayout.anchors.leftMargin + contentLayout.anchors.rightMargin
     leftMargin: (mainWindow.width - root.implicitWidth) / 2
     modal: false
-    popupType: ApplicationWindow.PopupType.Banner
+    popupPrio: ApplicationWindow.PopupPriority.Banner
     shouldShow: notification ? (notification.active && !notification.dismissed) : false
     topMargin: 37
 
