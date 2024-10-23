@@ -1,7 +1,7 @@
-# Proton Mail Bridge and Import Export app
+# Proton Mail Bridge
 Copyright (c) 2024 Proton AG
 
-This repository holds the Proton Mail Bridge and the Proton Mail Import-Export applications.
+This repository holds the Proton Mail Bridge application.
 For a detailed build information see [BUILDS](./BUILDS.md).
 The license can be found in [LICENSE](./LICENSE) file, for more licensing information see [COPYING_NOTES](./COPYING_NOTES.md).
 For contribution policy see [CONTRIBUTING](./CONTRIBUTING.md).
@@ -13,7 +13,7 @@ Proton Mail Bridge for e-mail clients.
 When launched, Bridge will initialize local IMAP/SMTP servers and render 
 its GUI.
 
-To configure an e-mail client, firstly log in using your Proton Mail credentials. 
+To configure an e-mail client, first log in using your Proton Mail credentials. 
 Open your e-mail client and add a new account using the settings which are 
 located in the Bridge GUI. The client will only be able to sync with 
 your Proton Mail account when the Bridge is running, thus the option 
@@ -24,10 +24,10 @@ background.
 
 More details [on the public website](https://proton.me/mail/bridge).
 
-## Launchers
-Launchers are binaries used to run the Proton Mail Bridge or Import-Export apps.
+## Launcher
+The launcher is a binary used to run the Proton Mail Bridge.
 
-Official distributions of the Proton Mail Bridge and Import-Export apps contain
+The Official distribution of the Proton Mail Bridge application contains
 both a launcher and the app itself. The launcher is installed in a protected
 area of the system (i.e. an area accessible only with admin privileges) and is
 used to run the app. The launcher ensures that nobody tampered with the app's
@@ -37,7 +37,7 @@ feature enables the app to securely update itself automatically without asking
 the user for a password.
 
 ## Keychain
-You need to have a keychain in order to run the Proton Mail Bridge. On Mac or
+You need to have a keychain in order to run Proton Mail Bridge. On Mac or
 Windows, Bridge uses native credential managers. On Linux, use `secret-service` freedesktop.org API
 (e.g. [Gnome keyring](https://wiki.gnome.org/Projects/GnomeKeyring/))
 or
