@@ -21,7 +21,7 @@ T.ApplicationWindow {
     id: root
 
     // popup priority based on types
-    enum PopupType {
+    enum PopupPriority {
         Banner,
         Dialog
     }
@@ -78,10 +78,10 @@ T.ApplicationWindow {
                 topmost = obj;
                 break;
             }
-            if (topmost && (topmost.popupType > obj.popupType)) {
+            if (topmost && (topmost.popupPrio > obj.popupPrio)) {
                 continue;
             }
-            if (topmost && (topmost.popupType === obj.popupType) && (topmost.occurred > obj.occurred)) {
+            if (topmost && (topmost.popupPrio === obj.popupPrio) && (topmost.occurred > obj.occurred)) {
                 continue;
             }
             topmost = obj;

@@ -21,7 +21,7 @@ T.Dialog {
 
     property ColorScheme colorScheme
     readonly property var occurred: shouldShow ? new Date() : undefined
-    readonly property int popupType: ApplicationWindow.PopupType.Dialog
+    readonly property int popupPrio: ApplicationWindow.PopupPriority.Dialog
     property bool shouldShow: false
 
     function close() {

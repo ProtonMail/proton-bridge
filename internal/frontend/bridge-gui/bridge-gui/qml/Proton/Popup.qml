@@ -21,7 +21,7 @@ T.Popup {
 
     property ColorScheme colorScheme
     readonly property var occurred: shouldShow ? new Date() : undefined
-    property int popupType: ApplicationWindow.PopupType.Banner
+    property int popupPrio: ApplicationWindow.PopupPriority.Banner
     property bool shouldShow: false
 
     function close() {
