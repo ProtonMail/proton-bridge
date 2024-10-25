@@ -25,17 +25,18 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
+	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
 	"github.com/sirupsen/logrus"
 )
 
-func WithVault(locations *locations.Locations, keychains *keychain.List, panicHandler async.PanicHandler, fn func(*vault.Vault, bool, bool) error) error {
+func WithVault(reporter *sentry.Reporter, locations *locations.Locations, keychains *keychain.List, panicHandler async.PanicHandler, fn func(*vault.Vault, bool, bool) error) error {
 	logrus.Debug("Creating vault")
 	defer logrus.Debug("Vault stopped")
 
 	// Create the encVault.
-	encVault, insecure, corrupt, err := newVault(locations, keychains, panicHandler)
+	encVault, insecure, corrupt, err := newVault(reporter, locations, keychains, panicHandler)
 	if err != nil {
 		return fmt.Errorf("could not create vault: %w", err)
 	}
@@ -57,7 +58,7 @@ func WithVault(locations *locations.Locations, keychains *keychain.List, panicHa
 	return fn(encVault, insecure, corrupt != nil)
 }
 
-func newVault(locations *locations.Locations, keychains *keychain.List, panicHandler async.PanicHandler) (*vault.Vault, bool, error, error) {
+func newVault(reporter *sentry.Reporter, locations *locations.Locations, keychains *keychain.List, panicHandler async.PanicHandler) (*vault.Vault, bool, error, error) {
 	vaultDir, err := locations.ProvideSettingsPath()
 	if err != nil {
 		return nil, false, nil, fmt.Errorf("could not get vault dir: %w", err)
@@ -71,6 +72,16 @@ func newVault(locations *locations.Locations, keychains *keychain.List, panicHan
 	)
 
 	if key, err := loadVaultKey(vaultDir, keychains); err != nil {
+		if reporter != nil {
+			if rerr := reporter.ReportMessageWithContext("Could not load/create vault key", map[string]any{
+				"keychainDefaultHelper":       keychains.GetDefaultHelper(),
+				"keychainUsableHelpersLength": len(keychains.GetHelpers()),
+				"error":                       err.Error(),
+			}); rerr != nil {
+				logrus.WithError(err).Info("Failed to report keychain issue to Sentry")
+			}
+		}
+
 		logrus.WithError(err).Error("Could not load/create vault key")
 		insecure = true
 

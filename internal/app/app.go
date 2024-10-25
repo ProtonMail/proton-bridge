@@ -285,7 +285,7 @@ func run(c *cli.Context) error {
 							skipKeychainTest := checkSkipKeychainTest(c, settings)
 							return WithKeychainList(crashHandler, skipKeychainTest, func(keychains *keychain.List) error {
 								// Unlock the encrypted vault.
-								return WithVault(locations, keychains, crashHandler, func(v *vault.Vault, insecure, corrupt bool) error {
+								return WithVault(reporter, locations, keychains, crashHandler, func(v *vault.Vault, insecure, corrupt bool) error {
 									if !v.Migrated() {
 										// Migrate old settings into the vault.
 										if err := migrateOldSettings(v); err != nil {

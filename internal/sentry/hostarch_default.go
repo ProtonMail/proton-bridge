@@ -20,12 +20,10 @@
 
 package sentry
 
-import "github.com/elastic/go-sysinfo"
+import (
+	"github.com/elastic/go-sysinfo/types"
+)
 
-func getHostArch() string {
-	host, err := sysinfo.Host()
-	if err != nil {
-		return "not-detected"
-	}
+func getHostArch(host types.Host) string {
 	return host.Info().Architecture
 }

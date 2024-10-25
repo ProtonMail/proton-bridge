@@ -30,9 +30,12 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/restarter"
+	"github.com/elastic/go-sysinfo"
 	"github.com/getsentry/sentry-go"
 	"github.com/sirupsen/logrus"
 )
+
+const hostNotDetectedField = "not-detected"
 
 var skippedFunctions = []string{} //nolint:gochecknoglobals
 
@@ -70,15 +73,48 @@ func init() { //nolint:gochecknoinits
 	)
 }
 
+type hostInfoData struct {
+	hostArch    string
+	hostName    string
+	hostVersion string
+	hostBuild   string
+}
+
+func newHostInfoData() hostInfoData {
+	return hostInfoData{
+		hostArch:    hostNotDetectedField,
+		hostName:    hostNotDetectedField,
+		hostVersion: hostNotDetectedField,
+		hostBuild:   hostNotDetectedField,
+	}
+}
+
 type Reporter struct {
 	appName    string
 	appVersion string
 	identifier Identifier
-	hostArch   string
+	hostInfo   hostInfoData
 }
 
 type Identifier interface {
 	GetUserAgent() string
+}
+
+func getHostInfo() hostInfoData {
+	data := newHostInfoData()
+
+	host, err := sysinfo.Host()
+	if err != nil {
+		return data
+	}
+
+	data.hostArch = getHostArch(host)
+	osInfo := host.Info().OS
+	data.hostName = osInfo.Name
+	data.hostVersion = osInfo.Version
+	data.hostBuild = osInfo.Build
+
+	return data
 }
 
 func GetProtectedHostname() string {
@@ -100,7 +136,7 @@ func NewReporter(appName string, identifier Identifier) *Reporter {
 		appName:    appName,
 		appVersion: constants.Revision,
 		identifier: identifier,
-		hostArch:   getHostArch(),
+		hostInfo:   getHostInfo(),
 	}
 }
 
@@ -152,11 +188,14 @@ func (r *Reporter) scopedReport(context map[string]interface{}, doReport func())
 	}
 
 	tags := map[string]string{
-		"OS":        runtime.GOOS,
-		"Client":    r.appName,
-		"Version":   r.appVersion,
-		"UserAgent": r.identifier.GetUserAgent(),
-		"HostArch":  r.hostArch,
+		"OS":          runtime.GOOS,
+		"Client":      r.appName,
+		"Version":     r.appVersion,
+		"UserAgent":   r.identifier.GetUserAgent(),
+		"HostArch":    r.hostInfo.hostArch,
+		"HostName":    r.hostInfo.hostName,
+		"HostVersion": r.hostInfo.hostVersion,
+		"HostBuild":   r.hostInfo.hostBuild,
 	}
 
 	sentry.WithScope(func(scope *sentry.Scope) {
