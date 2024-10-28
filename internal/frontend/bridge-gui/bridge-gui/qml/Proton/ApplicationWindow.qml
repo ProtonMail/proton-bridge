@@ -78,10 +78,10 @@ T.ApplicationWindow {
                 topmost = obj;
                 break;
             }
-            if (topmost && (topmost.popupPrio > obj.popupPrio)) {
+            if (topmost && (topmost.popupPriority > obj.popupPriority)) {
                 continue;
             }
-            if (topmost && (topmost.popupPrio === obj.popupPrio) && (topmost.occurred > obj.occurred)) {
+            if (topmost && (topmost.popupPriority === obj.popupPriority) && (topmost.occurred > obj.occurred)) {
                 continue;
             }
             topmost = obj;
