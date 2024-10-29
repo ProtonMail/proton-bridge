@@ -3,6 +3,30 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Erasmus Bridge 3.15.0
+
+### Added
+* BRIDGE-238: Added host information to sentry events; new sentry event for keychain issues.
+* BRIDGE-236: Added SMTP observability metrics.
+* BRIDGE-217: Added missing parameter to the CLI help command.
+* BRIDGE-234: Add accessibility name in QML for UI automation.
+* BRIDGE-232: Test: Add Home Menu Bridge UI e2e automation tests.
+* BRIDGE-220: Test: Add Bridge E2E UI login/logout tests for Windows.
+
+### Changed
+* BRIDGE-228: Removed sentry events.
+* BRIDGE-218: Observability adapter; gluon observability metrics and tests.
+* BRIDGE-215: Tweak wording on macOS profile install page.
+* BRIDGE-131: Test: Integration tests for messages from Proton <-> Gmail.
+* BRIDGE-142: Bridge icon can be removed from the menu bar on macOS.
+
+### Fixed
+* BRIDGE-240: Fix for running against Qt 6.8 (contribution of GitHub user Cimbali).
+* BRIDGE-231: Fix reversed header order in messages.
+* BRIDGE-235: Fix compilation of Bridge GUI Tester on Windows.
+* BRIDGE-120: Use appropriate address key when importing / saving draft.
+
+
 ## Dragon Bridge 3.14.0
 
 ### Changed
