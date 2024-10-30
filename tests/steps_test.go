@@ -203,13 +203,6 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^bridge needs to send heartbeat`, s.bridgeNeedsToSendHeartbeat)
 	ctx.Step(`^bridge do not need to send heartbeat`, s.bridgeDoNotNeedToSendHeartbeat)
 	ctx.Step(`^heartbeat is not whitelisted`, s.heartbeatIsNotwhitelisted)
-	ctx.Step(`^config status file exist for user "([^"]*)"$`, s.configStatusFileExistForUser)
-	ctx.Step(`^config status is pending for user "([^"]*)"$`, s.configStatusIsPendingForUser)
-	ctx.Step(`^config status is pending with failure for user "([^"]*)"$`, s.configStatusIsPendingWithFailureForUser)
-	ctx.Step(`^config status succeed for user "([^"]*)"$`, s.configStatusSucceedForUser)
-	ctx.Step(`^config status event "([^"]*)" is eventually send (\d+) time`, s.configStatusEventIsEventuallySendXTime)
-	ctx.Step(`^config status event "([^"]*)" is not send more than (\d+) time`, s.configStatusEventIsNotSendMoreThanXTime)
-	ctx.Step(`^force config status progress to be sent for user"([^"]*)"$`, s.forceConfigStatusProgressToBeSentForUser)
 
 	// ==== CONTACT ====
 	ctx.Step(`^user "([^"]*)" has contact "([^"]*)" with name "([^"]*)"$`, s.userHasContactWithName)

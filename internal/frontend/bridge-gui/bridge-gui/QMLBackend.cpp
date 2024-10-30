@@ -303,7 +303,6 @@ void QMLBackend::openExternalLink(QString const &url) {
     HANDLE_EXCEPTION(
         QString const u = url.isEmpty() ? bridgeKBUrl : url;
         QDesktopServices::openUrl(u);
-        emit notifyExternalLinkClicked(u);
     )
 }
 
@@ -1094,33 +1093,6 @@ void QMLBackend::sendBadEventUserFeedback(QString const &userID, bool doResync) 
         }
     )
 }
-
-//****************************************************************************************************************************************************
-///
-//****************************************************************************************************************************************************
-void QMLBackend::notifyReportBugClicked() const {
-    HANDLE_EXCEPTION(
-            app().grpc().reportBugClicked();
-    )
-}
-//****************************************************************************************************************************************************
-/// \param[in] client The selected Mail client for autoconfig.
-//****************************************************************************************************************************************************
-void QMLBackend::notifyAutoconfigClicked(QString const &client) const {
-    HANDLE_EXCEPTION(
-            app().grpc().autoconfigClicked(client);
-    )
-}
-
-//****************************************************************************************************************************************************
-/// \param[in] article The url of the KB article.
-//****************************************************************************************************************************************************
-void QMLBackend::notifyExternalLinkClicked(QString const &article) const {
-    HANDLE_EXCEPTION(
-            app().grpc().externalLinkClicked(article);
-    )
-}
-
 
 //****************************************************************************************************************************************************
 //

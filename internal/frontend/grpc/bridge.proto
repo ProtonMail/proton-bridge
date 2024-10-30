@@ -98,11 +98,6 @@ service Bridge {
   rpc RemoveUser(google.protobuf.StringValue) returns (google.protobuf.Empty);
   rpc ConfigureUserAppleMail(ConfigureAppleMailRequest) returns (google.protobuf.Empty);
 
-  // Telemetry
-  rpc ReportBugClicked(google.protobuf.Empty) returns (google.protobuf.Empty);
-  rpc AutoconfigClicked(google.protobuf.StringValue) returns (google.protobuf.Empty);
-  rpc ExternalLinkClicked(google.protobuf.StringValue) returns (google.protobuf.Empty);
-
   // TLS certificate related calls
   rpc IsTLSCertificateInstalled(google.protobuf.Empty) returns (google.protobuf.BoolValue);
   rpc InstallTLSCertificate(google.protobuf.Empty) returns (google.protobuf.Empty);

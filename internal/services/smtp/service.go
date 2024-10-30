@@ -39,12 +39,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type Telemetry interface {
-	useridentity.Telemetry
-	ReportSMTPAuthSuccess(context.Context)
-	ReportSMTPAuthFailed(username string)
-}
-
 type Service struct {
 	userID       string
 	panicHandler async.PanicHandler
@@ -57,7 +51,6 @@ type Service struct {
 	bridgePassProvider useridentity.BridgePassProvider
 	keyPassProvider    useridentity.KeyPassProvider
 	identityState      *useridentity.State
-	telemetry          Telemetry
 
 	eventService userevents.Subscribable
 	subscription *userevents.EventChanneledSubscriber
@@ -76,7 +69,6 @@ func NewService(
 	reporter reporter.Reporter,
 	bridgePassProvider useridentity.BridgePassProvider,
 	keyPassProvider useridentity.KeyPassProvider,
-	telemetry Telemetry,
 	eventService userevents.Subscribable,
 	mode usertypes.AddressMode,
 	identityState *useridentity.State,
@@ -99,7 +91,6 @@ func NewService(
 
 		bridgePassProvider: bridgePassProvider,
 		keyPassProvider:    keyPassProvider,
-		telemetry:          telemetry,
 		identityState:      identityState,
 		eventService:       eventService,
 

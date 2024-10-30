@@ -255,7 +255,7 @@ func (bridge *Bridge) LogoutUser(ctx context.Context, userID string) error {
 			return ErrNoSuchUser
 		}
 
-		bridge.logoutUser(ctx, user, true, false, false)
+		bridge.logoutUser(ctx, user, true, false)
 
 		bridge.publish(events.UserLoggedOut{
 			UserID: userID,
@@ -280,7 +280,7 @@ func (bridge *Bridge) DeleteUser(ctx context.Context, userID string) error {
 		}
 
 		if user, ok := bridge.users[userID]; ok {
-			bridge.logoutUser(ctx, user, true, true, !bridge.GetTelemetryDisabled())
+			bridge.logoutUser(ctx, user, true, true)
 		}
 
 		if err := imapservice.DeleteSyncState(syncConfigDir, userID); err != nil {
@@ -358,7 +358,7 @@ func (bridge *Bridge) SendBadEventUserFeedback(_ context.Context, userID string,
 			return user.BadEventFeedbackResync(ctx)
 		}
 
-		bridge.logoutUser(ctx, user, true, false, false)
+		bridge.logoutUser(ctx, user, true, false)
 
 		bridge.publish(events.UserLoggedOut{
 			UserID: userID,
@@ -527,11 +527,6 @@ func (bridge *Bridge) addUserWithVault(
 	vault *vault.User,
 	isNew bool,
 ) error {
-	statsPath, err := bridge.locator.ProvideStatsPath()
-	if err != nil {
-		return fmt.Errorf("failed to get Statistics directory: %w", err)
-	}
-
 	syncSettingsPath, err := bridge.locator.ProvideIMAPSyncConfigPath()
 	if err != nil {
 		return fmt.Errorf("failed to get IMAP sync config path: %w", err)
@@ -546,7 +541,6 @@ func (bridge *Bridge) addUserWithVault(
 		bridge.panicHandler,
 		bridge.vault.GetShowAllMail(),
 		bridge.vault.GetMaxSyncMemory(),
-		statsPath,
 		bridge,
 		bridge.serverManager,
 		bridge.serverManager,
@@ -611,13 +605,8 @@ func (bridge *Bridge) newVaultUser(
 }
 
 // logout logs out the given user, optionally logging them out from the API too.
-func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, withData, withTelemetry bool) {
+func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, withData bool) {
 	defer delete(bridge.users, user.ID())
-
-	// if this is actually a remove account
-	if withData && withAPI {
-		user.SendConfigStatusAbort(ctx, withTelemetry)
-	}
 
 	logUser.WithFields(logrus.Fields{
 		"userID":   user.ID(),

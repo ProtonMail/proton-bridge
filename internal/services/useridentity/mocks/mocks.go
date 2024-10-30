@@ -64,38 +64,3 @@ func (mr *MockIdentityProviderMockRecorder) GetUser(arg0 interface{}) *gomock.Ca
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockIdentityProvider)(nil).GetUser), arg0)
 }
-
-// MockTelemetry is a mock of Telemetry interface.
-type MockTelemetry struct {
-	ctrl     *gomock.Controller
-	recorder *MockTelemetryMockRecorder
-}
-
-// MockTelemetryMockRecorder is the mock recorder for MockTelemetry.
-type MockTelemetryMockRecorder struct {
-	mock *MockTelemetry
-}
-
-// NewMockTelemetry creates a new mock instance.
-func NewMockTelemetry(ctrl *gomock.Controller) *MockTelemetry {
-	mock := &MockTelemetry{ctrl: ctrl}
-	mock.recorder = &MockTelemetryMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockTelemetry) EXPECT() *MockTelemetryMockRecorder {
-	return m.recorder
-}
-
-// ReportConfigStatusFailure mocks base method.
-func (m *MockTelemetry) ReportConfigStatusFailure(arg0 string) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "ReportConfigStatusFailure", arg0)
-}
-
-// ReportConfigStatusFailure indicates an expected call of ReportConfigStatusFailure.
-func (mr *MockTelemetryMockRecorder) ReportConfigStatusFailure(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReportConfigStatusFailure", reflect.TypeOf((*MockTelemetry)(nil).ReportConfigStatusFailure), arg0)
-}

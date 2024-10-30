@@ -43,8 +43,7 @@ func (bridge *Bridge) handleUserEvent(ctx context.Context, user *user.User, even
 
 func (bridge *Bridge) handleUserDeauth(ctx context.Context, user *user.User) {
 	safe.Lock(func() {
-		bridge.logoutUser(ctx, user, false, false, false)
-		user.ReportConfigStatusFailure("User deauth.")
+		bridge.logoutUser(ctx, user, false, false)
 	}, bridge.usersLock)
 }
 

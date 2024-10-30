@@ -47,12 +47,6 @@ type EventProvider interface {
 	RewindEventID(ctx context.Context, eventID string) error
 }
 
-type Telemetry interface {
-	useridentity.Telemetry
-	SendConfigStatusSuccess(ctx context.Context)
-	ReportConfigStatusFailure(errDetails string)
-}
-
 type GluonIDProvider interface {
 	GetGluonID(addrID string) (string, bool)
 	GetGluonIDs() map[string]string
@@ -77,7 +71,6 @@ type Service struct {
 	serverManager   IMAPServerManager
 	eventPublisher  events.EventPublisher
 
-	telemetry    Telemetry
 	panicHandler async.PanicHandler
 	sendRecorder *sendrecorder.SendRecorder
 	reporter     reporter.Reporter
@@ -112,7 +105,6 @@ func NewService(
 	keyPassProvider useridentity.KeyPassProvider,
 	panicHandler async.PanicHandler,
 	sendRecorder *sendrecorder.SendRecorder,
-	telemetry Telemetry,
 	reporter reporter.Reporter,
 	addressMode usertypes.AddressMode,
 	subscription events.Subscription,
@@ -150,7 +142,6 @@ func NewService(
 
 		panicHandler: panicHandler,
 		sendRecorder: sendRecorder,
-		telemetry:    telemetry,
 		reporter:     reporter,
 
 		connectors:    make(map[string]*Connector),
@@ -513,7 +504,6 @@ func (s *Service) buildConnectors() (map[string]*Connector, error) {
 			s.addressMode,
 			s.sendRecorder,
 			s.panicHandler,
-			s.telemetry,
 			s.reporter,
 			s.showAllMail,
 			s.syncStateProvider,
@@ -531,7 +521,6 @@ func (s *Service) buildConnectors() (map[string]*Connector, error) {
 			s.addressMode,
 			s.sendRecorder,
 			s.panicHandler,
-			s.telemetry,
 			s.reporter,
 			s.showAllMail,
 			s.syncStateProvider,

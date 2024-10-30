@@ -188,16 +188,6 @@ func (l *Locations) ProvideUpdatesPath() (string, error) {
 	return l.getUpdatesPath(), nil
 }
 
-// ProvideStatsPath returns a location for statistics files (e.g. ~/.local/share/<company>/<app>/stats).
-// It creates it if it doesn't already exist.
-func (l *Locations) ProvideStatsPath() (string, error) {
-	if err := os.MkdirAll(l.getStatsPath(), 0o700); err != nil {
-		return "", err
-	}
-
-	return l.getStatsPath(), nil
-}
-
 func (l *Locations) ProvideIMAPSyncConfigPath() (string, error) {
 	if err := os.MkdirAll(l.getIMAPSyncConfigPath(), 0o700); err != nil {
 		return "", err
@@ -250,10 +240,6 @@ func (l *Locations) getUpdatesPath() string {
 
 func (l *Locations) getNotificationsCachePath() string {
 	return filepath.Join(l.userCache, "notifications")
-}
-
-func (l *Locations) getStatsPath() string {
-	return filepath.Join(l.userData, "stats")
 }
 
 func (l *Locations) getUnleashCachePath() string { return filepath.Join(l.userCache, "unleash_cache") }

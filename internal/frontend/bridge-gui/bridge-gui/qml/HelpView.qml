@@ -83,7 +83,6 @@ SettingsView {
 
         onClicked: {
             Backend.updateCurrentMailClient();
-            Backend.notifyReportBugClicked();
             root.parent.showBugReport();
         }
     }

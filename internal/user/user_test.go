@@ -160,7 +160,6 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 		nil,
 		true,
 		vault.DefaultMaxSyncMemory,
-		tb.TempDir(),
 		manager,
 		nullIMAPServerManager,
 		nullSMTPServerManager,
