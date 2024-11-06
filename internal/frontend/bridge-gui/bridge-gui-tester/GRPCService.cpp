@@ -30,7 +30,7 @@ using namespace bridgepp;
 namespace {
 
 QString const defaultKeychain = "defaultKeychain"; ///< The default keychain.
-QString const HV_ERROR_TEMPLATE = "failed to create new API client: 422 POST https://mail-api.proton.me/auth/v4: CAPTCHA validation failed (Code=12087, Status=422)";
+QString const HV_ERROR_TEMPLATE = "Human verification failed. Please try again.";
 
 }
 

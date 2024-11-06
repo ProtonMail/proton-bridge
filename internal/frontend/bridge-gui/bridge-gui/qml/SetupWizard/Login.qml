@@ -29,6 +29,7 @@ FocusScope {
     property alias username: usernameTextField.text
     property var wizard
     property string hvLinkUrl: ""
+    property bool hvLinkClicked: false
 
     signal loginAbort(string username, bool wasSignedOut)
 
@@ -49,6 +50,7 @@ FocusScope {
         }
         passwordTextField.hidePassword();
         secondPasswordTextField.hidePassword();
+        hvLinkClicked = false;
     }
     function resetViaHv() {
         usernameTextField.enabled = false;
@@ -56,6 +58,7 @@ FocusScope {
         signInButton.loading = true;
         secondPasswordButton.loading = false;
         secondPasswordTextField.enabled = true;
+        hvLinkClicked = false;
         totpLayout.reset();
     }
 
@@ -562,6 +565,7 @@ FocusScope {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             Qt.openUrlExternally(hvLinkUrl);
+                            hvLinkClicked = true;
                         }
                     }
                 }
@@ -574,7 +578,8 @@ FocusScope {
                         id: hVContinueButton
                         Layout.fillWidth: true
                         colorScheme: wizard.colorScheme
-                        text: qsTr("Continue")
+                        text: qsTr("I’ve completed the verification")
+                        enabled: hvLinkClicked
 
                         function checkAndSignInHv() {
                             console.assert(stackLayout.currentIndex === Login.RootStack.HV ||  stackLayout.currentIndex === Login.RootStack.MailboxPassword, "Unexpected checkInAndSignInHv")
