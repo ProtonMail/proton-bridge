@@ -22,6 +22,8 @@ import (
 	"errors"
 	"fmt"
 	"net/mail"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -386,6 +388,70 @@ func (s *scenario) userLogsOut(username string) error {
 
 func (s *scenario) userIsDeleted(username string) error {
 	return s.t.bridge.DeleteUser(context.Background(), s.t.getUserByName(username).getUserID())
+}
+
+func (s *scenario) userIsDeletedAndImapDataRemoved(username string) error {
+	gluonCacheDir := s.t.bridge.GetGluonCacheDir()
+	userID := s.t.getUserByName(username).userID
+	userMap := s.t.bridge.GetUsers()
+	userObj, ok := userMap[userID]
+	if !ok {
+		return fmt.Errorf("could not find user object")
+	}
+
+	gluonIDMap := userObj.GetGluonIDs()
+	gluonIDs := make([]string, 0, len(gluonIDMap))
+	for _, id := range gluonIDMap {
+		gluonIDs = append(gluonIDs, id)
+	}
+
+	var relevantPaths []string
+	if err := filepath.Walk(gluonCacheDir, func(path string, _ os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		for _, gluonID := range gluonIDs {
+			if strings.Contains(path, gluonID) {
+				relevantPaths = append(relevantPaths, path)
+			}
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	if len(relevantPaths) == 0 {
+		return fmt.Errorf("found no user related gluon paths")
+	}
+
+	if err := s.t.bridge.DeleteUser(context.Background(), userID); err != nil {
+		return fmt.Errorf("could not delete user: %w", err)
+	}
+
+	foundDeferredDelete := false
+	var remainingPaths []string
+	if err := filepath.Walk(gluonCacheDir, func(path string, _ os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		for _, gluonID := range gluonIDs {
+			if strings.Contains(path, gluonID) {
+				remainingPaths = append(remainingPaths, path)
+			}
+		}
+		if strings.Contains(path, "deferred_delete") {
+			foundDeferredDelete = true
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	if len(remainingPaths) == 0 && foundDeferredDelete {
+		return nil
+	}
+
+	return fmt.Errorf("user gluon data is still present or could not find deferred deletion directory")
 }
 
 func (s *scenario) theAuthOfUserIsRevoked(username string) error {

@@ -592,8 +592,13 @@ func (user *User) CheckAuth(email string, password []byte) (string, error) {
 }
 
 // Logout logs the user out from the API.
-func (user *User) Logout(ctx context.Context, withAPI bool) error {
-	user.log.WithField("withAPI", withAPI).Info("Logging out user")
+func (user *User) Logout(ctx context.Context, withAPI, withData, withDataDisabledKillSwitch bool) error {
+	user.log.WithFields(
+		logrus.Fields{
+			"withAPI":                    withAPI,
+			"withData":                   withData,
+			"withDataDisabledKillSwitch": withDataDisabledKillSwitch,
+		}).Info("Logging out user")
 
 	user.log.Debug("Canceling ongoing tasks")
 
@@ -601,8 +606,20 @@ func (user *User) Logout(ctx context.Context, withAPI bool) error {
 		return fmt.Errorf("failed to remove user from smtp server: %w", err)
 	}
 
-	if err := user.imapService.OnLogout(ctx); err != nil {
-		return fmt.Errorf("failed to remove user from imap server: %w", err)
+	if withData && !withDataDisabledKillSwitch {
+		if err := user.imapService.OnDelete(ctx); err != nil {
+			if rerr := user.reporter.ReportMessageWithContext("Failed to delete user IMAP data", map[string]any{
+				"error": err.Error(),
+			}); rerr != nil {
+				logrus.WithError(rerr).Info("Failed to report user IMAP deletion issue to Sentry")
+			}
+
+			return fmt.Errorf("failed to delete user from imap server: %w", err)
+		}
+	} else {
+		if err := user.imapService.OnLogout(ctx); err != nil {
+			return fmt.Errorf("failed to remove user from imap server: %w", err)
+		}
 	}
 
 	user.tasks.CancelAndWait()

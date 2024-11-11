@@ -233,6 +233,12 @@ func (s *Service) OnLogout(ctx context.Context) error {
 	return err
 }
 
+func (s *Service) OnDelete(ctx context.Context) error {
+	_, err := s.cpc.Send(ctx, &onDeleteReq{})
+
+	return err
+}
+
 func (s *Service) ShowAllMail(ctx context.Context, v bool) error {
 	_, err := s.cpc.Send(ctx, &showAllMailReq{v: v})
 
@@ -360,6 +366,11 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 			case *onLogoutReq:
 				s.log.Debug("Logout Request")
 				err := s.removeConnectorsFromServer(ctx, s.connectors, false)
+				req.Reply(ctx, nil, err)
+
+			case *onDeleteReq:
+				s.log.Debug("Delete Request")
+				err := s.removeConnectorsFromServer(ctx, s.connectors, true)
 				req.Reply(ctx, nil, err)
 
 			case *showAllMailReq:
@@ -643,6 +654,8 @@ type onBadEventResyncReq struct{}
 type onLogoutReq struct{}
 
 type showAllMailReq struct{ v bool }
+
+type onDeleteReq struct{}
 
 type setAddressModeReq struct {
 	mode usertypes.AddressMode

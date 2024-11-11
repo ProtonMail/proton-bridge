@@ -733,3 +733,8 @@ func (bridge *Bridge) ReportMessageWithContext(message string, messageCtx report
 		}).Info("Error occurred when sending Report to Sentry")
 	}
 }
+
+// GetUsers is only used for testing purposes.
+func (bridge *Bridge) GetUsers() map[string]*user.User {
+	return bridge.users
+}

@@ -116,6 +116,7 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^user "([^"]*)" has telemetry set to (\d+)$`, s.userHasTelemetrySetTo)
 	ctx.Step(`^the bridge password of user "([^"]*)" is changed to "([^"]*)"`, s.bridgePasswordOfUserIsChangedTo)
 	ctx.Step(`^the bridge password of user "([^"]*)" is equal to "([^"]*)"`, s.bridgePasswordOfUserIsEqualTo)
+	ctx.Step(`^user "([^"]*)" is deleted alongside IMAP data for client "([^"]*)"$`, s.userIsDeletedAndImapDataRemoved)
 
 	// ==== ACCOUNT SETTINGS ====
 	ctx.Step(`^the account "([^"]*)" has public key attachment "([^"]*)"`, s.accountHasPublicKeyAttachment)

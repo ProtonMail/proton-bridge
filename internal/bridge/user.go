@@ -33,6 +33,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/try"
+	"github.com/ProtonMail/proton-bridge/v3/internal/unleash"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/go-resty/resty/v2"
@@ -607,7 +608,7 @@ func (bridge *Bridge) newVaultUser(
 	return bridge.vault.GetOrAddUser(apiUser.ID, apiUser.Name, apiUser.Email, authUID, authRef, saltedKeyPass)
 }
 
-// logout logs out the given user, optionally logging them out from the API too.
+// logoutUser logs out the given user, optionally logging them out from the API and deleting user related gluon data.
 func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, withData bool) {
 	defer delete(bridge.users, user.ID())
 
@@ -617,7 +618,7 @@ func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, 
 		"withData": withData,
 	}).Debug("Logging out user")
 
-	if err := user.Logout(ctx, withAPI); err != nil {
+	if err := user.Logout(ctx, withAPI, withData, bridge.unleashService.GetFlagValue(unleash.UserRemovalGluonDataCleanupDisabled)); err != nil {
 		logUser.WithError(err).Error("Failed to logout user")
 	}
 
