@@ -13,26 +13,46 @@ Feature: A user can authenticate an IMAP client
     When user "[user:user]" connects IMAP client "1"
     Then IMAP client "1" can authenticate
 
+  Scenario: IMAP client can authenticate successfully using IMAP AUTHENTICATE
+    When user "[user:user]" connects IMAP client "1"
+    Then IMAP client "1" can authenticate using IMAP AUTHENTICATE
+
   Scenario: IMAP client can authenticate successfully with different case
     When user "[user:user]" connects IMAP client "1"
     Then IMAP client "1" can authenticate with address "{toUpper:[user:user]@[domain]}"
 
+  Scenario: IMAP client can authenticate successfully with different case using IMAP AUTHENTICATE
+    When user "[user:user]" connects IMAP client "1"
+    Then IMAP client "1" can authenticate with address "{toUpper:[user:user]@[domain]}" using IMAP AUTHENTICATE
+
   Scenario: IMAP client can authenticate successfully with secondary address
     Given user "[user:user]" connects and authenticates IMAP client "1" with address "[alias:alias]@[domain]"
 
-  Scenario: IMAP client can authenticate successfully
-    When user "[user:user]" connects IMAP client "1"
-    Then IMAP client "1" can authenticate
+  Scenario: IMAP client can authenticate successfully with secondary address using IMAP AUTHENTICATE
+    Given user "[user:user]" connects and authenticates IMAP client "1" with address "[alias:alias]@[domain]" using IMAP AUTHENTICATE
 
   Scenario: IMAP client cannot authenticate with bad username
     When user "[user:user]" connects IMAP client "1"
     Then IMAP client "1" cannot authenticate with incorrect username
 
+  Scenario: IMAP client cannot authenticate with bad username using IMAP AUTHENTICATE
+    When user "[user:user]" connects IMAP client "1"
+    Then IMAP client "1" cannot authenticate with incorrect username using IMAP AUTHENTICATE
+
   Scenario: IMAP client cannot authenticate with bad password
     When user "[user:user]" connects IMAP client "1"
     Then IMAP client "1" cannot authenticate with incorrect password
+
+  Scenario: IMAP client cannot authenticate with bad password using IMAP AUTHENTICATE
+    When user "[user:user]" connects IMAP client "1"
+    Then IMAP client "1" cannot authenticate with incorrect password using IMAP AUTHENTICATE
 
   Scenario: IMAP client cannot authenticate for disconnected user
     When user "[user:user]" logs out
     And user "[user:user]" connects IMAP client "1"
     Then IMAP client "1" cannot authenticate
+
+  Scenario: IMAP client cannot authenticate using IMAP AUTHENTICATE for disconnected user
+    When user "[user:user]" logs out
+    And user "[user:user]" connects IMAP client "1"
+    Then IMAP client "1" cannot authenticate using IMAP AUTHENTICATE
