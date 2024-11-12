@@ -64,6 +64,14 @@ func TestUserAgent(t *testing.T) {
 			platform: "Windows 10 (10.0)",
 			want:     "Thunderbird/78.6.1 (Windows 10 (10.0))",
 		},
+
+		// We ignore Apple Notes.
+		{
+			name:     "Mac OS X Notes",
+			version:  "4.11",
+			platform: "Windows 10 (10.0)",
+			want:     DefaultUserAgent + " (Windows 10 (10.0))",
+		},
 	}
 
 	for _, test := range tests {
