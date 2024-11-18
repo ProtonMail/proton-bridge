@@ -67,7 +67,7 @@ func runBlocker(startPort, endPort int) {
 	}
 
 	for port := startPort; port <= endPort; port++ {
-		listener, err := net.Listen("tcp", "127.0.0.1:"+strconv.Itoa(port))
+		listener, err := net.Listen("tcp", "0.0.0.0:"+strconv.Itoa(port))
 		if err != nil {
 			fmt.Printf("Port %v is already blocked. Skipping.\n", port)
 		} else {

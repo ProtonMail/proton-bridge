@@ -393,7 +393,7 @@ func TestBridge_User_Network_NoBadEvents(t *testing.T) {
 }
 
 func TestBridge_User_DropConn_NoBadEvent(t *testing.T) {
-	l, err := net.Listen("tcp", "127.0.0.1:0")
+	l, err := net.Listen("tcp", "0.0.0.0:0")
 	require.NoError(t, err)
 
 	dropListener := proton.NewListener(l, proton.NewDropConn)

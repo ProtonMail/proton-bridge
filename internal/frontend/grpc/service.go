@@ -135,7 +135,7 @@ func NewService(
 		}
 	} else {
 		var err error
-		listener, err = net.Listen("tcp", "127.0.0.1:0") // Port should be provided by the OS.
+		listener, err = net.Listen("tcp", "0.0.0.0:0") // Port should be provided by the OS.
 		if err != nil {
 			logrus.WithError(err).Panic("Could not create gRPC listener")
 		}

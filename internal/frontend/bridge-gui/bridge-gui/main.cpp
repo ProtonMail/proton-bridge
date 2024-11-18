@@ -155,7 +155,7 @@ QUrl getApiUrl() {
     QUrl url;
     // use default url.
     url.setScheme("http");
-    url.setHost("127.0.0.1");
+    url.setHost("0.0.0.0");
     url.setPort(1042);
 
     // override with what can be found in the prefs.json file.

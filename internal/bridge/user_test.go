@@ -62,7 +62,7 @@ func TestBridge_Login(t *testing.T) {
 }
 
 func TestBridge_Login_DropConn(t *testing.T) {
-	l, err := net.Listen("tcp", "127.0.0.1:0")
+	l, err := net.Listen("tcp", "0.0.0.0:0")
 	require.NoError(t, err)
 
 	dropListener := proton.NewListener(l, proton.NewDropConn)

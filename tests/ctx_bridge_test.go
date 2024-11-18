@@ -307,7 +307,7 @@ func (t *testCtx) initFrontendClient() error {
 	conn, err := grpc.DialContext(
 		context.Background(),
 		target,
-		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{RootCAs: cp, ServerName: "127.0.0.1"})),
+		grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{RootCAs: cp, ServerName: "0.0.0.0"})),
 		grpc.WithUnaryInterceptor(func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 			return invoker(metadata.AppendToOutgoingContext(ctx, "server-token", cfg.Token), method, req, reply, cc, opts...)
 		}),

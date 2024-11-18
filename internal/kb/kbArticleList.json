@@ -58,7 +58,7 @@
       "Thunderbird",
       "Mac Mail",
       "Could not connect to server",
-      "The attempt to read data from the server “127.0.0.1"
+      "The attempt to read data from the server “0.0.0.0"
     ]
   },
   {

@@ -66,7 +66,7 @@ const (
 	KeyChainName = "bridge-v3"
 
 	// Host is the hostname of the bridge server.
-	Host = "127.0.0.1"
+	Host = "0.0.0.0"
 )
 
 // nolint:goconst

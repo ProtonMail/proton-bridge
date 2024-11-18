@@ -127,9 +127,9 @@ void GRPCClient::connectToServer(QString const &sessionID, QString const &config
         grpc::ChannelArguments chanArgs;
         if (useFileSocketForGRPC()) {
             address = QString("unix://" + config.fileSocketPath);
-            chanArgs.SetSslTargetNameOverride("127.0.0.1"); // for file socket, we skip name verification to avoid a confusion localhost/127.0.0.1
+            chanArgs.SetSslTargetNameOverride("0.0.0.0"); // for file socket, we skip name verification to avoid a confusion localhost/0.0.0.0
         } else {
-            address = QString("127.0.0.1:%1").arg(config.port);
+            address = QString("0.0.0.0:%1").arg(config.port);
         }
 
         SslCredentialsOptions opts;
