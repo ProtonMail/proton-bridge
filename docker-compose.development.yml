@@ -1,0 +1,14 @@
+services:
+  proton-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - proton-bridge-data:/root/.config/protonmail/bridge
+    expose:
+      - "1025"
+      - "1143"
+    restart: unless-stopped
+
+volumes:
+  proton-bridge-data:
