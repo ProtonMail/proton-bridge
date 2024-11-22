@@ -50,7 +50,6 @@ type Service struct {
 }
 
 const bitfieldRegexPattern = `^\\\d+`
-const disableNotificationsKillSwitch = "InboxBridgeEventLoopNotificationDisabled"
 
 func NewService(userID string, service userevents.Subscribable, eventPublisher events.EventPublisher, store *Store,
 	getFlagFn unleash.GetFlagValueFn, observabilitySender observability.Sender) *Service {
@@ -103,7 +102,7 @@ func (s *Service) run(ctx context.Context) {
 }
 
 func (s *Service) HandleNotificationEvents(ctx context.Context, notificationEvents []proton.NotificationEvent) error {
-	if s.getFlagValueFn(disableNotificationsKillSwitch) {
+	if s.getFlagValueFn(unleash.EventLoopNotificationDisabled) {
 		s.log.Info("Received notification events. Skipping as kill switch is enabled.")
 		return nil
 	}
