@@ -24,6 +24,7 @@ import (
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/proton-bridge/v3/internal/plan"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 )
 
@@ -62,7 +63,7 @@ func newDistinctionUtility(ctx context.Context, panicHandler async.PanicHandler,
 
 		observabilitySender: observabilitySender,
 
-		userPlanUnsafe: planUnknown,
+		userPlanUnsafe: plan.Unknown,
 
 		heartbeatData:   heartbeatData{},
 		heartbeatTicker: time.NewTicker(updateInterval),

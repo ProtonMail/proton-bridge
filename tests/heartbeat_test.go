@@ -54,6 +54,10 @@ func (s *scenario) bridgeNeedsToSendHeartbeat() error {
 	return nil
 }
 
+func (s *scenario) bridgeNeedsToSendExplicitHeartbeat() error {
+	return s.t.heartbeat.SetLastHeartbeatSent(time.Now().Add(-24 * time.Hour))
+}
+
 func (s *scenario) bridgeDoNotNeedToSendHeartbeat() error {
 	last := s.t.heartbeat.GetLastHeartbeatSent()
 	if isAnotherDay(last, time.Now()) {
@@ -73,7 +77,7 @@ func matchHeartbeat(have, want telemetry.HeartbeatData) error {
 	}
 
 	// Ignore rollout number
-	want.Dimensions.Rollout = have.Dimensions.Rollout
+	want.Values.Rollout = have.Values.Rollout
 
 	if have != want {
 		return fmt.Errorf("missing heartbeat: have %#v, want %#v", have, want)

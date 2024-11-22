@@ -20,15 +20,16 @@ package observability
 import (
 	gluonMetrics "github.com/ProtonMail/gluon/observability/metrics"
 	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/proton-bridge/v3/internal/plan"
 )
 
 func GenerateAllUsedDistinctionMetricPermutations() []proton.ObservabilityMetric {
 	planValues := []string{
-		planUnknown,
-		planOther,
-		planBusiness,
-		planIndividual,
-		planGroup}
+		plan.Unknown,
+		plan.Other,
+		plan.Business,
+		plan.Individual,
+		plan.Group}
 	mailClientValues := []string{
 		emailAgentAppleMail,
 		emailAgentOutlook,
@@ -58,11 +59,11 @@ func GenerateAllUsedDistinctionMetricPermutations() []proton.ObservabilityMetric
 
 func GenerateAllHeartbeatMetricPermutations() []proton.ObservabilityMetric {
 	planValues := []string{
-		planUnknown,
-		planOther,
-		planBusiness,
-		planIndividual,
-		planGroup}
+		plan.Unknown,
+		plan.Other,
+		plan.Business,
+		plan.Individual,
+		plan.Group}
 	mailClientValues := []string{
 		emailAgentAppleMail,
 		emailAgentOutlook,

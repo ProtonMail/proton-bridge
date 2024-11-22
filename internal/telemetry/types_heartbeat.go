@@ -21,14 +21,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/plan"
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	dimensionON       = "on"
-	dimensionOFF      = "off"
-	dimensionDefault  = "default"
-	dimensionCustom   = "custom"
 	dimensionSSL      = "ssl"
 	dimensionStartTLS = "starttls"
 )
@@ -46,24 +43,29 @@ type HeartbeatManager interface {
 }
 
 type HeartbeatValues struct {
-	NbAccount int `json:"nb_account"`
+	NumberConnectedAccounts int `json:"numberConnectedAccounts"`
+	Rollout                 int `json:"rolloutPercentage"`
 }
 
 type HeartbeatDimensions struct {
-	AutoUpdate         string `json:"auto_update"`
-	AutoStart          string `json:"auto_start"`
-	Beta               string `json:"beta"`
-	Doh                string `json:"doh"`
-	SplitMode          string `json:"split_mode"`
-	ShowAllMail        string `json:"show_all_mail"`
-	IMAPConnectionMode string `json:"imap_connection_mode"`
-	SMTPConnectionMode string `json:"smtp_connection_mode"`
-	IMAPPort           string `json:"imap_port"`
-	SMTPPort           string `json:"smtp_port"`
-	CacheLocation      string `json:"cache_location"`
-	KeychainPref       string `json:"keychain_pref"`
-	PrevVersion        string `json:"prev_version"`
-	Rollout            string `json:"rollout"`
+	// Fields below correspond to bool
+	AutoUpdateEnabled       string `json:"isAutoUpdateEnabled"`
+	AutoStartEnabled        string `json:"isAutoStartEnabled"`
+	BetaEnabled             string `json:"isBetaEnabled"`
+	DohEnabled              string `json:"isDohEnabled"`
+	UseSplitMode            string `json:"usesSplitMode"`
+	ShowAllMail             string `json:"useAllMail"`
+	UseDefaultIMAPPort      string `json:"useDefaultImapPort"`
+	UseDefaultSMTPPort      string `json:"useDefaultSmtpPort"`
+	UseDefaultCacheLocation string `json:"useDefaultCacheLocation"`
+	UseDefaultKeychain      string `json:"useDefaultKeychain"`
+	ContactedByAppleNotes   string `json:"isContactedByAppleNotes"`
+
+	// Fields below are enums.
+	PrevVersion        string `json:"prevVersion"` // Free text (exception)
+	IMAPConnectionMode string `json:"imapConnectionMode"`
+	SMTPConnectionMode string `json:"smtpConnectionMode"`
+	UserPlanGroup      string `json:"bridgePlanGroup"`
 }
 
 type HeartbeatData struct {
@@ -82,4 +84,26 @@ type Heartbeat struct {
 	defaultSMTPPort int
 	defaultCache    string
 	defaultKeychain string
+	defaultUserPlan string
+}
+
+func NewHeartbeatDimensions() HeartbeatDimensions {
+	return HeartbeatDimensions{
+		AutoUpdateEnabled:       "false",
+		AutoStartEnabled:        "false",
+		BetaEnabled:             "false",
+		DohEnabled:              "false",
+		UseSplitMode:            "false",
+		ShowAllMail:             "false",
+		UseDefaultIMAPPort:      "false",
+		UseDefaultSMTPPort:      "false",
+		UseDefaultCacheLocation: "false",
+		UseDefaultKeychain:      "false",
+		ContactedByAppleNotes:   "false",
+
+		PrevVersion:        "unknown",
+		IMAPConnectionMode: dimensionSSL,
+		SMTPConnectionMode: dimensionSSL,
+		UserPlanGroup:      plan.Unknown,
+	}
 }

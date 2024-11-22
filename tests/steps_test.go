@@ -207,6 +207,8 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	// ==== TELEMETRY ====
 	ctx.Step(`^bridge eventually sends the following heartbeat:$`, s.bridgeEventuallySendsTheFollowingHeartbeat)
 	ctx.Step(`^bridge needs to send heartbeat`, s.bridgeNeedsToSendHeartbeat)
+	ctx.Step(`^bridge needs to explicitly send heartbeat`, s.bridgeNeedsToSendExplicitHeartbeat)
+
 	ctx.Step(`^bridge do not need to send heartbeat`, s.bridgeDoNotNeedToSendHeartbeat)
 	ctx.Step(`^heartbeat is not whitelisted`, s.heartbeatIsNotwhitelisted)
 

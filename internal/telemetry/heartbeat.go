@@ -19,9 +19,12 @@ package telemetry
 
 import (
 	"context"
+	"math"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/plan"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/sirupsen/logrus"
 )
@@ -32,70 +35,66 @@ func NewHeartbeat(manager HeartbeatManager, imapPort, smtpPort int, cacheDir, ke
 		manager: manager,
 		metrics: HeartbeatData{
 			MeasurementGroup: "bridge.any.usage",
-			Event:            "bridge_heartbeat",
+			Event:            "bridge_heartbeat_new",
+			Dimensions:       NewHeartbeatDimensions(),
 		},
 		defaultIMAPPort: imapPort,
 		defaultSMTPPort: smtpPort,
 		defaultCache:    cacheDir,
 		defaultKeychain: keychain,
+		defaultUserPlan: plan.Unknown,
 	}
 	return heartbeat
 }
 
 func (heartbeat *Heartbeat) SetRollout(val float64) {
-	heartbeat.metrics.Dimensions.Rollout = strconv.Itoa(int(val * 100))
+	heartbeat.metrics.Values.Rollout = int(math.Floor(val * 10))
 }
 
-func (heartbeat *Heartbeat) SetNbAccount(val int) {
-	heartbeat.metrics.Values.NbAccount = val
+func (heartbeat *Heartbeat) GetRollout() int {
+	return heartbeat.metrics.Values.Rollout
+}
+
+func (heartbeat *Heartbeat) SetNumberConnectedAccounts(val int) {
+	heartbeat.metrics.Values.NumberConnectedAccounts = val
 }
 
 func (heartbeat *Heartbeat) SetAutoUpdate(val bool) {
-	if val {
-		heartbeat.metrics.Dimensions.AutoUpdate = dimensionON
-	} else {
-		heartbeat.metrics.Dimensions.AutoUpdate = dimensionOFF
-	}
+	heartbeat.metrics.Dimensions.AutoUpdateEnabled = strconv.FormatBool(val)
 }
 
 func (heartbeat *Heartbeat) SetAutoStart(val bool) {
-	if val {
-		heartbeat.metrics.Dimensions.AutoStart = dimensionON
-	} else {
-		heartbeat.metrics.Dimensions.AutoStart = dimensionOFF
-	}
+	heartbeat.metrics.Dimensions.AutoStartEnabled = strconv.FormatBool(val)
 }
 
 func (heartbeat *Heartbeat) SetBeta(val updater.Channel) {
-	if val == updater.EarlyChannel {
-		heartbeat.metrics.Dimensions.Beta = dimensionON
-	} else {
-		heartbeat.metrics.Dimensions.Beta = dimensionOFF
-	}
+	heartbeat.metrics.Dimensions.BetaEnabled = strconv.FormatBool(val == updater.EarlyChannel)
 }
 
 func (heartbeat *Heartbeat) SetDoh(val bool) {
-	if val {
-		heartbeat.metrics.Dimensions.Doh = dimensionON
-	} else {
-		heartbeat.metrics.Dimensions.Doh = dimensionOFF
-	}
+	heartbeat.metrics.Dimensions.DohEnabled = strconv.FormatBool(val)
 }
 
 func (heartbeat *Heartbeat) SetSplitMode(val bool) {
-	if val {
-		heartbeat.metrics.Dimensions.SplitMode = dimensionON
-	} else {
-		heartbeat.metrics.Dimensions.SplitMode = dimensionOFF
+	heartbeat.metrics.Dimensions.UseSplitMode = strconv.FormatBool(val)
+}
+
+func (heartbeat *Heartbeat) SetUserPlan(val string) {
+	mappedUserPlan := plan.MapUserPlan(val)
+	if plan.IsHigherPriority(heartbeat.metrics.Dimensions.UserPlanGroup, mappedUserPlan) {
+		heartbeat.metrics.Dimensions.UserPlanGroup = val
+	}
+}
+
+func (heartbeat *Heartbeat) SetContactedByAppleNotes(uaName string) {
+	uaNameLowered := strings.ToLower(uaName)
+	if strings.Contains(uaNameLowered, "mac") && strings.Contains(uaNameLowered, "notes") {
+		heartbeat.metrics.Dimensions.ContactedByAppleNotes = strconv.FormatBool(true)
 	}
 }
 
 func (heartbeat *Heartbeat) SetShowAllMail(val bool) {
-	if val {
-		heartbeat.metrics.Dimensions.ShowAllMail = dimensionON
-	} else {
-		heartbeat.metrics.Dimensions.ShowAllMail = dimensionOFF
-	}
+	heartbeat.metrics.Dimensions.ShowAllMail = strconv.FormatBool(val)
 }
 
 func (heartbeat *Heartbeat) SetIMAPConnectionMode(val bool) {
@@ -115,35 +114,19 @@ func (heartbeat *Heartbeat) SetSMTPConnectionMode(val bool) {
 }
 
 func (heartbeat *Heartbeat) SetIMAPPort(val int) {
-	if val == heartbeat.defaultIMAPPort {
-		heartbeat.metrics.Dimensions.IMAPPort = dimensionDefault
-	} else {
-		heartbeat.metrics.Dimensions.IMAPPort = dimensionCustom
-	}
+	heartbeat.metrics.Dimensions.UseDefaultIMAPPort = strconv.FormatBool(val == heartbeat.defaultIMAPPort)
 }
 
 func (heartbeat *Heartbeat) SetSMTPPort(val int) {
-	if val == heartbeat.defaultSMTPPort {
-		heartbeat.metrics.Dimensions.SMTPPort = dimensionDefault
-	} else {
-		heartbeat.metrics.Dimensions.SMTPPort = dimensionCustom
-	}
+	heartbeat.metrics.Dimensions.UseDefaultSMTPPort = strconv.FormatBool(val == heartbeat.defaultSMTPPort)
 }
 
 func (heartbeat *Heartbeat) SetCacheLocation(val string) {
-	if val == heartbeat.defaultCache {
-		heartbeat.metrics.Dimensions.CacheLocation = dimensionDefault
-	} else {
-		heartbeat.metrics.Dimensions.CacheLocation = dimensionCustom
-	}
+	heartbeat.metrics.Dimensions.UseDefaultCacheLocation = strconv.FormatBool(val == heartbeat.defaultCache)
 }
 
 func (heartbeat *Heartbeat) SetKeyChainPref(val string) {
-	if val == heartbeat.defaultKeychain {
-		heartbeat.metrics.Dimensions.KeychainPref = dimensionDefault
-	} else {
-		heartbeat.metrics.Dimensions.KeychainPref = dimensionCustom
-	}
+	heartbeat.metrics.Dimensions.UseDefaultKeychain = strconv.FormatBool(val == heartbeat.defaultKeychain)
 }
 
 func (heartbeat *Heartbeat) SetPrevVersion(val string) {

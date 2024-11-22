@@ -63,6 +63,8 @@ type User struct {
 	id  string
 	log *logrus.Entry
 
+	userPlan string
+
 	vault    *vault.User
 	client   *proton.Client
 	reporter reporter.Reporter
@@ -176,6 +178,14 @@ func newImpl(
 		return nil, fmt.Errorf("failed to get addresses: %w", err)
 	}
 
+	// Get the user's plan name.
+	var userPlan string
+	if organizationData, err := client.GetOrganizationData(ctx); err != nil {
+		logrus.WithError(err).Info("Failed to obtain user organization data")
+	} else {
+		userPlan = organizationData.Organization.Name
+	}
+
 	// Get the user's API labels.
 	apiLabels, err := client.GetLabels(ctx, proton.LabelTypeSystem, proton.LabelTypeFolder, proton.LabelTypeLabel)
 	if err != nil {
@@ -196,6 +206,8 @@ func newImpl(
 	user := &User{
 		log: logrus.WithField("userID", apiUser.ID),
 		id:  apiUser.ID,
+
+		userPlan: userPlan,
 
 		vault:    encVault,
 		client:   client,
@@ -317,7 +329,7 @@ func newImpl(
 	user.identityService.Start(ctx, user.serviceGroup)
 
 	// Add user client to observability service
-	observabilityService.RegisterUserClient(user.id, client, user.telemetryService)
+	observabilityService.RegisterUserClient(user.id, client, user.telemetryService, userPlan)
 
 	// Start Notification service
 	user.notificationService.Start(ctx, user.serviceGroup)
@@ -414,6 +426,11 @@ func (user *User) Emails() []string {
 // GetAddressMode returns the user's current address mode.
 func (user *User) GetAddressMode() vault.AddressMode {
 	return user.vault.AddressMode()
+}
+
+// GetUserPlanName returns the user's subscription plan name.
+func (user *User) GetUserPlanName() string {
+	return user.userPlan
 }
 
 // SetAddressMode sets the user's address mode.

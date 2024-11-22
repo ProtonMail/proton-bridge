@@ -22,34 +22,38 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/plan"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry/mocks"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHeartbeat_default_heartbeat(t *testing.T) {
 	withHeartbeat(t, 1143, 1025, "/tmp", "defaultKeychain", func(hb *telemetry.Heartbeat, mock *mocks.MockHeartbeatManager) {
 		data := telemetry.HeartbeatData{
 			MeasurementGroup: "bridge.any.usage",
-			Event:            "bridge_heartbeat",
+			Event:            "bridge_heartbeat_new",
 			Values: telemetry.HeartbeatValues{
-				NbAccount: 1,
+				NumberConnectedAccounts: 1,
+				Rollout:                 1,
 			},
 			Dimensions: telemetry.HeartbeatDimensions{
-				AutoUpdate:         "on",
-				AutoStart:          "on",
-				Beta:               "off",
-				Doh:                "off",
-				SplitMode:          "off",
-				ShowAllMail:        "off",
-				IMAPConnectionMode: "ssl",
-				SMTPConnectionMode: "ssl",
-				IMAPPort:           "default",
-				SMTPPort:           "default",
-				CacheLocation:      "default",
-				KeychainPref:       "default",
-				PrevVersion:        "1.2.3",
-				Rollout:            "10",
+				AutoUpdateEnabled:       "true",
+				AutoStartEnabled:        "true",
+				BetaEnabled:             "false",
+				DohEnabled:              "false",
+				UseSplitMode:            "false",
+				ShowAllMail:             "false",
+				UseDefaultIMAPPort:      "true",
+				UseDefaultSMTPPort:      "true",
+				UseDefaultCacheLocation: "true",
+				UseDefaultKeychain:      "true",
+				ContactedByAppleNotes:   "false",
+				PrevVersion:             "1.2.3",
+				IMAPConnectionMode:      "ssl",
+				SMTPConnectionMode:      "ssl",
+				UserPlanGroup:           plan.Unknown,
 			},
 		}
 
@@ -81,7 +85,7 @@ func withHeartbeat(t *testing.T, imap, smtp int, cache, keychain string, tests f
 	heartbeat := telemetry.NewHeartbeat(manager, imap, smtp, cache, keychain)
 
 	heartbeat.SetRollout(0.1)
-	heartbeat.SetNbAccount(1)
+	heartbeat.SetNumberConnectedAccounts(1)
 	heartbeat.SetSplitMode(false)
 	heartbeat.SetAutoStart(true)
 	heartbeat.SetAutoUpdate(true)
@@ -97,4 +101,30 @@ func withHeartbeat(t *testing.T, imap, smtp int, cache, keychain string, tests f
 	heartbeat.SetPrevVersion("1.2.3")
 
 	tests(&heartbeat, manager)
+}
+
+func Test_setRollout(t *testing.T) {
+	hb := telemetry.Heartbeat{}
+	type testStruct struct {
+		val float64
+		res int
+	}
+
+	tests := []testStruct{
+		{0.02, 0},
+		{0.04, 0},
+		{0.09999, 0},
+		{0.1, 1},
+		{0.132323, 1},
+		{0.2, 2},
+		{0.25, 2},
+		{0.7111, 7},
+		{0.93, 9},
+		{0.999, 9},
+	}
+
+	for _, test := range tests {
+		hb.SetRollout(test.val)
+		require.Equal(t, test.res, hb.GetRollout())
+	}
 }

@@ -583,8 +583,11 @@ func (bridge *Bridge) addUserWithVault(
 	// Finally, save the user in the bridge.
 	safe.Lock(func() {
 		bridge.users[apiUser.ID] = user
-		bridge.heartbeat.SetNbAccount(len(bridge.users))
+		bridge.heartbeat.SetNumberConnectedAccounts(len(bridge.users))
 	}, bridge.usersLock)
+
+	// Set user plan if its of a higher rank.
+	bridge.heartbeat.SetUserPlan(user.GetUserPlanName())
 
 	// As we need at least one user to send heartbeat, try to send it.
 	bridge.heartbeat.start()
@@ -618,7 +621,7 @@ func (bridge *Bridge) logoutUser(ctx context.Context, user *user.User, withAPI, 
 		logUser.WithError(err).Error("Failed to logout user")
 	}
 
-	bridge.heartbeat.SetNbAccount(len(bridge.users))
+	bridge.heartbeat.SetNumberConnectedAccounts(len(bridge.users) - 1)
 
 	user.Close()
 }

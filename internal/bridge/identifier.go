@@ -17,7 +17,9 @@
 
 package bridge
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/sirupsen/logrus"
+)
 
 func (bridge *Bridge) GetCurrentUserAgent() string {
 	return bridge.identifier.GetUserAgent()
@@ -29,6 +31,8 @@ func (bridge *Bridge) SetCurrentPlatform(platform string) {
 
 func (bridge *Bridge) setUserAgent(name, version string) {
 	currentUserAgent := bridge.identifier.GetClientString()
+
+	bridge.heartbeat.SetContactedByAppleNotes(name)
 
 	bridge.identifier.SetClient(name, version)
 
@@ -54,6 +58,7 @@ func (b *bridgeUserAgentUpdater) HasClient() bool {
 }
 
 func (b *bridgeUserAgentUpdater) SetClient(name, version string) {
+	b.heartbeat.SetContactedByAppleNotes(name)
 	b.identifier.SetClient(name, version)
 }
 
