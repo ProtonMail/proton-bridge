@@ -531,11 +531,12 @@ func toMessageHeader(hdr proton.Headers) message.Header {
 	// go-message's message.Header are in reversed order (you should only add fields at the top, so storing in reverse order offer faster performances).
 	for i := len(hdr.Order) - 1; i >= 0; i-- {
 		key := hdr.Order[i]
-		for _, val := range hdr.Values[key] {
+		values := hdr.Values[key]
+		for j := len(values) - 1; j >= 0; j-- {
 			// Using AddRaw instead of Add to save key-value pair as byte buffer within Header.
 			// This buffer is used latter on in message writer to construct message and avoid crash
 			// when key length is more than 76 characters long.
-			res.AddRaw([]byte(key + ": " + val + "\r\n"))
+			res.AddRaw([]byte(key + ": " + values[j] + "\r\n"))
 		}
 	}
 
