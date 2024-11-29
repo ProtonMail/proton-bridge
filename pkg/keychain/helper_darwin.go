@@ -31,21 +31,12 @@ const (
 	MacOSKeychain = "macos-keychain"
 )
 
-func listHelpers(skipKeychainTest bool) (Helpers, string) {
+func listHelpers() (Helpers, string) {
 	helpers := make(Helpers)
 
 	// MacOS always provides a keychain.
-	if skipKeychainTest {
-		logrus.WithField("pkg", "keychain").Info("Skipping macOS keychain test")
-		helpers[MacOSKeychain] = newMacOSHelper
-	} else {
-		if isUsable(newMacOSHelper("")) {
-			helpers[MacOSKeychain] = newMacOSHelper
-			logrus.WithField("keychain", "MacOSKeychain").Info("Keychain is usable.")
-		} else {
-			logrus.WithField("keychain", "MacOSKeychain").Debug("Keychain is not available.")
-		}
-	}
+	logrus.WithField("pkg", "keychain").Info("Skipping macOS keychain test")
+	helpers[MacOSKeychain] = newMacOSHelper
 
 	// Use MacOSKeychain by default.
 	return helpers, MacOSKeychain

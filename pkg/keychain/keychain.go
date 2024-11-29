@@ -62,9 +62,9 @@ type List struct {
 // NewList checks availability of every keychains detected on the User Operating System
 // This will ask the user to unlock keychain(s) to check their usability.
 // This should only be called once.
-func NewList(skipKeychainTest bool) *List {
+func NewList() *List {
 	var list = List{locker: &sync.Mutex{}}
-	list.helpers, list.defaultHelper = listHelpers(skipKeychainTest)
+	list.helpers, list.defaultHelper = listHelpers()
 	return &list
 }
 
@@ -210,7 +210,7 @@ func (kc *Keychain) secretURL(userID string) string {
 }
 
 // isUsable returns whether the credentials helper is usable.
-func isUsable(helper credentials.Helper, err error) bool {
+func isUsable(helper credentials.Helper, err error) bool { //nolint:unused
 	l := logrus.WithField("helper", reflect.TypeOf(helper))
 
 	if err != nil {
@@ -240,7 +240,7 @@ func isUsable(helper credentials.Helper, err error) bool {
 	return true
 }
 
-func getTestCredentials() *credentials.Credentials {
+func getTestCredentials() *credentials.Credentials { //nolint:unused
 	// On macOS, a handful of users experience failures of the test credentials.
 	if runtime.GOOS == "darwin" {
 		return &credentials.Credentials{
@@ -257,7 +257,7 @@ func getTestCredentials() *credentials.Credentials {
 	}
 }
 
-func retry(condition func() error) error {
+func retry(condition func() error) error { //nolint:unused
 	var maxRetry = 5
 	for r := 0; ; r++ {
 		err := condition()
