@@ -97,18 +97,21 @@ const (
 	appShortName = "bridge"
 )
 
+// the two flags below have been deprecated by BRIDGE-281. We however keep them so that bridge does not error if they are passed on startup.
 var cliFlagEnableKeychainTest = &cli.BoolFlag{ //nolint:gochecknoglobals
 	Name:               flagEnableKeychainTest,
-	Usage:              "Enable the keychain test for the current and future executions of the application",
+	Usage:              "This flag is deprecated and does nothing",
 	Value:              false,
 	DisableDefaultText: true,
-} //nolint:gochecknoglobals
+	Hidden:             true,
+}
 
 var cliFlagDisableKeychainTest = &cli.BoolFlag{ //nolint:gochecknoglobals
 	Name:               flagDisableKeychainTest,
-	Usage:              "Disable the keychain test for the current and future executions of the application",
+	Usage:              "This flag is deprecated and does nothing",
 	Value:              false,
 	DisableDefaultText: true,
+	Hidden:             true,
 }
 
 func New() *cli.App {
@@ -212,6 +215,7 @@ func New() *cli.App {
 
 	if onMacOS() {
 		// The two flags below were introduced for BRIDGE-116, and are available only on macOS.
+		// They have been later removed fro BRIDGE-281.
 		app.Flags = append(app.Flags, cliFlagEnableKeychainTest, cliFlagDisableKeychainTest)
 	}
 
@@ -283,8 +287,7 @@ func run(c *cli.Context) error {
 
 						return withSingleInstance(settings, locations.GetLockFile(), version, func() error {
 							// Look for available keychains
-							skipKeychainTest := checkSkipKeychainTest(c, settings)
-							return WithKeychainList(crashHandler, skipKeychainTest, func(keychains *keychain.List) error {
+							return WithKeychainList(crashHandler, func(keychains *keychain.List) error {
 								// Unlock the encrypted vault.
 								return WithVault(reporter, locations, keychains, crashHandler, func(v *vault.Vault, insecure, corrupt bool) error {
 									if !v.Migrated() {
@@ -548,11 +551,11 @@ func withCookieJar(vault *vault.Vault, fn func(http.CookieJar) error) error {
 }
 
 // WithKeychainList init the list of usable keychains.
-func WithKeychainList(panicHandler async.PanicHandler, skipKeychainTest bool, fn func(*keychain.List) error) error {
+func WithKeychainList(panicHandler async.PanicHandler, fn func(*keychain.List) error) error {
 	logrus.Debug("Creating keychain list")
 	defer logrus.Debug("Keychain list stop")
 	defer async.HandlePanic(panicHandler)
-	return fn(keychain.NewList(skipKeychainTest))
+	return fn(keychain.NewList())
 }
 
 func setDeviceCookies(jar *cookies.Jar) error {
@@ -571,38 +574,6 @@ func setDeviceCookies(jar *cookies.Jar) error {
 	}
 
 	return nil
-}
-
-func checkSkipKeychainTest(c *cli.Context, settingsDir string) bool {
-	if !onMacOS() {
-		return false
-	}
-
-	enable := c.Bool(flagEnableKeychainTest)
-	disable := c.Bool(flagDisableKeychainTest)
-
-	skip, err := vault.GetShouldSkipKeychainTest(settingsDir)
-	if err != nil {
-		logrus.WithError(err).Error("Could not load keychain settings.")
-	}
-
-	if (!enable) && (!disable) {
-		return skip
-	}
-
-	// if both switches are passed, 'enable' has priority
-	if disable {
-		skip = true
-	}
-	if enable {
-		skip = false
-	}
-
-	if err := vault.SetShouldSkipKeychainTest(settingsDir, skip); err != nil {
-		logrus.WithError(err).Error("Could not save keychain settings.")
-	}
-
-	return skip
 }
 
 func onMacOS() bool {
