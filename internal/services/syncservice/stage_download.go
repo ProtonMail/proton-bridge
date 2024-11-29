@@ -231,7 +231,7 @@ func downloadAttachment(ctx context.Context, cache *DownloadCache, client APICli
 }
 
 type DownloadRateModifier interface {
-	Apply(wasSuccess bool, current int, max int) int //nolint:predeclared
+	Apply(wasSuccess bool, currentValue int, maxValue int) int
 }
 
 func autoDownloadRate[T any, R any](
@@ -285,14 +285,14 @@ func autoDownloadRate[T any, R any](
 
 type DefaultDownloadRateModifier struct{}
 
-func (d DefaultDownloadRateModifier) Apply(wasSuccess bool, current int, max int) int { //nolint:predeclared
+func (d DefaultDownloadRateModifier) Apply(wasSuccess bool, currentValue int, maxValue int) int {
 	if !wasSuccess {
 		return 2
 	}
 
-	parallelTasks := current * 2
-	if parallelTasks > max {
-		parallelTasks = max
+	parallelTasks := currentValue * 2
+	if parallelTasks > maxValue {
+		parallelTasks = maxValue
 	}
 
 	return parallelTasks

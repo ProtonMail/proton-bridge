@@ -636,14 +636,6 @@ func loadTLSConfig(vault *vault.Vault) (*tls.Config, error) {
 	}, nil
 }
 
-func min(a, b time.Duration) time.Duration { //nolint:predeclared
-	if a < b {
-		return a
-	}
-
-	return b
-}
-
 func (bridge *Bridge) HasAPIConnection() bool {
 	return bridge.api.GetStatus() == proton.StatusUp
 }
