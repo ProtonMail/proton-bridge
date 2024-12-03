@@ -34,7 +34,7 @@ func NewHeartbeat(manager HeartbeatManager, imapPort, smtpPort int, cacheDir, ke
 		log:     logrus.WithField("pkg", "telemetry"),
 		manager: manager,
 		metrics: HeartbeatData{
-			MeasurementGroup: "bridge.any.usage",
+			MeasurementGroup: "bridge.any.heartbeat",
 			Event:            "bridge_heartbeat_new",
 			Dimensions:       NewHeartbeatDimensions(),
 		},

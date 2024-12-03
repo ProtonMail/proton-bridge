@@ -32,7 +32,7 @@ import (
 func TestHeartbeat_default_heartbeat(t *testing.T) {
 	withHeartbeat(t, 1143, 1025, "/tmp", "defaultKeychain", func(hb *telemetry.Heartbeat, mock *mocks.MockHeartbeatManager) {
 		data := telemetry.HeartbeatData{
-			MeasurementGroup: "bridge.any.usage",
+			MeasurementGroup: "bridge.any.heartbeat",
 			Event:            "bridge_heartbeat_new",
 			Values: telemetry.HeartbeatValues{
 				NumberConnectedAccounts: 1,

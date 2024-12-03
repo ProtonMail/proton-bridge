@@ -16,7 +16,7 @@ Feature: Send Telemetry Heartbeat
     Then bridge eventually sends the following heartbeat:
     """
       {
-        "MeasurementGroup": "bridge.any.usage",
+        "MeasurementGroup": "bridge.any.heartbeat",
         "Event": "bridge_heartbeat_new",
         "Values": {
           "NumberConnectedAccounts": 1,
@@ -62,7 +62,7 @@ Feature: Send Telemetry Heartbeat
     Then bridge eventually sends the following heartbeat:
       """
       {
-        "MeasurementGroup": "bridge.any.usage",
+        "MeasurementGroup": "bridge.any.heartbeat",
         "Event": "bridge_heartbeat_new",
         "Values": {
           "NumberConnectedAccounts": 1,
@@ -102,7 +102,7 @@ Feature: Send Telemetry Heartbeat
     Then bridge eventually sends the following heartbeat:
       """
       {
-        "MeasurementGroup": "bridge.any.usage",
+        "MeasurementGroup": "bridge.any.heartbeat",
         "Event": "bridge_heartbeat_new",
         "Values": {
           "NumberConnectedAccounts": 1,
@@ -142,7 +142,7 @@ Feature: Send Telemetry Heartbeat
     Then bridge eventually sends the following heartbeat:
       """
       {
-        "MeasurementGroup": "bridge.any.usage",
+        "MeasurementGroup": "bridge.any.heartbeat",
         "Event": "bridge_heartbeat_new",
         "Values": {
           "NumberConnectedAccounts": 3,
@@ -180,7 +180,7 @@ Feature: Send Telemetry Heartbeat
     Then bridge eventually sends the following heartbeat:
       """
       {
-        "MeasurementGroup": "bridge.any.usage",
+        "MeasurementGroup": "bridge.any.heartbeat",
         "Event": "bridge_heartbeat_new",
         "Values": {
           "NumberConnectedAccounts": 1,
