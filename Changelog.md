@@ -3,6 +3,12 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Erasmus Bridge 3.15.1
+
+### Changed
+* BRIDGE-281: Disable keychain test on macOS.
+
+
 ## Erasmus Bridge 3.15.0
 
 ### Added
