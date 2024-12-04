@@ -3,6 +3,27 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Flavien Bridge 3.16.0
+
+### Added
+* BRIDGE-205: Add support for the IMAP AUTHENTICATE command.
+* BRIDGE-268: Add kill switch feature flag for the IMAP AUTHENTICATE command.
+* BRIDGE-261: Delete gluon data during user deletion.
+* BRIDGE-246: Test: Add Settings Menu Bridge UI e2e automation tests.
+
+### Changed
+* BRIDGE-107: Improved human verification UX.
+* BRIDGE-281: Disable keychain test on macOS.
+* BRIDGE-266: Heartbeat telemetry update.
+* BRIDGE-253: Removed unused telemetry (activation and troubleshooting).
+* BRIDGE-252: Restored the -h shortcut for the CLI --help switch.
+* BRIDGE-264: Ignore apple notes as UserAgent.
+
+### Fixed
+* BRIDGE-256: Fix reversed order of headers with multiple values.
+* BRIDGE-258: Fixed issue with draft updates and sending during synchronization.
+
+
 ## Erasmus Bridge 3.15.1
 
 ### Changed
