@@ -38,7 +38,7 @@ func WithVault(reporter *sentry.Reporter, locations *locations.Locations, keycha
 	// Create the encVault.
 	encVault, insecure, corrupt, err := newVault(reporter, locations, keychains, panicHandler)
 	if err != nil {
-		return fmt.Errorf("could not create vault: %w", err)
+		return fmt.Errorf("could not load/create vault: %w", err)
 	}
 
 	logrus.WithFields(logrus.Fields{
@@ -98,7 +98,7 @@ func newVault(reporter *sentry.Reporter, locations *locations.Locations, keychai
 
 	vault, corrupt, err := vault.New(vaultDir, gluonCacheDir, vaultKey, panicHandler)
 	if err != nil {
-		return nil, false, corrupt, fmt.Errorf("could not create vault: %w", err)
+		return nil, false, corrupt, err
 	}
 
 	return vault, insecure, corrupt, nil
