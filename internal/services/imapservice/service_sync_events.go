@@ -65,6 +65,22 @@ func (s syncMessageEventHandler) HandleMessageEvents(ctx context.Context, events
 				return err
 			}
 
+		case proton.EventUpdate:
+			if event.Message.IsDraft() || (event.Message.Flags&proton.MessageFlagSent != 0) {
+				updates, err := onMessageUpdateDraftOrSent(
+					logging.WithLogrusField(ctx, "action", "update draft or sent message (sync)"),
+					s.service,
+					event,
+				)
+				if err != nil {
+					return fmt.Errorf("failed to handle update draft event (sync): %w", err)
+				}
+
+				if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+					return err
+				}
+			}
+
 		case proton.EventDelete:
 			updates := onMessageDeleted(
 				logging.WithLogrusField(ctx, "action", "delete message (sync)"),

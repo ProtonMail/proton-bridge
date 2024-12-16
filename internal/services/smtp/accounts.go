@@ -66,12 +66,7 @@ func (s *Accounts) CheckAuth(user string, password []byte) (string, string, erro
 			continue
 		}
 
-		account.service.telemetry.ReportSMTPAuthSuccess(context.Background())
 		return id, addrID, nil
-	}
-
-	for _, service := range s.accounts {
-		service.service.telemetry.ReportSMTPAuthFailed(user)
 	}
 
 	return "", "", ErrNoSuchUser

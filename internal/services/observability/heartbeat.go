@@ -18,7 +18,7 @@
 package observability
 
 import (
-	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/ProtonMail/gluon/async"
@@ -87,10 +87,6 @@ func (d *distinctionUtility) sendHeartbeat() {
 	})
 }
 
-func formatBool(value bool) string {
-	return fmt.Sprintf("%t", value)
-}
-
 // generateHeartbeatUserMetric creates the heartbeat user metric and includes the relevant data.
 func (d *distinctionUtility) generateHeartbeatUserMetric() proton.ObservabilityMetric {
 	return generateHeartbeatMetric(
@@ -98,10 +94,10 @@ func (d *distinctionUtility) generateHeartbeatUserMetric() proton.ObservabilityM
 		d.getEmailClientUserAgent(),
 		getEnabled(d.settingsGetter.GetProxyAllowed()),
 		getEnabled(d.getBetaAccessEnabled()),
-		formatBool(d.heartbeatData.receivedOtherError),
-		formatBool(d.heartbeatData.receivedSyncError),
-		formatBool(d.heartbeatData.receivedEventLoopError),
-		formatBool(d.heartbeatData.receivedGluonError),
+		strconv.FormatBool(d.heartbeatData.receivedOtherError),
+		strconv.FormatBool(d.heartbeatData.receivedSyncError),
+		strconv.FormatBool(d.heartbeatData.receivedEventLoopError),
+		strconv.FormatBool(d.heartbeatData.receivedGluonError),
 	)
 }
 

@@ -93,9 +93,6 @@ const (
 	Bridge_LogoutUser_FullMethodName                      = "/grpc.Bridge/LogoutUser"
 	Bridge_RemoveUser_FullMethodName                      = "/grpc.Bridge/RemoveUser"
 	Bridge_ConfigureUserAppleMail_FullMethodName          = "/grpc.Bridge/ConfigureUserAppleMail"
-	Bridge_ReportBugClicked_FullMethodName                = "/grpc.Bridge/ReportBugClicked"
-	Bridge_AutoconfigClicked_FullMethodName               = "/grpc.Bridge/AutoconfigClicked"
-	Bridge_ExternalLinkClicked_FullMethodName             = "/grpc.Bridge/ExternalLinkClicked"
 	Bridge_IsTLSCertificateInstalled_FullMethodName       = "/grpc.Bridge/IsTLSCertificateInstalled"
 	Bridge_InstallTLSCertificate_FullMethodName           = "/grpc.Bridge/InstallTLSCertificate"
 	Bridge_ExportTLSCertificates_FullMethodName           = "/grpc.Bridge/ExportTLSCertificates"
@@ -170,10 +167,6 @@ type BridgeClient interface {
 	LogoutUser(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RemoveUser(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ConfigureUserAppleMail(ctx context.Context, in *ConfigureAppleMailRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// Telemetry
-	ReportBugClicked(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	AutoconfigClicked(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	ExternalLinkClicked(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// TLS certificate related calls
 	IsTLSCertificateInstalled(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error)
 	InstallTLSCertificate(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -688,33 +681,6 @@ func (c *bridgeClient) ConfigureUserAppleMail(ctx context.Context, in *Configure
 	return out, nil
 }
 
-func (c *bridgeClient) ReportBugClicked(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, Bridge_ReportBugClicked_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) AutoconfigClicked(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, Bridge_AutoconfigClicked_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *bridgeClient) ExternalLinkClicked(ctx context.Context, in *wrapperspb.StringValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, Bridge_ExternalLinkClicked_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *bridgeClient) IsTLSCertificateInstalled(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*wrapperspb.BoolValue, error) {
 	out := new(wrapperspb.BoolValue)
 	err := c.cc.Invoke(ctx, Bridge_IsTLSCertificateInstalled_FullMethodName, in, out, opts...)
@@ -858,10 +824,6 @@ type BridgeServer interface {
 	LogoutUser(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	RemoveUser(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	ConfigureUserAppleMail(context.Context, *ConfigureAppleMailRequest) (*emptypb.Empty, error)
-	// Telemetry
-	ReportBugClicked(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
-	AutoconfigClicked(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
-	ExternalLinkClicked(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error)
 	// TLS certificate related calls
 	IsTLSCertificateInstalled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error)
 	InstallTLSCertificate(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
@@ -1042,15 +1004,6 @@ func (UnimplementedBridgeServer) RemoveUser(context.Context, *wrapperspb.StringV
 }
 func (UnimplementedBridgeServer) ConfigureUserAppleMail(context.Context, *ConfigureAppleMailRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigureUserAppleMail not implemented")
-}
-func (UnimplementedBridgeServer) ReportBugClicked(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReportBugClicked not implemented")
-}
-func (UnimplementedBridgeServer) AutoconfigClicked(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AutoconfigClicked not implemented")
-}
-func (UnimplementedBridgeServer) ExternalLinkClicked(context.Context, *wrapperspb.StringValue) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ExternalLinkClicked not implemented")
 }
 func (UnimplementedBridgeServer) IsTLSCertificateInstalled(context.Context, *emptypb.Empty) (*wrapperspb.BoolValue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsTLSCertificateInstalled not implemented")
@@ -2073,60 +2026,6 @@ func _Bridge_ConfigureUserAppleMail_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Bridge_ReportBugClicked_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).ReportBugClicked(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Bridge_ReportBugClicked_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).ReportBugClicked(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_AutoconfigClicked_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(wrapperspb.StringValue)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).AutoconfigClicked(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Bridge_AutoconfigClicked_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).AutoconfigClicked(ctx, req.(*wrapperspb.StringValue))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Bridge_ExternalLinkClicked_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(wrapperspb.StringValue)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(BridgeServer).ExternalLinkClicked(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Bridge_ExternalLinkClicked_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BridgeServer).ExternalLinkClicked(ctx, req.(*wrapperspb.StringValue))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Bridge_IsTLSCertificateInstalled_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
@@ -2464,18 +2363,6 @@ var Bridge_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ConfigureUserAppleMail",
 			Handler:    _Bridge_ConfigureUserAppleMail_Handler,
-		},
-		{
-			MethodName: "ReportBugClicked",
-			Handler:    _Bridge_ReportBugClicked_Handler,
-		},
-		{
-			MethodName: "AutoconfigClicked",
-			Handler:    _Bridge_AutoconfigClicked_Handler,
-		},
-		{
-			MethodName: "ExternalLinkClicked",
-			Handler:    _Bridge_ExternalLinkClicked_Handler,
 		},
 		{
 			MethodName: "IsTLSCertificateInstalled",

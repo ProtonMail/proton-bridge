@@ -18,75 +18,8 @@
 package observability
 
 import (
-	"context"
-	"strings"
-
-	"github.com/ProtonMail/gluon/async"
-	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/proton-bridge/v3/internal/plan"
 )
-
-const (
-	planUnknown    = "unknown"
-	planOther      = "other"
-	planBusiness   = "business"
-	planIndividual = "individual"
-	planGroup      = "group"
-)
-
-var planHierarchy = map[string]int{ //nolint:gochecknoglobals
-	planBusiness:   4,
-	planGroup:      3,
-	planIndividual: 2,
-	planOther:      1,
-	planUnknown:    0,
-}
-
-type planGetter interface {
-	GetOrganizationData(ctx context.Context) (proton.OrganizationResponse, error)
-}
-
-func isHigherPriority(currentPlan, newPlan string) bool {
-	newRank, ok := planHierarchy[newPlan]
-	if !ok {
-		return false
-	}
-
-	currentRank, ok2 := planHierarchy[currentPlan]
-	if !ok2 {
-		return true // we don't have a valid plan, might as well replace it
-	}
-
-	return newRank > currentRank
-}
-
-func mapUserPlan(planName string) string {
-	if planName == "" {
-		return planUnknown
-	}
-	switch strings.TrimSpace(strings.ToLower(planName)) {
-	case "mail2022":
-		return planIndividual
-	case "bundle2022":
-		return planIndividual
-	case "family2022":
-		return planGroup
-	case "visionary2022":
-		return planGroup
-	case "mailpro2022":
-		return planBusiness
-	case "planbiz2024":
-		return planBusiness
-	case "bundlepro2022":
-		return planBusiness
-	case "bundlepro2024":
-		return planBusiness
-	case "duo2024":
-		return planGroup
-
-	default:
-		return planOther
-	}
-}
 
 func (d *distinctionUtility) setUserPlan(planName string) {
 	if planName == "" {
@@ -96,22 +29,10 @@ func (d *distinctionUtility) setUserPlan(planName string) {
 	d.userPlanLock.Lock()
 	defer d.userPlanLock.Unlock()
 
-	userPlanMapped := mapUserPlan(planName)
-	if isHigherPriority(d.userPlanUnsafe, userPlanMapped) {
+	userPlanMapped := plan.MapUserPlan(planName)
+	if plan.IsHigherPriority(d.userPlanUnsafe, userPlanMapped) {
 		d.userPlanUnsafe = userPlanMapped
 	}
-}
-
-func (d *distinctionUtility) registerUserPlan(ctx context.Context, getter planGetter, panicHandler async.PanicHandler) {
-	go func() {
-		defer async.HandlePanic(panicHandler)
-
-		orgRes, err := getter.GetOrganizationData(ctx)
-		if err != nil {
-			return
-		}
-		d.setUserPlan(orgRes.Organization.PlanName)
-	}()
 }
 
 func (d *distinctionUtility) getUserPlanSafe() string {

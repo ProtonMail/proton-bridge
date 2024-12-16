@@ -26,6 +26,7 @@ import (
 	imapEvents "github.com/ProtonMail/gluon/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapsmtpserver"
+	"github.com/ProtonMail/proton-bridge/v3/internal/unleash"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
 	"github.com/sirupsen/logrus"
 )
@@ -91,6 +92,10 @@ func (b *bridgeIMAPSettings) LogClient() bool {
 
 func (b *bridgeIMAPSettings) LogServer() bool {
 	return b.b.logIMAPServer
+}
+
+func (b *bridgeIMAPSettings) DisableIMAPAuthenticate() bool {
+	return b.b.unleashService.GetFlagValue(unleash.IMAPAuthenticateCommandDisabled)
 }
 
 func (b *bridgeIMAPSettings) Port() int {

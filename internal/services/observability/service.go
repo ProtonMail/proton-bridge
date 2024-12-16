@@ -250,7 +250,7 @@ func (s *Service) addMetricsIfClients(metric ...proton.ObservabilityMetric) {
 	s.addMetrics(metric...)
 }
 
-func (s *Service) RegisterUserClient(userID string, protonClient *proton.Client, telemetryService *telemetry.Service) {
+func (s *Service) RegisterUserClient(userID string, protonClient *proton.Client, telemetryService *telemetry.Service, userPlan string) {
 	s.log.Info("Registering user client, ID:", userID)
 
 	s.withUserClientStoreLock(func() {
@@ -260,7 +260,7 @@ func (s *Service) RegisterUserClient(userID string, protonClient *proton.Client,
 		}
 	})
 
-	s.distinctionUtility.registerUserPlan(s.ctx, protonClient, s.panicHandler)
+	s.distinctionUtility.setUserPlan(userPlan)
 
 	// There may be a case where we already have metric updates stored, so try to flush;
 	s.sendSignal(s.signalDataArrived)

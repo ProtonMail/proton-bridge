@@ -159,7 +159,10 @@ func (f *frontendCLI) loginAccount(c *ishell.Context) {
 	hvDetails, hvErr := hv.VerifyAndExtractHvRequest(err)
 	if hvErr != nil || hvDetails != nil {
 		if hvErr != nil {
-			f.printAndLogError("Cannot login", hvErr)
+			f.printAndLogError("Cannot login:", hv.ExtractionErrorMsg)
+			f.bridge.ReportMessageWithContext("Unable to extract HV request details", map[string]any{
+				"error": err.Error(),
+			})
 			return
 		}
 		f.promptHvURL(hvDetails)

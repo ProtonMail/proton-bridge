@@ -49,6 +49,7 @@ type IMAPSettingsProvider interface {
 	Port() int
 	SetPort(int) error
 	UseSSL() bool
+	DisableIMAPAuthenticate() bool
 	CacheDirectory() string
 	DataDirectory() (string, error)
 	SetCacheDirectory(string) error
@@ -74,6 +75,7 @@ func newIMAPServer(
 	tlsConfig *tls.Config,
 	reporter reporter.Reporter,
 	logClient, logServer bool,
+	disableIMAPAuthenticate bool,
 	eventPublisher IMAPEventPublisher,
 	tasks *async.Group,
 	uidValidityGenerator imap.UIDValidityGenerator,
@@ -113,7 +115,7 @@ func newIMAPServer(
 		imapServerLog = io.Discard
 	}
 
-	imapServer, err := gluon.New(
+	options := []gluon.Option{
 		gluon.WithTLS(tlsConfig),
 		gluon.WithDataDir(gluonCacheDir),
 		gluon.WithDatabaseDir(gluonConfigDir),
@@ -124,7 +126,13 @@ func newIMAPServer(
 		gluon.WithUIDValidityGenerator(uidValidityGenerator),
 		gluon.WithPanicHandler(panicHandler),
 		gluon.WithObservabilitySender(observability.NewAdapter(observabilitySender), int(observability.GluonImapError), int(observability.GluonMessageError), int(observability.GluonOtherError)),
-	)
+	}
+
+	if disableIMAPAuthenticate {
+		options = append(options, gluon.WithDisableIMAPAuthenticate())
+	}
+
+	imapServer, err := gluon.New(options...)
 	if err != nil {
 		return nil, err
 	}

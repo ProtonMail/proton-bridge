@@ -36,9 +36,37 @@ import (
 	"github.com/emersion/go-imap"
 	id "github.com/emersion/go-imap-id"
 	"github.com/emersion/go-imap/client"
+	"github.com/emersion/go-sasl"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
 )
+
+type imapAuthMethod int
+
+const (
+	imapLogin imapAuthMethod = iota
+	imapAuthenticate
+)
+
+func (s *scenario) loginWithAuthMethod(client *client.Client, username, password string, authMethod imapAuthMethod) error {
+	switch authMethod {
+	case imapLogin:
+		return client.Login(username, password)
+	case imapAuthenticate:
+		supported, err := client.SupportAuth(sasl.Plain)
+		if err != nil {
+			return err
+		}
+
+		if !supported {
+			return errors.New("server does not support AUTHENTICATE PLAIN")
+		}
+
+		return client.Authenticate(sasl.NewPlainClient("", username, password))
+	default:
+		return errors.New("unknown IMAP auth method")
+	}
+}
 
 func (s *scenario) userConnectsIMAPClient(username, clientID string) error {
 	return s.t.newIMAPClient(s.t.getUserByName(username).getUserID(), clientID)
@@ -59,7 +87,17 @@ func (s *scenario) userConnectsAndAuthenticatesIMAPClientWithAddress(username, c
 
 	userID, client := s.t.getIMAPClient(clientID)
 
-	return client.Login(address, s.t.getUserByID(userID).getBridgePass())
+	return s.loginWithAuthMethod(client, address, s.t.getUserByID(userID).getBridgePass(), imapLogin)
+}
+
+func (s *scenario) userConnectsAndAuthenticatesIMAPClientWithAddressUsingIMAPAuthenticate(username, clientID, address string) error {
+	if err := s.t.newIMAPClient(s.t.getUserByName(username).getUserID(), clientID); err != nil {
+		return err
+	}
+
+	userID, client := s.t.getIMAPClient(clientID)
+
+	return s.loginWithAuthMethod(client, address, s.t.getUserByID(userID).getBridgePass(), imapAuthenticate)
 }
 
 func (s *scenario) userConnectsAndCanNotAuthenticateIMAPClientWithAddress(username, clientID, address string) error {
@@ -69,7 +107,7 @@ func (s *scenario) userConnectsAndCanNotAuthenticateIMAPClientWithAddress(userna
 
 	userID, client := s.t.getIMAPClient(clientID)
 
-	if err := client.Login(address, s.t.getUserByID(userID).getBridgePass()); err == nil {
+	if err := s.loginWithAuthMethod(client, address, s.t.getUserByID(userID).getBridgePass(), imapLogin); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 
@@ -79,19 +117,51 @@ func (s *scenario) userConnectsAndCanNotAuthenticateIMAPClientWithAddress(userna
 func (s *scenario) imapClientCanAuthenticate(clientID string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 
-	return client.Login(s.t.getUserByID(userID).getEmails()[0], s.t.getUserByID(userID).getBridgePass())
+	return s.loginWithAuthMethod(client, s.t.getUserByID(userID).getEmails()[0], s.t.getUserByID(userID).getBridgePass(), imapLogin)
+}
+
+func (s *scenario) imapClientCanAuthenticateUsingIMAPAuthenticate(clientID string) error {
+	userID, client := s.t.getIMAPClient(clientID)
+
+	return s.loginWithAuthMethod(client, s.t.getUserByID(userID).getEmails()[0], s.t.getUserByID(userID).getBridgePass(), imapAuthenticate)
 }
 
 func (s *scenario) imapClientCanAuthenticateWithAddress(clientID string, address string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 
-	return client.Login(address, s.t.getUserByID(userID).getBridgePass())
+	return s.loginWithAuthMethod(client, address, s.t.getUserByID(userID).getBridgePass(), imapLogin)
+}
+
+func (s *scenario) imapClientCanAuthenticateWithAddressUsingIMAPAuthenticate(clientID string, address string) error {
+	userID, client := s.t.getIMAPClient(clientID)
+
+	return s.loginWithAuthMethod(client, address, s.t.getUserByID(userID).getBridgePass(), imapAuthenticate)
 }
 
 func (s *scenario) imapClientCannotAuthenticate(clientID string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 
-	if err := client.Login(s.t.getUserByID(userID).getEmails()[0], s.t.getUserByID(userID).getBridgePass()); err == nil {
+	if err := s.loginWithAuthMethod(
+		client,
+		s.t.getUserByID(userID).getEmails()[0],
+		s.t.getUserByID(userID).getBridgePass(),
+		imapLogin,
+	); err == nil {
+		return fmt.Errorf("expected error, got nil")
+	}
+
+	return nil
+}
+
+func (s *scenario) imapClientCannotAuthenticateUsingIMAPAuthenticate(clientID string) error {
+	userID, client := s.t.getIMAPClient(clientID)
+
+	if err := s.loginWithAuthMethod(
+		client,
+		s.t.getUserByID(userID).getEmails()[0],
+		s.t.getUserByID(userID).getBridgePass(),
+		imapAuthenticate,
+	); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 
@@ -101,7 +171,7 @@ func (s *scenario) imapClientCannotAuthenticate(clientID string) error {
 func (s *scenario) imapClientCannotAuthenticateWithAddress(clientID, address string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 
-	if err := client.Login(address, s.t.getUserByID(userID).getBridgePass()); err == nil {
+	if err := s.loginWithAuthMethod(client, address, s.t.getUserByID(userID).getBridgePass(), imapLogin); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 
@@ -111,7 +181,27 @@ func (s *scenario) imapClientCannotAuthenticateWithAddress(clientID, address str
 func (s *scenario) imapClientCannotAuthenticateWithIncorrectUsername(clientID string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 
-	if err := client.Login(s.t.getUserByID(userID).getEmails()[0]+"bad", s.t.getUserByID(userID).getBridgePass()); err == nil {
+	if err := s.loginWithAuthMethod(
+		client,
+		s.t.getUserByID(userID).getEmails()[0]+"bad",
+		s.t.getUserByID(userID).getBridgePass(),
+		imapLogin,
+	); err == nil {
+		return fmt.Errorf("expected error, got nil")
+	}
+
+	return nil
+}
+
+func (s *scenario) imapClientCannotAuthenticateWithIncorrectUsernameUsingIMAPAuthenticate(clientID string) error {
+	userID, client := s.t.getIMAPClient(clientID)
+
+	if err := s.loginWithAuthMethod(
+		client,
+		s.t.getUserByID(userID).getEmails()[0]+"bad",
+		s.t.getUserByID(userID).getBridgePass(),
+		imapAuthenticate,
+	); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 
@@ -121,7 +211,17 @@ func (s *scenario) imapClientCannotAuthenticateWithIncorrectUsername(clientID st
 func (s *scenario) imapClientCannotAuthenticateWithIncorrectPassword(clientID string) error {
 	userID, client := s.t.getIMAPClient(clientID)
 	badPass := base64.StdEncoding.EncodeToString([]byte("bad_password"))
-	if err := client.Login(s.t.getUserByID(userID).getEmails()[0], badPass); err == nil {
+	if err := s.loginWithAuthMethod(client, s.t.getUserByID(userID).getEmails()[0], badPass, imapLogin); err == nil {
+		return fmt.Errorf("expected error, got nil")
+	}
+
+	return nil
+}
+
+func (s *scenario) imapClientCannotAuthenticateWithIncorrectPasswordUsingIMAPAuthenticate(clientID string) error {
+	userID, client := s.t.getIMAPClient(clientID)
+	badPass := base64.StdEncoding.EncodeToString([]byte("bad_password"))
+	if err := s.loginWithAuthMethod(client, s.t.getUserByID(userID).getEmails()[0], badPass, imapAuthenticate); err == nil {
 		return fmt.Errorf("expected error, got nil")
 	}
 

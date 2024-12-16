@@ -47,12 +47,6 @@ type EventProvider interface {
 	RewindEventID(ctx context.Context, eventID string) error
 }
 
-type Telemetry interface {
-	useridentity.Telemetry
-	SendConfigStatusSuccess(ctx context.Context)
-	ReportConfigStatusFailure(errDetails string)
-}
-
 type GluonIDProvider interface {
 	GetGluonID(addrID string) (string, bool)
 	GetGluonIDs() map[string]string
@@ -77,7 +71,6 @@ type Service struct {
 	serverManager   IMAPServerManager
 	eventPublisher  events.EventPublisher
 
-	telemetry    Telemetry
 	panicHandler async.PanicHandler
 	sendRecorder *sendrecorder.SendRecorder
 	reporter     reporter.Reporter
@@ -112,7 +105,6 @@ func NewService(
 	keyPassProvider useridentity.KeyPassProvider,
 	panicHandler async.PanicHandler,
 	sendRecorder *sendrecorder.SendRecorder,
-	telemetry Telemetry,
 	reporter reporter.Reporter,
 	addressMode usertypes.AddressMode,
 	subscription events.Subscription,
@@ -150,7 +142,6 @@ func NewService(
 
 		panicHandler: panicHandler,
 		sendRecorder: sendRecorder,
-		telemetry:    telemetry,
 		reporter:     reporter,
 
 		connectors:    make(map[string]*Connector),
@@ -238,6 +229,12 @@ func (s *Service) OnBadEventResync(ctx context.Context) error {
 
 func (s *Service) OnLogout(ctx context.Context) error {
 	_, err := s.cpc.Send(ctx, &onLogoutReq{})
+
+	return err
+}
+
+func (s *Service) OnDelete(ctx context.Context) error {
+	_, err := s.cpc.Send(ctx, &onDeleteReq{})
 
 	return err
 }
@@ -369,6 +366,11 @@ func (s *Service) run(ctx context.Context) { //nolint gocyclo
 			case *onLogoutReq:
 				s.log.Debug("Logout Request")
 				err := s.removeConnectorsFromServer(ctx, s.connectors, false)
+				req.Reply(ctx, nil, err)
+
+			case *onDeleteReq:
+				s.log.Debug("Delete Request")
+				err := s.removeConnectorsFromServer(ctx, s.connectors, true)
 				req.Reply(ctx, nil, err)
 
 			case *showAllMailReq:
@@ -513,7 +515,6 @@ func (s *Service) buildConnectors() (map[string]*Connector, error) {
 			s.addressMode,
 			s.sendRecorder,
 			s.panicHandler,
-			s.telemetry,
 			s.reporter,
 			s.showAllMail,
 			s.syncStateProvider,
@@ -531,7 +532,6 @@ func (s *Service) buildConnectors() (map[string]*Connector, error) {
 			s.addressMode,
 			s.sendRecorder,
 			s.panicHandler,
-			s.telemetry,
 			s.reporter,
 			s.showAllMail,
 			s.syncStateProvider,
@@ -654,6 +654,8 @@ type onBadEventResyncReq struct{}
 type onLogoutReq struct{}
 
 type showAllMailReq struct{ v bool }
+
+type onDeleteReq struct{}
 
 type setAddressModeReq struct {
 	mode usertypes.AddressMode

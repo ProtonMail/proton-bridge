@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/frontend/theme"
+	"github.com/ProtonMail/proton-bridge/v3/internal/hv"
 	"github.com/ProtonMail/proton-bridge/v3/internal/kb"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/service"
@@ -468,7 +469,7 @@ func (s *Service) Login(_ context.Context, login *LoginRequest) (*emptypb.Empty,
 
 				case proton.HumanValidationInvalidToken:
 					s.hvDetails = nil
-					_ = s.SendEvent(NewLoginError(LoginErrorType_HV_ERROR, err.Error()))
+					_ = s.SendEvent(NewLoginError(LoginErrorType_HV_ERROR, hv.VerificationFailedErrorMsg))
 
 				default:
 					_ = s.SendEvent(NewLoginError(LoginErrorType_USERNAME_PASSWORD_ERROR, err.Error()))

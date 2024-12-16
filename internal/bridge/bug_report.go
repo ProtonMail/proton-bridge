@@ -25,7 +25,6 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
-	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 )
 
@@ -79,12 +78,6 @@ func (bridge *Bridge) ReportBug(ctx context.Context, report *ReportBugReq) error
 	if err != nil || token == "" {
 		return err
 	}
-
-	safe.RLock(func() {
-		for _, user := range bridge.users {
-			user.ReportBugSent()
-		}
-	}, bridge.usersLock)
 
 	// if we have a token we can append more attachment to the bugReport
 	for i, att := range attachments {

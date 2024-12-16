@@ -361,10 +361,9 @@ func newTestService(_ *testing.T, mockCtrl *gomock.Controller) (*Service, *mocks
 	eventPublisher := mocks2.NewMockEventPublisher(mockCtrl)
 	provider := mocks.NewMockIdentityProvider(mockCtrl)
 	user := newTestUser()
-	telemetry := mocks.NewMockTelemetry(mockCtrl)
 	bridgePassProvider := NewFixedBridgePassProvider([]byte("hello"))
 
-	service := NewService(subscribable, eventPublisher, NewState(*user, newTestAddresses(), provider), bridgePassProvider, telemetry)
+	service := NewService(subscribable, eventPublisher, NewState(*user, newTestAddresses(), provider), bridgePassProvider)
 	return service, eventPublisher, provider
 }
 

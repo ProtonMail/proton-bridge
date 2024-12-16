@@ -208,6 +208,7 @@ func New() *cli.App {
 	// We override the default help value because we want "Show" to be capitalized
 	cli.HelpFlag = &cli.BoolFlag{
 		Name:               "help",
+		Aliases:            []string{"h"},
 		Usage:              "Show help",
 		DisableDefaultText: true,
 	}

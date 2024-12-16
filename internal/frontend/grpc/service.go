@@ -465,7 +465,7 @@ func (s *Service) finishLogin() {
 
 		if apiErr := new(proton.APIError); errors.As(err, &apiErr) && apiErr.Code == proton.HumanValidationInvalidToken {
 			s.hvDetails = nil
-			_ = s.SendEvent(NewLoginError(LoginErrorType_HV_ERROR, err.Error()))
+			_ = s.SendEvent(NewLoginError(LoginErrorType_HV_ERROR, hv.VerificationFailedErrorMsg))
 			return
 		}
 
@@ -643,7 +643,10 @@ func (s *Service) monitorParentPID() {
 func (s *Service) handleHvRequest(err error) {
 	hvDet, hvErr := hv.VerifyAndExtractHvRequest(err)
 	if hvErr != nil {
-		_ = s.SendEvent(NewLoginError(LoginErrorType_HV_ERROR, hvErr.Error()))
+		_ = s.SendEvent(NewLoginError(LoginErrorType_HV_ERROR, hv.ExtractionErrorMsg))
+		s.bridge.ReportMessageWithContext("Unable to extract HV request details", map[string]any{
+			"error": err.Error(),
+		})
 		return
 	}
 

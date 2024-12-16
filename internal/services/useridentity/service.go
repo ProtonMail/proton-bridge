@@ -50,7 +50,6 @@ type Service struct {
 	subscription *userevents.EventChanneledSubscriber
 
 	bridgePassProvider BridgePassProvider
-	telemetry          Telemetry
 }
 
 func NewService(
@@ -58,7 +57,6 @@ func NewService(
 	eventPublisher events.EventPublisher,
 	state *State,
 	bridgePassProvider BridgePassProvider,
-	telemetry Telemetry,
 ) *Service {
 	subscriberName := fmt.Sprintf("identity-%v", state.User.ID)
 
@@ -73,7 +71,6 @@ func NewService(
 		}),
 		subscription:       userevents.NewEventSubscriber(subscriberName),
 		bridgePassProvider: bridgePassProvider,
-		telemetry:          telemetry,
 	}
 }
 

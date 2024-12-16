@@ -101,6 +101,11 @@ func newTestMessageFromRFC822(t *testing.T, literal []byte) proton.Message {
 	var parsedHeaders proton.Headers
 	parsedHeaders.Values = make(map[string][]string)
 	h.Entries(func(key, val string) {
+		currentVal, ok := parsedHeaders.Values[key]
+		if ok {
+			parsedHeaders.Values[key] = append(currentVal, val)
+			return
+		}
 		parsedHeaders.Values[key] = []string{val}
 		parsedHeaders.Order = append(parsedHeaders.Order, key)
 	})

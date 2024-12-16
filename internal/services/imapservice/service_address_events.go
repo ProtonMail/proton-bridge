@@ -154,7 +154,6 @@ func addNewAddressSplitMode(ctx context.Context, s *Service, addrID string) erro
 		s.addressMode,
 		s.sendRecorder,
 		s.panicHandler,
-		s.telemetry,
 		s.reporter,
 		s.showAllMail,
 		s.syncStateProvider,

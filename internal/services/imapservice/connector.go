@@ -56,7 +56,6 @@ type Connector struct {
 
 	identityState sharedIdentity
 	client        APIClient
-	telemetry     Telemetry
 	reporter      reporter.Reporter
 	panicHandler  async.PanicHandler
 	sendRecorder  *sendrecorder.SendRecorder
@@ -80,7 +79,6 @@ func NewConnector(
 	addressMode usertypes.AddressMode,
 	sendRecorder *sendrecorder.SendRecorder,
 	panicHandler async.PanicHandler,
-	telemetry Telemetry,
 	reporter reporter.Reporter,
 	showAllMail bool,
 	syncState *SyncState,
@@ -96,7 +94,6 @@ func NewConnector(
 		attrs:         defaultMailboxAttributes(),
 
 		client:       apiClient,
-		telemetry:    telemetry,
 		reporter:     reporter,
 		panicHandler: panicHandler,
 		sendRecorder: sendRecorder,
@@ -169,18 +166,15 @@ func (s *Connector) Init(ctx context.Context, cache connector.IMAPState) error {
 	})
 }
 
-func (s *Connector) Authorize(ctx context.Context, username string, password []byte) bool {
+func (s *Connector) Authorize(_ context.Context, username string, password []byte) bool {
 	addrID, err := s.identityState.CheckAuth(username, password)
 	if err != nil {
-		s.telemetry.ReportConfigStatusFailure("IMAP " + err.Error())
 		return false
 	}
 
 	if s.addressMode == usertypes.AddressModeSplit && addrID != s.addrID {
 		return false
 	}
-
-	s.telemetry.SendConfigStatusSuccess(ctx)
 
 	return true
 }

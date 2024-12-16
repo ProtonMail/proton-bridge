@@ -232,11 +232,6 @@ signals:
     void syncFinished(QString const &userID);
     void syncProgress(QString const &userID, double progress, qint64 elapsedMs, qint64 remainingMs);
 
-public: // telemetry related calls
-    grpc::Status reportBugClicked();  ///< Performs the 'reportBugClicked' call.
-    grpc::Status autoconfigClicked(QString const &userID); ///< Performs the 'AutoconfigClicked' call.
-    grpc::Status externalLinkClicked(QString const &userID); ///< Performs the 'KBArticleClicked' call.
-
 public: // keychain related calls
     grpc::Status availableKeychains(QStringList &outKeychains);
     grpc::Status currentKeychain(QString &outKeychain);

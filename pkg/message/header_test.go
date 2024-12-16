@@ -145,6 +145,9 @@ From: Dummy Recipient <dummy@proton.me>
 Date: Tue, 15 Oct 2024 07:54:39 +0000
 Mime-Version: 1.0
 Content-Type: multipart/mixed;boundary=---------------------a136fc3851075ca3f022f5c3ec6bf8f5
+X-Attached: image1.jpg
+X-Attached: image2.jpg
+X-Attached: image3.jpg
 Message-Id: <1rYR51zNVZdyCXVvAZ8C9N8OaBg4wO_wg6VlSoLK_Mv-2AaiF5UL-vE_tIZ6FdYP8ylsuV3fpaKUpVwuUcnQ6ql_83aEgZvfC5QcZbind1k=@proton.me>
 X-Pm-Spamscore: 0
 Received: from mail.protonmail.ch by mail.protonmail.ch; Tue, 15 Oct 2024 07:54:43 +0000
@@ -178,7 +181,7 @@ lorem`)
 	lines := strings.Split(str, "\r\n")
 
 	// Check we have the expected order
-	require.Equal(t, len(lines), 17)
+	require.Equal(t, len(lines), 20)
 
 	// The fields added or modified are at the top
 	require.True(t, strings.HasPrefix(lines[0], "Content-Type: multipart/mixed;boundary=")) // we changed the boundary
@@ -194,10 +197,13 @@ lorem`)
 	require.Equal(t, `Subject: header test`, lines[8])
 	require.Equal(t, `Date: Tue, 15 Oct 2024 07:54:39 +0000`, lines[9])
 	require.Equal(t, `Mime-Version: 1.0`, lines[10])
-	require.Equal(t, `Message-Id: <1rYR51zNVZdyCXVvAZ8C9N8OaBg4wO_wg6VlSoLK_Mv-2AaiF5UL-vE_tIZ6FdYP8ylsuV3fpaKUpVwuUcnQ6ql_83aEgZvfC5QcZbind1k=@proton.me>`, lines[11])
-	require.Equal(t, `X-Pm-Spamscore: 0`, lines[12])
-	require.Equal(t, `Received: from mail.protonmail.ch by mail.protonmail.ch; Tue, 15 Oct 2024 07:54:43 +0000`, lines[13])
-	require.Equal(t, `X-Original-To: test@proton.me`, lines[14])
-	require.Equal(t, `Return-Path: <dummy@proton.me>`, lines[15])
-	require.Equal(t, `Delivered-To: test@proton.me`, lines[16])
+	require.Equal(t, `X-Attached: image1.jpg`, lines[11])
+	require.Equal(t, `X-Attached: image2.jpg`, lines[12])
+	require.Equal(t, `X-Attached: image3.jpg`, lines[13])
+	require.Equal(t, `Message-Id: <1rYR51zNVZdyCXVvAZ8C9N8OaBg4wO_wg6VlSoLK_Mv-2AaiF5UL-vE_tIZ6FdYP8ylsuV3fpaKUpVwuUcnQ6ql_83aEgZvfC5QcZbind1k=@proton.me>`, lines[14])
+	require.Equal(t, `X-Pm-Spamscore: 0`, lines[15])
+	require.Equal(t, `Received: from mail.protonmail.ch by mail.protonmail.ch; Tue, 15 Oct 2024 07:54:43 +0000`, lines[16])
+	require.Equal(t, `X-Original-To: test@proton.me`, lines[17])
+	require.Equal(t, `Return-Path: <dummy@proton.me>`, lines[18])
+	require.Equal(t, `Delivered-To: test@proton.me`, lines[19])
 }
