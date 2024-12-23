@@ -32,6 +32,7 @@ main(){
     ignore GO-2024-2888 "BRIDGE-95 archive/zip vulnerability"
     ignore GO-2024-2963 "BRIDGE-95 net/http vulnerability"
     ignore GO-2024-3106 "BRIDGE-209 encoding/gob vulnerability"
+    ignore GO-2024-3333 "BRIDGE-287 x/net vulnerability"
     has_vulns
 
     echo
