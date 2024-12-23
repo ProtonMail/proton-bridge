@@ -183,7 +183,7 @@ func newImpl(
 	if organizationData, err := client.GetOrganizationData(ctx); err != nil {
 		logrus.WithError(err).Info("Failed to obtain user organization data")
 	} else {
-		userPlan = organizationData.Organization.Name
+		userPlan = organizationData.Organization.PlanName
 	}
 
 	// Get the user's API labels.
