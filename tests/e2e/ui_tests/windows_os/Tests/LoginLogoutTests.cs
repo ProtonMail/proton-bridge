@@ -108,18 +108,6 @@ namespace ProtonMailBridge.UI.Tests.Tests
             _mainWindow.SignOutAccount();
         }
 
-        /*
-        [Test]
-        public void AddSecondAccount()
-        {
-            _loginWindow.SignIn(TestUserData.GetPaidUser());
-            _homeResult.CheckIfLoggedIn();
-            _mainWindow.AddNewAccount();
-            _loginWindow.SignInMailbox(TestUserData.GetMailboxUser());
-            _homeResult.CheckIfLoggedIn();
-        }
-        */
-
         [Test]
         public void AddDisabledAccount()
         {
@@ -136,13 +124,22 @@ namespace ProtonMailBridge.UI.Tests.Tests
             _loginWindow.ClickCancelToSignIn();
         }
 
-        //[Test]
-        //public void SuccessfullLogout()
-        //{
-        //    _loginWindow.SignIn(TestUserData.GetPaidUser());
-        //    _mainWindow.SignOutAccount();
-        //    _homeResult.CheckIfAccountIsSignedOut();
-        //}
+        [Test]
+        public void VerifySplitAddressesIsDisabledByDefault()
+        {
+            _loginWindow.SignIn(TestUserData.GetPaidUser());
+            _homeResult.CheckIfSplitAddressesIsDisabledByDefault();
+            Thread.Sleep(1000);
+        }
+
+        [Test]
+        public void EnableAndDisableSplitAddressMode()
+        {
+            _loginWindow.SignIn(TestUserData.GetPaidUser());
+            _mainWindow.EnableSplitAddress();
+            Thread.Sleep(5000);
+            _mainWindow.DisableSplitAddress();
+        }
 
         [SetUp]
         public void TestInitialize()

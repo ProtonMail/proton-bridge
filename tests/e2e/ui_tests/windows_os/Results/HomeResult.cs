@@ -22,7 +22,8 @@ namespace ProtonMailBridge.UI.Tests.Results
         private TextBox EnterEmailOrUsernameErrorText => Window.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName("Enter email or username"))).AsTextBox();
         private TextBox EnterPasswordErrorText => Window.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName("Enter password"))).AsTextBox();
         private TextBox ConnectedStateText => Window.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName("Connected"))).AsTextBox();
-        
+        private CheckBox SplitAddressesToggle => AccountView.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox).And(cf.ByName("Split addresses toggle"))).AsCheckBox();
+
         public HomeResult CheckConnectedState()
         {
             Assert.That(ConnectedStateText.IsAvailable, Is.True);
@@ -81,12 +82,17 @@ namespace ProtonMailBridge.UI.Tests.Results
         {
             Assert.That(AccountDelinquentErrorText.IsAvailable, Is.True);
             return this;
-    
         }
 
         public HomeResult CheckIfNotificationTextIsShown()
         {
             Assert.That(AlreadySignedInText.IsAvailable, Is.True);
+            return this;
+        }
+
+        public HomeResult CheckIfSplitAddressesIsDisabledByDefault()
+        {
+            Assert.That(SplitAddressesToggle.IsToggled, Is.False);
             return this;
         }
     }
