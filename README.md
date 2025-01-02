@@ -1,5 +1,5 @@
 # Proton Mail Bridge
-Copyright (c) 2024 Proton AG
+Copyright (c) 2025 Proton AG
 
 This repository holds the Proton Mail Bridge application.
 For a detailed build information see [BUILDS](./BUILDS.md).
