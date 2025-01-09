@@ -74,6 +74,10 @@ func (s *scenario) syncFailureMessageEventsObservability(username string) error 
 		Metrics: []proton.ObservabilityMetric{
 			syncmsgevents.GenerateSyncFailureCreateMessageEventMetric(),
 			syncmsgevents.GenerateSyncFailureDeleteMessageEventMetric(),
+			syncmsgevents.GenerateSyncFailureUpdateMessageEventMetric(),
+			syncmsgevents.GenerateSyncFailureUpdateMessageDraftEventMetric(),
+			syncmsgevents.GenerateSyncFailureUpdateMessageCreateEventMetric(),
+			syncmsgevents.GenerateSyncFailureMessageUpdateChannelDoesNotExist(),
 		},
 	}
 	return s.t.withClientPass(context.Background(), username, s.t.getUserByName(username).userPass, func(ctx context.Context, c *proton.Client) error {
@@ -86,11 +90,11 @@ func (s *scenario) syncFailureMessageEventsObservability(username string) error 
 func (s *scenario) eventLoopFailureMessageEventsObservability(username string) error {
 	batch := proton.ObservabilityBatch{
 		Metrics: []proton.ObservabilityMetric{
-			evtloopmsgevents.GenerateMessageEventFailedToBuildDraft(),
-			evtloopmsgevents.GenerateMessageEventFailedToBuildMessage(),
 			evtloopmsgevents.GenerateMessageEventFailureCreateMessageMetric(),
 			evtloopmsgevents.GenerateMessageEventFailureDeleteMessageMetric(),
 			evtloopmsgevents.GenerateMessageEventFailureUpdateMetric(),
+			evtloopmsgevents.GenerateMessageEventFailureUpdateDraftMetric(),
+			evtloopmsgevents.GenerateMessageEventFailureUpdateCreateMetric(),
 			evtloopmsgevents.GenerateMessageEventUpdateChannelDoesNotExist(),
 		},
 	}

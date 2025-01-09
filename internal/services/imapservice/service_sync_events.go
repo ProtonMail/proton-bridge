@@ -21,11 +21,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ProtonMail/gluon"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	obsMetrics "github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice/observabilitymetrics/syncmsgevents"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
+	"github.com/sirupsen/logrus"
 )
 
 func (s *Service) newSyncEventHandler() userevents.EventHandler {
@@ -55,9 +57,13 @@ func (s syncMessageEventHandler) HandleMessageEvents(ctx context.Context, events
 				s.service,
 				event.Message,
 				true,
+				true,
 			)
 			if err != nil {
-				s.service.observabilitySender.AddDistinctMetrics(observability.SyncError, obsMetrics.GenerateSyncFailureCreateMessageEventMetric())
+				s.service.observabilitySender.AddDistinctMetrics(
+					observability.SyncError,
+					obsMetrics.GenerateSyncFailureCreateMessageEventMetric(),
+				)
 				return fmt.Errorf("failed to handle create message event: %w", err)
 			}
 
@@ -65,20 +71,63 @@ func (s syncMessageEventHandler) HandleMessageEvents(ctx context.Context, events
 				return err
 			}
 
-		case proton.EventUpdate:
+		case proton.EventUpdate, proton.EventUpdateFlags:
 			if event.Message.IsDraft() || (event.Message.Flags&proton.MessageFlagSent != 0) {
 				updates, err := onMessageUpdateDraftOrSent(
 					logging.WithLogrusField(ctx, "action", "update draft or sent message (sync)"),
 					s.service,
 					event,
+					true,
 				)
 				if err != nil {
+					s.service.observabilitySender.AddDistinctMetrics(
+						observability.SyncError,
+						obsMetrics.GenerateSyncFailureUpdateMessageEventMetric(),
+						obsMetrics.GenerateSyncFailureUpdateMessageDraftEventMetric(),
+					)
 					return fmt.Errorf("failed to handle update draft event (sync): %w", err)
 				}
 
 				if err := waitOnIMAPUpdates(ctx, updates); err != nil {
 					return err
 				}
+
+				continue
+			}
+
+			updates, err := onMessageUpdate(
+				logging.WithLogrusField(ctx, "action", "update message (sync)"),
+				s.service,
+				event.Message,
+				true,
+			)
+			if err != nil {
+				s.service.observabilitySender.AddDistinctMetrics(
+					observability.SyncError,
+					obsMetrics.GenerateSyncFailureUpdateMessageEventMetric(),
+				)
+				return fmt.Errorf("failed to handle update message event (sync): %w", err)
+			}
+
+			// If the update fails on the gluon side because it doesn't exist, we try to create the message instead.
+			if err := waitOnIMAPUpdates(ctx, updates); gluon.IsNoSuchMessage(err) {
+				logrus.WithError(err).Error("Failed to handle update message event in gluon, will try creating it (sync)")
+
+				updates, err := onMessageCreated(ctx, s.service, event.Message, false, true)
+				if err != nil {
+					s.service.observabilitySender.AddDistinctMetrics(
+						observability.SyncError,
+						obsMetrics.GenerateSyncFailureUpdateMessageEventMetric(),
+						obsMetrics.GenerateSyncFailureUpdateMessageCreateEventMetric(),
+					)
+					return fmt.Errorf("failed to handle update message event as create (sync): %w", err)
+				}
+
+				if err := waitOnIMAPUpdates(ctx, updates); err != nil {
+					return err
+				}
+			} else if err != nil {
+				return err
 			}
 
 		case proton.EventDelete:

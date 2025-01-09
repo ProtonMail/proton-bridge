@@ -25,7 +25,7 @@ import (
 
 const (
 	messageEventErrorCaseSchemaName    = "bridge_event_loop_message_event_failures_total"
-	messageEventErrorCaseSchemaVersion = 1
+	messageEventErrorCaseSchemaVersion = 2
 )
 
 func generateMessageEventFailureObservabilityMetric(eventType string) proton.ObservabilityMetric {
@@ -54,12 +54,12 @@ func GenerateMessageEventFailureUpdateMetric() proton.ObservabilityMetric {
 	return generateMessageEventFailureObservabilityMetric("updateEvent")
 }
 
-func GenerateMessageEventFailedToBuildMessage() proton.ObservabilityMetric {
-	return generateMessageEventFailureObservabilityMetric("failedToBuildMessage")
+func GenerateMessageEventFailureUpdateDraftMetric() proton.ObservabilityMetric {
+	return generateMessageEventFailureObservabilityMetric("updateEventDraft")
 }
 
-func GenerateMessageEventFailedToBuildDraft() proton.ObservabilityMetric {
-	return generateMessageEventFailureObservabilityMetric("failedToBuildDraft")
+func GenerateMessageEventFailureUpdateCreateMetric() proton.ObservabilityMetric {
+	return generateMessageEventFailureObservabilityMetric("updateEventCreation")
 }
 
 func GenerateMessageEventUpdateChannelDoesNotExist() proton.ObservabilityMetric {
