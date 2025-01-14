@@ -1,4 +1,4 @@
-// Copyright (c) 2024 Proton AG
+// Copyright (c) 2025 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -50,6 +50,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/unleash"
+	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/keychain"
@@ -439,6 +440,15 @@ func (bridge *Bridge) init(tlsReporter TLSReporter) error {
 		version, err := bridge.updater.GetVersionInfo(ctx, bridge.api, bridge.vault.GetUpdateChannel())
 		if err != nil {
 			bridge.publish(events.UpdateCheckFailed{Error: err})
+			if errors.Is(err, updater.ErrVersionFileDownloadOrVerify) {
+				logPkg.WithError(err).Error("Cannot download or verify the version file")
+				if reporterErr := bridge.reporter.ReportMessageWithContext(
+					"Cannot download or verify the version file",
+					reporter.Context{"error": err},
+				); reporterErr != nil {
+					logPkg.WithError(reporterErr).Error("Failed to report version file check error")
+				}
+			}
 		} else {
 			bridge.handleUpdate(version)
 		}

@@ -1,4 +1,4 @@
-// Copyright (c) 2024 Proton AG
+// Copyright (c) 2025 Proton AG
 //
 // This file is part of Proton Mail Bridge.
 //
@@ -32,9 +32,10 @@ import (
 )
 
 var (
-	ErrDownloadVerify         = errors.New("failed to download or verify the update")
-	ErrInstall                = errors.New("failed to install the update")
-	ErrUpdateAlreadyInstalled = errors.New("update is already installed")
+	ErrDownloadVerify              = errors.New("failed to download or verify the update")
+	ErrInstall                     = errors.New("failed to install the update")
+	ErrUpdateAlreadyInstalled      = errors.New("update is already installed")
+	ErrVersionFileDownloadOrVerify = errors.New("failed to download or verify the version file")
 )
 
 type Downloader interface {
@@ -72,7 +73,7 @@ func (u *Updater) GetVersionInfo(ctx context.Context, downloader Downloader, cha
 		u.getVersionFileURL()+".sig",
 	)
 	if err != nil {
-		return VersionInfo{}, err
+		return VersionInfo{}, fmt.Errorf("%w: %w", ErrVersionFileDownloadOrVerify, err)
 	}
 
 	var versionMap VersionMap

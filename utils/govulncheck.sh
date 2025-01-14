@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2024 Proton AG
+# Copyright (c) 2025 Proton AG
 #
 # This file is part of Proton Mail Bridge.
 #
@@ -32,6 +32,7 @@ main(){
     ignore GO-2024-2888 "BRIDGE-95 archive/zip vulnerability"
     ignore GO-2024-2963 "BRIDGE-95 net/http vulnerability"
     ignore GO-2024-3106 "BRIDGE-209 encoding/gob vulnerability"
+    ignore GO-2024-3333 "BRIDGE-287 x/net vulnerability"
     has_vulns
 
     echo
