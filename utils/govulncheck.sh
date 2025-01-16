@@ -21,7 +21,8 @@
 set -eo pipefail
 
 main(){
-    go install golang.org/x/vuln/cmd/govulncheck@latest
+    # BRIDGE-303; Govulncheck dropped support for go<v1.20; Should be patched once we update runner golang version
+    go install golang.org/x/vuln/cmd/govulncheck@4ea4418
     make gofiles
     govulncheck -json ./... > vulns.json
 
