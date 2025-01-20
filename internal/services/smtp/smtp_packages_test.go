@@ -241,7 +241,6 @@ func TestCreateSendReq_PGPMIMEScheme(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		test := test // Avoid using range scope test inside function literal.
 		t.Run(test.name, func(t *testing.T) { checkCreateSendReq(t, test, kr) })
 	}
 }
@@ -442,7 +441,6 @@ func TestCreateSendReq_ClearMIMEScheme(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		test := test // Avoid using range scope test inside function literal.
 		t.Run(test.name, func(t *testing.T) { checkCreateSendReq(t, test, kr) })
 	}
 }
@@ -643,7 +641,6 @@ func TestCreateSendReq_InternalScheme(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		test := test // Avoid using range scope test inside function literal.
 		t.Run(test.name, func(t *testing.T) { checkCreateSendReq(t, test, kr) })
 	}
 }
@@ -849,7 +846,6 @@ func TestCreateSendReq_PGPInlineScheme(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		test := test // Avoid using range scope test inside function literal.
 		t.Run(test.name, func(t *testing.T) { checkCreateSendReq(t, test, kr) })
 	}
 }
@@ -1065,7 +1061,6 @@ func TestCreateSendReq_ClearScheme(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		test := test // Avoid using range scope test inside function literal.
 		t.Run(test.name, func(t *testing.T) { checkCreateSendReq(t, test, kr) })
 	}
 }

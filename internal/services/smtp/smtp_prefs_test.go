@@ -405,8 +405,6 @@ func TestPreferencesBuilder(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test := test // Avoid using range scope test inside function literal.
-
 		t.Run(test.name, func(t *testing.T) {
 			b := &sendPrefsBuilder{}
 

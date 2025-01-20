@@ -87,7 +87,6 @@ linters:
     - asciicheck        # Simple linter to check that your code does not contain non-ASCII identifiers [fast: true, auto-fix: false]
     - durationcheck     # check for two durations multiplied together [fast: false, auto-fix: false]
     - exhaustive        # check exhaustiveness of enum switch statements [fast: false, auto-fix: false]
-    - exportloopref     # checks for pointers to enclosing loop variables [fast: false, auto-fix: false]
     - copyloopvar       # detects places where loop variables are copied.
     - forcetypeassert   # finds forced type assertions [fast: true, auto-fix: false]
     - godot             # Check if comments end in a period [fast: true, auto-fix: true]

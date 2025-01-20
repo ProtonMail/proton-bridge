@@ -75,8 +75,6 @@ func TestUserAgent(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test := test
-
 		t.Run(test.want, func(t *testing.T) {
 			ua := New()
 
