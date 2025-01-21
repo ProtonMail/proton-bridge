@@ -9,8 +9,8 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.0
 	github.com/ProtonMail/gluon v0.17.1-0.20250116113909-2ebd96ec0bc2
 	github.com/ProtonMail/go-autostart v0.0.0-20210130080809-00ed301c8e9a
-	github.com/ProtonMail/go-proton-api v0.4.1-0.20240918100656-b4860af56d47
-	github.com/ProtonMail/gopenpgp/v2 v2.7.4-proton
+	github.com/ProtonMail/go-proton-api v0.4.1-0.20250121114701-67bd01ad0bc3
+	github.com/ProtonMail/gopenpgp/v2 v2.8.2-proton
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/abiosoft/ishell v2.0.0+incompatible
 	github.com/allan-simon/go-singleinstance v0.0.0-20210120080615-d0997106ab37
@@ -60,7 +60,7 @@ require (
 	cloud.google.com/go/compute v1.19.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/ProtonMail/bcrypt v0.0.0-20211005172633-e235017c1baf // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20230717121622-edf196117233 // indirect
+	github.com/ProtonMail/go-crypto v1.1.4-proton // indirect
 	github.com/ProtonMail/go-mime v0.0.0-20230322103455-7d82a3887f2f // indirect
 	github.com/ProtonMail/go-srp v0.0.7 // indirect
 	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db // indirect
@@ -68,7 +68,7 @@ require (
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/chzyer/test v1.0.0 // indirect
-	github.com/cloudflare/circl v1.3.7 // indirect
+	github.com/cloudflare/circl v1.5.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/cronokirby/saferith v0.33.0 // indirect
 	github.com/cucumber/gherkin-go/v19 v19.0.3 // indirect
