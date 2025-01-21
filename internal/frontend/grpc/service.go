@@ -78,11 +78,13 @@ type Service struct { // nolint:structcheck
 	eventCh      <-chan events.Event
 	quitCh       <-chan struct{}
 
-	latest     updater.VersionInfo
-	latestLock safe.RWMutex
+	latestLegacy updater.VersionInfoLegacy
+	latest       updater.Release
+	latestLock   safe.RWMutex
 
-	target     updater.VersionInfo
-	targetLock safe.RWMutex
+	targetLegacy updater.VersionInfoLegacy
+	target       updater.Release
+	targetLock   safe.RWMutex
 
 	authClient              *proton.Client
 	auth                    proton.Auth
@@ -168,11 +170,13 @@ func NewService(
 		eventCh:      eventCh,
 		quitCh:       quitCh,
 
-		latest:     updater.VersionInfo{},
-		latestLock: safe.NewRWMutex(),
+		latestLegacy: updater.VersionInfoLegacy{},
+		latest:       updater.Release{},
+		latestLock:   safe.NewRWMutex(),
 
-		target:     updater.VersionInfo{},
-		targetLock: safe.NewRWMutex(),
+		targetLegacy: updater.VersionInfoLegacy{},
+		target:       updater.Release{},
+		targetLock:   safe.NewRWMutex(),
 
 		log:                logrus.WithField("pkg", "grpc"),
 		initializing:       sync.WaitGroup{},
@@ -354,10 +358,11 @@ func (s *Service) watchEvents() {
 
 		case events.UpdateLatest:
 			safe.RLock(func() {
-				s.latest = event.Version
+				s.latestLegacy = event.VersionLegacy
+				s.latest = event.Release
 			}, s.latestLock)
 
-			_ = s.SendEvent(NewUpdateVersionChangedEvent())
+			_ = s.SendEvent(NewUpdateVersionChangedEvent()) // This updates the release notes page and landing page.
 
 		case events.UpdateAvailable:
 			switch {
@@ -366,10 +371,11 @@ func (s *Service) watchEvents() {
 
 			case !event.Silent:
 				safe.RLock(func() {
-					s.target = event.Version
+					s.targetLegacy = event.VersionLegacy
+					s.target = event.Release
 				}, s.targetLock)
 
-				_ = s.SendEvent(NewUpdateManualReadyEvent(event.Version.Version.String()))
+				_ = s.SendEvent(NewUpdateManualReadyEvent(event.GetLatestVersion()))
 			}
 
 		case events.UpdateInstalled:
@@ -391,8 +397,10 @@ func (s *Service) watchEvents() {
 
 			if s.latest.Version != nil {
 				latest = s.latest.Version.String()
-			} else if version, ok := s.checkLatestVersion(); ok {
-				latest = version.Version.String()
+			} else if s.latestLegacy.Version != nil {
+				latest = s.latestLegacy.Version.String()
+			} else if latestVersion, ok := s.checkLatestVersion(); ok {
+				latest = latestVersion
 			} else {
 				latest = "unknown"
 			}
@@ -517,7 +525,7 @@ func (s *Service) triggerReset() {
 	s.bridge.FactoryReset(context.Background())
 }
 
-func (s *Service) checkLatestVersion() (updater.VersionInfo, bool) {
+func (s *Service) checkLatestVersion() (string, bool) {
 	updateCh, done := s.bridge.GetEvents(events.UpdateLatest{})
 	defer done()
 
@@ -526,14 +534,13 @@ func (s *Service) checkLatestVersion() (updater.VersionInfo, bool) {
 	select {
 	case event := <-updateCh:
 		if latest, ok := event.(events.UpdateLatest); ok {
-			return latest.Version, true
+			return latest.GetLatestVersion(), true
 		}
-
 	case <-time.After(5 * time.Second):
 		// ...
 	}
 
-	return updater.VersionInfo{}, false
+	return "", false
 }
 
 func newTLSConfig() (*tls.Config, []byte, error) {

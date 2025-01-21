@@ -298,7 +298,14 @@ func (s *Service) ReleaseNotesPageLink(_ context.Context, _ *emptypb.Empty) (*wr
 		s.latestLock.RUnlock()
 	}()
 
-	return wrapperspb.String(s.latest.ReleaseNotesPage), nil
+	var releaseNotesPage string
+	if !s.latestLegacy.IsEmpty() {
+		releaseNotesPage = s.latestLegacy.ReleaseNotesPage
+	} else if !s.latest.IsEmpty() {
+		releaseNotesPage = s.latest.ReleaseNotesPage
+	}
+
+	return wrapperspb.String(releaseNotesPage), nil
 }
 
 func (s *Service) LandingPageLink(_ context.Context, _ *emptypb.Empty) (*wrapperspb.StringValue, error) {
@@ -308,7 +315,14 @@ func (s *Service) LandingPageLink(_ context.Context, _ *emptypb.Empty) (*wrapper
 		s.latestLock.RUnlock()
 	}()
 
-	return wrapperspb.String(s.latest.LandingPage), nil
+	var landingPage string
+	if !s.latestLegacy.IsEmpty() {
+		landingPage = s.latestLegacy.LandingPage
+	} else if !s.latest.IsEmpty() {
+		landingPage = s.latest.LandingPage
+	}
+
+	return wrapperspb.String(landingPage), nil
 }
 
 func (s *Service) SetColorSchemeName(_ context.Context, name *wrapperspb.StringValue) (*emptypb.Empty, error) {
@@ -617,7 +631,11 @@ func (s *Service) InstallUpdate(_ context.Context, _ *emptypb.Empty) (*emptypb.E
 		defer async.HandlePanic(s.panicHandler)
 
 		safe.RLock(func() {
-			s.bridge.InstallUpdate(s.target)
+			if !s.targetLegacy.IsEmpty() {
+				s.bridge.InstallUpdateLegacy(s.targetLegacy)
+			} else if !s.target.IsEmpty() {
+				s.bridge.InstallUpdate(s.target)
+			}
 		}, s.targetLock)
 	}()
 

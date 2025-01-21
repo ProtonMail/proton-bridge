@@ -29,13 +29,17 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/versioner"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 )
+
+const updateFileVersion = 1
 
 var (
 	ErrDownloadVerify              = errors.New("failed to download or verify the update")
 	ErrInstall                     = errors.New("failed to install the update")
 	ErrUpdateAlreadyInstalled      = errors.New("update is already installed")
 	ErrVersionFileDownloadOrVerify = errors.New("failed to download or verify the version file")
+	ErrReleaseUpdatePackageMissing = errors.New("release update package is missing")
 )
 
 type Downloader interface {
@@ -53,6 +57,7 @@ type Updater struct {
 	verifier  *crypto.KeyRing
 	product   string
 	platform  string
+	version   uint
 }
 
 func NewUpdater(ver *versioner.Versioner, verifier *crypto.KeyRing, product, platform string) *Updater {
@@ -62,10 +67,36 @@ func NewUpdater(ver *versioner.Versioner, verifier *crypto.KeyRing, product, pla
 		verifier:  verifier,
 		product:   product,
 		platform:  platform,
+		version:   updateFileVersion,
 	}
 }
 
-func (u *Updater) GetVersionInfo(ctx context.Context, downloader Downloader, channel Channel) (VersionInfo, error) {
+func (u *Updater) GetVersionInfoLegacy(ctx context.Context, downloader Downloader, channel Channel) (VersionInfoLegacy, error) {
+	b, err := downloader.DownloadAndVerify(
+		ctx,
+		u.verifier,
+		u.getVersionFileURLLegacy(),
+		u.getVersionFileURLLegacy()+".sig",
+	)
+	if err != nil {
+		return VersionInfoLegacy{}, fmt.Errorf("%w: %w", ErrVersionFileDownloadOrVerify, err)
+	}
+
+	var versionMap VersionMap
+
+	if err := json.Unmarshal(b, &versionMap); err != nil {
+		return VersionInfoLegacy{}, err
+	}
+
+	version, ok := versionMap[channel]
+	if !ok {
+		return VersionInfoLegacy{}, errors.New("no updates available for this channel")
+	}
+
+	return version, nil
+}
+
+func (u *Updater) GetVersionInfo(ctx context.Context, downloader Downloader) (VersionInfo, error) {
 	b, err := downloader.DownloadAndVerify(
 		ctx,
 		u.verifier,
@@ -76,21 +107,16 @@ func (u *Updater) GetVersionInfo(ctx context.Context, downloader Downloader, cha
 		return VersionInfo{}, fmt.Errorf("%w: %w", ErrVersionFileDownloadOrVerify, err)
 	}
 
-	var versionMap VersionMap
+	var releases VersionInfo
 
-	if err := json.Unmarshal(b, &versionMap); err != nil {
+	if err := json.Unmarshal(b, &releases); err != nil {
 		return VersionInfo{}, err
 	}
 
-	version, ok := versionMap[channel]
-	if !ok {
-		return VersionInfo{}, errors.New("no updates available for this channel")
-	}
-
-	return version, nil
+	return releases, nil
 }
 
-func (u *Updater) InstallUpdate(ctx context.Context, downloader Downloader, update VersionInfo) error {
+func (u *Updater) InstallUpdateLegacy(ctx context.Context, downloader Downloader, update VersionInfoLegacy) error {
 	if u.installer.IsAlreadyInstalled(update.Version) {
 		return ErrUpdateAlreadyInstalled
 	}
@@ -113,13 +139,64 @@ func (u *Updater) InstallUpdate(ctx context.Context, downloader Downloader, upda
 	return nil
 }
 
+func (u *Updater) InstallUpdate(ctx context.Context, downloader Downloader, release Release) error {
+	if u.installer.IsAlreadyInstalled(release.Version) {
+		return ErrUpdateAlreadyInstalled
+	}
+
+	// Find update package
+	idx := slices.IndexFunc(release.File, func(file File) bool {
+		return file.Identifier == PackageIdentifier
+	})
+
+	if idx == -1 {
+		logrus.WithFields(logrus.Fields{
+			"release_version": release.Version,
+		}).Error("Update release does not contain update package")
+		return ErrReleaseUpdatePackageMissing
+	}
+
+	releaseUpdatePackage := release.File[idx]
+
+	b, err := downloader.DownloadAndVerify(
+		ctx,
+		u.verifier,
+		releaseUpdatePackage.URL,
+		releaseUpdatePackage.URL+".sig",
+	)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrDownloadVerify, err)
+	}
+
+	if err := u.installer.InstallUpdate(release.Version, bytes.NewReader(b)); err != nil {
+		logrus.WithError(err).Error("Failed to install update")
+		return ErrInstall
+	}
+
+	return nil
+}
+
 func (u *Updater) RemoveOldUpdates() error {
 	return u.versioner.RemoveOldVersions()
 }
 
-// getVersionFileURL returns the URL of the version file.
+// getVersionFileURLLegacy returns the URL of the version file.
 // For example:
 //   - https://protonmail.com/download/bridge/version_linux.json
-func (u *Updater) getVersionFileURL() string {
+func (u *Updater) getVersionFileURLLegacy() string {
 	return fmt.Sprintf("%v/%v/version_%v.json", Host, u.product, u.platform)
+}
+
+// getVersionFileURL returns the URL of the version file.
+// For example:
+//   - https://protonmail.com/download/windows/x86/v1/version.json
+//   - https://protonmail.com/download/linux/x86/v1/version.json
+//   - https://protonmail.com/download/darwin/universal/v1/version.json
+func (u *Updater) getVersionFileURL() string {
+	switch u.platform {
+	case "darwin":
+		return fmt.Sprintf("%v/%v/%v/universal/v%v/version.json", Host, u.product, u.platform, u.version)
+	default:
+		return fmt.Sprintf("%v/%v/%v/x86/v%v/version.json", Host, u.product, u.platform, u.version)
+	}
 }

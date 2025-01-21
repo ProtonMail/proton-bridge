@@ -45,6 +45,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/focus"
 	"github.com/ProtonMail/proton-bridge/v3/internal/locations"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapsmtpserver"
+	"github.com/ProtonMail/proton-bridge/v3/internal/unleash"
 	"github.com/ProtonMail/proton-bridge/v3/internal/updater"
 	"github.com/ProtonMail/proton-bridge/v3/internal/user"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
@@ -383,9 +384,14 @@ func TestBridge_Cookies(t *testing.T) {
 	})
 }
 
-func TestBridge_CheckUpdate(t *testing.T) {
+func TestBridge_CheckUpdate_Legacy(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		unleash.ModifyPollPeriodAndJitter(500*time.Millisecond, 0)
+		s.PushFeatureFlag(unleash.UpdateUseNewVersionFileStructureDisabled)
+
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Wait for FF poll.
+			time.Sleep(600 * time.Millisecond)
 			// Disable autoupdate for this test.
 			require.NoError(t, bridge.SetAutoUpdate(false))
 
@@ -400,7 +406,7 @@ func TestBridge_CheckUpdate(t *testing.T) {
 			require.Equal(t, events.UpdateNotAvailable{}, <-noUpdateCh)
 
 			// Simulate a new version being available.
-			mocks.Updater.SetLatestVersion(v2_4_0, v2_3_0)
+			mocks.Updater.SetLatestVersionLegacy(v2_4_0, v2_3_0)
 
 			// Get a stream of update available events.
 			updateCh, done := bridge.GetEvents(events.UpdateAvailable{})
@@ -411,7 +417,7 @@ func TestBridge_CheckUpdate(t *testing.T) {
 
 			// We should receive an event indicating that an update is available.
 			require.Equal(t, events.UpdateAvailable{
-				Version: updater.VersionInfo{
+				VersionLegacy: updater.VersionInfoLegacy{
 					Version:           v2_4_0,
 					MinAuto:           v2_3_0,
 					RolloutProportion: 1.0,
@@ -423,25 +429,30 @@ func TestBridge_CheckUpdate(t *testing.T) {
 	})
 }
 
-func TestBridge_AutoUpdate(t *testing.T) {
+func TestBridge_AutoUpdate_Legacy(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
-		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+		unleash.ModifyPollPeriodAndJitter(500*time.Millisecond, 0)
+		s.PushFeatureFlag(unleash.UpdateUseNewVersionFileStructureDisabled)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(b *bridge.Bridge, mocks *bridge.Mocks) {
+			// Wait for FF poll.
+			time.Sleep(600 * time.Millisecond)
 			// Enable autoupdate for this test.
-			require.NoError(t, bridge.SetAutoUpdate(true))
+			require.NoError(t, b.SetAutoUpdate(true))
 
 			// Get a stream of update events.
-			updateCh, done := bridge.GetEvents(events.UpdateInstalled{})
+			updateCh, done := b.GetEvents(events.UpdateInstalled{})
 			defer done()
 
 			// Simulate a new version being available.
-			mocks.Updater.SetLatestVersion(v2_4_0, v2_3_0)
+			mocks.Updater.SetLatestVersionLegacy(v2_4_0, v2_3_0)
 
 			// Check for updates.
-			bridge.CheckForUpdates()
+			b.CheckForUpdates()
 
 			// We should receive an event indicating that the update was silently installed.
 			require.Equal(t, events.UpdateInstalled{
-				Version: updater.VersionInfo{
+				VersionLegacy: updater.VersionInfoLegacy{
 					Version:           v2_4_0,
 					MinAuto:           v2_3_0,
 					RolloutProportion: 1.0,
@@ -452,9 +463,14 @@ func TestBridge_AutoUpdate(t *testing.T) {
 	})
 }
 
-func TestBridge_ManualUpdate(t *testing.T) {
+func TestBridge_ManualUpdate_Legacy(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		unleash.ModifyPollPeriodAndJitter(500*time.Millisecond, 0)
+		s.PushFeatureFlag(unleash.UpdateUseNewVersionFileStructureDisabled)
+
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, mocks *bridge.Mocks) {
+			// Wait for FF poll.
+			time.Sleep(600 * time.Millisecond)
 			// Disable autoupdate for this test.
 			require.NoError(t, bridge.SetAutoUpdate(false))
 
@@ -463,14 +479,14 @@ func TestBridge_ManualUpdate(t *testing.T) {
 			defer done()
 
 			// Simulate a new version being available, but it's too new for us.
-			mocks.Updater.SetLatestVersion(v2_4_0, v2_4_0)
+			mocks.Updater.SetLatestVersionLegacy(v2_4_0, v2_4_0)
 
 			// Check for updates.
 			bridge.CheckForUpdates()
 
 			// We should receive an event indicating an update is available, but we can't install it.
 			require.Equal(t, events.UpdateAvailable{
-				Version: updater.VersionInfo{
+				VersionLegacy: updater.VersionInfoLegacy{
 					Version:           v2_4_0,
 					MinAuto:           v2_4_0,
 					RolloutProportion: 1.0,
@@ -484,7 +500,12 @@ func TestBridge_ManualUpdate(t *testing.T) {
 
 func TestBridge_ForceUpdate(t *testing.T) {
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
+		unleash.ModifyPollPeriodAndJitter(500*time.Millisecond, 0)
+		s.PushFeatureFlag(unleash.UpdateUseNewVersionFileStructureDisabled)
+
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, vaultKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			// Wait for FF poll.
+			time.Sleep(600 * time.Millisecond)
 			// Get a stream of update events.
 			updateCh, done := bridge.GetEvents(events.UpdateForced{})
 			defer done()

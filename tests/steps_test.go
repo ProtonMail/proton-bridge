@@ -99,6 +99,9 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	ctx.Step(`^bridge reports a message with "([^"]*)"$`, s.bridgeReportsMessage)
 	ctx.Step(`^bridge telemetry feature is enabled$`, s.bridgeTelemetryFeatureEnabled)
 	ctx.Step(`^bridge telemetry feature is disabled$`, s.bridgeTelemetryFeatureDisabled)
+	ctx.Step(`^the legacy update kill switch is enabled$`, s.bridgeLegacyUpdateKillSwitchEnabled)
+	ctx.Step(`^bridge verifies that the legacy update is enabled$`, s.bridgeLegacyUpdateEnabled)
+	ctx.Step(`^bridge checks for updates$`, s.bridgeChecksForUpdates)
 
 	// ==== FRONTEND ====
 	ctx.Step(`^frontend sees that bridge is version "([^"]*)"$`, s.frontendSeesThatBridgeIsVersion)

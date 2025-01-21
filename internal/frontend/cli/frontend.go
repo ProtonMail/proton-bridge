@@ -482,16 +482,16 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:gocyc
 
 		case events.UpdateAvailable:
 			if !event.Compatible {
-				f.Printf("A new version (%v) is available but it cannot be installed automatically.\n", event.Version.Version)
+				f.Printf("A new version (%v) is available but it cannot be installed automatically.\n", event.GetLatestVersion())
 			} else if !event.Silent {
-				f.Printf("A new version (%v) is available.\n", event.Version.Version)
+				f.Printf("A new version (%v) is available.\n", event.GetLatestVersion())
 			}
 
 		case events.UpdateInstalled:
-			f.Printf("A new version (%v) was installed.\n", event.Version.Version)
+			f.Printf("A new version (%v) was installed.\n", event.GetLatestVersion())
 
 		case events.UpdateFailed:
-			f.Printf("A new version (%v) failed to be installed (%v).\n", event.Version.Version, event.Error)
+			f.Printf("A new version (%v) failed to be installed (%v).\n", event.GetLatestVersion(), event.Error)
 
 		case events.UpdateForced:
 			f.notifyNeedUpgrade()

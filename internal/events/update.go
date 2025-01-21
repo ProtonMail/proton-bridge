@@ -24,14 +24,35 @@ import (
 )
 
 // UpdateLatest is published when the latest version of bridge is known.
+// It is only used for updating the release notes and landing page URLs.
 type UpdateLatest struct {
 	eventBase
 
-	Version updater.VersionInfo
+	// VersionLegacy - holds Update version information; corresponding to the old update structure and logic;
+	VersionLegacy updater.VersionInfoLegacy
+
+	// Release - holds Release version data; part of the new update logic as of BRIDGE-309.
+	Release updater.Release
+}
+
+func (event UpdateLatest) GetLatestVersion() string {
+	var latestVersion string
+	if !event.VersionLegacy.IsEmpty() {
+		latestVersion = event.VersionLegacy.Version.String()
+	} else if !event.Release.IsEmpty() {
+		latestVersion = event.Release.Version.String()
+	}
+	return latestVersion
 }
 
 func (event UpdateLatest) String() string {
-	return fmt.Sprintf("UpdateLatest: Version: %s", event.Version.Version)
+	if !event.VersionLegacy.IsEmpty() {
+		return fmt.Sprintf("UpdateLatest: Version: %s", event.VersionLegacy.Version)
+	}
+	if !event.Release.IsEmpty() {
+		return fmt.Sprintf("UpdateLatest: Version: %s", event.Release.Version)
+	}
+	return ""
 }
 
 // UpdateAvailable is published when an update is available.
@@ -40,7 +61,11 @@ func (event UpdateLatest) String() string {
 type UpdateAvailable struct {
 	eventBase
 
-	Version updater.VersionInfo
+	// VersionLegacy - holds Update version information; corresponding to the old update structure and logic;
+	VersionLegacy updater.VersionInfoLegacy
+
+	// Release - holds Release version data; part of the new update logic as of BRIDGE-309.
+	Release updater.Release
 
 	// Compatible is true if the update can be installed automatically.
 	Compatible bool
@@ -49,8 +74,23 @@ type UpdateAvailable struct {
 	Silent bool
 }
 
+func (event UpdateAvailable) GetLatestVersion() string {
+	var latestVersion string
+	if !event.VersionLegacy.IsEmpty() {
+		latestVersion = event.VersionLegacy.Version.String()
+	} else if !event.Release.IsEmpty() {
+		latestVersion = event.Release.Version.String()
+	}
+	return latestVersion
+}
+
 func (event UpdateAvailable) String() string {
-	return fmt.Sprintf("UpdateAvailable: Version %s, Compatible: %t, Silent: %t", event.Version.Version, event.Compatible, event.Silent)
+	if !event.Release.IsEmpty() {
+		return fmt.Sprintf("UpdateAvailable: Version %s, Compatible: %t, Silent: %t", event.Release.Version, event.Compatible, event.Silent)
+	} else if !event.VersionLegacy.IsEmpty() {
+		return fmt.Sprintf("UpdateAvailable: Version %s, Compatible: %t, Silent: %t", event.VersionLegacy.Version, event.Compatible, event.Silent)
+	}
+	return ""
 }
 
 // UpdateNotAvailable is published when no update is available.
@@ -62,45 +102,70 @@ func (event UpdateNotAvailable) String() string {
 	return "UpdateNotAvailable"
 }
 
-// UpdateInstalling is published when bridge begins installing an update.
-type UpdateInstalling struct {
-	eventBase
-
-	Version updater.VersionInfo
-
-	Silent bool
-}
-
-func (event UpdateInstalling) String() string {
-	return fmt.Sprintf("UpdateInstalling: Version %s, Silent: %t", event.Version.Version, event.Silent)
-}
-
 // UpdateInstalled is published when an update has been installed.
 type UpdateInstalled struct {
 	eventBase
 
-	Version updater.VersionInfo
+	// VersionLegacy - holds Update version information; corresponding to the old update structure and logic;
+	VersionLegacy updater.VersionInfoLegacy
+
+	// Release - holds Release version data; part of the new update logic as of BRIDGE-309.
+	Release updater.Release
 
 	Silent bool
 }
 
+func (event UpdateInstalled) GetLatestVersion() string {
+	var latestVersion string
+	if !event.VersionLegacy.IsEmpty() {
+		latestVersion = event.VersionLegacy.Version.String()
+	} else if !event.Release.IsEmpty() {
+		latestVersion = event.Release.Version.String()
+	}
+	return latestVersion
+}
+
 func (event UpdateInstalled) String() string {
-	return fmt.Sprintf("UpdateInstalled: Version %s, Silent: %t", event.Version.Version, event.Silent)
+	if !event.Release.IsEmpty() {
+		return fmt.Sprintf("UpdateInstalled: Version %s, Silent: %t", event.Release.Version, event.Silent)
+	} else if !event.VersionLegacy.IsEmpty() {
+		return fmt.Sprintf("UpdateInstalled: Version %s, Silent: %t", event.VersionLegacy.Version, event.Silent)
+	}
+	return ""
 }
 
 // UpdateFailed is published when an update fails to be installed.
 type UpdateFailed struct {
 	eventBase
 
-	Version updater.VersionInfo
+	// VersionLegacy - holds Update version information; corresponding to the old update structure and logic;
+	VersionLegacy updater.VersionInfoLegacy
+
+	// Release - holds Release version data; part of the new update logic as of BRIDGE-309.
+	Release updater.Release
 
 	Silent bool
 
 	Error error
 }
 
+func (event UpdateFailed) GetLatestVersion() string {
+	var latestVersion string
+	if !event.VersionLegacy.IsEmpty() {
+		latestVersion = event.VersionLegacy.Version.String()
+	} else if !event.Release.IsEmpty() {
+		latestVersion = event.Release.Version.String()
+	}
+	return latestVersion
+}
+
 func (event UpdateFailed) String() string {
-	return fmt.Sprintf("UpdateFailed: Version %s, Silent: %t, Error: %s", event.Version.Version, event.Silent, event.Error)
+	if !event.Release.IsEmpty() {
+		return fmt.Sprintf("UpdateFailed: Version %s, Silent: %t, Error: %s", event.Release.Version, event.Silent, event.Error)
+	} else if !event.VersionLegacy.IsEmpty() {
+		return fmt.Sprintf("UpdateFailed: Version %s, Silent: %t, Error: %s", event.VersionLegacy.Version, event.Silent, event.Error)
+	}
+	return ""
 }
 
 // UpdateForced is published when the bridge version is too old and must be updated.

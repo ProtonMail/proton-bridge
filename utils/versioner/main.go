@@ -31,7 +31,7 @@ import (
 )
 
 type versionInfo struct {
-	updater.VersionInfo
+	updater.VersionInfoLegacy
 
 	Commit string
 }

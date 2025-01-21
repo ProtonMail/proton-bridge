@@ -19,10 +19,36 @@ package updater
 
 import (
 	"github.com/Masterminds/semver/v3"
+	"github.com/ProtonMail/proton-bridge/v3/internal/updater/versioncompare"
 )
 
-// VersionInfo is information about one version of the app.
+type File struct {
+	URL            string         `json:"Url"`
+	Sha512CheckSum string         `json:"Sha512CheckSum,omitempty"`
+	Identifier     FileIdentifier `json:"Identifier"`
+}
+
+type Release struct {
+	ReleaseCategory   ReleaseCategory `json:"CategoryName"`
+	Version           *semver.Version
+	SystemVersion     versioncompare.SystemVersion `json:"SystemVersion,omitempty"`
+	RolloutProportion float64
+	MinAuto           *semver.Version `json:"MinAuto,omitempty"`
+	ReleaseNotesPage  string
+	LandingPage       string
+	File              []File `json:"File"`
+}
+
+func (rel Release) IsEmpty() bool {
+	return rel.Version == nil && len(rel.File) == 0
+}
+
 type VersionInfo struct {
+	Releases []Release `json:"Releases"`
+}
+
+// VersionInfoLegacy is information about one version of the app.
+type VersionInfoLegacy struct {
 	// Version is the semantic version of the release.
 	Version *semver.Version
 
@@ -44,6 +70,10 @@ type VersionInfo struct {
 
 	// RolloutProportion indicates the proportion (0,1] of users that should update to this version.
 	RolloutProportion float64
+}
+
+func (verInfo VersionInfoLegacy) IsEmpty() bool {
+	return verInfo.Version == nil && verInfo.ReleaseNotesPage == ""
 }
 
 // VersionMap represents the structure of the version.json file.
@@ -79,4 +109,4 @@ type VersionInfo struct {
 //	  }
 //	}.
 
-type VersionMap map[Channel]VersionInfo
+type VersionMap map[Channel]VersionInfoLegacy

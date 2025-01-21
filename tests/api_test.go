@@ -36,6 +36,8 @@ type API interface {
 	GetDomain() string
 	GetAppVersion() string
 
+	PushFeatureFlag(string)
+
 	Close()
 }
 
@@ -59,6 +61,10 @@ func newFakeAPI() API {
 
 func (api *fakeAPI) GetAppVersion() string {
 	return proton.DefaultAppVersion
+}
+
+func (api *fakeAPI) PushFeatureFlag(flagName string) {
+	api.Server.PushFeatureFlag(flagName)
 }
 
 type liveAPI struct {
