@@ -3,6 +3,25 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Grunwald Bridge 3.17.0
+
+### Added
+* BRIDGE-271: Report version file check failure to Sentry.
+* BRIDGE-247: Test: Automate Bridge 0% update rollout.
+* BRIDGE-248: Test: Additional Bridge UI e2e automation tests.
+
+### Changed
+* BRIDGE-73: Update goopenpgp.
+* BRIDGE-287: Update x/net and x/crypto dependencies.
+* BRIDGE-303: Update govulncheck to latest release.
+* BRIDGE-226: Bump Go version to 1.23.4.
+* BRIDGE-288: Extension to synchronization update handler, observability tweaks and gluon update.
+
+### Fixed
+* BRIDGE-291: Use correct field for user plan type.
+* BRIDGE-143: Add missing QML component attribute, cut/paste disabled on read-only text areas.
+
+
 ## Flavien Bridge 3.16.0
 
 ### Added
