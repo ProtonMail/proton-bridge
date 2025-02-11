@@ -19,6 +19,7 @@
 
 package main
 
+// Minor comment on vault editor DELETE ME.
 import (
 	"fmt"
 	"io"
