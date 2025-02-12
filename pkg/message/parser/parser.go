@@ -109,7 +109,9 @@ func (p *Parser) AttachEmptyTextPartIfNoneExists() bool {
 	h := message.Header{}
 
 	h.Set("Content-Type", "text/plain;charset=utf8")
-	h.Set("Content-Transfer-Encoding", "quoted-printable")
+	if !h.Has("Content-Transfer-Encoding") {
+		h.Set("Content-Transfer-Encoding", "quoted-printable")
+	}
 
 	p.Root().AddChild(&Part{
 		Header: h,
