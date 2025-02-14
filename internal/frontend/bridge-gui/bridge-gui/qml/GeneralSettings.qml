@@ -86,9 +86,9 @@ SettingsView {
         ColorImage {
             Layout.alignment: Qt.AlignCenter
             color: root.colorScheme.interaction_norm
-            height: root.colorScheme.body_font_size
+            height: ProtonStyle.body_font_size
             source: root._isAdvancedShown ? "/qml/icons/ic-chevron-down.svg" : "/qml/icons/ic-chevron-right.svg"
-            sourceSize.height: root.colorScheme.body_font_size
+            sourceSize.height: ProtonStyle.body_font_size
 
             MouseArea {
                 anchors.fill: parent

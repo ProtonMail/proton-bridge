@@ -212,7 +212,7 @@ func buildSessionInfoList(dir string) (map[SessionID]*sessionInfo, error) {
 		}
 		rx := regexp.MustCompile(`^(\d{8}_\d{9})_.*\.log$`)
 		match := rx.FindStringSubmatch(entry.Name())
-		if match == nil || len(match) < 2 {
+		if len(match) < 2 {
 			continue
 		}
 

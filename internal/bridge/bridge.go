@@ -720,13 +720,13 @@ func (bridge *Bridge) verifyUsernameChange() {
 func GetUpdatedCachePath(gluonDBPath, gluonCachePath string) string {
 	// If gluon cache is moved to an external drive; regex find will fail; as is expected
 	cachePathMatches := usernameChangeRegex.FindStringSubmatch(gluonCachePath)
-	if cachePathMatches == nil || len(cachePathMatches) < 2 {
+	if len(cachePathMatches) < 2 {
 		return ""
 	}
 
 	cacheUsername := cachePathMatches[1]
 	dbPathMatches := usernameChangeRegex.FindStringSubmatch(gluonDBPath)
-	if dbPathMatches == nil || len(dbPathMatches) < 2 {
+	if len(dbPathMatches) < 2 {
 		return ""
 	}
 

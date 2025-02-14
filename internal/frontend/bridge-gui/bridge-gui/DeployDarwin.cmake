@@ -24,15 +24,33 @@ cmake_minimum_required(VERSION 3.22)
 install(SCRIPT ${deploy_script})
 
 # QML
-install(DIRECTORY "${QT_DIR}/qml/Qt"
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS")
+install(DIRECTORY "${QT_DIR}/qml/Qt/labs/platform"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS/Qt/labs")
 install(DIRECTORY "${QT_DIR}/qml/QtQml"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS")
 install(DIRECTORY "${QT_DIR}/qml/QtQuick"
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS")
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/MacOS"
+        PATTERN "VirtualKeyboard" EXCLUDE
+        PATTERN "Effects" EXCLUDE
+        PATTERN "LocalStorage" EXCLUDE
+        PATTERN "NativeStyle" EXCLUDE
+        PATTERN "Particles" EXCLUDE
+        PATTERN "Scene2D" EXCLUDE
+        PATTERN "Scene3D" EXCLUDE
+        PATTERN "Shapes" EXCLUDE
+        PATTERN "Timeline" EXCLUDE
+        PATTERN "VectorImage" EXCLUDE
+
+        PATTERN "Controls/FluentWinUI3" EXCLUDE
+        PATTERN "Controls/designer" EXCLUDE
+        PATTERN "Controls/Fusion" EXCLUDE
+        PATTERN "Controls/Imagine" EXCLUDE
+        PATTERN "Controls/Material" EXCLUDE
+        PATTERN "Controls/Universal" EXCLUDE
+        PATTERN "Controls/iOS" EXCLUDE
+        PATTERN "Controls/macOS" EXCLUDE)
+
 # FRAMEWORKS
-install(DIRECTORY "${QT_DIR}/lib/QtQmlWorkerScript.framework"
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
 install(DIRECTORY "${QT_DIR}/lib/QtQuickControls2Impl.framework"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
 install(DIRECTORY "${QT_DIR}/lib/QtQuickLayouts.framework"
@@ -43,6 +61,14 @@ install(DIRECTORY "${QT_DIR}/lib/QtQuickDialogs2QuickImpl.framework"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
 install(DIRECTORY "${QT_DIR}/lib/QtQuickDialogs2Utils.framework"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
+# ADDITIONAL FRAMEWORKS FOR Qt 6.8
+install(DIRECTORY "${QT_DIR}/lib/QtQuickControls2Basic.framework"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
+install(DIRECTORY "${QT_DIR}/lib/QtLabsPlatform.framework"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
+install(DIRECTORY "${QT_DIR}/lib/QtQuickControls2BasicStyleImpl.framework"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/Frameworks")
+
 # PLUGINS
 install(FILES "${QT_DIR}/plugins/imageformats/libqsvg.dylib"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/bridge-gui.app/Contents/PlugIns/imageformats")

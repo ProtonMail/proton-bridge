@@ -58,9 +58,9 @@ Item {
             }
             ColorImage {
                 color: root.colorScheme.text_norm
-                height: root.colorScheme.body_font_size
+                height: ProtonStyle.body_font_size
                 source: "/qml/icons/ic-copy.svg"
-                sourceSize.height: root.colorScheme.body_font_size
+                sourceSize.height: ProtonStyle.body_font_size
 
                 MouseArea {
                     anchors.fill: parent

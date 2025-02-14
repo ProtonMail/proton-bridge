@@ -72,9 +72,9 @@ Item {
             ColorImage {
                 anchors.centerIn: parent
                 color: root.colorScheme.background_norm
-                height: root.colorScheme.body_font_size
+                height: ProtonStyle.body_font_size
                 source: "/qml/icons/ic-check.svg"
-                sourceSize.height: root.colorScheme.body_font_size
+                sourceSize.height: ProtonStyle.body_font_size
                 visible: root.checked
             }
         }
@@ -82,9 +82,9 @@ Item {
             id: loader
             anchors.centerIn: parent
             color: root.colorScheme.text_norm
-            height: root.colorScheme.body_font_size
+            height: ProtonStyle.body_font_size
             source: "/qml/icons/Loader_16.svg"
-            sourceSize.height: root.colorScheme.body_font_size
+            sourceSize.height: ProtonStyle.body_font_size
             visible: root.loading
 
             RotationAnimation {

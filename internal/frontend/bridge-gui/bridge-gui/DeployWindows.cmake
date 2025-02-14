@@ -57,20 +57,36 @@ AppendVCPKGLib("re2.dll")
 AppendVCPKGLib("sentry.dll")
 AppendVCPKGLib("zlib1.dll")
 # QML DLLs
-AppendQt6Lib("Qt6QmlWorkerScript.dll")
 AppendQt6Lib("Qt6Widgets.dll")
 AppendQt6Lib("Qt6QuickControls2Impl.dll")
 AppendQt6Lib("Qt6QuickLayouts.dll")
 AppendQt6Lib("Qt6QuickDialogs2.dll")
 AppendQt6Lib("Qt6QuickDialogs2QuickImpl.dll")
 AppendQt6Lib("Qt6QuickDialogs2Utils.dll")
+AppendQt6Lib("Qt6LabsPlatform.dll")
+AppendQt6Lib("Qt6QuickControls2.dll")
+AppendQt6Lib("Qt6QuickControls2Basic.dll")
 
 install(FILES ${DEPLOY_LIBS} DESTINATION "${CMAKE_INSTALL_PREFIX}")
 
 # QML PlugIns
 install(DIRECTORY ${QT_DIR}/qml/Qt/labs/platform DESTINATION "${CMAKE_INSTALL_PREFIX}/Qt/labs/")
 install(DIRECTORY ${QT_DIR}/qml/QtQml DESTINATION "${CMAKE_INSTALL_PREFIX}")
-install(DIRECTORY ${QT_DIR}/qml/QtQuick DESTINATION "${CMAKE_INSTALL_PREFIX}")
+install(DIRECTORY ${QT_DIR}/qml/QtQuick DESTINATION "${CMAKE_INSTALL_PREFIX}"
+        PATTERN "Effects" EXCLUDE
+        PATTERN "LocalStorage" EXCLUDE
+        PATTERN "NativeStyle" EXCLUDE
+        PATTERN "Particles" EXCLUDE
+        PATTERN "Shapes" EXCLUDE
+        PATTERN "VectorImage" EXCLUDE
+
+        PATTERN "Controls/designer" EXCLUDE
+        PATTERN "Controls/FluentWinUI3" EXCLUDE
+        PATTERN "Controls/Fusion" EXCLUDE
+        PATTERN "Controls/Imagine" EXCLUDE
+        PATTERN "Controls/Material" EXCLUDE
+        PATTERN "Controls/Universal" EXCLUDE
+        PATTERN "Controls/Windows" EXCLUDE)
 
 # crash handler utils
 install(PROGRAMS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/tools/sentry-native/crashpad_handler.exe" DESTINATION "${CMAKE_INSTALL_PREFIX}")

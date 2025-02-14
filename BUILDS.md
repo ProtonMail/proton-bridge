@@ -3,14 +3,14 @@
 ## Prerequisites
 * 64-bit OS:
     - the go-rfc5322 module cannot currently be compiled for 32-bit OSes
-* Go 1.23.4
+* Go 1.24.0
 * Bash with basic build utils: make, gcc, sed, find, grep, ...
   - For Windows, it is recommended to use MinGW 64bit shell from [MSYS2](https://www.msys2.org/)
 * GCC (Linux), msvc (Windows) or Xcode (macOS)
 * Windres (Windows)
 * libglvnd and libsecret development files (Linux)
 * pkg-config (Linux)
-* cmake, ninja-build and Qt 6.4.3 are required to build the graphical user interface. On Linux, 
+* cmake, ninja-build and Qt 6.8.2 are required to build the graphical user interface. On Linux, 
 the Mesa OpenGL development files are also needed.
 
 To enable the sending of crash reports using Sentry please set the
@@ -19,7 +19,7 @@ Otherwise, the sending of crash reports will be disabled.
 
 ## Build
 In order to build Bridge app with Qt interface we are using
-[Qt 6.4.3](https://doc.qt.io/qt-6/gettingstarted.html).
+[Qt 6.8.2](https://doc.qt.io/qt-6/gettingstarted.html).
 
 Please note that qmake path must be in your `PATH` to ensure Qt to be found.
 Also, before you start build **on Windows**, please unset the `MSYSTEM` variable
