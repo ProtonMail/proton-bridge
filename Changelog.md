@@ -3,6 +3,13 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Helix Bridge 3.18.0
+
+### Changed
+* BRIDGE-309: Revised update logic and structure.
+* BRIDGE-154: Added access token to expiry refresh request.
+
+
 ## Grunwald Bridge 3.17.0
 
 ### Added
