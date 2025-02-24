@@ -253,7 +253,6 @@ type sendMailReq struct {
 func (s *Service) sendMail(ctx context.Context, req *sendMailReq) error {
 	defer async.HandlePanic(s.panicHandler)
 	start := time.Now()
-	s.log.Debug("Received send mail request")
 	defer func() {
 		end := time.Now()
 		s.log.Debugf("Send mail request finished in %v", end.Sub(start))
