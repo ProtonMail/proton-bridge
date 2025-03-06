@@ -28,9 +28,6 @@ main(){
     jq -r '.finding | select( (.osv != null) and (.trace[0].function != null) ) | .osv ' < vulns.json > vulns_osv_ids.txt
 
     ignore GO-2023-2328 "GODT-3124 RESTY race condition"
-    ignore GO-2025-3373 "BRIDGE-315 stdlib crypto/x509"
-    ignore GO-2025-3420 "BRIDGE-315 stdlib net/http"
-    ignore GO-2025-3447 "BRIDGE-315 stdlib crypto/internal/nistec"
 
     has_vulns
 
