@@ -29,7 +29,7 @@ using namespace bridgepp;
 //****************************************************************************************************************************************************
 BridgeApp::BridgeApp(int &argc, char **argv)
     : QApplication(argc, argv) {
-
+        setAttribute(Qt::AA_DontShowIconsInMenus, false);
 }
 
 
