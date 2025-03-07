@@ -3,6 +3,12 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Infinity Bridge 3.19.0
+
+### Changed
+* BRIDGE-316: Update Qt to latest LTS version 6.8.2.
+
+
 ## Helix Bridge 3.18.0
 
 ### Changed
