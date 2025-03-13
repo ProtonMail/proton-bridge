@@ -256,8 +256,8 @@ func onMessageUpdateDraftOrSent(ctx context.Context, s *Service, event proton.Me
 			res.update.Literal,
 			res.update.MailboxIDs,
 			res.update.ParsedMessage,
-			true, // Is the message doesn't exist, silently create it.
-			false,
+			true,       // Is the message doesn't exist, silently create it.
+			duringSync, // Ignore unknown labelIDs during sync.
 		)
 
 		didPublish, err := safePublishMessageUpdate(ctx, s, full.AddressID, update, duringSync)

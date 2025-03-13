@@ -113,7 +113,7 @@ func (s syncMessageEventHandler) HandleMessageEvents(ctx context.Context, events
 			if err := waitOnIMAPUpdates(ctx, updates); gluon.IsNoSuchMessage(err) {
 				logrus.WithError(err).Error("Failed to handle update message event in gluon, will try creating it (sync)")
 
-				updates, err := onMessageCreated(ctx, s.service, event.Message, false, true)
+				updates, err := onMessageCreated(ctx, s.service, event.Message, true, true)
 				if err != nil {
 					s.service.observabilitySender.AddDistinctMetrics(
 						observability.SyncError,
