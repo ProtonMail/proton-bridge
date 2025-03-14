@@ -127,9 +127,9 @@ func TestBridge_Observability_UserMetric(t *testing.T) {
 	}
 
 	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, vaultKey []byte) {
-		userMetricPeriod := time.Millisecond * 200
+		userMetricPeriod := time.Millisecond * 600
 		heartbeatPeriod := time.Second * 10
-		throttlePeriod := time.Millisecond * 100
+		throttlePeriod := time.Millisecond * 300
 		observability.ModifyUserMetricInterval(userMetricPeriod)
 		observability.ModifyThrottlePeriod(throttlePeriod)
 
