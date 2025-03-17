@@ -138,7 +138,7 @@ func migrateOldAccounts(locations *locations.Locations, keychains *keychain.List
 	if err != nil {
 		return fmt.Errorf("failed to get helper: %w", err)
 	}
-	keychain, err := keychain.NewKeychain(helper, "bridge", keychains.GetHelpers(), keychains.GetDefaultHelper())
+	keychain, _, err := keychain.NewKeychain(helper, "bridge", keychains.GetHelpers(), keychains.GetDefaultHelper())
 	if err != nil {
 		return fmt.Errorf("failed to create keychain: %w", err)
 	}

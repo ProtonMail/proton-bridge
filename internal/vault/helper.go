@@ -63,6 +63,10 @@ func GetHelper(vaultDir string) (string, error) {
 }
 
 func SetHelper(vaultDir, helper string) error {
+	if helper == "" {
+		return nil
+	}
+
 	settings, err := LoadKeychainSettings(vaultDir)
 	if err != nil {
 		return err

@@ -82,11 +82,11 @@ func (kcl *List) GetDefaultHelper() string {
 	return kcl.defaultHelper
 }
 
-// NewKeychain creates a new native keychain.
-func NewKeychain(preferred, keychainName string, helpers Helpers, defaultHelper string) (*Keychain, error) {
+// NewKeychain creates a new native keychain. It also returns the keychain helper used to access the keychain.
+func NewKeychain(preferred, keychainName string, helpers Helpers, defaultHelper string) (kc *Keychain, usedKeychainHelper string, err error) {
 	// There must be at least one keychain helper available.
 	if len(helpers) < 1 {
-		return nil, ErrNoKeychain
+		return nil, "", ErrNoKeychain
 	}
 
 	// If the preferred keychain is unsupported, fallback to the default one.
@@ -97,16 +97,16 @@ func NewKeychain(preferred, keychainName string, helpers Helpers, defaultHelper 
 	// Load the user's preferred keychain helper.
 	helperConstructor, ok := helpers[preferred]
 	if !ok {
-		return nil, ErrNoKeychain
+		return nil, "", ErrNoKeychain
 	}
 
 	// Construct the keychain helper.
 	helper, err := helperConstructor(hostURL(keychainName))
 	if err != nil {
-		return nil, err
+		return nil, preferred, err
 	}
 
-	return newKeychain(helper, hostURL(keychainName)), nil
+	return newKeychain(helper, hostURL(keychainName)), preferred, nil
 }
 
 func newKeychain(helper credentials.Helper, url string) *Keychain {

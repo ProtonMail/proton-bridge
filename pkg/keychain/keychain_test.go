@@ -120,7 +120,7 @@ func TestIsErrKeychainNoItem(t *testing.T) {
 	helpers := NewList().GetHelpers()
 
 	for helperName := range helpers {
-		kc, err := NewKeychain(helperName, "bridge-test", helpers, helperName)
+		kc, _, err := NewKeychain(helperName, "bridge-test", helpers, helperName)
 		r.NoError(err)
 
 		_, _, err = kc.Get("non-existing")

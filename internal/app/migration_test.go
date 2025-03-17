@@ -134,7 +134,7 @@ func TestKeychainMigration(t *testing.T) {
 func TestUserMigration(t *testing.T) {
 	kcl := keychain.NewTestKeychainsList()
 
-	kc, err := keychain.NewKeychain("mock", "bridge", kcl.GetHelpers(), kcl.GetDefaultHelper())
+	kc, _, err := keychain.NewKeychain("mock", "bridge", kcl.GetHelpers(), kcl.GetDefaultHelper())
 	require.NoError(t, err)
 
 	require.NoError(t, kc.Put("brokenID", "broken"))
