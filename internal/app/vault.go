@@ -18,6 +18,8 @@
 package app
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"path"
 
@@ -89,6 +91,7 @@ func newVault(reporter *sentry.Reporter, locations *locations.Locations, keychai
 		vaultDir = path.Join(vaultDir, "insecure")
 	} else {
 		vaultKey = key
+		logHashedVaultKey(vaultKey) // Log a hash of the vault key.
 	}
 
 	gluonCacheDir, err := locations.ProvideGluonCachePath()
@@ -126,4 +129,10 @@ func loadVaultKey(vaultDir string, keychains *keychain.List) ([]byte, error) {
 	}
 
 	return key, nil
+}
+
+// logHashedVaultKey - computes a sha256 hash and encodes it to base 64. The resulting string is logged.
+func logHashedVaultKey(vaultKey []byte) {
+	hashedKey := sha256.Sum256(vaultKey)
+	logrus.WithField("hashedKey", hex.EncodeToString(hashedKey[:])).Info("Found vault key")
 }
