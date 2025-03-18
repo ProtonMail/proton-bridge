@@ -491,8 +491,10 @@ func getTextPartHeader(hdr message.Header, body []byte, mimeType rfc822.MIMEType
 
 	hdr.SetContentType(string(mimeType), params)
 
-	// Use quoted-printable for all text/... parts
-	hdr.Set("Content-Transfer-Encoding", "quoted-printable")
+	// Use quoted-printable for all text/... parts UNLESS header is already set
+	if !hdr.Has("Content-Transfer-Encoding") {
+		hdr.Set("Content-Transfer-Encoding", "quoted-printable")
+	}
 
 	return hdr
 }
