@@ -170,6 +170,14 @@ func (sm *Service) SetGluonDir(ctx context.Context, gluonDir string) error {
 	return err
 }
 
+func (sm *Service) LogRemoteLabelIDs(ctx context.Context, provider imapservice.GluonIDProvider, addrID ...string) error {
+	_, err := sm.requests.Send(ctx, &smRequestLogRemoteMailboxIDs{
+		addrID:     addrID,
+		idProvider: provider,
+	})
+	return err
+}
+
 func (sm *Service) RemoveIMAPUser(ctx context.Context, deleteData bool, provider imapservice.GluonIDProvider, addrID ...string) error {
 	_, err := sm.requests.Send(ctx, &smRequestRemoveIMAPUser{
 		withData:   deleteData,
@@ -244,6 +252,10 @@ func (sm *Service) run(ctx context.Context, subscription events.Subscription) {
 					sm.handleLoadedUserCountChange(ctx)
 				}
 
+			case *smRequestLogRemoteMailboxIDs:
+				err := sm.logRemoteLabelIDsFromServer(ctx, r.addrID, r.idProvider)
+				request.Reply(ctx, nil, err)
+
 			case *smRequestRemoveIMAPUser:
 				err := sm.handleRemoveIMAPUser(ctx, r.withData, r.idProvider, r.addrID...)
 				request.Reply(ctx, nil, err)
@@ -309,6 +321,35 @@ func (sm *Service) handleAddIMAPUser(ctx context.Context,
 	// Due to the many different error exits, performer user count change at this stage rather we split the incrementing
 	// of users from the logic.
 	return sm.handleAddIMAPUserImpl(ctx, connector, addrID, idProvider, syncStateProvider)
+}
+
+func (sm *Service) logRemoteLabelIDsFromServer(ctx context.Context, addrIDs []string, idProvider imapservice.GluonIDProvider) error {
+	if sm.imapServer == nil {
+		return fmt.Errorf("no imap server instance running")
+	}
+
+	for _, addrID := range addrIDs {
+		gluonID, ok := idProvider.GetGluonID(addrID)
+		if !ok {
+			sm.log.Warnf("Could not find Gluon ID for addrID %v", addrID)
+			continue
+		}
+
+		log := sm.log.WithFields(logrus.Fields{
+			"addrID":  addrID,
+			"gluonID": gluonID,
+		})
+
+		remoteLabelIDs, err := sm.imapServer.GetAllMailboxRemoteIDsForUser(ctx, gluonID)
+		if err != nil {
+			log.WithError(err).Error("Could not obtain remote label IDs for user")
+			continue
+		}
+
+		log.WithField("remoteLabelIDs", remoteLabelIDs).Debug("Logging Gluon remote Label IDs")
+	}
+
+	return nil
 }
 
 func (sm *Service) handleAddIMAPUserImpl(ctx context.Context,
@@ -722,4 +763,9 @@ type smRequestAddSMTPAccount struct {
 
 type smRequestRemoveSMTPAccount struct {
 	account *bridgesmtp.Service
+}
+
+type smRequestLogRemoteMailboxIDs struct {
+	addrID     []string
+	idProvider imapservice.GluonIDProvider
 }

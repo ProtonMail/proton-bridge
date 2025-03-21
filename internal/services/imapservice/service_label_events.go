@@ -85,7 +85,7 @@ func onLabelCreated(ctx context.Context, s *Service, event proton.LabelEvent) []
 	wr := s.labels.Write()
 	defer wr.Close()
 
-	wr.SetLabel(event.Label.ID, event.Label)
+	wr.SetLabel(event.Label.ID, event.Label, "onLabelCreated")
 
 	for _, updateCh := range maps.Values(s.connectors) {
 		update := newMailboxCreatedUpdate(imap.MailboxID(event.ID), GetMailboxName(event.Label))
@@ -121,7 +121,7 @@ func onLabelUpdated(ctx context.Context, s *Service, event proton.LabelEvent) ([
 
 		// Only update the label if it exists; we don't want to create it as a client may have just deleted it.
 		if _, ok := wr.GetLabel(label.ID); ok {
-			wr.SetLabel(label.ID, event.Label)
+			wr.SetLabel(label.ID, event.Label, "onLabelUpdatedLabelEventID")
 		}
 
 		// API doesn't notify us that the path has changed. We need to fetch it again.
@@ -134,7 +134,7 @@ func onLabelUpdated(ctx context.Context, s *Service, event proton.LabelEvent) ([
 		}
 
 		// Update the label in the map.
-		wr.SetLabel(apiLabel.ID, apiLabel)
+		wr.SetLabel(apiLabel.ID, apiLabel, "onLabelUpdatedApiID")
 
 		// Notify the IMAP clients.
 		for _, updateCh := range maps.Values(s.connectors) {
@@ -176,7 +176,7 @@ func onLabelDeleted(ctx context.Context, s *Service, event proton.LabelEvent) []
 	wr := s.labels.Write()
 	wr.Close()
 
-	wr.Delete(event.ID)
+	wr.Delete(event.ID, "onLabelDeleted")
 
 	s.eventPublisher.PublishEvent(ctx, events.UserLabelDeleted{
 		UserID:  s.identityState.UserID(),

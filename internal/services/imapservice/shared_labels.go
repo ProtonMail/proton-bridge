@@ -22,6 +22,8 @@ import (
 
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
+	"github.com/bradenaw/juniper/xslices"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/exp/maps"
 )
 
@@ -42,13 +44,29 @@ type labelsRead interface {
 
 type labelsWrite interface {
 	labelsRead
-	SetLabel(id string, label proton.Label)
-	Delete(id string)
+	SetLabel(id string, label proton.Label, actionSource string)
+	Delete(id string, actionSource string)
 }
 
 type rwLabels struct {
 	lock   sync.RWMutex
 	labels labelMap
+}
+
+func (r *rwLabels) LogLabels() {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
+	remoteLabelIDs := make([]string, len(r.labels))
+	i := 0
+	for labelID := range r.labels {
+		remoteLabelIDs[i] = labelID
+		i++
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"remoteLabelIDs": remoteLabelIDs,
+	}).Debug("Logging remote label IDs stored in labelMap")
 }
 
 func (r *rwLabels) Read() labelsRead {
@@ -74,6 +92,15 @@ func (r *rwLabels) getLabelsUnsafe() []proton.Label {
 func (r *rwLabels) SetLabels(labels []proton.Label) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
+
+	labelIDs := xslices.Map(labels, func(label proton.Label) string {
+		return label.ID
+	})
+
+	logrus.WithFields(logrus.Fields{
+		"pkg":      "rwLabels",
+		"labelIDs": labelIDs,
+	}).Info("Setting labels")
 
 	r.labels = usertypes.GroupBy(labels, func(label proton.Label) string { return label.ID })
 }
@@ -123,10 +150,20 @@ func (r rwLabelsWrite) GetLabels() []proton.Label {
 	return r.rw.getLabelsUnsafe()
 }
 
-func (r rwLabelsWrite) SetLabel(id string, label proton.Label) {
+func (r rwLabelsWrite) SetLabel(id string, label proton.Label, actionSource string) {
+	logAction("SetLabel", actionSource, label.ID)
 	r.rw.labels[id] = label
 }
 
-func (r rwLabelsWrite) Delete(id string) {
+func (r rwLabelsWrite) Delete(id string, actionSource string) {
+	logAction("Delete", actionSource, id)
 	delete(r.rw.labels, id)
+}
+
+func logAction(actionType, actionSource, labelID string) {
+	logrus.WithFields(logrus.Fields{
+		"pkg":          "rwLabelsWrite",
+		"actionSource": actionSource,
+		"labelID":      labelID,
+	}).Debug(actionType)
 }

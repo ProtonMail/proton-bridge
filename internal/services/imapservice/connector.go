@@ -257,7 +257,7 @@ func (s *Connector) DeleteMailbox(ctx context.Context, _ connector.IMAPStateWrit
 	wLabels := s.labels.Write()
 	defer wLabels.Close()
 
-	wLabels.Delete(string(mboxID))
+	wLabels.Delete(string(mboxID), "connectorDeleteMailbox")
 
 	return nil
 }
@@ -555,7 +555,7 @@ func (s *Connector) createLabel(ctx context.Context, name []string) (imap.Mailbo
 	wLabels := s.labels.Write()
 	defer wLabels.Close()
 
-	wLabels.SetLabel(label.ID, label)
+	wLabels.SetLabel(label.ID, label, "connectorCreateLabel")
 
 	return toIMAPMailbox(label, s.flags, s.permFlags, s.attrs), nil
 }
@@ -593,7 +593,7 @@ func (s *Connector) createFolder(ctx context.Context, name []string) (imap.Mailb
 	}
 
 	// Add label to list so subsequent sub folder create requests work correct.
-	wLabels.SetLabel(label.ID, label)
+	wLabels.SetLabel(label.ID, label, "connectorCreateFolder")
 
 	return toIMAPMailbox(label, s.flags, s.permFlags, s.attrs), nil
 }
@@ -619,7 +619,7 @@ func (s *Connector) updateLabel(ctx context.Context, labelID imap.MailboxID, nam
 	wLabels := s.labels.Write()
 	defer wLabels.Close()
 
-	wLabels.SetLabel(label.ID, update)
+	wLabels.SetLabel(label.ID, update, "connectorUpdateLabel")
 
 	return nil
 }
@@ -660,7 +660,7 @@ func (s *Connector) updateFolder(ctx context.Context, labelID imap.MailboxID, na
 		return err
 	}
 
-	wLabels.SetLabel(label.ID, update)
+	wLabels.SetLabel(label.ID, update, "connectorUpdateFolder")
 
 	return nil
 }

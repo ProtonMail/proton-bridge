@@ -43,7 +43,7 @@ func TestFixGODT3003Labels(t *testing.T) {
 		Path:     []string{"bar", "Foo"},
 		Color:    "",
 		Type:     proton.LabelTypeFolder,
-	})
+	}, "")
 
 	wr.SetLabel("0", proton.Label{
 		ID:       "0",
@@ -52,7 +52,7 @@ func TestFixGODT3003Labels(t *testing.T) {
 		Path:     []string{"Inbox"},
 		Color:    "",
 		Type:     proton.LabelTypeSystem,
-	})
+	}, "")
 
 	wr.SetLabel("bar", proton.Label{
 		ID:       "bar",
@@ -61,7 +61,7 @@ func TestFixGODT3003Labels(t *testing.T) {
 		Path:     []string{"bar"},
 		Color:    "",
 		Type:     proton.LabelTypeFolder,
-	})
+	}, "")
 
 	wr.SetLabel("my_label", proton.Label{
 		ID:       "my_label",
@@ -70,7 +70,7 @@ func TestFixGODT3003Labels(t *testing.T) {
 		Path:     []string{"MyLabel"},
 		Color:    "",
 		Type:     proton.LabelTypeLabel,
-	})
+	}, "")
 
 	wr.SetLabel("my_label2", proton.Label{
 		ID:       "my_label2",
@@ -79,7 +79,7 @@ func TestFixGODT3003Labels(t *testing.T) {
 		Path:     []string{labelPrefix, "MyLabel2"},
 		Color:    "",
 		Type:     proton.LabelTypeLabel,
-	})
+	}, "")
 	wr.Close()
 
 	mboxs := []imap.MailboxNoAttrib{
@@ -133,7 +133,7 @@ func TestFixGODT3003Labels_Noop(t *testing.T) {
 		Path:     []string{folderPrefix, "bar", "Foo"},
 		Color:    "",
 		Type:     proton.LabelTypeFolder,
-	})
+	}, "")
 
 	wr.SetLabel("0", proton.Label{
 		ID:       "0",
@@ -142,7 +142,7 @@ func TestFixGODT3003Labels_Noop(t *testing.T) {
 		Path:     []string{"Inbox"},
 		Color:    "",
 		Type:     proton.LabelTypeSystem,
-	})
+	}, "")
 
 	wr.SetLabel("bar", proton.Label{
 		ID:       "bar",
@@ -151,7 +151,7 @@ func TestFixGODT3003Labels_Noop(t *testing.T) {
 		Path:     []string{folderPrefix, "bar"},
 		Color:    "",
 		Type:     proton.LabelTypeFolder,
-	})
+	}, "")
 
 	wr.SetLabel("my_label", proton.Label{
 		ID:       "my_label",
@@ -160,7 +160,7 @@ func TestFixGODT3003Labels_Noop(t *testing.T) {
 		Path:     []string{labelPrefix, "MyLabel"},
 		Color:    "",
 		Type:     proton.LabelTypeLabel,
-	})
+	}, "")
 
 	wr.SetLabel("my_label2", proton.Label{
 		ID:       "my_label2",
@@ -169,7 +169,7 @@ func TestFixGODT3003Labels_Noop(t *testing.T) {
 		Path:     []string{labelPrefix, "MyLabel2"},
 		Color:    "",
 		Type:     proton.LabelTypeLabel,
-	})
+	}, "")
 	wr.Close()
 
 	mboxs := []imap.MailboxNoAttrib{

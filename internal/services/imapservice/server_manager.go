@@ -34,6 +34,8 @@ type IMAPServerManager interface {
 	) error
 
 	RemoveIMAPUser(ctx context.Context, deleteData bool, provider GluonIDProvider, addrID ...string) error
+
+	LogRemoteLabelIDs(ctx context.Context, provider GluonIDProvider, addrID ...string) error
 }
 
 type NullIMAPServerManager struct{}
@@ -51,6 +53,14 @@ func (n NullIMAPServerManager) AddIMAPUser(
 func (n NullIMAPServerManager) RemoveIMAPUser(
 	_ context.Context,
 	_ bool,
+	_ GluonIDProvider,
+	_ ...string,
+) error {
+	return nil
+}
+
+func (n NullIMAPServerManager) LogRemoteLabelIDs(
+	_ context.Context,
 	_ GluonIDProvider,
 	_ ...string,
 ) error {
