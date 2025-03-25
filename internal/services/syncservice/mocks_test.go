@@ -548,20 +548,6 @@ func (mr *MockUpdateApplierMockRecorder) SyncLabels(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncLabels", reflect.TypeOf((*MockUpdateApplier)(nil).SyncLabels), arg0, arg1)
 }
 
-// SyncSystemLabelsOnly mocks base method.
-func (m *MockUpdateApplier) SyncSystemLabelsOnly(arg0 context.Context, arg1 map[string]proton.Label) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SyncSystemLabelsOnly", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SyncSystemLabelsOnly indicates an expected call of SyncSystemLabelsOnly.
-func (mr *MockUpdateApplierMockRecorder) SyncSystemLabelsOnly(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncSystemLabelsOnly", reflect.TypeOf((*MockUpdateApplier)(nil).SyncSystemLabelsOnly), arg0, arg1)
-}
-
 // MockMessageBuilder is a mock of MessageBuilder interface.
 type MockMessageBuilder struct {
 	ctrl     *gomock.Controller

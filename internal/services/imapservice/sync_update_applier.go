@@ -111,39 +111,6 @@ func (s *SyncUpdateApplier) ApplySyncUpdates(ctx context.Context, updates []sync
 	return nil
 }
 
-func (s *SyncUpdateApplier) SyncSystemLabelsOnly(ctx context.Context, labels map[string]proton.Label) error {
-	request := func(ctx context.Context, _ usertypes.AddressMode, connectors map[string]*Connector) ([]imap.Update, error) {
-		updates := make([]imap.Update, 0, len(labels)*len(connectors))
-		for _, label := range labels {
-			if !WantLabel(label) {
-				continue
-			}
-
-			if label.Type != proton.LabelTypeSystem {
-				continue
-			}
-
-			for _, c := range connectors {
-				update := newSystemMailboxCreatedUpdate(imap.MailboxID(label.ID), label.Name)
-				updates = append(updates, update)
-				c.publishUpdate(ctx, update)
-			}
-		}
-		return updates, nil
-	}
-
-	updates, err := s.sendRequest(ctx, request)
-	if err != nil {
-		return err
-	}
-
-	if err := waitOnIMAPUpdates(ctx, updates); err != nil {
-		return fmt.Errorf("could not sync system labels: %w", err)
-	}
-
-	return nil
-}
-
 func (s *SyncUpdateApplier) SyncLabels(ctx context.Context, labels map[string]proton.Label) error {
 	request := func(ctx context.Context, _ usertypes.AddressMode, connectors map[string]*Connector) ([]imap.Update, error) {
 		return syncLabels(ctx, labels, maps.Values(connectors))

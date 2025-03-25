@@ -138,11 +138,10 @@ func (t *Handler) run(ctx context.Context,
 	}
 
 	if syncStatus.IsComplete() {
-		t.log.Info("Sync already complete, only system labels will be updated")
+		t.log.Info("Sync already complete, updating labels")
 
-		if err := updateApplier.SyncSystemLabelsOnly(ctx, labels); err != nil {
-			t.log.WithError(err).Error("Failed to sync system labels")
-
+		if err := updateApplier.SyncLabels(ctx, labels); err != nil {
+			t.log.WithError(err).Error("Failed to sync labels")
 			return err
 		}
 

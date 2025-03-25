@@ -74,8 +74,7 @@ func TestTask_NoStateAndSucceeds(t *testing.T) {
 	}
 
 	{
-		call1 := tt.updateApplier.EXPECT().SyncLabels(gomock.Any(), gomock.Eq(labels)).Times(1).Return(nil)
-		tt.updateApplier.EXPECT().SyncSystemLabelsOnly(gomock.Any(), gomock.Eq(labels)).After(call1).Times(1).Return(nil)
+		tt.updateApplier.EXPECT().SyncLabels(gomock.Any(), gomock.Eq(labels)).Times(2).Return(nil)
 	}
 
 	{
@@ -203,7 +202,7 @@ func TestTask_StateHasSyncedState(t *testing.T) {
 		}, nil
 	})
 
-	tt.updateApplier.EXPECT().SyncSystemLabelsOnly(gomock.Any(), gomock.Eq(labels)).Return(nil)
+	tt.updateApplier.EXPECT().SyncLabels(gomock.Any(), gomock.Eq(labels)).Return(nil)
 
 	err := tt.task.run(context.Background(), tt.syncReporter, labels, tt.updateApplier, tt.messageBuilder)
 	require.NoError(t, err)

@@ -80,7 +80,6 @@ type MessageBuilder interface {
 
 type UpdateApplier interface {
 	ApplySyncUpdates(ctx context.Context, updates []BuildResult) error
-	SyncSystemLabelsOnly(ctx context.Context, labels map[string]proton.Label) error
 	SyncLabels(ctx context.Context, labels map[string]proton.Label) error
 }
 
