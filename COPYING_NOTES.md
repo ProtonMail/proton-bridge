@@ -141,6 +141,7 @@ Proton Mail Bridge includes the following 3rd party software:
 * [appengine](https://google.golang.org/appengine) available under [license](https://pkg.go.dev/google.golang.org/appengine?tab=licenses) 
 * [genproto](https://google.golang.org/genproto) available under [license](https://pkg.go.dev/google.golang.org/genproto?tab=licenses) 
 * [yaml](https://gopkg.in/yaml.v3) available under [license](https://github.com/go-yaml/yaml/blob/v3.0.1/LICENSE)  available under [license](https://github.com/go-yaml/yaml/blob/v3.0.1/LICENSE) 
+* [go-autostart](https://github.com/ElectroNafta/go-autostart) available under [license](https://github.com/ElectroNafta/go-autostart/blob/master/LICENSE) 
 * [go-message](https://github.com/ProtonMail/go-message) available under [license](https://github.com/ProtonMail/go-message/blob/master/LICENSE) 
 * [go-smtp](https://github.com/ProtonMail/go-smtp) available under [license](https://github.com/ProtonMail/go-smtp/blob/master/LICENSE) 
 * [resty](https://github.com/LBeernaertProton/resty/v2) available under [license](https://github.com/LBeernaertProton/resty/v2/blob/master/LICENSE) 

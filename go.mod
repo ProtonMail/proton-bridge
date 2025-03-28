@@ -131,6 +131,7 @@ require (
 )
 
 replace (
+	github.com/ProtonMail/go-autostart => github.com/ElectroNafta/go-autostart v0.0.0-20250402094843-326608c16033
 	github.com/emersion/go-message => github.com/ProtonMail/go-message v0.13.1-0.20240919135104-3bc88e6a9423
 	github.com/emersion/go-smtp => github.com/ProtonMail/go-smtp v0.0.0-20231109081432-2b3d50599865
 	github.com/go-resty/resty/v2 => github.com/LBeernaertProton/resty/v2 v2.0.0-20231129100320-dddf8030d93a
