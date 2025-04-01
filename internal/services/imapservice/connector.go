@@ -878,6 +878,15 @@ func (s *Connector) getImportAddress(p *parser.Parser, isDraft bool) (proton.Add
 		return proton.Address{}, errors.New("could not find account address")
 	}
 
+	// If the address is external and not BYOE - with sending enabled, then use the primary address as an import target.
+	if address.Type == proton.AddressTypeExternal && !address.Send {
+		var err error
+		address, err = s.identityState.GetPrimaryAddress()
+		if err != nil {
+			return proton.Address{}, errors.New("could not get primary account address")
+		}
+	}
+
 	inCombinedMode := s.addressMode == usertypes.AddressModeCombined
 	if !inCombinedMode {
 		return address, nil
@@ -903,7 +912,10 @@ func (s *Connector) getImportAddress(p *parser.Parser, isDraft bool) (proton.Add
 	// - import with non-default disabled address in combined mode: using sender address
 
 	isSenderAddressDisabled := (!bool(senderAddr.Send)) || (senderAddr.Status != proton.AddressStatusEnabled)
-	if isDraft && isSenderAddressDisabled {
+	// BRIDGE-301: forbid imports via sender address if it's external.
+	isSenderExternal := senderAddr.Type == proton.AddressTypeExternal
+
+	if (isDraft && isSenderAddressDisabled) || isSenderExternal {
 		return address, nil
 	}
 
