@@ -271,7 +271,10 @@ FocusScope {
                         usernameTextField.enabled = false;
                         passwordTextField.enabled = false;
                         loading = true;
-                        Backend.login(usernameTextField.text, Qt.btoa(passwordTextField.text));
+
+                        let usernameTextFiltered = usernameTextField.text.replace(/[\n\r]+$/, "");
+                        let passwordTextFiltered = passwordTextField.text.replace(/[\n\r]+$/, "");
+                        Backend.login(usernameTextFiltered, Qt.btoa(passwordTextFiltered));
                     }
 
                     Layout.fillWidth: true
