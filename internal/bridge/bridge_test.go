@@ -618,7 +618,7 @@ func TestBridge_AddressWithoutKeys(t *testing.T) {
 			require.NoError(t, err)
 
 			// Create an additional address for the user; it will not have keys.
-			aliasAddrID, err := s.CreateAddress(userID, "alias@pm.me", []byte("password"))
+			aliasAddrID, err := s.CreateAddress(userID, "alias@pm.me", []byte("password"), true)
 			require.NoError(t, err)
 
 			// Create an API client so we can remove the address keys.
@@ -785,7 +785,7 @@ func TestBridge_ChangeAddressOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create a second address for the user.
-		aliasID, err := s.CreateAddress(userID, "alias@"+s.GetDomain(), password)
+		aliasID, err := s.CreateAddress(userID, "alias@"+s.GetDomain(), password, true)
 		require.NoError(t, err)
 
 		// Create 10 messages for the user.

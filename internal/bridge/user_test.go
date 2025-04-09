@@ -658,7 +658,7 @@ func TestBridge_UserInfo_Alias(t *testing.T) {
 			require.NoError(t, err)
 
 			// Give the new user an alias.
-			require.NoError(t, getErr(s.CreateAddress(userID, "alias@pm.me", []byte("password"))))
+			require.NoError(t, getErr(s.CreateAddress(userID, "alias@pm.me", []byte("password"), true)))
 
 			// Login the user.
 			require.NoError(t, getErr(bridge.LoginFull(ctx, "primary", []byte("password"), nil, nil)))
@@ -706,7 +706,7 @@ func TestBridge_User_GetAddresses(t *testing.T) {
 		// Create a user.
 		userID, _, err := s.CreateUser("user", password)
 		require.NoError(t, err)
-		addrID2, err := s.CreateAddress(userID, "user@external.com", []byte("password"))
+		addrID2, err := s.CreateAddress(userID, "user@external.com", password, false)
 		require.NoError(t, err)
 		require.NoError(t, s.ChangeAddressType(userID, addrID2, proton.AddressTypeExternal))
 
@@ -716,6 +716,29 @@ func TestBridge_User_GetAddresses(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, 1, len(info.Addresses))
 			require.Equal(t, info.Addresses[0], "user@proton.local")
+		})
+	})
+}
+
+func TestBridge_User_GetAddresses_BYOE(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		userID, _, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+		// Add a non-sending external address.
+		_, err = s.CreateExternalAddress(userID, "user@external.com", password, false)
+		require.NoError(t, err)
+		// Add a BYOE address.
+		_, err = s.CreateExternalAddress(userID, "user2@external.com", password, true)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+			info, err := bridge.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.Equal(t, 2, len(info.Addresses))
+			require.Equal(t, info.Addresses[0], "user@proton.local")
+			require.Equal(t, info.Addresses[1], "user2@external.com")
 		})
 	})
 }

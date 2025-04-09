@@ -110,7 +110,7 @@ func withAccount(tb testing.TB, s *server.Server, username, password string, ali
 	addrIDs := []string{addrID}
 
 	for _, email := range aliases {
-		addrID, err := s.CreateAddress(userID, email, []byte(password))
+		addrID, err := s.CreateAddress(userID, email, []byte(password), true)
 		require.NoError(tb, err)
 		require.NoError(tb, s.ChangeAddressDisplayName(userID, addrID, email+" (Display Name)"))
 

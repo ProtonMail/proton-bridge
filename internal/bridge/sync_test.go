@@ -355,7 +355,7 @@ func TestBridge_CanProcessEventsDuringSync(t *testing.T) {
 
 			// Create a new address
 			newAddress := "foo@proton.ch"
-			addrID, err := s.CreateAddress(userID, newAddress, password)
+			addrID, err := s.CreateAddress(userID, newAddress, password, true)
 			require.NoError(t, err)
 
 			event := <-addressCreatedCh
@@ -430,7 +430,7 @@ func TestBridge_EventReplayAfterSyncHasFinished(t *testing.T) {
 			createNumMessages(ctx, t, c, addrID, labelID, numMsg)
 		})
 
-		addrID1, err := s.CreateAddress(userID, "foo@proton.ch", password)
+		addrID1, err := s.CreateAddress(userID, "foo@proton.ch", password, true)
 		require.NoError(t, err)
 
 		var allowSyncToProgress atomic.Bool
@@ -469,7 +469,7 @@ func TestBridge_EventReplayAfterSyncHasFinished(t *testing.T) {
 			})
 
 			// User AddrID2 event as a check point to see when the new address was created.
-			addrID2, err := s.CreateAddress(userID, "bar@proton.ch", password)
+			addrID2, err := s.CreateAddress(userID, "bar@proton.ch", password, true)
 			require.NoError(t, err)
 
 			allowSyncToProgress.Store(true)
@@ -552,7 +552,7 @@ func TestBridge_MessageCreateDuringSync(t *testing.T) {
 			})
 
 			// User AddrID2 event as a check point to see when the new address was created.
-			addrID, err := s.CreateAddress(userID, "bar@proton.ch", password)
+			addrID, err := s.CreateAddress(userID, "bar@proton.ch", password, true)
 			require.NoError(t, err)
 
 			// At most two events can be published, one for the first address, then for the second.
@@ -663,7 +663,7 @@ func TestBridge_AddressOrderChangeDuringSyncInCombinedModeDoesNotTriggerBadEvent
 			require.Equal(t, 1, len(info.Addresses))
 			require.Equal(t, info.Addresses[0], "user@proton.local")
 
-			addrID2, err := s.CreateAddress(userID, "foo@"+s.GetDomain(), password)
+			addrID2, err := s.CreateAddress(userID, "foo@"+s.GetDomain(), password, true)
 			require.NoError(t, err)
 
 			require.NoError(t, s.SetAddressOrder(userID, []string{addrID2, addrID}))

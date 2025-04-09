@@ -47,6 +47,12 @@ github.com/ProtonMail/go-mime v0.0.0-20230322103455-7d82a3887f2f h1:tCbYj7/299ek
 github.com/ProtonMail/go-mime v0.0.0-20230322103455-7d82a3887f2f/go.mod h1:gcr0kNtGBqin9zDW9GOHcVntrwnjrK+qdJ06mWYBybw=
 github.com/ProtonMail/go-proton-api v0.4.1-0.20250217140732-2e531f21de4c h1:dxnbB+ov77BDj1LC35fKZ14hLoTpU6OTpZySwxarVx0=
 github.com/ProtonMail/go-proton-api v0.4.1-0.20250217140732-2e531f21de4c/go.mod h1:RYgagBFkA3zFrSt7/vviFFwjZxBo6pGzcTwFsLwsnyc=
+github.com/ProtonMail/go-proton-api v0.4.1-0.20250409092940-13ddc20a05a1 h1:u3G9UB8prOnzOneOf0JFCIVnMRLiK4QgEpPQVu9Y8Q4=
+github.com/ProtonMail/go-proton-api v0.4.1-0.20250409092940-13ddc20a05a1/go.mod h1:RYgagBFkA3zFrSt7/vviFFwjZxBo6pGzcTwFsLwsnyc=
+github.com/ProtonMail/go-proton-api v0.4.1-0.20250409131808-0bbc8e7c32db h1:mOtbY5BB2eNr2QmbZhFn5EnsJcimTntPB6akN2r+AuE=
+github.com/ProtonMail/go-proton-api v0.4.1-0.20250409131808-0bbc8e7c32db/go.mod h1:RYgagBFkA3zFrSt7/vviFFwjZxBo6pGzcTwFsLwsnyc=
+github.com/ProtonMail/go-proton-api v0.4.1-0.20250410050801-92de6e7c8517 h1:70JoDgXxfil4hbDoYGF98rMd47Rld6wXWyFAw4uFOTY=
+github.com/ProtonMail/go-proton-api v0.4.1-0.20250410050801-92de6e7c8517/go.mod h1:RYgagBFkA3zFrSt7/vviFFwjZxBo6pGzcTwFsLwsnyc=
 github.com/ProtonMail/go-smtp v0.0.0-20231109081432-2b3d50599865 h1:EP1gnxLL5Z7xBSymE9nSTM27nRYINuvssAtDmG0suD8=
 github.com/ProtonMail/go-smtp v0.0.0-20231109081432-2b3d50599865/go.mod h1:qm27SGYgoIPRot6ubfQ/GpiPy/g3PaZAVRxiO/sDUgQ=
 github.com/ProtonMail/go-srp v0.0.7 h1:Sos3Qk+th4tQR64vsxGIxYpN3rdnG9Wf9K4ZloC1JrI=

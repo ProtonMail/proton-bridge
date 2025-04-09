@@ -304,7 +304,7 @@ func TestBridge_User_AddressEvents_NoBadEvent(t *testing.T) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			userLoginAndSync(ctx, t, bridge, "user", password)
 
-			addrID, err = s.CreateAddress(userID, "other@pm.me", password)
+			addrID, err = s.CreateAddress(userID, "other@pm.me", password, true)
 			require.NoError(t, err)
 			userContinueEventProcess(ctx, t, s, bridge)
 
@@ -312,7 +312,7 @@ func TestBridge_User_AddressEvents_NoBadEvent(t *testing.T) {
 			userContinueEventProcess(ctx, t, s, bridge)
 		})
 
-		otherID, err := s.CreateAddress(userID, "another@pm.me", password)
+		otherID, err := s.CreateAddress(userID, "another@pm.me", password, true)
 		require.NoError(t, err)
 		require.NoError(t, s.RemoveAddress(userID, otherID))
 
@@ -324,6 +324,87 @@ func TestBridge_User_AddressEvents_NoBadEvent(t *testing.T) {
 
 			require.NoError(t, s.RemoveAddress(userID, addrID))
 			userContinueEventProcess(ctx, t, s, bridge)
+		})
+	})
+}
+
+func TestBridge_User_AddressEvents_BYOEAddressAdded(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		// Create a user.
+		userID, addrID, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+
+			// Create an additional proton address
+			addrID, err = s.CreateAddress(userID, "other@pm.me", password, true)
+			require.NoError(t, err)
+			userContinueEventProcess(ctx, t, s, bridge)
+			require.NoError(t, s.AddAddressCreatedEvent(userID, addrID))
+			userContinueEventProcess(ctx, t, s, bridge)
+
+			userInfo, err := bridge.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.Equal(t, 2, len(userInfo.Addresses))
+
+			// Create an external address with sending disabled.
+			externalID, err := s.CreateExternalAddress(userID, "another@yahoo.com", password, false)
+			require.NoError(t, err)
+			userContinueEventProcess(ctx, t, s, bridge)
+			require.NoError(t, s.AddAddressCreatedEvent(userID, externalID))
+			userContinueEventProcess(ctx, t, s, bridge)
+
+			// User addresses should still return 2, as we ignore the external address.
+			userInfo, err = bridge.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.Equal(t, 2, len(userInfo.Addresses))
+
+			// Create an external address w. sending enabled. This is considered a BYOE address.
+			BYOEAddrID, err := s.CreateExternalAddress(userID, "other@yahoo.com", password, true)
+			require.NoError(t, err)
+			userContinueEventProcess(ctx, t, s, bridge)
+			require.NoError(t, s.AddAddressCreatedEvent(userID, BYOEAddrID))
+			userContinueEventProcess(ctx, t, s, bridge)
+
+			userInfo, err = bridge.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.Equal(t, 3, len(userInfo.Addresses))
+		})
+	})
+}
+
+func TestBridge_User_AddressEvents_ExternalAddressSendChanged(t *testing.T) {
+	withEnv(t, func(ctx context.Context, s *server.Server, netCtl *proton.NetCtl, locator bridge.Locator, storeKey []byte) {
+		userID, _, err := s.CreateUser("user", password)
+		require.NoError(t, err)
+
+		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
+			userLoginAndSync(ctx, t, bridge, "user", password)
+
+			// Create an additional external address.
+			externalID, err := s.CreateExternalAddress(userID, "other@yahoo.me", password, false)
+			require.NoError(t, err)
+			userContinueEventProcess(ctx, t, s, bridge)
+			require.NoError(t, s.AddAddressCreatedEvent(userID, externalID))
+			userContinueEventProcess(ctx, t, s, bridge)
+
+			// We expect only one address, the external one without sending should not be considered a valid address.
+			userInfo, err := bridge.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.Equal(t, 1, len(userInfo.Addresses))
+
+			// Change it to allow sending such that it becomes a BYOE address.
+			err = s.ChangeAddressAllowSend(userID, externalID, true)
+			require.NoError(t, err)
+			userContinueEventProcess(ctx, t, s, bridge)
+			require.NoError(t, s.AddAddressUpdatedEvent(userID, externalID))
+			userContinueEventProcess(ctx, t, s, bridge)
+
+			// We should now have 2 usable addresses listed.
+			userInfo, err = bridge.GetUserInfo(userID)
+			require.NoError(t, err)
+			require.Equal(t, 2, len(userInfo.Addresses))
 		})
 	})
 }
@@ -694,7 +775,7 @@ func TestBridge_User_DisableEnableAddress(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create an additional address for the user.
-		aliasID, err := s.CreateAddress(userID, "alias@"+s.GetDomain(), password)
+		aliasID, err := s.CreateAddress(userID, "alias@"+s.GetDomain(), password, true)
 		require.NoError(t, err)
 
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
@@ -745,7 +826,7 @@ func TestBridge_User_CreateDisabledAddress(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create an additional address for the user.
-		aliasID, err := s.CreateAddress(userID, "alias@"+s.GetDomain(), password)
+		aliasID, err := s.CreateAddress(userID, "alias@"+s.GetDomain(), password, true)
 		require.NoError(t, err)
 
 		// Immediately disable the address.
