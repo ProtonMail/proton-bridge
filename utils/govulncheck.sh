@@ -28,6 +28,7 @@ main(){
     jq -r '.finding | select( (.osv != null) and (.trace[0].function != null) ) | .osv ' < vulns.json > vulns_osv_ids.txt
 
     ignore GO-2023-2328 "GODT-3124 RESTY race condition"
+    ignore GO-2025-3563 "BRIDGE-346 net/http request smuggling"
 
     has_vulns
 
