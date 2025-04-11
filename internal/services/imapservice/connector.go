@@ -680,7 +680,7 @@ func (s *Connector) importMessage(
 	}
 
 	isDraft := slices.Contains(labelIDs, proton.DraftsLabel)
-	addr, err := s.getImportAddress(p, isDraft)
+	addr, err := getImportAddress(p, isDraft, s.addrID, s)
 	if err != nil {
 		return imap.Message{}, nil, err
 	}
@@ -869,57 +869,6 @@ func stripPlusAlias(a string) string {
 
 func equalAddresses(a, b string) bool {
 	return strings.EqualFold(stripPlusAlias(a), stripPlusAlias(b))
-}
-
-func (s *Connector) getImportAddress(p *parser.Parser, isDraft bool) (proton.Address, error) {
-	// addr is primary for combined mode or active for split mode
-	address, ok := s.identityState.GetAddress(s.addrID)
-	if !ok {
-		return proton.Address{}, errors.New("could not find account address")
-	}
-
-	// If the address is external and not BYOE - with sending enabled, then use the primary address as an import target.
-	if address.Type == proton.AddressTypeExternal && !address.Send {
-		var err error
-		address, err = s.identityState.GetPrimaryAddress()
-		if err != nil {
-			return proton.Address{}, errors.New("could not get primary account address")
-		}
-	}
-
-	inCombinedMode := s.addressMode == usertypes.AddressModeCombined
-	if !inCombinedMode {
-		return address, nil
-	}
-
-	senderAddr, err := s.getSenderProtonAddress(p)
-	if err != nil {
-		if !errors.Is(err, errNoSenderAddressMatch) {
-			s.log.WithError(err).Warn("Could not get import address")
-		}
-
-		// We did not find a match, so we use the default address.
-		return address, nil
-	}
-
-	if senderAddr.ID == address.ID {
-		return address, nil
-	}
-
-	// GODT-3185 / BRIDGE-120 In combined mode, in certain cases we adapt the address used for encryption.
-	// - draft with non-default address in combined mode: using sender address
-	// - import with non-default address in combined mode: using sender address
-	// - import with non-default disabled address in combined mode: using sender address
-
-	isSenderAddressDisabled := (!bool(senderAddr.Send)) || (senderAddr.Status != proton.AddressStatusEnabled)
-	// BRIDGE-301: forbid imports via sender address if it's external.
-	isSenderExternal := senderAddr.Type == proton.AddressTypeExternal
-
-	if (isDraft && isSenderAddressDisabled) || isSenderExternal {
-		return address, nil
-	}
-
-	return senderAddr, nil
 }
 
 func (s *Connector) getSenderProtonAddress(p *parser.Parser) (proton.Address, error) {
