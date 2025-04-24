@@ -3,6 +3,27 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Jubilee Bridge 3.20.0
+
+### Added
+* BRIDGE-348: Enable display of BYOE addresses in Bridge.
+* BRIDGE-340: Added additional logging for label operations and related bad events.
+* BRIDGE-324: Log a hash of the vault key on Bridge start.
+
+### Changed
+* BRIDGE-352: Chore: bump go to 1.24.2.
+* BRIDGE-353: Chore: update x/net package to 0.38.0.
+
+### Fixed
+* BRIDGE-351: Allow draft creation and import to BYOE addresses in combined mode.
+* BRIDGE-301: Prevent imports into non-BYOE external addresses.
+* BRIDGE-341: Replaced go-autostart with a fork to support creating autostart shortcuts in directories with Unicode characters on Windows.
+* BRIDGE-332: Strip newline characters from username and password fields in the Bridge GUI.
+* BRIDGE-336: Ensure all remote labels are verified and created in Gluon at Bridge startup.
+* BRIDGE-335: Persist the last successfully used keychain helper as a user preference on Linux.
+* BRIDGE-333: Ignore unknown label IDs during Bridge synchronization.
+
+
 ## Infinity Bridge 3.19.0
 
 ### Changed
