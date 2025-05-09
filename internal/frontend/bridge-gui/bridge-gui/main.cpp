@@ -91,6 +91,10 @@ void initQtApplication() {
     // It's not use as the executable icon.
     QGuiApplication::setWindowIcon(QIcon(":bridge.svg"));
 #endif // #ifdef Q_OS_MACOS
+
+#ifdef Q_OS_LINUX
+    QGuiApplication::setDesktopFileName("proton-bridge");
+#endif
 }
 
 //****************************************************************************************************************************************************
