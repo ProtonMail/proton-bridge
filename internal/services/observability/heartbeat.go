@@ -42,7 +42,7 @@ func (d *distinctionUtility) resetHeartbeatData() {
 	d.heartbeatData.receivedGluonError = false
 }
 
-func (d *distinctionUtility) updateHeartbeatData(errType DistinctionErrorTypeEnum) {
+func (d *distinctionUtility) updateHeartbeatData(errType DistinctionMetricTypeEnum) {
 	d.withUpdateHeartbeatDataLock(func() {
 		//nolint:exhaustive
 		switch errType {

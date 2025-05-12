@@ -32,12 +32,23 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/orderedtasks"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/smtp/observabilitymetrics"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/useridentity"
+	"github.com/ProtonMail/proton-bridge/v3/internal/unleash"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
 	"github.com/sirupsen/logrus"
 )
+
+const (
+	newlyOpenedIMAPConnectionsThreshold = 300
+)
+
+type imapSessionCountProvider interface {
+	GetOpenIMAPSessionCount() int
+	GetRollingIMAPConnectionCount() int
+}
 
 type Service struct {
 	userID       string
@@ -59,6 +70,9 @@ type Service struct {
 	serverManager ServerManager
 
 	observabilitySender observability.Sender
+
+	imapSessionCountProvider imapSessionCountProvider
+	featureFlagValueProvider unleash.FeatureFlagValueProvider
 }
 
 func NewService(
@@ -74,6 +88,8 @@ func NewService(
 	identityState *useridentity.State,
 	serverManager ServerManager,
 	observabilitySender observability.Sender,
+	imapSessionCountProvider imapSessionCountProvider,
+	featureFlagValueProvider unleash.FeatureFlagValueProvider,
 ) *Service {
 	subscriberName := fmt.Sprintf("smpt-%v", userID)
 
@@ -99,7 +115,9 @@ func NewService(
 		addressMode:   mode,
 		serverManager: serverManager,
 
-		observabilitySender: observabilitySender,
+		imapSessionCountProvider: imapSessionCountProvider,
+		observabilitySender:      observabilitySender,
+		featureFlagValueProvider: featureFlagValueProvider,
 	}
 }
 
@@ -207,7 +225,6 @@ func (s *Service) run(ctx context.Context) {
 
 			switch r := request.Value().(type) {
 			case *sendMailReq:
-				s.log.Debug("Received send mail request")
 				err := s.sendMail(ctx, r)
 				request.Reply(ctx, nil, err)
 
@@ -252,15 +269,38 @@ type sendMailReq struct {
 
 func (s *Service) sendMail(ctx context.Context, req *sendMailReq) error {
 	defer async.HandlePanic(s.panicHandler)
+
+	openSessionCount := s.imapSessionCountProvider.GetOpenIMAPSessionCount()
+	newlyOpenedSessions := s.imapSessionCountProvider.GetRollingIMAPConnectionCount()
+	log := s.log.WithFields(logrus.Fields{
+		"newlyOpenedIMAPConnectionsCount": newlyOpenedSessions,
+		"openIMAPConnectionsCount":        openSessionCount,
+	})
+	log.Debug("Received send mail request")
+
+	// Send SMTP send request metric to observability.
+	s.observabilitySender.AddMetrics(observabilitymetrics.GenerateSMTPSubmissionRequest(s.observabilitySender.GetEmailClient(), openSessionCount, newlyOpenedSessions))
+
+	// Send report to sentry if kill switch is disabled & number of newly opened IMAP connections exceed threshold.
+	if !s.featureFlagValueProvider.GetFlagValue(unleash.SMTPSubmissionRequestSentryReportDisabled) && newlyOpenedSessions >= newlyOpenedIMAPConnectionsThreshold {
+		if err := s.reporter.ReportMessageWithContext("SMTP Send Mail Request - newly opened IMAP connections exceed threshold", reporter.Context{
+			"newlyOpenedIMAPConnectionsCount": newlyOpenedSessions,
+			"openIMAPConnectionsCount":        openSessionCount,
+			"emailClient":                     s.observabilitySender.GetEmailClient(),
+		}); err != nil {
+			s.log.WithError(err).Error("Failed to submit report to sentry (SMTP Send Mail Request)")
+		}
+	}
+
 	start := time.Now()
 	defer func() {
 		end := time.Now()
-		s.log.Debugf("Send mail request finished in %v", end.Sub(start))
+		log.Debugf("Send mail request finished in %v", end.Sub(start))
 	}()
 
 	if err := s.smtpSendMail(ctx, req.authID, req.from, req.to, req.r); err != nil {
 		if apiErr := new(proton.APIError); errors.As(err, &apiErr) {
-			s.log.WithError(apiErr).WithField("Details", apiErr.DetailsToString()).Error("failed to send message")
+			log.WithError(apiErr).WithField("Details", apiErr.DetailsToString()).Error("failed to send message")
 		}
 
 		return err

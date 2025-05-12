@@ -551,7 +551,7 @@ func (bridge *Bridge) addUserWithVault(
 		syncSettingsPath,
 		isNew,
 		bridge.notificationStore,
-		bridge.unleashService.GetFlagValue,
+		bridge.unleashService,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)

@@ -200,6 +200,14 @@ func (sm *Service) RemoveSMTPAccount(ctx context.Context, service *bridgesmtp.Se
 	return err
 }
 
+func (sm *Service) GetOpenIMAPSessionCount() int {
+	return sm.imapServer.GetOpenSessionCount()
+}
+
+func (sm *Service) GetRollingIMAPConnectionCount() int {
+	return sm.imapServer.GetRollingIMAPConnectionCount()
+}
+
 func (sm *Service) run(ctx context.Context, subscription events.Subscription) {
 	eventSub := subscription.Add()
 	defer subscription.Remove(eventSub)

@@ -110,7 +110,7 @@ func New(
 	syncConfigDir string,
 	isNew bool,
 	notificationStore *notifications.Store,
-	getFlagValFn unleash.GetFlagValueFn,
+	featureFlagValueProvider unleash.FeatureFlagValueProvider,
 ) (*User, error) {
 	user, err := newImpl(
 		ctx,
@@ -130,7 +130,7 @@ func New(
 		syncConfigDir,
 		isNew,
 		notificationStore,
-		getFlagValFn,
+		featureFlagValueProvider,
 	)
 	if err != nil {
 		// Cleanup any pending resources on error
@@ -163,7 +163,7 @@ func newImpl(
 	syncConfigDir string,
 	isNew bool,
 	notificationStore *notifications.Store,
-	getFlagValueFn unleash.GetFlagValueFn,
+	featureFlagValueProvider unleash.FeatureFlagValueProvider,
 ) (*User, error) {
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
 
@@ -262,6 +262,8 @@ func newImpl(
 		identityState.Clone(),
 		smtpServerManager,
 		observabilityService,
+		imapServerManager,
+		featureFlagValueProvider,
 	)
 
 	user.imapService = imapservice.NewService(
@@ -284,7 +286,7 @@ func newImpl(
 		observabilityService,
 	)
 
-	user.notificationService = notifications.NewService(user.id, user.eventService, user, notificationStore, getFlagValueFn, observabilityService)
+	user.notificationService = notifications.NewService(user.id, user.eventService, user, notificationStore, featureFlagValueProvider, observabilityService)
 
 	// When we receive an auth object, we update it in the vault.
 	// This will be used to authorize the user on the next run.

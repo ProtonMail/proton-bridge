@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 )
 
 const (
@@ -29,6 +30,9 @@ const (
 
 	smtpSendSuccessSchemaName    = "bridge_smtp_send_success_total"
 	smtpSendSuccessSchemaVersion = 1
+
+	smtpSubmissionRequestSchemaName    = "bridge_smtp_send_request_total"
+	smtpSubmissionRequestSchemaVersion = 1
 )
 
 func generateSMTPErrorObservabilityMetric(errorType string) proton.ObservabilityMetric {
@@ -85,6 +89,22 @@ func GenerateSMTPSendSuccess() proton.ObservabilityMetric {
 		Data: map[string]interface{}{
 			"Value":  1,
 			"Labels": map[string]string{},
+		},
+	}
+}
+
+func GenerateSMTPSubmissionRequest(emailClient string, numberOfOpenIMAPConnections, numberOfRecentlyOpenedIMAPConnections int) proton.ObservabilityMetric {
+	return proton.ObservabilityMetric{
+		Name:      smtpSubmissionRequestSchemaName,
+		Version:   smtpSubmissionRequestSchemaVersion,
+		Timestamp: time.Now().Unix(),
+		Data: map[string]interface{}{
+			"Value": 1,
+			"Labels": map[string]string{
+				"numberOfOpenIMAPConnections":           observability.BucketIMAPConnections(numberOfOpenIMAPConnections),
+				"numberOfRecentlyOpenedIMAPConnections": observability.BucketIMAPConnections(numberOfRecentlyOpenedIMAPConnections),
+				"mailClient":                            emailClient,
+			},
 		},
 	}
 }

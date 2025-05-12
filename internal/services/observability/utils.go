@@ -66,3 +66,30 @@ func getEnabled(value bool) string {
 	}
 	return "enabled"
 }
+
+func BucketIMAPConnections(val int) string {
+	switch {
+	case val < 10:
+		return "<10"
+	case val < 25:
+		return "10-24"
+	case val < 50:
+		return "25-49"
+	case val < 100:
+		return "50-99"
+	case val < 200:
+		return "100-199"
+	case val < 300:
+		return "200-299"
+	case val < 500:
+		return "300-499"
+	case val < 1000:
+		return "500-999"
+	case val < 2000:
+		return "1000-1999"
+	case val < 3000:
+		return "2000-2999"
+	default:
+		return "3000+"
+	}
+}

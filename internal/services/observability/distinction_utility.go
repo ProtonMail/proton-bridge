@@ -40,7 +40,7 @@ type distinctionUtility struct {
 
 	panicHandler async.PanicHandler
 
-	lastSentMap map[DistinctionErrorTypeEnum]time.Time // Ensures we don't step over the limit of one user update every 5 mins.
+	lastSentMap map[DistinctionMetricTypeEnum]time.Time // Ensures we don't step over the limit of one user update every 5 mins.
 
 	observabilitySender observabilitySender
 	settingsGetter      settingsGetter
@@ -87,7 +87,7 @@ func (d *distinctionUtility) setSettingsGetter(getter settingsGetter) {
 
 // checkAndUpdateLastSentMap - checks whether we have sent a relevant user update metric
 // within the last 5 minutes.
-func (d *distinctionUtility) checkAndUpdateLastSentMap(key DistinctionErrorTypeEnum) bool {
+func (d *distinctionUtility) checkAndUpdateLastSentMap(key DistinctionMetricTypeEnum) bool {
 	curTime := time.Now()
 	val, ok := d.lastSentMap[key]
 	if !ok {
@@ -107,7 +107,7 @@ func (d *distinctionUtility) checkAndUpdateLastSentMap(key DistinctionErrorTypeE
 // and the relevant settings. In the future this will need to be expanded to support multiple
 // versions of the metric if we ever decide to change them.
 func (d *distinctionUtility) generateUserMetric(
-	metricType DistinctionErrorTypeEnum,
+	metricType DistinctionMetricTypeEnum,
 ) proton.ObservabilityMetric {
 	schemaName, ok := errorSchemaMap[metricType]
 	if !ok {
@@ -138,7 +138,7 @@ func generateUserMetric(schemaName, plan, mailClient, dohEnabled, betaAccess str
 	}
 }
 
-func (d *distinctionUtility) generateDistinctMetrics(errType DistinctionErrorTypeEnum, metrics ...proton.ObservabilityMetric) []proton.ObservabilityMetric {
+func (d *distinctionUtility) generateDistinctMetrics(errType DistinctionMetricTypeEnum, metrics ...proton.ObservabilityMetric) []proton.ObservabilityMetric {
 	d.updateHeartbeatData(errType)
 
 	if d.checkAndUpdateLastSentMap(errType) {

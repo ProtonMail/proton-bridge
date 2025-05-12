@@ -19,6 +19,7 @@ package observability
 
 import (
 	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability/gluonmetrics"
 )
 
 type Adapter struct {
@@ -88,6 +89,15 @@ func (adapter *Adapter) AddDistinctMetrics(errType interface{}, metrics ...map[s
 	}
 
 	if len(typedMetrics) > 0 {
-		adapter.sender.AddDistinctMetrics(DistinctionErrorTypeEnum(errTypeInt), typedMetrics...)
+		adapter.sender.AddDistinctMetrics(DistinctionMetricTypeEnum(errTypeInt), typedMetrics...)
 	}
+}
+
+func (adapter *Adapter) AddIMAPConnectionsExceededThresholdMetric(totalOpenIMAPConnections, newIMAPConnections int) {
+	metric := gluonmetrics.GenerateNewOpenedIMAPConnectionsExceedThreshold(
+		adapter.sender.GetEmailClient(),
+		BucketIMAPConnections(totalOpenIMAPConnections),
+		BucketIMAPConnections(newIMAPConnections))
+
+	adapter.sender.AddTimeLimitedMetric(NewIMAPConnectionsExceedThreshold, metric)
 }

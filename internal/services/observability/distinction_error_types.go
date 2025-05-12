@@ -19,21 +19,22 @@ package observability
 
 import "time"
 
-// DistinctionErrorTypeEnum - maps to the specific error schema for which we
-// want to send a user update.
-type DistinctionErrorTypeEnum int
+// DistinctionMetricTypeEnum - used to distinct specific metrics which we want to limit over some interval.
+// Most enums are tied to a specific error schema for which we also send a specific distinction user update.
+type DistinctionMetricTypeEnum int
 
 const (
-	SyncError DistinctionErrorTypeEnum = iota
+	SyncError DistinctionMetricTypeEnum = iota
 	GluonImapError
 	GluonMessageError
 	GluonOtherError
 	SMTPError
 	EventLoopError // EventLoopError - should always be kept last when inserting new keys.
+	NewIMAPConnectionsExceedThreshold
 )
 
-// errorSchemaMap - maps between the DistinctionErrorTypeEnum and the relevant schema name.
-var errorSchemaMap = map[DistinctionErrorTypeEnum]string{ //nolint:gochecknoglobals
+// errorSchemaMap - maps between some DistinctionMetricTypeEnum and the relevant schema name.
+var errorSchemaMap = map[DistinctionMetricTypeEnum]string{ //nolint:gochecknoglobals
 	SyncError:         "bridge_sync_errors_users_total",
 	EventLoopError:    "bridge_event_loop_events_errors_users_total",
 	GluonImapError:    "bridge_gluon_imap_errors_users_total",
@@ -43,9 +44,9 @@ var errorSchemaMap = map[DistinctionErrorTypeEnum]string{ //nolint:gochecknoglob
 }
 
 // createLastSentMap - needs to be updated whenever we make changes to the enum.
-func createLastSentMap() map[DistinctionErrorTypeEnum]time.Time {
+func createLastSentMap() map[DistinctionMetricTypeEnum]time.Time {
 	registerTime := time.Now().Add(-updateInterval)
-	lastSentMap := make(map[DistinctionErrorTypeEnum]time.Time)
+	lastSentMap := make(map[DistinctionMetricTypeEnum]time.Time)
 
 	for errType := SyncError; errType <= EventLoopError; errType++ {
 		lastSentMap[errType] = registerTime

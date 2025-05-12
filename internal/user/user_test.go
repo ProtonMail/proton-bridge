@@ -33,6 +33,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
 	"github.com/ProtonMail/proton-bridge/v3/internal/telemetry/mocks"
+	"github.com/ProtonMail/proton-bridge/v3/internal/unleash"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/ProtonMail/proton-bridge/v3/tests"
 	"github.com/golang/mock/gomock"
@@ -150,6 +151,7 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 	nullEventSubscription := events.NewNullSubscription()
 	nullIMAPServerManager := imapservice.NewNullIMAPServerManager()
 	nullSMTPServerManager := smtp.NewNullServerManager()
+	nullUnleashService := unleash.NewNullUnleashService()
 
 	user, err := New(
 		ctx,
@@ -171,9 +173,7 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 		notifications.NewStore(func() (string, error) {
 			return "", nil
 		}),
-		func(_ string) bool {
-			return false
-		},
+		nullUnleashService,
 	)
 	require.NoError(tb, err)
 	defer user.Close()

@@ -45,5 +45,9 @@ Feature: Bridge send remote notification observability metrics
     And the user with username "[user:user1]" sends SMTP send success observability metric
     Then it succeeds
 
+  Scenario: Test SMTP send request observability metric
+    When the user logs in with username "[user:user1]" and password "password"
+    And the user with username "[user:user1]" sends an SMTP send request observability metric
+    Then it succeeds
 
 

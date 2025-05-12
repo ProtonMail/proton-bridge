@@ -36,6 +36,9 @@ type IMAPServerManager interface {
 	RemoveIMAPUser(ctx context.Context, deleteData bool, provider GluonIDProvider, addrID ...string) error
 
 	LogRemoteLabelIDs(ctx context.Context, provider GluonIDProvider, addrID ...string) error
+
+	GetOpenIMAPSessionCount() int
+	GetRollingIMAPConnectionCount() int
 }
 
 type NullIMAPServerManager struct{}
@@ -65,6 +68,14 @@ func (n NullIMAPServerManager) LogRemoteLabelIDs(
 	_ ...string,
 ) error {
 	return nil
+}
+
+func (n NullIMAPServerManager) GetOpenIMAPSessionCount() int {
+	return 0
+}
+
+func (n NullIMAPServerManager) GetRollingIMAPConnectionCount() int {
+	return 0
 }
 
 func NewNullIMAPServerManager() *NullIMAPServerManager {

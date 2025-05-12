@@ -25,6 +25,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice/observabilitymetrics/evtloopmsgevents"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice/observabilitymetrics/syncmsgevents"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability/gluonmetrics"
 	smtpMetrics "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp/observabilitymetrics"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice/observabilitymetrics"
 )
@@ -183,6 +184,51 @@ func (s *scenario) SMTPSendSuccessObservabilityMetric(username string) error {
 		},
 	}
 
+	return s.t.withClientPass(context.Background(), username, s.t.getUserByName(username).userPass, func(ctx context.Context, c *proton.Client) error {
+		err := c.SendObservabilityBatch(ctx, batch)
+		return err
+	})
+}
+
+func (s *scenario) SMTPSendRequestObservabilityMetric(username string) error {
+	batch := proton.ObservabilityBatch{
+		Metrics: []proton.ObservabilityMetric{
+			smtpMetrics.GenerateSMTPSubmissionRequest("outlook", 1, 10),
+			smtpMetrics.GenerateSMTPSubmissionRequest("outlook", 10, 25),
+			smtpMetrics.GenerateSMTPSubmissionRequest("outlook", 30, 45),
+			smtpMetrics.GenerateSMTPSubmissionRequest("outlook", 50, 75),
+			smtpMetrics.GenerateSMTPSubmissionRequest("outlook", 100, 150),
+			smtpMetrics.GenerateSMTPSubmissionRequest("outlook", 200, 250),
+			smtpMetrics.GenerateSMTPSubmissionRequest("outlook", 300, 450),
+			smtpMetrics.GenerateSMTPSubmissionRequest("outlook", 500, 750),
+			smtpMetrics.GenerateSMTPSubmissionRequest("outlook", 1000, 1500),
+			smtpMetrics.GenerateSMTPSubmissionRequest("outlook", 1900, 2500),
+			smtpMetrics.GenerateSMTPSubmissionRequest("outlook", 3000, 3500),
+		},
+	}
+
+	return s.t.withClientPass(context.Background(), username, s.t.getUserByName(username).userPass, func(ctx context.Context, c *proton.Client) error {
+		err := c.SendObservabilityBatch(ctx, batch)
+		return err
+	})
+}
+
+func (s *scenario) GluonNewlyOpenedIMAPConnectionsExceedThreshold(username string) error {
+	batch := proton.ObservabilityBatch{
+		Metrics: []proton.ObservabilityMetric{
+			gluonmetrics.GenerateNewOpenedIMAPConnectionsExceedThreshold("outlook", observability.BucketIMAPConnections(1), observability.BucketIMAPConnections(10)),
+			gluonmetrics.GenerateNewOpenedIMAPConnectionsExceedThreshold("outlook", observability.BucketIMAPConnections(10), observability.BucketIMAPConnections(25)),
+			gluonmetrics.GenerateNewOpenedIMAPConnectionsExceedThreshold("outlook", observability.BucketIMAPConnections(30), observability.BucketIMAPConnections(45)),
+			gluonmetrics.GenerateNewOpenedIMAPConnectionsExceedThreshold("outlook", observability.BucketIMAPConnections(50), observability.BucketIMAPConnections(75)),
+			gluonmetrics.GenerateNewOpenedIMAPConnectionsExceedThreshold("outlook", observability.BucketIMAPConnections(100), observability.BucketIMAPConnections(150)),
+			gluonmetrics.GenerateNewOpenedIMAPConnectionsExceedThreshold("outlook", observability.BucketIMAPConnections(200), observability.BucketIMAPConnections(250)),
+			gluonmetrics.GenerateNewOpenedIMAPConnectionsExceedThreshold("outlook", observability.BucketIMAPConnections(300), observability.BucketIMAPConnections(450)),
+			gluonmetrics.GenerateNewOpenedIMAPConnectionsExceedThreshold("outlook", observability.BucketIMAPConnections(500), observability.BucketIMAPConnections(750)),
+			gluonmetrics.GenerateNewOpenedIMAPConnectionsExceedThreshold("outlook", observability.BucketIMAPConnections(1000), observability.BucketIMAPConnections(1500)),
+			gluonmetrics.GenerateNewOpenedIMAPConnectionsExceedThreshold("outlook", observability.BucketIMAPConnections(1900), observability.BucketIMAPConnections(2500)),
+			gluonmetrics.GenerateNewOpenedIMAPConnectionsExceedThreshold("outlook", observability.BucketIMAPConnections(3000), observability.BucketIMAPConnections(3500)),
+		},
+	}
 	return s.t.withClientPass(context.Background(), username, s.t.getUserByName(username).userPass, func(ctx context.Context, c *proton.Client) error {
 		err := c.SendObservabilityBatch(ctx, batch)
 		return err

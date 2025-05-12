@@ -44,7 +44,7 @@ type Service struct {
 
 	store *Store
 
-	getFlagValueFn unleash.GetFlagValueFn
+	featureFlagValueProvider unleash.FeatureFlagValueProvider
 
 	observabilitySender observability.Sender
 }
@@ -52,7 +52,7 @@ type Service struct {
 const bitfieldRegexPattern = `^\\\d+`
 
 func NewService(userID string, service userevents.Subscribable, eventPublisher events.EventPublisher, store *Store,
-	getFlagFn unleash.GetFlagValueFn, observabilitySender observability.Sender) *Service {
+	featureFlagValueProvider unleash.FeatureFlagValueProvider, observabilitySender observability.Sender) *Service {
 	return &Service{
 		userID: userID,
 
@@ -68,8 +68,8 @@ func NewService(userID string, service userevents.Subscribable, eventPublisher e
 
 		store: store,
 
-		getFlagValueFn:      getFlagFn,
-		observabilitySender: observabilitySender,
+		featureFlagValueProvider: featureFlagValueProvider,
+		observabilitySender:      observabilitySender,
 	}
 }
 
@@ -102,7 +102,7 @@ func (s *Service) run(ctx context.Context) {
 }
 
 func (s *Service) HandleNotificationEvents(ctx context.Context, notificationEvents []proton.NotificationEvent) error {
-	if s.getFlagValueFn(unleash.EventLoopNotificationDisabled) {
+	if s.featureFlagValueProvider.GetFlagValue(unleash.EventLoopNotificationDisabled) {
 		s.log.Info("Received notification events. Skipping as kill switch is enabled.")
 		return nil
 	}

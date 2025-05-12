@@ -242,7 +242,11 @@ func (s *scenario) steps(ctx *godog.ScenarioContext) {
 	// SMTP metrics
 	ctx.Step(`^the user with username "([^"]*)" sends all possible SMTP error observability metrics$`, s.SMTPErrorObservabilityMetrics)
 	ctx.Step(`^the user with username "([^"]*)" sends SMTP send success observability metric$`, s.SMTPSendSuccessObservabilityMetric)
+	// SMTP submission metric
+	ctx.Step(`^the user with username "([^"]*)" sends an SMTP send request observability metric$`, s.SMTPSendRequestObservabilityMetric)
 
 	// Gluon related metrics
 	ctx.Step(`^the user with username "([^"]*)" sends all possible gluon error observability metrics$`, s.testGluonErrorObservabilityMetrics)
+	// Gluon metric - on newly opened IMAP connections exceeding threshold.
+	ctx.Step(`^the user with username "([^"]*)" sends a Gluon metric indicating that the number of newly opened IMAP connections within some interval have exceed a threshold value$`, s.GluonNewlyOpenedIMAPConnectionsExceedThreshold)
 }

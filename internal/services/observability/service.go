@@ -45,7 +45,9 @@ type client struct {
 // so we can easily pass them down to relevant components.
 type Sender interface {
 	AddMetrics(metrics ...proton.ObservabilityMetric)
-	AddDistinctMetrics(errType DistinctionErrorTypeEnum, metrics ...proton.ObservabilityMetric)
+	AddDistinctMetrics(errType DistinctionMetricTypeEnum, metrics ...proton.ObservabilityMetric)
+	AddTimeLimitedMetric(metricType DistinctionMetricTypeEnum, metric proton.ObservabilityMetric)
+	GetEmailClient() string
 }
 
 type Service struct {
@@ -325,9 +327,23 @@ func (s *Service) AddMetrics(metrics ...proton.ObservabilityMetric) {
 // what number of events come from what number of users.
 // As the binning interval is what allows us to do this we
 // should not send these if there are no logged-in users at that moment.
-func (s *Service) AddDistinctMetrics(errType DistinctionErrorTypeEnum, metrics ...proton.ObservabilityMetric) {
+func (s *Service) AddDistinctMetrics(errType DistinctionMetricTypeEnum, metrics ...proton.ObservabilityMetric) {
 	metrics = s.distinctionUtility.generateDistinctMetrics(errType, metrics...)
 	s.addMetricsIfClients(metrics...)
+}
+
+// AddTimeLimitedMetric - schedules a metric to be sent if a metric of the same type has not been sent within some interval.
+// The interval is defined in the distinction utility.
+func (s *Service) AddTimeLimitedMetric(metricType DistinctionMetricTypeEnum, metric proton.ObservabilityMetric) {
+	if !s.distinctionUtility.checkAndUpdateLastSentMap(metricType) {
+		return
+	}
+
+	s.addMetricsIfClients(metric)
+}
+
+func (s *Service) GetEmailClient() string {
+	return s.distinctionUtility.getEmailClientUserAgent()
 }
 
 // ModifyHeartbeatInterval - should only be used for testing. Resets the heartbeat ticker.

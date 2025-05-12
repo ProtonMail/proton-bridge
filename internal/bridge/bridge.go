@@ -746,7 +746,7 @@ func (bridge *Bridge) PushObservabilityMetric(metric proton.ObservabilityMetric)
 	bridge.observabilityService.AddMetrics(metric)
 }
 
-func (bridge *Bridge) PushDistinctObservabilityMetrics(errType observability.DistinctionErrorTypeEnum, metrics ...proton.ObservabilityMetric) {
+func (bridge *Bridge) PushDistinctObservabilityMetrics(errType observability.DistinctionMetricTypeEnum, metrics ...proton.ObservabilityMetric) {
 	bridge.observabilityService.AddDistinctMetrics(errType, metrics...)
 }
 
