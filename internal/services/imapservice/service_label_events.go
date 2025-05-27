@@ -42,7 +42,10 @@ func (s *Service) HandleLabelEvents(ctx context.Context, events []proton.LabelEv
 				continue
 			}
 
-			updates := onLabelCreated(ctx, s, event)
+			updates, err := onLabelCreated(ctx, s, event)
+			if err != nil {
+				return fmt.Errorf("failed to handle create label event: %w", err)
+			}
 
 			if err := waitOnIMAPUpdates(ctx, updates); err != nil {
 				return err
@@ -74,8 +77,8 @@ func (s *Service) HandleLabelEvents(ctx context.Context, events []proton.LabelEv
 	return nil
 }
 
-func onLabelCreated(ctx context.Context, s *Service, event proton.LabelEvent) []imap.Update {
-	updates := make([]imap.Update, 0, len(s.connectors))
+func onLabelCreated(ctx context.Context, s *Service, event proton.LabelEvent) ([]imap.Update, error) {
+	updates := []imap.Update{}
 
 	s.log.WithFields(logrus.Fields{
 		"labelID": event.ID,
@@ -87,7 +90,17 @@ func onLabelCreated(ctx context.Context, s *Service, event proton.LabelEvent) []
 
 	wr.SetLabel(event.Label.ID, event.Label, "onLabelCreated")
 
+	labelConflictResolver := s.labelConflictManager.NewConflictResolver(maps.Values(s.connectors))
+	conflictUpdatesGenerator, err := labelConflictResolver.ResolveConflict(ctx, event.Label, make(map[string]bool))
+	if err != nil {
+		return updates, err
+	}
+
 	for _, updateCh := range maps.Values(s.connectors) {
+		conflictUpdates := conflictUpdatesGenerator()
+		updateCh.publishUpdate(ctx, conflictUpdates...)
+		updates = append(updates, conflictUpdates...)
+
 		update := newMailboxCreatedUpdate(imap.MailboxID(event.ID), GetMailboxName(event.Label))
 		updateCh.publishUpdate(ctx, update)
 		updates = append(updates, update)
@@ -99,7 +112,7 @@ func onLabelCreated(ctx context.Context, s *Service, event proton.LabelEvent) []
 		Name:    event.Label.Name,
 	})
 
-	return updates
+	return updates, nil
 }
 
 func onLabelUpdated(ctx context.Context, s *Service, event proton.LabelEvent) ([]imap.Update, error) {
@@ -136,8 +149,19 @@ func onLabelUpdated(ctx context.Context, s *Service, event proton.LabelEvent) ([
 		// Update the label in the map.
 		wr.SetLabel(apiLabel.ID, apiLabel, "onLabelUpdatedApiID")
 
+		// Resolve potential conflicts
+		labelConflictResolver := s.labelConflictManager.NewConflictResolver(maps.Values(s.connectors))
+		conflictUpdatesGenerator, err := labelConflictResolver.ResolveConflict(ctx, event.Label, make(map[string]bool))
+		if err != nil {
+			return updates, err
+		}
+
 		// Notify the IMAP clients.
 		for _, updateCh := range maps.Values(s.connectors) {
+			conflictUpdates := conflictUpdatesGenerator()
+			updateCh.publishUpdate(ctx, conflictUpdates...)
+			updates = append(updates, conflictUpdates...)
+
 			update := imap.NewMailboxUpdated(
 				imap.MailboxID(apiLabel.ID),
 				GetMailboxName(apiLabel),

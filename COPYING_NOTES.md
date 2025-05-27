@@ -127,6 +127,7 @@ Proton Mail Bridge includes the following 3rd party software:
 * [blackfriday](https://github.com/russross/blackfriday/v2) available under [license](https://github.com/russross/blackfriday/v2/blob/master/LICENSE) 
 * [pflag](https://github.com/spf13/pflag) available under [license](https://github.com/spf13/pflag/blob/master/LICENSE) 
 * [bom](https://github.com/ssor/bom) available under [license](https://github.com/ssor/bom/blob/master/LICENSE) 
+* [objx](https://github.com/stretchr/objx) available under [license](https://github.com/stretchr/objx/blob/master/LICENSE) 
 * [golang-asm](https://github.com/twitchyliquid64/golang-asm) available under [license](https://github.com/twitchyliquid64/golang-asm/blob/master/LICENSE) 
 * [codec](https://github.com/ugorji/go/codec) available under [license](https://github.com/ugorji/go/codec/blob/master/LICENSE) 
 * [tagparser](https://github.com/vmihailenco/tagparser/v2) available under [license](https://github.com/vmihailenco/tagparser/v2/blob/master/LICENSE) 

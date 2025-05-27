@@ -282,6 +282,7 @@ func newImpl(
 		user.maxSyncMemory,
 		showAllMail,
 		observabilityService,
+		getFlagValueFn,
 	)
 
 	user.notificationService = notifications.NewService(user.id, user.eventService, user, notificationStore, getFlagValueFn, observabilityService)

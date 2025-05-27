@@ -102,6 +102,16 @@ func newMailboxCreatedUpdate(labelID imap.MailboxID, labelName []string) *imap.M
 	})
 }
 
+func newMailboxUpdatedOrCreated(labelID imap.MailboxID, labelName []string) *imap.MailboxUpdatedOrCreated {
+	return imap.NewMailboxUpdatedOrCreated(imap.Mailbox{
+		ID:             labelID,
+		Name:           labelName,
+		Flags:          defaultMailboxFlags(),
+		PermanentFlags: defaultMailboxPermanentFlags(),
+		Attributes:     imap.NewFlagSet(),
+	})
+}
+
 func GetMailboxName(label proton.Label) []string {
 	var name []string
 
@@ -121,4 +131,13 @@ func GetMailboxName(label proton.Label) []string {
 	}
 
 	return name
+}
+
+func nameWithTempPrefix(path []string) []string {
+	path[len(path)-1] = "tmp_" + path[len(path)-1]
+	return path
+}
+
+func getMailboxNameWithTempPrefix(label proton.Label) []string {
+	return nameWithTempPrefix(GetMailboxName(label))
 }

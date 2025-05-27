@@ -41,6 +41,7 @@ const (
 	IMAPAuthenticateCommandDisabled          = "InboxBridgeImapAuthenticateCommandDisabled"
 	UserRemovalGluonDataCleanupDisabled      = "InboxBridgeUserRemovalGluonDataCleanupDisabled"
 	UpdateUseNewVersionFileStructureDisabled = "InboxBridgeUpdateWithOsFilterDisabled"
+	LabelConflictResolverDisabled            = "InboxBridgeLabelConflictResolverDisabled"
 )
 
 type requestFeaturesFn func(ctx context.Context) (proton.FeatureFlagResult, error)

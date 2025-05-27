@@ -200,6 +200,10 @@ func (sm *Service) RemoveSMTPAccount(ctx context.Context, service *bridgesmtp.Se
 	return err
 }
 
+func (sm *Service) GetUserMailboxByName(ctx context.Context, addrID string, mailboxName []string) (imap.MailboxData, error) {
+	return sm.imapServer.GetUserMailboxByName(ctx, addrID, mailboxName)
+}
+
 func (sm *Service) run(ctx context.Context, subscription events.Subscription) {
 	eventSub := subscription.Add()
 	defer subscription.Remove(eventSub)
