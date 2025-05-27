@@ -36,6 +36,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/userevents"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/useridentity"
+	"github.com/ProtonMail/proton-bridge/v3/internal/unleash"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
 	"github.com/sirupsen/logrus"
@@ -91,7 +92,8 @@ type Service struct {
 	lastHandledEventID string
 	isSyncing          atomic.Bool
 
-	observabilitySender observability.Sender
+	observabilitySender  observability.Sender
+	labelConflictManager *LabelConflictManager
 }
 
 func NewService(
@@ -112,6 +114,7 @@ func NewService(
 	maxSyncMemory uint64,
 	showAllMail bool,
 	observabilitySender observability.Sender,
+	getFeatureFlagValueFn unleash.GetFlagValueFn,
 ) *Service {
 	subscriberName := fmt.Sprintf("imap-%v", identityState.User.ID)
 
@@ -121,7 +124,8 @@ func NewService(
 	})
 	rwIdentity := newRWIdentity(identityState, bridgePassProvider, keyPassProvider)
 
-	syncUpdateApplier := NewSyncUpdateApplier()
+	labelConflictManager := NewLabelConflictManager(serverManager, gluonIDProvider, client, reporter, getFeatureFlagValueFn)
+	syncUpdateApplier := NewSyncUpdateApplier(labelConflictManager)
 	syncMessageBuilder := NewSyncMessageBuilder(rwIdentity)
 	syncReporter := newSyncReporter(identityState.User.ID, eventPublisher, time.Second)
 
@@ -156,7 +160,8 @@ func NewService(
 		syncReporter:       syncReporter,
 		syncConfigPath:     GetSyncConfigPath(syncConfigDir, identityState.User.ID),
 
-		observabilitySender: observabilitySender,
+		observabilitySender:  observabilitySender,
+		labelConflictManager: labelConflictManager,
 	}
 }
 

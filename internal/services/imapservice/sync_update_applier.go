@@ -31,8 +31,9 @@ import (
 )
 
 type SyncUpdateApplier struct {
-	requestCh chan updateRequest
-	replyCh   chan updateReply
+	requestCh            chan updateRequest
+	replyCh              chan updateReply
+	labelConflictManager *LabelConflictManager
 }
 
 type updateReply struct {
@@ -42,10 +43,11 @@ type updateReply struct {
 
 type updateRequest = func(ctx context.Context, mode usertypes.AddressMode, connectors map[string]*Connector) ([]imap.Update, error)
 
-func NewSyncUpdateApplier() *SyncUpdateApplier {
+func NewSyncUpdateApplier(labelConflictManager *LabelConflictManager) *SyncUpdateApplier {
 	return &SyncUpdateApplier{
-		requestCh: make(chan updateRequest),
-		replyCh:   make(chan updateReply),
+		requestCh:            make(chan updateRequest),
+		replyCh:              make(chan updateReply),
+		labelConflictManager: labelConflictManager,
 	}
 }
 
@@ -113,7 +115,7 @@ func (s *SyncUpdateApplier) ApplySyncUpdates(ctx context.Context, updates []sync
 
 func (s *SyncUpdateApplier) SyncLabels(ctx context.Context, labels map[string]proton.Label) error {
 	request := func(ctx context.Context, _ usertypes.AddressMode, connectors map[string]*Connector) ([]imap.Update, error) {
-		return syncLabels(ctx, labels, maps.Values(connectors))
+		return syncLabels(ctx, labels, maps.Values(connectors), s.labelConflictManager)
 	}
 
 	updates, err := s.sendRequest(ctx, request)
@@ -128,8 +130,10 @@ func (s *SyncUpdateApplier) SyncLabels(ctx context.Context, labels map[string]pr
 }
 
 // nolint:exhaustive
-func syncLabels(ctx context.Context, labels map[string]proton.Label, connectors []*Connector) ([]imap.Update, error) {
+func syncLabels(ctx context.Context, labels map[string]proton.Label, connectors []*Connector, labelConflictManager *LabelConflictManager) ([]imap.Update, error) {
 	var updates []imap.Update
+
+	labelConflictResolver := labelConflictManager.NewConflictResolver(connectors)
 
 	// Create placeholder Folders/Labels mailboxes with the \Noselect attribute.
 	for _, prefix := range []string{folderPrefix, labelPrefix} {
@@ -155,7 +159,16 @@ func syncLabels(ctx context.Context, labels map[string]proton.Label, connectors 
 			}
 
 		case proton.LabelTypeFolder, proton.LabelTypeLabel:
+			conflictUpdatesGenerator, err := labelConflictResolver.ResolveConflict(ctx, label, make(map[string]bool))
+			if err != nil {
+				return updates, err
+			}
+
 			for _, updateCh := range connectors {
+				conflictUpdates := conflictUpdatesGenerator()
+				updateCh.publishUpdate(ctx, conflictUpdates...)
+				updates = append(updates, conflictUpdates...)
+
 				update := newMailboxCreatedUpdate(imap.MailboxID(labelID), GetMailboxName(label))
 				updateCh.publishUpdate(ctx, update)
 				updates = append(updates, update)

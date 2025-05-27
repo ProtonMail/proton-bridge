@@ -800,8 +800,10 @@ func (s *Connector) createDraftWithParser(ctx context.Context, parser *parser.Pa
 	return draft, nil
 }
 
-func (s *Connector) publishUpdate(_ context.Context, update imap.Update) {
-	s.updateCh.Enqueue(update)
+func (s *Connector) publishUpdate(_ context.Context, updates ...imap.Update) {
+	for _, update := range updates {
+		s.updateCh.Enqueue(update)
+	}
 }
 
 func fixGODT3003Labels(
@@ -902,4 +904,8 @@ func (s *Connector) getSenderProtonAddress(p *parser.Parser) (proton.Address, er
 	}
 
 	return addressList[index], nil
+}
+
+func (s *Connector) SetAddrIDTest(addrID string) {
+	s.addrID = addrID
 }
