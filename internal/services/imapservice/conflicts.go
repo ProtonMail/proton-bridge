@@ -54,7 +54,7 @@ type LabelConflictManager struct {
 	gluonIDProvider        gluonIDProvider
 	client                 apiClient
 	reporter               sentryReporter
-	getFeatureFlagValueFn  unleash.GetFlagValueFn
+	featureFlagProvider    unleash.FeatureFlagValueProvider
 }
 
 func NewLabelConflictManager(
@@ -62,13 +62,13 @@ func NewLabelConflictManager(
 	gluonIDProvider gluonIDProvider,
 	client apiClient,
 	reporter sentryReporter,
-	getFeatureFlagValueFn unleash.GetFlagValueFn) *LabelConflictManager {
+	featureFlagProvider unleash.FeatureFlagValueProvider) *LabelConflictManager {
 	return &LabelConflictManager{
 		gluonLabelNameProvider: gluonLabelNameProvider,
 		gluonIDProvider:        gluonIDProvider,
 		client:                 client,
 		reporter:               reporter,
-		getFeatureFlagValueFn:  getFeatureFlagValueFn,
+		featureFlagProvider:    featureFlagProvider,
 	}
 }
 
@@ -104,7 +104,7 @@ func (r *nullLabelConflictResolverImpl) ResolveConflict(_ context.Context, _ pro
 }
 
 func (m *LabelConflictManager) NewConflictResolver(connectors []*Connector) LabelConflictResolver {
-	if m.getFeatureFlagValueFn(unleash.LabelConflictResolverDisabled) {
+	if m.featureFlagProvider.GetFlagValue(unleash.LabelConflictResolverDisabled) {
 		return &nullLabelConflictResolverImpl{}
 	}
 

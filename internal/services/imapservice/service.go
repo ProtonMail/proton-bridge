@@ -114,7 +114,7 @@ func NewService(
 	maxSyncMemory uint64,
 	showAllMail bool,
 	observabilitySender observability.Sender,
-	getFeatureFlagValueFn unleash.GetFlagValueFn,
+	featureFlagProvider unleash.FeatureFlagValueProvider,
 ) *Service {
 	subscriberName := fmt.Sprintf("imap-%v", identityState.User.ID)
 
@@ -124,7 +124,7 @@ func NewService(
 	})
 	rwIdentity := newRWIdentity(identityState, bridgePassProvider, keyPassProvider)
 
-	labelConflictManager := NewLabelConflictManager(serverManager, gluonIDProvider, client, reporter, getFeatureFlagValueFn)
+	labelConflictManager := NewLabelConflictManager(serverManager, gluonIDProvider, client, reporter, featureFlagProvider)
 	syncUpdateApplier := NewSyncUpdateApplier(labelConflictManager)
 	syncMessageBuilder := NewSyncMessageBuilder(rwIdentity)
 	syncReporter := newSyncReporter(identityState.User.ID, eventPublisher, time.Second)
