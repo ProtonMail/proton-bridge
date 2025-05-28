@@ -34,6 +34,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
 	bridgesmtp "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
+	"github.com/ProtonMail/proton-bridge/v3/internal/unleash"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/cpc"
 	"github.com/emersion/go-smtp"
 	"github.com/sirupsen/logrus"
@@ -63,6 +64,7 @@ type Service struct {
 	telemetry            Telemetry
 
 	observabilitySender observability.Sender
+	featureFlagProvider unleash.FeatureFlagValueProvider
 }
 
 func NewService(
@@ -75,6 +77,7 @@ func NewService(
 	uidValidityGenerator imap.UIDValidityGenerator,
 	telemetry Telemetry,
 	observabilitySender observability.Sender,
+	featureFlagProvider unleash.FeatureFlagValueProvider,
 ) *Service {
 	return &Service{
 		requests:     cpc.NewCPC(),
@@ -91,6 +94,7 @@ func NewService(
 		telemetry:            telemetry,
 
 		observabilitySender: observabilitySender,
+		featureFlagProvider: featureFlagProvider,
 	}
 }
 
@@ -506,6 +510,7 @@ func (sm *Service) createIMAPServer(ctx context.Context) (*gluon.Server, error) 
 		sm.uidValidityGenerator,
 		sm.panicHandler,
 		sm.observabilitySender,
+		sm.featureFlagProvider,
 	)
 	if err == nil {
 		sm.eventPublisher.PublishEvent(ctx, events.IMAPServerCreated{})

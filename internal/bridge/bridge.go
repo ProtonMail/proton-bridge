@@ -335,6 +335,7 @@ func newBridge(
 		uidValidityGenerator,
 		&bridgeIMAPSMTPTelemetry{b: bridge},
 		observabilityService,
+		unleashService,
 	)
 
 	// Check whether username has changed and correct (macOS only)
