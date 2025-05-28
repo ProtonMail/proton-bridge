@@ -3,6 +3,12 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Jubilee Bridge 3.20.1
+
+### Fixed
+* BRIDGE-362: Implemented logic for reconciling label conflicts.
+
+
 ## Jubilee Bridge 3.20.0
 
 ### Added
