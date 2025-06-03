@@ -151,7 +151,7 @@ func onLabelUpdated(ctx context.Context, s *Service, event proton.LabelEvent) ([
 
 		// Resolve potential conflicts
 		labelConflictResolver := s.labelConflictManager.NewConflictResolver(maps.Values(s.connectors))
-		conflictUpdatesGenerator, err := labelConflictResolver.ResolveConflict(ctx, event.Label, make(map[string]bool))
+		conflictUpdatesGenerator, err := labelConflictResolver.ResolveConflict(ctx, apiLabel, make(map[string]bool))
 		if err != nil {
 			return updates, err
 		}
