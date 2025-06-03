@@ -122,9 +122,10 @@ func GetMailboxName(label proton.Label) []string {
 	case proton.LabelTypeLabel:
 		name = append([]string{labelPrefix}, label.Path...)
 
-	case proton.LabelTypeContactGroup:
-		fallthrough
 	case proton.LabelTypeSystem:
+		name = []string{label.Name}
+
+	case proton.LabelTypeContactGroup:
 		fallthrough
 	default:
 		name = label.Path
