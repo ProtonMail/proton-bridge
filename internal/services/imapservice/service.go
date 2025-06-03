@@ -94,6 +94,7 @@ type Service struct {
 
 	observabilitySender  observability.Sender
 	labelConflictManager *LabelConflictManager
+	LabelConflictChecker *LabelConflictChecker
 }
 
 func NewService(
@@ -129,7 +130,7 @@ func NewService(
 	syncMessageBuilder := NewSyncMessageBuilder(rwIdentity)
 	syncReporter := newSyncReporter(identityState.User.ID, eventPublisher, time.Second)
 
-	return &Service{
+	service := &Service{
 		cpc:           cpc.NewCPC(),
 		client:        client,
 		log:           log,
@@ -163,6 +164,9 @@ func NewService(
 		observabilitySender:  observabilitySender,
 		labelConflictManager: labelConflictManager,
 	}
+
+	service.LabelConflictChecker = NewConflictChecker(service, reporter, gluonIDProvider, serverManager)
+	return service
 }
 
 func (s *Service) Start(
@@ -663,12 +667,16 @@ func (s *Service) setShowAllMail(v bool) {
 
 func (s *Service) startSyncing() {
 	s.isSyncing.Store(true)
-	s.syncHandler.Execute(s.syncReporter, s.labels.GetLabelMap(), s.syncUpdateApplier, s.syncMessageBuilder, syncservice.DefaultRetryCoolDown)
+	s.syncHandler.Execute(s.syncReporter, s.labels.GetLabelMap(), s.syncUpdateApplier, s.syncMessageBuilder, syncservice.DefaultRetryCoolDown, s.LabelConflictChecker)
 }
 
 func (s *Service) cancelSync() {
 	s.syncHandler.CancelAndWait()
 	s.isSyncing.Store(false)
+}
+
+func (s *Service) getConnectors() []*Connector {
+	return maps.Values(s.connectors)
 }
 
 type resyncReq struct{}

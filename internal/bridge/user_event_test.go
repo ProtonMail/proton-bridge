@@ -23,6 +23,7 @@ import (
 	"net"
 	"net/http"
 	"net/mail"
+	"runtime"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -76,6 +77,9 @@ func TestBridge_User_RefreshEvent(t *testing.T) {
 		withBridge(ctx, t, s.GetHostURL(), netCtl, locator, storeKey, func(bridge *bridge.Bridge, _ *bridge.Mocks) {
 			syncCh, closeCh := chToType[events.Event, events.SyncFinished](bridge.GetEvents(events.SyncFinished{}))
 
+			if runtime.GOOS != "windows" {
+				require.Equal(t, userID, (<-syncCh).UserID)
+			}
 			require.Equal(t, userID, (<-syncCh).UserID)
 			closeCh()
 

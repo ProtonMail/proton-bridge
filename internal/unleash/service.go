@@ -43,6 +43,7 @@ const (
 	UpdateUseNewVersionFileStructureDisabled  = "InboxBridgeUpdateWithOsFilterDisabled"
 	LabelConflictResolverDisabled             = "InboxBridgeLabelConflictResolverDisabled"
 	SMTPSubmissionRequestSentryReportDisabled = "InboxBridgeSmtpSubmissionRequestSentryReportDisabled"
+	InternalLabelConflictResolverDisabled     = "InboxBridgeUnexpectedFoldersLabelsStartupFixupDisabled"
 )
 
 type FeatureFlagValueProvider interface {

@@ -90,7 +90,7 @@ func onLabelCreated(ctx context.Context, s *Service, event proton.LabelEvent) ([
 
 	wr.SetLabel(event.Label.ID, event.Label, "onLabelCreated")
 
-	labelConflictResolver := s.labelConflictManager.NewConflictResolver(maps.Values(s.connectors))
+	labelConflictResolver := s.labelConflictManager.NewUserConflictResolver(maps.Values(s.connectors))
 	conflictUpdatesGenerator, err := labelConflictResolver.ResolveConflict(ctx, event.Label, make(map[string]bool))
 	if err != nil {
 		return updates, err
@@ -150,7 +150,7 @@ func onLabelUpdated(ctx context.Context, s *Service, event proton.LabelEvent) ([
 		wr.SetLabel(apiLabel.ID, apiLabel, "onLabelUpdatedApiID")
 
 		// Resolve potential conflicts
-		labelConflictResolver := s.labelConflictManager.NewConflictResolver(maps.Values(s.connectors))
+		labelConflictResolver := s.labelConflictManager.NewUserConflictResolver(maps.Values(s.connectors))
 		conflictUpdatesGenerator, err := labelConflictResolver.ResolveConflict(ctx, apiLabel, make(map[string]bool))
 		if err != nil {
 			return updates, err

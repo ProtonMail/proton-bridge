@@ -133,11 +133,21 @@ func (s *SyncUpdateApplier) SyncLabels(ctx context.Context, labels map[string]pr
 func syncLabels(ctx context.Context, labels map[string]proton.Label, connectors []*Connector, labelConflictManager *LabelConflictManager) ([]imap.Update, error) {
 	var updates []imap.Update
 
-	labelConflictResolver := labelConflictManager.NewConflictResolver(connectors)
+	userLabelConflictResolver := labelConflictManager.NewUserConflictResolver(connectors)
+	internalLabelConflictResolver := labelConflictManager.NewInternalLabelConflictResolver(connectors)
 
 	// Create placeholder Folders/Labels mailboxes with the \Noselect attribute.
 	for _, prefix := range []string{folderPrefix, labelPrefix} {
+		conflictUpdateGenerator, err := internalLabelConflictResolver.ResolveConflict(ctx)
+		if err != nil {
+			return updates, err
+		}
+
 		for _, updateCh := range connectors {
+			conflictUpdates := conflictUpdateGenerator()
+			updateCh.publishUpdate(ctx, conflictUpdates...)
+			updates = append(updates, conflictUpdates...)
+
 			update := newPlaceHolderMailboxCreatedUpdate(prefix)
 			updateCh.publishUpdate(ctx, update)
 			updates = append(updates, update)
@@ -159,7 +169,7 @@ func syncLabels(ctx context.Context, labels map[string]proton.Label, connectors 
 			}
 
 		case proton.LabelTypeFolder, proton.LabelTypeLabel:
-			conflictUpdatesGenerator, err := labelConflictResolver.ResolveConflict(ctx, label, make(map[string]bool))
+			conflictUpdatesGenerator, err := userLabelConflictResolver.ResolveConflict(ctx, label, make(map[string]bool))
 			if err != nil {
 				return updates, err
 			}

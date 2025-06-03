@@ -86,42 +86,42 @@ func (m *LabelConflictManager) generateMailboxFetcher(connectors []*Connector) m
 	}
 }
 
-type LabelConflictResolver interface {
+type UserLabelConflictResolver interface {
 	ResolveConflict(ctx context.Context, label proton.Label, visited map[string]bool) (func() []imap.Update, error)
 }
-type labelConflictResolverImpl struct {
+type userLabelConflictResolverImpl struct {
 	mailboxFetch mailboxFetcherFn
 	client       apiClient
 	reporter     sentryReporter
 	log          *logrus.Entry
 }
 
-type nullLabelConflictResolverImpl struct {
+type nullUserLabelConflictResolverImpl struct {
 }
 
-func (r *nullLabelConflictResolverImpl) ResolveConflict(_ context.Context, _ proton.Label, _ map[string]bool) (func() []imap.Update, error) {
+func (r *nullUserLabelConflictResolverImpl) ResolveConflict(_ context.Context, _ proton.Label, _ map[string]bool) (func() []imap.Update, error) {
 	return func() []imap.Update {
 		return []imap.Update{}
 	}, nil
 }
 
-func (m *LabelConflictManager) NewConflictResolver(connectors []*Connector) LabelConflictResolver {
+func (m *LabelConflictManager) NewUserConflictResolver(connectors []*Connector) UserLabelConflictResolver {
 	if m.featureFlagProvider.GetFlagValue(unleash.LabelConflictResolverDisabled) {
-		return &nullLabelConflictResolverImpl{}
+		return &nullUserLabelConflictResolverImpl{}
 	}
 
-	return &labelConflictResolverImpl{
+	return &userLabelConflictResolverImpl{
 		mailboxFetch: m.generateMailboxFetcher(connectors),
 		client:       m.client,
 		reporter:     m.reporter,
 		log: logrus.WithFields(logrus.Fields{
-			"pkg":                "imapservice/labelConflictResolver",
+			"pkg":                "imapservice/userLabelConflictResolver",
 			"numberOfConnectors": len(connectors),
 		}),
 	}
 }
 
-func (r *labelConflictResolverImpl) ResolveConflict(ctx context.Context, label proton.Label, visited map[string]bool) (func() []imap.Update, error) {
+func (r *userLabelConflictResolverImpl) ResolveConflict(ctx context.Context, label proton.Label, visited map[string]bool) (func() []imap.Update, error) {
 	logger := r.log.WithFields(logrus.Fields{
 		"labelID":   label.ID,
 		"labelPath": hashLabelPaths(GetMailboxName(label)),
@@ -237,4 +237,64 @@ func compareLabelNames(labelName1, labelName2 []string) bool {
 
 func hashLabelPaths(path []string) string {
 	return algo.HashBase64SHA256(strings.Join(path, ""))
+}
+
+type InternalLabelConflictResolver interface {
+	ResolveConflict(ctx context.Context) (func() []imap.Update, error)
+}
+
+type internalLabelConflictResolverImpl struct {
+	mailboxFetch mailboxFetcherFn
+	client       apiClient
+	reporter     sentryReporter
+	log          *logrus.Entry
+}
+
+type nullInternalLabelConflictResolver struct{}
+
+func (r *nullInternalLabelConflictResolver) ResolveConflict(_ context.Context) (func() []imap.Update, error) {
+	return func() []imap.Update { return []imap.Update{} }, nil
+}
+
+func (m *LabelConflictManager) NewInternalLabelConflictResolver(connectors []*Connector) InternalLabelConflictResolver {
+	if m.featureFlagProvider.GetFlagValue(unleash.InternalLabelConflictResolverDisabled) {
+		return &nullInternalLabelConflictResolver{}
+	}
+
+	return &internalLabelConflictResolverImpl{
+		mailboxFetch: m.generateMailboxFetcher(connectors),
+		client:       m.client,
+		reporter:     m.reporter,
+		log: logrus.WithFields(logrus.Fields{
+			"pkg":                "imapservice/internalLabelConflictResolver",
+			"numberOfConnectors": len(connectors),
+		}),
+	}
+}
+
+func (r *internalLabelConflictResolverImpl) ResolveConflict(ctx context.Context) (func() []imap.Update, error) {
+	var updateFns []func() []imap.Update
+
+	for _, prefix := range []string{folderPrefix, labelPrefix} {
+		label := proton.Label{
+			Path: []string{prefix},
+			ID:   prefix,
+			Name: prefix,
+		}
+
+		mbox, err := r.mailboxFetch(ctx, label)
+		if err != nil {
+			if db.IsErrNotFound(err) {
+				continue
+			}
+			return nil, err
+		}
+
+		if mbox.RemoteID != label.ID {
+			// If the ID's don't match we should delete these.
+			fn := func() []imap.Update { return []imap.Update{imap.NewMailboxDeleted(imap.MailboxID(prefix))} }
+			updateFns = append(updateFns, fn)
+		}
+	}
+	return combineIMAPUpdateFns(updateFns), nil
 }

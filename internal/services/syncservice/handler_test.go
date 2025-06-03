@@ -209,6 +209,13 @@ func TestTask_StateHasSyncedState(t *testing.T) {
 	require.NoError(t, err)
 }
 
+type mockLabelConflictChecker struct {
+}
+
+func (m *mockLabelConflictChecker) CheckAndReportConflicts(_ context.Context, _ map[string]proton.Label) error {
+	return nil
+}
+
 func TestTask_RepeatsOnSyncFailure(t *testing.T) {
 	const MessageTotal int64 = 50
 	const MessageID string = "foo"
@@ -272,7 +279,7 @@ func TestTask_RepeatsOnSyncFailure(t *testing.T) {
 	tt.syncReporter.EXPECT().OnFinished(gomock.Any())
 	tt.syncReporter.EXPECT().OnProgress(gomock.Any(), gomock.Eq(MessageDelta))
 
-	tt.task.Execute(tt.syncReporter, labels, tt.updateApplier, tt.messageBuilder, time.Microsecond)
+	tt.task.Execute(tt.syncReporter, labels, tt.updateApplier, tt.messageBuilder, time.Microsecond, &mockLabelConflictChecker{})
 	require.NoError(t, <-tt.task.OnSyncFinishedCH())
 }
 
