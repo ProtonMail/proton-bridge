@@ -287,3 +287,21 @@ func contextToString(context sentry.Context) sentry.Context {
 
 	return res
 }
+
+type NullSentryReporter struct{}
+
+func (n NullSentryReporter) ReportException(any) error {
+	return nil
+}
+
+func (n NullSentryReporter) ReportMessage(string) error {
+	return nil
+}
+
+func (n NullSentryReporter) ReportMessageWithContext(string, reporter.Context) error {
+	return nil
+}
+
+func (n NullSentryReporter) ReportExceptionWithContext(any, reporter.Context) error {
+	return nil
+}

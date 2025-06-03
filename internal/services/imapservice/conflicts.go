@@ -28,6 +28,7 @@ import (
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/unleash"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/algo"
 	"github.com/sirupsen/logrus"
 )
 
@@ -92,6 +93,7 @@ type labelConflictResolverImpl struct {
 	mailboxFetch mailboxFetcherFn
 	client       apiClient
 	reporter     sentryReporter
+	log          *logrus.Entry
 }
 
 type nullLabelConflictResolverImpl struct {
@@ -112,15 +114,25 @@ func (m *LabelConflictManager) NewConflictResolver(connectors []*Connector) Labe
 		mailboxFetch: m.generateMailboxFetcher(connectors),
 		client:       m.client,
 		reporter:     m.reporter,
+		log: logrus.WithFields(logrus.Fields{
+			"pkg":                "imapservice/labelConflictResolver",
+			"numberOfConnectors": len(connectors),
+		}),
 	}
 }
 
 func (r *labelConflictResolverImpl) ResolveConflict(ctx context.Context, label proton.Label, visited map[string]bool) (func() []imap.Update, error) {
+	logger := r.log.WithFields(logrus.Fields{
+		"labelID":   label.ID,
+		"labelPath": hashLabelPaths(GetMailboxName(label)),
+	})
+
 	var updateFns []func() []imap.Update
 
 	// There's a cycle, such as in a label swap operation, we'll need to temporarily rename the label.
 	// The change will be overwritten by one of the previous recursive calls.
 	if visited[label.ID] {
+		logrus.Info("Cycle detected, applying temporary rename")
 		fn := func() []imap.Update {
 			return []imap.Update{newMailboxUpdatedOrCreated(imap.MailboxID(label.ID), getMailboxNameWithTempPrefix(label))}
 		}
@@ -134,6 +146,7 @@ func (r *labelConflictResolverImpl) ResolveConflict(ctx context.Context, label p
 	if err != nil {
 		// Name is free, create the mailbox.
 		if db.IsErrNotFound(err) {
+			logger.Info("Label not found in DB, creating mailbox.")
 			fn := func() []imap.Update {
 				return []imap.Update{newMailboxUpdatedOrCreated(imap.MailboxID(label.ID), GetMailboxName(label))}
 			}
@@ -145,14 +158,23 @@ func (r *labelConflictResolverImpl) ResolveConflict(ctx context.Context, label p
 
 	// Verify whether the label name corresponds to the same label ID. If true terminate, we don't need to update.
 	if mailboxData.RemoteID == label.ID {
+		logger.Info("Mailbox name matches label ID, no conflict.")
 		return combineIMAPUpdateFns(updateFns), nil
 	}
+
+	// This means we've found a conflict. So let's log it.
+	logger = logger.WithFields(logrus.Fields{
+		"conflictingLabelID":   mailboxData.RemoteID,
+		"conflictingLabelPath": hashLabelPaths(mailboxData.BridgeName),
+	})
+	logger.Info("Label conflict found")
 
 	// If the label name belongs to some other label ID. Fetch it's state from the remote.
 	conflictingLabel, err := r.client.GetLabel(ctx, mailboxData.RemoteID, proton.LabelTypeFolder, proton.LabelTypeLabel)
 	if err != nil {
 		// If it's not present on the remote we should delete it. And create the new label.
 		if errors.Is(err, proton.ErrNoSuchLabel) {
+			logger.Info("Conflicting label does not exist on remote. Deleting.")
 			fn := func() []imap.Update {
 				return []imap.Update{
 					imap.NewMailboxDeleted(imap.MailboxID(mailboxData.RemoteID)),
@@ -162,6 +184,7 @@ func (r *labelConflictResolverImpl) ResolveConflict(ctx context.Context, label p
 			updateFns = append(updateFns, fn)
 			return combineIMAPUpdateFns(updateFns), nil
 		}
+		logger.WithError(err).Error("Failed to fetch conflicting label from remote.")
 		return combineIMAPUpdateFns(updateFns), err
 	}
 
@@ -171,7 +194,7 @@ func (r *labelConflictResolverImpl) ResolveConflict(ctx context.Context, label p
 			"labelID":            label.ID,
 			"conflictingLabelID": conflictingLabel.ID,
 		}); err != nil {
-			logrus.WithError(err).Error("Failed to report update error")
+			logger.WithError(err).Error("Failed to report update error")
 		}
 
 		err := fmt.Errorf("unexpected label conflict: the name of label ID %s is already used by label ID %s", label.ID, conflictingLabel.ID)
@@ -180,6 +203,8 @@ func (r *labelConflictResolverImpl) ResolveConflict(ctx context.Context, label p
 
 	// The name of the conflicting label has changed on the remote. We need to verify that the new name does not conflict with anything else.
 	// Thus, a recursive check can be performed.
+	logger.WithField("conflictingLabelNewPath", hashLabelPaths(conflictingLabel.Path)).
+		Info("Conflicting label name has changed. Recursively resolving conflict.")
 	childUpdateFns, err := r.ResolveConflict(ctx, conflictingLabel, visited)
 	if err != nil {
 		return combineIMAPUpdateFns(updateFns), err
@@ -208,4 +233,8 @@ func compareLabelNames(labelName1, labelName2 []string) bool {
 	name1 := strings.Join(labelName1, "")
 	name2 := strings.Join(labelName2, "")
 	return name1 == name2
+}
+
+func hashLabelPaths(path []string) string {
+	return algo.HashBase64SHA256(strings.Join(path, ""))
 }

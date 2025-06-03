@@ -181,7 +181,14 @@ func (s *Service) Start(
 		s.syncStateProvider = syncStateProvider
 	}
 
-	s.syncHandler = syncservice.NewHandler(syncRegulator, s.client, s.identityState.UserID(), s.syncStateProvider, s.log, s.panicHandler)
+	s.syncHandler = syncservice.NewHandler(
+		syncRegulator,
+		s.client,
+		s.identityState.UserID(),
+		s.syncStateProvider,
+		s.log,
+		s.panicHandler,
+		s.reporter)
 
 	// Get user labels
 	apiLabels, err := s.client.GetLabels(ctx, proton.LabelTypeSystem, proton.LabelTypeFolder, proton.LabelTypeLabel)

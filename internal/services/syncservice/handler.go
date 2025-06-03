@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/async"
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/network"
 	"github.com/sirupsen/logrus"
@@ -45,6 +46,7 @@ type Handler struct {
 	syncFinishedCh chan error
 	panicHandler   async.PanicHandler
 	downloadCache  *DownloadCache
+	sentryReporter reporter.Reporter
 }
 
 func NewHandler(
@@ -54,6 +56,7 @@ func NewHandler(
 	state StateProvider,
 	log *logrus.Entry,
 	panicHandler async.PanicHandler,
+	sentryReporter reporter.Reporter,
 ) *Handler {
 	return &Handler{
 		client:         client,
@@ -65,6 +68,7 @@ func NewHandler(
 		regulator:      regulator,
 		panicHandler:   panicHandler,
 		downloadCache:  newDownloadCache(),
+		sentryReporter: sentryReporter,
 	}
 }
 
@@ -105,6 +109,14 @@ func (t *Handler) Execute(
 				break
 			} else if err = t.run(ctx, syncReporter, labels, updateApplier, messageBuilder); err != nil {
 				t.log.WithError(err).Error("Failed to sync, will retry later")
+
+				if sentryErr := t.sentryReporter.ReportMessageWithContext("Failed to sync, will retry later", reporter.Context{
+					"err":     err.Error(),
+					"user_id": t.userID,
+				}); sentryErr != nil {
+					t.log.WithError(sentryErr).Error("Failed to report sentry message")
+				}
+
 				sleepCtx(ctx, coolDown)
 			} else {
 				break

@@ -54,6 +54,9 @@ func NewMocks(tb testing.TB, version, minAuto *semver.Version) *Mocks {
 	mocks.Heartbeat.EXPECT().IsTelemetryAvailable(gomock.Any()).AnyTimes()
 	mocks.Heartbeat.EXPECT().GetHeartbeatPeriodicInterval().AnyTimes().Return(500 * time.Millisecond)
 
+	// It's called whenever a context is cancelled during sync. We should ought to remove this and make it more granular in the future.
+	mocks.Reporter.EXPECT().ReportMessageWithContext("Failed to sync, will retry later", gomock.Any()).AnyTimes()
+
 	return mocks
 }
 

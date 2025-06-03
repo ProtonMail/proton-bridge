@@ -25,6 +25,7 @@ import (
 
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/bradenaw/juniper/xmaps"
 	"github.com/golang/mock/gomock"
 	"github.com/sirupsen/logrus"
@@ -342,7 +343,7 @@ func newTestHandler(mockCtrl *gomock.Controller, userID string) thandler { // no
 	client := NewMockAPIClient(mockCtrl)
 	messageBuilder := NewMockMessageBuilder(mockCtrl)
 	syncReporter := NewMockReporter(mockCtrl)
-	task := NewHandler(regulator, client, userID, syncState, logrus.WithField("test", "test"), &async.NoopPanicHandler{})
+	task := NewHandler(regulator, client, userID, syncState, logrus.WithField("test", "test"), &async.NoopPanicHandler{}, sentry.NullSentryReporter{})
 
 	return thandler{
 		task:           task,

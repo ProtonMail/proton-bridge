@@ -28,6 +28,7 @@ import (
 	"github.com/ProtonMail/go-proton-api/server/backend"
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/notifications"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
@@ -157,7 +158,7 @@ func withUser(tb testing.TB, ctx context.Context, _ *server.Server, m *proton.Ma
 		ctx,
 		vaultUser,
 		client,
-		nil,
+		sentry.NullSentryReporter{},
 		apiUser,
 		nil,
 		true,
