@@ -241,6 +241,7 @@ func newImpl(
 		5*time.Minute,
 		crashHandler,
 		eventSubscription,
+		reporter,
 	)
 
 	addressMode := usertypes.VaultToAddressMode(encVault.AddressMode())

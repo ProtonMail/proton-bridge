@@ -108,8 +108,6 @@ func (t *Handler) Execute(
 				t.log.WithError(err).Error("Sync aborted")
 				break
 			} else if err = t.run(ctx, syncReporter, labels, updateApplier, messageBuilder); err != nil {
-				t.log.WithError(err).Error("Failed to sync, will retry later")
-
 				if sentryErr := t.sentryReporter.ReportMessageWithContext("Failed to sync, will retry later", reporter.Context{
 					"err":     err.Error(),
 					"user_id": t.userID,
@@ -117,6 +115,7 @@ func (t *Handler) Execute(
 					t.log.WithError(sentryErr).Error("Failed to report sentry message")
 				}
 
+				t.log.WithError(err).Error("Failed to sync, will retry later")
 				sleepCtx(ctx, coolDown)
 			} else {
 				break

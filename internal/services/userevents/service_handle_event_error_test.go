@@ -30,6 +30,7 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events/mocks"
+	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
@@ -49,6 +50,7 @@ func TestServiceHandleEventError_SubscriberEventUnwrapping(t *testing.T) {
 		time.Second,
 		async.NoopPanicHandler{},
 		events.NewNullSubscription(),
+		sentry.NullSentryReporter{},
 	)
 
 	lastEventID := "PrevEvent"
@@ -87,6 +89,7 @@ func TestServiceHandleEventError_BadEventPutsServiceOnPause(t *testing.T) {
 		time.Second,
 		async.NoopPanicHandler{},
 		events.NewNullSubscription(),
+		sentry.NullSentryReporter{},
 	)
 	service.Resume()
 	lastEventID := "PrevEvent"
@@ -121,6 +124,7 @@ func TestServiceHandleEventError_BadEventFromPublishTimeout(t *testing.T) {
 		time.Second,
 		async.NoopPanicHandler{},
 		events.NewNullSubscription(),
+		sentry.NullSentryReporter{},
 	)
 	lastEventID := "PrevEvent"
 	event := proton.Event{EventID: "MyEvent"}
@@ -152,6 +156,7 @@ func TestServiceHandleEventError_NoBadEventCheck(t *testing.T) {
 		time.Second,
 		async.NoopPanicHandler{},
 		events.NewNullSubscription(),
+		sentry.NullSentryReporter{},
 	)
 	lastEventID := "PrevEvent"
 	event := proton.Event{EventID: "MyEvent"}
@@ -178,6 +183,7 @@ func TestServiceHandleEventError_JsonUnmarshalEventProducesUncategorizedErrorEve
 		time.Second,
 		async.NoopPanicHandler{},
 		events.NewNullSubscription(),
+		sentry.NullSentryReporter{},
 	)
 	lastEventID := "PrevEvent"
 	event := proton.Event{EventID: "MyEvent"}

@@ -29,6 +29,8 @@ import (
 	"time"
 
 	"github.com/ProtonMail/gluon/async"
+	"github.com/ProtonMail/gluon/db"
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/gluon/watcher"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal"
@@ -70,6 +72,8 @@ type Service struct {
 	eventPollWaitersLock sync.Mutex
 	eventSubscription    events.Subscription
 	eventWatcher         *watcher.Watcher[events.Event]
+
+	sentryReporter reporter.Reporter
 }
 
 func NewService(
@@ -82,6 +86,7 @@ func NewService(
 	eventTimeout time.Duration,
 	panicHandler async.PanicHandler,
 	eventSubscription events.Subscription,
+	sentryReporter reporter.Reporter,
 ) *Service {
 	return &Service{
 		cpc:          cpc.NewCPC(),
@@ -99,6 +104,7 @@ func NewService(
 		panicHandler:      panicHandler,
 		eventSubscription: eventSubscription,
 		eventWatcher:      eventSubscription.Add(events.ConnStatusDown{}, events.ConnStatusUp{}),
+		sentryReporter:    sentryReporter,
 	}
 }
 
@@ -412,6 +418,14 @@ func (s *Service) handleEventError(ctx context.Context, lastEventID string, even
 	// If the error is a server-side issue, return error to retry later.
 	if apiErr := new(proton.APIError); errors.As(err, &apiErr) && (apiErr.Status == 429 || apiErr.Status >= 500) {
 		return subscriberName, fmt.Errorf("failed to handle event due to server error: %w", err)
+	}
+
+	if db.IsUniqueLabelConstraintError(err) {
+		if err := s.sentryReporter.ReportMessageWithContext("Unique label constraint error occurred on event", reporter.Context{
+			"err": err,
+		}); err != nil {
+			s.log.WithError(err).Error("Failed to report label constraint error to sentry")
+		}
 	}
 
 	// Otherwise, the error is a client-side issue; notify bridge to handle it.
