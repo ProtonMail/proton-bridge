@@ -3,6 +3,22 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Kanmon Bridge 3.21.0
+
+### Added 
+* BRIDGE-379: Mailbox pre-check on Bridge startup & conflict resolver for Bridge internal mailboxes. 
+
+### Changed
+* BRIDGE-376: Explicitly catch Gluon DB mailbox name conflicts and report them to Sentry.
+* BRIDGE-373: Extend user mailbox conflict resolver logging & report sync errors to Sentry.
+* BRIDGE-366: Kill switch support for IMAP IDLE.
+* BRIDGE-363: Observability metric support for IMAP connections.
+
+### Fixed
+* BRIDGE-377: Correct API label field usage on user label conflict resolver - update handler (event loop).
+* BRIDGE-378: Fix incorrect field usage for system mailbox names.
+
+
 ## Jubilee Bridge 3.20.1
 
 ### Fixed
