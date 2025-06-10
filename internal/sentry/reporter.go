@@ -157,7 +157,7 @@ func (r *Reporter) ReportExceptionWithContext(i interface{}, context map[string]
 	SkipDuringUnwind()
 
 	err := fmt.Errorf("recover: %v", i)
-	return r.scopedReport(context, func() {
+	return r.scopedReport(context, func(_ *sentry.Scope) {
 		SkipDuringUnwind()
 		if eventID := sentry.CaptureException(err); eventID != nil {
 			logrus.WithError(err).
@@ -169,7 +169,20 @@ func (r *Reporter) ReportExceptionWithContext(i interface{}, context map[string]
 
 func (r *Reporter) ReportMessageWithContext(msg string, context map[string]interface{}) error {
 	SkipDuringUnwind()
-	return r.scopedReport(context, func() {
+	return r.scopedReport(context, func(_ *sentry.Scope) {
+		SkipDuringUnwind()
+		if eventID := sentry.CaptureMessage(msg); eventID != nil {
+			logrus.WithField("message", msg).
+				WithField("reportID", *eventID).
+				Warn("Captured message")
+		}
+	})
+}
+
+func (r *Reporter) ReportWarningWithContext(msg string, context map[string]interface{}) error {
+	SkipDuringUnwind()
+	return r.scopedReport(context, func(scope *sentry.Scope) {
+		scope.SetLevel(sentry.LevelWarning)
 		SkipDuringUnwind()
 		if eventID := sentry.CaptureMessage(msg); eventID != nil {
 			logrus.WithField("message", msg).
@@ -180,7 +193,7 @@ func (r *Reporter) ReportMessageWithContext(msg string, context map[string]inter
 }
 
 // Report reports a sentry crash with stacktrace from all goroutines.
-func (r *Reporter) scopedReport(context map[string]interface{}, doReport func()) error {
+func (r *Reporter) scopedReport(context map[string]interface{}, doReport func(scope *sentry.Scope)) error {
 	SkipDuringUnwind()
 
 	if os.Getenv("PROTONMAIL_ENV") == "dev" {
@@ -206,7 +219,7 @@ func (r *Reporter) scopedReport(context map[string]interface{}, doReport func())
 				map[string]sentry.Context{"bridge": contextToString(context)},
 			)
 		}
-		doReport()
+		doReport(scope)
 	})
 
 	if !sentry.Flush(time.Second * 10) {
@@ -299,6 +312,10 @@ func (n NullSentryReporter) ReportMessage(string) error {
 }
 
 func (n NullSentryReporter) ReportMessageWithContext(string, reporter.Context) error {
+	return nil
+}
+
+func (n NullSentryReporter) ReportWarningWithContext(string, reporter.Context) error {
 	return nil
 }
 

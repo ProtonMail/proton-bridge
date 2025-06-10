@@ -55,6 +55,7 @@ func (t labelDiscrepancyType) String() string {
 type labelDiscrepancy struct {
 	labelName            string
 	labelPath            string
+	labelPathParsed      string
 	labelID              string
 	conflictingLabelName string
 	conflictingLabelID   string
@@ -76,10 +77,12 @@ func newLabelDiscrepancy(label proton.Label, mbox imap.MailboxData, dType labelD
 	if dType == discrepancyUser {
 		discrepancy.labelName = algo.HashBase64SHA256(label.Name)
 		discrepancy.labelPath = algo.HashBase64SHA256(joinStrings(label.Path))
+		discrepancy.labelPathParsed = algo.HashBase64SHA256(joinStrings(GetMailboxName(label)))
 		discrepancy.conflictingLabelName = algo.HashBase64SHA256(joinStrings(mbox.BridgeName))
 	} else {
 		discrepancy.labelName = label.Name
 		discrepancy.labelPath = joinStrings(label.Path)
+		discrepancy.labelPathParsed = joinStrings(GetMailboxName(label))
 		discrepancy.conflictingLabelName = joinStrings(mbox.BridgeName)
 	}
 
@@ -93,9 +96,10 @@ func discrepanciesToContext(discrepancies []labelDiscrepancy) reporter.Context {
 		prefix := fmt.Sprintf("discrepancy_%d_", i)
 
 		ctx[prefix+"type"] = d.Type.String()
+		ctx[prefix+"label_id"] = d.labelID
 		ctx[prefix+"label_name"] = d.labelName
 		ctx[prefix+"label_path"] = d.labelPath
-		ctx[prefix+"label_id"] = d.labelID
+		ctx[prefix+"label_path_parsed"] = d.labelPathParsed
 		ctx[prefix+"conflicting_label_name"] = d.conflictingLabelName
 		ctx[prefix+"conflicting_label_id"] = d.conflictingLabelID
 	}

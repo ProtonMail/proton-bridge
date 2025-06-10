@@ -42,6 +42,7 @@ type gluonIDProvider interface {
 
 type sentryReporter interface {
 	ReportMessageWithContext(string, reporter.Context) error
+	ReportWarningWithContext(string, reporter.Context) error
 }
 
 type apiClient interface {
@@ -49,6 +50,8 @@ type apiClient interface {
 }
 
 type mailboxFetcherFn func(ctx context.Context, label proton.Label) (imap.MailboxData, error)
+
+type mailboxMessageCountFetcherFn func(ctx context.Context, internalMailboxID imap.InternalMailboxID) (int, error)
 
 type LabelConflictManager struct {
 	gluonLabelNameProvider GluonLabelNameProvider
@@ -86,47 +89,62 @@ func (m *LabelConflictManager) generateMailboxFetcher(connectors []*Connector) m
 	}
 }
 
-type UserLabelConflictResolver interface {
+func (m *LabelConflictManager) generateMailboxMessageCountFetcher(connectors []*Connector) mailboxMessageCountFetcherFn {
+	return func(ctx context.Context, id imap.InternalMailboxID) (int, error) {
+		var countSum int
+		var errs []error
+		for _, conn := range connectors {
+			count, err := conn.GetMailboxMessageCount(ctx, id)
+			countSum += count
+			errs = append(errs, err)
+		}
+
+		return countSum, errors.Join(errs...)
+	}
+}
+
+type LabelConflictResolver interface {
 	ResolveConflict(ctx context.Context, label proton.Label, visited map[string]bool) (func() []imap.Update, error)
 }
-type userLabelConflictResolverImpl struct {
+type labelConflictResolverImpl struct {
 	mailboxFetch mailboxFetcherFn
 	client       apiClient
 	reporter     sentryReporter
 	log          *logrus.Entry
 }
 
-type nullUserLabelConflictResolverImpl struct {
+type nullLabelConflictResolverImpl struct {
 }
 
-func (r *nullUserLabelConflictResolverImpl) ResolveConflict(_ context.Context, _ proton.Label, _ map[string]bool) (func() []imap.Update, error) {
+func (r *nullLabelConflictResolverImpl) ResolveConflict(_ context.Context, _ proton.Label, _ map[string]bool) (func() []imap.Update, error) {
 	return func() []imap.Update {
 		return []imap.Update{}
 	}, nil
 }
 
-func (m *LabelConflictManager) NewUserConflictResolver(connectors []*Connector) UserLabelConflictResolver {
+func (m *LabelConflictManager) NewConflictResolver(connectors []*Connector) LabelConflictResolver {
 	if m.featureFlagProvider.GetFlagValue(unleash.LabelConflictResolverDisabled) {
-		return &nullUserLabelConflictResolverImpl{}
+		return &nullLabelConflictResolverImpl{}
 	}
 
-	return &userLabelConflictResolverImpl{
+	return &labelConflictResolverImpl{
 		mailboxFetch: m.generateMailboxFetcher(connectors),
 		client:       m.client,
 		reporter:     m.reporter,
 		log: logrus.WithFields(logrus.Fields{
-			"pkg":                "imapservice/userLabelConflictResolver",
+			"pkg":                "imapservice/labelConflictResolver",
 			"numberOfConnectors": len(connectors),
 		}),
 	}
 }
 
-func (r *userLabelConflictResolverImpl) ResolveConflict(ctx context.Context, label proton.Label, visited map[string]bool) (func() []imap.Update, error) {
+func (r *labelConflictResolverImpl) ResolveConflict(ctx context.Context, label proton.Label, visited map[string]bool) (func() []imap.Update, error) {
 	logger := r.log.WithFields(logrus.Fields{
 		"labelID":   label.ID,
 		"labelPath": hashLabelPaths(GetMailboxName(label)),
 	})
 
+	// For system type labels we shouldn't care.
 	var updateFns []func() []imap.Update
 
 	// There's a cycle, such as in a label swap operation, we'll need to temporarily rename the label.
@@ -170,14 +188,14 @@ func (r *userLabelConflictResolverImpl) ResolveConflict(ctx context.Context, lab
 	logger.Info("Label conflict found")
 
 	// If the label name belongs to some other label ID. Fetch it's state from the remote.
-	conflictingLabel, err := r.client.GetLabel(ctx, mailboxData.RemoteID, proton.LabelTypeFolder, proton.LabelTypeLabel)
+	conflictingLabel, err := r.client.GetLabel(ctx, mailboxData.RemoteID, proton.LabelTypeFolder, proton.LabelTypeLabel, proton.LabelTypeSystem)
 	if err != nil {
 		// If it's not present on the remote we should delete it. And create the new label.
 		if errors.Is(err, proton.ErrNoSuchLabel) {
 			logger.Info("Conflicting label does not exist on remote. Deleting.")
 			fn := func() []imap.Update {
 				return []imap.Update{
-					imap.NewMailboxDeleted(imap.MailboxID(mailboxData.RemoteID)),
+					imap.NewMailboxDeleted(imap.MailboxID(mailboxData.RemoteID)), // Should this be with remote ID
 					newMailboxUpdatedOrCreated(imap.MailboxID(label.ID), GetMailboxName(label)),
 				}
 			}
@@ -240,19 +258,22 @@ func hashLabelPaths(path []string) string {
 }
 
 type InternalLabelConflictResolver interface {
-	ResolveConflict(ctx context.Context) (func() []imap.Update, error)
+	ResolveConflict(ctx context.Context, apiLabels map[string]proton.Label) (func() []imap.Update, error)
 }
 
 type internalLabelConflictResolverImpl struct {
-	mailboxFetch mailboxFetcherFn
-	client       apiClient
-	reporter     sentryReporter
-	log          *logrus.Entry
+	mailboxFetch                 mailboxFetcherFn
+	mailboxMessageCountFetch     mailboxMessageCountFetcherFn
+	userLabelConflictResolver    LabelConflictResolver
+	allowNonEmptyMailboxDeletion bool
+	client                       apiClient
+	reporter                     sentryReporter
+	log                          *logrus.Entry
 }
 
 type nullInternalLabelConflictResolver struct{}
 
-func (r *nullInternalLabelConflictResolver) ResolveConflict(_ context.Context) (func() []imap.Update, error) {
+func (r *nullInternalLabelConflictResolver) ResolveConflict(_ context.Context, _ map[string]proton.Label) (func() []imap.Update, error) {
 	return func() []imap.Update { return []imap.Update{} }, nil
 }
 
@@ -262,9 +283,12 @@ func (m *LabelConflictManager) NewInternalLabelConflictResolver(connectors []*Co
 	}
 
 	return &internalLabelConflictResolverImpl{
-		mailboxFetch: m.generateMailboxFetcher(connectors),
-		client:       m.client,
-		reporter:     m.reporter,
+		mailboxFetch:                 m.generateMailboxFetcher(connectors),
+		mailboxMessageCountFetch:     m.generateMailboxMessageCountFetcher(connectors),
+		userLabelConflictResolver:    m.NewConflictResolver(connectors),
+		allowNonEmptyMailboxDeletion: m.featureFlagProvider.GetFlagValue(unleash.ItnternalLabelConflictNonEmptyMailboxDeletion),
+		client:                       m.client,
+		reporter:                     m.reporter,
 		log: logrus.WithFields(logrus.Fields{
 			"pkg":                "imapservice/internalLabelConflictResolver",
 			"numberOfConnectors": len(connectors),
@@ -272,17 +296,17 @@ func (m *LabelConflictManager) NewInternalLabelConflictResolver(connectors []*Co
 	}
 }
 
-func (r *internalLabelConflictResolverImpl) ResolveConflict(ctx context.Context) (func() []imap.Update, error) {
-	var updateFns []func() []imap.Update
+func (r *internalLabelConflictResolverImpl) ResolveConflict(ctx context.Context, apiLabels map[string]proton.Label) (func() []imap.Update, error) {
+	updateFns := []func() []imap.Update{}
 
 	for _, prefix := range []string{folderPrefix, labelPrefix} {
-		label := proton.Label{
+		internalLabel := proton.Label{
 			Path: []string{prefix},
 			ID:   prefix,
 			Name: prefix,
 		}
 
-		mbox, err := r.mailboxFetch(ctx, label)
+		mbox, err := r.mailboxFetch(ctx, internalLabel)
 		if err != nil {
 			if db.IsErrNotFound(err) {
 				continue
@@ -290,11 +314,75 @@ func (r *internalLabelConflictResolverImpl) ResolveConflict(ctx context.Context)
 			return nil, err
 		}
 
-		if mbox.RemoteID != label.ID {
-			// If the ID's don't match we should delete these.
-			fn := func() []imap.Update { return []imap.Update{imap.NewMailboxDeleted(imap.MailboxID(prefix))} }
-			updateFns = append(updateFns, fn)
+		// If the ID's match then we don't have a discrepancy.
+		if mbox.RemoteID == internalLabel.ID {
+			continue
 		}
+
+		logFields := logrus.Fields{
+			"internalLabelID":      internalLabel.ID,
+			"internalLabelName":    internalLabel.Name,
+			"conflictingLabelID":   mbox.RemoteID,
+			"conflictingLabelName": strings.Join(mbox.BridgeName, "/"),
+		}
+		reporterContext := reporter.Context(logFields)
+		logger := r.log.WithFields(logFields)
+		logger.Info("Encountered conflict, resolving.")
+
+		// There is a discrepancy, let's see if it comes from API.
+		apiLabel, ok := apiLabels[mbox.RemoteID]
+		if !ok {
+			// Label does not come from API, we should delete it.
+			// Due diligence, check if there are any messages associated with the mailbox.
+			msgCount, _ := r.mailboxMessageCountFetch(ctx, mbox.InternalID)
+			if msgCount != 0 {
+				logger.WithField("conflictingLabelMessageCount", msgCount).Info("Non-API conflicting label has associated messages")
+
+				reporterContext["conflictingLabelMessageCount"] = msgCount
+				if rerr := r.reporter.ReportWarningWithContext("Internal mailbox name conflict. Conflicting non-API label has messages.",
+					reporterContext); rerr != nil {
+					logger.WithError(rerr).Error("Failed to send report to sentry")
+				}
+
+				if !r.allowNonEmptyMailboxDeletion {
+					return combineIMAPUpdateFns(updateFns), fmt.Errorf("internal mailbox conflicting non-api label has associated messages")
+				}
+			}
+
+			fn := func() []imap.Update {
+				return []imap.Update{imap.NewMailboxDeletedSilent(imap.MailboxID(mbox.RemoteID))}
+			}
+			updateFns = append(updateFns, fn)
+			continue
+		}
+
+		reporterContext["conflictingLabelType"] = apiLabel.Type
+
+		// Label is indeed from API let's see if it's name has changed.
+		if compareLabelNames(GetMailboxName(apiLabel), internalLabel.Path) {
+			logger.Error("Conflict, same-name mailbox is returned by API")
+
+			if err := r.reporter.ReportMessageWithContext("Internal mailbox name conflict. Same-name mailbox is returned by API", reporterContext); err != nil {
+				logger.WithError(err).Error("Could not send report to sentry")
+			}
+
+			return combineIMAPUpdateFns(updateFns), fmt.Errorf("API label %s conflicts with internal label %s",
+				GetMailboxName(apiLabel),
+				strings.Join(mbox.BridgeName, "/"),
+			)
+		}
+
+		// If it's name has changed then we ought to rename it while still taking care of potential conflicts.
+		labelRenameUpdates, err := r.userLabelConflictResolver.ResolveConflict(ctx, apiLabel, make(map[string]bool))
+		if err != nil {
+			reporterContext["err"] = err.Error()
+			if rerr := r.reporter.ReportMessageWithContext("Failed to resolve internal mailbox conflict", reporterContext); rerr != nil {
+				logger.WithError(rerr).Error("Could not send report to sentry")
+			}
+			return combineIMAPUpdateFns(updateFns),
+				fmt.Errorf("failed to resolve user label conflict for '%s': %w", apiLabel.Name, err)
+		}
+		updateFns = append(updateFns, labelRenameUpdates)
 	}
 	return combineIMAPUpdateFns(updateFns), nil
 }

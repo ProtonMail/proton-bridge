@@ -40,7 +40,10 @@ type IMAPServerManager interface {
 
 	GetUserMailboxByName(ctx context.Context, addrID string, mailboxName []string) (imap.MailboxData, error)
 
+	GetUserMailboxCountByInternalID(ctx context.Context, addrID string, internalID imap.InternalMailboxID) (int, error)
+
 	GetOpenIMAPSessionCount() int
+
 	GetRollingIMAPConnectionCount() int
 }
 
@@ -75,6 +78,10 @@ func (n NullIMAPServerManager) LogRemoteLabelIDs(
 
 func (n NullIMAPServerManager) GetUserMailboxByName(_ context.Context, _ string, _ []string) (imap.MailboxData, error) {
 	return imap.MailboxData{}, nil
+}
+
+func (n NullIMAPServerManager) GetUserMailboxCountByInternalID(_ context.Context, _ string, _ imap.InternalMailboxID) (int, error) {
+	return 0, nil
 }
 
 func (n NullIMAPServerManager) GetOpenIMAPSessionCount() int {

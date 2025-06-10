@@ -133,24 +133,31 @@ func (s *SyncUpdateApplier) SyncLabels(ctx context.Context, labels map[string]pr
 func syncLabels(ctx context.Context, labels map[string]proton.Label, connectors []*Connector, labelConflictManager *LabelConflictManager) ([]imap.Update, error) {
 	var updates []imap.Update
 
-	userLabelConflictResolver := labelConflictManager.NewUserConflictResolver(connectors)
+	userLabelConflictResolver := labelConflictManager.NewConflictResolver(connectors)
 	internalLabelConflictResolver := labelConflictManager.NewInternalLabelConflictResolver(connectors)
+
+	conflictUpdateGenerator, err := internalLabelConflictResolver.ResolveConflict(ctx, labels)
+	if err != nil {
+		return updates, err
+	}
+
+	for _, updateCh := range connectors {
+		conflictUpdates := conflictUpdateGenerator()
+		updateCh.publishUpdate(ctx, conflictUpdates...)
+		updates = append(updates, conflictUpdates...)
+	}
 
 	// Create placeholder Folders/Labels mailboxes with the \Noselect attribute.
 	for _, prefix := range []string{folderPrefix, labelPrefix} {
-		conflictUpdateGenerator, err := internalLabelConflictResolver.ResolveConflict(ctx)
-		if err != nil {
-			return updates, err
-		}
-
 		for _, updateCh := range connectors {
-			conflictUpdates := conflictUpdateGenerator()
-			updateCh.publishUpdate(ctx, conflictUpdates...)
-			updates = append(updates, conflictUpdates...)
-
 			update := newPlaceHolderMailboxCreatedUpdate(prefix)
 			updateCh.publishUpdate(ctx, update)
 			updates = append(updates, update)
+
+			// Ensure we perform a rename operation as well. The created event won't update the name if the ID exists.
+			renameUpdate := imap.NewMailboxUpdated(imap.MailboxID(prefix), []string{prefix})
+			updateCh.publishUpdate(ctx, renameUpdate)
+			updates = append(updates, renameUpdate)
 		}
 	}
 

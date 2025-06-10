@@ -208,6 +208,10 @@ func (sm *Service) GetUserMailboxByName(ctx context.Context, addrID string, mail
 	return sm.imapServer.GetUserMailboxByName(ctx, addrID, mailboxName)
 }
 
+func (sm *Service) GetUserMailboxCountByInternalID(ctx context.Context, addrID string, internalID imap.InternalMailboxID) (int, error) {
+	return sm.imapServer.GetUserMailboxCountByInternalID(ctx, addrID, internalID)
+}
+
 func (sm *Service) GetOpenIMAPSessionCount() int {
 	return sm.imapServer.GetOpenSessionCount()
 }

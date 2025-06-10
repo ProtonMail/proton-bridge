@@ -146,6 +146,11 @@ func (r *reportRecorder) ReportMessageWithContext(message string, context report
 	return nil
 }
 
+func (r *reportRecorder) ReportWarningWithContext(message string, context reporter.Context) error {
+	r.add(false, message, context)
+	return nil
+}
+
 func (r *reportRecorder) ReportExceptionWithContext(data any, context reporter.Context) error {
 	if context == nil {
 		context = reporter.Context{}

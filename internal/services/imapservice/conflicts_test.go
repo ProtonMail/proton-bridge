@@ -88,6 +88,11 @@ func (m *mockReporter) ReportMessageWithContext(msg string, ctx reporter.Context
 	return args.Error(0)
 }
 
+func (m *mockReporter) ReportWarningWithContext(msg string, ctx reporter.Context) error {
+	args := m.Called(msg, ctx)
+	return args.Error(0)
+}
+
 func TestResolveConflict_UnexpectedLabelConflict(t *testing.T) {
 	ctx := context.Background()
 	label := proton.Label{
@@ -121,7 +126,7 @@ func TestResolveConflict_UnexpectedLabelConflict(t *testing.T) {
 	connector := &imapservice.Connector{}
 	connector.SetAddrIDTest("addr-1")
 	resolver := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{}).
-		NewUserConflictResolver([]*imapservice.Connector{connector})
+		NewConflictResolver([]*imapservice.Connector{connector})
 
 	visited := make(map[string]bool)
 	_, err := resolver.ResolveConflict(ctx, label, visited)
@@ -152,7 +157,7 @@ func TestResolveDiscrepancy_LabelDoesNotExist(t *testing.T) {
 	connectors := []*imapservice.Connector{connector}
 
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{})
-	resolver := manager.NewUserConflictResolver(connectors)
+	resolver := manager.NewConflictResolver(connectors)
 
 	visited := make(map[string]bool)
 	fn, err := resolver.ResolveConflict(ctx, label, visited)
@@ -185,7 +190,7 @@ func TestResolveConflict_MailboxFetchError(t *testing.T) {
 	connector := &imapservice.Connector{}
 	connector.SetAddrIDTest("addr-1")
 	resolver := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{}).
-		NewUserConflictResolver([]*imapservice.Connector{connector})
+		NewConflictResolver([]*imapservice.Connector{connector})
 
 	visited := make(map[string]bool)
 	_, err := resolver.ResolveConflict(ctx, label, visited)
@@ -223,7 +228,7 @@ func TestResolveDiscrepancy_ConflictingLabelDeletedRemotely(t *testing.T) {
 	connectors := []*imapservice.Connector{connector}
 
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{})
-	resolver := manager.NewUserConflictResolver(connectors)
+	resolver := manager.NewConflictResolver(connectors)
 
 	visited := make(map[string]bool)
 	fn, err := resolver.ResolveConflict(ctx, label, visited)
@@ -266,7 +271,7 @@ func TestResolveDiscrepancy_LabelAlreadyCorrect(t *testing.T) {
 	connectors := []*imapservice.Connector{connector}
 
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{})
-	resolver := manager.NewUserConflictResolver(connectors)
+	resolver := manager.NewConflictResolver(connectors)
 
 	visited := make(map[string]bool)
 	fn, err := resolver.ResolveConflict(ctx, label, visited)
@@ -295,7 +300,7 @@ func TestResolveConflict_DeepNestedPath(t *testing.T) {
 	connector := &imapservice.Connector{}
 	connector.SetAddrIDTest("addr-1")
 	resolver := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{}).
-		NewUserConflictResolver([]*imapservice.Connector{connector})
+		NewConflictResolver([]*imapservice.Connector{connector})
 
 	visited := make(map[string]bool)
 	fn, err := resolver.ResolveConflict(ctx, label, visited)
@@ -351,7 +356,7 @@ func TestResolveLabelDiscrepancy_LabelSwap(t *testing.T) {
 
 	for _, label := range apiLabels {
 		mockClient.
-			On("GetLabel", mock.Anything, label.ID, []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel}).
+			On("GetLabel", mock.Anything, label.ID, []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel, proton.LabelTypeSystem}).
 			Return(label, nil)
 	}
 
@@ -360,7 +365,7 @@ func TestResolveLabelDiscrepancy_LabelSwap(t *testing.T) {
 	connectors := []*imapservice.Connector{connector}
 
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{})
-	resolver := manager.NewUserConflictResolver(connectors)
+	resolver := manager.NewConflictResolver(connectors)
 
 	visited := make(map[string]bool)
 	fn, err := resolver.ResolveConflict(context.Background(), apiLabels[0], visited)
@@ -444,7 +449,7 @@ func TestResolveLabelDiscrepancy_LabelSwapExtended(t *testing.T) {
 
 	for _, label := range apiLabels {
 		mockClient.
-			On("GetLabel", mock.Anything, label.ID, []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel}).
+			On("GetLabel", mock.Anything, label.ID, []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel, proton.LabelTypeSystem}).
 			Return(label, nil)
 	}
 
@@ -453,7 +458,7 @@ func TestResolveLabelDiscrepancy_LabelSwapExtended(t *testing.T) {
 	connectors := []*imapservice.Connector{connector}
 
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{})
-	resolver := manager.NewUserConflictResolver(connectors)
+	resolver := manager.NewConflictResolver(connectors)
 
 	fn, err := resolver.ResolveConflict(context.Background(), apiLabels[0], make(map[string]bool))
 	require.NoError(t, err)
@@ -529,7 +534,7 @@ func TestResolveLabelDiscrepancy_LabelSwapCyclic(t *testing.T) {
 
 	for _, label := range apiLabels {
 		mockClient.
-			On("GetLabel", mock.Anything, label.ID, []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel}).
+			On("GetLabel", mock.Anything, label.ID, []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel, proton.LabelTypeSystem}).
 			Return(label, nil)
 	}
 
@@ -538,7 +543,7 @@ func TestResolveLabelDiscrepancy_LabelSwapCyclic(t *testing.T) {
 	connectors := []*imapservice.Connector{connector}
 
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{})
-	resolver := manager.NewUserConflictResolver(connectors)
+	resolver := manager.NewConflictResolver(connectors)
 
 	fn, err := resolver.ResolveConflict(context.Background(), apiLabels[0], make(map[string]bool))
 	require.NoError(t, err)
@@ -602,17 +607,17 @@ func TestResolveLabelDiscrepancy_LabelSwapCyclicWithDeletedLabel(t *testing.T) {
 
 	for _, label := range apiLabels {
 		mockClient.
-			On("GetLabel", mock.Anything, label.ID, []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel}).
+			On("GetLabel", mock.Anything, label.ID, []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel, proton.LabelTypeSystem}).
 			Return(label, nil)
 	}
-	mockClient.On("GetLabel", mock.Anything, "222", []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel}).Return(proton.Label{}, proton.ErrNoSuchLabel)
+	mockClient.On("GetLabel", mock.Anything, "222", []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel, proton.LabelTypeSystem}).Return(proton.Label{}, proton.ErrNoSuchLabel)
 
 	connector := &imapservice.Connector{}
 	connector.SetAddrIDTest("addr-1")
 	connectors := []*imapservice.Connector{connector}
 
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{})
-	resolver := manager.NewUserConflictResolver(connectors)
+	resolver := manager.NewConflictResolver(connectors)
 
 	fn, err := resolver.ResolveConflict(context.Background(), apiLabels[2], make(map[string]bool))
 	require.NoError(t, err)
@@ -665,17 +670,17 @@ func TestResolveLabelDiscrepancy_LabelSwapCyclicWithDeletedLabel_KillSwitchEnabl
 
 	for _, label := range apiLabels {
 		mockClient.
-			On("GetLabel", mock.Anything, label.ID, []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel}).
+			On("GetLabel", mock.Anything, label.ID, []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel, proton.LabelTypeSystem}).
 			Return(label, nil)
 	}
-	mockClient.On("GetLabel", mock.Anything, "222", []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel}).Return(proton.Label{}, proton.ErrNoSuchLabel)
+	mockClient.On("GetLabel", mock.Anything, "222", []proton.LabelType{proton.LabelTypeFolder, proton.LabelTypeLabel, proton.LabelTypeSystem}).Return(proton.Label{}, proton.ErrNoSuchLabel)
 
 	connector := &imapservice.Connector{}
 	connector.SetAddrIDTest("addr-1")
 	connectors := []*imapservice.Connector{connector}
 
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderTrue{})
-	resolver := manager.NewUserConflictResolver(connectors)
+	resolver := manager.NewConflictResolver(connectors)
 
 	fn, err := resolver.ResolveConflict(context.Background(), apiLabels[2], make(map[string]bool))
 	require.NoError(t, err)
@@ -706,7 +711,8 @@ func TestInternalLabelConflictResolver_NoConflicts(t *testing.T) {
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{})
 	resolver := manager.NewInternalLabelConflictResolver(connectors)
 
-	fn, err := resolver.ResolveConflict(ctx)
+	apiLabels := make(map[string]proton.Label)
+	fn, err := resolver.ResolveConflict(ctx, apiLabels)
 	assert.NoError(t, err)
 
 	updates := fn()
@@ -735,81 +741,159 @@ func TestInternalLabelConflictResolver_CorrectIDs(t *testing.T) {
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{})
 	resolver := manager.NewInternalLabelConflictResolver(connectors)
 
-	fn, err := resolver.ResolveConflict(ctx)
+	apiLabels := make(map[string]proton.Label)
+	fn, err := resolver.ResolveConflict(ctx, apiLabels)
 	assert.NoError(t, err)
 
 	updates := fn()
 	assert.Empty(t, updates)
 }
 
-func TestInternalLabelConflictResolver_ConflictingFoldersID(t *testing.T) {
+type mockMailboxCountProvider struct {
+	mock.Mock
+}
+
+func (m *mockMailboxCountProvider) GetUserMailboxCountByInternalID(ctx context.Context, addrID string, internalID imap.InternalMailboxID) (int, error) {
+	args := m.Called(ctx, addrID, internalID)
+	return args.Int(0), args.Error(1)
+}
+
+func TestInternalLabelConflictResolver_ConflictingNonAPILabel_ZeroCount(t *testing.T) {
 	ctx := context.Background()
 
 	mockLabelProvider := new(mockLabelNameProvider)
 	mockClient := new(mockAPIClient)
 	mockIDProvider := new(mockIDProvider)
 	mockReporter := new(mockReporter)
+	mockCountProvider := new(mockMailboxCountProvider)
 
 	mockIDProvider.On("GetGluonID", "addr-1").Return("gluon-id-1", true)
 
+	// Mock mailbox fetch to return conflicting mailbox
 	mockLabelProvider.On("GetUserMailboxByName", mock.Anything, "gluon-id-1", []string{"Folders"}).
-		Return(imap.MailboxData{RemoteID: "wrong-id", BridgeName: []string{"Folders"}}, nil)
+		Return(imap.MailboxData{RemoteID: "wrong-id", BridgeName: []string{"Folders"}, InternalID: imap.InternalMailboxID(123)}, nil)
 	mockLabelProvider.On("GetUserMailboxByName", mock.Anything, "gluon-id-1", []string{"Labels"}).
 		Return(imap.MailboxData{}, db.ErrNotFound)
 
+	// Mock message count fetch to return 0 messages.
+	mockLabelProvider.On("GetMailboxMessageCount", mock.Anything, "gluon-id-1", imap.InternalMailboxID(123)).
+		Return(0, nil)
+
 	connector := &imapservice.Connector{}
 	connector.SetAddrIDTest("addr-1")
+	mockCountProvider.On("GetUserMailboxCountByInternalID",
+		mock.Anything,
+		"addr-1",
+		imap.InternalMailboxID(123)).
+		Return(0, nil)
+
+	connector.SetMailboxCountProviderTest(mockCountProvider)
 	connectors := []*imapservice.Connector{connector}
 
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{})
 	resolver := manager.NewInternalLabelConflictResolver(connectors)
 
-	fn, err := resolver.ResolveConflict(ctx)
+	// API labels don't contain the conflicting label ID
+	apiLabels := make(map[string]proton.Label)
+	fn, err := resolver.ResolveConflict(ctx, apiLabels)
 	assert.NoError(t, err)
 
 	updates := fn()
 	assert.Len(t, updates, 1)
 
-	deleted, ok := updates[0].(*imap.MailboxDeleted)
+	deleted, ok := updates[0].(*imap.MailboxDeletedSilent)
 	assert.True(t, ok)
-	assert.Equal(t, imap.MailboxID("Folders"), deleted.MailboxID)
+	assert.Equal(t, imap.MailboxID("wrong-id"), deleted.MailboxID)
 }
 
-func TestInternalLabelConflictResolver_BothConflicting(t *testing.T) {
+func TestInternalLabelConflictResolver_ConflictingNonAPILabel_PositiveCount(t *testing.T) {
 	ctx := context.Background()
 
 	mockLabelProvider := new(mockLabelNameProvider)
 	mockClient := new(mockAPIClient)
 	mockIDProvider := new(mockIDProvider)
 	mockReporter := new(mockReporter)
+	mockCountProvider := new(mockMailboxCountProvider)
 
 	mockIDProvider.On("GetGluonID", "addr-1").Return("gluon-id-1", true)
 
+	mockReporter.On("ReportWarningWithContext", mock.Anything, mock.Anything).
+		Return(nil)
+
+	// Mock mailbox fetch to return conflicting mailbox
 	mockLabelProvider.On("GetUserMailboxByName", mock.Anything, "gluon-id-1", []string{"Folders"}).
-		Return(imap.MailboxData{RemoteID: "wrong-folders-id", BridgeName: []string{"Folders"}}, nil)
+		Return(imap.MailboxData{RemoteID: "wrong-id", BridgeName: []string{"Folders"}, InternalID: imap.InternalMailboxID(123)}, nil)
 	mockLabelProvider.On("GetUserMailboxByName", mock.Anything, "gluon-id-1", []string{"Labels"}).
-		Return(imap.MailboxData{RemoteID: "wrong-labels-id", BridgeName: []string{"Labels"}}, nil)
+		Return(imap.MailboxData{}, db.ErrNotFound)
+
+	// Mock message count fetch to return 0 messages.
+	mockLabelProvider.On("GetMailboxMessageCount", mock.Anything, "gluon-id-1", imap.InternalMailboxID(123)).
+		Return(0, nil)
 
 	connector := &imapservice.Connector{}
 	connector.SetAddrIDTest("addr-1")
+	mockCountProvider.On("GetUserMailboxCountByInternalID",
+		mock.Anything,
+		"addr-1",
+		imap.InternalMailboxID(123)).
+		Return(10, nil)
+
+	connector.SetMailboxCountProviderTest(mockCountProvider)
 	connectors := []*imapservice.Connector{connector}
 
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{})
 	resolver := manager.NewInternalLabelConflictResolver(connectors)
 
-	fn, err := resolver.ResolveConflict(ctx)
-	assert.NoError(t, err)
+	// API labels don't contain the conflicting label ID
+	apiLabels := make(map[string]proton.Label)
+	fn, err := resolver.ResolveConflict(ctx, apiLabels)
+	assert.EqualError(t, err, "internal mailbox conflicting non-api label has associated messages")
 
 	updates := fn()
-	assert.Len(t, updates, 2)
+	assert.Empty(t, updates, 0)
+}
 
-	updateOne, ok := updates[0].(*imap.MailboxDeleted)
-	assert.True(t, ok)
-	assert.Equal(t, imap.MailboxID("Folders"), updateOne.MailboxID)
+func TestInternalLabelConflictResolver_ConflictingAPILabelSameName(t *testing.T) {
+	ctx := context.Background()
 
-	updateTwo, ok := updates[1].(*imap.MailboxDeleted)
-	assert.True(t, ok)
-	assert.Equal(t, imap.MailboxID("Labels"), updateTwo.MailboxID)
+	mockLabelProvider := new(mockLabelNameProvider)
+	mockClient := new(mockAPIClient)
+	mockIDProvider := new(mockIDProvider)
+	mockReporter := new(mockReporter)
+	mockCountProvider := new(mockMailboxCountProvider)
+
+	mockIDProvider.On("GetGluonID", "addr-1").Return("gluon-id-1", true)
+
+	mockLabelProvider.On("GetUserMailboxByName", mock.Anything, "gluon-id-1", []string{"Folders"}).
+		Return(imap.MailboxData{RemoteID: "api-label-id", BridgeName: []string{"Folders"}}, nil)
+	mockLabelProvider.On("GetUserMailboxByName", mock.Anything, "gluon-id-1", []string{"Labels"}).
+		Return(imap.MailboxData{}, db.ErrNotFound)
+
+	mockReporter.On("ReportMessageWithContext", "Internal mailbox name conflict. Same-name mailbox is returned by API", mock.Anything).
+		Return(nil)
+
+	connector := &imapservice.Connector{}
+	connector.SetAddrIDTest("addr-1")
+	connector.SetMailboxCountProviderTest(mockCountProvider)
+	connectors := []*imapservice.Connector{connector}
+
+	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{})
+	resolver := manager.NewInternalLabelConflictResolver(connectors)
+
+	// API user label with empty path.
+	apiLabels := map[string]proton.Label{
+		"api-label-id": {
+			ID:   "api-label-id",
+			Name: "Folders",
+			Path: []string{""},
+			Type: proton.LabelTypeFolder,
+		},
+	}
+
+	_, err := resolver.ResolveConflict(ctx, apiLabels)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "API label")
+	assert.Contains(t, err.Error(), "conflicts with internal label")
 }
 
 func TestInternalLabelConflictResolver_MailboxFetchError(t *testing.T) {
@@ -832,7 +916,8 @@ func TestInternalLabelConflictResolver_MailboxFetchError(t *testing.T) {
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderFalse{})
 	resolver := manager.NewInternalLabelConflictResolver(connectors)
 
-	_, err := resolver.ResolveConflict(ctx)
+	apiLabels := make(map[string]proton.Label)
+	_, err := resolver.ResolveConflict(ctx, apiLabels)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "database connection error")
 }
@@ -859,7 +944,16 @@ func TestNewInternalLabelConflictResolver_KillSwitchEnabled(t *testing.T) {
 	manager := imapservice.NewLabelConflictManager(mockLabelProvider, mockIDProvider, mockClient, mockReporter, ffProviderTrue{})
 	resolver := manager.NewInternalLabelConflictResolver(connectors)
 
-	fn, err := resolver.ResolveConflict(ctx)
+	apiLabels := map[string]proton.Label{
+		"some-api-label": {
+			ID:   "some-api-label",
+			Name: "SomeLabel",
+			Path: []string{"SomeLabel"},
+			Type: proton.LabelTypeLabel,
+		},
+	}
+
+	fn, err := resolver.ResolveConflict(ctx, apiLabels)
 	assert.NoError(t, err)
 
 	updates := fn()

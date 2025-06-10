@@ -45,6 +45,10 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+type mailboxCountProvider interface {
+	GetUserMailboxCountByInternalID(ctx context.Context, addrID string, internalID imap.InternalMailboxID) (int, error)
+}
+
 // Connector contains all IMAP state required to satisfy sync and or imap queries.
 type Connector struct {
 	addrID      string
@@ -67,6 +71,8 @@ type Connector struct {
 
 	sharedCache *SharedCache
 	syncState   *SyncState
+
+	mailboxCountProvider mailboxCountProvider
 }
 
 var errNoSenderAddressMatch = errors.New("no matching sender found in address list")
@@ -82,6 +88,7 @@ func NewConnector(
 	reporter reporter.Reporter,
 	showAllMail bool,
 	syncState *SyncState,
+	mailboxCountProvider mailboxCountProvider,
 ) *Connector {
 	userID := identityState.UserID()
 
@@ -115,6 +122,8 @@ func NewConnector(
 
 		sharedCache: NewSharedCached(),
 		syncState:   syncState,
+
+		mailboxCountProvider: mailboxCountProvider,
 	}
 }
 
@@ -908,4 +917,13 @@ func (s *Connector) getSenderProtonAddress(p *parser.Parser) (proton.Address, er
 
 func (s *Connector) SetAddrIDTest(addrID string) {
 	s.addrID = addrID
+}
+
+func (s *Connector) GetMailboxMessageCount(ctx context.Context, mailboxInternalID imap.InternalMailboxID) (int, error) {
+	return s.mailboxCountProvider.GetUserMailboxCountByInternalID(ctx, s.addrID, mailboxInternalID)
+}
+
+// SetMailboxCountProviderTest - sets the relevant provider. Should only be used for testing.
+func (s *Connector) SetMailboxCountProviderTest(provider mailboxCountProvider) {
+	s.mailboxCountProvider = provider
 }

@@ -37,13 +37,14 @@ var pollJitter = 2 * time.Minute  //nolint:gochecknoglobals
 const filename = "unleash_flags"
 
 const (
-	EventLoopNotificationDisabled             = "InboxBridgeEventLoopNotificationDisabled"
-	IMAPAuthenticateCommandDisabled           = "InboxBridgeImapAuthenticateCommandDisabled"
-	UserRemovalGluonDataCleanupDisabled       = "InboxBridgeUserRemovalGluonDataCleanupDisabled"
-	UpdateUseNewVersionFileStructureDisabled  = "InboxBridgeUpdateWithOsFilterDisabled"
-	LabelConflictResolverDisabled             = "InboxBridgeLabelConflictResolverDisabled"
-	SMTPSubmissionRequestSentryReportDisabled = "InboxBridgeSmtpSubmissionRequestSentryReportDisabled"
-	InternalLabelConflictResolverDisabled     = "InboxBridgeUnexpectedFoldersLabelsStartupFixupDisabled"
+	EventLoopNotificationDisabled                 = "InboxBridgeEventLoopNotificationDisabled"
+	IMAPAuthenticateCommandDisabled               = "InboxBridgeImapAuthenticateCommandDisabled"
+	UserRemovalGluonDataCleanupDisabled           = "InboxBridgeUserRemovalGluonDataCleanupDisabled"
+	UpdateUseNewVersionFileStructureDisabled      = "InboxBridgeUpdateWithOsFilterDisabled"
+	LabelConflictResolverDisabled                 = "InboxBridgeLabelConflictResolverDisabled"
+	SMTPSubmissionRequestSentryReportDisabled     = "InboxBridgeSmtpSubmissionRequestSentryReportDisabled"
+	InternalLabelConflictResolverDisabled         = "InboxBridgeUnexpectedFoldersLabelsStartupFixupDisabled"
+	ItnternalLabelConflictNonEmptyMailboxDeletion = "InboxBridgeUnknownNonEmptyMailboxDeletion"
 )
 
 type FeatureFlagValueProvider interface {
