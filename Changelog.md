@@ -3,6 +3,12 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Kanmon Bridge 3.21.1
+
+### Changed
+* BRIDGE-383: Extended internal mailbox conflict resolution logic and minor changes to the mailbox conflict pre-checker. 
+
+
 ## Kanmon Bridge 3.21.0
 
 ### Added 
