@@ -364,6 +364,10 @@ func newVault(path, gluonDir string, gcm cipher.AEAD) (*Vault, error, error) {
 	var corrupt error
 
 	if err := unmarshalFile(gcm, enc, new(Data)); err != nil {
+		if errors.Is(err, ErrDecryptFailed) {
+			return nil, nil, err
+		}
+
 		corrupt = err
 	}
 
