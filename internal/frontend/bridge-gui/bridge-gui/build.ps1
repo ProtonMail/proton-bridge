@@ -63,6 +63,7 @@ $buildDir=(Join-Path $scriptDir "cmake-build-$buildConfig".ToLower())
 $vcpkgRoot = (Join-Path $bridgeRepoRootDir "extern/vcpkg" -Resolve)
 $vcpkgExe = (Join-Path $vcpkgRoot "vcpkg.exe")
 $vcpkgBootstrap = (Join-Path $vcpkgRoot "bootstrap-vcpkg.bat")
+$vcpkgToolchain = (Join-Path $vcpkgRoot "scripts/buildsystems/vcpkg.cmake")
 
 function check_exit() {
     if ($? -ne $True)
@@ -91,6 +92,7 @@ git submodule update --init --recursive $vcpkgRoot
 . $vcpkgExe install sentry-native:x64-windows grpc:x64-windows --clean-after-build
 . $vcpkgExe upgrade --no-dry-run
 . $cmakeExe -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE="$buildConfig" `
+                                       -DCMAKE_TOOLCHAIN_FILE="$vcpkgToolchain" `
                                        -DBRIDGE_APP_FULL_NAME="$bridgeFullName" `
                                        -DBRIDGE_VENDOR="$bridgeVendor" `
                                        -DBRIDGE_REVISION="$REVISION_HASH" `
