@@ -95,6 +95,7 @@ fi
 
 cmake  \
     -DCMAKE_BUILD_TYPE="${BUILD_CONFIG}" \
+    -DCMAKE_TOOLCHAIN_FILE="${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" \
     -DBRIDGE_APP_FULL_NAME="${BRIDGE_APP_FULL_NAME}" \
     -DBRIDGE_VENDOR="${BRIDGE_VENDOR}" \
     -DBRIDGE_REVISION="${BRIDGE_REVISION}" \
