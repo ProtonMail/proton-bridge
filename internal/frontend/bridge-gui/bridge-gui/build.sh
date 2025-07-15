@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Proton Mail Bridge. If not, see <https://www.gnu.org/licenses/>.
 
-if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]] ; then
+if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]  || [[ "$OSTYPE" == "cygwin" ]]; then
     Powershell.exe -File build.ps1 "$@"
     exit $?
 fi
@@ -59,7 +59,7 @@ BRIDGE_REVISION=$(git rev-parse --short=10 HEAD)
 BRIDGE_TAG=${BRIDGE_TAG:-"NOTAG"}
 BRIDGE_DSN_SENTRY=${BRIDGE_DSN_SENTRY}
 BRIDGE_BUILD_TIME=${BRIDGE_BUILD_TIME}
-BRIDGE_BUILD_ENV= ${BRIDGE_BUILD_ENV:-"dev"}
+BRIDGE_BUILD_ENV=${BRIDGE_BUILD_ENV:-"dev"}
 git submodule update --init --recursive ${VCPKG_ROOT}
 check_exit "Failed to initialize vcpkg as a submodule."
 
