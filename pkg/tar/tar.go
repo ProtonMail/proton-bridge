@@ -24,6 +24,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -70,6 +71,23 @@ func UntarToDir(r io.Reader, dir string) error {
 		}
 
 		target := filepath.Join(dir, filepath.Clean(header.Name)) // gosec G305
+
+		// Prevent Zip Slip: ensure target is within dir
+		absDir, err := filepath.Abs(dir)
+		if err != nil {
+			return err
+		}
+		absTarget, err := filepath.Abs(target)
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(absDir, absTarget)
+		if err != nil {
+			return err
+		}
+		if strings.HasPrefix(rel, ".."+string(os.PathSeparator)) || rel == ".." {
+			return errors.New("tar entry is outside the target directory: " + header.Name)
+		}
 
 		switch {
 		case header.Typeflag == tar.TypeSymlink:
