@@ -95,7 +95,7 @@ func (bridge *Bridge) CheckClientState(ctx context.Context, checkFlags bool, pro
 			return result, err
 		}
 
-		addr := fmt.Sprintf("127.0.0.1:%v", bridge.GetIMAPPort())
+		addr := fmt.Sprintf("0.0.0.0:%v", bridge.GetIMAPPort())
 
 		for account, mboxMap := range state {
 			if progressCB != nil {

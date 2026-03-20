@@ -29,7 +29,7 @@ import (
 )
 
 var (
-	serverURL    = flag.String("server", "127.0.0.1:1025", "SMTP server address:port")
+	serverURL    = flag.String("server", "0.0.0.0:1025", "SMTP server address:port")
 	userName     = flag.String("user-name", "user", "SMTP user name")
 	userPassword = flag.String("user-pwd", "password", "SMTP user password")
 	toAddr       = flag.String("toAddr", "", "Address toAddr whom toAddr send the message")

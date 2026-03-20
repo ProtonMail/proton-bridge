@@ -34,7 +34,7 @@ import (
 )
 
 const (
-	Host                 = "127.0.0.1"
+	Host                 = "0.0.0.0"
 	serverConfigFileName = "grpcFocusServerConfig.json"
 )
 
