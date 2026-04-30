@@ -55,7 +55,7 @@ For example, the `$PROFILE` variable has the following values in the Windows Pow
 - All Users, Current Host - $PROFILE.AllUsersCurrentHost
 - All Users, All Hosts - $PROFILE.AllUsersAllHosts
 
-The script folder can be added to the profile at `$PROFILE.AllUsersAllHosts`, but where you place it it's up to you. The guide continues by just using `$PROFILE` for "Current User, Current Host".
+The script folder can be added to the profile at `$PROFILE.AllUsersAllHosts`, but where you place it, it's up to you. The guide continues by just using `$PROFILE` for "Current User, Current Host".
 
 #### **Create the Profile file**
 
