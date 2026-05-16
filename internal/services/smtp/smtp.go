@@ -38,6 +38,7 @@ import (
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/observability"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/parentid"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/smtp/observabilitymetrics"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
@@ -202,7 +203,7 @@ func (s *Service) sendWithKey(
 	if message.InReplyTo != "" {
 		references = append(references, message.InReplyTo)
 	}
-	parentID, draftsToDelete, err := getParentID(ctx, s.client, authAddrID, addrMode, references)
+	parentID, draftsToDelete, err := parentid.Find(ctx, s.client, authAddrID, addrMode, references)
 	if err != nil {
 		s.observabilitySender.AddDistinctMetrics(observability.SMTPError, observabilitymetrics.GenerateFailedGetParentID())
 		s.log.WithError(err).Warn("Failed to get parent ID")
@@ -275,101 +276,6 @@ func (s *Service) sendWithKey(
 	return res, nil
 }
 
-func getParentID(
-	ctx context.Context,
-	client *proton.Client,
-	authAddrID string,
-	addrMode usertypes.AddressMode,
-	references []string,
-) (string, []string, error) {
-	var (
-		parentID       string
-		internal       []string
-		external       []string
-		draftsToDelete []string
-	)
-
-	// Collect all the internal and external references of the message.
-	for _, ref := range references {
-		if strings.Contains(ref, message.InternalIDDomain) {
-			internal = append(internal, strings.TrimSuffix(ref, "@"+message.InternalIDDomain))
-		} else {
-			external = append(external, ref)
-		}
-	}
-
-	// Try to find a parent ID in the internal references.
-	for _, internal := range internal {
-		var addrID string
-
-		if addrMode == usertypes.AddressModeSplit {
-			addrID = authAddrID
-		}
-
-		metadata, err := client.GetMessageMetadata(ctx, proton.MessageFilter{
-			ID:        []string{internal},
-			AddressID: addrID,
-		})
-		if err != nil {
-			return "", nil, fmt.Errorf("failed to get message metadata: %w", err)
-		}
-
-		for _, metadata := range metadata {
-			if !metadata.IsDraft() {
-				parentID = metadata.ID
-			} else {
-				// We need to record this ID to delete later after the message has been sent successfully. This is
-				// required for Apple Mail to correctly delete a draft when a draft is created in Apple Mail, then
-				// edited on the web, edited again in Apple Mail and then Send from Apple Mail. If we don't
-				// delete the referenced draft it is never deleted from the drafts folder.
-				draftsToDelete = append(draftsToDelete, metadata.ID)
-			}
-		}
-	}
-
-	// If no parent was found, try to find it in the last external reference.
-	// There can be multiple messages with the same external ID; in this case, we first look if
-	// there is a single one sent by this account (with the `MessageFlagSent` flag set), if yes,
-	// then pick that, otherwise don't pick any parent.
-	if parentID == "" && len(external) > 0 {
-		var addrID string
-
-		if addrMode == usertypes.AddressModeSplit {
-			addrID = authAddrID
-		}
-
-		metadata, err := client.GetMessageMetadata(ctx, proton.MessageFilter{
-			ExternalID: external[len(external)-1],
-			AddressID:  addrID,
-		})
-		if err != nil {
-			return "", nil, fmt.Errorf("failed to get message metadata: %w", err)
-		}
-
-		switch len(metadata) {
-		case 1:
-			// found exactly one parent
-			// We can only reference messages that have been sent or received. If this message is a draft
-			// it needs to be ignored.
-			if metadata[0].Flags.Has(proton.MessageFlagSent) || metadata[0].Flags.Has(proton.MessageFlagReceived) {
-				parentID = metadata[0].ID
-			}
-		case 0:
-			// found no parents
-		default:
-			// found multiple parents, search through metadata to try to find a singular parent that
-			// was sent by this account.
-			for _, metadata := range metadata {
-				if metadata.Flags.Has(proton.MessageFlagSent) {
-					parentID = metadata.ID
-					break
-				}
-			}
-		}
-	}
-
-	return parentID, draftsToDelete, nil
-}
 
 func (s *Service) createDraft(
 	ctx context.Context,
