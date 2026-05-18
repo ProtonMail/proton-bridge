@@ -46,8 +46,25 @@ func (h *Handler) HandlePanic(r interface{}) {
 	}
 
 	for _, action := range h.actions {
-		if err := action(r); err != nil {
-			logrus.WithError(err).Error("Failed to execute recovery action")
+		runAction(action, r)
+	}
+}
+
+// runAction invokes a single recovery action with its own recover guard so
+// that a panic in one action (for example, a nil dereference inside a
+// notification helper) cannot prevent the remaining actions from running.
+func runAction(action RecoveryAction, r interface{}) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			logrus.WithField("panic", rec).Error("Recovery action panicked")
 		}
+	}()
+
+	if action == nil {
+		return
+	}
+
+	if err := action(r); err != nil {
+		logrus.WithError(err).Error("Failed to execute recovery action")
 	}
 }

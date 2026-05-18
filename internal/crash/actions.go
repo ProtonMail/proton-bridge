@@ -19,18 +19,33 @@ package crash
 
 import (
 	"fmt"
+	"os/exec"
+	"runtime"
 
 	"github.com/0xAX/notificator"
+	"github.com/sirupsen/logrus"
 )
 
 // ShowErrorNotification shows a system notification that the app with the given appName has crashed.
 // NOTE: Icons shouldn't be hardcoded.
 func ShowErrorNotification(appName string) RecoveryAction {
 	return func(_ interface{}) error {
+		// Skip silently on platforms where the underlying notifier binary is
+		// not available. Headless Linux installs (Debian 13 minimal, server
+		// installs, CI containers) frequently lack notify-send and the
+		// underlying notificator library does not guard against this, which
+		// previously caused a nil dereference during crash recovery.
+		if !notifierAvailable() {
+			return nil
+		}
+
 		notify := notificator.New(notificator.Options{
 			DefaultIcon: "../frontend/ui/icon/icon.png",
 			AppName:     appName,
 		})
+		if notify == nil {
+			return nil
+		}
 
 		return notify.Push(
 			"Fatal Error",
@@ -38,5 +53,24 @@ func ShowErrorNotification(appName string) RecoveryAction {
 			"/frontend/icon/icon.png",
 			notificator.UR_CRITICAL,
 		)
+	}
+}
+
+// notifierAvailable reports whether the platform notifier binary used by
+// github.com/0xAX/notificator is present on PATH. The library calls these
+// binaries unconditionally and will surface a nil pointer or exec error if
+// they are missing.
+func notifierAvailable() bool {
+	switch runtime.GOOS {
+	case "linux":
+		if _, err := exec.LookPath("notify-send"); err != nil {
+			logrus.WithError(err).Debug("notify-send not found; skipping desktop notification")
+			return false
+		}
+		return true
+	case "darwin", "windows":
+		return true
+	default:
+		return false
 	}
 }
