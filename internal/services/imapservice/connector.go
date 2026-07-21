@@ -769,7 +769,7 @@ func (s *Connector) createDraftWithParser(ctx context.Context, parser *parser.Pa
 		decBody = string(message.RichBody)
 	}
 
-	draft, err := s.client.CreateDraft(ctx, addrKR, proton.CreateDraftReq{
+	req := proton.CreateDraftReq{
 		Message: proton.DraftTemplate{
 			Subject:  message.Subject,
 			Body:     decBody,
@@ -782,7 +782,27 @@ func (s *Connector) createDraftWithParser(ctx context.Context, parser *parser.Pa
 
 			ExternalID: message.ExternalID,
 		},
-	})
+	}
+
+	// Thread the draft into its conversation. Proton strips References from stored
+	// drafts, so the header alone can't thread; instead resolve the parent from
+	// the message's References/In-Reply-To and set ParentID, which Proton links
+	// server-side (the same way the SMTP send path threads). Best-effort: if no
+	// parent is confidently found, the draft is created exactly as before.
+	references := message.References
+	if message.InReplyTo != "" {
+		references = append(references, message.InReplyTo)
+	}
+	if parentID := s.resolveDraftParentID(ctx, references); parentID != "" {
+		req.ParentID = parentID
+		if message.InReplyTo != "" {
+			req.Action = proton.ReplyAction
+		} else {
+			req.Action = proton.ForwardAction
+		}
+	}
+
+	draft, err := s.client.CreateDraft(ctx, addrKR, req)
 
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to create draft: %w", err)
@@ -807,6 +827,49 @@ func (s *Connector) createDraftWithParser(ctx context.Context, parser *parser.Pa
 	}
 
 	return draft, nil
+}
+
+// resolveDraftParentID best-effort resolves the parent message for a reply/forward
+// draft from its References/In-Reply-To so Proton threads it into the conversation.
+// Returns "" (and never errors) when no confident parent is found, leaving the
+// draft creation unchanged.
+func (s *Connector) resolveDraftParentID(ctx context.Context, references []string) string {
+	var internal, external []string
+	for _, ref := range references {
+		if strings.Contains(ref, message.InternalIDDomain) {
+			internal = append(internal, strings.TrimSuffix(ref, "@"+message.InternalIDDomain))
+		} else {
+			external = append(external, ref)
+		}
+	}
+
+	// Prefer internal references (Proton's own message IDs).
+	for _, id := range internal {
+		md, err := s.client.GetMessageMetadataPage(ctx, 0, 1, proton.MessageFilter{ID: []string{id}})
+		if err != nil {
+			continue
+		}
+		for _, m := range md {
+			if !m.IsDraft() {
+				return m.ID
+			}
+		}
+	}
+
+	// Fall back to the most recent external reference; only pick a message that was
+	// actually sent or received (never another draft).
+	if len(external) > 0 {
+		md, err := s.client.GetMessageMetadataPage(ctx, 0, 100, proton.MessageFilter{ExternalID: external[len(external)-1]})
+		if err == nil {
+			for _, m := range md {
+				if m.Flags.Has(proton.MessageFlagSent) || m.Flags.Has(proton.MessageFlagReceived) {
+					return m.ID
+				}
+			}
+		}
+	}
+
+	return ""
 }
 
 func (s *Connector) publishUpdate(_ context.Context, updates ...imap.Update) {
