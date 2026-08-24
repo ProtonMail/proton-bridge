@@ -61,12 +61,17 @@ func NewMetadataStage(
 const MetadataPageSize = 128
 const MetadataMaxMessages = 64
 
+// MetadataIDPageSize is the Proton /mail/v4/messages/ids page size (API max is 1000).
+// The metadata-list endpoint used previously (GetMessageMetadataPage with Sort=ID and
+// no LabelID) silently stops after ~255 IDs on large mailboxes.
+const MetadataIDPageSize = 1000
+
 func (m *MetadataStage) Run(group *async.Group) {
 	group.Once(func(ctx context.Context) {
 		logging.DoAnnotated(
 			ctx,
 			func(ctx context.Context) {
-				m.run(ctx, MetadataPageSize, MetadataMaxMessages, &network.ExpCoolDown{})
+				m.run(ctx, MetadataIDPageSize, MetadataMaxMessages, &network.ExpCoolDown{})
 			},
 			logging.Labels{"sync-stage": "metadata"},
 		)
@@ -162,49 +167,28 @@ func (m *metadataIterator) Next(maxDownloadMem uint64, metadataPageSize int, max
 		}
 
 		if len(m.remaining) == 0 {
-			metadata, err := network.RetryWithClient(m.stage.ctx, m.client, func(ctx context.Context, c APIClient) ([]proton.MessageMetadata, error) {
-				// To get the metadata of the messages in batches we need to initialize the state with a call to
-				// GetMessageMetadata withe filter{Desc:true}.
-				if m.lastMessageID == "" {
-					return c.GetMessageMetadataPage(ctx, 0, metadataPageSize, proton.MessageFilter{
-						Desc: true,
-					})
-				}
-
-				// Afterward we perform the same query but set the EndID to the last message of the previous batch.
-				// Care must be taken here as the EndID will appear again as the first metadata result if it has not
-				// been eliminated.
-				meta, err := c.GetMessageMetadataPage(ctx, 0, metadataPageSize, proton.MessageFilter{
-					EndID: m.lastMessageID,
-					Desc:  true,
-				})
-				if err != nil {
-					return nil, err
-				}
-
-				// To break the loop we need to check that either:
-				// * There are no messages returned
-				if len(meta) == 0 {
-					return meta, err
-				}
-
-				// * There is only one message returned and it matches the EndID query
-				if meta[0].ID == m.lastMessageID {
-					return meta[1:], nil
-				}
-
-				return meta, nil
+			ids, err := network.RetryWithClient(m.stage.ctx, m.client, func(ctx context.Context, c APIClient) ([]string, error) {
+				return c.GetMessageIDs(ctx, m.lastMessageID, metadataPageSize)
 			})
 			if err != nil {
-				m.stage.log.WithError(err).Errorf("Failed to download message metadata with lastMessageID=%v", m.lastMessageID)
+				m.stage.log.WithError(err).Errorf("Failed to list message IDs with afterID=%v", m.lastMessageID)
 				return DownloadRequest{}, false, err
 			}
 
-			m.remaining = append(m.remaining, metadata...)
+			// AfterID is exclusive on the Proton API. If a build treats it as inclusive,
+			// drop the duplicate so we cannot loop on the same page.
+			if len(ids) > 0 && m.lastMessageID != "" && ids[0] == m.lastMessageID {
+				ids = ids[1:]
+			}
 
-			// Update the last message ID
-			if len(m.remaining) != 0 {
-				m.lastMessageID = m.remaining[len(m.remaining)-1].ID
+			if len(ids) != 0 {
+				m.lastMessageID = ids[len(ids)-1]
+				metadata := make([]proton.MessageMetadata, len(ids))
+				for i, id := range ids {
+					// Size is unknown from the IDs endpoint; batching uses maxMessages.
+					metadata[i] = proton.MessageMetadata{ID: id, Size: 1}
+				}
+				m.remaining = append(m.remaining, metadata...)
 			}
 		}
 
