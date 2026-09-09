@@ -36,6 +36,7 @@ import (
 	"github.com/ProtonMail/gluon/rfc822"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
+	"github.com/ProtonMail/proton-bridge/v3/internal/services/parentid"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/sendrecorder"
 	"github.com/ProtonMail/proton-bridge/v3/internal/unleash"
 	"github.com/ProtonMail/proton-bridge/v3/internal/usertypes"
@@ -982,6 +983,26 @@ func (s *Connector) createDraftWithParser(ctx context.Context, parser *parser.Pa
 		decBody = string(message.RichBody)
 	}
 
+	// Resolve ParentID from In-Reply-To / References so the draft threads in
+	// the Proton conversation view. Same algorithm as the SMTP send path
+	// (parentid.Find). On lookup failure the draft is still created without
+	// ParentID rather than failing outright, so an API hiccup does not lose
+	// the user's draft content. We ignore draftsToDelete here: cleaning up
+	// orphan drafts is the send path's responsibility, not the draft create
+	// path's.
+	references := message.References
+	if message.InReplyTo != "" {
+		references = append(references, message.InReplyTo)
+	}
+	var parentID string
+	if len(references) > 0 {
+		var lookupErr error
+		parentID, _, lookupErr = parentid.Find(ctx, s.client, s.addrID, s.addressMode, references)
+		if lookupErr != nil {
+			s.log.WithError(lookupErr).Warn("Failed to resolve ParentID for draft; proceeding without thread linkage")
+		}
+	}
+
 	draft, err := s.client.CreateDraft(ctx, addrKR, proton.CreateDraftReq{
 		Message: proton.DraftTemplate{
 			Subject:  message.Subject,
@@ -995,6 +1016,7 @@ func (s *Connector) createDraftWithParser(ctx context.Context, parser *parser.Pa
 
 			ExternalID: message.ExternalID,
 		},
+		ParentID: parentID,
 	})
 	if err != nil {
 		return proton.Message{}, fmt.Errorf("failed to create draft: %w", err)
