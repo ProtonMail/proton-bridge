@@ -59,6 +59,8 @@ func withBridge(
 	vault *vault.Vault,
 	cookieJar http.CookieJar,
 	keychains *keychain.List,
+	bindAddress string,
+	advertiseAddress string,
 	fn func(*bridge.Bridge, <-chan events.Event) error,
 ) error {
 	logrus.Debug("Creating bridge")
@@ -122,6 +124,8 @@ func withBridge(
 		c.String(flagLogIMAP) == "client" || c.String(flagLogIMAP) == "all",
 		c.String(flagLogIMAP) == "server" || c.String(flagLogIMAP) == "all",
 		c.Bool(flagLogSMTP),
+		bindAddress,
+		advertiseAddress,
 	)
 	if err != nil {
 		return fmt.Errorf("could not create bridge: %w", err)

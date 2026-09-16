@@ -20,7 +20,6 @@ package imapsmtpserver
 import (
 	"crypto/tls"
 
-	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/identifier"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	smtpservice "github.com/ProtonMail/proton-bridge/v3/internal/services/smtp"
@@ -40,13 +39,13 @@ type SMTPSettingsProvider interface {
 	Identifier() identifier.UserAgentUpdater
 }
 
-func newSMTPServer(accounts *smtpservice.Accounts, settings SMTPSettingsProvider) *smtp.Server {
+func newSMTPServer(accounts *smtpservice.Accounts, settings SMTPSettingsProvider, advertiseAddress string) *smtp.Server {
 	logSMTP.WithField("logSMTP", settings.Log()).Info("Creating SMTP server")
 
 	smtpServer := smtp.NewServer(smtpservice.NewBackend(accounts, settings.Identifier()))
 
 	smtpServer.TLSConfig = settings.TLSConfig()
-	smtpServer.Domain = constants.Host
+	smtpServer.Domain = advertiseAddress
 	smtpServer.AllowInsecureAuth = true
 	smtpServer.MaxLineLength = 1 << 16
 	smtpServer.ErrorLog = logging.NewSMTPLogger()

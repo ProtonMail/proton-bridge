@@ -65,6 +65,8 @@ type Service struct {
 
 	observabilitySender observability.Sender
 	featureFlagProvider unleash.FeatureFlagValueProvider
+	bindAddress         string
+	advertiseAddress    string
 }
 
 func NewService(
@@ -78,6 +80,8 @@ func NewService(
 	telemetry Telemetry,
 	observabilitySender observability.Sender,
 	featureFlagProvider unleash.FeatureFlagValueProvider,
+	bindAddress string,
+	advertiseAddress string,
 ) *Service {
 	return &Service{
 		requests:     cpc.NewCPC(),
@@ -95,6 +99,8 @@ func NewService(
 
 		observabilitySender: observabilitySender,
 		featureFlagProvider: featureFlagProvider,
+		bindAddress:         bindAddress,
+		advertiseAddress:    advertiseAddress,
 	}
 }
 
@@ -528,7 +534,7 @@ func (sm *Service) createIMAPServer(ctx context.Context) (*gluon.Server, error) 
 }
 
 func (sm *Service) createSMTPServer() *smtp.Server {
-	return newSMTPServer(sm.smtpAccounts, sm.smtpSettings)
+	return newSMTPServer(sm.smtpAccounts, sm.smtpSettings, sm.advertiseAddress)
 }
 
 func (sm *Service) closeSMTPServer(ctx context.Context) error {
@@ -612,7 +618,7 @@ func (sm *Service) restartSMTP(ctx context.Context) error {
 
 	sm.eventPublisher.PublishEvent(ctx, events.SMTPServerStopped{})
 
-	sm.smtpServer = newSMTPServer(sm.smtpAccounts, sm.smtpSettings)
+	sm.smtpServer = newSMTPServer(sm.smtpAccounts, sm.smtpSettings, sm.advertiseAddress)
 
 	return sm.serveSMTP(ctx)
 }
@@ -620,11 +626,13 @@ func (sm *Service) restartSMTP(ctx context.Context) error {
 func (sm *Service) serveSMTP(ctx context.Context) error {
 	port, err := func() (int, error) {
 		sm.log.WithFields(logrus.Fields{
-			"port": sm.smtpSettings.Port(),
-			"ssl":  sm.smtpSettings.UseSSL(),
+			"bindAddress":      sm.bindAddress,
+			"advertiseAddress": sm.advertiseAddress,
+			"port":             sm.smtpSettings.Port(),
+			"ssl":              sm.smtpSettings.UseSSL(),
 		}).Info("Starting SMTP server")
 
-		smtpListener, err := newListener(sm.smtpSettings.Port(), sm.smtpSettings.UseSSL(), sm.smtpSettings.TLSConfig())
+		smtpListener, err := newListener(sm.bindAddress, sm.smtpSettings.Port(), sm.smtpSettings.UseSSL(), sm.smtpSettings.TLSConfig())
 		if err != nil {
 			return 0, fmt.Errorf("failed to create SMTP listener: %w", err)
 		}
@@ -666,11 +674,13 @@ func (sm *Service) serveIMAP(ctx context.Context) error {
 		}
 
 		sm.log.WithFields(logrus.Fields{
-			"port": sm.imapSettings.Port(),
-			"ssl":  sm.imapSettings.UseSSL(),
+			"bindAddress":      sm.bindAddress,
+			"advertiseAddress": sm.advertiseAddress,
+			"port":             sm.imapSettings.Port(),
+			"ssl":              sm.imapSettings.UseSSL(),
 		}).Info("Starting IMAP server")
 
-		imapListener, err := newListener(sm.imapSettings.Port(), sm.imapSettings.UseSSL(), sm.imapSettings.TLSConfig())
+		imapListener, err := newListener(sm.bindAddress, sm.imapSettings.Port(), sm.imapSettings.UseSSL(), sm.imapSettings.TLSConfig())
 		if err != nil {
 			return 0, fmt.Errorf("failed to create IMAP listener: %w", err)
 		}
