@@ -24,7 +24,9 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 )
 
-func migrateSyncStatusFromVault(encVault *vault.User, syncConfigDir string, userID string) error {
+// migrateSyncStatusFromVaultToSyncStateFile - The sync status used to be in the vault; migrate the data over
+// to the dedicated sync file.
+func migrateSyncStatusFromVaultToSyncStateFile(encVault *vault.User, syncConfigDir string, userID string) error {
 	syncStatus := encVault.SyncStatus()
 
 	migrated, err := imapservice.MigrateVaultSettings(syncConfigDir, userID, syncStatus.HasLabels, syncStatus.HasMessages, syncStatus.FailedMessageIDs)
@@ -38,5 +40,18 @@ func migrateSyncStatusFromVault(encVault *vault.User, syncConfigDir string, user
 		}
 	}
 
+	return nil
+}
+
+// cleanupStaleSyncStateFile a new user may indicate that the vault was wiped; in such a case we should
+// clean up the old sync state file.
+func cleanupStaleSyncStateFile(isNew bool, syncConfigDir string, userID string) error {
+	if !isNew {
+		return nil
+	}
+
+	if err := imapservice.DeleteSyncState(syncConfigDir, userID); err != nil {
+		return fmt.Errorf("failed to clear outdated sync state file: %w", err)
+	}
 	return nil
 }

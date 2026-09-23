@@ -183,7 +183,7 @@ func (s *Service) Start(
 ) error {
 	s.lastHandledEventID = lastEventID
 
-	syncStateProvider, err := NewSyncState(s.syncConfigPath)
+	syncStateProvider, err := NewSyncState(s.syncConfigPath, s.reporter)
 	if err != nil {
 		return fmt.Errorf("failed to load sync state: %w", err)
 	}

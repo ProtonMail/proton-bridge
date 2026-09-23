@@ -21,11 +21,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/stretchr/testify/require"
 )
 
 func TestService_beforeStartSyncing_SetsBookmarkOnce(t *testing.T) {
-	state, err := NewSyncState(GetSyncConfigPath(t.TempDir(), "test-user"))
+	state, err := NewSyncState(GetSyncConfigPath(t.TempDir(), "test-user"), sentry.NullSentryReporter{})
 	require.NoError(t, err)
 
 	service := &Service{syncStateProvider: state}
@@ -44,7 +45,7 @@ func TestService_beforeStartSyncing_SetsBookmarkOnce(t *testing.T) {
 }
 
 func TestService_beforeStartSyncing_SkipsWhenBookmarkExists(t *testing.T) {
-	state, err := NewSyncState(GetSyncConfigPath(t.TempDir(), "test-user"))
+	state, err := NewSyncState(GetSyncConfigPath(t.TempDir(), "test-user"), sentry.NullSentryReporter{})
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -61,7 +62,7 @@ func TestService_beforeStartSyncing_SkipsWhenBookmarkExists(t *testing.T) {
 
 func TestService_clearSyncStatusResetsStartSyncBookmark(t *testing.T) {
 	tmpDir := t.TempDir()
-	state, err := NewSyncState(GetSyncConfigPath(tmpDir, "test-user"))
+	state, err := NewSyncState(GetSyncConfigPath(tmpDir, "test-user"), sentry.NullSentryReporter{})
 	require.NoError(t, err)
 
 	ctx := context.Background()

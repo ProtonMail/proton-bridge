@@ -21,6 +21,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
 	"github.com/ProtonMail/proton-bridge/v3/pkg/utils"
 	"github.com/bradenaw/juniper/xmaps"
@@ -38,7 +39,7 @@ func TestMigrateSyncSettings_AlreadyExists(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, migrated)
 
-	state, err := NewSyncState(testFile)
+	state, err := NewSyncState(testFile, sentry.NullSentryReporter{})
 	require.NoError(t, err)
 	status, err := state.GetSyncStatus(context.Background())
 	require.NoError(t, err)
@@ -53,7 +54,7 @@ func TestMigrateSyncSettings_DoesNotExist(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, migrated)
 
-	state, err := NewSyncState(GetSyncConfigPath(tmpDir, "test"))
+	state, err := NewSyncState(GetSyncConfigPath(tmpDir, "test"), sentry.NullSentryReporter{})
 	require.NoError(t, err)
 	status, err := state.GetSyncStatus(context.Background())
 	require.NoError(t, err)
@@ -83,7 +84,7 @@ func TestSyncState_StartSyncEventID(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := GetSyncConfigPath(tmpDir, "test")
 
-	state, err := NewSyncState(testFile)
+	state, err := NewSyncState(testFile, sentry.NullSentryReporter{})
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -99,7 +100,7 @@ func TestSyncState_StartSyncEventID(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, eventID, status.StartSyncEventID)
 
-	reloaded, err := NewSyncState(testFile)
+	reloaded, err := NewSyncState(testFile, sentry.NullSentryReporter{})
 	require.NoError(t, err)
 
 	status, err = reloaded.GetSyncStatus(ctx)
@@ -111,7 +112,7 @@ func TestSyncState_ClearSyncStatusClearsStartSyncEventID(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := GetSyncConfigPath(tmpDir, "test")
 
-	state, err := NewSyncState(testFile)
+	state, err := NewSyncState(testFile, sentry.NullSentryReporter{})
 	require.NoError(t, err)
 
 	ctx := context.Background()

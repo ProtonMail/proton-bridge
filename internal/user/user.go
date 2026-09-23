@@ -169,8 +169,12 @@ func newImpl(
 ) (*User, error) {
 	logrus.WithField("userID", apiUser.ID).Info("Creating new user")
 
+	if err := cleanupStaleSyncStateFile(isNew, syncConfigDir, apiUser.ID); err != nil {
+		return nil, err
+	}
+
 	// Migrate Sync Status from Vault.
-	if err := migrateSyncStatusFromVault(encVault, syncConfigDir, apiUser.ID); err != nil {
+	if err := migrateSyncStatusFromVaultToSyncStateFile(encVault, syncConfigDir, apiUser.ID); err != nil {
 		return nil, err
 	}
 
@@ -318,7 +322,7 @@ func newImpl(
 	// If it's not a fresh user check the eventID and evaluate whether it is valid. If it's a new user, we don't
 	// need to perform this check.
 	if !isNew {
-		if err := checkIrrecoverableEventID(ctx, encVault.EventID(), apiUser.ID, syncConfigDir, user); err != nil {
+		if err := checkIrrecoverableEventID(ctx, encVault.EventID(), apiUser.ID, syncConfigDir, user, reporter); err != nil {
 			return nil, err
 		}
 	}

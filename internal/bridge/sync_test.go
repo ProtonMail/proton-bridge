@@ -37,6 +37,7 @@ import (
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
+	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
 	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
@@ -645,7 +646,7 @@ func TestBridge_CorruptedVaultClearsPreviousIMAPSyncState(t *testing.T) {
 		syncStatePath := imapservice.GetSyncConfigPath(syncConfigPath, userID)
 		// Check sync state is complete
 		{
-			state, err := imapservice.NewSyncState(syncStatePath)
+			state, err := imapservice.NewSyncState(syncStatePath, sentry.NullSentryReporter{})
 			require.NoError(t, err)
 			syncStatus, err := state.GetSyncStatus(context.Background())
 			require.NoError(t, err)
@@ -663,7 +664,7 @@ func TestBridge_CorruptedVaultClearsPreviousIMAPSyncState(t *testing.T) {
 
 		// Check sync state is reset.
 		{
-			state, err := imapservice.NewSyncState(syncStatePath)
+			state, err := imapservice.NewSyncState(syncStatePath, sentry.NullSentryReporter{})
 			require.NoError(t, err)
 			syncStatus, err := state.GetSyncStatus(context.Background())
 			require.NoError(t, err)
@@ -770,7 +771,7 @@ func loadIMAPSyncStatusFromDisk(t *testing.T, locator bridge.Locator, userID str
 	syncConfigPath, err := locator.ProvideIMAPSyncConfigPath()
 	require.NoError(t, err)
 
-	state, err := imapservice.NewSyncState(imapservice.GetSyncConfigPath(syncConfigPath, userID))
+	state, err := imapservice.NewSyncState(imapservice.GetSyncConfigPath(syncConfigPath, userID), sentry.NullSentryReporter{})
 	require.NoError(t, err)
 
 	status, err := state.GetSyncStatus(context.Background())

@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
 )
@@ -31,6 +32,7 @@ func checkIrrecoverableEventID(
 	userID,
 	syncConfigDir string,
 	publisher events.EventPublisher,
+	reporter reporter.Reporter,
 ) error {
 	// If we detect that the event ID stored in the vault got reset, the user is not a new account and
 	// we have started or finished syncing: this is an irrecoverable state and we should produce a bad event.
@@ -40,7 +42,7 @@ func checkIrrecoverableEventID(
 
 	syncConfigPath := imapservice.GetSyncConfigPath(syncConfigDir, userID)
 
-	syncState, err := imapservice.NewSyncState(syncConfigPath)
+	syncState, err := imapservice.NewSyncState(syncConfigPath, reporter)
 	if err != nil {
 		return fmt.Errorf("failed to read imap sync state: %w", err)
 	}

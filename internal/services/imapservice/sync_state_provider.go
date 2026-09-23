@@ -25,14 +25,18 @@ import (
 	"os"
 	"sync"
 
+	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/syncservice"
+	"github.com/ProtonMail/proton-bridge/v3/pkg/atomicfile"
 	"github.com/bradenaw/juniper/xmaps"
+	"github.com/sirupsen/logrus"
 )
 
 type SyncState struct {
-	filePath string
-	status   syncservice.Status
-	lock     sync.Mutex
+	filePath       string
+	status         syncservice.Status
+	lock           sync.Mutex
+	sentryReporter reporter.Reporter
 }
 
 var ErrInvalidSyncFileVersion = errors.New("invalid sync file version")
@@ -48,8 +52,8 @@ type syncFileVersion1 struct {
 	Status syncservice.Status
 }
 
-func NewSyncState(filePath string) (*SyncState, error) {
-	s := &SyncState{filePath: filePath, status: syncservice.DefaultStatus()}
+func NewSyncState(filePath string, reporter reporter.Reporter) (*SyncState, error) {
+	s := &SyncState{filePath: filePath, status: syncservice.DefaultStatus(), sentryReporter: reporter}
 
 	if err := s.loadUnsafe(); err != nil {
 		return nil, err
@@ -121,6 +125,10 @@ func (s *SyncState) SetHasLabels(_ context.Context, b bool) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
+	if s.status.HasLabels == b {
+		return nil
+	}
+
 	s.status.HasLabels = b
 
 	return s.storeUnsafe()
@@ -129,6 +137,10 @@ func (s *SyncState) SetHasLabels(_ context.Context, b bool) error {
 func (s *SyncState) SetHasMessages(_ context.Context, b bool) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+
+	if s.status.HasMessages == b {
+		return nil
+	}
 
 	s.status.HasMessages = b
 
@@ -149,6 +161,10 @@ func (s *SyncState) SetMessageCount(_ context.Context, i int64) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
+	if s.status.TotalMessageCount == i && s.status.HasMessageCount {
+		return nil
+	}
+
 	s.status.TotalMessageCount = i
 	s.status.HasMessageCount = true
 
@@ -159,13 +175,28 @@ func (s *SyncState) SetStartSyncEventID(_ context.Context, id string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
+	if s.status.StartSyncEventID == id {
+		return nil
+	}
+
 	s.status.StartSyncEventID = id
 
 	return s.storeUnsafe()
 }
 
 func (s *SyncState) storeUnsafe() error {
-	return storeImpl(&s.status, s.filePath)
+	if err := storeImpl(&s.status, s.filePath); err != nil {
+		_ = s.sentryReporter.ReportMessageWithContext(
+			"Failed to store sync file state",
+			reporter.Context{
+				"err": err,
+			},
+		)
+
+		return err
+	}
+
+	return nil
 }
 
 func storeImpl(status *syncservice.Status, path string) error {
@@ -181,17 +212,11 @@ func storeImpl(status *syncservice.Status, path string) error {
 
 	syncFileData, err := json.Marshal(syncFile)
 	if err != nil {
-		return fmt.Errorf("failde to marshal sync state file: %w", err)
+		return fmt.Errorf("failed to marshal sync state file: %w", err)
 	}
 
-	tmpFile := path + ".tmp"
-
-	if err := os.WriteFile(tmpFile, syncFileData, 0o600); err != nil {
-		return fmt.Errorf("failed to write sync state to tmp file: %w", err)
-	}
-
-	if err := os.Rename(tmpFile, path); err != nil {
-		return fmt.Errorf("failed to update sync state: %w", err)
+	if err := atomicfile.WriteFile(path, syncFileData); err != nil {
+		return fmt.Errorf("failed to update sync file state: %w", err)
 	}
 
 	return nil
@@ -204,13 +229,27 @@ func (s *SyncState) loadUnsafe() error {
 			return nil
 		}
 
+		_ = s.sentryReporter.ReportMessageWithContext(
+			"Failed to read sync file",
+			reporter.Context{
+				"err": err,
+			},
+		)
+
 		return err
 	}
 
 	var syncFile syncStateFile
 
 	if err := json.Unmarshal(data, &syncFile); err != nil {
-		return fmt.Errorf("failed to unmarshal sync file: %w", err)
+		_ = s.sentryReporter.ReportMessageWithContext(
+			"Failed to unmarshal sync file",
+			reporter.Context{
+				"err": err,
+			},
+		)
+		logrus.WithError(err).Error("failed to unmarshal sync file")
+		return s.resetUnsafe()
 	}
 
 	if syncFile.Version != SyncFileVersion {
@@ -220,12 +259,20 @@ func (s *SyncState) loadUnsafe() error {
 	var v1 syncFileVersion1
 
 	if err := json.Unmarshal([]byte(syncFile.Data), &v1); err != nil {
-		return fmt.Errorf("failed to unmarshal sync data: %w", err)
+		logrus.WithError(err).Error("failed to unmarshal sync data")
+		return s.resetUnsafe()
 	}
 
 	s.status = v1.Status
 
 	return nil
+}
+
+// resetUnsafe resets the sync state and the syncState file to the default state.
+func (s *SyncState) resetUnsafe() error {
+	s.status = syncservice.DefaultStatus()
+
+	return s.storeUnsafe()
 }
 
 func DeleteSyncState(configDir, userID string) error {

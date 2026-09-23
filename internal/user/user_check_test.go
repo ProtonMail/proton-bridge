@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/events/mocks"
+	"github.com/ProtonMail/proton-bridge/v3/internal/sentry"
 	"github.com/ProtonMail/proton-bridge/v3/internal/services/imapservice"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -33,7 +34,7 @@ func TestCheckIrrecoverableEventID_EventIDIsEmptyButNoSyncStarted(t *testing.T) 
 	mockCtrl := gomock.NewController(t)
 	publisher := mocks.NewMockEventPublisher(mockCtrl)
 
-	require.NoError(t, checkIrrecoverableEventID(context.Background(), "", userID, tmpDir, publisher))
+	require.NoError(t, checkIrrecoverableEventID(context.Background(), "", userID, tmpDir, publisher, sentry.NullSentryReporter{}))
 }
 
 func TestCheckIrrecoverableEventID_EventIDIsNotEmptyButNoSyncStarted(t *testing.T) {
@@ -42,7 +43,7 @@ func TestCheckIrrecoverableEventID_EventIDIsNotEmptyButNoSyncStarted(t *testing.
 	mockCtrl := gomock.NewController(t)
 	publisher := mocks.NewMockEventPublisher(mockCtrl)
 
-	require.NoError(t, checkIrrecoverableEventID(context.Background(), "ffoofo", userID, tmpDir, publisher))
+	require.NoError(t, checkIrrecoverableEventID(context.Background(), "ffoofo", userID, tmpDir, publisher, sentry.NullSentryReporter{}))
 }
 
 func TestCheckIrrecoverableEventID_EventIDIsEmptyButSyncStarted(t *testing.T) {
@@ -54,7 +55,7 @@ func TestCheckIrrecoverableEventID_EventIDIsEmptyButSyncStarted(t *testing.T) {
 	publisher.EXPECT().PublishEvent(gomock.Any(), gomock.Eq(newEmptyEventIDBadEvent(userID)))
 
 	require.NoError(t, genSyncState(context.Background(), userID, tmpDir, false))
-	require.NoError(t, checkIrrecoverableEventID(context.Background(), "", userID, tmpDir, publisher))
+	require.NoError(t, checkIrrecoverableEventID(context.Background(), "", userID, tmpDir, publisher, sentry.NullSentryReporter{}))
 }
 
 func TestCheckIrrecoverableEventID_EventIDIsEmptyButSyncFinished(t *testing.T) {
@@ -66,7 +67,7 @@ func TestCheckIrrecoverableEventID_EventIDIsEmptyButSyncFinished(t *testing.T) {
 	publisher.EXPECT().PublishEvent(gomock.Any(), gomock.Eq(newEmptyEventIDBadEvent(userID)))
 
 	require.NoError(t, genSyncState(context.Background(), userID, tmpDir, true))
-	require.NoError(t, checkIrrecoverableEventID(context.Background(), "", userID, tmpDir, publisher))
+	require.NoError(t, checkIrrecoverableEventID(context.Background(), "", userID, tmpDir, publisher, sentry.NullSentryReporter{}))
 }
 
 func TestCheckIrrecoverableEventID_EventIDIsNotEmptyButSyncFinished(t *testing.T) {
@@ -76,11 +77,11 @@ func TestCheckIrrecoverableEventID_EventIDIsNotEmptyButSyncFinished(t *testing.T
 	publisher := mocks.NewMockEventPublisher(mockCtrl)
 
 	require.NoError(t, genSyncState(context.Background(), userID, tmpDir, true))
-	require.NoError(t, checkIrrecoverableEventID(context.Background(), "some event", userID, tmpDir, publisher))
+	require.NoError(t, checkIrrecoverableEventID(context.Background(), "some event", userID, tmpDir, publisher, sentry.NullSentryReporter{}))
 }
 
 func genSyncState(ctx context.Context, userID, dir string, finished bool) error {
-	s, err := imapservice.NewSyncState(imapservice.GetSyncConfigPath(dir, userID))
+	s, err := imapservice.NewSyncState(imapservice.GetSyncConfigPath(dir, userID), sentry.NullSentryReporter{})
 	if err != nil {
 		return err
 	}

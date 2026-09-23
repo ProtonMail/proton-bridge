@@ -197,11 +197,6 @@ func (user *User) RemFailedMessageID(messageID string) error {
 	})
 }
 
-// GetSyncStatusDeprecated returns the user's sync status.
-func (user *User) GetSyncStatusDeprecated() SyncStatus {
-	return user.vault.getUser(user.userID).SyncStatus
-}
-
 // ClearSyncStatusDeprecated clears the user's sync status.
 func (user *User) ClearSyncStatusDeprecated() error {
 	return user.vault.modUser(user.userID, func(data *UserData) {
