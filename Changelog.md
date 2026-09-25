@@ -3,6 +3,11 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Queshuachaca Bridge 3.27.1
+
+### Fixed
+* BRIDGE-644: Recover from corrupted sync state file; force file sync during write.
+
 ## Queshuachaca Bridge 3.27.0
 
 ### Added

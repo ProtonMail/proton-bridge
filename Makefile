@@ -12,7 +12,7 @@ ROOT_DIR:=$(realpath .)
 .PHONY: build build-gui build-nogui build-launcher hasher install-libfido2
 
 # Keep version hardcoded so app build works also without Git repository.
-BRIDGE_APP_VERSION?=3.27.0+git
+BRIDGE_APP_VERSION?=3.27.1+git
 APP_VERSION:=${BRIDGE_APP_VERSION}
 APP_FULL_NAME:=Proton Mail Bridge
 APP_VENDOR:=Proton AG
