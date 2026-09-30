@@ -18,40 +18,19 @@
 package imapsmtpserver
 
 import (
-	"crypto/tls"
 	"net"
-	"strconv"
+	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
-func newListener(bindAddress string, port int, useTLS bool, tlsConfig *tls.Config) (net.Listener, error) {
-	address := net.JoinHostPort(bindAddress, strconv.Itoa(port))
+func TestNewListenerBindsToRequestedAddress(t *testing.T) {
+	listener, err := newListener("127.0.0.1", 0, false, nil)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, listener.Close()) })
 
-	if useTLS {
-		tlsListener, err := tls.Listen("tcp", address, tlsConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		return tlsListener, nil
-	}
-
-	netListener, err := net.Listen("tcp", address)
-	if err != nil {
-		return nil, err
-	}
-
-	return netListener, nil
-}
-
-func getPort(addr net.Addr) int {
-	switch addr := addr.(type) {
-	case *net.TCPAddr:
-		return addr.Port
-
-	case *net.UDPAddr:
-		return addr.Port
-
-	default:
-		return 0
-	}
+	addr, ok := listener.Addr().(*net.TCPAddr)
+	require.True(t, ok)
+	require.True(t, addr.IP.Equal(net.ParseIP("127.0.0.1")))
+	require.NotZero(t, addr.Port)
 }

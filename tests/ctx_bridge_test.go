@@ -191,6 +191,8 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 		logIMAP,
 		logIMAP,
 		logSMTP,
+		constants.Host,
+		constants.Host,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("could not create bridge: %w", err)

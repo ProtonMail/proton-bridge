@@ -27,7 +27,6 @@ import (
 	"github.com/ProtonMail/gluon/async"
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
-	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/frontend/theme"
 	"github.com/ProtonMail/proton-bridge/v3/internal/hv"
@@ -826,7 +825,7 @@ func (s *Service) Hostname(_ context.Context, _ *emptypb.Empty) (*wrapperspb.Str
 
 	s.log.Debug("Hostname")
 
-	return wrapperspb.String(constants.Host), nil
+	return wrapperspb.String(s.bridge.GetAdvertiseAddress()), nil
 }
 
 func (s *Service) IsPortFree(_ context.Context, port *wrapperspb.Int32Value) (*wrapperspb.BoolValue, error) {
