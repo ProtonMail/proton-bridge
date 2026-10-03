@@ -79,6 +79,8 @@ const (
 	flagLogIMAP = "log-imap"
 	flagLogSMTP = "log-smtp"
 
+	flagEnableGmailLabels = "enable-gmail-labels"
+
 	flagEnableKeychainTest  = "enable-keychain-test"
 	flagDisableKeychainTest = "disable-keychain-test"
 
@@ -168,6 +170,10 @@ func New() *cli.App {
 		&cli.BoolFlag{
 			Name:  flagLogSMTP,
 			Usage: "Enable logging of SMTP communications (may contain decrypted data!)",
+		},
+		&cli.BoolFlag{
+			Name:  flagEnableGmailLabels,
+			Usage: "Enable the experimental Gmail X-GM-EXT-1 IMAP extension (X-GM-LABELS); off by default so standard IMAP clients are unaffected",
 		},
 		&cli.BoolFlag{
 			Name:               flagSoftwareRenderer, // This flag is ignored by bridge, but should be passed to launcher in case of restart, so it need to be accepted by the CLI parser.

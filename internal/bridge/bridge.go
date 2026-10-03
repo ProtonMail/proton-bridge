@@ -126,6 +126,9 @@ type Bridge struct {
 	logIMAPServer bool
 	logSMTP       bool
 
+	// enableGmailLabels enables the experimental Gmail X-GM-EXT-1 IMAP extension.
+	enableGmailLabels bool
+
 	// These two variables keep track of the startup values for the two settings of the same name.
 	// They are updated in the vault on startup so that we're sure they're updated in case of kill/crash,
 	// but we need to keep their initial value for the current instance of bridge.
@@ -182,6 +185,7 @@ func New(
 
 	logIMAPClient, logIMAPServer bool, // whether to log IMAP client/server activity
 	logSMTP bool, // whether to log SMTP activity
+	enableGmailLabels bool, // whether to enable the Gmail X-GM-EXT-1 IMAP extension
 ) (*Bridge, <-chan events.Event, error) {
 	// api is the user's API manager.
 	api := proton.New(newAPIOptions(apiURL, curVersion, cookieJar, roundTripper, panicHandler)...)
@@ -214,6 +218,7 @@ func New(
 		uidValidityGenerator,
 		heartBeatManager,
 		logIMAPClient, logIMAPServer, logSMTP,
+		enableGmailLabels,
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create bridge: %w", err)
@@ -252,6 +257,7 @@ func newBridge(
 	heartbeatManager telemetry.HeartbeatManager,
 
 	logIMAPClient, logIMAPServer, logSMTP bool,
+	enableGmailLabels bool,
 ) (*Bridge, error) {
 	tlsConfig, err := loadTLSConfig(vault)
 	if err != nil {
@@ -313,6 +319,8 @@ func newBridge(
 		logIMAPClient: logIMAPClient,
 		logIMAPServer: logIMAPServer,
 		logSMTP:       logSMTP,
+
+		enableGmailLabels: enableGmailLabels,
 
 		firstStart:  firstStart,
 		lastVersion: lastVersion,

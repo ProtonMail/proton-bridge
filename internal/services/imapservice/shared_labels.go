@@ -41,6 +41,7 @@ type labelsRead interface {
 	Close()
 	GetLabel(id string) (proton.Label, bool)
 	GetLabels() []proton.Label
+	GetLabelByName(name string) (proton.Label, bool)
 }
 
 type labelsWrite interface {
@@ -90,6 +91,16 @@ func (r *rwLabels) getLabelsUnsafe() []proton.Label {
 	return utils.Values(r.labels)
 }
 
+func (r *rwLabels) getLabelByNameUnsafe(name string) (proton.Label, bool) {
+	for _, label := range r.labels {
+		if label.Type == proton.LabelTypeLabel && label.Name == name {
+			return label, true
+		}
+	}
+
+	return proton.Label{}, false
+}
+
 func (r *rwLabels) SetLabels(labels []proton.Label) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -135,6 +146,10 @@ func (r rwLabelsRead) GetLabels() []proton.Label {
 	return r.rw.getLabelsUnsafe()
 }
 
+func (r rwLabelsRead) GetLabelByName(name string) (proton.Label, bool) {
+	return r.rw.getLabelByNameUnsafe(name)
+}
+
 type rwLabelsWrite struct {
 	rw *rwLabels
 }
@@ -149,6 +164,10 @@ func (r rwLabelsWrite) GetLabel(id string) (proton.Label, bool) {
 
 func (r rwLabelsWrite) GetLabels() []proton.Label {
 	return r.rw.getLabelsUnsafe()
+}
+
+func (r rwLabelsWrite) GetLabelByName(name string) (proton.Label, bool) {
+	return r.rw.getLabelByNameUnsafe(name)
 }
 
 func (r rwLabelsWrite) SetLabel(id string, label proton.Label, actionSource string) {
