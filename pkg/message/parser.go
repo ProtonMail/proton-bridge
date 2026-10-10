@@ -674,7 +674,7 @@ func patchInlineImages(p *parser.Parser) error {
 
 		contentType, contentTypeMap, err := curPart.ContentType()
 		if err != nil {
-			return fmt.Errorf("failed to get content type for for child %v:%w", i, err)
+			return fmt.Errorf("failed to get content type for child %v:%w", i, err)
 		}
 
 		if rfc822.MIMEType(contentType) == rfc822.TextPlain {
