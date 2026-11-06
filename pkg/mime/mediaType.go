@@ -288,11 +288,13 @@ func isTSpecial(r rune) bool {
 	return strings.ContainsRune(`()<>@,;:\"/[]?=`, r)
 }
 
-func percentHexEscape(raw []byte) (out string) {
+func percentHexEscape(raw []byte) string {
+	var b strings.Builder
+	b.Grow(len(raw) * 3)
 	for _, v := range raw {
-		out += fmt.Sprintf("%%%x", v)
+		b.WriteString(fmt.Sprintf("%%%x", v))
 	}
-	return
+	return b.String()
 }
 
 // percentHexUnescape copy paste from mime/mediatype.go:325.
