@@ -3,6 +3,12 @@
 Changelog [format](http://keepachangelog.com/en/1.0.0/)
 
 
+## Queshuachaca Bridge 3.27.2
+
+### Added
+* BRIDGE-699: Added support for the oo7 keyring service.
+
+
 ## Queshuachaca Bridge 3.27.1
 
 ### Fixed
