@@ -191,6 +191,9 @@ func (t *testCtx) initBridge() (<-chan events.Event, error) {
 		logIMAP,
 		logIMAP,
 		logSMTP,
+
+		// Gmail X-GM-EXT-1 extension disabled in tests.
+		false,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("could not create bridge: %w", err)

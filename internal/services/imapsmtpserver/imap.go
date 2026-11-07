@@ -74,6 +74,7 @@ type IMAPSettingsProvider interface {
 	SetPort(int) error
 	UseSSL() bool
 	DisableIMAPAuthenticate() bool
+	EnableGmailLabels() bool
 	CacheDirectory() string
 	DataDirectory() (string, error)
 	SetCacheDirectory(string) error
@@ -100,6 +101,7 @@ func newIMAPServer(
 	reporter reporter.Reporter,
 	logClient, logServer bool,
 	disableIMAPAuthenticate bool,
+	enableGmailLabels bool,
 	eventPublisher IMAPEventPublisher,
 	tasks *async.Group,
 	uidValidityGenerator imap.UIDValidityGenerator,
@@ -158,6 +160,10 @@ func newIMAPServer(
 
 	if disableIMAPAuthenticate {
 		options = append(options, gluon.WithDisableIMAPAuthenticate())
+	}
+
+	if enableGmailLabels {
+		options = append(options, gluon.WithGmailExtension())
 	}
 
 	imapServer, err := gluon.New(options...)

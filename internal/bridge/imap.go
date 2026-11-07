@@ -94,6 +94,10 @@ func (b *bridgeIMAPSettings) LogServer() bool {
 	return b.b.logIMAPServer
 }
 
+func (b *bridgeIMAPSettings) EnableGmailLabels() bool {
+	return b.b.enableGmailLabels
+}
+
 func (b *bridgeIMAPSettings) DisableIMAPAuthenticate() bool {
 	return b.b.unleashService.GetFlagValue(unleash.IMAPAuthenticateCommandDisabled)
 }

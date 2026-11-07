@@ -513,6 +513,7 @@ func (sm *Service) createIMAPServer(ctx context.Context) (*gluon.Server, error) 
 		sm.imapSettings.LogClient(),
 		sm.imapSettings.LogServer(),
 		sm.imapSettings.DisableIMAPAuthenticate(),
+		sm.imapSettings.EnableGmailLabels(),
 		sm.imapSettings.EventPublisher(),
 		sm.tasks,
 		sm.uidValidityGenerator,

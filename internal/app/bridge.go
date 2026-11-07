@@ -122,6 +122,7 @@ func withBridge(
 		c.String(flagLogIMAP) == "client" || c.String(flagLogIMAP) == "all",
 		c.String(flagLogIMAP) == "server" || c.String(flagLogIMAP) == "all",
 		c.Bool(flagLogSMTP),
+		c.Bool(flagEnableGmailLabels),
 	)
 	if err != nil {
 		return fmt.Errorf("could not create bridge: %w", err)
