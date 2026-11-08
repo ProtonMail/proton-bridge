@@ -20,6 +20,8 @@ package vault_test
 import (
 	"testing"
 
+	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
+	"github.com/ProtonMail/proton-bridge/v3/internal/vault"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,4 +33,19 @@ func TestVault_TLSCerts(t *testing.T) {
 	cert, key := s.GetBridgeTLSCert()
 	require.NotEmpty(t, cert)
 	require.NotEmpty(t, key)
+}
+
+func TestVault_SetBridgeTLSCertForAddress(t *testing.T) {
+	s := newVault(t)
+
+	require.NoError(t, s.SetBridgeTLSCertForAddress("192.168.1.10"))
+
+	cert, key := s.GetBridgeTLSCert()
+	require.NotEmpty(t, key)
+	require.True(t, certs.CertMatchesAddress(cert, "192.168.1.10"))
+	require.False(t, certs.CertMatchesAddress(cert, "127.0.0.1"))
+}
+
+func TestBridgeTLSCertAddressesWithIPAddress(t *testing.T) {
+	require.Equal(t, []string{"192.168.1.10"}, vault.BridgeTLSCertAddresses("192.168.1.10"))
 }

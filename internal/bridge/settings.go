@@ -49,6 +49,10 @@ func (bridge *Bridge) SetKeychainApp(helper string) error {
 	return vault.SetHelper(vaultDir, helper)
 }
 
+func (bridge *Bridge) GetAdvertiseAddress() string {
+	return bridge.advertiseAddress
+}
+
 func (bridge *Bridge) GetIMAPPort() int {
 	return bridge.vault.GetIMAPPort()
 }

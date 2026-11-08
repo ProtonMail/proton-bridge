@@ -19,15 +19,15 @@ package imapsmtpserver
 
 import (
 	"crypto/tls"
-	"fmt"
 	"net"
-
-	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
+	"strconv"
 )
 
-func newListener(port int, useTLS bool, tlsConfig *tls.Config) (net.Listener, error) {
+func newListener(bindAddress string, port int, useTLS bool, tlsConfig *tls.Config) (net.Listener, error) {
+	address := net.JoinHostPort(bindAddress, strconv.Itoa(port))
+
 	if useTLS {
-		tlsListener, err := tls.Listen("tcp", fmt.Sprintf("%v:%v", constants.Host, port), tlsConfig)
+		tlsListener, err := tls.Listen("tcp", address, tlsConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -35,7 +35,7 @@ func newListener(port int, useTLS bool, tlsConfig *tls.Config) (net.Listener, er
 		return tlsListener, nil
 	}
 
-	netListener, err := net.Listen("tcp", fmt.Sprintf("%v:%v", constants.Host, port))
+	netListener, err := net.Listen("tcp", address)
 	if err != nil {
 		return nil, err
 	}

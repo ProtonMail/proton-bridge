@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"net/netip"
 	"time"
 
 	"github.com/pkg/errors"
@@ -37,28 +38,41 @@ import (
 var ErrTLSCertExpiresSoon = fmt.Errorf("TLS certificate will expire soon")
 
 // NewTLSTemplate creates a new TLS template certificate with a random serial number.
-func NewTLSTemplate() (*x509.Certificate, error) {
+func NewTLSTemplate(addresses ...string) (*x509.Certificate, error) {
 	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate serial number")
 	}
 
-	return &x509.Certificate{
+	if len(addresses) == 0 {
+		addresses = []string{"127.0.0.1"}
+	}
+
+	template := &x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Country:            []string{"CH"},
 			Organization:       []string{"Proton AG"},
 			OrganizationalUnit: []string{"Proton Mail"},
-			CommonName:         "127.0.0.1",
+			CommonName:         addresses[0],
 		},
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,
 		IsCA:                  true,
-		IPAddresses:           []net.IP{net.ParseIP("127.0.0.1")},
 		NotBefore:             time.Now(),
 		NotAfter:              time.Now().Add(20 * 365 * 24 * time.Hour),
-	}, nil
+	}
+
+	for _, address := range addresses {
+		if ip, err := netip.ParseAddr(address); err == nil {
+			template.IPAddresses = append(template.IPAddresses, net.IP(ip.AsSlice()))
+		} else {
+			template.DNSNames = append(template.DNSNames, address)
+		}
+	}
+
+	return template, nil
 }
 
 // GenerateCert generates a new TLS certificate and returns it as PEM.
@@ -115,4 +129,23 @@ func GetConfig(certPEM, keyPEM []byte) (*tls.Config, error) {
 		RootCAs:      caCertPool,
 		ClientCAs:    caCertPool,
 	}, nil
+}
+
+// CertMatchesAddress reports whether the certificate is valid for address.
+func CertMatchesAddress(certPEM []byte, address string) bool {
+	cert, err := parseCertificate(certPEM)
+	if err != nil {
+		return false
+	}
+
+	return cert.VerifyHostname(address) == nil
+}
+
+func parseCertificate(certPEM []byte) (*x509.Certificate, error) {
+	block, _ := pem.Decode(certPEM)
+	if block == nil {
+		return nil, errors.New("failed to decode certificate PEM")
+	}
+
+	return x509.ParseCertificate(block.Bytes)
 }

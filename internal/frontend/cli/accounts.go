@@ -26,7 +26,6 @@ import (
 	"github.com/ProtonMail/go-proton-api"
 	"github.com/ProtonMail/proton-bridge/v3/internal/bridge"
 	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
-	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/fido"
 	"github.com/ProtonMail/proton-bridge/v3/internal/hv"
 	"github.com/ProtonMail/proton-bridge/v3/internal/unleash"
@@ -105,7 +104,7 @@ func (f *frontendCLI) showAccountAddressInfo(user bridge.UserInfo, address strin
 
 	f.Println(bold("Configuration for " + address))
 	f.Printf("IMAP Settings\nAddress:   %s\nIMAP port: %d\nUsername:  %s\nPassword:  %s\nSecurity:  %s\n",
-		constants.Host,
+		f.bridge.GetAdvertiseAddress(),
 		f.bridge.GetIMAPPort(),
 		address,
 		user.BridgePass,
@@ -113,7 +112,7 @@ func (f *frontendCLI) showAccountAddressInfo(user bridge.UserInfo, address strin
 	)
 	f.Println("")
 	f.Printf("SMTP Settings\nAddress:   %s\nSMTP port: %d\nUsername:  %s\nPassword:  %s\nSecurity:  %s\n",
-		constants.Host,
+		f.bridge.GetAdvertiseAddress(),
 		f.bridge.GetSMTPPort(),
 		address,
 		user.BridgePass,

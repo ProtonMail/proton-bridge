@@ -20,8 +20,10 @@ package app
 import (
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/cookiejar"
+	"net/netip"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -75,6 +77,9 @@ const (
 
 	flagNonInteractive      = "noninteractive"
 	flagNonInteractiveShort = "n"
+
+	flagBind      = "bind"
+	flagAdvertise = "advertise"
 
 	flagLogIMAP = "log-imap"
 	flagLogSMTP = "log-smtp"
@@ -160,6 +165,15 @@ func New() *cli.App {
 			Name:    flagNonInteractive,
 			Aliases: []string{flagNonInteractiveShort},
 			Usage:   "Start the app in non-interactive mode",
+		},
+		&cli.StringFlag{
+			Name:  flagBind,
+			Usage: "Bind the local IMAP and SMTP servers to the given IP address",
+			Value: constants.Host,
+		},
+		&cli.StringFlag{
+			Name:  flagAdvertise,
+			Usage: "Advertise this address in mail client configuration",
 		},
 		&cli.StringFlag{
 			Name:  flagLogIMAP,
@@ -248,6 +262,11 @@ func run(c *cli.Context) error {
 		return nil
 	}
 
+	bindAddress, advertiseAddress, err := resolveMailServerAddresses(c.String(flagBind), c.String(flagAdvertise))
+	if err != nil {
+		return err
+	}
+
 	// Create a user agent that will be used for all requests.
 	identifier := useragent.New()
 
@@ -296,6 +315,10 @@ func run(c *cli.Context) error {
 							logrus.WithError(migrationErr).Error("Failed to migrate old app data")
 						}
 
+						if ip := net.ParseIP(bindAddress); ip != nil && !ip.IsLoopback() {
+							logrus.WithField("bind", bindAddress).Warn("Bridge mail servers are configured to listen on a non-loopback address")
+						}
+
 						// Ensure we are the only instance running.
 						settings, err := locations.ProvideSettingsPath()
 						if err != nil {
@@ -340,7 +363,7 @@ func run(c *cli.Context) error {
 										// Load the cookies from the vault.
 										return withCookieJar(v, func(cookieJar http.CookieJar) error {
 											// Create a new bridge instance.
-											return withBridge(c, exe, locations, version, identifier, obsService, crashHandler, reporter, v, cookieJar, keychains, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
+											return withBridge(c, exe, locations, version, identifier, obsService, crashHandler, reporter, v, cookieJar, keychains, bindAddress, advertiseAddress, func(b *bridge.Bridge, eventCh <-chan events.Event) error {
 												if insecure {
 													logrus.Warn("The vault key could not be retrieved; the vault will not be encrypted")
 													b.PushError(bridge.ErrVaultInsecure)
@@ -374,6 +397,88 @@ func run(c *cli.Context) error {
 	}
 
 	return err
+}
+
+func resolveMailServerAddresses(bindAddress, advertiseAddress string) (string, string, error) {
+	if err := validateBindAddress(bindAddress); err != nil {
+		return "", "", err
+	}
+
+	bindIP, err := netip.ParseAddr(bindAddress)
+	if err != nil {
+		return "", "", fmt.Errorf("--%s must be an IP address", flagBind)
+	}
+
+	if advertiseAddress == "" {
+		if bindIP.IsUnspecified() {
+			return "", "", fmt.Errorf("--%s is required when --%s is an unspecified address", flagAdvertise, flagBind)
+		}
+
+		return bindAddress, bindAddress, nil
+	}
+
+	if err := validateAdvertiseAddress(advertiseAddress); err != nil {
+		return "", "", err
+	}
+
+	return bindAddress, advertiseAddress, nil
+}
+
+func validateBindAddress(address string) error {
+	if _, err := netip.ParseAddr(address); err != nil {
+		return fmt.Errorf("--%s must be an IP address", flagBind)
+	}
+
+	return nil
+}
+
+func validateAdvertiseAddress(address string) error {
+	if host, _, err := net.SplitHostPort(address); err == nil && host != "" {
+		return fmt.Errorf("--%s must not include a port", flagAdvertise)
+	}
+
+	if ip, err := netip.ParseAddr(address); err == nil {
+		if ip.IsUnspecified() {
+			return fmt.Errorf("--%s must not be an unspecified address", flagAdvertise)
+		}
+
+		return nil
+	}
+
+	if isValidHostname(address) {
+		return nil
+	}
+
+	return fmt.Errorf("--%s must be an IP address or hostname", flagAdvertise)
+}
+
+func isValidHostname(hostname string) bool {
+	if hostname == "" || len(hostname) > 253 {
+		return false
+	}
+
+	labelStart := 0
+	for i := 0; i <= len(hostname); i++ {
+		if i != len(hostname) && hostname[i] != '.' {
+			continue
+		}
+
+		label := hostname[labelStart:i]
+		if len(label) == 0 || len(label) > 63 || label[0] == '-' || label[len(label)-1] == '-' {
+			return false
+		}
+
+		for j := 0; j < len(label); j++ {
+			c := label[j]
+			if !(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '-') {
+				return false
+			}
+		}
+
+		labelStart = i + 1
+	}
+
+	return true
 }
 
 // If there's another instance already running, try to raise it and exit.

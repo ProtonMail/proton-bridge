@@ -848,6 +848,8 @@ func withBridgeNoMocks(
 		os.Getenv("BRIDGE_LOG_IMAP_CLIENT") == "1",
 		os.Getenv("BRIDGE_LOG_IMAP_SERVER") == "1",
 		os.Getenv("BRIDGE_LOG_SMTP") == "1",
+		constants.Host,
+		constants.Host,
 	)
 	require.NoError(t, err)
 	require.Empty(t, bridge.GetErrors())

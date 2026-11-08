@@ -39,6 +39,7 @@ import (
 	"github.com/ProtonMail/gluon/reporter"
 	"github.com/ProtonMail/gluon/watcher"
 	"github.com/ProtonMail/go-proton-api"
+	"github.com/ProtonMail/proton-bridge/v3/internal/certs"
 	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/events"
 	"github.com/ProtonMail/proton-bridge/v3/internal/focus"
@@ -122,9 +123,11 @@ type Bridge struct {
 	errors []error
 
 	// These control the bridge's IMAP and SMTP logging behaviour.
-	logIMAPClient bool
-	logIMAPServer bool
-	logSMTP       bool
+	logIMAPClient    bool
+	logIMAPServer    bool
+	logSMTP          bool
+	bindAddress      string
+	advertiseAddress string
 
 	// These two variables keep track of the startup values for the two settings of the same name.
 	// They are updated in the vault on startup so that we're sure they're updated in case of kill/crash,
@@ -182,6 +185,8 @@ func New(
 
 	logIMAPClient, logIMAPServer bool, // whether to log IMAP client/server activity
 	logSMTP bool, // whether to log SMTP activity
+	bindAddress string, // the IP address the IMAP and SMTP servers bind to
+	advertiseAddress string, // the address shown to mail clients
 ) (*Bridge, <-chan events.Event, error) {
 	// api is the user's API manager.
 	api := proton.New(newAPIOptions(apiURL, curVersion, cookieJar, roundTripper, panicHandler)...)
@@ -214,6 +219,8 @@ func New(
 		uidValidityGenerator,
 		heartBeatManager,
 		logIMAPClient, logIMAPServer, logSMTP,
+		bindAddress,
+		advertiseAddress,
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create bridge: %w", err)
@@ -252,8 +259,10 @@ func newBridge(
 	heartbeatManager telemetry.HeartbeatManager,
 
 	logIMAPClient, logIMAPServer, logSMTP bool,
+	bindAddress string,
+	advertiseAddress string,
 ) (*Bridge, error) {
-	tlsConfig, err := loadTLSConfig(vault)
+	tlsConfig, err := loadTLSConfig(vault, advertiseAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load TLS config: %w", err)
 	}
@@ -310,9 +319,11 @@ func newBridge(
 		autostarter:  autostarter,
 		locator:      locator,
 
-		logIMAPClient: logIMAPClient,
-		logIMAPServer: logIMAPServer,
-		logSMTP:       logSMTP,
+		logIMAPClient:    logIMAPClient,
+		logIMAPServer:    logIMAPServer,
+		logSMTP:          logSMTP,
+		bindAddress:      bindAddress,
+		advertiseAddress: advertiseAddress,
 
 		firstStart:  firstStart,
 		lastVersion: lastVersion,
@@ -339,6 +350,8 @@ func newBridge(
 		&bridgeIMAPSMTPTelemetry{b: bridge},
 		obsService,
 		unleashService,
+		bindAddress,
+		advertiseAddress,
 	)
 
 	// Check whether username has changed and correct (macOS only)
@@ -649,8 +662,34 @@ func (bridge *Bridge) Repair() {
 	wg.Wait()
 }
 
-func loadTLSConfig(vault *vault.Vault) (*tls.Config, error) {
-	cert, err := tls.X509KeyPair(vault.GetBridgeTLSCert())
+func certMatchesAddresses(certPEM []byte, addresses []string) bool {
+	for _, address := range addresses {
+		if !certs.CertMatchesAddress(certPEM, address) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func loadTLSConfig(v *vault.Vault, advertiseAddress string) (*tls.Config, error) {
+	certPEM, keyPEM := v.GetBridgeTLSCert()
+	certAddresses := vault.BridgeTLSCertAddresses(advertiseAddress)
+
+	if !v.HasCustomBridgeTLSCert() && !certMatchesAddresses(certPEM, certAddresses) {
+		logrus.WithFields(logrus.Fields{
+			"advertiseAddress": advertiseAddress,
+			"certAddresses":    certAddresses,
+		}).Warn("Regenerating bridge TLS certificate for advertised address")
+
+		if err := v.SetBridgeTLSCertForAddress(advertiseAddress); err != nil {
+			return nil, err
+		}
+
+		certPEM, keyPEM = v.GetBridgeTLSCert()
+	}
+
+	cert, err := tls.X509KeyPair(certPEM, keyPEM)
 	if err != nil {
 		return nil, err
 	}

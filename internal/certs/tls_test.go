@@ -19,6 +19,7 @@ package certs
 
 import (
 	"crypto/tls"
+	"net"
 	"testing"
 	"time"
 
@@ -66,6 +67,29 @@ func TestGetValidConfig(t *testing.T) {
 	require.False(t, now.After(notValidAfter), "new certificate expected to be valid at %v but have valid until %v", now, notValidAfter)
 }
 
+func TestNewTLSTemplateAddsAddressSANs(t *testing.T) {
+	template, err := NewTLSTemplate("192.168.1.10", "2001:db8::1", "mail.example.local")
+	require.NoError(t, err)
+
+	require.Equal(t, "192.168.1.10", template.Subject.CommonName)
+	require.True(t, containsIP(template.IPAddresses, net.ParseIP("192.168.1.10")))
+	require.True(t, containsIP(template.IPAddresses, net.ParseIP("2001:db8::1")))
+	require.Contains(t, template.DNSNames, "mail.example.local")
+}
+
+func TestCertMatchesAddress(t *testing.T) {
+	tlsTemplate, err := NewTLSTemplate("192.168.1.10", "mail.example.local")
+	require.NoError(t, err)
+
+	pemCert, pemKey, err := GenerateCert(tlsTemplate)
+	require.NoError(t, err)
+	require.NotEmpty(t, pemKey)
+
+	require.True(t, CertMatchesAddress(pemCert, "192.168.1.10"))
+	require.True(t, CertMatchesAddress(pemCert, "mail.example.local"))
+	require.False(t, CertMatchesAddress(pemCert, "127.0.0.1"))
+}
+
 func TestNewConfig(t *testing.T) {
 	tlsTemplate, err := NewTLSTemplate()
 	require.NoError(t, err)
@@ -76,4 +100,14 @@ func TestNewConfig(t *testing.T) {
 	cert, err := tls.X509KeyPair(pemCert, pemKey)
 	require.NoError(t, err)
 	require.NotNil(t, cert)
+}
+
+func containsIP(ips []net.IP, want net.IP) bool {
+	for _, ip := range ips {
+		if ip.Equal(want) {
+			return true
+		}
+	}
+
+	return false
 }

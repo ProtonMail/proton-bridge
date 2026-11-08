@@ -23,7 +23,6 @@ import (
 	"strings"
 
 	"github.com/ProtonMail/proton-bridge/v3/internal/clientconfig"
-	"github.com/ProtonMail/proton-bridge/v3/internal/constants"
 	"github.com/ProtonMail/proton-bridge/v3/internal/logging"
 	"github.com/ProtonMail/proton-bridge/v3/internal/safe"
 	"github.com/ProtonMail/proton-bridge/v3/internal/useragent"
@@ -76,7 +75,7 @@ func (bridge *Bridge) ConfigureAppleMail(ctx context.Context, userID, address st
 		}
 
 		return (&clientconfig.AppleMail{}).Configure(
-			constants.Host,
+			bridge.GetAdvertiseAddress(),
 			bridge.vault.GetIMAPPort(),
 			bridge.vault.GetSMTPPort(),
 			bridge.vault.GetIMAPSSL(),
