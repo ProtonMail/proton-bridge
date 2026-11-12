@@ -13,6 +13,7 @@
 godog.test
 debug.test
 coverage.html
+coverage/
 gobinsec-cache*.yml
 
 # Run files
@@ -35,6 +36,7 @@ vendor-cache
 cmd/Desktop-Bridge/deploy
 cmd/Import-Export/deploy
 proton-bridge
+/bridge
 cmd/Desktop-Bridge/*.exe
 cmd/launcher/*.exe
 bin/
@@ -49,3 +51,13 @@ _doc/
 # gRPC auto-generated C++ source files
 *.pb.cc
 *.pb.h
+
+# Local certificates (never commit)
+*.pem
+/certs/
+
+# Local service script
+bridge_service.sh
+
+# System research/audit docs
+research/

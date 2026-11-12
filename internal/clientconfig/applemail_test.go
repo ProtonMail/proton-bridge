@@ -33,6 +33,6 @@ func TestEscapeXMLString(t *testing.T) {
 func _TestInstallCert(t *testing.T) { //nolint:unused
 	require.NoError(
 		t,
-		(&AppleMail{}).Configure(`127.0.0.1`, 1143, 1025, true, false, `user&>>`, `<<abc&&'"def>>`, `user&a`, []byte(`ir8R9vhdNXyB7isWzhyEkQ`)),
+		(&AppleMail{}).Configure(`0.0.0.0`, 1143, 1025, true, false, `user&>>`, `<<abc&&'"def>>`, `user&a`, []byte(`ir8R9vhdNXyB7isWzhyEkQ`)),
 	)
 }

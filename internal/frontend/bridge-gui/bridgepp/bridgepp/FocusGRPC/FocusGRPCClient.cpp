@@ -29,7 +29,7 @@ namespace {
 
 
 Empty empty; ///< Empty protobuf message, re-used across calls.
-QString const hostname = "127.0.0.1"; ///< The hostname of the focus service.
+QString const hostname = "0.0.0.0"; ///< The hostname of the focus service.
 
 
 }
