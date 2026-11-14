@@ -8,7 +8,7 @@
   - For Windows, it is recommended to use MinGW 64bit shell from [MSYS2](https://www.msys2.org/)
 * GCC (Linux), msvc (Windows) or Xcode (macOS)
 * Windres (Windows)
-* libglvnd and libsecret development files (Linux)
+* libglvnd, libsecret, and libfido2 development files (Linux)
 * pkg-config (Linux)
 * cmake, ninja-build and Qt 6.8.2 are required to build the graphical user interface. On Linux, 
 the Mesa OpenGL development files are also needed.
