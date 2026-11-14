@@ -1446,3 +1446,25 @@ func TestSanitizeMBOXHeaderLine(t *testing.T) {
 		t.Run("CRLF"+given, func(t *testing.T) { test(t, given, want, true) })
 	}
 }
+
+func TestSanitizeMBOXHeaderLineManyLines(t *testing.T) {
+	const lines = 5000
+
+	headers := "From: sender\nTo: recipient\nDate: today\n\nbody\n"
+	body := strings.Repeat("From mbox\n", lines) + headers
+
+	decrypted := &DecryptedMessage{}
+	decrypted.Body = *bytes.NewBufferString(body)
+
+	require.NoError(t, sanitizeMBOXHeaderLine(decrypted))
+	require.Equal(t, headers, decrypted.Body.String())
+
+	// The body must not be rescanned and copied again for every removed line.
+	allocs := testing.AllocsPerRun(5, func() {
+		decrypted := &DecryptedMessage{}
+		decrypted.Body = *bytes.NewBufferString(body)
+
+		_ = sanitizeMBOXHeaderLine(decrypted)
+	})
+	require.Less(t, allocs, float64(lines/10))
+}
