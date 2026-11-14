@@ -620,33 +620,54 @@ func sanitizeMBOXHeaderLine(decrypted *DecryptedMessage) error {
 		return nil
 	}
 
-	i := indexMBOXHeaderLine(decrypted.Body.Bytes())
-	for i >= 0 {
-		var buf bytes.Buffer
+	body := decrypted.Body.Bytes()
+
+	// Dropping an mbox line cannot add or remove one of the required headers,
+	// so the header section only has to be located once.
+	headerEnd := extractHeaderPartEnd(body)
+
+	var buf bytes.Buffer
+
+	copied := 0
+
+	for i := range headerEnd {
+		if i != 0 && body[i] != '\n' {
+			continue
+		}
+
+		j := 0
+		if i != 0 {
+			j = i + 1
+		}
+
+		if !bytes.HasPrefix(body[j:], mboxFrom()) && !bytes.HasPrefix(body[j:], mboxGtFrom()) {
+			continue
+		}
 
 		// copy until mbox line
-		if i > 0 {
-			if _, err := buf.Write(decrypted.Body.Next(i)); err != nil {
-				return fmt.Errorf("cannot copy first lines: %w", err)
-			}
+		if _, err := buf.Write(body[copied:j]); err != nil {
+			return fmt.Errorf("cannot copy first lines: %w", err)
 		}
 
 		// dump mbox line
-		eol := bytes.IndexRune(decrypted.Body.Bytes(), '\n')
-		if eol == 0 || eol == -1 {
+		eol := bytes.IndexByte(body[j:], '\n')
+		if eol == -1 {
 			return errors.New("cannot find end of mbox line")
 		}
 
-		_ = decrypted.Body.Next(eol + 1)
-
-		// copy rest
-		if _, err := buf.Write(decrypted.Body.Bytes()); err != nil {
-			return fmt.Errorf("cannot copy rest of message: %w", err)
-		}
-
-		decrypted.Body = buf
-		i = indexMBOXHeaderLine(decrypted.Body.Bytes())
+		copied = j + eol + 1
 	}
+
+	if copied == 0 {
+		return nil
+	}
+
+	// copy rest
+	if _, err := buf.Write(body[copied:]); err != nil {
+		return fmt.Errorf("cannot copy rest of message: %w", err)
+	}
+
+	decrypted.Body = buf
 
 	return nil
 }
