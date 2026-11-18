@@ -33,6 +33,10 @@ const (
 	pmInternal = "internal" // A mix between pgpInline and pgpMime used by PM.
 )
 
+// sendableKeyState are the flags a recipient key served by the API needs to be used for encryption.
+// A key without KeyStateTrusted was marked compromised by its owner, one without KeyStateActive was marked obsolete.
+const sendableKeyState = proton.KeyStateTrusted | proton.KeyStateActive
+
 type contactSettings struct {
 	Email            string
 	Keys             []string
@@ -376,7 +380,7 @@ func (b *sendPrefsBuilder) setInternalPGPSettings(
 //     validates the keys and the first one provided should be valid).
 func pickSendingKey(vCardData *contactSettings, rawAPIKeys []proton.PublicKey) (*crypto.KeyRing, error) {
 	contactKeys := make([]*crypto.Key, len(vCardData.Keys))
-	apiKeys := make([]*crypto.Key, len(rawAPIKeys))
+	apiKeys := make([]*crypto.Key, 0, len(rawAPIKeys))
 
 	for i, key := range vCardData.Keys {
 		var ck *crypto.Key
@@ -390,7 +394,12 @@ func pickSendingKey(vCardData *contactSettings, rawAPIKeys []proton.PublicKey) (
 		contactKeys[i] = ck
 	}
 
-	for i, key := range rawAPIKeys {
+	for _, key := range rawAPIKeys {
+		// Never encrypt to a key its owner marked as compromised or obsolete, even if it is pinned.
+		if key.Flags&sendableKeyState != sendableKeyState {
+			continue
+		}
+
 		var ck *crypto.Key
 
 		// API keys are armored.
@@ -399,7 +408,11 @@ func pickSendingKey(vCardData *contactSettings, rawAPIKeys []proton.PublicKey) (
 			return nil, err
 		}
 
-		apiKeys[i] = ck
+		apiKeys = append(apiKeys, ck)
+	}
+
+	if len(apiKeys) == 0 {
+		return nil, errors.New("none of the API keys is valid for sending")
 	}
 
 	matchedKeys := matchFingerprints(contactKeys, apiKeys)
