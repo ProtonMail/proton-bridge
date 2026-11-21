@@ -48,48 +48,57 @@ endif()
 #****************************************************************************************************************************************************
 # vcpkg, toolchain, and architecture
 #****************************************************************************************************************************************************
-# We rely on vcpkg for to get gRPC / Protobuf
-# run build.sh / build.ps1 to get gRPC / Protobuf and dependencies installed.
+# We rely on vcpkg to get gRPC / Protobuf / Sentry by default.
+# Run build.sh / build.ps1 to get gRPC / Protobuf and dependencies installed.
+#
+# Distributions ship these libraries as system packages and must not fetch them
+# through vcpkg. Such builds can set -DBRIDGE_USE_SYSTEM_DEPS=ON and provide the
+# CMake packages for Qt, gRPC, Protobuf and Sentry themselves.
+option(BRIDGE_USE_SYSTEM_DEPS "Use system gRPC, Protobuf and Sentry instead of vcpkg" OFF)
 
-if(WIN32)
-    set(VCPKG_ROOT "${BRIDGE_REPO_ROOT}/extern/vcpkg-windows")
+if (BRIDGE_USE_SYSTEM_DEPS)
+    message(STATUS "Using system-provided gRPC, Protobuf and Sentry (vcpkg disabled)")
 else()
-    set(VCPKG_ROOT "${BRIDGE_REPO_ROOT}/extern/vcpkg")
-endif()
-message(STATUS "VCPKG_ROOT is ${VCPKG_ROOT}")
+    if(WIN32)
+        set(VCPKG_ROOT "${BRIDGE_REPO_ROOT}/extern/vcpkg-windows")
+    else()
+        set(VCPKG_ROOT "${BRIDGE_REPO_ROOT}/extern/vcpkg")
+    endif()
+    message(STATUS "VCPKG_ROOT is ${VCPKG_ROOT}")
 
-if (WIN32)
-    find_program(VCPKG_EXE "${VCPKG_ROOT}/vcpkg.exe")
-else()
-    find_program(VCPKG_EXE "${VCPKG_ROOT}/vcpkg")
-endif()
-if (NOT VCPKG_EXE)
-    message(FATAL_ERROR "vcpkg is not installed. Run build.sh (macOS/Linux) or build.ps1 (Windows) first.")
-endif()
-
-# For now we support only a single architecture for macOS (ARM64 or x86_64). We need to investigate how to build universal binaries with vcpkg.
-if (APPLE)
-    if (NOT DEFINED CMAKE_OSX_ARCHITECTURES)
-        execute_process(COMMAND "uname" "-m" OUTPUT_VARIABLE UNAME_RESULT OUTPUT_STRIP_TRAILING_WHITESPACE)
-        set(CMAKE_OSX_ARCHITECTURES ${UNAME_RESULT} CACHE STRING "osx_architectures")
+    if (WIN32)
+        find_program(VCPKG_EXE "${VCPKG_ROOT}/vcpkg.exe")
+    else()
+        find_program(VCPKG_EXE "${VCPKG_ROOT}/vcpkg")
+    endif()
+    if (NOT VCPKG_EXE)
+        message(FATAL_ERROR "vcpkg is not installed. Run build.sh (macOS/Linux) or build.ps1 (Windows) first, or configure with -DBRIDGE_USE_SYSTEM_DEPS=ON to use system libraries.")
     endif()
 
-    if (CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
-        set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
-        message(STATUS "Building for Apple Silicon Mac computers")
-        set(VCPKG_TARGET_TRIPLET arm64-osx-min-11-0)
-    elseif (CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
-        set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
-        message(STATUS "Building for Intel based Mac computers")
-        set(VCPKG_TARGET_TRIPLET x64-osx-min-10-15)
-    else ()
-        message(FATAL_ERROR "Unknown value for CMAKE_OSX_ARCHITECTURE. Please use one of \"arm64\" and \"x86_64\". Multiple architectures are not supported.")
-    endif ()
-endif()
+    # For now we support only a single architecture for macOS (ARM64 or x86_64). We need to investigate how to build universal binaries with vcpkg.
+    if (APPLE)
+        if (NOT DEFINED CMAKE_OSX_ARCHITECTURES)
+            execute_process(COMMAND "uname" "-m" OUTPUT_VARIABLE UNAME_RESULT OUTPUT_STRIP_TRAILING_WHITESPACE)
+            set(CMAKE_OSX_ARCHITECTURES ${UNAME_RESULT} CACHE STRING "osx_architectures")
+        endif()
 
-if  (WIN32)
-    message(STATUS "Building for Intel x64 Windows computers")
-    set(VCPKG_TARGET_TRIPLET x64-windows)
-endif()
+        if (CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+            set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
+            message(STATUS "Building for Apple Silicon Mac computers")
+            set(VCPKG_TARGET_TRIPLET arm64-osx-min-11-0)
+        elseif (CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
+            set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
+            message(STATUS "Building for Intel based Mac computers")
+            set(VCPKG_TARGET_TRIPLET x64-osx-min-10-15)
+        else ()
+            message(FATAL_ERROR "Unknown value for CMAKE_OSX_ARCHITECTURE. Please use one of \"arm64\" and \"x86_64\". Multiple architectures are not supported.")
+        endif ()
+    endif()
 
-set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "toolchain")
+    if  (WIN32)
+        message(STATUS "Building for Intel x64 Windows computers")
+        set(VCPKG_TARGET_TRIPLET x64-windows)
+    endif()
+
+    set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "toolchain")
+endif()
