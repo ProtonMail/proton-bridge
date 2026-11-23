@@ -509,7 +509,7 @@ func (f *frontendCLI) watchEvents(eventCh <-chan events.Event) { // nolint:gocyc
 			f.notifyCertIssue()
 
 		case events.Raise:
-			f.Printf("Hello!")
+			f.Printf("Hello!\n")
 
 		case events.UserNotification:
 			user, err := f.bridge.GetUserInfo(event.UserID)
