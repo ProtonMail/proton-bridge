@@ -59,7 +59,7 @@ BRIDGE_REVISION=$(git rev-parse --short=10 HEAD)
 BRIDGE_TAG=${BRIDGE_TAG:-"NOTAG"}
 BRIDGE_DSN_SENTRY=${BRIDGE_DSN_SENTRY}
 BRIDGE_BUILD_TIME=${BRIDGE_BUILD_TIME}
-BRIDGE_BUILD_ENV= ${BRIDGE_BUILD_ENV:-"dev"}
+BRIDGE_BUILD_ENV=${BRIDGE_BUILD_ENV:-"dev"}
 git submodule update --init --recursive ${VCPKG_ROOT}
 check_exit "Failed to initialize vcpkg as a submodule."
 
