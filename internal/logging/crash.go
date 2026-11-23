@@ -37,6 +37,7 @@ func DumpStackTrace(logsPath string, sessionID SessionID, appName AppName) crash
 		if err != nil {
 			return err
 		}
+		defer f.Close()
 
 		if _, err := fmt.Fprintf(f, "Recover: %v", r); err != nil {
 			return err
