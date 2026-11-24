@@ -47,6 +47,23 @@ make build
 make build-nogui
 ```
 
+#### Build the GUI with distribution-provided libraries
+Distributions should link against system libraries instead of fetching gRPC,
+Protobuf and Sentry with vcpkg:
+
+```bash
+cmake -S internal/frontend/bridge-gui/bridge-gui -B build-gui -G Ninja \
+    -DBRIDGE_USE_SYSTEM_DEPS=ON \
+    -DBRIDGE_APP_FULL_NAME="Proton Mail Bridge" \
+    -DBRIDGE_VENDOR="Proton AG" \
+    -DBRIDGE_APP_VERSION=3.27.2
+cmake --build build-gui
+```
+
+Qt 6, gRPC, Protobuf, Sentry and the C/C++ runtime development files must be
+installed, and `qmake6` must be in `PATH`. The Neko-Void/Void package template
+under `packaging/neko-void` builds Bridge this way.
+
 * To launch Bridge without GUI, you can invoke the `bridge` executable with one the following command-line switches:
   * `--noninteractive` or `-n` to start Bridge without any interface (i.e., there is no way to add or remove client, get bridge password, etc.)
   * `--cli` or `-c` to start Bridge with an interactive terminal interface.

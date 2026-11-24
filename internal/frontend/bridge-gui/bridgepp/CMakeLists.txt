@@ -57,6 +57,14 @@ message(STATUS "Using gRPC ${gRPC_VERSION}")
 find_program(PROTOC_EXE protoc REQUIRED)
 message(STATUS "protoc found ${PROTOC_EXE}")
 
+# protoc resolves imports such as google/protobuf/empty.proto on its own include
+# path, so pass the Protobuf include directories explicitly. vcpkg happens to
+# make them available, distribution packages do not.
+set(PROTOBUF_INCLUDE_ARGS "")
+foreach(protobuf_include_dir IN LISTS Protobuf_INCLUDE_DIRS)
+    list(APPEND PROTOBUF_INCLUDE_ARGS "--proto_path=${protobuf_include_dir}")
+endforeach()
+
 message(STATUS "grpc_cpp_plugin ${grpc_cpp_plugin}")
 
 find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin HINTS "${VCPKG_ROOT}/installed/arm64-osx/tools/grpc" "${VCPKG_ROOT}/installed/x64-osx/tools/grpc")
@@ -88,6 +96,7 @@ add_custom_command(
     ${PROTOC_EXE}
     ARGS
     --proto_path=${PROTO_DIR}
+    ${PROTOBUF_INCLUDE_ARGS}
     --plugin=protoc-gen-grpc="${GRPC_CPP_PLUGIN}"
     --cpp_out=${GRPC_OUT_DIR}
     --grpc_out=${GRPC_OUT_DIR}
@@ -119,6 +128,7 @@ add_custom_command(
     ${PROTOC_EXE}
     ARGS
     --proto_path=${FOCUS_PROTO_DIR}
+    ${PROTOBUF_INCLUDE_ARGS}
     --plugin=protoc-gen-grpc="${GRPC_CPP_PLUGIN}"
     --cpp_out=${FOCUS_GRPC_OUT_DIR}
     --grpc_out=${FOCUS_GRPC_OUT_DIR}
